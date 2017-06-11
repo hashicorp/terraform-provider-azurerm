@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var networkSecurityGroupResourceName = "azurerm_network_security_group"
+
 func resourceArmNetworkSecurityGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNetworkSecurityGroupCreate,

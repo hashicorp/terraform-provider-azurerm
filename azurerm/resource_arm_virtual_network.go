@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var virtualNetworkResourceName = "azurerm_virtual_network"
+
 func resourceArmVirtualNetwork() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmVirtualNetworkCreate,
@@ -114,8 +116,8 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultiple(&networkSecurityGroupNames)
-	defer azureRMUnlockMultiple(&networkSecurityGroupNames)
+	azureRMLockMultipleByName(&networkSecurityGroupNames, virtualNetworkResourceName)
+	defer azureRMUnlockMultipleByName(&networkSecurityGroupNames, virtualNetworkResourceName)
 
 	_, error := vnetClient.CreateOrUpdate(resGroup, name, vnet, make(chan struct{}))
 	err := <-error
@@ -208,8 +210,8 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("[ERROR] Error parsing Network Security Group ID's: %+v", err)
 	}
 
-	azureRMLockMultiple(&nsgNames)
-	defer azureRMUnlockMultiple(&nsgNames)
+	azureRMLockMultipleByName(&nsgNames, virtualNetworkResourceName)
+	defer azureRMUnlockMultipleByName(&nsgNames, virtualNetworkResourceName)
 
 	_, error := vnetClient.Delete(resGroup, name, make(chan struct{}))
 	err = <-error
