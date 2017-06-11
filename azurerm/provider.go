@@ -120,6 +120,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_network":           resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_peering":   resourceArmVirtualNetworkPeering(),
 
+			"azurerm_app_insights": resourceArmAppInsights(),
+
 			// These resources use the Riviera SDK
 			"azurerm_dns_a_record":      resourceArmDnsARecord(),
 			"azurerm_dns_aaaa_record":   resourceArmDnsAAAARecord(),
