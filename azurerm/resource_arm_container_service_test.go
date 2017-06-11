@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -96,7 +97,9 @@ func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 
 func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMContainerService_kubernetesBasic, ri, ri, ri, ri, ri)
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -115,7 +118,9 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 
 func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMContainerService_kubernetesComplete, ri, ri, ri, ri, ri)
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -189,7 +194,8 @@ resource "azurerm_container_service" "test" {
 }
 `
 
-var testAccAzureRMContainerService_kubernetesBasic = `
+func testAccAzureRMContainerService_kubernetesBasic(rInt int, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "East US"
@@ -222,17 +228,19 @@ resource "azurerm_container_service" "test" {
   }
 
   service_principal {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "00000000000000000000000000000000"
+    client_id     = "%s"
+    client_secret = "%s"
   }
 
   diagnostics_profile {
     enabled = false
   }
 }
-`
+`, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+}
 
-var testAccAzureRMContainerService_kubernetesComplete = `
+func testAccAzureRMContainerService_kubernetesComplete(rInt int, clientId string, clientSecret string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "East US"
@@ -265,8 +273,8 @@ resource "azurerm_container_service" "test" {
   }
 
   service_principal {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "00000000000000000000000000000000"
+    client_id     = "%s"
+    client_secret = "%s"
   }
 
   diagnostics_profile {
@@ -277,7 +285,8 @@ resource "azurerm_container_service" "test" {
     you = "me"
   }
 }
-`
+`, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+}
 
 var testAccAzureRMContainerService_swarmBasic = `
 resource "azurerm_resource_group" "test" {
