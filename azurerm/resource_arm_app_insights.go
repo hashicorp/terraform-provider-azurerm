@@ -134,9 +134,9 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 
 	log.Printf("[DEBUG] Deleting application insights %s: %s", resGroup, name)
 
-	_, err = AppInsightsClient.Delete(resGroup, name)
+	resp, err := AppInsightsClient.Delete(resGroup, name)
 	if err != nil {
-		if accResp.StatusCode == http.StatusNotFound {
+		if resp.StatusCode == http.StatusNotFound {
 			return nil
 		}
 		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights '%s': %+v", name, err)
