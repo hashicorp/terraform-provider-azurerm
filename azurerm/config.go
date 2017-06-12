@@ -28,6 +28,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
 	riviera "github.com/jen20/riviera/azure"
+	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -51,6 +52,7 @@ type ArmClient struct {
 	vmClient               compute.VirtualMachinesClient
 
 	diskClient disk.DisksClient
+	documentDBClient documentdb.DatabaseAccountsClient
 
 	appGatewayClient             network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
@@ -253,6 +255,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	csc.Authorizer = auth
 	csc.Sender = autorest.CreateSender(withRequestLogging())
 	client.containerServicesClient = csc
+
+	ddb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ddb.Client)
+	ddb.Authorizer = auth
+	ddb.Sender = autorest.CreateSender(withRequestLogging())
+	client.documentDBClient = ddb
 
 	dkc := disk.NewDisksClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dkc.Client)
