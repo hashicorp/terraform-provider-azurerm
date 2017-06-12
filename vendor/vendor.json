@@ -3,6 +3,14 @@
 	"ignore": "appengine test github.com/hashicorp/nomad/",
 	"package": [
 		{
+			"checksumSHA1": "Beu5GwttkjDfz+YZ4q5L15R10Z8=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/appinsights",
+			"revision": "5841475edc7c8725d79885d635aa8956f97fdf0e",
+			"revisionTime": "2017-05-10T22:14:13Z",
+			"version": "=v10.0.2-beta",
+			"versionExact": "v10.0.2-beta"
+		},
+		{
 			"checksumSHA1": "cmMpbgzcc+qBJOOO80ZmgLdij5I=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/cdn",
 			"revision": "5841475edc7c8725d79885d635aa8956f97fdf0e",

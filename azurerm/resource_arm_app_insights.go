@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func resourceArmAppInsights() *schema.Resource {
+func resourceArmApplicationInsights() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppInsightsCreateOrUpdate,
-		Read:   resourceArmAppInsightsRead,
-		Update: resourceArmAppInsightsCreateOrUpdate,
-		Delete: resourceArmAppInsightsDelete,
+		Create: resourceArmApplicationInsightsCreateOrUpdate,
+		Read:   resourceArmApplicationInsightsRead,
+		Update: resourceArmApplicationInsightsCreateOrUpdate,
+		Delete: resourceArmApplicationInsightsDelete,
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": {
@@ -42,11 +42,11 @@ func resourceArmAppInsights() *schema.Resource {
 	}
 }
 
-func resourceArmAppInsightsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	AppInsightsClient := client.appInsightsClient
 
-	log.Printf("[INFO] preparing arguments for Azure ARM App Insights creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -81,15 +81,15 @@ func resourceArmAppInsightsCreateOrUpdate(d *schema.ResourceData, meta interface
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read app insights %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read application insights %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppInsightsRead(d, meta)
+	return resourceArmApplicationInsightsRead(d, meta)
 }
 
-func resourceArmAppInsightsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	AppInsightsClient := meta.(*ArmClient).appInsightsClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -97,7 +97,7 @@ func resourceArmAppInsightsRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading app insights %s", id)
+	log.Printf("[DEBUG] Reading application insights %s", id)
 
 	resGroup := id.ResourceGroup
 	name := id.Path["components"]
@@ -108,19 +108,21 @@ func resourceArmAppInsightsRead(d *schema.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure app insights %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM application insights %s: %s", name, err)
 	}
-
-	instrumentationKey := resp.ApplicationInsightsComponentProperties.InstrumentationKey
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("instrumentation_key", instrumentationKey)
+	if resp.ApplicationInsightsComponentProperties != nil {
+		d.Set("application_id", resp.ApplicationInsightsComponentProperties.ApplicationID)
+		d.Set("application_type", string(resp.ApplicationInsightsComponentProperties.ApplicationType))
+		d.Set("instrumentation_key", resp.ApplicationInsightsComponentProperties.InstrumentationKey)
+	}
 
 	return nil
 }
 
-func resourceArmAppInsightsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
 	AppInsightsClient := meta.(*ArmClient).appInsightsClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -130,9 +132,15 @@ func resourceArmAppInsightsDelete(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["components"]
 
-	log.Printf("[DEBUG] Deleting app insights %s: %s", resGroup, name)
+	log.Printf("[DEBUG] Deleting application insights %s: %s", resGroup, name)
 
 	_, err = AppInsightsClient.Delete(resGroup, name)
+	if err != nil {
+		if accResp.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		return fmt.Errorf("Error issuing AzureRM delete request for Application Insights '%s': %+v", name, err)
+	}
 
 	return err
 }
