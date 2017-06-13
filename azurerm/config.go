@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -28,7 +29,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
 	riviera "github.com/jen20/riviera/azure"
-	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -51,7 +51,7 @@ type ArmClient struct {
 	vmImageClient          compute.VirtualMachineImagesClient
 	vmClient               compute.VirtualMachinesClient
 
-	diskClient disk.DisksClient
+	diskClient       disk.DisksClient
 	documentDBClient documentdb.DatabaseAccountsClient
 
 	appGatewayClient             network.ApplicationGatewaysClient
