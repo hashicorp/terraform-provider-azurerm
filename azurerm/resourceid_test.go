@@ -160,6 +160,11 @@ func TestComposeAzureResourceID(t *testing.T) {
 					"k2": "v2",
 					"k3": "v3",
 				},
+				PathOrder: map[int]string{
+					0: "k1",
+					1: "k2",
+					2: "k3",
+				},
 			},
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testGroup1/providers/foo.bar/k1/v1/k2/v2/k3/v3",
 			false,
@@ -192,6 +197,10 @@ func TestComposeAzureResourceID(t *testing.T) {
 					"k2": "v2",
 					"":   "v1",
 				},
+				PathOrder: map[int]string{
+					0: "k2",
+					1: "",
+				},
 			},
 			"",
 			true,
@@ -205,6 +214,29 @@ func TestComposeAzureResourceID(t *testing.T) {
 				Path: map[string]string{
 					"k1": "v1",
 					"k2": "",
+				},
+				PathOrder: map[int]string{
+					0: "k1",
+					1: "k2",
+				},
+			},
+			"",
+			true,
+		},
+		{
+			// Number of items in Path doesn't match PathOrder
+			&ResourceID{
+				SubscriptionID: "00000000-0000-0000-0000-000000000000",
+				ResourceGroup:  "testGroup1",
+				Provider:       "foo.bar",
+				Path: map[string]string{
+					"k1": "v1",
+					"k2": "",
+				},
+				PathOrder: map[int]string{
+					0: "k1",
+					1: "k2",
+					2: "k3",
 				},
 			},
 			"",
