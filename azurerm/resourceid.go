@@ -3,22 +3,18 @@ package azurerm
 import (
 	"fmt"
 	"net/url"
-	"sort"
 	"strings"
 )
 
 // ResourceID represents a parsed long-form Azure Resource Manager ID
 // with the Subscription ID, Resource Group and the Provider as top-
 // level fields, and other key-value pairs available via a map in the
-// Path field. When a ResourceID instance is used to compose a resource
-// ID string, the PathOrder must specify the order of the items in Path
-// since map itself can only be iterated in random order.
+// Path field.
 type ResourceID struct {
 	SubscriptionID string
 	ResourceGroup  string
 	Provider       string
 	Path           map[string]string
-	PathOrder      map[int]string
 }
 
 // parseAzureResourceID converts a long-form Azure Resource Manager ID
@@ -105,35 +101,29 @@ func parseAzureResourceID(id string) (*ResourceID, error) {
 	return idObj, nil
 }
 
-func composeAzureResourceID(idObj *ResourceID) (id string, err error) {
-	if idObj.SubscriptionID == "" || idObj.ResourceGroup == "" {
-		return "", fmt.Errorf("SubscriptionID and ResourceGroup cannot be empty")
+func composeAzureResourceID(subscriptionID string, resourceGroupName string, provider string, path []string) (id string, err error) {
+	if subscriptionID == "" || resourceGroupName == "" {
+		return "", fmt.Errorf("subscriptionID and resourceGroupName cannot be empty")
 	}
 
-	id = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", idObj.SubscriptionID, idObj.ResourceGroup)
+	id = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionID, resourceGroupName)
 
-	if idObj.Provider != "" {
-		if len(idObj.Path) < 1 {
-			return "", fmt.Errorf("ResourceID.Path should have at least one item when ResourceID.Provider is specified")
+	if provider != "" {
+		if len(path) < 1 {
+			return "", fmt.Errorf("path cannot be empty when provider is specified")
 		}
 
-		if len(idObj.PathOrder) != len(idObj.Path) {
-			return "", fmt.Errorf("ResourceID.PathOrder must have the same number of elements as ResourceID.Path")
+		if len(path)%2 != 0 {
+			return "", fmt.Errorf("path must be in pairs (key & value)")
 		}
 
-		id += fmt.Sprintf("/providers/%s", idObj.Provider)
+		id += fmt.Sprintf("/providers/%s", provider)
 
-		var keys []int
-		for k := range idObj.PathOrder {
-			keys = append(keys, k)
-		}
-		sort.Ints(keys)
-
-		for _, i := range keys {
-			k := idObj.PathOrder[i]
-			v := idObj.Path[k]
+		for i := 0; i < len(path); i += 2 {
+			k := path[i]
+			v := path[i+1]
 			if k == "" || v == "" {
-				return "", fmt.Errorf("ResourceID.Path cannot contain empty strings")
+				return "", fmt.Errorf("path cannot contain empty strings")
 			}
 			id += fmt.Sprintf("/%s/%s", k, v)
 		}
