@@ -139,6 +139,9 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error Building list of Network Security Group Rules: %s", sgErr)
 	}
 
+	azureRMLockByName(name, networkSecurityGroupResourceName)
+	defer azureRMUnlockByName(name, networkSecurityGroupResourceName)
+
 	sg := network.SecurityGroup{
 		Name:     &name,
 		Location: &location,

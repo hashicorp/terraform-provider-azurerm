@@ -116,8 +116,8 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultipleByName(&networkSecurityGroupNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&networkSecurityGroupNames, virtualNetworkResourceName)
+	azureRMLockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	defer azureRMUnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 
 	_, error := vnetClient.CreateOrUpdate(resGroup, name, vnet, make(chan struct{}))
 	err := <-error
