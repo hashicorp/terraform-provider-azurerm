@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
+	"github.com/Azure/azure-sdk-for-go/arm/insights"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
@@ -41,6 +42,8 @@ type ArmClient struct {
 	StopContext context.Context
 
 	rivieraClient *riviera.Client
+
+	autoscaleSettingsClient insights.AutoscaleSettingsClient
 
 	availSetClient         compute.AvailabilitySetsClient
 	usageOpsClient         compute.UsageClient

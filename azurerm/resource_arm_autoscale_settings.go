@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"github.com/Azure/azure-sdk-for-go/arm/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -16,6 +17,12 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -213,7 +220,61 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 				},
 			},
 
-			"notifications": {},
+			"notifications": {
+				Type:     schema.TypeSet,
+				Required: false,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"operation": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"email": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"sendToSubscriptionAdministrator": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"sendToSubscriptionCoAdministrator": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"customEmails": {
+										Type:     schema.TypeList,
+										Required: false,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
+						"webhooks": {
+							Type:     schema.TypeSet,
+							Required: false,
+							MinItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"serviceUri": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"properties": {
+										Type:     schema.TypeMap,
+										Optional: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 
 			"enabled": {
 				Type:     schema.TypeBool,
@@ -232,6 +293,19 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 }
 
 func resourceArmAutoscaleSettingsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	armClient := meta.(*ArmClient)
+	asClient := armClient.autoscaleSettingsClient
+
+	name := d.Get("name").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
+
+	parameters := insights.AutoscaleSettingResource{
+		""
+
+	}
+
+	asClient.CreateOrUpdate(resourceGroupName, name, parameters)
+
 	return nil
 }
 
