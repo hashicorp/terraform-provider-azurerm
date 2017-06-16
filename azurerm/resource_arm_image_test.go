@@ -19,7 +19,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	ri := acctest.RandInt()
 	userName := "testadmin"
 	password := "Password1234!"
-	hostName := "tftestcustomimagesrc"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
 	dnsName := fmt.Sprintf("%[1]s.westcentralus.cloudapp.azure.com", hostName)
 	sshPort := "22"
 	preConfig := fmt.Sprintf(testAccAzureRMImage_standaloneImage_setup, ri, userName, password, hostName)
@@ -54,7 +54,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 	ri := acctest.RandInt()
 	userName := "testadmin"
 	password := "Password1234!"
-	hostName := "tftestcustomimagesrc"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
 	dnsName := fmt.Sprintf("%[1]s.westcentralus.cloudapp.azure.com", hostName)
 	sshPort := "22"
 	preConfig := fmt.Sprintf(testAccAzureRMImage_customImage_fromVHD_setup, ri, userName, password, hostName)
@@ -89,7 +89,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 	ri := acctest.RandInt()
 	userName := "testadmin"
 	password := "Password1234!"
-	hostName := "tftestcustomimagesrc"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
 	dnsName := fmt.Sprintf("%[1]s.westcentralus.cloudapp.azure.com", hostName)
 	sshPort := "22"
 	preConfig := fmt.Sprintf(testAccAzureRMImage_customImage_fromVM_sourceVM, ri, userName, password, hostName)
