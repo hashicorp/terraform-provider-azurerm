@@ -30,7 +30,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"profiles": {
+			"profile": {
 				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
@@ -65,29 +65,29 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 							},
 						},
 
-						"rules": {
+						"rule": {
 							Type:     schema.TypeSet,
 							Required: true,
 							MinItems: 1,
 							MaxItems: 10, // https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"metricTrigger": {
+									"metric_trigger": {
 										Type:     schema.TypeSet,
 										Required: true,
 										MinItems: 1,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"metricName": {
+												"metric_name": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"metricResourceUri": {
+												"metric_resource_uri": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"timeGrain": {
+												"time_grain": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
@@ -95,11 +95,11 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"timeWindow": {
+												"time_window": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"timeAggregation": {
+												"time_aggregation": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
@@ -114,7 +114,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 											},
 										},
 									},
-									"scaleAction": {
+									"scale_action": {
 										Type:     schema.TypeSet,
 										Required: true,
 										MinItems: 1,
@@ -144,14 +144,14 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 							},
 						},
 
-						"fixedDate": {
+						"fixed_date": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"timeZone": {
+									"time_zone": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
@@ -185,7 +185,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"timeZone": {
+												"time_zone": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
@@ -200,14 +200,14 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 													Type:     schema.TypeList,
 													Required: true,
 													Elem: &schema.Schema{
-														Type: schema.TypeString,
+														Type: schema.TypeInt,
 													},
 												},
 												"minutes": {
 													Type:     schema.TypeList,
 													Required: true,
 													Elem: &schema.Schema{
-														Type: schema.TypeString,
+														Type: schema.TypeInt,
 													},
 												},
 											},
@@ -220,9 +220,9 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 				},
 			},
 
-			"notifications": {
+			"notification": {
 				Type:     schema.TypeSet,
-				Required: false,
+				Optional: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -237,17 +237,17 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"sendToSubscriptionAdministrator": {
+									"send_to_subscription_administrator": {
 										Type:     schema.TypeBool,
 										Required: true,
 									},
-									"sendToSubscriptionCoAdministrator": {
+									"send_to_subscription_co_administrator": {
 										Type:     schema.TypeBool,
 										Required: true,
 									},
-									"customEmails": {
+									"custom_emails": {
 										Type:     schema.TypeList,
-										Required: false,
+										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
@@ -255,13 +255,13 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 								},
 							},
 						},
-						"webhooks": {
+						"webhook": {
 							Type:     schema.TypeSet,
-							Required: false,
+							Optional: true,
 							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"serviceUri": {
+									"service_uri": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
@@ -281,7 +281,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 				Required: true,
 			},
 
-			"targetResourceUri": {
+			"target_resource_uri": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -298,15 +298,36 @@ func resourceArmAutoscaleSettingsCreateOrUpdate(d *schema.ResourceData, meta int
 
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
-
-	parameters := insights.AutoscaleSettingResource{
-		""
-
+	resourceType := "Microsoft.Insights/autoscaleSettings"
+	location := d.Get("location").(string)
+	enabled := d.Get("enabled").(bool)
+	targetResourceURI := d.Get("target_resource_uri").(string)
+	tags := d.Get("tags").(map[string]interface{})
+	expandedTags := expandTags(tags)
+	autoscaleSettings := insights.AutoscaleSetting{
+		Name:              &name,
+		Enabled:           &enabled,
+		TargetResourceURI: &targetResourceURI,
+		// Profiles:
+		// Notifications:
 	}
 
-	asClient.CreateOrUpdate(resourceGroupName, name, parameters)
+	parameters := insights.AutoscaleSettingResource{
+		Name:             &name,
+		Type:             &resourceType,
+		Location:         &location,
+		Tags:             expandedTags,
+		AutoscaleSetting: &autoscaleSettings,
+	}
 
-	return nil
+	result, err := asClient.CreateOrUpdate(resourceGroupName, name, parameters)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(*result.ID)
+
+	return resourceArmAutoscaleSettingsRead(d, meta)
 }
 
 func resourceArmAutoscaleSettingsRead(d *schema.ResourceData, meta interface{}) error {
@@ -314,5 +335,21 @@ func resourceArmAutoscaleSettingsRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutoscaleSettingsDelete(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	armClient := meta.(*ArmClient)
+	asClient := armClient.autoscaleSettingsClient
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resourceGroupName := id.ResourceGroup
+	autoscaleSettingName := id.Path["autoscalesettings"]
+
+	_, err = asClient.Delete(resourceGroupName, autoscaleSettingName)
+	return err
 }
+
+// func expandAzureRmAutoscaleSettingProfile(d *schema.ResourceData) (*[]insights.AutoscaleProfile, error) {
+// 	d.Get()
+// }
