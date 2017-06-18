@@ -253,12 +253,12 @@ func resourceArmCosmosDBDelete(d *schema.ResourceData, meta interface{}) error {
 	resp := <-deleteResp
 	err = <-error
 
-	if resp.StatusCode != http.StatusNotFound {
-		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB instance '%s': %s", name, err)
-	}
-
 	if err != nil {
-		return err
+		if resp.StatusCode == http.StatusNotFound {
+			return nil
+		}
+
+		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB instance '%s': %+v", name, err)
 	}
 
 	return nil
