@@ -43,10 +43,10 @@ func TestAccAzureRMCosmosDBName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMCosmosDB_standard_boundedStaleness(t *testing.T) {
+func TestAccAzureRMCosmosDB_boundedStaleness(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDB_standard_boundedStaleness(ri)
+	config := testAccAzureRMCosmosDB_boundedStaleness(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,10 +63,9 @@ func TestAccAzureRMCosmosDB_standard_boundedStaleness(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosDB_standard_eventualConsistency(t *testing.T) {
-
+func TestAccAzureRMCosmosDB_eventualConsistency(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDB_standard_eventualConsistency(ri)
+	config := testAccAzureRMCosmosDB_eventualConsistency(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -83,10 +82,48 @@ func TestAccAzureRMCosmosDB_standard_eventualConsistency(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCosmosDB_standardGeoReplicated(t *testing.T) {
+func TestAccAzureRMCosmosDB_session(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMCosmosDB_session(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCosmosDBExists("azurerm_cosmos_db.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDB_strong(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMCosmosDB_strong(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCosmosDBExists("azurerm_cosmos_db.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDB_geoReplicated(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDB_standardGeoReplicated(ri)
+	config := testAccAzureRMCosmosDB_geoReplicated(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -104,7 +141,7 @@ func TestAccAzureRMCosmosDB_standardGeoReplicated(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).documentDbClient
+	conn := testAccProvider.Meta().(*ArmClient).documentDBClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmos_db" {
@@ -142,11 +179,11 @@ func testCheckAzureRMCosmosDBExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for CosmosDB instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).documentDbClient
+		conn := testAccProvider.Meta().(*ArmClient).documentDBClient
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on documentDbClient: %s", err)
+			return fmt.Errorf("Bad: Get on documentDBClient: %s", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -157,7 +194,7 @@ func testCheckAzureRMCosmosDBExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMCosmosDB_standard_boundedStaleness(rInt int) string {
+func testAccAzureRMCosmosDB_boundedStaleness(rInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
@@ -183,7 +220,7 @@ resource "azurerm_cosmos_db" "test" {
 `, rInt, rInt)
 }
 
-func testAccAzureRMCosmosDB_standard_eventualConsistency(rInt int) string {
+func testAccAzureRMCosmosDB_eventualConsistency(rInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
@@ -209,7 +246,59 @@ resource "azurerm_cosmos_db" "test" {
 `, rInt, rInt)
 }
 
-func testAccAzureRMCosmosDB_standardGeoReplicated(rInt int) string {
+func testAccAzureRMCosmosDB_session(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US"
+}
+resource "azurerm_cosmos_db" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  offer_type          = "Standard"
+
+  consistency_policy {
+    consistency_level       = "Session"
+    max_interval_in_seconds = 10
+    max_staleness_prefix    = 200
+  }
+
+  failover_policy {
+    location = "${azurerm_resource_group.test.location}"
+    priority = 0
+  }
+}
+`, rInt, rInt)
+}
+
+func testAccAzureRMCosmosDB_strong(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US"
+}
+resource "azurerm_cosmos_db" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  offer_type          = "Standard"
+
+  consistency_policy {
+    consistency_level       = "Strong"
+    max_interval_in_seconds = 10
+    max_staleness_prefix    = 200
+  }
+
+  failover_policy {
+    location = "${azurerm_resource_group.test.location}"
+    priority = 0
+  }
+}
+`, rInt, rInt)
+}
+
+func testAccAzureRMCosmosDB_geoReplicated(rInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"

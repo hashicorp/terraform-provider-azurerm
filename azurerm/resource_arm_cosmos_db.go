@@ -76,16 +76,16 @@ func resourceArmCosmosDB() *schema.Resource {
 						},
 
 						"max_interval_in_seconds": {
+							// TODO: file a bug, apparently these can be optional/computed
 							Type:         schema.TypeInt,
-							Optional:     true,
-							Computed:     true,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 100),
 						},
 
 						"max_staleness_prefix": {
+							// TODO: file a bug, apparently these can be optional/computed
 							Type:         schema.TypeInt,
-							Optional:     true,
-							Computed:     true,
+							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 2147483647),
 						},
 					},
@@ -269,13 +269,24 @@ func expandAzureRmCosmosDBConsistencyPolicy(d *schema.ResourceData) documentdb.C
 	input := inputs[0].(map[string]interface{})
 
 	consistencyLevel := input["consistency_level"].(string)
-	maxStalenessPrefix := int64(input["max_staleness_prefix"].(int))
-	maxIntervalInSeconds := int32(input["max_interval_in_seconds"].(int))
 
 	policy := documentdb.ConsistencyPolicy{
 		DefaultConsistencyLevel: documentdb.DefaultConsistencyLevel(consistencyLevel),
-		MaxIntervalInSeconds:    &maxIntervalInSeconds,
-		MaxStalenessPrefix:      &maxStalenessPrefix,
+	}
+
+	// TODO: file a bug about these two being required
+	// documentdb.DatabaseAccountsClient#CreateOrUpdate:
+	// Invalid input: autorest/validation: validation failed:
+	// parameter=createUpdateParameters.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy.MaxStalenessPrefix
+	// constraint=InclusiveMinimum value=0 details: value must be greater than or equal to 1
+	if stalenessPrefix, ok := input["max_staleness_prefix"].(int); ok {
+		maxStalenessPrefix := int64(stalenessPrefix)
+		policy.MaxStalenessPrefix = &maxStalenessPrefix
+	}
+
+	if maxInterval, ok := input["max_interval_in_seconds"].(int); ok {
+		maxIntervalInSeconds := int32(maxInterval)
+		policy.MaxIntervalInSeconds = &maxIntervalInSeconds
 	}
 
 	return policy
