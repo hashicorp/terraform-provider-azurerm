@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var networkSecurityGroupResourceName = "azurerm_network_security_group"
+
 func resourceArmNetworkSecurityGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNetworkSecurityGroupCreate,
@@ -136,6 +138,9 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 	if sgErr != nil {
 		return fmt.Errorf("Error Building list of Network Security Group Rules: %s", sgErr)
 	}
+
+	azureRMLockByName(name, networkSecurityGroupResourceName)
+	defer azureRMUnlockByName(name, networkSecurityGroupResourceName)
 
 	sg := network.SecurityGroup{
 		Name:     &name,

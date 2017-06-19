@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var subnetResourceName = "azurerm_subnet"
+
 func resourceArmSubnet() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmSubnetCreate,
@@ -77,11 +79,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	addressPrefix := d.Get("address_prefix").(string)
 
-	armMutexKV.Lock(name)
-	defer armMutexKV.Unlock(name)
-
-	armMutexKV.Lock(vnetName)
-	defer armMutexKV.Unlock(vnetName)
+	azureRMLockByName(vnetName, virtualNetworkResourceName)
+	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -98,8 +97,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(networkSecurityGroupName)
-		defer armMutexKV.Unlock(networkSecurityGroupName)
+		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
@@ -113,8 +112,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(routeTableName)
-		defer armMutexKV.Unlock(routeTableName)
+		azureRMLockByName(routeTableName, routeTableResourceName)
+		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
 	}
 
 	subnet := network.Subnet{
@@ -209,8 +208,8 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(networkSecurityGroupName)
-		defer armMutexKV.Unlock(networkSecurityGroupName)
+		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
@@ -220,15 +219,15 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(routeTableName)
-		defer armMutexKV.Unlock(routeTableName)
+		azureRMLockByName(routeTableName, routeTableResourceName)
+		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
 	}
 
-	armMutexKV.Lock(vnetName)
-	defer armMutexKV.Unlock(vnetName)
+	azureRMLockByName(vnetName, virtualNetworkResourceName)
+	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
 
-	armMutexKV.Lock(name)
-	defer armMutexKV.Unlock(name)
+	azureRMLockByName(name, subnetResourceName)
+	defer azureRMUnlockByName(name, subnetResourceName)
 
 	_, error := subnetClient.Delete(resGroup, vnetName, name, make(chan struct{}))
 	err = <-error

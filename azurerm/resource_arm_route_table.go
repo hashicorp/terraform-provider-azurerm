@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var routeTableResourceName = "azurerm_route_table"
+
 func resourceArmRouteTable() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmRouteTableCreate,
