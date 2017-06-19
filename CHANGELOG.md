@@ -9,3 +9,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * Add diff supress func to endpoint_location [GH-15094](https://github.com/hashicorp/terraform/pull/15094)
+
+BUG FIXES:
+
+* Fixing the Deadlock issue [GH-6]
