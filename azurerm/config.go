@@ -197,6 +197,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// NOTE: these declarations should be left separate for clarity should the
 	// clients be wished to be configured with custom Responders/PollingModess etc...
+	assc := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&assc.Client)
+	assc.Authorizer = auth
+	assc.Sender = autorest.CreateSender(withRequestLogging())
+	client.autoscaleSettingsClient = assc
+
 	asc := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&asc.Client)
 	asc.Authorizer = auth
