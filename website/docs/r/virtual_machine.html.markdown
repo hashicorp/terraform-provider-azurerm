@@ -335,8 +335,27 @@ For more information on the different example configurations, please check out t
 
 `storage_image_reference` supports the following:
 
-* `image_id` - (Required, when using image resource) Specifies the ID of the (custom) image to use to create the virtual 
-machine.
+* `image_id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
+machine, for example:
+
+```hcl
+
+resource "azurerm_image" "test" {
+	name = "test"
+  ...
+}
+
+resource "azurerm_virtual_machine" "test" {
+	name = "test"
+  ...
+
+	storage_image_reference {
+		image_id = "${azurerm_image.test.id}"
+	}
+
+...
+```
+
 * `publisher` - (Required, when not using image resource) Specifies the publisher of the image used to create the virtual machine. Changing this forces a new resource to be created.
 * `offer` - (Required, when not using image resource) Specifies the offer of the image used to create the virtual machine. Changing this forces a new resource to be created.
 * `sku` - (Required, when not using image resource) Specifies the SKU of the image used to create the virtual machine. Changing this forces a new resource to be created.
