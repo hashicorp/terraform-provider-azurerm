@@ -22,7 +22,7 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
@@ -43,17 +43,55 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: initConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetRouteTableExists("azurerm_subnet.test", fmt.Sprintf("acctest-%d", ri)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSubnet_bug7986(t *testing.T) {
+	ri := acctest.RandInt()
+	initConfig := testAccAzureRMSubnet_bug7986(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: initConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSubnet_bug15204(t *testing.T) {
+	ri := acctest.RandInt()
+	initConfig := testAccAzureRMSubnet_bug15204(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: initConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
 				),
 			},
 		},
@@ -70,7 +108,7 @@ func TestAccAzureRMSubnet_disappears(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
@@ -368,4 +406,100 @@ resource "azurerm_route" "route_a" {
   next_hop_type          = "VirtualAppliance"
   next_hop_in_ip_address = "10.10.1.1"
 }`, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_bug7986(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest%d-rg"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest%d-vn"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route_table" "first" {
+  name                = "acctest%d-private-1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route" "first" {
+  name                = "acctest%d-private-1"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.first.name}"
+  address_prefix      = "0.0.0.0/0"
+  next_hop_type       = "None"
+}
+
+resource "azurerm_subnet" "first" {
+  name                 = "acctest%d-private-1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.0.0/24"
+  route_table_id       = "${azurerm_route_table.first.id}"
+}
+
+resource "azurerm_route_table" "second" {
+  name                = "$acctest%d-private-2"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route" "second" {
+  name                = "acctest%d-private-2"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.second.name}"
+  address_prefix      = "0.0.0.0/0"
+  next_hop_type       = "None"
+}
+
+resource "azurerm_subnet" "second" {
+  name                 = "acctest%d-private-1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+  route_table_id       = "${azurerm_route_table.second.id}"
+}`, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_bug15204(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.85.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name = "acctestnsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                      = "acctestsubnet-%d"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  address_prefix            = "10.85.9.0/24"
+  route_table_id            = "${azurerm_route_table.test.id}"
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+}
+`, rInt, rInt, rInt, rInt, rInt)
 }

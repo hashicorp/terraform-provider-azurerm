@@ -7,3 +7,9 @@ FEATURES:
 * **New Data Source:** `azurerm_resource_group` [GH-15022](https://github.com/hashicorp/terraform/pull/15022)
 
 IMPROVEMENTS:
+
+* Add diff supress func to endpoint_location [GH-15094](https://github.com/hashicorp/terraform/pull/15094)
+
+BUG FIXES:
+
+* Fixing the Deadlock issue [GH-6]

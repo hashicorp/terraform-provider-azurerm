@@ -1,12 +1,24 @@
 package azurerm
 
-func azureRMUnlockMultiple(names *[]string) {
+// handle the case of using the same name for different kinds of resources
+func azureRMLockByName(name string, resourceType string) {
+	updatedName := resourceType + "." + name
+	armMutexKV.Lock(updatedName)
+}
+
+func azureRMLockMultipleByName(names *[]string, resourceType string) {
 	for _, name := range *names {
-		armMutexKV.Unlock(name)
+		azureRMLockByName(name, resourceType)
 	}
 }
-func azureRMLockMultiple(names *[]string) {
+
+func azureRMUnlockByName(name string, resourceType string) {
+	updatedName := resourceType + "." + name
+	armMutexKV.Unlock(updatedName)
+}
+
+func azureRMUnlockMultipleByName(names *[]string, resourceType string) {
 	for _, name := range *names {
-		armMutexKV.Lock(name)
+		azureRMUnlockByName(name, resourceType)
 	}
 }
