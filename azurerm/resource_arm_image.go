@@ -71,6 +71,7 @@ func resourceArmImage() *schema.Resource {
 
 						"managed_disk_id": {
 							Type:     schema.TypeString,
+							Computed: true,
 							Optional: true,
 						},
 
@@ -94,6 +95,7 @@ func resourceArmImage() *schema.Resource {
 
 						"size_gb": {
 							Type:     schema.TypeInt,
+							Computed: true,
 							Optional: true,
 						},
 					},
@@ -253,8 +255,6 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %#v", err)
 		}
 
-		log.Printf("[INFO] AzureRM Image Read 5 %s.", resp.StorageProfile.OsDisk.OsType)
-
 		if resp.StorageProfile.DataDisks != nil {
 			if err := d.Set("data_disk", flattenAzureRmStorageProfileDataDisks(d, resp.StorageProfile)); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %#v", err)
@@ -358,8 +358,8 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 			osDisk.Caching = caching
 		}
 
-		diskSize := int32(0)
 		if size := config["size_gb"]; size != 0 {
+			diskSize := int32(0)
 			diskSize = int32(size.(int))
 			osDisk.DiskSizeGB = &diskSize
 		}

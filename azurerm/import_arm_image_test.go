@@ -13,7 +13,6 @@ func TestAccAzureRMImage_importStandalone(t *testing.T) {
 	userName := "testadmin"
 	password := "Password1234s!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
-	dnsName := fmt.Sprintf("%[1]s.westcentralus.cloudapp.azure.com", hostName)
 	sshPort := "22"
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName)
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName)
@@ -30,7 +29,7 @@ func TestAccAzureRMImage_importStandalone(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%[1]d", ri), "testsource",
-						userName, password, dnsName, sshPort),
+						userName, password, hostName, sshPort),
 				),
 			},
 			resource.TestStep{

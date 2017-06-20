@@ -20,7 +20,6 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
-	dnsName := fmt.Sprintf("%[1]s.westus.cloudapp.azure.com", hostName)
 	sshPort := "22"
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName)
 	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName)
@@ -37,7 +36,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%[1]d", ri), "testsource",
-						userName, password, dnsName, sshPort),
+						userName, password, hostName, sshPort),
 				),
 			},
 			resource.TestStep{
@@ -55,7 +54,6 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
-	dnsName := fmt.Sprintf("%[1]s.westus.cloudapp.azure.com", hostName)
 	sshPort := "22"
 	preConfig := testAccAzureRMImage_customImage_fromVHD_setup(ri, userName, password, hostName)
 	postConfig := testAccAzureRMImage_customImage_fromVHD_provision(ri, userName, password, hostName)
@@ -72,7 +70,7 @@ func TestAccAzureRMImage_customImageVMFromVHD(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%[1]d", ri), "testsource",
-						userName, password, dnsName, sshPort),
+						userName, password, hostName, sshPort),
 				),
 			},
 			resource.TestStep{
@@ -90,7 +88,6 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
-	dnsName := fmt.Sprintf("%[1]s.westus.cloudapp.azure.com", hostName)
 	sshPort := "22"
 	preConfig := testAccAzureRMImage_customImage_fromVM_sourceVM(ri, userName, password, hostName)
 	postConfig := testAccAzureRMImage_customImage_fromVM_destinationVM(ri, userName, password, hostName)
@@ -107,7 +104,7 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%[1]d", ri), "testsource",
-						userName, password, dnsName, sshPort),
+						userName, password, hostName, sshPort),
 				),
 			},
 			resource.TestStep{
@@ -123,8 +120,9 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 func testGeneralizeVMImage(groupName string, vmName string, userName string, password string, hostName string, port string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		vmClient := testAccProvider.Meta().(*ArmClient).vmClient
+		dnsName := fmt.Sprintf("%[1]s.westus.cloudapp.azure.com", hostName)
 
-		deprovisionErr := deprovisionVM(userName, password, hostName, port)
+		deprovisionErr := deprovisionVM(userName, password, dnsName, port)
 		if deprovisionErr != nil {
 			return fmt.Errorf("Bad: Deprovisioning error %s", deprovisionErr)
 		}
