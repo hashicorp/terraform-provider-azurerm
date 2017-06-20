@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-func resourceArmCosmosDB() *schema.Resource {
+func resourceArmCosmosDBAccount() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDBCreateUpdate,
-		Read:   resourceArmCosmosDBRead,
-		Update: resourceArmCosmosDBCreateUpdate,
-		Delete: resourceArmCosmosDBDelete,
+		Create: resourceArmCosmosDBAccountCreateUpdate,
+		Read:   resourceArmCosmosDBAccountRead,
+		Update: resourceArmCosmosDBAccountCreateUpdate,
+		Delete: resourceArmCosmosDBAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -28,7 +28,7 @@ func resourceArmCosmosDB() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRmCosmosDBName,
+				ValidateFunc: validateAzureRmCosmosDBAccountName,
 			},
 
 			"location": {
@@ -90,7 +90,7 @@ func resourceArmCosmosDB() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMCosmosDBConsistencyPolicyHash,
+				Set: resourceAzureRMCosmosDBAccountConsistencyPolicyHash,
 			},
 
 			"failover_policy": {
@@ -116,7 +116,7 @@ func resourceArmCosmosDB() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMCosmosDBFailoverPolicyHash,
+				Set: resourceAzureRMCosmosDBAccountFailoverPolicyHash,
 			},
 
 			"primary_master_key": {
@@ -144,9 +144,9 @@ func resourceArmCosmosDB() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDBCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).documentDBClient
-	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -154,8 +154,8 @@ func resourceArmCosmosDBCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 
-	consistencyPolicy := expandAzureRmCosmosDBConsistencyPolicy(d)
-	failoverPolicies, err := expandAzureRmCosmosDBFailoverPolicies(name, d)
+	consistencyPolicy := expandAzureRmCosmosDBAccountConsistencyPolicy(d)
+	failoverPolicies, err := expandAzureRmCosmosDBAccountFailoverPolicies(name, d)
 	if err != nil {
 		return err
 	}
@@ -184,15 +184,15 @@ func resourceArmCosmosDBCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Document DB instance %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmCosmosDBRead(d, meta)
+	return resourceArmCosmosDBAccountRead(d, meta)
 }
 
-func resourceArmCosmosDBRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).documentDBClient
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -203,7 +203,7 @@ func resourceArmCosmosDBRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM CosmosDB %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
@@ -215,12 +215,12 @@ func resourceArmCosmosDBRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
 	d.Set("ip_range_filter", resp.IPRangeFilter)
-	flattenAndSetAzureRmCosmosDBConsistencyPolicy(d, resp.ConsistencyPolicy)
-	flattenAndSetAzureRmCosmosDBFailoverPolicy(d, resp.FailoverPolicies)
+	flattenAndSetAzureRmCosmosDBAccountConsistencyPolicy(d, resp.ConsistencyPolicy)
+	flattenAndSetAzureRmCosmosDBAccountFailoverPolicy(d, resp.FailoverPolicies)
 
 	keys, err := client.ListKeys(resGroup, name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List Write keys for CosmosDB %s: %s", name, err)
+		log.Printf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
 	} else {
 		d.Set("primary_master_key", keys.PrimaryMasterKey)
 		d.Set("secondary_master_key", keys.SecondaryMasterKey)
@@ -228,7 +228,7 @@ func resourceArmCosmosDBRead(d *schema.ResourceData, meta interface{}) error {
 
 	readonlyKeys, err := client.ListReadOnlyKeys(resGroup, name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List read-only keys for CosmosDB %s: %s", name, err)
+		log.Printf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
 	} else {
 		d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
 		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
@@ -239,7 +239,7 @@ func resourceArmCosmosDBRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmCosmosDBDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).documentDBClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -258,13 +258,13 @@ func resourceArmCosmosDBDelete(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB instance '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account '%s': %+v", name, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmCosmosDBConsistencyPolicy(d *schema.ResourceData) documentdb.ConsistencyPolicy {
+func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) documentdb.ConsistencyPolicy {
 	inputs := d.Get("consistency_policy").(*schema.Set).List()
 	input := inputs[0].(map[string]interface{})
 
@@ -287,7 +287,7 @@ func expandAzureRmCosmosDBConsistencyPolicy(d *schema.ResourceData) documentdb.C
 	return policy
 }
 
-func expandAzureRmCosmosDBFailoverPolicies(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
+func expandAzureRmCosmosDBAccountFailoverPolicies(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
 	input := d.Get("failover_policy").(*schema.Set).List()
 	locations := make([]documentdb.Location, 0, len(input))
 
@@ -321,7 +321,7 @@ func expandAzureRmCosmosDBFailoverPolicies(databaseName string, d *schema.Resour
 	for _, location := range locations {
 		priority := int(*location.FailoverPriority)
 		if _, ok := locationIds[priority]; ok {
-			err := fmt.Errorf("Each CosmosDB Failover Policy needs to be unique")
+			err := fmt.Errorf("Each Failover Policy needs to be unique")
 			return nil, err
 		}
 
@@ -329,16 +329,16 @@ func expandAzureRmCosmosDBFailoverPolicies(databaseName string, d *schema.Resour
 	}
 
 	if !containsWriteLocation {
-		err := fmt.Errorf("CosmosDB Failover Policy should contain a Write Location (Location '0')")
+		err := fmt.Errorf("Failover Policy should contain a Write Location (Location '0')")
 		return nil, err
 	}
 
 	return locations, nil
 }
 
-func flattenAndSetAzureRmCosmosDBConsistencyPolicy(d *schema.ResourceData, policy *documentdb.ConsistencyPolicy) {
+func flattenAndSetAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData, policy *documentdb.ConsistencyPolicy) {
 	results := schema.Set{
-		F: resourceAzureRMCosmosDBConsistencyPolicyHash,
+		F: resourceAzureRMCosmosDBAccountConsistencyPolicyHash,
 	}
 
 	result := map[string]interface{}{}
@@ -350,9 +350,9 @@ func flattenAndSetAzureRmCosmosDBConsistencyPolicy(d *schema.ResourceData, polic
 	d.Set("consistency_policy", &results)
 }
 
-func flattenAndSetAzureRmCosmosDBFailoverPolicy(d *schema.ResourceData, list *[]documentdb.FailoverPolicy) {
+func flattenAndSetAzureRmCosmosDBAccountFailoverPolicy(d *schema.ResourceData, list *[]documentdb.FailoverPolicy) {
 	results := schema.Set{
-		F: resourceAzureRMCosmosDBFailoverPolicyHash,
+		F: resourceAzureRMCosmosDBAccountFailoverPolicyHash,
 	}
 
 	for _, i := range *list {
@@ -368,7 +368,7 @@ func flattenAndSetAzureRmCosmosDBFailoverPolicy(d *schema.ResourceData, list *[]
 	d.Set("failover_policy", &results)
 }
 
-func resourceAzureRMCosmosDBConsistencyPolicyHash(v interface{}) int {
+func resourceAzureRMCosmosDBAccountConsistencyPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
@@ -381,7 +381,7 @@ func resourceAzureRMCosmosDBConsistencyPolicyHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceAzureRMCosmosDBFailoverPolicyHash(v interface{}) int {
+func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
@@ -394,17 +394,17 @@ func resourceAzureRMCosmosDBFailoverPolicyHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func validateAzureRmCosmosDBName(v interface{}, k string) (ws []string, errors []error) {
+func validateAzureRmCosmosDBAccountName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
 	r, _ := regexp.Compile("[a-z0-9-]")
 	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("CosmosDB Name can only contain lower-case characters, numbers and the `-` character."))
+		errors = append(errors, fmt.Errorf("CosmosDB Account Name can only contain lower-case characters, numbers and the `-` character."))
 	}
 
 	length := len(value)
 	if length > 50 || 3 > length {
-		errors = append(errors, fmt.Errorf("CosmosDB Name can only be between 3 and 50 seconds."))
+		errors = append(errors, fmt.Errorf("CosmosDB Account Name can only be between 3 and 50 seconds."))
 	}
 
 	return

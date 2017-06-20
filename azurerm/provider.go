@@ -74,7 +74,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cdn_profile":        resourceArmCdnProfile(),
 			"azurerm_container_registry": resourceArmContainerRegistry(),
 			"azurerm_container_service":  resourceArmContainerService(),
-			"azurerm_cosmos_db":          resourceArmCosmosDB(),
+			"azurerm_cosmosdb_account":   resourceArmCosmosDBAccount(),
 
 			"azurerm_eventhub":                    resourceArmEventHub(),
 			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),
