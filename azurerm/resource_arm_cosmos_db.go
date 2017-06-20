@@ -76,17 +76,19 @@ func resourceArmCosmosDB() *schema.Resource {
 						},
 
 						"max_interval_in_seconds": {
-							// TODO: file a bug, apparently these can be optional/computed
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 100),
+							// TODO: apparently these can be optional/computed
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+							//ValidateFunc: validation.IntBetween(1, 100),
 						},
 
 						"max_staleness_prefix": {
-							// TODO: file a bug, apparently these can be optional/computed
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntBetween(1, 2147483647),
+							// TODO: apparently these can be optional/computed
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+							//ValidateFunc: validation.IntBetween(1, 2147483647),
 						},
 					},
 				},
