@@ -13,7 +13,7 @@ func TestAccAzureRMAppInsights_importBasic(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMApplicationInsights_basic, ri, ri, ri)
+	config := fmt.Sprintf(testAccAzureRMApplicationInsights_basic, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmApplicationInsights() *schema.Resource {
@@ -27,10 +28,15 @@ func resourceArmApplicationInsights() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"kind": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"application_type": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(appinsights.Web),
+					string(appinsights.Other),
+				}, true),
 			},
 			"location": locationSchema(),
 			"tags":     tagsSchema(),
@@ -50,24 +56,20 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	insightsType := "microsoft.insights/components"
-	kind := d.Get("kind").(string)
+	applicationType := d.Get("application_type").(string)
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	requestSource := "IbizaAIExtension"
 
 	applicationInsightsComponentProperties := appinsights.ApplicationInsightsComponentProperties{
 		ApplicationID:   &name,
-		ApplicationType: appinsights.ApplicationType(insightsType),
-		RequestSource:   appinsights.RequestSource(requestSource),
+		ApplicationType: appinsights.ApplicationType(applicationType),
 	}
 
 	insightProperties := appinsights.ApplicationInsightsComponent{
 		Name:     &name,
-		Type:     &insightsType,
 		Location: &location,
 		Tags:     expandTags(tags),
-		Kind:     &kind,
+		Kind:     &applicationType,
 		ApplicationInsightsComponentProperties: &applicationInsightsComponentProperties,
 	}
 
@@ -118,6 +120,8 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("application_type", string(resp.ApplicationInsightsComponentProperties.ApplicationType))
 		d.Set("instrumentation_key", resp.ApplicationInsightsComponentProperties.InstrumentationKey)
 	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }

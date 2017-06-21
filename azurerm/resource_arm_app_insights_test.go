@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMAppInsights_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMApplicationInsights_basic, ri, ri, ri)
+	config := fmt.Sprintf(testAccAzureRMApplicationInsights_basic, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -87,6 +87,12 @@ func testCheckAzureRMAppInsightsExists(name string) resource.TestCheckFunc {
 var testAccAzureRMApplicationInsights_basic = `
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "West Europe"
+}
+resource "azurerm_application_insights" "test" {
+		name = "acctestappinsights-%d"
+		location = "West Europe"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		application_type = "web"
 }
 `
