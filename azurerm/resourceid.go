@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -115,7 +116,15 @@ func composeAzureResourceID(idObj *ResourceID) (id string, err error) {
 
 		id += fmt.Sprintf("/providers/%s", idObj.Provider)
 
-		for k, v := range idObj.Path {
+		// sort the path keys so our output is deterministic
+		var pathKeys []string
+		for k := range idObj.Path {
+			pathKeys = append(pathKeys, k)
+		}
+		sort.Strings(pathKeys)
+
+		for _, k := range pathKeys {
+			v := idObj.Path[k]
 			if k == "" || v == "" {
 				return "", fmt.Errorf("ResourceID.Path cannot contain empty strings")
 			}
