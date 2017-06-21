@@ -1,4 +1,9 @@
 ## 0.1.1 (Unreleased)
+
+NOTES:
+
+Bumping the provider version to get around provider caching issues - still same functionality
+
 ## 0.1.0 (June 20, 2017)
 
 BACKWARDS INCOMPATIBILITIES / NOTES:
