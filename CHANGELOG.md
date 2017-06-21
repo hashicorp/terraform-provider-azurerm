@@ -1,8 +1,8 @@
 ## 0.1.1 (Unreleased)
 
-NOTES:
+BUG FIXES:
 
-Bumping the provider version to get around provider caching issues - still same functionality
+* Sort ResourceID.Path keys for consistent output [GH-116]
 
 ## 0.1.0 (June 20, 2017)
 
