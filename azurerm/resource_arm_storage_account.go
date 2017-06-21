@@ -61,7 +61,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"account_type": {
 				Type:             schema.TypeString,
 				Required:         true,
-        ForceNew:         true,
+				ForceNew:         true,
 				ValidateFunc:     validateArmStorageAccountType,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
