@@ -1,8 +1,8 @@
-## 0.1.1 (Unreleased)
+## 0.1.1 (June 21, 2017)
 
 BUG FIXES:
 
-* Sort ResourceID.Path keys for consistent output [GH-116]
+* Sort ResourceID.Path keys for consistent output ([#116](https://github.com/terraform-providers/terraform-provider-azurerm/116))
 
 ## 0.1.0 (June 20, 2017)
 
