@@ -146,74 +146,69 @@ func TestParseAzureResourceID(t *testing.T) {
 
 func TestComposeAzureResourceID(t *testing.T) {
 	testCases := []struct {
-		resourceID  *ResourceID
-		expectedID  string
-		expectError bool
+		subscriptionID    string
+		resourceGroupName string
+		provider          string
+		path              []string
+		expectedID        string
+		expectError       bool
 	}{
 		{
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-				Path: map[string]string{
-					"k1": "v1",
-					"k2": "v2",
-					"k3": "v3",
-				},
-			},
+			"00000000-0000-0000-0000-000000000000",
+			"testGroup1",
+			"foo.bar",
+			[]string{"k1", "v1", "k2", "v2", "k3", "v3"},
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testGroup1/providers/foo.bar/k1/v1/k2/v2/k3/v3",
 			false,
 		},
 		{
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-			},
+			"00000000-0000-0000-0000-000000000000",
+			"testGroup1",
+			"",
+			[]string{},
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/testGroup1",
 			false,
 		},
 		{
 			// If Provider is specified, there must be at least one element in Path.
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-			},
+			"00000000-0000-0000-0000-000000000000",
+			"testGroup1",
+			"foo.bar",
+			[]string{},
 			"",
 			true,
 		},
 		{
 			// One of the keys in Path is an empty string.
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-				Path: map[string]string{
-					"k2": "v2",
-					"":   "v1",
-				},
-			},
+			"00000000-0000-0000-0000-000000000000",
+			"testGroup1",
+			"foo.bar",
+			[]string{"k1", "v1", "", "v2", "k3", "v3"},
 			"",
 			true,
 		},
 		{
 			// One of the values in Path is an empty string.
-			&ResourceID{
-				SubscriptionID: "00000000-0000-0000-0000-000000000000",
-				ResourceGroup:  "testGroup1",
-				Provider:       "foo.bar",
-				Path: map[string]string{
-					"k1": "v1",
-					"k2": "",
-				},
-			},
+			"00000000-0000-0000-0000-000000000000",
+			"testGroup1",
+			"foo.bar",
+			[]string{"k1", "v1", "k2", "", "k3", "v3"},
+			"",
+			true,
+		},
+		{
+			// Path key/values doesn't come in pairs
+			"00000000-0000-0000-0000-000000000000",
+			"testGroup1",
+			"foo.bar",
+			[]string{"k1", "v1", "v2", "k3", "v3"},
 			"",
 			true,
 		},
 	}
 
 	for _, test := range testCases {
-		idString, err := composeAzureResourceID(test.resourceID)
+		idString, err := composeAzureResourceID(test.subscriptionID, test.resourceGroupName, test.provider, test.path)
 
 		if test.expectError && err != nil {
 			continue

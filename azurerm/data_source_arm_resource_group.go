@@ -24,11 +24,7 @@ func dataSourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) er
 	armClient := meta.(*ArmClient)
 
 	resourceGroupName := d.Get("name").(string)
-	resourceId := &ResourceID{
-		SubscriptionID: armClient.subscriptionId,
-		ResourceGroup:  resourceGroupName,
-	}
-	resourceIdString, err := composeAzureResourceID(resourceId)
+	resourceIdString, err := composeAzureResourceID(armClient.subscriptionId, resourceGroupName, "", nil)
 
 	if err != nil {
 		return err

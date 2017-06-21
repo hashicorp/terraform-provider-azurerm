@@ -101,23 +101,29 @@ func parseAzureResourceID(id string) (*ResourceID, error) {
 	return idObj, nil
 }
 
-func composeAzureResourceID(idObj *ResourceID) (id string, err error) {
-	if idObj.SubscriptionID == "" || idObj.ResourceGroup == "" {
-		return "", fmt.Errorf("SubscriptionID and ResourceGroup cannot be empty")
+func composeAzureResourceID(subscriptionID string, resourceGroupName string, provider string, path []string) (id string, err error) {
+	if subscriptionID == "" || resourceGroupName == "" {
+		return "", fmt.Errorf("subscriptionID and resourceGroupName cannot be empty")
 	}
 
-	id = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", idObj.SubscriptionID, idObj.ResourceGroup)
+	id = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionID, resourceGroupName)
 
-	if idObj.Provider != "" {
-		if len(idObj.Path) < 1 {
-			return "", fmt.Errorf("ResourceID.Path should have at least one item when ResourceID.Provider is specified")
+	if provider != "" {
+		if len(path) < 1 {
+			return "", fmt.Errorf("path cannot be empty when provider is specified")
 		}
 
-		id += fmt.Sprintf("/providers/%s", idObj.Provider)
+		if len(path)%2 != 0 {
+			return "", fmt.Errorf("path must be in pairs (key & value)")
+		}
 
-		for k, v := range idObj.Path {
+		id += fmt.Sprintf("/providers/%s", provider)
+
+		for i := 0; i < len(path); i += 2 {
+			k := path[i]
+			v := path[i+1]
 			if k == "" || v == "" {
-				return "", fmt.Errorf("ResourceID.Path cannot contain empty strings")
+				return "", fmt.Errorf("path cannot contain empty strings")
 			}
 			id += fmt.Sprintf("/%s/%s", k, v)
 		}
