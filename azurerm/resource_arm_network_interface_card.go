@@ -18,6 +18,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 		Read:   resourceArmNetworkInterfaceRead,
 		Update: resourceArmNetworkInterfaceCreate,
 		Delete: resourceArmNetworkInterfaceDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -285,28 +288,48 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if iface.IPConfigurations != nil {
+		d.Set("ip_configuration", schema.NewSet(resourceArmNetworkInterfaceIpConfigurationHash, flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)))
+	}
+
 	if iface.VirtualMachine != nil {
 		if *iface.VirtualMachine.ID != "" {
 			d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
 		}
 	}
 
+	var appliedDNSServers []string
+	var dnsServers []string
 	if iface.DNSSettings != nil {
 		if iface.DNSSettings.AppliedDNSServers != nil && len(*iface.DNSSettings.AppliedDNSServers) > 0 {
-			dnsServers := make([]string, 0, len(*iface.DNSSettings.AppliedDNSServers))
-			for _, dns := range *iface.DNSSettings.AppliedDNSServers {
-				dnsServers = append(dnsServers, dns)
+			for _, applied := range *iface.DNSSettings.AppliedDNSServers {
+				appliedDNSServers = append(appliedDNSServers, applied)
 			}
+		}
 
-			if err := d.Set("applied_dns_servers", dnsServers); err != nil {
-				return err
+		if iface.DNSSettings.DNSServers != nil && len(*iface.DNSSettings.DNSServers) > 0 {
+			for _, dns := range *iface.DNSSettings.DNSServers {
+				dnsServers = append(dnsServers, dns)
 			}
 		}
 
 		if iface.DNSSettings.InternalFqdn != nil && *iface.DNSSettings.InternalFqdn != "" {
 			d.Set("internal_fqdn", iface.DNSSettings.InternalFqdn)
 		}
+
+		d.Set("internal_dns_name_label", iface.DNSSettings.InternalDNSNameLabel)
 	}
+
+	if iface.NetworkSecurityGroup != nil {
+		d.Set("network_security_group_id", resp.NetworkSecurityGroup.ID)
+	}
+
+	d.Set("applied_dns_servers", appliedDNSServers)
+	d.Set("dns_servers", dnsServers)
+	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
+	d.Set("location", resp.Location)
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resGroup)
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -404,6 +427,43 @@ func validateNetworkInterfacePrivateIpAddressAllocation(v interface{}, k string)
 		errors = append(errors, fmt.Errorf("Network Interface Allocations can only be Static or Dynamic"))
 	}
 	return
+}
+
+func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPConfiguration) []interface{} {
+	result := make([]interface{}, 0, len(*ipConfigs))
+	for _, ipConfig := range *ipConfigs {
+		niIPConfig := make(map[string]interface{})
+		niIPConfig["name"] = *ipConfig.Name
+		niIPConfig["subnet_id"] = *ipConfig.InterfaceIPConfigurationPropertiesFormat.Subnet.ID
+		niIPConfig["private_ip_address_allocation"] = strings.ToLower(string(ipConfig.InterfaceIPConfigurationPropertiesFormat.PrivateIPAllocationMethod))
+
+		if ipConfig.InterfaceIPConfigurationPropertiesFormat.PrivateIPAllocationMethod == network.Static {
+			niIPConfig["private_ip_address"] = *ipConfig.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
+		}
+
+		if ipConfig.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress != nil {
+			niIPConfig["public_ip_address_id"] = ipConfig.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID
+		}
+
+		var pools []interface{}
+		if ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools != nil {
+			for _, pool := range *ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools {
+				pools = append(pools, *pool.ID)
+			}
+		}
+		niIPConfig["load_balancer_backend_address_pools_ids"] = schema.NewSet(schema.HashString, pools)
+
+		var rules []interface{}
+		if ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules != nil {
+			for _, rule := range *ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules {
+				rules = append(rules, *rule.ID)
+			}
+		}
+		niIPConfig["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, rules)
+
+		result = append(result, niIPConfig)
+	}
+	return result
 }
 
 func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]network.InterfaceIPConfiguration, *[]string, *[]string, error) {
