@@ -324,12 +324,12 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("network_security_group_id", resp.NetworkSecurityGroup.ID)
 	}
 
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
-	d.Set("location", resp.Location)
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
 
 	flattenAndSetTags(d, resp.Tags)
 
