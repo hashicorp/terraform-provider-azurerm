@@ -126,7 +126,7 @@ func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkInterface_bug7986(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
+					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test1"),
 				),
 			},
 		},
@@ -505,26 +505,28 @@ resource "azurerm_network_security_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  security_rule {
-    name                       = "test123"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
-  }
-
   tags {
     environment = "Production"
   }
 }
 
-resource "azurerm_network_security_rule" "test" {
-  name                        = "test"
-  priority                    = 100
+resource "azurerm_network_security_rule" "test1" {
+  name                        = "test1"
+  priority                    = 101
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = "${azurerm_resource_group.test.name}"
+  network_security_group_name = "${azurerm_network_security_group.test.name}"
+}
+
+resource "azurerm_network_security_rule" "test2" {
+  name                        = "test2"
+  priority                    = 102
   direction                   = "Outbound"
   access                      = "Allow"
   protocol                    = "Tcp"
@@ -552,12 +554,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-
-  subnet {
-    name           = "second"
-    address_prefix = "10.0.3.0/24"
-    security_group = "${azurerm_network_security_group.test.id}"
-  }
 }
 
 resource "azurerm_subnet" "test" {
