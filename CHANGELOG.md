@@ -4,6 +4,10 @@ FEATURES:
 
 * `azurerm_network_interface` now supports import [GH-119]
 
+BUG FIXES:
+
+* `azurerm_subnet` now correctly detects changes to Network Securtiy Groups and Routing Table's [GH-113]
+
 ## 0.1.1 (June 21, 2017)
 
 BUG FIXES:
