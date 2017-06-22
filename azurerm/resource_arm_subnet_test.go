@@ -73,6 +73,7 @@ func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 				Config: initConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.first"),
+					testCheckAzureRMSubnetExists("azurerm_subnet.second"),
 				),
 			},
 		},

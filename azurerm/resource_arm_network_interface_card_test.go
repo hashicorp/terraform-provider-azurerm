@@ -127,6 +127,7 @@ func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 				Config: testAccAzureRMNetworkInterface_bug7986(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test1"),
+					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test2"),
 				),
 			},
 		},
