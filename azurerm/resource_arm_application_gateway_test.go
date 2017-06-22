@@ -146,7 +146,7 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMApplicationGateway_waf(ri),
+				Config: testAccAzureRMApplicationGateway_waf(ri),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
