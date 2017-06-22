@@ -153,7 +153,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if resp.RouteTablePropertiesFormat.Routes != nil {
 		d.Set("route", schema.NewSet(resourceArmRouteTableRouteHash, flattenAzureRmRouteTableRoutes(resp.RouteTablePropertiesFormat.Routes)))
