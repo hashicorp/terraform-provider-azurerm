@@ -1,4 +1,9 @@
 ## 0.1.2 (Unreleased)
+
+FEATURES:
+
+* `azurerm_network_interface` now supports import [GH-119]
+
 ## 0.1.1 (June 21, 2017)
 
 BUG FIXES:
