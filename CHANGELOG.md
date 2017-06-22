@@ -7,6 +7,7 @@ FEATURES:
 BUG FIXES:
 
 * `azurerm_subnet` now correctly detects changes to Network Securtiy Groups and Routing Table's [GH-113]
+* `azurerm_network_interface`: Normalizing the location field in the state [GH-122]
 
 ## 0.1.1 (June 21, 2017)
 
