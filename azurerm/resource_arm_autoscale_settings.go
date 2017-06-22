@@ -10,10 +10,13 @@ import (
 
 	"net/http"
 
+	"regexp"
+
 	"github.com/Azure/azure-sdk-for-go/arm/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmAutoscaleSettings() *schema.Resource {
@@ -70,7 +73,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleHash,
+							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 						"rule": {
 							Type:     schema.TypeList,
@@ -95,24 +98,47 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 													Required: true,
 												},
 												"time_grain": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: iso8601DurationString(),
 												},
 												"statistic": {
 													Type:     schema.TypeString,
 													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(insights.Average),
+														string(insights.Max),
+														string(insights.Min),
+														string(insights.Sum),
+													}, false),
 												},
 												"time_window": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: iso8601DurationString(),
 												},
 												"time_aggregation": {
 													Type:     schema.TypeString,
 													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(insights.TimeAggregationTypeAverage),
+														string(insights.TimeAggregationTypeCount),
+														string(insights.TimeAggregationTypeMaximum),
+														string(insights.TimeAggregationTypeMinimum),
+														string(insights.TimeAggregationTypeTotal),
+													}, false),
 												},
 												"operator": {
 													Type:     schema.TypeString,
 													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(insights.Equals),
+														string(insights.GreaterThan),
+														string(insights.GreaterThanOrEqual),
+														string(insights.LessThan),
+														string(insights.LessThanOrEqual),
+														string(insights.NotEquals),
+													}, false),
 												},
 												"threshold": {
 													Type:     schema.TypeInt,
@@ -120,7 +146,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 												},
 											},
 										},
-										Set: resourceAzureRmAutoscaleHash,
+										Set: resourceAzureRmAutoscaleDefaultHash,
 									},
 									"scale_action": {
 										Type:     schema.TypeSet,
@@ -132,22 +158,33 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 												"direction": {
 													Type:     schema.TypeString,
 													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(insights.ScaleDirectionDecrease),
+														string(insights.ScaleDirectionIncrease),
+														string(insights.ScaleDirectionNone),
+													}, false),
 												},
 												"type": {
 													Type:     schema.TypeString,
 													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(insights.ChangeCount),
+														string(insights.ExactCount),
+														string(insights.PercentChangeCount),
+													}, false),
 												},
 												"value": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
 												"cooldown": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: iso8601DurationString(),
 												},
 											},
 										},
-										Set: resourceAzureRmAutoscaleHash,
+										Set: resourceAzureRmAutoscaleDefaultHash,
 									},
 								},
 							},
@@ -161,20 +198,23 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"time_zone": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
 									},
 									"start": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: rfc3339String(),
 									},
 									"end": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: rfc3339String(),
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleHash,
+							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 						"recurrence": {
 							Type:          schema.TypeSet,
@@ -187,6 +227,16 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 									"frequency": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(insights.Day),
+											string(insights.Hour),
+											string(insights.Minute),
+											string(insights.Month),
+											string(insights.None),
+											string(insights.Second),
+											string(insights.Week),
+											string(insights.Year),
+										}, false),
 									},
 									"schedule": {
 										Type:     schema.TypeSet,
@@ -196,8 +246,9 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"time_zone": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
 												},
 												"days": {
 													Type:     schema.TypeList,
@@ -222,7 +273,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 												},
 											},
 										},
-										Set: resourceAzureRmAutoscaleHash,
+										Set: resourceAzureRmAutoscaleDefaultHash,
 									},
 								},
 							},
@@ -237,8 +288,9 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"operation": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"Scale"}, false),
 						},
 						"email": {
 							Type:     schema.TypeSet,
@@ -264,7 +316,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleHash,
+							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 						"webhook": {
 							Type:     schema.TypeSet,
@@ -282,7 +334,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleHash,
+							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 					},
 				},
@@ -666,29 +718,6 @@ func expandAzureRmAutoscaleWebhook(config map[string]interface{}) []insights.Web
 	return webhooks
 }
 
-// func flattenAzureRmAutoscaleProfile(profiles *[]insights.AutoscaleProfile) *schema.Set {
-// 	results := make([]interface{}, 0, len(*profiles))
-
-// 	for _, profile := range *profiles {
-// 		profileConfig := make(map[string]interface{})
-// 		profileConfig["name"] = *profile.Name
-// 		profileConfig["capacity"] = flattenAzureRmAutoscaleCapacity(profile)
-// 		profileConfig["rule"] = flattenAzureRmAutoscaleRule(profile)
-
-// 		if profile.FixedDate != nil {
-// 			profileConfig["fixed_date"] = flattenAzureRmAutoscaleFixedDate(profile)
-// 		}
-
-// 		if profile.Recurrence != nil {
-// 			profileConfig["recurrence"] = flattenAzureRmAutoscaleRecurrence(profile)
-// 		}
-
-// 		results = append(results, profileConfig)
-// 	}
-
-// 	return schema.NewSet(resourceAzureRmAutoscaleHash, results)
-// }
-
 func flattenAzureRmAutoscaleProfile(profiles *[]insights.AutoscaleProfile) []interface{} {
 	results := make([]interface{}, 0, len(*profiles))
 
@@ -718,31 +747,8 @@ func flattenAzureRmAutoscaleCapacity(profile insights.AutoscaleProfile) *schema.
 	capacity["maximum"], _ = strconv.Atoi(*profile.Capacity.Maximum)
 	capacity["default"], _ = strconv.Atoi(*profile.Capacity.Default)
 
-	return schema.NewSet(resourceAzureRmAutoscaleHash, []interface{}{capacity})
+	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{capacity})
 }
-
-// func flattenAzureRmAutoscaleCapacity(profile insights.AutoscaleProfile) []interface{} {
-// 	capacity := make(map[string]interface{})
-// 	capacity["minimum"], _ = strconv.Atoi(*profile.Capacity.Minimum)
-// 	capacity["maximum"], _ = strconv.Atoi(*profile.Capacity.Maximum)
-// 	capacity["default"], _ = strconv.Atoi(*profile.Capacity.Default)
-
-// 	return []interface{}{capacity}
-// }
-
-// func flattenAzureRmAutoscaleRule(profile insights.AutoscaleProfile) *schema.Set {
-// 	rules := make([]interface{}, 0, len(*profile.Rules))
-
-// 	for _, rule := range *profile.Rules {
-// 		ruleConfig := make(map[string]interface{})
-// 		ruleConfig["metric_trigger"] = flattenAzureRmAutoscaleMetricTrigger(rule)
-// 		ruleConfig["scale_action"] = flattenAzureRmAutoscaleAction(rule)
-
-// 		rules = append(rules, ruleConfig)
-// 	}
-
-// 	return schema.NewSet(resourceAzureRmAutoscaleHash, rules)
-// }
 
 func flattenAzureRmAutoscaleRule(profile insights.AutoscaleProfile) []interface{} {
 	rules := make([]interface{}, 0, len(*profile.Rules))
@@ -769,22 +775,8 @@ func flattenAzureRmAutoscaleMetricTrigger(rule insights.ScaleRule) *schema.Set {
 	metricTrigger["operator"] = string(rule.MetricTrigger.Operator)
 	metricTrigger["threshold"] = int(*rule.MetricTrigger.Threshold)
 
-	return schema.NewSet(resourceAzureRmAutoscaleHash, []interface{}{metricTrigger})
+	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{metricTrigger})
 }
-
-// func flattenAzureRmAutoscaleMetricTrigger(rule insights.ScaleRule) []interface{} {
-// 	metricTrigger := make(map[string]interface{})
-// 	metricTrigger["metric_name"] = *rule.MetricTrigger.MetricName
-// 	metricTrigger["metric_resource_uri"] = *rule.MetricTrigger.MetricResourceURI
-// 	metricTrigger["time_grain"] = *rule.MetricTrigger.TimeGrain
-// 	metricTrigger["statistic"] = string(rule.MetricTrigger.Statistic)
-// 	metricTrigger["time_window"] = *rule.MetricTrigger.TimeWindow
-// 	metricTrigger["time_aggregation"] = string(rule.MetricTrigger.TimeAggregation)
-// 	metricTrigger["operator"] = string(rule.MetricTrigger.Operator)
-// 	metricTrigger["threshold"] = int(*rule.MetricTrigger.Threshold)
-
-// 	return []interface{}{metricTrigger}
-// }
 
 func flattenAzureRmAutoscaleAction(rule insights.ScaleRule) *schema.Set {
 	scaleAction := make(map[string]interface{})
@@ -793,18 +785,8 @@ func flattenAzureRmAutoscaleAction(rule insights.ScaleRule) *schema.Set {
 	scaleAction["value"] = *rule.ScaleAction.Value
 	scaleAction["cooldown"] = *rule.ScaleAction.Cooldown
 
-	return schema.NewSet(resourceAzureRmAutoscaleHash, []interface{}{scaleAction})
+	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{scaleAction})
 }
-
-// func flattenAzureRmAutoscaleAction(rule insights.ScaleRule) []interface{} {
-// 	scaleAction := make(map[string]interface{})
-// 	scaleAction["direction"] = string(rule.ScaleAction.Direction)
-// 	scaleAction["type"] = string(rule.ScaleAction.Type)
-// 	scaleAction["value"] = *rule.ScaleAction.Value
-// 	scaleAction["cooldown"] = *rule.ScaleAction.Cooldown
-
-// 	return []interface{}{scaleAction}
-// }
 
 func flattenAzureRmAutoscaleFixedDate(profile insights.AutoscaleProfile) *schema.Set {
 	fixedDate := make(map[string]interface{})
@@ -812,33 +794,16 @@ func flattenAzureRmAutoscaleFixedDate(profile insights.AutoscaleProfile) *schema
 	fixedDate["start"] = profile.FixedDate.Start.String()
 	fixedDate["end"] = profile.FixedDate.End.String()
 
-	return schema.NewSet(resourceAzureRmAutoscaleHash, []interface{}{fixedDate})
+	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{fixedDate})
 }
-
-// func flattenAzureRmAutoscaleFixedDate(profile insights.AutoscaleProfile) []interface{} {
-// 	fixedDate := make(map[string]interface{})
-// 	fixedDate["time_zone"] = *profile.FixedDate.TimeZone
-// 	fixedDate["start"] = profile.FixedDate.Start.String()
-// 	fixedDate["end"] = profile.FixedDate.End.String()
-
-// 	return []interface{}{fixedDate}
-// }
 
 func flattenAzureRmAutoscaleRecurrence(profile insights.AutoscaleProfile) *schema.Set {
 	recurrence := make(map[string]interface{})
 	recurrence["frequency"] = string(profile.Recurrence.Frequency)
 	recurrence["schedule"] = flattenAzureRmAutoscaleSchedule(*profile.Recurrence)
 
-	return schema.NewSet(resourceAzureRmAutoscaleHash, []interface{}{recurrence})
+	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{recurrence})
 }
-
-// func flattenAzureRmAutoscaleRecurrence(profile insights.AutoscaleProfile) []interface{} {
-// 	recurrence := make(map[string]interface{})
-// 	recurrence["frequency"] = string(profile.Recurrence.Frequency)
-// 	recurrence["schedule"] = flattenAzureRmAutoscaleSchedule(*profile.Recurrence)
-
-// 	return []interface{}{recurrence}
-// }
 
 func flattenAzureRmAutoscaleSchedule(recurrence insights.Recurrence) *schema.Set {
 	schedule := make(map[string]interface{})
@@ -862,49 +827,8 @@ func flattenAzureRmAutoscaleSchedule(recurrence insights.Recurrence) *schema.Set
 	}
 	schedule["minutes"] = minutes
 
-	return schema.NewSet(resourceAzureRmAutoscaleHash, []interface{}{schedule})
+	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{schedule})
 }
-
-// func flattenAzureRmAutoscaleSchedule(recurrence insights.Recurrence) []interface{} {
-// 	schedule := make(map[string]interface{})
-// 	schedule["time_zone"] = *recurrence.Schedule.TimeZone
-
-// 	days := make([]interface{}, len(*recurrence.Schedule.Days))
-// 	for k, v := range *recurrence.Schedule.Days {
-// 		days[k] = v
-// 	}
-// 	schedule["days"] = days
-
-// 	hours := make([]interface{}, len(*recurrence.Schedule.Hours))
-// 	for k, v := range *recurrence.Schedule.Hours {
-// 		hours[k] = v
-// 	}
-// 	schedule["hours"] = hours
-
-// 	minutes := make([]interface{}, len(*recurrence.Schedule.Minutes))
-// 	for k, v := range *recurrence.Schedule.Minutes {
-// 		minutes[k] = v
-// 	}
-// 	schedule["minutes"] = minutes
-
-// 	return []interface{}{schedule}
-// }
-
-// func flattenAzureRmAutoscaleNotification(notifications *[]insights.AutoscaleNotification) *schema.Set {
-// 	results := make([]interface{}, 0, len(*notifications))
-
-// 	for _, notification := range *notifications {
-// 		notificationConfig := make(map[string]interface{})
-// 		notificationConfig["operation"] = *notification.Operation
-// 		notificationConfig["email"] = flattenAzureRmAutoscaleEmailNotification(notification)
-// 		if *notification.Webhooks != nil {
-// 			notificationConfig["webhook"] = flattenAzureRmAutoscaleWebhook(notification)
-// 		}
-// 		results = append(results, notificationConfig)
-// 	}
-
-// 	return schema.NewSet(resourceAzureRmAutoscaleHash, results)
-// }
 
 func flattenAzureRmAutoscaleNotification(notifications *[]insights.AutoscaleNotification) []interface{} {
 	results := make([]interface{}, 0, len(*notifications))
@@ -931,24 +855,12 @@ func flattenAzureRmAutoscaleEmailNotification(notification insights.AutoscaleNot
 		email["custom_emails"] = *notification.Email.CustomEmails
 	}
 
-	return schema.NewSet(resourceAzureRmAutoscaleHash, []interface{}{email})
+	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{email})
 }
-
-// func flattenAzureRmAutoscaleEmailNotification(notification insights.AutoscaleNotification) []interface{} {
-// 	email := make(map[string]interface{})
-// 	email["send_to_subscription_administrator"] = *notification.Email.SendToSubscriptionAdministrator
-// 	email["send_to_subscription_co_administrator"] = *notification.Email.SendToSubscriptionCoAdministrators
-
-// 	if *notification.Email.CustomEmails != nil {
-// 		email["custom_emails"] = *notification.Email.CustomEmails
-// 	}
-
-// 	return []interface{}{email}
-// }
 
 func flattenAzureRmAutoscaleWebhook(notification insights.AutoscaleNotification) *schema.Set {
 	set := &schema.Set{
-		F: resourceAzureRmAutoscaleHash,
+		F: resourceAzureRmAutoscaleDefaultHash,
 	}
 
 	for _, v := range *notification.Webhooks {
@@ -968,27 +880,7 @@ func flattenAzureRmAutoscaleWebhook(notification insights.AutoscaleNotification)
 	return set
 }
 
-// func flattenAzureRmAutoscaleWebhook(notification insights.AutoscaleNotification) []interface{} {
-// 	webhooks := make([]interface{}, len(*notification.Webhooks))
-
-// 	for _, v := range *notification.Webhooks {
-// 		webhook := map[string]interface{}{}
-// 		webhook["service_uri"] = *v.ServiceURI
-
-// 		if *v.Properties != nil {
-// 			properties := map[string]interface{}{}
-// 			for key, value := range *v.Properties {
-// 				properties[key] = *value
-// 			}
-// 			webhook["properties"] = properties
-// 		}
-// 		webhooks = append(webhooks, webhook)
-// 	}
-
-// 	return webhooks
-// }
-
-func resourceAzureRmAutoscaleHash(v interface{}) int {
+func resourceAzureRmAutoscaleDefaultHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	var keys []string
@@ -1003,4 +895,69 @@ func resourceAzureRmAutoscaleHash(v interface{}) int {
 	}
 
 	return hashcode.String(buf.String())
+}
+
+func listTimeZoneNames() []string {
+	return []string{
+		"Dateline Standard Time", "UTC-11", "Hawaiian Standard Time", "Alaskan Standard Time",
+		"Pacific Standard Time (Mexico)", "Pacific Standard Time", "US Mountain Standard Time", "Mountain Standard Time (Mexico)",
+		"Mountain Standard Time", "Central America Standard Time", "Central Standard Time", "Central Standard Time (Mexico)",
+		"Canada Central Standard Time", "SA Pacific Standard Time", "Eastern Standard Time", "US Eastern Standard Time",
+		"Venezuela Standard Time", "Paraguay Standard Time", "Atlantic Standard Time", "Central Brazilian Standard Time",
+		"SA Western Standard Time", "Pacific SA Standard Time", "Newfoundland Standard Time", "E. South America Standard Time",
+		"Argentina Standard Time", "SA Eastern Standard Time", "Greenland Standard Time", "Montevideo Standard Time",
+		"Bahia Standard Time", "UTC-02", "Mid-Atlantic Standard Time", "Azores Standard Time",
+		"Cape Verde Standard Time", "Morocco Standard Time", "UTC", "GMT Standard Time",
+		"Greenwich Standard Time", "W. Europe Standard Time", "Central Europe Standard Time", "Romance Standard Time",
+		"Central European Standard Time", "W. Central Africa Standard Time", "Namibia Standard Time", "Jordan Standard Time",
+		"GTB Standard Time", "Middle East Standard Time", "Egypt Standard Time", "Syria Standard Time",
+		"E. Europe Standard Time", "South Africa Standard Time", "FLE Standard Time", "Turkey Standard Time",
+		"Israel Standard Time", "Kaliningrad Standard Time", "Libya Standard Time", "Arabic Standard Time",
+		"Arab Standard Time", "Belarus Standard Time", "Russian Standard Time", "E. Africa Standard Time",
+		"Iran Standard Time", "Arabian Standard Time", "Azerbaijan Standard Time", "Russia Time Zone 3",
+		"Mauritius Standard Time", "Georgian Standard Time", "Caucasus Standard Time", "Afghanistan Standard Time",
+		"West Asia Standard Time", "Ekaterinburg Standard Time", "Pakistan Standard Time", "India Standard Time",
+		"Sri Lanka Standard Time", "Nepal Standard Time", "Central Asia Standard Time", "Bangladesh Standard Time",
+		"N. Central Asia Standard Time", "Myanmar Standard Time", "SE Asia Standard Time", "North Asia Standard Time",
+		"China Standard Time", "North Asia East Standard Time", "Singapore Standard Time", "W. Australia Standard Time",
+		"Taipei Standard Time", "Ulaanbaatar Standard Time", "Tokyo Standard Time", "Korea Standard Time",
+		"Yakutsk Standard Time", "Cen. Australia Standard Time", "AUS Central Standard Time", "E. Australia Standard Time",
+		"AUS Eastern Standard Time", "West Pacific Standard Time", "Tasmania Standard Time", "Magadan Standard Time",
+		"Vladivostok Standard Time", "Russia Time Zone 10", "Central Pacific Standard Time", "Russia Time Zone 11",
+		"New Zealand Standard Time", "UTC+12", "Fiji Standard Time", "Kamchatka Standard Time",
+		"Tonga Standard Time", "Samoa Standard Time", "Line Islands Standard Time"}
+}
+
+func rfc3339String() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		_, parseErr := date.ParseTime(time.RFC3339, v)
+
+		if parseErr != nil {
+			es = append(es, fmt.Errorf("expected %s to be in RFC3339 format, got %s", k, v))
+		}
+		return
+	}
+}
+
+func iso8601DurationString() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		matched, _ := regexp.MatchString(`^P(([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?))?$`, v)
+
+		if !matched {
+			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
+		}
+		return
+	}
 }
