@@ -110,3 +110,4 @@ resource "azurerm_virtual_machine" "test" {
 * `source_resource_id` - ID of an existing managed disk that the current resource was created from.
 * `os_type` - The operating system for managed disk. Valid values are `Linux` or `Windows`
 * `disk_size_gb` - The size of the managed disk in gigabytes.
+* `tags` - A mapping of tags assigned to the resource.
