@@ -351,7 +351,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", resGroup)
 	d.Set("primary_access_key", accessKeys[0].Value)
 	d.Set("secondary_access_key", accessKeys[1].Value)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("account_kind", resp.Kind)
 	d.Set("account_type", resp.Sku.Name)
 	d.Set("primary_location", resp.AccountProperties.PrimaryLocation)

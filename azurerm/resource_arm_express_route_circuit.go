@@ -175,7 +175,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", erc.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", erc.Location)
+	d.Set("location", azureRMNormalizeLocation(*erc.Location))
 
 	if erc.ServiceProviderProperties != nil {
 		d.Set("service_provider_name", erc.ServiceProviderProperties.ServiceProviderName)
