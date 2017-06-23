@@ -19,12 +19,12 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-func resourceArmAutoscaleSettings() *schema.Resource {
+func resourceArmAutoscaleSetting() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAutoscaleSettingsCreateOrUpdate,
-		Read:   resourceArmAutoscaleSettingsRead,
-		Update: resourceArmAutoscaleSettingsCreateOrUpdate,
-		Delete: resourceArmAutoscaleSettingsDelete,
+		Create: resourceArmAutoscaleSettingCreateOrUpdate,
+		Read:   resourceArmAutoscaleSettingRead,
+		Update: resourceArmAutoscaleSettingCreateOrUpdate,
+		Delete: resourceArmAutoscaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -161,7 +161,6 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ScaleDirectionDecrease),
 														string(insights.ScaleDirectionIncrease),
-														string(insights.ScaleDirectionNone),
 													}, false),
 												},
 												"type": {
@@ -169,7 +168,6 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ChangeCount),
-														string(insights.ExactCount),
 														string(insights.PercentChangeCount),
 													}, false),
 												},
@@ -228,14 +226,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(insights.Day),
-											string(insights.Hour),
-											string(insights.Minute),
-											string(insights.Month),
-											string(insights.None),
-											string(insights.Second),
 											string(insights.Week),
-											string(insights.Year),
 										}, false),
 									},
 									"schedule": {
@@ -353,7 +344,7 @@ func resourceArmAutoscaleSettings() *schema.Resource {
 	}
 }
 
-func resourceArmAutoscaleSettingsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	asClient := armClient.autoscaleSettingsClient
 
@@ -376,7 +367,7 @@ func resourceArmAutoscaleSettingsCreateOrUpdate(d *schema.ResourceData, meta int
 		return err
 	}
 
-	autoscaleSettings := insights.AutoscaleSetting{
+	autoscaleSetting := insights.AutoscaleSetting{
 		Name:              &name,
 		Enabled:           &enabled,
 		TargetResourceURI: &targetResourceURI,
@@ -389,7 +380,7 @@ func resourceArmAutoscaleSettingsCreateOrUpdate(d *schema.ResourceData, meta int
 		Type:             &resourceType,
 		Location:         &location,
 		Tags:             expandedTags,
-		AutoscaleSetting: &autoscaleSettings,
+		AutoscaleSetting: &autoscaleSetting,
 	}
 
 	result, err := asClient.CreateOrUpdate(resourceGroupName, name, parameters)
@@ -399,10 +390,10 @@ func resourceArmAutoscaleSettingsCreateOrUpdate(d *schema.ResourceData, meta int
 
 	d.SetId(*result.ID)
 
-	return resourceArmAutoscaleSettingsRead(d, meta)
+	return resourceArmAutoscaleSettingRead(d, meta)
 }
 
-func resourceArmAutoscaleSettingsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) error {
 	asClient := meta.(*ArmClient).autoscaleSettingsClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -413,7 +404,7 @@ func resourceArmAutoscaleSettingsRead(d *schema.ResourceData, meta interface{}) 
 	name := id.Path["autoscalesettings"]
 
 	if name == "" {
-		return fmt.Errorf("Cannot find resource name in Resource ID for Autoscaling Settings")
+		return fmt.Errorf("Cannot find resource name in Resource ID for Autoscaling Setting")
 	}
 
 	result, err := asClient.Get(resGroup, name)
@@ -422,24 +413,24 @@ func resourceArmAutoscaleSettingsRead(d *schema.ResourceData, meta interface{}) 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Autoscaling Settings %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Autoscaling Setting %s: %s", name, err)
 	}
 
-	autoscaleSettings := *result.AutoscaleSetting
+	autoscaleSetting := *result.AutoscaleSetting
 	d.Set("name", result.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", result.Location)
-	d.Set("enabled", autoscaleSettings.Enabled)
-	d.Set("target_resource_uri", autoscaleSettings.TargetResourceURI)
+	d.Set("enabled", autoscaleSetting.Enabled)
+	d.Set("target_resource_uri", autoscaleSetting.TargetResourceURI)
 	flattenAndSetTags(d, result.Tags)
 
-	d.Set("profile", flattenAzureRmAutoscaleProfile(autoscaleSettings.Profiles))
-	d.Set("notification", flattenAzureRmAutoscaleNotification(autoscaleSettings.Notifications))
+	d.Set("profile", flattenAzureRmAutoscaleProfile(autoscaleSetting.Profiles))
+	d.Set("notification", flattenAzureRmAutoscaleNotification(autoscaleSetting.Notifications))
 
 	return nil
 }
 
-func resourceArmAutoscaleSettingsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAutoscaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	asClient := armClient.autoscaleSettingsClient
 
