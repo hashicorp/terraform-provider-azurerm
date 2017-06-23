@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* **New Data Source** `azurerm_managed_disk` [GH-121]
+* **New Data Source:** `azurerm_managed_disk` [GH-121]
 * `azurerm_network_interface` now supports import [GH-119]
 
 BUG FIXES:
