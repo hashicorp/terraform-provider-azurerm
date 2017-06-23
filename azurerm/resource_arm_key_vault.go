@@ -73,6 +73,7 @@ func resourceArmKeyVault() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MinItems: 1,
+				MaxItems: 16,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"tenant_id": {
