@@ -5,6 +5,11 @@ FEATURES:
 * **New Data Source:** `azurerm_managed_disk` [GH-121]
 * `azurerm_network_interface` now supports import [GH-119]
 
+IMPROVEMENTS:
+
+* Ensuring consistency in when storing the `location` field in the state for the `azurerm_availability_set`, `azurerm_express_route_circuit`, `azurerm_load_balancer`, `azurerm_local_network_gateway`, `azurerm_managed_disk`, `azurerm_network_security_group`
+`azurerm_public_ip`, `azurerm_resource_group`, `azurerm_route_table`, `azurerm_storage_account`, `azurerm_virtual_machine` and `azurerm_virtual_network` resources [GH-123]
+
 BUG FIXES:
 
 * `azurerm_container_service` - exposes the FQDN of the master_profile as a computed field [GH-125]
