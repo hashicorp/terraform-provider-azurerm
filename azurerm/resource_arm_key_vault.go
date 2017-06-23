@@ -314,7 +314,7 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 		}
 
 		policyRaw["tenant_id"] = policy.TenantID.String()
-		policyRaw["object_id"] = policy.ObjectID
+		policyRaw["object_id"] = *policy.ObjectID
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
 
