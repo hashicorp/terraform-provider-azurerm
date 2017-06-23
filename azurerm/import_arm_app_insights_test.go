@@ -3,22 +3,20 @@ package azurerm
 import (
 	"testing"
 
-	"fmt"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMAppInsights_importBasic(t *testing.T) {
+func TestAccAzureRMApplicationInsights_importBasic(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMApplicationInsights_basic, ri, ri)
+	config := testAccAzureRMApplicationInsights_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppInsightsDestroy,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

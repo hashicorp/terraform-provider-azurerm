@@ -10,27 +10,27 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMAppInsights_basic(t *testing.T) {
+func TestAccAzureRMApplicationInsights_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMApplicationInsights_basic, ri, ri)
+	config := testAccAzureRMApplicationInsights_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppInsightsDestroy,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppInsightsExists("azurerm_application_insights.test"),
+					testCheckAzureRMApplicationInsightsExists("azurerm_application_insights.test"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMAppInsightsDestroy(s *terraform.State) error {
+func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
 
 	for _, rs := range s.RootModule().Resources {
@@ -48,14 +48,14 @@ func testCheckAzureRMAppInsightsDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("App Insights still exists:\n%#v", resp.ApplicationInsightsComponentProperties)
+			return fmt.Errorf("Application Insights still exists:\n%#v", resp.ApplicationInsightsComponentProperties)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMAppInsightsExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -77,22 +77,25 @@ func testCheckAzureRMAppInsightsExists(name string) resource.TestCheckFunc {
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: App Insights %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Application Insights '%q' (resource group: '%q') does not exist", name, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-var testAccAzureRMApplicationInsights_basic = `
+func testAccAzureRMApplicationInsights_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West Europe"
+  name = "acctestRG-%d"
+  location = "West Europe"
 }
+
 resource "azurerm_application_insights" "test" {
-		name = "acctestappinsights-%d"
-		location = "West Europe"
-		resource_group_name = "${azurerm_resource_group.test.name}"
-		application_type = "web"
+  name = "acctestappinsights-%d"
+  location = "West Europe"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type = "web"
 }
-`
+`, rInt, rInt)
+}

@@ -16,18 +16,25 @@ func resourceArmApplicationInsights() *schema.Resource {
 		Read:   resourceArmApplicationInsightsRead,
 		Update: resourceArmApplicationInsightsCreateOrUpdate,
 		Delete: resourceArmApplicationInsightsDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
+
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"location": locationSchema(),
+
 			"application_type": {
 				Type:             schema.TypeString,
 				Required:         true,
@@ -38,8 +45,14 @@ func resourceArmApplicationInsights() *schema.Resource {
 					string(appinsights.Other),
 				}, true),
 			},
-			"location": locationSchema(),
-			"tags":     tagsSchema(),
+
+			"tags": tagsSchema(),
+
+			"app_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"instrumentation_key": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -49,8 +62,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	AppInsightsClient := client.appInsightsClient
+	client := meta.(*ArmClient).appInsightsClient
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
 
@@ -68,22 +80,22 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 	insightProperties := appinsights.ApplicationInsightsComponent{
 		Name:     &name,
 		Location: &location,
-		Tags:     expandTags(tags),
 		Kind:     &applicationType,
 		ApplicationInsightsComponentProperties: &applicationInsightsComponentProperties,
+		Tags: expandTags(tags),
 	}
 
-	_, err := AppInsightsClient.CreateOrUpdate(resGroup, name, insightProperties)
+	_, err := client.CreateOrUpdate(resGroup, name, insightProperties)
 	if err != nil {
 		return err
 	}
 
-	read, err := AppInsightsClient.Get(resGroup, name)
+	read, err := client.Get(resGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read application insights %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM Application Insights '%s' (Resource Group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -92,33 +104,35 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
-	AppInsightsClient := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsightsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading application insights %s", id)
+	log.Printf("[DEBUG] Reading AzureRM Application Insights '%s'", id)
 
 	resGroup := id.ResourceGroup
 	name := id.Path["components"]
 
-	resp, err := AppInsightsClient.Get(resGroup, name)
+	resp, err := client.Get(resGroup, name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM application insights %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Application Insights '%s': %+v", name, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	if resp.ApplicationInsightsComponentProperties != nil {
-		d.Set("application_id", resp.ApplicationInsightsComponentProperties.ApplicationID)
-		d.Set("application_type", string(resp.ApplicationInsightsComponentProperties.ApplicationType))
-		d.Set("instrumentation_key", resp.ApplicationInsightsComponentProperties.InstrumentationKey)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	if props := resp.ApplicationInsightsComponentProperties; props != nil {
+		d.Set("application_type", string(props.ApplicationType))
+		d.Set("app_id", props.AppID)
+		d.Set("instrumentation_key", props.InstrumentationKey)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -136,7 +150,7 @@ func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	name := id.Path["components"]
 
-	log.Printf("[DEBUG] Deleting application insights %s: %s", resGroup, name)
+	log.Printf("[DEBUG] Deleting AzureRM Application Insights '%s' (resource group '%s')", name, resGroup)
 
 	resp, err := AppInsightsClient.Delete(resGroup, name)
 	if err != nil {
