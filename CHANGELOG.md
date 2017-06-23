@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_managed_disk` [GH-121]
+* **New Resource:** `azurerm_application_insights` [GH-3]
 * `azurerm_network_interface` now supports import [GH-119]
 
 IMPROVEMENTS:
