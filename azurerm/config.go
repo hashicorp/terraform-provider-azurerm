@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
@@ -104,6 +105,8 @@ type ArmClient struct {
 	keyVaultClient keyvault.VaultsClient
 
 	sqlElasticPoolsClient sql.ElasticPoolsClient
+
+	appInsightsClient appinsights.ComponentsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -475,6 +478,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sqlepc.Authorizer = auth
 	sqlepc.Sender = autorest.CreateSender(withRequestLogging())
 	client.sqlElasticPoolsClient = sqlepc
+
+	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ai.Client)
+	ai.Authorizer = auth
+	ai.Sender = autorest.CreateSender(withRequestLogging())
+	client.appInsightsClient = ai
 
 	return &client, nil
 }
