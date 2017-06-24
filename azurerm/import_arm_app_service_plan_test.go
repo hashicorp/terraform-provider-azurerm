@@ -1,18 +1,17 @@
 package azurerm
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMAppServicePlan_importStandard(t *testing.T) {
+func TestAccAzureRMAppServicePlan_importBasic(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMAppServicePlan_standard, ri)
+	config := testAccAzureRMAppServicePlan_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

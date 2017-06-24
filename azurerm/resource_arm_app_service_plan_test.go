@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMAppServicePlan_standard(t *testing.T) {
+func TestAccAzureRMAppServicePlan_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMAppServicePlan_standard, ri, ri)
+	config := testAccAzureRMAppServicePlan_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -83,15 +83,20 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 	}
 }
 
-var testAccAzureRMAppServicePlan_standard = `
+func testAccAzureRMAppServicePlan_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "West Europe"
 }
 resource "azurerm_app_service_plan" "test" {
     name                = "acctestAppServicePlan-%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    tier                = "S0"
+    sku {
+			tier = "Standard"
+			size = "S0"
+		}
 }
-`
+`, rInt, rInt)
+}
