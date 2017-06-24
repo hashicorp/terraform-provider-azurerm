@@ -597,3 +597,46 @@ resource "azurerm_network_interface" "test2" {
 }
 `, rInt, rInt, rInt, rInt, rInt, rInt)
 }
+
+func testAccAzureRMNetworkInterface_publicIP(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctest-rg-%d"
+  location = "West US"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acceptanceTestVirtualNetwork1"
+  address_space = ["10.0.0.0/16"]
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name = "testsubnet"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "testext" {
+  name                         = "testpublicipext"
+  location                     = "West US"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+}
+
+resource "azurerm_network_interface" "test" {
+  name = "acceptanceTestNetworkInterface1"
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name = "testconfiguration1"
+    subnet_id = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+    public_ip_address_id = "${azurerm_public_ip.testext.id}"
+  }
+}
+`, rInt)
+}

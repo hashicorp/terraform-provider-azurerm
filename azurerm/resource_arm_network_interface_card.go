@@ -442,7 +442,7 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 		}
 
 		if ipConfig.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress != nil {
-			niIPConfig["public_ip_address_id"] = ipConfig.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID
+			niIPConfig["public_ip_address_id"] = *ipConfig.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID
 		}
 
 		var pools []interface{}
