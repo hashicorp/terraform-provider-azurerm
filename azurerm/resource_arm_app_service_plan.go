@@ -5,7 +5,10 @@ import (
 	"log"
 	"net/http"
 
+	"bytes"
+
 	"github.com/Azure/azure-sdk-for-go/arm/web"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -15,46 +18,59 @@ func resourceArmAppServicePlan() *schema.Resource {
 		Read:   resourceArmAppServicePlanRead,
 		Update: resourceArmAppServicePlanCreateUpdate,
 		Delete: resourceArmAppServicePlanDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
-			"location": {
-				Type:     schema.TypeString,
+			"location": locationSchema(),
+			"sku": {
+				Type:     schema.TypeSet,
 				Required: true,
-			},
-			"tier": {
-				Type:     schema.TypeString,
-				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"tier": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"size": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+				Set: resourceAzureRMAppServicePlanSkuHash,
 			},
 			"maximum_number_of_workers": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 		},
 	}
 }
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	AppServicePlanClient := client.appServicePlansClient
+	AppServicePlanClient := meta.(*ArmClient).appServicePlansClient
 
-	log.Printf("[INFO] preparing arguments for Azure App Service Plan creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
-	tier := d.Get("tier").(string)
 
-	sku := web.SkuDescription{
-		Name: &tier,
-	}
+	sku := expandAzureRmAppServicePlanSku(d)
 
 	properties := web.AppServicePlanProperties{}
 	if v, ok := d.GetOk("maximum_number_of_workers"); ok {
@@ -79,7 +95,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Azure App Service Plan %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM App Service Plan %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -95,7 +111,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	log.Printf("[DEBUG] Reading app service plan %s", id)
+	log.Printf("[DEBUG] Reading Azure App Service Plan %s", id)
 
 	resGroup := id.ResourceGroup
 	name := id.Path["serverfarms"]
@@ -111,6 +127,14 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	if props := resp.AppServicePlanProperties; props != nil {
+		d.Set("maximum_number_of_workers", props.MaximumNumberOfWorkers)
+	}
+
+	sku := flattenAzureRmAppServicePlanSku(*resp.Sku)
+	d.Set("sku", &sku)
 
 	return nil
 }
@@ -130,4 +154,48 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 	_, err = AppServicePlanClient.Delete(resGroup, name)
 
 	return err
+}
+
+func resourceAzureRMAppServicePlanSkuHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	tier := m["tier"].(string)
+	size := m["size"].(string)
+
+	buf.WriteString(fmt.Sprintf("%s-", tier))
+	buf.WriteString(fmt.Sprintf("%s-", size))
+
+	return hashcode.String(buf.String())
+}
+
+func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
+	configs := d.Get("sku").(*schema.Set).List()
+	config := configs[0].(map[string]interface{})
+
+	tier := config["tier"].(string)
+	size := config["size"].(string)
+
+	sku := web.SkuDescription{
+		Name: &size,
+		Tier: &tier,
+		Size: &size,
+	}
+
+	return sku
+}
+
+func flattenAzureRmAppServicePlanSku(profile web.SkuDescription) *schema.Set {
+	skus := &schema.Set{
+		F: resourceAzureRMAppServicePlanSkuHash,
+	}
+
+	sku := make(map[string]interface{}, 3)
+
+	sku["tier"] = *profile.Tier
+	sku["size"] = *profile.Size
+
+	skus.Add(sku)
+
+	return skus
 }
