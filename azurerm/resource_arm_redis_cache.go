@@ -65,6 +65,17 @@ func resourceArmRedisCache() *schema.Resource {
 				Optional: true,
 			},
 
+			"subnet_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"static_ip": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"enable_non_ssl_port": {
 				Type:     schema.TypeBool,
 				Default:  false,
@@ -144,6 +155,8 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	resGroup := d.Get("resource_group_name").(string)
 
 	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)
+	staticIP := d.Get("static_ip").(string)
+	subnetID := d.Get("subnet_id").(string)
 
 	capacity := int32(d.Get("capacity").(int))
 	family := redis.SkuFamily(d.Get("family").(string))
@@ -163,6 +176,8 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Name:     sku,
 			},
 			RedisConfiguration: expandRedisConfiguration(d),
+			StaticIP:           &staticIP,
+			SubnetID:           &subnetID,
 		},
 		Tags: expandedTags,
 	}
@@ -216,6 +231,9 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	family := redis.SkuFamily(d.Get("family").(string))
 	sku := redis.SkuName(d.Get("sku_name").(string))
 
+	staticIP := d.Get("static_ip").(string)
+	subnetID := d.Get("subnet_id").(string)
+
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -227,7 +245,9 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 				Family:   family,
 				Name:     sku,
 			},
-			Tags: expandedTags,
+			StaticIP: &staticIP,
+			SubnetID: &subnetID,
+			Tags:     expandedTags,
 		},
 	}
 
@@ -310,6 +330,9 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("capacity", resp.Sku.Capacity)
 	d.Set("family", resp.Sku.Family)
 	d.Set("sku_name", resp.Sku.Name)
+
+	d.Set("static_ip", resp.StaticIP)
+	d.Set("subnet_id", resp.SubnetID)
 
 	if resp.ShardCount != nil {
 		d.Set("shard_count", resp.ShardCount)
@@ -397,6 +420,7 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 		if maxMemoryPolicy != "" {
 			output["maxmemory-policy"] = azure.String(maxMemoryPolicy)
 		}
+
 	}
 
 	return &output
