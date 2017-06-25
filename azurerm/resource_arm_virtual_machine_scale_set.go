@@ -1182,6 +1182,10 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	createOption := osDiskConfig["create_option"].(string)
 	managedDiskType := osDiskConfig["managed_disk_type"].(string)
 
+	if managedDiskType == "" && name == "" {
+		return nil, fmt.Errorf("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
+	}
+
 	osDisk := &compute.VirtualMachineScaleSetOSDisk{
 		Name:         &name,
 		Caching:      compute.CachingTypes(caching),
