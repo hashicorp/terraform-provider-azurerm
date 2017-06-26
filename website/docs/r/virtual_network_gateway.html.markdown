@@ -129,9 +129,9 @@ The following arguments are supported:
     By default, forced tunneling is not enabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
-    gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, and `UltraPerformance`
-    and depend on the `type` and `vpn_type` arguments.
-    A `PolicyBased` gateway only supports the `Basic` sku. Also, the `UltraPerformance`
+    gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
+    `VpnGw1`, `VpnGw2` and `VpnGw3` and depend on the `type` and `vpn_type` arguments.
+    A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
     sku is only supported by an `ExpressRoute` gateway.
 
 * `ip_configuration` (Required) One or two `ip_configuration` blocks documented below.

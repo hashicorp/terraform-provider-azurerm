@@ -29,6 +29,25 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
+	ri := acctest.RandInt()
+	config := fmt.Sprintf(testAccAzureRMVirtualNetworkGateway_vpnGw1, ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		name, resourceGroup, err := getArmResourceNameAndGroupByTerraformName(s, name)
@@ -113,7 +132,50 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku = "Basic"
 
   ip_configuration {
-    name = "vnetGatewayConfig"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+}
+`
+
+var testAccAzureRMVirtualNetworkGateway_vpnGw1 = `
+resource "azurerm_resource_group" "test" {
+    name = "test-%[1]d"
+    location = "West US"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "test-%[1]d"
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name = "GatewaySubnet"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+    name = "test-%[1]d"
+    location = "West US"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name = "test-%[1]d"
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  type = "Vpn"
+  vpn_type = "RouteBased"
+  sku = "VpnGw1"
+
+  ip_configuration {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
     private_ip_address_allocation = "Dynamic"
     subnet_id = "${azurerm_subnet.test.id}"

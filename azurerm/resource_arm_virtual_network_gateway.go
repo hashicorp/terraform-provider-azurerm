@@ -80,6 +80,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 					string(network.VirtualNetworkGatewaySkuTierStandard),
 					string(network.VirtualNetworkGatewaySkuTierHighPerformance),
 					string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
+					string(network.VirtualNetworkGatewaySkuNameVpnGw1),
+					string(network.VirtualNetworkGatewaySkuNameVpnGw2),
+					string(network.VirtualNetworkGatewaySkuNameVpnGw3),
 				}, false),
 			},
 
