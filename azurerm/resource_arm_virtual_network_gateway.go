@@ -243,7 +243,8 @@ func resourceArmVirtualNetworkGatewayCreate(d *schema.ResourceData, meta interfa
 		VirtualNetworkGatewayPropertiesFormat: getArmVirtualNetworkGatewayProperties(d),
 	}
 
-	_, err := vnetGatewayClient.CreateOrUpdate(resGroup, name, gateway, make(chan struct{}))
+	_, error := vnetGatewayClient.CreateOrUpdate(resGroup, name, gateway, make(chan struct{}))
+	err := <-error
 	if err != nil {
 		return err
 	}
@@ -333,7 +334,8 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	_, err = vnetGatewayClient.Delete(resGroup, name, make(chan struct{}))
+	_, error := vnetGatewayClient.Delete(resGroup, name, make(chan struct{}))
+	err = <-error
 	if err != nil {
 		return err
 	}

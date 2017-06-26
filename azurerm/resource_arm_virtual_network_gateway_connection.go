@@ -146,7 +146,8 @@ func resourceArmVirtualNetworkGatewayConnectionCreate(d *schema.ResourceData, me
 		VirtualNetworkGatewayConnectionPropertiesFormat: properties,
 	}
 
-	_, err = vnetGatewayConnectionsClient.CreateOrUpdate(resGroup, name, connection, make(chan struct{}))
+	_, error := vnetGatewayConnectionsClient.CreateOrUpdate(resGroup, name, connection, make(chan struct{}))
+	err = <-error
 	if err != nil {
 		return err
 	}
@@ -244,7 +245,8 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	_, err = vnetGatewayConnectionsClient.Delete(resGroup, name, make(chan struct{}))
+	_, error := vnetGatewayConnectionsClient.Delete(resGroup, name, make(chan struct{}))
+	err = <-error
 	if err != nil {
 		return errwrap.Wrapf("Error Deleting VirtualNetworkGatewayConnection {{err}}", err)
 	}
