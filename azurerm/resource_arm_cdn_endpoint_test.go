@@ -12,7 +12,7 @@ import (
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMCdnEndpoint_basic, ri, ri, ri)
+	config := testAccAzureRMCdnEndpoint_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,7 +31,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMCdnEndpoint_basic, ri, ri, ri)
+	config := testAccAzureRMCdnEndpoint_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -52,8 +52,8 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 
 func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMCdnEndpoint_withTags, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMCdnEndpoint_withTagsUpdate, ri, ri, ri)
+	preConfig := testAccAzureRMCdnEndpoint_withTags(ri)
+	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -169,7 +169,8 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMCdnEndpoint_basic = `
+func testAccAzureRMCdnEndpoint_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -194,9 +195,11 @@ resource "azurerm_cdn_endpoint" "test" {
 	http_port = 80
     }
 }
-`
+`, rInt, rInt, rInt)
+}
 
-var testAccAzureRMCdnEndpoint_withTags = `
+func testAccAzureRMCdnEndpoint_withTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -226,9 +229,11 @@ resource "azurerm_cdn_endpoint" "test" {
 	cost_center = "MSFT"
     }
 }
-`
+`, rInt, rInt, rInt)
+}
 
-var testAccAzureRMCdnEndpoint_withTagsUpdate = `
+func testAccAzureRMCdnEndpoint_withTagsUpdate(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -257,4 +262,5 @@ resource "azurerm_cdn_endpoint" "test" {
 	environment = "staging"
     }
 }
-`
+`, rInt, rInt, rInt)
+}
