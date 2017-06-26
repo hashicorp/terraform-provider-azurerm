@@ -49,11 +49,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   active_active = false
   enable_bgp = false
-
-	sku {
-		name = "Basic"
-		tier = "Basic"
-	}
+	sku = "Basic"
 
   ip_configuration {
     name = "vnetGatewayConfig"
@@ -133,7 +129,10 @@ The following arguments are supported:
     By default, forced tunneling is not enabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
-    gateway. The `sku` block supports fields documented below.
+    gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, and `UltraPerformance`
+    and depend on the `type` and `vpn_type` arguments.
+    A `PolicyBased` gateway only supports the `Basic` sku. Also, the `UltraPerformance`
+    sku is only supported by an `ExpressRoute` gateway.
 
 * `ip_configuration` (Required) One or two `ip_configuration` blocks documented below.
     An active-standby gateway requires exactly one `ip_configuration` block whereas
@@ -145,20 +144,10 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `sku` block supports:
-
-* `name` - (Required) The sku name of the virtual network gateway instance. Valid
-    options are `Basic`, `Standard`, `HighPerformance`, and `UltraPerformance`.
-
-* `tier` - (Required) The sku tier of the virtual network gateway instance. Valid
-    options are `Basic`, `Standard`, `HighPerformance`, and `UltraPerformance`.
-
-* `capacity` - (Optional) The capacity of the virtual network gateway. If not
-    specified, the maximum capacity of the chosen sku will be assumed.
-
 The `ip_configuration` block supports:
 
-* `name` - (Optional) A user-defined name of the IP.
+* `name` - (Optional) A user-defined name of the IP configuration. If noted specified,
+    `vnetGatewayConfig` is used.
 
 * `private_ip_address_allocation` - (Optional) Defines how the private IP address
     of the gateways virtual interface is assigned. Valid options are `Static` or
@@ -223,8 +212,7 @@ The following attributes are exported:
 
 * `resource_group_name` - The name of the resource group in which to create the virtual network gateway.
 
-* `location` - The location/region where the virtual network gateway is created
-
+* `location` - The location/region where the virtual network gateway is created.
 
 ## Import
 

@@ -14,9 +14,9 @@ import (
 
 func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkGatewayConnectionCreate,
+		Create: resourceArmVirtualNetworkGatewayConnectionCreateUpdate,
 		Read:   resourceArmVirtualNetworkGatewayConnectionRead,
-		Update: resourceArmVirtualNetworkGatewayConnectionCreate,
+		Update: resourceArmVirtualNetworkGatewayConnectionCreateUpdate,
 		Delete: resourceArmVirtualNetworkGatewayConnectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -92,30 +92,6 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"connection_status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VirtualNetworkGatewayConnectionStatusConnected),
-					string(network.VirtualNetworkGatewayConnectionStatusConnecting),
-					string(network.VirtualNetworkGatewayConnectionStatusNotConnected),
-					string(network.VirtualNetworkGatewayConnectionStatusUnknown),
-				}, false),
-			},
-
-			"egress_bytes_transferred": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-			},
-
-			"ingress_bytes_transferred": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-			},
-
 			"location": locationSchema(),
 
 			"tags": tagsSchema(),
@@ -123,7 +99,7 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkGatewayConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	vnetGatewayConnectionsClient := client.vnetGatewayConnectionsClient
 

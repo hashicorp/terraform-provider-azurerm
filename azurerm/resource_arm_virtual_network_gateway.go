@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -18,9 +17,9 @@ import (
 
 func resourceArmVirtualNetworkGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualNetworkGatewayCreate,
+		Create: resourceArmVirtualNetworkGatewayCreateUpdate,
 		Read:   resourceArmVirtualNetworkGatewayRead,
-		Update: resourceArmVirtualNetworkGatewayCreate,
+		Update: resourceArmVirtualNetworkGatewayCreateUpdate,
 		Delete: resourceArmVirtualNetworkGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -64,59 +63,39 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 			"enable_bgp": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 
 			"active_active": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeString,
 				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.VirtualNetworkGatewaySkuNameBasic),
-								string(network.VirtualNetworkGatewaySkuNameStandard),
-								string(network.VirtualNetworkGatewaySkuNameHighPerformance),
-								string(network.VirtualNetworkGatewaySkuNameUltraPerformance),
-							}, false),
-						},
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.VirtualNetworkGatewaySkuTierBasic),
-								string(network.VirtualNetworkGatewaySkuTierStandard),
-								string(network.VirtualNetworkGatewaySkuTierHighPerformance),
-								string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
-							}, false),
-						},
-						"capacity": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
-				Set: hashVirtualNetworkGatewaySku,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.VirtualNetworkGatewaySkuTierBasic),
+					string(network.VirtualNetworkGatewaySkuTierStandard),
+					string(network.VirtualNetworkGatewaySkuTierHighPerformance),
+					string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
+				}, false),
 			},
 
 			"ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				MaxItems: 2,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "vnetGatewayConfig",
+							// Azure Management API requires a name but does not generate a name if the field is missing
+							// The name "vnetGatewayConfig" is used when creating a virtual network gateway via the
+							// Azure portal.
+							Default: "vnetGatewayConfig",
 						},
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
@@ -225,7 +204,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualNetworkGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	vnetGatewayClient := client.vnetGatewayClient
 
@@ -236,15 +215,20 @@ func resourceArmVirtualNetworkGatewayCreate(d *schema.ResourceData, meta interfa
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	properties, err := getArmVirtualNetworkGatewayProperties(d)
+	if err != nil {
+		return err
+	}
+
 	gateway := network.VirtualNetworkGateway{
 		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
-		VirtualNetworkGatewayPropertiesFormat: getArmVirtualNetworkGatewayProperties(d),
+		VirtualNetworkGatewayPropertiesFormat: properties,
 	}
 
 	_, error := vnetGatewayClient.CreateOrUpdate(resGroup, name, gateway, make(chan struct{}))
-	err := <-error
+	err = <-error
 	if err != nil {
 		return err
 	}
@@ -298,7 +282,6 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 	d.Set("type", string(gw.GatewayType))
 	d.Set("enable_bgp", gw.EnableBgp)
 	d.Set("active_active", gw.ActiveActive)
-	d.Set("sku", schema.NewSet(hashVirtualNetworkGatewaySku, flattenArmVirtualNetworkGatewaySku(gw.Sku)))
 
 	if string(gw.VpnType) != "" {
 		d.Set("vpn_type", string(gw.VpnType))
@@ -306,6 +289,10 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 
 	if gw.GatewayDefaultSite != nil {
 		d.Set("default_local_network_gateway_id", gw.GatewayDefaultSite.ID)
+	}
+
+	if gw.Sku != nil {
+		d.Set("sku", string(gw.Sku.Name))
 	}
 
 	d.Set("ip_configuration", flattenArmVirtualNetworkGatewayIPConfigurations(gw.IPConfigurations))
@@ -377,7 +364,7 @@ func virtualNetworkGatewayStateRefreshFunc(client *ArmClient, resourceGroupName 
 	}
 }
 
-func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) *network.VirtualNetworkGatewayPropertiesFormat {
+func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.VirtualNetworkGatewayPropertiesFormat, error) {
 	gatewayType := network.VirtualNetworkGatewayType(d.Get("type").(string))
 	vpnType := network.VpnType(d.Get("vpn_type").(string))
 	enableBgp := d.Get("enable_bgp").(bool)
@@ -406,7 +393,34 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) *network.Virt
 		props.BgpSettings = expandArmVirtualNetworkGatewayBgpSettings(d)
 	}
 
-	return props
+	// Sku validation for policy-based VPN gateways
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.PolicyBased {
+		ok, err := evaluateSchemaValidateFunc(props.Sku, "sku", validateArmVirtualNetworkGatewayPolicyBasedVpnSku())
+
+		if !ok {
+			return nil, err
+		}
+	}
+
+	// Sku validation for route-based VPN gateways
+	if props.GatewayType == network.VirtualNetworkGatewayTypeVpn && props.VpnType == network.RouteBased {
+		ok, err := evaluateSchemaValidateFunc(props.Sku, "sku", validateArmVirtualNetworkGatewayRouteBasedVpnSku())
+
+		if !ok {
+			return nil, err
+		}
+	}
+
+	// Sku validation for ExpressRoute gateways
+	if props.GatewayType == network.VirtualNetworkGatewayTypeExpressRoute {
+		ok, err := evaluateSchemaValidateFunc(props.Sku, "sku", validateArmVirtualNetworkGatewayExpressRouteSku())
+
+		if !ok {
+			return nil, err
+		}
+	}
+
+	return props, nil
 }
 
 func expandArmVirtualNetworkGatewayBgpSettings(d *schema.ResourceData) *network.BgpSettings {
@@ -509,15 +523,11 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 }
 
 func expandArmVirtualNetworkGatewaySku(d *schema.ResourceData) *network.VirtualNetworkGatewaySku {
-	skuSets := d.Get("sku").(*schema.Set).List()
-	sku := skuSets[0].(map[string]interface{})
-
-	name := sku["name"].(string)
-	tier := sku["tier"].(string)
+	sku := d.Get("sku").(string)
 
 	return &network.VirtualNetworkGatewaySku{
-		Name: network.VirtualNetworkGatewaySkuName(name),
-		Tier: network.VirtualNetworkGatewaySkuTier(tier),
+		Name: network.VirtualNetworkGatewaySkuName(sku),
+		Tier: network.VirtualNetworkGatewaySkuTier(sku),
 	}
 }
 
@@ -581,16 +591,6 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 	return []interface{}{flat}
 }
 
-func flattenArmVirtualNetworkGatewaySku(sku *network.VirtualNetworkGatewaySku) []interface{} {
-	flat := make(map[string]interface{})
-
-	flat["name"] = string(sku.Name)
-	flat["tier"] = string(sku.Tier)
-	flat["capacity"] = int(*sku.Capacity)
-
-	return []interface{}{flat}
-}
-
 func hashVirtualNetworkGatewayBgpSettings(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
@@ -646,16 +646,6 @@ func hashVirtualNetworkGatewayVpnClientConfig(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func hashVirtualNetworkGatewaySku(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["tier"].(string)))
-
-	return hashcode.String(buf.String())
-}
-
 func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string) (string, string, error) {
 	id, err := parseAzureResourceID(virtualNetworkGatewayId)
 	if err != nil {
@@ -667,21 +657,27 @@ func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string)
 	return resGroup, name, nil
 }
 
-func retrieveVirtualNetworkGatewayById(virtualNetworkGatewayId string, meta interface{}) (*network.VirtualNetworkGateway, bool, error) {
-	vnetGatewayClient := meta.(*ArmClient).vnetGatewayClient
+func validateArmVirtualNetworkGatewayPolicyBasedVpnSku() schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		string(network.VirtualNetworkGatewaySkuTierBasic),
+	}, false)
+}
 
-	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId)
-	if err != nil {
-		return nil, false, errwrap.Wrapf("Error Getting VirtualNetworkGateway Name and Group: {{err}}", err)
-	}
+func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		string(network.VirtualNetworkGatewaySkuTierBasic),
+		string(network.VirtualNetworkGatewaySkuTierStandard),
+		string(network.VirtualNetworkGatewaySkuTierHighPerformance),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw1),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw2),
+		string(network.VirtualNetworkGatewaySkuNameVpnGw3),
+	}, false)
+}
 
-	resp, err := vnetGatewayClient.Get(resGroup, name)
-	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			return nil, false, nil
-		}
-		return nil, false, fmt.Errorf("Error making Read request on Azure VirtualNetworkGateway %s: %s", name, err)
-	}
-
-	return &resp, true, nil
+func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc {
+	return validation.StringInSlice([]string{
+		string(network.VirtualNetworkGatewaySkuTierStandard),
+		string(network.VirtualNetworkGatewaySkuTierHighPerformance),
+		string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
+	}, false)
 }

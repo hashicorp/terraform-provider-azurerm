@@ -62,14 +62,9 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   active_active = false
   enable_bgp = false
-
-	sku {
-		name = "Basic"
-		tier = "Basic"
-	}
+	sku = "Basic"
 
   ip_configuration {
-    name = "vnetGatewayConfig"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
     private_ip_address_allocation = "Dynamic"
     subnet_id = "${azurerm_subnet.test.id}"
@@ -128,14 +123,9 @@ resource "azurerm_virtual_network_gateway" "us" {
 
   type = "Vpn"
   vpn_type = "RouteBased"
-
-	sku {
-		name = "Basic"
-		tier = "Basic"
-	}
+	sku = "Basic"
 
   ip_configuration {
-    name = "vnetGatewayConfig"
     public_ip_address_id = "${azurerm_public_ip.us.id}"
     private_ip_address_allocation = "Dynamic"
     subnet_id = "${azurerm_subnet.us_gateway.id}"
@@ -175,14 +165,9 @@ resource "azurerm_virtual_network_gateway" "europe" {
 
   type = "Vpn"
   vpn_type = "RouteBased"
-
-	sku {
-		name = "Basic"
-		tier = "Basic"
-	}
+	sku = "Basic"
 
   ip_configuration {
-    name = "vnetGatewayConfig"
     public_ip_address_id = "${azurerm_public_ip.europe.id}"
     private_ip_address_allocation = "Dynamic"
     subnet_id = "${azurerm_subnet.europe_gateway.id}"
@@ -271,16 +256,9 @@ The following attributes are exported:
 
 * `name` - The name of the connection.
 
-* `resource_group_name` - The name of the resource group in which to create the virtual network.
+* `resource_group_name` - The name of the resource group in which to create the virtual network gateway connection.
 
-* `location` - The location/region where the virtual network is created.
-
-* `connection_status` - The current status of the connection.
-    (`Connected`, `Connecting`, `NotConnected`, `Unknown`)
-
-* `egress_bytes_transferred` - The egress bytes transferred in this connection.
-
-* `ingress_bytes_transferred` - The ingress bytes transferred in this connection.
+* `location` - The location/region where the  virtual network gateway connection is created.
 
 ## Import
 

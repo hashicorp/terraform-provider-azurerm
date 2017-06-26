@@ -129,11 +129,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
   type = "Vpn"
   vpn_type = "RouteBased"
-
-  sku {
-    name = "Basic"
-    tier = "Basic"
-  }
+  sku = "Basic"
 
   ip_configuration {
     name = "vnetGatewayConfig"
@@ -199,11 +195,7 @@ resource "azurerm_virtual_network_gateway" "us" {
 
   type = "Vpn"
   vpn_type = "RouteBased"
-
-	sku {
-		name = "Standard"
-		tier = "Standard"
-	}
+  sku = "Basic"
 
   ip_configuration {
     name = "vnetGatewayConfig"
@@ -258,11 +250,7 @@ resource "azurerm_virtual_network_gateway" "europe" {
 
   type = "Vpn"
   vpn_type = "RouteBased"
-
-	sku {
-		name = "Standard"
-		tier = "Standard"
-	}
+  sku = "Basic"
 
   ip_configuration {
     name = "vnetGatewayConfig"
