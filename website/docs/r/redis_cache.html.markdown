@@ -83,6 +83,37 @@ resource "azurerm_redis_cache" "test" {
 }
 ```
 
+## Example Usage (Premium with Backup)
+
+```hcl
+resource "azurerm_resource_group" "test" {
+    name     = "redisrg"
+    location = "West US"
+}
+resource "azurerm_storage_account" "test" {
+  name                = "redissa"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  account_type        = "Standard_GRS"
+}
+resource "azurerm_redis_cache" "test" {
+    name                = "example-redis"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    capacity            = 3
+    family              = "P"
+    sku_name            = "Premium"
+    enable_non_ssl_port = false
+    redis_configuration {
+      maxclients                    = "256"
+      rdb_backup_enabled            = "true"
+      rdb_backup_frequency          = "60"
+      rdb_backup_max_snapshot_count = "1"
+      rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
+    }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -107,7 +138,21 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
-* `redis_configuration` - (Required) Potential Redis configuration values - with some limitations by SKU - defaults/details are shown below.
+* `redis_configuration` - (Required) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
+
+---
+
+* `redis_configuration` supports the following:
+
+* `maxclients` - (Optional) Set the max number of connected clients at the same time. Defaults are shown below.
+* `maxmemory_reserve` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
+* `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
+* `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
+
+* `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKU's. Possible values are: `"true"` and `"false"` (note the quote's).
+* `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `"15"`, `"30"`, `"60"`, `"360"`, `"720"` and `"1440"`.
+* `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKU's.
+* `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKU's. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}`.
 
 ```hcl
 redis_configuration {
