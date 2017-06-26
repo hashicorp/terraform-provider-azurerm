@@ -21,6 +21,9 @@ func resourceArmRedisCache() *schema.Resource {
 		Read:   resourceArmRedisCacheRead,
 		Update: resourceArmRedisCacheUpdate,
 		Delete: resourceArmRedisCacheDelete,
+		// TODO: import support
+		MigrateState:  resourceAzureRMRedisCacheMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -102,7 +105,6 @@ func resourceArmRedisCache() *schema.Resource {
 							Default:      "volatile-lru",
 							ValidateFunc: validateRedisMaxMemoryPolicy,
 						},
-						// TODO: does this need a state migration?
 						"rdb_backup_enabled": {
 							Type:             schema.TypeString,
 							Optional:         true,
