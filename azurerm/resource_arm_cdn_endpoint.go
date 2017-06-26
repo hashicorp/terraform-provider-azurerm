@@ -260,10 +260,6 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	cdnEndpointsClient := meta.(*ArmClient).cdnEndpointsClient
 
-	if !d.HasChange("tags") {
-		return nil
-	}
-
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	profileName := d.Get("profile_name").(string)
