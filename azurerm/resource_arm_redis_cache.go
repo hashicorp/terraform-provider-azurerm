@@ -108,7 +108,6 @@ func resourceArmRedisCache() *schema.Resource {
 						"rdb_backup_enabled": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							Default:          "false",
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								"true",
@@ -118,18 +117,15 @@ func resourceArmRedisCache() *schema.Resource {
 						"rdb_backup_frequency": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "",
 							ValidateFunc: validateRedisBackupFrequency,
 						},
 						"rdb_backup_max_snapshot_count": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "",
 						},
 						"rdb_storage_connection_string": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "",
 						},
 					},
 				},
@@ -429,7 +425,9 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 		}
 
 		backupEnabled := config["rdb_backup_enabled"].(string)
-		output["rdb-backup-enabled"] = azure.String(backupEnabled)
+		if backupEnabled != "" {
+			output["rdb-backup-enabled"] = azure.String(backupEnabled)
+		}
 
 		backupFrequency := config["rdb_backup_frequency"].(string)
 		if backupFrequency != "" {
