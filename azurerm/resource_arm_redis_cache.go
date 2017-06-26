@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/jen20/riviera/azure"
 )
 
@@ -100,6 +101,33 @@ func resourceArmRedisCache() *schema.Resource {
 							Optional:     true,
 							Default:      "volatile-lru",
 							ValidateFunc: validateRedisMaxMemoryPolicy,
+						},
+						// TODO: does this need a state migration?
+						"rdb_backup_enabled": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "false",
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"true",
+								"false",
+							}, true),
+						},
+						"rdb_backup_frequency": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "",
+							ValidateFunc: validateRedisBackupFrequency,
+						},
+						"rdb_backup_max_snapshot_count": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "",
+						},
+						"rdb_storage_connection_string": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "",
 						},
 					},
 				},
@@ -397,6 +425,24 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 		if maxMemoryPolicy != "" {
 			output["maxmemory-policy"] = azure.String(maxMemoryPolicy)
 		}
+
+		backupEnabled := config["rdb_backup_enabled"].(string)
+		output["rdb-backup-enabled"] = azure.String(backupEnabled)
+
+		backupFrequency := config["rdb_backup_frequency"].(string)
+		if backupFrequency != "" {
+			output["rdb-backup-frequency"] = azure.String(backupFrequency)
+		}
+
+		backupMaxSnapshotCount := config["rdb_backup_max_snapshot_count"].(string)
+		if backupMaxSnapshotCount != "" {
+			output["rdb-backup-max-snapshot-count"] = azure.String(backupMaxSnapshotCount)
+		}
+
+		backupStorageConnectionString := config["rdb_storage_connection_string"].(string)
+		if backupStorageConnectionString != "" {
+			output["rdb-storage-connection-string"] = azure.String(backupStorageConnectionString)
+		}
 	}
 
 	return &output
@@ -410,6 +456,11 @@ func flattenRedisConfiguration(configuration *map[string]*string) map[string]*st
 	redisConfiguration["maxmemory_delta"] = config["maxmemory-delta"]
 	redisConfiguration["maxmemory_reserved"] = config["maxmemory-reserved"]
 	redisConfiguration["maxmemory_policy"] = config["maxmemory-policy"]
+
+	redisConfiguration["rdb_backup_enabled"] = config["rdb-backup-enabled"]
+	redisConfiguration["rdb_backup_frequency"] = config["rdb-backup-frequency"]
+	redisConfiguration["rdb_backup_max_snapshot_count"] = config["rdb-backup-max-snapshot-count"]
+	redisConfiguration["rdb_storage_connection_string"] = config["rdb-storage-connection-string"]
 
 	return redisConfiguration
 }
@@ -456,5 +507,23 @@ func validateRedisSku(v interface{}, k string) (ws []string, errors []error) {
 	if !skus[value] {
 		errors = append(errors, fmt.Errorf("Redis SKU can only be Basic, Standard or Premium"))
 	}
+	return
+}
+
+func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	families := map[string]bool{
+		"15":   true,
+		"30":   true,
+		"60":   true,
+		"360":  true,
+		"720":  true,
+		"1440": true,
+	}
+
+	if !families[value] {
+		errors = append(errors, fmt.Errorf("Redis Backup Frequency can only be '15', '30', '60', '360', '720' or '1440'"))
+	}
+
 	return
 }
