@@ -225,12 +225,6 @@ func TestAccAzureRMRedisCache_BackupDisabled(t *testing.T) {
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
 			},
-
-			{
-				Config:             config,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
 		},
 	})
 }
@@ -251,17 +245,36 @@ func TestAccAzureRMRedisCache_BackupEnabled(t *testing.T) {
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
 			},
-
-			{
-				Config:             config,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
 		},
 	})
 }
 
-//
+func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs)
+	updatedConfig := testAccAzureRMRedisCacheBackupDisabled(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
 
 func testCheckAzureRMRedisCacheExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
