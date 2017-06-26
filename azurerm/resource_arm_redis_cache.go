@@ -21,9 +21,6 @@ func resourceArmRedisCache() *schema.Resource {
 		Read:   resourceArmRedisCacheRead,
 		Update: resourceArmRedisCacheUpdate,
 		Delete: resourceArmRedisCacheDelete,
-		// TODO: import support
-		MigrateState:  resourceAzureRMRedisCacheMigrateState,
-		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
