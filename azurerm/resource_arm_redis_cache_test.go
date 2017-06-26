@@ -225,12 +225,6 @@ func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
 			},
-
-			{
-				Config:             config,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
 		},
 	})
 }
@@ -249,12 +243,6 @@ func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
-			},
-
-			{
-				Config:             config,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
 			},
 		},
 	})
