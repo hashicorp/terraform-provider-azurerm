@@ -19,6 +19,7 @@ BUG FIXES:
 * `azurerm_key_vault` - fixing import / the validation on Access Policies [GH-124]
 * `azurerm_network_interface` - Normalizing the location field in the state [GH-122]
 * `azurerm_network_interface` - fixing a crash when importing a NIC with a Public IP [GH-128]
+* `azurerm_network_security_rule`: `network_security_group_name` is now `ForceNew` [GH-138]
 * `azurerm_subnet` now correctly detects changes to Network Securtiy Groups and Routing Table's [GH-113]
 
 ## 0.1.1 (June 21, 2017)
