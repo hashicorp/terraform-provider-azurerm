@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -51,7 +52,8 @@ type ArmClient struct {
 	vmImageClient          compute.VirtualMachineImagesClient
 	vmClient               compute.VirtualMachinesClient
 
-	diskClient disk.DisksClient
+	diskClient       disk.DisksClient
+	documentDBClient documentdb.DatabaseAccountsClient
 
 	appGatewayClient             network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
@@ -256,6 +258,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	csc.Authorizer = auth
 	csc.Sender = autorest.CreateSender(withRequestLogging())
 	client.containerServicesClient = csc
+
+	ddb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ddb.Client)
+	ddb.Authorizer = auth
+	ddb.Sender = autorest.CreateSender(withRequestLogging())
+	client.documentDBClient = ddb
 
 	dkc := disk.NewDisksClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dkc.Client)
