@@ -13,7 +13,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
-* `azurerm_container_service` - exposes the FQDN of the master_profile as a computed field [GH-125]
+* `azurerm_cdn_endpoint` - fixing update of the `origin_host_header` [GH-134]
+* `azurerm_container_service` - exposes the FQDN of the `master_profile` as a computed field [GH-125]
 * `azurerm_key_vault` - fixing import / the validation on Access Policies [GH-124]
 * `azurerm_network_interface` - Normalizing the location field in the state [GH-122]
 * `azurerm_network_interface` - fixing a crash when importing a NIC with a Public IP [GH-128]
