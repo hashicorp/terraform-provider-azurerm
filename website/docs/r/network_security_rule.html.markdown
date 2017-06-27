@@ -47,7 +47,7 @@ resource "azurerm_network_security_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the security rule.
+* `name` - (Required) The name of the security rule. This needs to be unique across all Rules in the Network Security Group. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the Network Security Rule.
