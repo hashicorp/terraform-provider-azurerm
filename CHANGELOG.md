@@ -21,6 +21,7 @@ BUG FIXES:
 * `azurerm_network_interface` - fixing a crash when importing a NIC with a Public IP [GH-128]
 * `azurerm_network_security_rule`: `network_security_group_name` is now `ForceNew` [GH-138]
 * `azurerm_subnet` now correctly detects changes to Network Securtiy Groups and Routing Table's [GH-113]
+* `azurerm_virtual_machine_scale_set` - making `storage_profile_os_disk`.`name` optional [GH-129]
 
 ## 0.1.1 (June 21, 2017)
 
