@@ -124,6 +124,8 @@ func Provider() terraform.ResourceProvider {
 
 			"azurerm_application_insights": resourceArmApplicationInsights(),
 
+			//PTR record uses Azure Go SDK
+			"azurerm_dns_ptr_record": resourceArmDnsPtrRecord(),
 			// These resources use the Riviera SDK
 			"azurerm_dns_a_record":      resourceArmDnsARecord(),
 			"azurerm_dns_aaaa_record":   resourceArmDnsAAAARecord(),
