@@ -325,7 +325,7 @@ The following arguments are supported:
 
 `storage_profile_os_disk` supports the following:
 
-* `name` - (Required) Specifies the disk name. Value must be blank (`""`) when `managed_disk_type` is specified. 
+* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
 * `vhd_containers` - (Optional) Specifies the vhd uri. Cannot be used when `image` or `managed_disk_type` is specified.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.

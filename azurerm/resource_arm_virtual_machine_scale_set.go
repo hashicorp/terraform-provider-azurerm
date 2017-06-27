@@ -299,7 +299,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"image": {
@@ -1182,6 +1182,10 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	createOption := osDiskConfig["create_option"].(string)
 	managedDiskType := osDiskConfig["managed_disk_type"].(string)
 
+	if managedDiskType == "" && name == "" {
+		return nil, fmt.Errorf("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
+	}
+
 	osDisk := &compute.VirtualMachineScaleSetOSDisk{
 		Name:         &name,
 		Caching:      compute.CachingTypes(caching),
@@ -1207,13 +1211,13 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	managedDisk := &compute.VirtualMachineScaleSetManagedDiskParameters{}
 
 	if managedDiskType != "" {
-		if name == "" {
-			osDisk.Name = nil
-			managedDisk.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
-			osDisk.ManagedDisk = managedDisk
-		} else {
-			return nil, fmt.Errorf("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please set name to blank)")
+		if name != "" {
+			return nil, fmt.Errorf("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please remove name or set it to blank)")
 		}
+
+		osDisk.Name = nil
+		managedDisk.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
+		osDisk.ManagedDisk = managedDisk
 	}
 
 	//BEGIN: code to be removed after GH-13016 is merged
