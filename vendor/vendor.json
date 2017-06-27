@@ -54,8 +54,8 @@
 			"checksumSHA1": "l+Cht1Eel4SHAz/3zPVFWcw6uug=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/insights",
 			"revision": "720c2a183bcccbe8a90f3159b63e1e2e5d4c9911",
-			"revisionTime": "2017-06-14T20:08:54Z"
-			"version": "v10.0.2-beta"
+			"revisionTime": "2017-06-14T20:08:54Z",
+			"version": "v10.0.2-beta",
 			"versionExact": "v10.0.2-beta"
 		},
 		{
