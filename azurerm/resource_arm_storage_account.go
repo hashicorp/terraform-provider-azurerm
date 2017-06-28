@@ -137,6 +137,16 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_blob_connection_string": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_connection_string": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -366,13 +376,21 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("primary_queue_endpoint", resp.AccountProperties.PrimaryEndpoints.Queue)
 		d.Set("primary_table_endpoint", resp.AccountProperties.PrimaryEndpoints.Table)
 		d.Set("primary_file_endpoint", resp.AccountProperties.PrimaryEndpoints.File)
+
+		pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
+			*resp.AccountProperties.PrimaryEndpoints.Blob, *resp.Name, *accessKeys[0].Value)
+		d.Set("primary_blob_connection_string", pscs)
 	}
 
 	if resp.AccountProperties.SecondaryEndpoints != nil {
 		if resp.AccountProperties.SecondaryEndpoints.Blob != nil {
 			d.Set("secondary_blob_endpoint", resp.AccountProperties.SecondaryEndpoints.Blob)
+			sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
+				*resp.AccountProperties.SecondaryEndpoints.Blob, *resp.Name, *accessKeys[1].Value)
+			d.Set("secondary_blob_connection_string", sscs)
 		} else {
 			d.Set("secondary_blob_endpoint", "")
+			d.Set("secondary_blob_connection_string", "")
 		}
 		if resp.AccountProperties.SecondaryEndpoints.Queue != nil {
 			d.Set("secondary_queue_endpoint", resp.AccountProperties.SecondaryEndpoints.Queue)
