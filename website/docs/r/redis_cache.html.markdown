@@ -28,7 +28,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxclients = "256"
+    maxclients = 256
   }
 }
 ```
@@ -51,7 +51,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-    maxclients = "1000"
+    maxclients = 1000
   }
 }
 ```
@@ -75,9 +75,9 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxclients         = "7500"
-    maxmemory_reserved = "2"
-    maxmemory_delta    = "2"
+    maxclients         = 7500
+    maxmemory_reserved = 2
+    maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
   }
 }
@@ -105,10 +105,10 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients                    = "256"
-      rdb_backup_enabled            = "true"
-      rdb_backup_frequency          = "60"
-      rdb_backup_max_snapshot_count = "1"
+      maxclients                    = 256
+      rdb_backup_enabled            = true
+      rdb_backup_frequency          = 60
+      rdb_backup_max_snapshot_count = 1
       rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
     }
 }
@@ -149,16 +149,16 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
 
-* `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKU's. Possible values are: `"true"` and `"false"` (note the quote's).
-* `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `"15"`, `"30"`, `"60"`, `"360"`, `"720"` and `"1440"`.
+* `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKU's.
+* `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `15`, `30`, `60`, `360`, `720` and `1440`.
 * `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKU's.
 * `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKU's. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}`.
 
 ```hcl
 redis_configuration {
-  maxclients         = "512"
-  maxmemory_reserve  = "10"
-  maxmemory_delta    = "2"
+  maxclients         = 512
+  maxmemory_reserve  = 10
+  maxmemory_delta    = 2
   maxmemory_policy   = "allkeys-lru"
 }
 ```
