@@ -77,7 +77,7 @@ func TestAccAzureRMRedisCacheMaxMemoryPolicy_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMRedisCacheBackupFrequency_validation(t* testing.T) {
+func TestAccAzureRMRedisCacheBackupFrequency_validation(t *testing.T) {
 	cases := []struct {
 		Value    int
 		ErrCount int
