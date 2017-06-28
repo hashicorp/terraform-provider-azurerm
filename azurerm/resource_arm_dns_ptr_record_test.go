@@ -13,7 +13,7 @@ import (
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMDnsPtrRecord_basic, ri, ri, ri)
+	config := testAccAzureRMDnsPtrRecord_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -32,8 +32,8 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 
 func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMDnsPtrRecord_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMDnsPtrRecord_updateRecords, ri, ri, ri)
+	preConfig := testAccAzureRMDnsPtrRecord_basic(ri)
+	postConfig := testAccAzureRMDnsPtrRecord_updateRecords(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,8 +63,8 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMDnsPtrRecord_withTags, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMDnsPtrRecord_withTagsUpdate, ri, ri, ri)
+	preConfig := testAccAzureRMDnsPtrRecord_withTags(ri)
+	postConfig := testAccAzureRMDnsPtrRecord_withTagsUpdate(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -130,7 +130,7 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 		}
 
 		ptrName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["dnszones"]
+		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(resourceGroup, zoneName, ptrName, dns.PTR)
@@ -148,56 +148,61 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMDnsPtrRecord_basic = `
+func testAccAzureRMDnsPtrRecord_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG_%[1]d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
+    name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%d"
+    name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
     records = ["hashicorp.com", "microsoft.com"]
 }
-`
+`, rInt)
+}
 
-var testAccAzureRMDnsPtrRecord_updateRecords = `
+func testAccAzureRMDnsPtrRecord_updateRecords(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG_%[1]d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
+    name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%d"
+    name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
     records = ["hashicorp.com", "microsoft.com", "reddit.com"]
 }
-`
+`, rInt)
+}
 
-var testAccAzureRMDnsPtrRecord_withTags = `
+func testAccAzureRMDnsPtrRecord_withTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG_%[1]d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
+    name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%d"
+    name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -208,20 +213,22 @@ resource "azurerm_dns_ptr_record" "test" {
 		cost_center = "Ops"
     }
 }
-`
+`, rInt)
+}
 
-var testAccAzureRMDnsPtrRecord_withTagsUpdate = `
+func testAccAzureRMDnsPtrRecord_withTagsUpdate(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG_%[1]d"
     location = "West US"
 }
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
+    name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%d"
+    name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -231,4 +238,5 @@ resource "azurerm_dns_ptr_record" "test" {
 		environment = "Stage"
     }
 }
-`
+`, rInt)
+}

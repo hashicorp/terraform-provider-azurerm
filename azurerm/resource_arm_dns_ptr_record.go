@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
@@ -114,6 +115,8 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
+	log.Printf("[INFO] here is actual %v", id)
+
 	resGroup := id.ResourceGroup
 	name := id.Path["PTR"]
 	zoneName := id.Path["dnszones"]
@@ -129,7 +132,7 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("zonename", zoneName)
+	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
 
 	if resp.PtrRecords != nil {
