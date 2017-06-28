@@ -77,38 +77,6 @@ func TestAccAzureRMRedisCacheMaxMemoryPolicy_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMRedisCacheSku_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Basic",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRedisSku(tc.Value, "azurerm_redis_cache")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Redis Cache Sku to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAzureRMRedisCache_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(testAccAzureRMRedisCache_basic, ri, ri)
