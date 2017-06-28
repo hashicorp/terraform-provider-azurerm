@@ -53,15 +53,15 @@ func TestValidateArmStorageAccountName(t *testing.T) {
 func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	preConfig := fmt.Sprintf(testAccAzureRMStorageAccount_basic, ri, rs)
-	postConfig := fmt.Sprintf(testAccAzureRMStorageAccount_update, ri, rs)
+	preConfig := testAccAzureRMStorageAccount_basic(ri, rs)
+	postConfig := testAccAzureRMStorageAccount_update(ri, rs)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
@@ -71,7 +71,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
@@ -87,14 +87,14 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	preConfig := fmt.Sprintf(testAccAzureRMStorageAccount_basic, ri, rs)
+	preConfig := testAccAzureRMStorageAccount_basic(ri, rs)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
@@ -112,15 +112,15 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	preConfig := fmt.Sprintf(testAccAzureRMStorageAccount_blobEncryption, ri, rs)
-	postConfig := fmt.Sprintf(testAccAzureRMStorageAccount_blobEncryptionDisabled, ri, rs)
+	preConfig := testAccAzureRMStorageAccount_blobEncryption(ri, rs)
+	postConfig := testAccAzureRMStorageAccount_blobEncryptionDisabled(ri, rs)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
@@ -128,7 +128,7 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
@@ -142,15 +142,15 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	preConfig := fmt.Sprintf(testAccAzureRMStorageAccount_blobStorage, ri, rs)
-	postConfig := fmt.Sprintf(testAccAzureRMStorageAccount_blobStorageUpdate, ri, rs)
+	preConfig := testAccAzureRMStorageAccount_blobStorage(ri, rs)
+	postConfig := testAccAzureRMStorageAccount_blobStorageUpdate(ri, rs)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
@@ -159,7 +159,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
@@ -180,14 +180,14 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config:             preConfig,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
@@ -270,7 +270,8 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMStorageAccount_basic = `
+func testAccAzureRMStorageAccount_basic(rInt int, rString string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
     location = "westus"
@@ -286,9 +287,11 @@ resource "azurerm_storage_account" "testsa" {
     tags {
         environment = "production"
     }
-}`
+}`, rInt, rString)
+}
 
-var testAccAzureRMStorageAccount_update = `
+func testAccAzureRMStorageAccount_update(rInt int, rString string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
     location = "westus"
@@ -304,9 +307,11 @@ resource "azurerm_storage_account" "testsa" {
     tags {
         environment = "staging"
     }
-}`
+}`, rInt, rString)
+}
 
-var testAccAzureRMStorageAccount_blobEncryption = `
+func testAccAzureRMStorageAccount_blobEncryption(rInt int, rString string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
     location = "westus"
@@ -323,9 +328,11 @@ resource "azurerm_storage_account" "testsa" {
     tags {
         environment = "production"
     }
-}`
+}`, rInt, rString)
+}
 
-var testAccAzureRMStorageAccount_blobEncryptionDisabled = `
+func testAccAzureRMStorageAccount_blobEncryptionDisabled(rInt int, rString string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
     location = "westus"
@@ -342,10 +349,12 @@ resource "azurerm_storage_account" "testsa" {
     tags {
         environment = "production"
     }
-}`
+}`, rInt, rString)
+}
 
 // BlobStorage accounts are not available in WestUS
-var testAccAzureRMStorageAccount_blobStorage = `
+func testAccAzureRMStorageAccount_blobStorage(rInt int, rString string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
     location = "northeurope"
@@ -362,9 +371,12 @@ resource "azurerm_storage_account" "testsa" {
     tags {
         environment = "production"
     }
-}`
+}
+`, rInt, rString)
+}
 
-var testAccAzureRMStorageAccount_blobStorageUpdate = `
+func testAccAzureRMStorageAccount_blobStorageUpdate(rInt int, rString string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
     location = "northeurope"
@@ -382,7 +394,9 @@ resource "azurerm_storage_account" "testsa" {
     tags {
         environment = "production"
     }
-}`
+}
+`, rInt, rString)
+}
 
 func testAccAzureRMStorageAccountNonStandardCasing(ri int, rs string) string {
 	return fmt.Sprintf(`
