@@ -79,7 +79,7 @@ func TestAccAzureRMRedisCacheMaxMemoryPolicy_validation(t *testing.T) {
 
 func TestAccAzureRMRedisCache_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_basic, ri, ri)
+	config := testAccAzureRMRedisCache_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -98,7 +98,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 
 func TestAccAzureRMRedisCache_standard(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_standard, ri, ri)
+	config := testAccAzureRMRedisCache_standard(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,7 +117,7 @@ func TestAccAzureRMRedisCache_standard(t *testing.T) {
 
 func TestAccAzureRMRedisCache_premium(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_premium, ri, ri)
+	config := testAccAzureRMRedisCache_premium(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -136,7 +136,7 @@ func TestAccAzureRMRedisCache_premium(t *testing.T) {
 
 func TestAccAzureRMRedisCache_premiumSharded(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_premiumSharded, ri, ri)
+	config := testAccAzureRMRedisCache_premiumSharded(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -298,7 +298,8 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMRedisCache_basic = `
+func testAccAzureRMRedisCache_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -317,9 +318,11 @@ resource "azurerm_redis_cache" "test" {
       maxclients = "256"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMRedisCache_standard = `
+func testAccAzureRMRedisCache_standard(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -341,9 +344,11 @@ resource "azurerm_redis_cache" "test" {
     	environment = "production"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMRedisCache_premium = `
+func testAccAzureRMRedisCache_premium(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -364,9 +369,11 @@ resource "azurerm_redis_cache" "test" {
       maxmemory_policy   = "allkeys-lru"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMRedisCache_premiumSharded = `
+func testAccAzureRMRedisCache_premiumSharded(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -388,7 +395,8 @@ resource "azurerm_redis_cache" "test" {
       maxmemory_policy   = "allkeys-lru"
     }
 }
-`
+`, rInt, rInt)
+}
 
 func testAccAzureRMRedisCacheNonStandardCasing(ri int) string {
 	return fmt.Sprintf(`
