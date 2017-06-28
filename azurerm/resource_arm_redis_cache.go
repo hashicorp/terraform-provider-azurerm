@@ -78,19 +78,19 @@ func resourceArmRedisCache() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"maxclients": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_delta": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_reserved": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
@@ -395,19 +395,22 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 	for _, v := range configuration {
 		config := v.(map[string]interface{})
 
-		maxClients := config["maxclients"].(string)
-		if maxClients != "" {
-			output["maxclients"] = azure.String(maxClients)
+		if v := config["maxclients"]; v != nil {
+			clientsI := v.(int)
+			clients := strconv.Itoa(clientsI)
+			output["maxclients"] = azure.String(clients)
 		}
 
-		maxMemoryDelta := config["maxmemory_delta"].(string)
-		if maxMemoryDelta != "" {
-			output["maxmemory-delta"] = azure.String(maxMemoryDelta)
+		if v := config["maxmemory_delta"]; v != nil {
+			memI := v.(int)
+			mem := strconv.Itoa(memI)
+			output["maxmemory-delta"] = azure.String(mem)
 		}
 
-		maxMemoryReserved := config["maxmemory_reserved"].(string)
-		if maxMemoryReserved != "" {
-			output["maxmemory-reserved"] = azure.String(maxMemoryReserved)
+		if v := config["maxmemory_reserved"]; v != nil {
+			memI := v.(int)
+			mem := strconv.Itoa(memI)
+			output["maxmemory-reserved"] = azure.String(mem)
 		}
 
 		maxMemoryPolicy := config["maxmemory_policy"].(string)
@@ -421,15 +424,13 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 			output["rdb-backup-enabled"] = azure.String(enabled)
 		}
 
-		if v := config["rdb_backup_frequency"]; v != nil {
-			frequencyI := v.(int)
-			frequency := strconv.Itoa(frequencyI)
+		if v := config["rdb_backup_frequency"].(int); v > 0 {
+			frequency := strconv.Itoa(v)
 			output["rdb-backup-frequency"] = azure.String(frequency)
 		}
 
-		if v := config["rdb_backup_max_snapshot_count"]; v != nil {
-			countI := v.(int)
-			count := strconv.Itoa(countI)
+		if v := config["rdb_backup_max_snapshot_count"].(int); v > 0 {
+			count := strconv.Itoa(v)
 			output["rdb-backup-max-snapshot-count"] = azure.String(count)
 		}
 

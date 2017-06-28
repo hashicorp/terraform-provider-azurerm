@@ -390,9 +390,9 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = "256",
-      maxmemory_reserved = "2",
-      maxmemory_delta    = "2"
+      maxclients         = 256,
+      maxmemory_reserved = 2,
+      maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
 }
@@ -415,8 +415,8 @@ resource "azurerm_redis_cache" "test" {
     shard_count         = 3
     redis_configuration {
       maxclients         = "256",
-      maxmemory_reserved = "2",
-      maxmemory_delta    = "2"
+      maxmemory_reserved = 2,
+      maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
 }
