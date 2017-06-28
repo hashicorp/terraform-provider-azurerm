@@ -11,6 +11,7 @@ IMPROVEMENTS:
 
 * Ensuring consistency in when storing the `location` field in the state for the `azurerm_availability_set`, `azurerm_express_route_circuit`, `azurerm_load_balancer`, `azurerm_local_network_gateway`, `azurerm_managed_disk`, `azurerm_network_security_group`
 `azurerm_public_ip`, `azurerm_resource_group`, `azurerm_route_table`, `azurerm_storage_account`, `azurerm_virtual_machine` and `azurerm_virtual_network` resources [GH-123]
+* `azurerm_redis_cache` - now supports backup settings for Premium Redis Cache's [GH-130]
 
 BUG FIXES:
 
