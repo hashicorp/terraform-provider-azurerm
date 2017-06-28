@@ -420,7 +420,7 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_max_snapshot_count"); ok {
 		delta := strconv.Itoa(v.(int))
-		output["max-snapshot-count"] = azure.String(delta)
+		output["rdb-backup-max-snapshot-count"] = azure.String(delta)
 	}
 
 	if v, ok := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); ok {
