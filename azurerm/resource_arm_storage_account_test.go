@@ -109,6 +109,27 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	preConfig := testAccAzureRMStorageAccount_basic(ri, rs)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					resource.TestCheckResourceAttrSet("azurerm_storage_account.testsa", "primary_blob_connection_string"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
