@@ -60,17 +60,23 @@ func resourceArmDnsPtrRecordCreate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
-	ttl := d.Get("ttl").(int64)
-	tags := d.Get("metadata").(map[string]*string)
+	ttl := int64(d.Get("ttl").(int))
+	tags := d.Get("tags").(map[string]interface{})
+
+	metadata := expandTags(tags)
 
 	recordStrings := d.Get("records").(*schema.Set).List()
 	records := make([]dns.PtrRecord, len(recordStrings))
-	for i, fqdn := range records {
-		records[i] = fqdn
+
+	for i, v := range recordStrings {
+		fqdn := v.(string)
+		records[i] = dns.PtrRecord{
+			Ptrdname: &fqdn,
+		}
 	}
 
 	props := dns.RecordSetProperties{
-		Metadata:   &tags,
+		Metadata:   metadata,
 		TTL:        &ttl,
 		PtrRecords: &records,
 	}
@@ -109,7 +115,7 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["name"]
+	name := id.Path["PTR"]
 	zoneName := id.Path["dnszones"]
 
 	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.PTR)
@@ -121,9 +127,9 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("zonename", zoneName)
 	d.Set("ttl", resp.TTL)
 
 	if resp.PtrRecords != nil {
@@ -138,7 +144,6 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	flattenAndSetTags(d, resp.Metadata)
-
 	return nil
 }
 
@@ -152,7 +157,7 @@ func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["name"]
+	name := id.Path["PTR"]
 	zoneName := id.Path["dnszones"]
 
 	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.PTR, "")

@@ -101,14 +101,13 @@ func testCheckAzureRMDnsPtrRecordExists(name string) resource.TestCheckFunc {
 		}
 
 		ptrName := rs.Primary.Attributes["name"]
-		zoneName := rs.Primary.Attributes["dnszones"]
+		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for DNS PTR record: %s", ptrName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
-
 		resp, err := conn.Get(resourceGroup, zoneName, ptrName, dns.PTR)
 		if err != nil {
 			return fmt.Errorf("Bad: Get PTR RecordSet: %s", err)
@@ -160,7 +159,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "myarecord%d"
+    name = "testptrrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -179,7 +178,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "myarecord%d"
+    name = "testptrrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -198,7 +197,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "myarecord%d"
+    name = "testptrrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -222,7 +221,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "myarecord%d"
+    name = "testptrrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
