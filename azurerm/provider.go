@@ -76,6 +76,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_container_registry": resourceArmContainerRegistry(),
 			"azurerm_container_service":  resourceArmContainerService(),
 			"azurerm_cosmosdb_account":   resourceArmCosmosDBAccount(),
+			"azurerm_dns_ptr_record":     resourceArmDnsPtrRecord(),
 
 			"azurerm_eventhub":                    resourceArmEventHub(),
 			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),
@@ -124,8 +125,6 @@ func Provider() terraform.ResourceProvider {
 
 			"azurerm_application_insights": resourceArmApplicationInsights(),
 
-			//PTR record uses Azure Go SDK
-			"azurerm_dns_ptr_record": resourceArmDnsPtrRecord(),
 			// These resources use the Riviera SDK
 			"azurerm_dns_a_record":      resourceArmDnsARecord(),
 			"azurerm_dns_aaaa_record":   resourceArmDnsAAAARecord(),
@@ -252,20 +251,19 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 	var err error
 	providerRegistrationOnce.Do(func() {
 		providers := map[string]struct{}{
-			"Microsoft.Cache":             struct{}{},
-			"Microsoft.Cdn":               struct{}{},
 			"Microsoft.Compute":           struct{}{},
+			"Microsoft.Cache":             struct{}{},
 			"Microsoft.ContainerRegistry": struct{}{},
 			"Microsoft.ContainerService":  struct{}{},
-			"Microsoft.EventHub":          struct{}{},
-			"Microsoft.Insights":          struct{}{},
-			"Microsoft.KeyVault":          struct{}{},
 			"Microsoft.Network":           struct{}{},
-			"Microsoft.Resources":         struct{}{},
-			"Microsoft.Search":            struct{}{},
-			"Microsoft.ServiceBus":        struct{}{},
-			"Microsoft.Sql":               struct{}{},
+			"Microsoft.Cdn":               struct{}{},
 			"Microsoft.Storage":           struct{}{},
+			"Microsoft.Sql":               struct{}{},
+			"Microsoft.Search":            struct{}{},
+			"Microsoft.Resources":         struct{}{},
+			"Microsoft.ServiceBus":        struct{}{},
+			"Microsoft.KeyVault":          struct{}{},
+			"Microsoft.EventHub":          struct{}{},
 		}
 
 		// filter out any providers already registered

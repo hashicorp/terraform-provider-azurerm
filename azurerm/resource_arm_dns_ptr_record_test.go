@@ -110,7 +110,7 @@ func testCheckAzureRMDnsPtrRecordExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
 		resp, err := conn.Get(resourceGroup, zoneName, ptrName, dns.PTR)
 		if err != nil {
-			return fmt.Errorf("Bad: Get PTR RecordSet: %s", err)
+			return fmt.Errorf("Bad: Get PTR RecordSet: %v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
