@@ -1405,6 +1405,10 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
 	imageReference := compute.ImageReference{}
 
+	if imageReference.ID != nil && imageReference.Publisher != nil {
+		return nil, fmt.Errorf("[ERROR] Conflict between `image_id` and `publisher` (only one or the other can be used)")
+	}
+
 	if storageImageRef["image_id"] != "" {
 		imageID := storageImageRef["image_id"].(string)
 		imageReference = compute.ImageReference{
@@ -1422,10 +1426,6 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 			Sku:       &sku,
 			Version:   &version,
 		}
-	}
-
-	if imageReference.ID != nil && imageReference.Publisher != nil {
-		return nil, fmt.Errorf("[ERROR] Conflict between `image_id` and `publisher` (only one or the other can be used)")
 	}
 
 	return &imageReference, nil

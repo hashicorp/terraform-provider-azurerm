@@ -52,6 +52,7 @@ func resourceArmImage() *schema.Resource {
 						"os_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Linux),
 								string(compute.Windows),
@@ -62,6 +63,7 @@ func resourceArmImage() *schema.Resource {
 						"os_state": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Generalized),
 								string(compute.Specialized),
@@ -84,7 +86,7 @@ func resourceArmImage() *schema.Resource {
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "None",
+							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -187,10 +189,16 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	//either source VM or storage profile can be specified, but not both
 	if (compute.SubResource{}) == sourceVM {
+		//if both sourceVM and storageProfile are empty, return an error
+		if (compute.ImageStorageProfile{}) == storageProfile {
+			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
+		}
+
 		properties = compute.ImageProperties{
 			StorageProfile: &storageProfile,
 		}
 	} else {
+		//creating an image from source VM
 		properties = compute.ImageProperties{
 			SourceVirtualMachine: &sourceVM,
 		}
@@ -245,12 +253,13 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", resp.Location)
 
-	//either source VM or storage profile can be specified, but not both
 	if resp.SourceVirtualMachine != nil {
 		if resp.SourceVirtualMachine.ID != nil {
 			d.Set("source_virtual_machine_id", resp.SourceVirtualMachine.ID)
 		}
-	} else if resp.StorageProfile != nil {
+	}
+
+	if resp.StorageProfile != nil {
 		if err := d.Set("os_disk", flattenAzureRmStorageProfileOsDisk(d, resp.StorageProfile)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %#v", err)
 		}
@@ -343,9 +352,9 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 			osDisk.OsState = osState
 		}
 
-		managedDisk := &compute.SubResource{}
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
+			managedDisk := &compute.SubResource{}
 			managedDisk.ID = &managedDiskID
 			osDisk.ManagedDisk = managedDisk
 		}
@@ -359,8 +368,7 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 		}
 
 		if size := config["size_gb"]; size != 0 {
-			diskSize := int32(0)
-			diskSize = int32(size.(int))
+			diskSize := int32(size.(int))
 			osDisk.DiskSizeGB = &diskSize
 		}
 	}

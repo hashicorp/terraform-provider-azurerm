@@ -35,7 +35,7 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%[1]d", ri), "testsource",
+					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%d", ri), "testsource",
 						userName, password, hostName, sshPort),
 				),
 			},
