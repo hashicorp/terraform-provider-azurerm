@@ -77,6 +77,8 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
 					resource.TestCheckResourceAttr(
 						"azurerm_dns_ptr_record.test", "tags.%", "2"),
+					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "tags.environment", "Dev"),
+					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "tags.cost_center", "Ops"),
 				),
 			},
 
