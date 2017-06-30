@@ -285,7 +285,7 @@ be between 1 week and 1 minute. ISO 8601 duration format.
 
 `fixed_date` supports the following:
 
-* `time_zone` - (Required) Specifies the time zone of the start and end times for the profile.
+* `time_zone` - (Required) Specifies the time zone of the start and end times for the profile. Click [here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx) for the complete list of possible values.
 
 * `start` - (Required) Specifies the start time for the profile. RFC3339 format.
 
@@ -300,7 +300,7 @@ will have the same set profile.
 
 `schedule` supports the following:
 
-* `time_zone` - (Required) Specifies the time zone for the hours of the profile.
+* `time_zone` - (Required) Specifies the time zone for the hours of the profile. Click [here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx) for the complete list of possible values.
 
 * `days` - (Required) Specifies a list of days that the profile takes effect on. Possible values are Sunday through Saturday.
 
