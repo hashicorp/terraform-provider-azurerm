@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
 
 * `records` - (Required) List of Fully Qualified Domain Names.
 
@@ -53,6 +53,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The DNS PTR Record ID.
+
+* `etag` - The etag of the record set.
 
 ## Import
 
