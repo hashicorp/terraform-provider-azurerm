@@ -8,16 +8,12 @@ description: |-
 
 # azurerm\_autoscale\_setting
 
-Create an autoscale setting.
+Create an [autoscale setting](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-overview-autoscale) that can be 
+applied to Virtual Machine Scale Sets, Cloud Services and App Service - Web Apps.
 
 ## Example Usage
 
 ```hcl
-variable "time_zone" {
-  type    = "string"
-  default = "Pacific Standard Time"
-}
-
 variable "adminPwd" {
   type    = "string"
   default = "^l&f_ZwX2L4C"
@@ -243,7 +239,7 @@ The maximum number of instances is limited by the cores that are available in th
 the number of cores that are available in your subscription.
 
 * `default` - (Required) Specifies the number of instances that are available for scaling if metrics are not available for 
-evaluation. The default is only used if the current instance cout is lower than the default.
+evaluation. The default is only used if the current instance count is lower than the default.
 
 `rule` supports the following:
 
@@ -291,14 +287,14 @@ be between 1 week and 1 minute. ISO 8601 duration format.
 
 * `time_zone` - (Required) Specifies the time zone of the start and end times for the profile.
 
-* `start` - (Required) Specifies the start time for the profile.
+* `start` - (Required) Specifies the start time for the profile. RFC3339 format.
 
-* `end` - (Required) Specifies the end time for the profile.
+* `end` - (Required) Specifies the end time for the profile. RFC3339 format.
 
 `recurrence` supports the following:
 
-* `frequency` - (Required) Specifies how often the schedule profile should take effect. This value must `Week`, meaning each week 
-will have the same set of profile.
+* `frequency` - (Required) Specifies how often the schedule profile should take effect. This value must be `Week`, meaning each week 
+will have the same set profile.
 
 * `schedule` - (Required) Specifies the scheduling constraints for when the profile begins.
 
@@ -306,12 +302,12 @@ will have the same set of profile.
 
 * `time_zone` - (Required) Specifies the time zone for the hours of the profile.
 
-* `days` - (Required) Specifies a collection of days that the profile takes effect on. Possible values are Sunday through Saturday.
+* `days` - (Required) Specifies a list of days that the profile takes effect on. Possible values are Sunday through Saturday.
 
-* `hours` - (Required) Specifies a collection of hours that the profile takes effect on. Values supported are 0 to 23 on the 24-hour 
+* `hours` - (Required) Specifies a list of hours that the profile takes effect on. Values supported are 0 to 23 on the 24-hour 
 clock (AM/PM times are not supported).
 
-* `minutes` - (Required) Specifies a collection of minutes at which the profile takes effect at.
+* `minutes` - (Required) Specifies a list of minutes at which the profile takes effect at.
 
 `notification` supports the following:
 
@@ -327,7 +323,7 @@ clock (AM/PM times are not supported).
 
 * `send_to_subscription_co_administrator` - (Required) Specifies whether to send email notifications to the subscription co-administrator.
 
-* `custom_emails` - (Optional) Specifies a collection of custom email addresses to which the email notifications will be sent to.
+* `custom_emails` - (Optional) Specifies a list of custom email addresses to which the email notifications will be sent.
 
 `webhook` supports the following:
 

@@ -12,6 +12,8 @@ import (
 
 	"regexp"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/arm/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -44,7 +46,6 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 			"profile": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				MaxItems: 20, // https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -55,21 +56,23 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeSet,
 							Required: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"minimum": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"maximum": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 									"default": {
-										Type:     schema.TypeInt,
-										Required: true,
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 100),
 									},
 								},
 							},
@@ -78,14 +81,12 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 						"rule": {
 							Type:     schema.TypeList,
 							Required: true,
-							MinItems: 1,
 							MaxItems: 10, // https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"metric_trigger": {
 										Type:     schema.TypeSet,
 										Required: true,
-										MinItems: 1,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -110,7 +111,8 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 														string(insights.Max),
 														string(insights.Min),
 														string(insights.Sum),
-													}, false),
+													}, true),
+													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"time_window": {
 													Type:         schema.TypeString,
@@ -126,7 +128,8 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 														string(insights.TimeAggregationTypeMaximum),
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
-													}, false),
+													}, true),
+													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"operator": {
 													Type:     schema.TypeString,
@@ -138,7 +141,8 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 														string(insights.LessThan),
 														string(insights.LessThanOrEqual),
 														string(insights.NotEquals),
-													}, false),
+													}, true),
+													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"threshold": {
 													Type:     schema.TypeInt,
@@ -151,7 +155,6 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 									"scale_action": {
 										Type:     schema.TypeSet,
 										Required: true,
-										MinItems: 1,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -161,7 +164,8 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ScaleDirectionDecrease),
 														string(insights.ScaleDirectionIncrease),
-													}, false),
+													}, true),
+													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"type": {
 													Type:     schema.TypeString,
@@ -169,7 +173,8 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ChangeCount),
 														string(insights.PercentChangeCount),
-													}, false),
+													}, true),
+													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"value": {
 													Type:     schema.TypeString,
@@ -190,7 +195,6 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 						"fixed_date": {
 							Type:          schema.TypeSet,
 							Optional:      true,
-							MinItems:      1,
 							MaxItems:      1,
 							ConflictsWith: []string{"profile.recurrence"},
 							Elem: &schema.Resource{
@@ -217,7 +221,6 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 						"recurrence": {
 							Type:          schema.TypeSet,
 							Optional:      true,
-							MinItems:      1,
 							MaxItems:      1,
 							ConflictsWith: []string{"profile.fixed_date"},
 							Elem: &schema.Resource{
@@ -227,19 +230,19 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(insights.Week),
-										}, false),
+										}, true),
+										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 									},
 									"schedule": {
 										Type:     schema.TypeSet,
 										Required: true,
-										MinItems: 1,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"time_zone": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
+													Type:     schema.TypeString,
+													Required: true,
+													// ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
 												},
 												"days": {
 													Type:     schema.TypeList,
@@ -275,18 +278,17 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 			"notification": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"operation": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"Scale"}, false),
+							ValidateFunc: validation.StringInSlice([]string{"Scale"}, true),
 						},
 						"email": {
 							Type:     schema.TypeSet,
 							Required: true,
-							MinItems: 1,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -404,7 +406,7 @@ func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["autoscalesettings"]
 
 	if name == "" {
-		return fmt.Errorf("Cannot find resource name in Resource ID for Autoscaling Setting")
+		return fmt.Errorf("Cannot find resource name in Resource ID for Autoscale Setting")
 	}
 
 	result, err := asClient.Get(resGroup, name)
@@ -413,9 +415,12 @@ func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Autoscaling Setting %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Autoscale Setting %s: %s", name, err)
 	}
 
+	if result.AutoscaleSetting == nil {
+		return fmt.Errorf("Unexpected result when reading Autoscale Setting %s: %#v", name, result)
+	}
 	autoscaleSetting := *result.AutoscaleSetting
 	d.Set("name", result.Name)
 	d.Set("resource_group_name", resGroup)
@@ -461,14 +466,23 @@ func expandAzureRmAutoscaleProfile(d *schema.ResourceData) ([]insights.Autoscale
 			Capacity: &capacity,
 			Rules:    &rules,
 		}
-		fixedDate, fixedDateErr := expandAzureRmAutoscaleRuleTimeWindow(profile)
+
+		fixedDate, fixedDateErr := expandAzureRmAutoscaleFixedDate(profile)
 		recurrence, recurrenceErr := expandAzureRmAutoscaleRecurrence(profile)
 
-		if fixedDateErr == nil {
-			autoscaleProfile.FixedDate = &fixedDate
-		} else if recurrenceErr == nil {
-			autoscaleProfile.Recurrence = &recurrence
+		if fixedDate != nil && recurrence != nil {
+			return nil, fmt.Errorf("Both fixed_date and reucrrence are defined in profile %s", profileName)
 		}
+
+		if fixedDateErr != nil {
+			return nil, fixedDateErr
+		}
+		autoscaleProfile.FixedDate = fixedDate
+
+		if recurrenceErr != nil {
+			return nil, recurrenceErr
+		}
+		autoscaleProfile.Recurrence = recurrence
 
 		profiles = append(profiles, autoscaleProfile)
 	}
@@ -551,12 +565,12 @@ func expandAzureRmScaleAction(config map[string]interface{}) insights.ScaleActio
 	}
 }
 
-func expandAzureRmAutoscaleRuleTimeWindow(config map[string]interface{}) (insights.TimeWindow, error) {
-	timeWindow := insights.TimeWindow{}
+func expandAzureRmAutoscaleFixedDate(config map[string]interface{}) (*insights.TimeWindow, error) {
+	timeWindow := &insights.TimeWindow{}
 	fixedDateSet := config["fixed_date"].(*schema.Set).List()
 
 	if fixedDateSet == nil || len(fixedDateSet) == 0 {
-		return timeWindow, fmt.Errorf("fixed_date not defined")
+		return nil, nil
 	}
 
 	fixedDateConfig := fixedDateSet[0].(map[string]interface{})
@@ -566,12 +580,12 @@ func expandAzureRmAutoscaleRuleTimeWindow(config map[string]interface{}) (insigh
 
 	startTime, startTimeErr := date.ParseTime(time.RFC3339, startString)
 	if startTimeErr != nil {
-		return timeWindow, startTimeErr
+		return nil, startTimeErr
 	}
 
 	endTime, endTimeErr := date.ParseTime(time.RFC3339, endString)
 	if endTimeErr != nil {
-		return timeWindow, endTimeErr
+		return nil, endTimeErr
 	}
 
 	timeWindow.TimeZone = &timeZone
@@ -581,12 +595,12 @@ func expandAzureRmAutoscaleRuleTimeWindow(config map[string]interface{}) (insigh
 	return timeWindow, nil
 }
 
-func expandAzureRmAutoscaleRecurrence(config map[string]interface{}) (insights.Recurrence, error) {
-	recurrence := insights.Recurrence{}
+func expandAzureRmAutoscaleRecurrence(config map[string]interface{}) (*insights.Recurrence, error) {
+	recurrence := &insights.Recurrence{}
 	recurrenceSet := config["recurrence"].(*schema.Set).List()
 
 	if recurrenceSet == nil || len(recurrenceSet) == 0 {
-		return recurrence, fmt.Errorf("recurrence not defined")
+		return nil, nil
 	}
 
 	recurrenceConfig := recurrenceSet[0].(map[string]interface{})
@@ -882,7 +896,7 @@ func resourceAzureRmAutoscaleDefaultHash(v interface{}) int {
 	sort.Strings(keys)
 
 	for _, k := range keys {
-		buf.WriteString(fmt.Sprintf("%s:%v;", k, m[k]))
+		buf.WriteString(strings.ToLower(fmt.Sprintf("%s:%v;", k, m[k])))
 	}
 
 	return hashcode.String(buf.String())
