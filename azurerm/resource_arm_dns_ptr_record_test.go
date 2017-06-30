@@ -20,7 +20,7 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
@@ -40,21 +40,19 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_ptr_record.test", "records.#", "2"),
+					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "records.#", "2"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_ptr_record.test", "records.#", "3"),
+					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "records.#", "3"),
 				),
 			},
 		},
@@ -71,18 +69,15 @@ func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_ptr_record.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "tags.environment", "Dev"),
-					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "tags.cost_center", "Ops"),
+					resource.TestCheckResourceAttr("azurerm_dns_ptr_record.test", "tags.%", "2"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists("azurerm_dns_ptr_record.test"),
@@ -211,8 +206,8 @@ resource "azurerm_dns_ptr_record" "test" {
     records = ["hashicorp.com", "microsoft.com"]
 
     tags {
-		environment = "Dev"
-		cost_center = "Ops"
+	environment = "Dev"
+	cost_center = "Ops"
     }
 }
 `, rInt)
@@ -237,7 +232,7 @@ resource "azurerm_dns_ptr_record" "test" {
     records = ["hashicorp.com", "microsoft.com"]
 
     tags {
-		environment = "Stage"
+	environment = "Stage"
     }
 }
 `, rInt)
