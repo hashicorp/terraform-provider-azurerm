@@ -1,4 +1,9 @@
 ## 0.1.3 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_dns_ptr_record` [GH-141]
+
 ## 0.1.2 (June 29, 2017)
 
 FEATURES:
