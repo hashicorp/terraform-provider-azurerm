@@ -75,7 +75,7 @@ The `origin` block supports:
 
 * `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under endpoint.
 
-* `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string could be a domain name, IPv4 address or IPv6 address.
+* `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string can be a domain name, Storage Account endpoint, Web App endpoint, IPv4 address or IPv6 address.
 
 * `http_port` - (Optional) The HTTP port of the origin. Defaults to null. When null, 80 will be used for HTTP.
 
