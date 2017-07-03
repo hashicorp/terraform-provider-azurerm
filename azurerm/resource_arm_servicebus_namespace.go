@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
@@ -40,10 +41,14 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			},
 
 			"sku": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     validateServiceBusNamespaceSku,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicebus.Basic),
+					string(servicebus.Standard),
+					string(servicebus.Premium),
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
@@ -83,7 +88,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	namespaceClient := client.serviceBusNamespacesClient
-	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Namespace creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -134,7 +139,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := namespaceClient.Get(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Namespace %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Namespace '%s': %+v", name, err)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
@@ -177,24 +182,10 @@ func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface
 	err = <-error
 
 	if resp.StatusCode != http.StatusNotFound {
-		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace'%s': %+v", name, err)
+		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace '%s': %+v", name, err)
 	}
 
 	return nil
-}
-
-func validateServiceBusNamespaceSku(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	skus := map[string]bool{
-		"basic":    true,
-		"standard": true,
-		"premium":  true,
-	}
-
-	if !skus[value] {
-		errors = append(errors, fmt.Errorf("ServiceBus Namespace SKU can only be Basic, Standard or Premium"))
-	}
-	return
 }
 
 func validateServiceBusNamespaceCapacity(v interface{}, k string) (ws []string, errors []error) {
