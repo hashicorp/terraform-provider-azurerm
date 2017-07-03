@@ -60,11 +60,11 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
   vm_size               = "Standard_DS1_v2"
 
-  // Uncomment this line to delete the OS disk automatically when deleting the VM
-  // delete_os_disk_on_termination = true
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  # delete_os_disk_on_termination = true
 
-  // Uncomment this line to delete the data disks automatically when deleting the VM
-  // delete_data_disks_on_termination = true
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  # delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -80,7 +80,7 @@ resource "azurerm_virtual_machine" "test" {
     managed_disk_type = "Standard_LRS"
   }
 
-  // Optional data disks
+  # Optional data disks
   storage_data_disk {
     name              = "datadisk_new"
     managed_disk_type = "Standard_LRS"
@@ -172,11 +172,11 @@ resource "azurerm_virtual_machine" "test" {
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
   vm_size               = "Standard_A0"
 
-  //  Uncomment this line to delete the OS disk automatically when deleting the VM
-  //  delete_os_disk_on_termination = true
+  # Uncomment this line to delete the OS disk automatically when deleting the VM
+  # delete_os_disk_on_termination = true
 
-  //  Uncomment this line to delete the data disks automatically when deleting the VM
-  //  delete_data_disks_on_termination = true
+  # Uncomment this line to delete the data disks automatically when deleting the VM
+  # delete_data_disks_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"
@@ -192,7 +192,7 @@ resource "azurerm_virtual_machine" "test" {
     create_option = "FromImage"
   }
 
-  // Optional data disks
+  # Optional data disks
   storage_data_disk {
     name          = "datadisk0"
     vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/datadisk0.vhd"
