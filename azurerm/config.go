@@ -13,6 +13,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
@@ -71,6 +72,7 @@ type ArmClient struct {
 	vnetPeeringsClient           network.VirtualNetworkPeeringsClient
 	routeTablesClient            network.RouteTablesClient
 	routesClient                 network.RoutesClient
+	dnsClient                    dns.RecordSetsClient
 
 	cdnProfilesClient  cdn.ProfilesClient
 	cdnEndpointsClient cdn.EndpointsClient
@@ -372,6 +374,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rc.Authorizer = auth
 	rc.Sender = autorest.CreateSender(withRequestLogging())
 	client.routesClient = rc
+
+	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&dn.Client)
+	dn.Authorizer = auth
+	dn.Sender = autorest.CreateSender(withRequestLogging())
+	client.dnsClient = dn
 
 	rgc := resources.NewGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&rgc.Client)

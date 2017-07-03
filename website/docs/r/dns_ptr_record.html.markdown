@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dns_ns_record"
-sidebar_current: "docs-azurerm-resource-dns-ns-record"
+page_title: "Azure Resource Manager: azurerm_dns_ptr_record"
+sidebar_current: "docs-azurerm-resource-dns-ptr-record"
 description: |-
-  Create a DNS NS Record.
+  Create a DNS PTR Record.
 ---
 
-# azurerm\_dns\_ns\_record
+# azurerm\_dns\_ptr\_record
 
-Enables you to manage DNS NS Records within Azure DNS.
+Enables you to manage DNS PTR Records within Azure DNS.
 
 ## Example Usage
 
@@ -23,30 +23,20 @@ resource "azurerm_dns_zone" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource "azurerm_dns_ns_record" "test" {
+resource "azurerm_dns_ptr_record" "test" {
   name                = "test"
   zone_name           = "${azurerm_dns_zone.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ttl                 = "300"
-
-  record {
-    nsdname = "ns1.contoso.com"
-  }
-
-  record {
-    nsdname = "ns2.contoso.com"
-  }
-
-  tags {
-    Environment = "Production"
-  }
+  records             = ["yourdomain.com"]
 }
 ```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS NS Record.
+* `name` - (Required) The name of the DNS PTR Record.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
@@ -54,24 +44,22 @@ The following arguments are supported:
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record.
 
-* `record` - (Required) A list of values that make up the NS record. Each `record` block supports fields documented below.
+* `records` - (Required) List of Fully Qualified Domain Names.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-The `record` block supports:
-
-* `nsdname` - (Required) The value of the record.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The DNS NS Record ID.
+* `id` - The DNS PTR Record ID.
+
+* `etag` - The etag of the record set.
 
 ## Import
 
-NS records can be imported using the `resource id`, e.g.
+PTR records can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_dns_ns_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/NS/myrecord1
+terraform import azurerm_dns_ptr_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/PTR/myrecord1
 ```
