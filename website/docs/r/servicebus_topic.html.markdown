@@ -10,7 +10,7 @@ description: |-
 
 Create a ServiceBus Topic.
 
-**Note** Topics can only be created in Namespaces with an SKU or `standard` or
+**Note** Topics can only be created in Namespaces with an SKU of `standard` or
 higher.
 
 ## Example Usage
