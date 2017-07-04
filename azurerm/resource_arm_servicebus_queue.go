@@ -116,15 +116,15 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	supportOrdering := d.Get("support_ordering").(bool)
 
 	parameters := servicebus.QueueCreateOrUpdateParameters{
-		Name:            &name,
-		Location:        &location,
+		Name:     &name,
+		Location: &location,
 		QueueProperties: &servicebus.QueueProperties{
-			EnableBatchedOperations: &enableBatchedOps,
-			EnableExpress: &enableExpress,
-			EnablePartitioning: &enablePartitioning,
-			MaxSizeInMegabytes: &maxSize,
+			EnableBatchedOperations:    &enableBatchedOps,
+			EnableExpress:              &enableExpress,
+			EnablePartitioning:         &enablePartitioning,
+			MaxSizeInMegabytes:         &maxSize,
 			RequiresDuplicateDetection: &requiresDuplicateDetection,
-			SupportOrdering: &supportOrdering,
+			SupportOrdering:            &supportOrdering,
 		},
 	}
 
