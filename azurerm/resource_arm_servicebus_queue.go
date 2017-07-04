@@ -11,9 +11,9 @@ import (
 
 func resourceArmServiceBusQueue() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusQueueCreate,
+		Create: resourceArmServiceBusQueueCreateUpdate,
 		Read:   resourceArmServiceBusQueueRead,
-		Update: resourceArmServiceBusQueueCreate,
+		Update: resourceArmServiceBusQueueCreateUpdate,
 		Delete: resourceArmServiceBusQueueDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -98,19 +98,33 @@ func resourceArmServiceBusQueue() *schema.Resource {
 	}
 }
 
-func resourceArmServiceBusQueueCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusQueuesClient
-	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Queue creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue creation/update.")
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	enableBatchedOps := d.Get("enable_batched_operations").(bool)
+	enableExpress := d.Get("enable_express").(bool)
+	enablePartitioning := d.Get("enable_partitioning").(bool)
+	maxSize := int64(d.Get("max_size_in_megabytes").(int))
+	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
+	supportOrdering := d.Get("support_ordering").(bool)
+
 	parameters := servicebus.QueueCreateOrUpdateParameters{
 		Name:            &name,
 		Location:        &location,
-		QueueProperties: &servicebus.QueueProperties{},
+		QueueProperties: &servicebus.QueueProperties{
+			EnableBatchedOperations: &enableBatchedOps,
+			EnableExpress: &enableExpress,
+			EnablePartitioning: &enablePartitioning,
+			MaxSizeInMegabytes: &maxSize,
+			RequiresDuplicateDetection: &requiresDuplicateDetection,
+			SupportOrdering: &supportOrdering,
+		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
@@ -143,20 +157,6 @@ func resourceArmServiceBusQueueCreate(d *schema.ResourceData, meta interface{}) 
 	if namespace.Sku.Name == servicebus.Premium && d.Get("enable_express").(bool) {
 		return fmt.Errorf("ServiceBus Queue (%s) does not support Express Entities in Premium SKU and must be disabled", name)
 	}
-
-	enableBatchedOps := d.Get("enable_batched_operations").(bool)
-	enableExpress := d.Get("enable_express").(bool)
-	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int64(d.Get("max_size_in_megabytes").(int))
-	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
-	supportOrdering := d.Get("support_ordering").(bool)
-
-	parameters.QueueProperties.EnableBatchedOperations = &enableBatchedOps
-	parameters.QueueProperties.EnableExpress = &enableExpress
-	parameters.QueueProperties.EnablePartitioning = &enablePartitioning
-	parameters.QueueProperties.MaxSizeInMegabytes = &maxSize
-	parameters.QueueProperties.RequiresDuplicateDetection = &requiresDuplicateDetection
-	parameters.QueueProperties.SupportOrdering = &supportOrdering
 
 	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
 	if err != nil {
