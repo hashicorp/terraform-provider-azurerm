@@ -29,6 +29,59 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
+	ri := acctest.RandInt()
+	config := fmt.Sprintf(testAccAzureRMServiceBusTopic_basicDisabled, ri, ri, ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
+	ri := acctest.RandInt()
+	enabledConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_basic, ri, ri, ri)
+	disabledConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_basicDisabled, ri, ri, ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: enabledConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+			{
+				Config: disabledConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+			{
+				Config: enabledConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 	ri := acctest.RandInt()
 	preConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_basic, ri, ri, ri)
@@ -223,7 +276,7 @@ resource "azurerm_servicebus_topic" "test" {
 }
 `
 
-var testAccAzureRMServiceBusTopic_basicPremium = `
+var testAccAzureRMServiceBusTopic_basicDisabled = `
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -233,7 +286,7 @@ resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
     location = "West US"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "premium"
+    sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {

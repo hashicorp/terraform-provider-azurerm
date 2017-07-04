@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmServiceBusTopic() *schema.Resource {
@@ -38,6 +39,16 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(servicebus.EntityStatusActive),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicebus.EntityStatusActive),
+					string(servicebus.EntityStatusDisabled),
+				}, true),
 			},
 
 			"auto_delete_on_idle": {
@@ -107,11 +118,29 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 	namespaceName := d.Get("namespace_name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	status := d.Get("status").(string)
+
+	enableBatchedOps := d.Get("enable_batched_operations").(bool)
+	enableExpress := d.Get("enable_express").(bool)
+	enableFiltering := d.Get("enable_filtering_messages_before_publishing").(bool)
+	enablePartitioning := d.Get("enable_partitioning").(bool)
+	maxSize := int64(d.Get("max_size_in_megabytes").(int))
+	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
+	supportOrdering := d.Get("support_ordering").(bool)
 
 	parameters := servicebus.TopicCreateOrUpdateParameters{
-		Name:            &name,
-		Location:        &location,
-		TopicProperties: &servicebus.TopicProperties{},
+		Name:     &name,
+		Location: &location,
+		TopicProperties: &servicebus.TopicProperties{
+			Status:                            servicebus.EntityStatus(status),
+			EnableBatchedOperations:           &enableBatchedOps,
+			EnableExpress:                     &enableExpress,
+			FilteringMessagesBeforePublishing: &enableFiltering,
+			EnablePartitioning:                &enablePartitioning,
+			MaxSizeInMegabytes:                &maxSize,
+			RequiresDuplicateDetection:        &requiresDuplicateDetection,
+			SupportOrdering:                   &supportOrdering,
+		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
@@ -125,22 +154,6 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
 		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
 	}
-
-	enableBatchedOps := d.Get("enable_batched_operations").(bool)
-	enableExpress := d.Get("enable_express").(bool)
-	enableFiltering := d.Get("enable_filtering_messages_before_publishing").(bool)
-	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int64(d.Get("max_size_in_megabytes").(int))
-	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
-	supportOrdering := d.Get("support_ordering").(bool)
-
-	parameters.TopicProperties.EnableBatchedOperations = &enableBatchedOps
-	parameters.TopicProperties.EnableExpress = &enableExpress
-	parameters.TopicProperties.FilteringMessagesBeforePublishing = &enableFiltering
-	parameters.TopicProperties.EnablePartitioning = &enablePartitioning
-	parameters.TopicProperties.MaxSizeInMegabytes = &maxSize
-	parameters.TopicProperties.RequiresDuplicateDetection = &requiresDuplicateDetection
-	parameters.TopicProperties.SupportOrdering = &supportOrdering
 
 	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
 	if err != nil {
@@ -186,6 +199,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	props := resp.TopicProperties
+	d.Set("status", string(props.Status))
 	d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
 	d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 
