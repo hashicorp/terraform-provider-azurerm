@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_dns_ptr_record` [GH-141]
 
+IMPROVEMENTS:
+
+* `azurerm_storage_table` - updating the name validation [GH-143]
+
 ## 0.1.2 (June 29, 2017)
 
 FEATURES:
