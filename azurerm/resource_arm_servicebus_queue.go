@@ -55,6 +55,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 			"duplicate_detection_history_time_window": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 
 			"enable_batched_operations": {
