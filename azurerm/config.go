@@ -103,6 +103,7 @@ type ArmClient struct {
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
 	serviceBusNamespacesClient    servicebus.NamespacesClient
+	serviceBusQueuesClient        servicebus.QueuesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
 	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
 
@@ -470,6 +471,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbnc.Authorizer = auth
 	sbnc.Sender = autorest.CreateSender(withRequestLogging())
 	client.serviceBusNamespacesClient = sbnc
+
+	sbqc := servicebus.NewQueuesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sbqc.Client)
+	sbqc.Authorizer = auth
+	sbqc.Sender = autorest.CreateSender(withRequestLogging())
+	client.serviceBusQueuesClient = sbqc
 
 	sbtc := servicebus.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sbtc.Client)
