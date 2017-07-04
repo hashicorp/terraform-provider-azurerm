@@ -292,7 +292,7 @@ For more information on the different example configurations, please check out t
 
 * `computer_name` - (Required) Specifies the name of the virtual machine.
 * `admin_username` - (Required) Specifies the name of the administrator account.
-* `admin_password` - (Required) Specifies the password of the administrator account.
+* `admin_password` - (Required for Windows, Optional for Linux) Specifies the password of the administrator account.
 * `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 ~> **NOTE:** `admin_password` must be between 6-72 characters long and must satisfy at least 3 of password complexity requirements from the following:
@@ -322,7 +322,7 @@ For more information on the different example configurations, please check out t
 
 `os_profile_linux_config` supports the following:
 
-* `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled.
+* `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. If set to `false`, an `admin_password` must be specified.
 * `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
 
 ~> **Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure.
@@ -337,10 +337,10 @@ For more information on the different example configurations, please check out t
 * `certificate_url` - (Required) Specifies the URI of the key vault secrets in the format of `https://<vaultEndpoint>/secrets/<secretName>/<secretVersion>`. Stored secret is the Base64 encoding of a JSON Object that which is encoded in UTF-8 of which the contents need to be
 
 ```json
-{ 
-  "data":"<Base64-encoded-certificate>", 
+{
+  "data":"<Base64-encoded-certificate>",
   "dataType":"pfx",
-  "password":"<pfx-file-password>" 
+  "password":"<pfx-file-password>"
 }
 ```
 

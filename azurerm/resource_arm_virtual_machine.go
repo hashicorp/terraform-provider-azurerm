@@ -334,7 +334,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 
 						"admin_password": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"custom_data": {
