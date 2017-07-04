@@ -296,6 +296,7 @@ resource "azurerm_servicebus_topic" "test" {
     location = "West US"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+    status = "disabled"
 }
 `, rInt, rInt, rInt)
 }

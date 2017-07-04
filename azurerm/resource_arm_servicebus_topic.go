@@ -49,6 +49,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 					string(servicebus.EntityStatusActive),
 					string(servicebus.EntityStatusDisabled),
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"auto_delete_on_idle": {

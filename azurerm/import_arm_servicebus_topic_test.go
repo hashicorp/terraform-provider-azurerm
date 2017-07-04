@@ -29,3 +29,26 @@ func TestAccAzureRMServiceBusTopic_importBasic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMServiceBusTopic_importBasicDisabled(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMServiceBusTopic_basicDisabled(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
