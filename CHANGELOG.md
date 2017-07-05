@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_dns_ptr_record` [GH-141]
+* **New Resource:** `azurerm_servicebus_queue` [GH-151]
 
 IMPROVEMENTS:
 
