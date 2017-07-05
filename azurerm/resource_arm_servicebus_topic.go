@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/jen20/riviera/azure"
 )
 
 func resourceArmServiceBusTopic() *schema.Resource {
@@ -134,26 +135,26 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		Location: &location,
 		TopicProperties: &servicebus.TopicProperties{
 			Status:                            servicebus.EntityStatus(status),
-			EnableBatchedOperations:           &enableBatchedOps,
-			EnableExpress:                     &enableExpress,
-			FilteringMessagesBeforePublishing: &enableFiltering,
-			EnablePartitioning:                &enablePartitioning,
-			MaxSizeInMegabytes:                &maxSize,
-			RequiresDuplicateDetection:        &requiresDuplicateDetection,
-			SupportOrdering:                   &supportOrdering,
+			EnableBatchedOperations:           azure.Bool(enableBatchedOps),
+			EnableExpress:                     azure.Bool(enableExpress),
+			FilteringMessagesBeforePublishing: azure.Bool(enableFiltering),
+			EnablePartitioning:                azure.Bool(enablePartitioning),
+			MaxSizeInMegabytes:                azure.Int64(maxSize),
+			RequiresDuplicateDetection:        azure.Bool(requiresDuplicateDetection),
+			SupportOrdering:                   azure.Bool(supportOrdering),
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.TopicProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
+		parameters.TopicProperties.AutoDeleteOnIdle = azure.String(autoDeleteOnIdle)
 	}
 
 	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.TopicProperties.DefaultMessageTimeToLive = &defaultTTL
+		parameters.TopicProperties.DefaultMessageTimeToLive = azure.String(defaultTTL)
 	}
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
+		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = azure.String(duplicateWindow)
 	}
 
 	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
