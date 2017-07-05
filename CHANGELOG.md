@@ -8,6 +8,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_storage_table` - updating the name validation [GH-143]
+* `azurerm_virtual_machine` - making `admin_password` optional for Linux VM's [GH-154]
 
 ## 0.1.2 (June 29, 2017)
 
