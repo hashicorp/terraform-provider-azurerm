@@ -104,6 +104,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_route":                     resourceArmRoute(),
 			"azurerm_route_table":               resourceArmRouteTable(),
 			"azurerm_servicebus_namespace":      resourceArmServiceBusNamespace(),
+			"azurerm_servicebus_queue":          resourceArmServiceBusQueue(),
 			"azurerm_servicebus_subscription":   resourceArmServiceBusSubscription(),
 			"azurerm_servicebus_topic":          resourceArmServiceBusTopic(),
 			"azurerm_sql_elasticpool":           resourceArmSqlElasticPool(),
