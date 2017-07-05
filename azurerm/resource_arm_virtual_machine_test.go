@@ -1026,7 +1026,6 @@ resource "azurerm_virtual_machine" "test" {
 
 func testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(rInt int) string {
 	return fmt.Sprintf(`
-
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US 2"
