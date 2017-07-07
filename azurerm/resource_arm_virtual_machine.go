@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
@@ -188,6 +189,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateDiskSizeGB,
 						},
+
+						"encryption_settings": encryptionSettingsSchema(),
 					},
 				},
 				Set: resourceArmVirtualMachineStorageOsDiskHash,
@@ -868,6 +871,10 @@ func resourceArmVirtualMachineStorageOsDiskHash(v interface{}) int {
 	if m["vhd_uri"] != nil {
 		buf.WriteString(fmt.Sprintf("%s-", m["vhd_uri"].(string)))
 	}
+	if encryptionSettings := m["encryption_settings"]; encryptionSettings != nil {
+		var encryptionHash = schema.HashSchema(encryptionSettingsSchema())(encryptionSettings)
+		buf.WriteString(strconv.FormatInt(int64(encryptionHash), 10))
+	}
 	return hashcode.String(buf.String())
 }
 
@@ -1081,6 +1088,9 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk) []interface{} {
 	result["caching"] = disk.Caching
 	if disk.DiskSizeGB != nil {
 		result["disk_size_gb"] = *disk.DiskSizeGB
+	}
+	if es := disk.EncryptionSettings; es != nil {
+		result["encryption_settings"] = []interface{}{flattenVmDiskEncryptionSettings(es)}
 	}
 
 	return []interface{}{result}
@@ -1342,7 +1352,7 @@ func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.Data
 		}
 		//END: code to be removed after GH-13016 is merged
 		if managedDiskID == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.Attach)) {
-			return nil, fmt.Errorf("[ERROR] Must specify which disk to attach")
+			return nil, fmt.Errorf("[ERROR] If create_option is 'Attach', must specify the managed disk id to attach to")
 		}
 
 		if v := config["caching"].(string); v != "" {
@@ -1467,7 +1477,7 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 	}
 	//END: code to be removed after GH-13016 is merged
 	if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(osDisk.CreateOption), string(compute.Attach)) {
-		return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
+		return nil, fmt.Errorf("[ERROR] If create_option is 'Attach', must specify the managed disk id to attach to")
 	}
 
 	if v := config["image_uri"].(string); v != "" {
@@ -1493,6 +1503,12 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 	if v := config["disk_size_gb"].(int); v != 0 {
 		diskSize := int32(v)
 		osDisk.DiskSizeGB = &diskSize
+	}
+
+	if v := config["encryption_settings"].([]interface{}); len(v) > 0 {
+		encryptionSettings := v[0].(map[string]interface{})
+		es := expandVmDiskEncryptionSettings(encryptionSettings)
+		osDisk.EncryptionSettings = es
 	}
 
 	return osDisk, nil
