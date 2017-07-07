@@ -250,8 +250,8 @@ For more information on the different example configurations, please check out t
 `Plan` supports the following:
 
 * `name` - (Required) Specifies the name of the image from the marketplace.
-* `publisher` - (Optional) Specifies the publisher of the image.
-* `product` - (Optional) Specifies the product of the image from the marketplace.
+* `publisher` - (Required) Specifies the publisher of the image.
+* `product` - (Required) Specifies the product of the image from the marketplace.
 
 `boot_diagnostics` supports the following:
 
