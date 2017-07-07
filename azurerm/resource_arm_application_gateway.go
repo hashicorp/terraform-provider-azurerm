@@ -118,6 +118,20 @@ func resourceArmApplicationGateway() *schema.Resource {
 								string(network.Prevention),
 							}, true),
 						},
+
+						"rule_set_type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc:     validation.StringInSlice([]string{"OWASP"}, true),
+						},
+
+						"rule_set_version": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc:     validation.StringInSlice([]string{"2.2.9", "3.0"}, true),
+						},
 					},
 				},
 				Set: hashApplicationGatewayWafConfig,
@@ -870,10 +884,14 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 
 	enabled := waf["enabled"].(bool)
 	mode := waf["firewall_mode"].(string)
+	rulesettype := waf["rule_set_type"].(string)
+	rulesetversion := waf["rule_set_version"].(string)
 
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:      &enabled,
-		FirewallMode: network.ApplicationGatewayFirewallMode(mode),
+		Enabled:        &enabled,
+		FirewallMode:   network.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:    &rulesettype,
+		RuleSetVersion: &rulesetversion,
 	}
 }
 
@@ -1330,6 +1348,8 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 
 	result["enabled"] = *waf.Enabled
 	result["firewall_mode"] = string(waf.FirewallMode)
+	result["rule_set_type"] = waf.RuleSetType
+	result["rule_set_version"] = waf.RuleSetVersion
 
 	return []interface{}{result}
 }
