@@ -723,7 +723,7 @@ resource "azurerm_virtual_machine" "testdestination" {
 	vm_size = "Standard_D1_v2"
 
 	storage_image_reference {
-		image_id = "${azurerm_image.testdestination.id}"
+		id = "${azurerm_image.testdestination.id}"
 	}
 
 	storage_os_disk {
@@ -939,7 +939,7 @@ resource "azurerm_virtual_machine" "testdestination" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-		image_id = "${azurerm_image.testdestination.id}"
+		id = "${azurerm_image.testdestination.id}"
     }
 
     storage_os_disk {

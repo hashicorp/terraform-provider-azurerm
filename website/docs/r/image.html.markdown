@@ -57,8 +57,8 @@ The following arguments are supported:
 * `location` - (Required) Specified the supported Azure location where the resource exists.
     Changing this forces a new resource to be created.
 * `source_virtual_machine_id` - (Optional) The Virtual Machine ID from which to create the image.
-* `os_disk` - (Optional) One or more os_disk elements as defined below.
-* `data_disk` - (Optional) One or more data_disk elements as defined below.
+* `os_disk` - (Optional) One or more `os_disk` elements as defined below.
+* `data_disk` - (Optional) One or more `data_disk` elements as defined below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `os_disk` supports the following:

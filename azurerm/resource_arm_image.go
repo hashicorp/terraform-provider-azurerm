@@ -36,9 +36,8 @@ func resourceArmImage() *schema.Resource {
 			},
 
 			"source_virtual_machine_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ConflictsWith: []string{"os_disk.os_type"},
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"os_disk": {
@@ -188,9 +187,9 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	//either source VM or storage profile can be specified, but not both
-	if (compute.SubResource{}) == sourceVM {
+	if sourceVM.ID == nil {
 		//if both sourceVM and storageProfile are empty, return an error
-		if (compute.ImageStorageProfile{}) == storageProfile {
+		if storageProfile.OsDisk == nil && len(*storageProfile.DataDisks) == 0 {
 			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
 		}
 
@@ -254,9 +253,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("location", resp.Location)
 
 	if resp.SourceVirtualMachine != nil {
-		if resp.SourceVirtualMachine.ID != nil {
-			d.Set("source_virtual_machine_id", resp.SourceVirtualMachine.ID)
-		}
+		d.Set("source_virtual_machine_id", resp.SourceVirtualMachine.ID)
 	}
 
 	if resp.StorageProfile != nil {
@@ -354,8 +351,9 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
-			managedDisk := &compute.SubResource{}
-			managedDisk.ID = &managedDiskID
+			managedDisk := &compute.SubResource{
+				ID: &managedDiskID,
+			}
 			osDisk.ManagedDisk = managedDisk
 		}
 
@@ -404,8 +402,9 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 		}
 
 		if managedDiskID != "" {
-			managedDisk := &compute.SubResource{}
-			managedDisk.ID = &managedDiskID
+			managedDisk := &compute.SubResource{
+				ID: &managedDiskID,
+			}
 			dataDisk.ManagedDisk = managedDisk
 		}
 

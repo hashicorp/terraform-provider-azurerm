@@ -96,7 +96,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"image_id": {
+						"id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
@@ -860,8 +860,8 @@ func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 	if m["sku"] != nil {
 		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
 	}
-	if m["image_id"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["image_id"].(string)))
+	if m["id"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
 	}
 	return hashcode.String(buf.String())
 }
@@ -928,7 +928,7 @@ func flattenAzureRmVirtualMachineImageReference(image *compute.ImageReference) [
 		result["version"] = *image.Version
 	}
 	if image.ID != nil {
-		result["image_id"] = *image.ID
+		result["id"] = *image.ID
 	}
 
 	return []interface{}{result}
@@ -1403,19 +1403,18 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 	storageImageRefs := d.Get("storage_image_reference").(*schema.Set).List()
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
+	imageID := storageImageRef["id"].(string)
+	publisher := storageImageRef["publisher"].(string)
+
 	imageReference := compute.ImageReference{}
 
-	if imageReference.ID != nil && imageReference.Publisher != nil {
-		return nil, fmt.Errorf("[ERROR] Conflict between `image_id` and `publisher` (only one or the other can be used)")
+	if imageID != "" && publisher != "" {
+		return nil, fmt.Errorf("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
 	}
 
-	if storageImageRef["image_id"] != "" {
-		imageID := storageImageRef["image_id"].(string)
-		imageReference = compute.ImageReference{
-			ID: &imageID,
-		}
+	if imageID != "" {
+		imageReference.ID = riviera.String(storageImageRef["id"].(string))
 	} else {
-		publisher := storageImageRef["publisher"].(string)
 		offer := storageImageRef["offer"].(string)
 		sku := storageImageRef["sku"].(string)
 		version := storageImageRef["version"].(string)
