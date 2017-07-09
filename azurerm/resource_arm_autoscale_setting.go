@@ -94,7 +94,7 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													Type:     schema.TypeString,
 													Required: true,
 												},
-												"metric_resource_uri": {
+												"metric_resource_id": {
 													Type:     schema.TypeString,
 													Required: true,
 												},
@@ -240,9 +240,9 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"time_zone": {
-													Type:     schema.TypeString,
-													Required: true,
-													// ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
 												},
 												"days": {
 													Type:     schema.TypeList,
@@ -336,7 +336,7 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
-			"target_resource_uri": {
+			"target_resource_id": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -355,7 +355,7 @@ func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 	resourceType := "Microsoft.Insights/autoscaleSettings"
 	location := d.Get("location").(string)
 	enabled := d.Get("enabled").(bool)
-	targetResourceURI := d.Get("target_resource_uri").(string)
+	targetResourceURI := d.Get("target_resource_id").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -426,7 +426,7 @@ func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", result.Location)
 	d.Set("enabled", autoscaleSetting.Enabled)
-	d.Set("target_resource_uri", autoscaleSetting.TargetResourceURI)
+	d.Set("target_resource_id", autoscaleSetting.TargetResourceURI)
 	flattenAndSetTags(d, result.Tags)
 
 	d.Set("profile", flattenAzureRmAutoscaleProfile(autoscaleSetting.Profiles))
@@ -529,7 +529,7 @@ func expandAzureRmMetricTrigger(config map[string]interface{}) insights.MetricTr
 	metricTriggerSet := config["metric_trigger"].(*schema.Set).List()
 	metricTriggerConfig := metricTriggerSet[0].(map[string]interface{})
 	metricName := metricTriggerConfig["metric_name"].(string)
-	metricResourceURI := metricTriggerConfig["metric_resource_uri"].(string)
+	metricResourceURI := metricTriggerConfig["metric_resource_id"].(string)
 	timeGrain := metricTriggerConfig["time_grain"].(string)
 	statistic := metricTriggerConfig["statistic"].(string)
 	timeWindow := metricTriggerConfig["time_window"].(string)
@@ -772,7 +772,7 @@ func flattenAzureRmAutoscaleRule(profile insights.AutoscaleProfile) []interface{
 func flattenAzureRmAutoscaleMetricTrigger(rule insights.ScaleRule) *schema.Set {
 	metricTrigger := make(map[string]interface{})
 	metricTrigger["metric_name"] = *rule.MetricTrigger.MetricName
-	metricTrigger["metric_resource_uri"] = *rule.MetricTrigger.MetricResourceURI
+	metricTrigger["metric_resource_id"] = *rule.MetricTrigger.MetricResourceURI
 	metricTrigger["time_grain"] = *rule.MetricTrigger.TimeGrain
 	metricTrigger["statistic"] = string(rule.MetricTrigger.Statistic)
 	metricTrigger["time_window"] = *rule.MetricTrigger.TimeWindow
