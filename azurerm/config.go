@@ -91,8 +91,9 @@ type ArmClient struct {
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
-	postgresqlDatabasesClient postgresql.DatabasesClient
-	postgresqlServersClient   postgresql.ServersClient
+	postgresqlDatabasesClient     postgresql.DatabasesClient
+	postgresqlFirewallRulesClient postgresql.FirewallRulesClient
+	postgresqlServersClient       postgresql.ServersClient
 
 	providers           resources.ProvidersClient
 	resourceGroupClient resources.GroupsClient
@@ -410,6 +411,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	pdbc.Authorizer = auth
 	pdbc.Sender = autorest.CreateSender(withRequestLogging())
 	client.postgresqlDatabasesClient = pdbc
+
+	pfwc := postgresql.NewFirewallRulesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&pfwc.Client)
+	pfwc.Authorizer = auth
+	pfwc.Sender = autorest.CreateSender(withRequestLogging())
+	client.postgresqlFirewallRulesClient = pfwc
 
 	psc := postgresql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&psc.Client)
