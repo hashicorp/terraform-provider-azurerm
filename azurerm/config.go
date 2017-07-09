@@ -91,7 +91,8 @@ type ArmClient struct {
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
-	postgresqlServersClient postgresql.ServersClient
+	postgresqlDatabasesClient postgresql.DatabasesClient
+	postgresqlServersClient   postgresql.ServersClient
 
 	providers           resources.ProvidersClient
 	resourceGroupClient resources.GroupsClient
@@ -403,6 +404,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	vnpc.Authorizer = auth
 	vnpc.Sender = autorest.CreateSender(withRequestLogging())
 	client.vnetPeeringsClient = vnpc
+
+	pdbc := postgresql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&pdbc.Client)
+	pdbc.Authorizer = auth
+	pdbc.Sender = autorest.CreateSender(withRequestLogging())
+	client.postgresqlDatabasesClient = pdbc
 
 	psc := postgresql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&psc.Client)
