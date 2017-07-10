@@ -262,7 +262,7 @@ resource "azurerm_autoscale_setting" "test" {
       schedule {
         time_zone = "Pacific Standard Time"
         days      = ["Saturday", "Sunday"]
-        hours     = [1, 13]
+        hours     = [13]
         minutes   = [0]
       }
     }
@@ -315,7 +315,7 @@ resource "azurerm_autoscale_setting" "test" {
       schedule {
         time_zone = "Pacific Standard Time"
         days      = ["Saturday", "Sunday"]
-        hours     = [0, 12]
+        hours     = [12]
         minutes   = [0]
       }
     }

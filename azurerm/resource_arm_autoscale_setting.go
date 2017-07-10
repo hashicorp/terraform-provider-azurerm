@@ -415,7 +415,7 @@ func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) e
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Autoscale Setting %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Autoscale Setting %s: %+v", name, err)
 	}
 
 	if result.AutoscaleSetting == nil {
@@ -471,7 +471,7 @@ func expandAzureRmAutoscaleProfile(d *schema.ResourceData) ([]insights.Autoscale
 		recurrence, recurrenceErr := expandAzureRmAutoscaleRecurrence(profile)
 
 		if fixedDate != nil && recurrence != nil {
-			return nil, fmt.Errorf("Both fixed_date and reucrrence are defined in profile %s", profileName)
+			return nil, fmt.Errorf("Conflict between fixed_date and reucrrence in profile %s", profileName)
 		}
 
 		if fixedDateErr != nil {
