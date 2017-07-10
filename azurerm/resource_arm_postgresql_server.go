@@ -56,7 +56,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validation.IntInSlice([]int{
+							ValidateFunc: validateIntInSlice([]int{
 								50,
 								100,
 							}),
@@ -101,7 +101,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.IntInSlice([]int{
+				ValidateFunc: validateIntInSlice([]int{
 					51200,
 					102400,
 				}),
