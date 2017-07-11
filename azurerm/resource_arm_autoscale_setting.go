@@ -352,7 +352,6 @@ func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
-	resourceType := "Microsoft.Insights/autoscaleSettings"
 	location := d.Get("location").(string)
 	enabled := d.Get("enabled").(bool)
 	targetResourceURI := d.Get("target_resource_id").(string)
@@ -379,7 +378,6 @@ func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 
 	parameters := insights.AutoscaleSettingResource{
 		Name:             &name,
-		Type:             &resourceType,
 		Location:         &location,
 		Tags:             expandedTags,
 		AutoscaleSetting: &autoscaleSetting,
@@ -654,7 +652,11 @@ func expandAzureRmAutoscaleNotification(d *schema.ResourceData) ([]insights.Auto
 		notificationConfig := item.(map[string]interface{})
 		operation := notificationConfig["operation"].(string)
 		email := expandAzureRmAutoscaleEmailNotification(notificationConfig)
-		webhooks := expandAzureRmAutoscaleWebhook(notificationConfig)
+		webhooks, err := expandAzureRmAutoscaleWebhook(notificationConfig)
+
+		if err != nil {
+			return nil, err
+		}
 
 		notification := insights.AutoscaleNotification{
 			Operation: &operation,
@@ -688,10 +690,10 @@ func expandAzureRmAutoscaleEmailNotification(config map[string]interface{}) insi
 	return email
 }
 
-func expandAzureRmAutoscaleWebhook(config map[string]interface{}) []insights.WebhookNotification {
+func expandAzureRmAutoscaleWebhook(config map[string]interface{}) ([]insights.WebhookNotification, error) {
 	r := config["webhook"]
 	if r == nil {
-		return nil
+		return nil, nil
 	}
 
 	webhookData := r.(*schema.Set).List()
@@ -710,7 +712,12 @@ func expandAzureRmAutoscaleWebhook(config map[string]interface{}) []insights.Web
 
 			properties := make(map[string]*string, len(propertiesConfig))
 			for k, v := range propertiesConfig {
-				value := fmt.Sprintf("%v", v)
+				value, success := v.(string)
+
+				if !success {
+					return nil, fmt.Errorf("Expect string in webhook.properties values, got '%#v'", v)
+				}
+
 				properties[k] = &value
 			}
 
@@ -720,7 +727,7 @@ func expandAzureRmAutoscaleWebhook(config map[string]interface{}) []insights.Web
 		webhooks = append(webhooks, webhook)
 	}
 
-	return webhooks
+	return webhooks, nil
 }
 
 func flattenAzureRmAutoscaleProfile(profiles *[]insights.AutoscaleProfile) []interface{} {
