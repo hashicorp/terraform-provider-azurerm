@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,7 +11,7 @@ func TestAccAzureRMCdnEndpoint_importWithTags(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMCdnEndpoint_withTags, ri, ri, ri)
+	config := testAccAzureRMCdnEndpoint_withTags(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

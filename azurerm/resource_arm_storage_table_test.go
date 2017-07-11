@@ -192,6 +192,8 @@ func TestValidateArmStorageTableName(t *testing.T) {
 		"mytable",
 		"myTable",
 		"MYTABLE",
+		"tbl",
+		strings.Repeat("w", 63),
 	}
 	for _, v := range validNames {
 		_, errors := validateArmStorageTableName(v, "name")
@@ -206,7 +208,7 @@ func TestValidateArmStorageTableName(t *testing.T) {
 		"invalid_name",
 		"invalid!",
 		"ww",
-		strings.Repeat("w", 65),
+		strings.Repeat("w", 64),
 	}
 	for _, v := range invalidNames {
 		_, errors := validateArmStorageTableName(v, "name")

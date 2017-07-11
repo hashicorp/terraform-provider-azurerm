@@ -336,10 +336,11 @@ func flattenAzureRmContainerServiceMasterProfile(profile containerservice.Master
 		F: resourceAzureRMContainerServiceMasterProfileHash,
 	}
 
-	masterProfile := make(map[string]interface{}, 2)
+	masterProfile := make(map[string]interface{}, 3)
 
 	masterProfile["count"] = int(*profile.Count)
 	masterProfile["dns_prefix"] = *profile.DNSPrefix
+	masterProfile["fqdn"] = *profile.Fqdn
 
 	masterProfiles.Add(masterProfile)
 

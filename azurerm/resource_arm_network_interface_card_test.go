@@ -116,6 +116,24 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_bug7986(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test1"),
+					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test2"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMNetworkInterfaceExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -472,6 +490,153 @@ resource "azurerm_network_interface" "test2" {
 			"${azurerm_lb_nat_rule.testint.id}",
 		]
     }
+}
+`, rInt)
+}
+
+func testAccAzureRMNetworkInterface_bug7986(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "West Europe"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-%d-nsg"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_network_security_rule" "test1" {
+  name                        = "test1"
+  priority                    = 101
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = "${azurerm_resource_group.test.name}"
+  network_security_group_name = "${azurerm_network_security_group.test.name}"
+}
+
+resource "azurerm_network_security_rule" "test2" {
+  name                        = "test2"
+  priority                    = 102
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "*"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  resource_group_name         = "${azurerm_resource_group.test.name}"
+  network_security_group_name = "${azurerm_network_security_group.test.name}"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                         = "acctest-%d-pip"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest-%d-vn"
+  address_space       = ["10.0.0.0/16"]
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "first"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test1" {
+  name                = "acctest-%d-nic1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+
+  tags {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_network_interface" "test2" {
+  name                = "acctest-%d-nic2"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+
+  tags {
+    environment = "staging"
+  }
+}
+`, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_publicIP(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctest-rg-%d"
+  location = "West US"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acceptanceTestVirtualNetwork1"
+  address_space = ["10.0.0.0/16"]
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name = "testsubnet"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "testext" {
+  name                         = "testpublicipext"
+  location                     = "West US"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+}
+
+resource "azurerm_network_interface" "test" {
+  name = "acceptanceTestNetworkInterface1"
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name = "testconfiguration1"
+    subnet_id = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+    public_ip_address_id = "${azurerm_public_ip.testext.id}"
+  }
 }
 `, rInt)
 }

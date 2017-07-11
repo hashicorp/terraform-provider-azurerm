@@ -72,8 +72,8 @@ func resourceArmRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
 
-	armMutexKV.Lock(rtName)
-	defer armMutexKV.Unlock(rtName)
+	azureRMLockByName(rtName, routeTableResourceName)
+	defer azureRMUnlockByName(rtName, routeTableResourceName)
 
 	properties := network.RoutePropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -153,8 +153,8 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	rtName := id.Path["routeTables"]
 	routeName := id.Path["routes"]
 
-	armMutexKV.Lock(rtName)
-	defer armMutexKV.Unlock(rtName)
+	azureRMLockByName(rtName, routeTableResourceName)
+	defer azureRMUnlockByName(rtName, routeTableResourceName)
 
 	_, error := routesClient.Delete(resGroup, rtName, routeName, make(chan struct{}))
 	err = <-error

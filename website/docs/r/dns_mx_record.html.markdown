@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
 
 * `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields documented below.
 

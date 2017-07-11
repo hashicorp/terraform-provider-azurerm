@@ -7,6 +7,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/jen20/riviera/azure"
 )
 
 func resourceArmServiceBusTopic() *schema.Resource {
@@ -38,6 +40,17 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(servicebus.EntityStatusActive),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicebus.EntityStatusActive),
+					string(servicebus.EntityStatusDisabled),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"auto_delete_on_idle": {
@@ -107,24 +120,7 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 	namespaceName := d.Get("namespace_name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
-
-	parameters := servicebus.TopicCreateOrUpdateParameters{
-		Name:            &name,
-		Location:        &location,
-		TopicProperties: &servicebus.TopicProperties{},
-	}
-
-	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.TopicProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
-	}
-
-	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.TopicProperties.DefaultMessageTimeToLive = &defaultTTL
-	}
-
-	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
-	}
+	status := d.Get("status").(string)
 
 	enableBatchedOps := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
@@ -134,13 +130,32 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
 
-	parameters.TopicProperties.EnableBatchedOperations = &enableBatchedOps
-	parameters.TopicProperties.EnableExpress = &enableExpress
-	parameters.TopicProperties.FilteringMessagesBeforePublishing = &enableFiltering
-	parameters.TopicProperties.EnablePartitioning = &enablePartitioning
-	parameters.TopicProperties.MaxSizeInMegabytes = &maxSize
-	parameters.TopicProperties.RequiresDuplicateDetection = &requiresDuplicateDetection
-	parameters.TopicProperties.SupportOrdering = &supportOrdering
+	parameters := servicebus.TopicCreateOrUpdateParameters{
+		Name:     &name,
+		Location: &location,
+		TopicProperties: &servicebus.TopicProperties{
+			Status:                            servicebus.EntityStatus(status),
+			EnableBatchedOperations:           azure.Bool(enableBatchedOps),
+			EnableExpress:                     azure.Bool(enableExpress),
+			FilteringMessagesBeforePublishing: azure.Bool(enableFiltering),
+			EnablePartitioning:                azure.Bool(enablePartitioning),
+			MaxSizeInMegabytes:                azure.Int64(maxSize),
+			RequiresDuplicateDetection:        azure.Bool(requiresDuplicateDetection),
+			SupportOrdering:                   azure.Bool(supportOrdering),
+		},
+	}
+
+	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
+		parameters.TopicProperties.AutoDeleteOnIdle = azure.String(autoDeleteOnIdle)
+	}
+
+	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
+		parameters.TopicProperties.DefaultMessageTimeToLive = azure.String(defaultTTL)
+	}
+
+	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
+		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = azure.String(duplicateWindow)
+	}
 
 	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
 	if err != nil {
@@ -186,6 +201,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	props := resp.TopicProperties
+	d.Set("status", string(props.Status))
 	d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
 	d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 

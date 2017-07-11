@@ -65,6 +65,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_client_config":  dataSourceArmClientConfig(),
 			"azurerm_resource_group": dataSourceArmResourceGroup(),
 			"azurerm_public_ip":      dataSourceArmPublicIP(),
+			"azurerm_managed_disk":   dataSourceArmManagedDisk(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -74,6 +75,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cdn_profile":        resourceArmCdnProfile(),
 			"azurerm_container_registry": resourceArmContainerRegistry(),
 			"azurerm_container_service":  resourceArmContainerService(),
+			"azurerm_cosmosdb_account":   resourceArmCosmosDBAccount(),
+			"azurerm_dns_ptr_record":     resourceArmDnsPtrRecord(),
 
 			"azurerm_eventhub":                    resourceArmEventHub(),
 			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),
@@ -101,6 +104,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_route":                     resourceArmRoute(),
 			"azurerm_route_table":               resourceArmRouteTable(),
 			"azurerm_servicebus_namespace":      resourceArmServiceBusNamespace(),
+			"azurerm_servicebus_queue":          resourceArmServiceBusQueue(),
 			"azurerm_servicebus_subscription":   resourceArmServiceBusSubscription(),
 			"azurerm_servicebus_topic":          resourceArmServiceBusTopic(),
 			"azurerm_sql_elasticpool":           resourceArmSqlElasticPool(),
@@ -119,6 +123,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_machine_scale_set": resourceArmVirtualMachineScaleSet(),
 			"azurerm_virtual_network":           resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_peering":   resourceArmVirtualNetworkPeering(),
+
+			"azurerm_application_insights": resourceArmApplicationInsights(),
 
 			// These resources use the Riviera SDK
 			"azurerm_dns_a_record":      resourceArmDnsARecord(),

@@ -187,7 +187,7 @@ The following arguments are supported:
 
 `ssh_key` supports the following:
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster. The certificate must be in PEM format with or without headers.
+* `key_data` - (Required) The Public SSH Key used to access the cluster.
 
 `agent_pool_profile` supports the following:
 
