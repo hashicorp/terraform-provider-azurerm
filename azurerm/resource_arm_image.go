@@ -51,7 +51,6 @@ func resourceArmImage() *schema.Resource {
 						"os_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Linux),
 								string(compute.Windows),
@@ -62,7 +61,6 @@ func resourceArmImage() *schema.Resource {
 						"os_state": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Generalized),
 								string(compute.Specialized),
@@ -79,13 +77,14 @@ func resourceArmImage() *schema.Resource {
 						"blob_uri": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ForceNew: true,
 						},
 
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(compute.None),
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -123,12 +122,13 @@ func resourceArmImage() *schema.Resource {
 						"blob_uri": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "None",
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -140,6 +140,7 @@ func resourceArmImage() *schema.Resource {
 						"size_gb": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -252,11 +253,10 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", resp.Location)
 
+	//either source VM or storage profile can be specified, but not both
 	if resp.SourceVirtualMachine != nil {
 		d.Set("source_virtual_machine_id", resp.SourceVirtualMachine.ID)
-	}
-
-	if resp.StorageProfile != nil {
+	} else if resp.StorageProfile != nil {
 		if err := d.Set("os_disk", flattenAzureRmStorageProfileOsDisk(d, resp.StorageProfile)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %#v", err)
 		}
