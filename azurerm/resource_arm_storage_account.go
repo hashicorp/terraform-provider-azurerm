@@ -80,6 +80,11 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+			
+			"supports_https_traffic_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 
 			"primary_location": {
 				Type:     schema.TypeString,
@@ -164,7 +169,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-
+	supportsHttpsTrafficOnly := d.Get("supports_https_traffic_only").(bool)
+	
 	sku := storage.Sku{
 		Name: storage.SkuName(accountType),
 	}
@@ -328,6 +334,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 		d.SetPartial("enable_blob_encryption")
 	}
+	
+	if d.HasChange("supports_https_traffic_only") {
+		supportsHttpsTrafficOnly := d.Get("supports_https_traffic_only").(bool)
+
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				SupportsHttpsTrafficOnly: &supportsHttpsTrafficOnly,
+			},
+		}
+		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account supports_https_traffic_only %q: %s", storageAccountName, err)
+		}
+
+		d.SetPartial("supports_https_traffic_only")
+	}
 
 	d.Partial(false)
 	return nil
@@ -408,6 +430,10 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		if resp.AccountProperties.Encryption.Services.Blob != nil {
 			d.Set("enable_blob_encryption", resp.AccountProperties.Encryption.Services.Blob.Enabled)
 		}
+	}
+	
+	if resp.AccountProperties.SupportsHttpsTrafficOnly != "" {
+		d.Set("supports_https_traffic_only", resp.AccountProperties.SupportsHttpsTrafficOnly)
 	}
 
 	d.Set("name", resp.Name)
