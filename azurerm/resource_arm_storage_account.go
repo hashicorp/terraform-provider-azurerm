@@ -388,6 +388,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_type", resp.Sku.Name)
 	d.Set("primary_location", resp.AccountProperties.PrimaryLocation)
 	d.Set("secondary_location", resp.AccountProperties.SecondaryLocation)
+	d.Set("supports_https_traffic_only", resp.AccountProperties.SupportsHttpsTrafficOnly)
 
 	if resp.AccountProperties.AccessTier != "" {
 		d.Set("access_tier", resp.AccountProperties.AccessTier)
@@ -430,10 +431,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		if resp.AccountProperties.Encryption.Services.Blob != nil {
 			d.Set("enable_blob_encryption", resp.AccountProperties.Encryption.Services.Blob.Enabled)
 		}
-	}
-	
-	if resp.AccountProperties.SupportsHttpsTrafficOnly != "" {
-		d.Set("supports_https_traffic_only", resp.AccountProperties.SupportsHttpsTrafficOnly)
 	}
 
 	d.Set("name", resp.Name)
