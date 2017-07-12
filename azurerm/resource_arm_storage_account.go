@@ -189,6 +189,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				},
 				KeySource: &storageAccountEncryptionSource,
 			},
+			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 		},
 	}
 
