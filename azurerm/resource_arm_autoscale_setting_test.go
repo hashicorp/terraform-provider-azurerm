@@ -284,11 +284,11 @@ func testAccAzureRMAutoscaleSetting_basic(rInt int) string {
     } 
 
     resource "azurerm_autoscale_setting" "test" {
-      name                = "myAutoscaleSetting"
+      name                = "autoScale%[1]d"
       enabled             = true
       resource_group_name = "${azurerm_resource_group.test.name}"
       location            = "${azurerm_resource_group.test.location}"
-      target_resource_uri = "${azurerm_virtual_machine_scale_set.test.id}"
+      target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
       profile {
         name = "defaultProfile"
         capacity {
@@ -297,48 +297,48 @@ func testAccAzureRMAutoscaleSetting_basic(rInt int) string {
           maximum = 10
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "GreaterThan"
-            "threshold"           = 75
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id   = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain           = "PT1M"
+            statistic            = "Average"
+            time_window          = "PT5M"
+            time_aggregation     = "Average"
+            operator             = "GreaterThan"
+            threshold            = 75
           }
-          "scale_action" {
-            "direction" = "Increase"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Increase"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "LessThan"
-            "threshold"           = 25
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "LessThan"
+            threshold           = 25
           }
-          "scale_action" {
-            "direction" = "Decrease"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Decrease"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
       }
 
       notification {
-        "operation" = "Scale"
-        "email" {
-          "send_to_subscription_administrator"    = false
-          "send_to_subscription_co_administrator" = false
+        operation = "Scale"
+        email {
+          send_to_subscription_administrator    = false
+          send_to_subscription_co_administrator = false
         }
       }
     }`, rInt)
@@ -472,11 +472,11 @@ func testAccAzureRMAutoscaleSetting_recurrence(rInt int) string {
     } 
 
     resource "azurerm_autoscale_setting" "test" {
-      name                = "myAutoscaleSetting"
+      name                = "autoScale%[1]d"
       enabled             = true
       resource_group_name = "${azurerm_resource_group.test.name}"
       location            = "${azurerm_resource_group.test.location}"
-      target_resource_uri = "${azurerm_virtual_machine_scale_set.test.id}"
+      target_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
       profile {
         name = "defaultProfile"
         capacity {
@@ -485,39 +485,39 @@ func testAccAzureRMAutoscaleSetting_recurrence(rInt int) string {
           maximum = 10
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "GreaterThan"
-            "threshold"           = 75
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "GreaterThan"
+            threshold           = 75
           }
-          "scale_action" {
-            "direction" = "Increase"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Increase"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "LessThan"
-            "threshold"           = 25
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "LessThan"
+            threshold           = 25
           }
-          "scale_action" {
-            "direction" = "Decrease"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Decrease"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
       }
@@ -530,62 +530,62 @@ func testAccAzureRMAutoscaleSetting_recurrence(rInt int) string {
           maximum = 10
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "GreaterThan"
-            "threshold"           = 75
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "GreaterThan"
+            threshold           = 75
           }
-          "scale_action" {
-            "direction" = "Increase"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Increase"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "LessThan"
-            "threshold"           = 25
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "LessThan"
+            threshold           = 25
           }
-          "scale_action" {
-            "direction" = "Decrease"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Decrease"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
 
-        "recurrence" {
-          "frequency" = "Week"
-          "schedule" {
-            "time_zone" = "${var.time_zone}"
-            "days"    = [
+        recurrence {
+          frequency = "Week"
+          schedule {
+            time_zone = "${var.time_zone}"
+            days      = [
               "Monday",
               "Wednesday",
               "Friday"
             ]
-            "hours"   = [ 18 ]
-            "minutes" = [ 0 ]
+            hours     = [ 18 ]
+            minutes   = [ 0 ]
           }
         }
       }
 
       notification {
-        "operation" = "Scale"
-        "email" {
-          "send_to_subscription_administrator"    = false
-          "send_to_subscription_co_administrator" = false
+        operation = "Scale"
+        email {
+          send_to_subscription_administrator    = false
+          send_to_subscription_co_administrator = false
         }
       }
     }`, rInt)
@@ -719,11 +719,11 @@ func testAccAzureRMAutoscaleSetting_fixedDate(rInt int) string {
     } 
 
     resource "azurerm_autoscale_setting" "test" {
-      name                = "myAutoscaleSetting"
+      name                = "autoScale%[1]d"
       enabled             = true
       resource_group_name = "${azurerm_resource_group.test.name}"
       location            = "${azurerm_resource_group.test.location}"
-      target_resource_uri = "${azurerm_virtual_machine_scale_set.test.id}"
+      target_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
       profile {
         name = "defaultProfile"
         capacity {
@@ -732,39 +732,39 @@ func testAccAzureRMAutoscaleSetting_fixedDate(rInt int) string {
           maximum = 10
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "GreaterThan"
-            "threshold"           = 75
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "GreaterThan"
+            threshold           = 75
           }
-          "scale_action" {
-            "direction" = "Increase"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Increase"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "LessThan"
-            "threshold"           = 25
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "LessThan"
+            threshold           = 25
           }
-          "scale_action" {
-            "direction" = "Decrease"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Decrease"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
       }
@@ -777,54 +777,54 @@ func testAccAzureRMAutoscaleSetting_fixedDate(rInt int) string {
           maximum = 10
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "GreaterThan"
-            "threshold"           = 75
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "GreaterThan"
+            threshold           = 75
           }
-          "scale_action" {
-            "direction" = "Increase"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Increase"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
         rule {
-          "metric_trigger" {
-            "metric_name"         = "Percentage CPU"
-            "metric_resource_uri" = "${azurerm_virtual_machine_scale_set.test.id}"
-            "time_grain"          = "PT1M"
-            "statistic"           = "Average"
-            "time_window"         = "PT5M"
-            "time_aggregation"    = "Average"
-            "operator"            = "LessThan"
-            "threshold"           = 25
+          metric_trigger {
+            metric_name         = "Percentage CPU"
+            metric_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+            time_grain          = "PT1M"
+            statistic           = "Average"
+            time_window         = "PT5M"
+            time_aggregation    = "Average"
+            operator            = "LessThan"
+            threshold           = 25
           }
-          "scale_action" {
-            "direction" = "Decrease"
-            "type"      = "ChangeCount"
-            "value"     = "1"
-            "cooldown"  = "PT1M"
+          scale_action {
+            direction = "Decrease"
+            type      = "ChangeCount"
+            value     = "1"
+            cooldown  = "PT1M"
           }
         }
 
-        "fixed_date" {
-          "time_zone" = "${var.time_zone}"
-          "start"     = "2020-06-18T00:00:00Z"
-          "end"       = "2020-06-18T23:59:59Z"
+        fixed_date {
+          time_zone = "${var.time_zone}"
+          start     = "2020-06-18T00:00:00Z"
+          end       = "2020-06-18T23:59:59Z"
         }
       }
 
       notification {
-        "operation" = "Scale"
-        "email" {
-          "send_to_subscription_administrator"    = false
-          "send_to_subscription_co_administrator" = false
+        operation = "Scale"
+        email {
+          send_to_subscription_administrator    = false
+          send_to_subscription_co_administrator = false
         }
       }
     }`, rInt)
