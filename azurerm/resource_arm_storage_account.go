@@ -80,7 +80,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			
+
 			"supports_https_traffic_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -170,7 +170,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	supportsHttpsTrafficOnly := d.Get("supports_https_traffic_only").(bool)
-	
+
 	sku := storage.Sku{
 		Name: storage.SkuName(accountType),
 	}
@@ -334,7 +334,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 		d.SetPartial("enable_blob_encryption")
 	}
-	
+
 	if d.HasChange("supports_https_traffic_only") {
 		supportsHttpsTrafficOnly := d.Get("supports_https_traffic_only").(bool)
 
