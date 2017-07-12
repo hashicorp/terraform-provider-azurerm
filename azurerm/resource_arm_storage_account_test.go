@@ -160,11 +160,11 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_supportsHttpsTrafficOnly(t *testing.T) {
+func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	preConfig := testAccAzureRMStorageAccount_supportsHttpsTrafficOnly(ri, rs)
-	postConfig := testAccAzureRMStorageAccount_supportsHttpsTrafficOnlyDisabled(ri, rs)
+	preConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnly(ri, rs)
+	postConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(ri, rs)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -175,7 +175,7 @@ func TestAccAzureRMStorageAccount_supportsHttpsTrafficOnly(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
-					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "supports_https_traffic_only", "true"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_https_traffic_only", "true"),
 				),
 			},
 
@@ -183,7 +183,7 @@ func TestAccAzureRMStorageAccount_supportsHttpsTrafficOnly(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
-					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "supports_https_traffic_only", "false"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_https_traffic_only", "false"),
 				),
 			},
 		},
@@ -403,7 +403,7 @@ resource "azurerm_storage_account" "testsa" {
 }`, rInt, rString)
 }
 
-func testAccAzureRMStorageAccount_supportsHttpsTrafficOnly(rInt int, rString string) string {
+func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(rInt int, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
@@ -416,7 +416,7 @@ resource "azurerm_storage_account" "testsa" {
 
     location = "westus"
     account_type = "Standard_LRS"
-    supports_https_traffic_only = true
+    enable_https_traffic_only = true
 
     tags {
         environment = "production"
@@ -424,7 +424,7 @@ resource "azurerm_storage_account" "testsa" {
 }`, rInt, rString)
 }
 
-func testAccAzureRMStorageAccount_supportsHttpsTrafficOnlyDisabled(rInt int, rString string) string {
+func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(rInt int, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
@@ -437,7 +437,7 @@ resource "azurerm_storage_account" "testsa" {
 
     location = "westus"
     account_type = "Standard_LRS"
-    supports_https_traffic_only = false
+    enable_https_traffic_only = false
 
     tags {
         environment = "production"

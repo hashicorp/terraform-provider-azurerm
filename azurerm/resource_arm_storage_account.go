@@ -81,7 +81,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 			},
 
-			"supports_https_traffic_only": {
+			"enable_https_traffic_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -169,7 +169,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-	supportsHttpsTrafficOnly := d.Get("supports_https_traffic_only").(bool)
+	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 
 	sku := storage.Sku{
 		Name: storage.SkuName(accountType),
@@ -335,20 +335,20 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("enable_blob_encryption")
 	}
 
-	if d.HasChange("supports_https_traffic_only") {
-		supportsHttpsTrafficOnly := d.Get("supports_https_traffic_only").(bool)
+	if d.HasChange("enable_https_traffic_only") {
+		enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				SupportsHttpsTrafficOnly: &supportsHttpsTrafficOnly,
+				EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			},
 		}
 		_, err := client.Update(resourceGroupName, storageAccountName, opts)
 		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account supports_https_traffic_only %q: %s", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %s", storageAccountName, err)
 		}
 
-		d.SetPartial("supports_https_traffic_only")
+		d.SetPartial("enable_https_traffic_only")
 	}
 
 	d.Partial(false)
@@ -388,7 +388,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_type", resp.Sku.Name)
 	d.Set("primary_location", resp.AccountProperties.PrimaryLocation)
 	d.Set("secondary_location", resp.AccountProperties.SecondaryLocation)
-	d.Set("supports_https_traffic_only", resp.AccountProperties.SupportsHttpsTrafficOnly)
+	d.Set("enable_https_traffic_only", resp.AccountProperties.EnableHTTPSTrafficOnly)
 
 	if resp.AccountProperties.AccessTier != "" {
 		d.Set("access_tier", resp.AccountProperties.AccessTier)
