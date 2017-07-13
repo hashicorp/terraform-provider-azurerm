@@ -63,6 +63,9 @@ The following arguments are supported:
     Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
     for more information.
 
+* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here] (https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
+    for more information.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 Note that although the Azure API supports setting custom domain names for

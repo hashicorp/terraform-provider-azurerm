@@ -81,6 +81,11 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 			},
 
+			"enable_https_traffic_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"primary_location": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -164,6 +169,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
+	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 
 	sku := storage.Sku{
 		Name: storage.SkuName(accountType),
@@ -183,6 +189,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				},
 				KeySource: &storageAccountEncryptionSource,
 			},
+			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 		},
 	}
 
@@ -329,6 +336,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("enable_blob_encryption")
 	}
 
+	if d.HasChange("enable_https_traffic_only") {
+		enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
+
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
+			},
+		}
+		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %s", storageAccountName, err)
+		}
+
+		d.SetPartial("enable_https_traffic_only")
+	}
+
 	d.Partial(false)
 	return nil
 }
@@ -366,6 +389,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_type", resp.Sku.Name)
 	d.Set("primary_location", resp.AccountProperties.PrimaryLocation)
 	d.Set("secondary_location", resp.AccountProperties.SecondaryLocation)
+	d.Set("enable_https_traffic_only", resp.AccountProperties.EnableHTTPSTrafficOnly)
 
 	if resp.AccountProperties.AccessTier != "" {
 		d.Set("access_tier", resp.AccountProperties.AccessTier)
