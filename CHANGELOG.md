@@ -4,12 +4,13 @@ FEATURES:
 
 * **New Resource:** `azurerm_dns_ptr_record` [GH-141]
 * **New Resource:** `azurerm_servicebus_queue` [GH-151]
-* `azurerm_servicebus_topic` - added a `status` field to allow disabling the topic [GH-150]
 
 IMPROVEMENTS:
 
 * `azurerm_storage_table` - updating the name validation [GH-143]
 * `azurerm_virtual_machine` - making `admin_password` optional for Linux VM's [GH-154]
+* `azurerm_servicebus_topic` - added a `status` field to allow disabling the topic [GH-150]
+* `azurerm_storage_account` - Added support for Require secure transfer [GH-167]
 
 ## 0.1.2 (June 29, 2017)
 
