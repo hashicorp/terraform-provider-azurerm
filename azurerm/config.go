@@ -91,9 +91,10 @@ type ArmClient struct {
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
-	postgresqlDatabasesClient     postgresql.DatabasesClient
-	postgresqlFirewallRulesClient postgresql.FirewallRulesClient
-	postgresqlServersClient       postgresql.ServersClient
+	postgresqlConfigurationsClient postgresql.ConfigurationsClient
+	postgresqlDatabasesClient      postgresql.DatabasesClient
+	postgresqlFirewallRulesClient  postgresql.FirewallRulesClient
+	postgresqlServersClient        postgresql.ServersClient
 
 	providers           resources.ProvidersClient
 	resourceGroupClient resources.GroupsClient
