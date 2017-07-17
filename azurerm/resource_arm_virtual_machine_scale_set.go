@@ -439,7 +439,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetPlanHash,
 			},
 
 			"extension": {
@@ -1529,17 +1528,6 @@ func expandAzureRmVirtualMachineScaleSetPlan(d *schema.ResourceData) (*compute.P
 		Name:      &name,
 		Product:   &product,
 	}, nil
-}
-
-func resourceArmVirtualMachineScaleSetPlanHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["product"].(string)))
-
-	return hashcode.String(buf.String())
 }
 
 func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} {
