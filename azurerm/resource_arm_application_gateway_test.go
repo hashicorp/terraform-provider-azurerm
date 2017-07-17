@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
+func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
