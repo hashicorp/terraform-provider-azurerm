@@ -688,7 +688,9 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	}
 
 	if resp.Plan != nil {
-		d.Set("plan", flattenAzureRmVirtualMachineScaleSetPlan(resp.Plan))
+		if err := d.Set("plan", flattenAzureRmVirtualMachineScaleSetPlan(resp.Plan)); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Plan. Error: %#v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
