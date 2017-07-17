@@ -70,7 +70,6 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-<<<<<<< HEAD
 			"azurerm_application_gateway":         resourceArmApplicationGateway(),
 			"azurerm_application_insights":        resourceArmApplicationInsights(),
 			"azurerm_app_service":                 resourceArmAppService(),
@@ -96,26 +95,6 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_dns_txt_record":              resourceArmDnsTxtRecord(),
 			"azurerm_dns_zone":                    resourceArmDnsZone(),
 			"azurerm_eventgrid_topic":             resourceArmEventGridTopic(),
-=======
-			// These resources use the Azure ARM SDK
-<<<<<<< HEAD
-			"azurerm_availability_set":   resourceArmAvailabilitySet(),
-			"azurerm_cdn_endpoint":       resourceArmCdnEndpoint(),
-			"azurerm_cdn_profile":        resourceArmCdnProfile(),
-			"azurerm_container_registry": resourceArmContainerRegistry(),
-			"azurerm_container_service":  resourceArmContainerService(),
-			"azurerm_cosmosdb_account":   resourceArmCosmosDBAccount(),
-			"azurerm_dns_ptr_record":     resourceArmDnsPtrRecord(),
-=======
-			"azurerm_application_gateway": resourceArmApplicationGateway(),
-			"azurerm_availability_set":    resourceArmAvailabilitySet(),
-			"azurerm_cdn_endpoint":        resourceArmCdnEndpoint(),
-			"azurerm_cdn_profile":         resourceArmCdnProfile(),
-			"azurerm_container_registry":  resourceArmContainerRegistry(),
-			"azurerm_container_service":   resourceArmContainerService(),
->>>>>>> For new Application Gateway Resource:
-
->>>>>>> made sure files are added
 			"azurerm_eventhub":                    resourceArmEventHub(),
 			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),
 			"azurerm_eventhub_consumer_group":     resourceArmEventHubConsumerGroup(),
