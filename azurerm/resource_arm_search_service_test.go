@@ -133,7 +133,6 @@ resource "azurerm_search_service" "test" {
 `, rInt, rInt)
 }
 
-
 func testAccAzureRMSearchService_updated(rInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
