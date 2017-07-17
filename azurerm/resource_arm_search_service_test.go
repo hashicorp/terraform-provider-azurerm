@@ -11,20 +11,20 @@ import (
 )
 
 func TestAccAzureRMSearchService_basic(t *testing.T) {
+	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMSearchService_basic, ri, ri)
+	config := testAccAzureRMSearchService_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.%", "2"),
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 		},
@@ -32,34 +32,31 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSearchService_updateReplicaCountAndTags(t *testing.T) {
+	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMSearchService_basic, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMSearchService_updated, ri, ri)
+	preConfig := testAccAzureRMSearchService_basic(ri)
+	postConfig := testAccAzureRMSearchService_updated(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "replica_count", "1"),
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "replica_count", "1"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "replica_count", "2"),
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replica_count", "2"),
 				),
 			},
 		},
@@ -81,10 +78,10 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 
 		readResponse, err := readRequest.Execute()
 		if err != nil {
-			return fmt.Errorf("Bad: GetSearchService: %s", err)
+			return fmt.Errorf("Bad: GetSearchService: %+v", err)
 		}
 		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetSearchService: %s", readResponse.Error)
+			return fmt.Errorf("Bad: GetSearchService: %+v", readResponse.Error)
 		}
 
 		return nil
@@ -104,26 +101,28 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 
 		readResponse, err := readRequest.Execute()
 		if err != nil {
-			return fmt.Errorf("Bad: GetSearchService: %s", err)
+			return fmt.Errorf("Bad: GetSearchService: %+v", err)
 		}
 
 		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: Search Service still exists: %s", readResponse.Error)
+			return fmt.Errorf("Bad: Search Service still exists: %+v", readResponse.Error)
 		}
 	}
 
 	return nil
 }
 
-var testAccAzureRMSearchService_basic = `
+func testAccAzureRMSearchService_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_search_service" "test" {
     name = "acctestsearchservice%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     sku = "standard"
 
     tags {
@@ -131,9 +130,12 @@ resource "azurerm_search_service" "test" {
     	database = "test"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMSearchService_updated = `
+
+func testAccAzureRMSearchService_updated(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
@@ -141,7 +143,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_search_service" "test" {
     name = "acctestsearchservice%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     sku = "standard"
     replica_count = 2
 
@@ -149,4 +151,5 @@ resource "azurerm_search_service" "test" {
     	environment = "production"
     }
 }
-`
+`, rInt, rInt)
+}
