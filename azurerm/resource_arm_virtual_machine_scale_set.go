@@ -417,6 +417,30 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
+			"plan": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"publisher": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"product": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"extension": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -545,6 +569,16 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		Sku:      sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
 	}
+
+	if _, ok := d.GetOk("plan"); ok {
+		plan, err := expandAzureRmVirtualMachineScaleSetPlan(d)
+		if err != nil {
+			return err
+		}
+
+		scaleSetParams.Plan = plan
+	}
+
 	_, vmError := vmScaleSetClient.CreateOrUpdate(resGroup, name, scaleSetParams, make(chan struct{}))
 	vmErr := <-vmError
 	if vmErr != nil {
@@ -651,6 +685,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Extension Profile error: %#v", err)
 		}
 		d.Set("extension", extension)
+	}
+
+	if resp.Plan != nil {
+		if err := d.Set("plan", flattenAzureRmVirtualMachineScaleSetPlan(resp.Plan)); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Plan. Error: %#v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -1474,4 +1514,30 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 	return &compute.VirtualMachineScaleSetExtensionProfile{
 		Extensions: &resources,
 	}, nil
+}
+
+func expandAzureRmVirtualMachineScaleSetPlan(d *schema.ResourceData) (*compute.Plan, error) {
+	planConfigs := d.Get("plan").(*schema.Set).List()
+
+	planConfig := planConfigs[0].(map[string]interface{})
+
+	publisher := planConfig["publisher"].(string)
+	name := planConfig["name"].(string)
+	product := planConfig["product"].(string)
+
+	return &compute.Plan{
+		Publisher: &publisher,
+		Name:      &name,
+		Product:   &product,
+	}, nil
+}
+
+func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} {
+	result := make(map[string]interface{})
+
+	result["name"] = *plan.Name
+	result["publisher"] = *plan.Publisher
+	result["product"] = *plan.Product
+
+	return []interface{}{result}
 }

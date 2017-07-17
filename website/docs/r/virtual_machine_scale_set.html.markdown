@@ -199,7 +199,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 	  lun 		   = 0
     caching        = "ReadWrite"
     create_option  = "Empty"
-    disk_size_gb   = 10	
+    disk_size_gb   = 10
   }
 
   os_profile {
@@ -256,6 +256,7 @@ The following arguments are supported:
 * `storage_profile_data_disk` - (Optional) A storage profile data disk block as documented below
 * `storage_profile_image_reference` - (Optional) A storage profile image reference block as documented below.
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
+* `plan` - (Optional) A plan block as documented below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 
@@ -359,6 +360,12 @@ The following arguments are supported:
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
 * `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
+
+`plan` supports the following:
+
+* `name` - (Required) Specifies the name of the image from the marketplace.
+* `publisher` - (Required) Specifies the publisher of the image.
+* `product` - (Required) Specifies the product of the image from the marketplace.
 
 ## Attributes Reference
 
