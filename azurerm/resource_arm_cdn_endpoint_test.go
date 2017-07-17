@@ -11,8 +11,9 @@ import (
 )
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
+	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMCdnEndpoint_basic, ri, ri, ri)
+	config := testAccAzureRMCdnEndpoint_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +23,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists("azurerm_cdn_endpoint.test"),
+					testCheckAzureRMCdnEndpointExists(resourceName),
 				),
 			},
 		},
@@ -30,8 +31,9 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 }
 
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
+	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMCdnEndpoint_basic, ri, ri, ri)
+	config := testAccAzureRMCdnEndpoint_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,8 +43,8 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists("azurerm_cdn_endpoint.test"),
-					testCheckAzureRMCdnEndpointDisappears("azurerm_cdn_endpoint.test"),
+					testCheckAzureRMCdnEndpointExists(resourceName),
+					testCheckAzureRMCdnEndpointDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -50,10 +52,40 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
+func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
+	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMCdnEndpoint_withTags, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMCdnEndpoint_withTagsUpdate, ri, ri, ri)
+	config := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example.com")
+	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example2.com")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "origin_host_header", "www.example.com"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "origin_host_header", "www.example2.com"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
+	resourceName := "azurerm_cdn_endpoint.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMCdnEndpoint_withTags(ri)
+	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,24 +95,19 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists("azurerm_cdn_endpoint.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_cdn_endpoint.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_cdn_endpoint.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_cdn_endpoint.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMCdnEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
 
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCdnEndpointExists("azurerm_cdn_endpoint.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_cdn_endpoint.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_cdn_endpoint.test", "tags.environment", "staging"),
+					testCheckAzureRMCdnEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -169,7 +196,8 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMCdnEndpoint_basic = `
+func testAccAzureRMCdnEndpoint_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -194,9 +222,46 @@ resource "azurerm_cdn_endpoint" "test" {
 	http_port = 80
     }
 }
-`
+`, rInt, rInt, rInt)
+}
 
-var testAccAzureRMCdnEndpoint_withTags = `
+func testAccAzureRMCdnEndpoint_hostHeader(rInt int, domain string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US"
+}
+resource "azurerm_cdn_profile" "test" {
+    name = "acctestcdnprof%d"
+    location = "West US"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "Standard_Verizon"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+    name = "acctestcdnend%d"
+    profile_name = "${azurerm_cdn_profile.test.name}"
+    location = "West US"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    origin_host_header = "%s"
+
+    origin {
+	name = "acceptanceTestCdnOrigin2"
+	host_name = "www.example.com"
+	https_port = 443
+	http_port = 80
+    }
+
+    tags {
+	environment = "Production"
+	cost_center = "MSFT"
+    }
+}
+`, rInt, rInt, rInt, domain)
+}
+
+func testAccAzureRMCdnEndpoint_withTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -226,9 +291,11 @@ resource "azurerm_cdn_endpoint" "test" {
 	cost_center = "MSFT"
     }
 }
-`
+`, rInt, rInt, rInt)
+}
 
-var testAccAzureRMCdnEndpoint_withTagsUpdate = `
+func testAccAzureRMCdnEndpoint_withTagsUpdate(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -257,4 +324,5 @@ resource "azurerm_cdn_endpoint" "test" {
 	environment = "staging"
     }
 }
-`
+`, rInt, rInt, rInt)
+}

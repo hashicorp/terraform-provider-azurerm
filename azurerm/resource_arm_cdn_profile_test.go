@@ -51,9 +51,8 @@ func TestResourceAzureRMCdnProfileSKU_validation(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMCdnProfile_basic, ri, ri)
+	config := testAccAzureRMCdnProfile_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -73,8 +72,8 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMCdnProfile_withTags, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMCdnProfile_withTagsUpdate, ri, ri)
+	preConfig := testAccAzureRMCdnProfile_withTags(ri)
+	postConfig := testAccAzureRMCdnProfile_withTagsUpdate(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -109,7 +108,6 @@ func TestAccAzureRMCdnProfile_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnProfileNonStandardCasing(ri)
 
@@ -118,14 +116,13 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnProfileExists("azurerm_cdn_profile.test"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config:             config,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
@@ -188,7 +185,8 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMCdnProfile_basic = `
+func testAccAzureRMCdnProfile_basic(ri int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -199,13 +197,16 @@ resource "azurerm_cdn_profile" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "Standard_Verizon"
 }
-`
+`, ri, ri)
+}
 
-var testAccAzureRMCdnProfile_withTags = `
+func testAccAzureRMCdnProfile_withTags(ri int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
 }
+
 resource "azurerm_cdn_profile" "test" {
     name = "acctestcdnprof%d"
     location = "West US"
@@ -217,9 +218,10 @@ resource "azurerm_cdn_profile" "test" {
 	cost_center = "MSFT"
     }
 }
-`
-
-var testAccAzureRMCdnProfile_withTagsUpdate = `
+`, ri, ri)
+}
+func testAccAzureRMCdnProfile_withTagsUpdate(ri int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -234,7 +236,8 @@ resource "azurerm_cdn_profile" "test" {
 	environment = "staging"
     }
 }
-`
+`, ri, ri)
+}
 
 func testAccAzureRMCdnProfileNonStandardCasing(ri int) string {
 	return fmt.Sprintf(`

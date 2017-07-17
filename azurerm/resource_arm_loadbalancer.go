@@ -174,7 +174,7 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", loadBalancer.Name)
-	d.Set("location", loadBalancer.Location)
+	d.Set("location", azureRMNormalizeLocation(*loadBalancer.Location))
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if loadBalancer.LoadBalancerPropertiesFormat != nil && loadBalancer.LoadBalancerPropertiesFormat.FrontendIPConfigurations != nil {

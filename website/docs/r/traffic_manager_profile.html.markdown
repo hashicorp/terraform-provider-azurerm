@@ -14,10 +14,8 @@ Creates a Traffic Manager Profile to which multiple endpoints can be attached.
 
 ```hcl
 resource "azurerm_traffic_manager_profile" "test" {
-  name                = "profile1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "West US"
-
+  name                   = "profile1"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {

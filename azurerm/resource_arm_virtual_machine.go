@@ -333,8 +333,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"admin_password": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 
 						"custom_data": {
@@ -628,7 +629,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if resp.Plan != nil {
 		if err := d.Set("plan", schema.NewSet(resourceArmVirtualMachinePlanHash, flattenAzureRmVirtualMachinePlan(resp.Plan))); err != nil {

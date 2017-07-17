@@ -168,10 +168,14 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if resp.SubnetPropertiesFormat.NetworkSecurityGroup != nil {
 		d.Set("network_security_group_id", resp.SubnetPropertiesFormat.NetworkSecurityGroup.ID)
+	} else {
+		d.Set("network_security_group_id", "")
 	}
 
 	if resp.SubnetPropertiesFormat.RouteTable != nil {
 		d.Set("route_table_id", resp.SubnetPropertiesFormat.RouteTable.ID)
+	} else {
+		d.Set("route_table_id", "")
 	}
 
 	if resp.SubnetPropertiesFormat.IPConfigurations != nil {

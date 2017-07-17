@@ -77,41 +77,35 @@ func TestAccAzureRMRedisCacheMaxMemoryPolicy_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMRedisCacheSku_validation(t *testing.T) {
+func TestAccAzureRMRedisCacheBackupFrequency_validation(t *testing.T) {
 	cases := []struct {
-		Value    string
+		Value    int
 		ErrCount int
 	}{
-		{
-			Value:    "Basic",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
+		{Value: 1, ErrCount: 1},
+		{Value: 15, ErrCount: 0},
+		{Value: 30, ErrCount: 0},
+		{Value: 45, ErrCount: 1},
+		{Value: 60, ErrCount: 0},
+		{Value: 120, ErrCount: 1},
+		{Value: 240, ErrCount: 1},
+		{Value: 360, ErrCount: 0},
+		{Value: 720, ErrCount: 0},
+		{Value: 1440, ErrCount: 0},
 	}
 
 	for _, tc := range cases {
-		_, errors := validateRedisSku(tc.Value, "azurerm_redis_cache")
+		_, errors := validateRedisBackupFrequency(tc.Value, "azurerm_redis_cache")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Redis Cache Sku to trigger a validation error")
+			t.Fatalf("Expected the AzureRM Redis Cache Backup Frequency to trigger a validation error for '%d'", tc.Value)
 		}
 	}
 }
 
 func TestAccAzureRMRedisCache_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_basic, ri, ri)
+	config := testAccAzureRMRedisCache_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -130,7 +124,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 
 func TestAccAzureRMRedisCache_standard(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_standard, ri, ri)
+	config := testAccAzureRMRedisCache_standard(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -149,7 +143,7 @@ func TestAccAzureRMRedisCache_standard(t *testing.T) {
 
 func TestAccAzureRMRedisCache_premium(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_premium, ri, ri)
+	config := testAccAzureRMRedisCache_premium(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -168,7 +162,7 @@ func TestAccAzureRMRedisCache_premium(t *testing.T) {
 
 func TestAccAzureRMRedisCache_premiumSharded(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRedisCache_premiumSharded, ri, ri)
+	config := testAccAzureRMRedisCache_premiumSharded(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -194,17 +188,83 @@ func TestAccAzureRMRedisCache_NonStandardCasing(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config:             config,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_BackupDisabled(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMRedisCacheBackupDisabled(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_BackupEnabled(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMRedisCacheBackupEnabled(ri, rs)
+	updatedConfig := testAccAzureRMRedisCacheBackupDisabled(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
 			},
 		},
 	})
@@ -264,7 +324,8 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMRedisCache_basic = `
+func testAccAzureRMRedisCache_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -283,9 +344,11 @@ resource "azurerm_redis_cache" "test" {
       maxclients = "256"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMRedisCache_standard = `
+func testAccAzureRMRedisCache_standard(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -307,9 +370,11 @@ resource "azurerm_redis_cache" "test" {
     	environment = "production"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMRedisCache_premium = `
+func testAccAzureRMRedisCache_premium(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -324,15 +389,17 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = "256",
-      maxmemory_reserved = "2",
-      maxmemory_delta    = "2"
+      maxclients         = 256,
+      maxmemory_reserved = 2,
+      maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMRedisCache_premiumSharded = `
+func testAccAzureRMRedisCache_premiumSharded(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
@@ -349,12 +416,13 @@ resource "azurerm_redis_cache" "test" {
     shard_count         = 3
     redis_configuration {
       maxclients         = "256",
-      maxmemory_reserved = "2",
-      maxmemory_delta    = "2"
+      maxmemory_reserved = 2,
+      maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
 }
-`
+`, rInt, rInt)
+}
 
 func testAccAzureRMRedisCacheNonStandardCasing(ri int) string {
 	return fmt.Sprintf(`
@@ -375,4 +443,62 @@ resource "azurerm_redis_cache" "test" {
     }
 }
 `, ri, ri)
+}
+
+func testAccAzureRMRedisCacheBackupDisabled(ri int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US"
+}
+resource "azurerm_redis_cache" "test" {
+    name                = "acctestRedis-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    capacity            = 3
+    family              = "P"
+    sku_name            = "Premium"
+    enable_non_ssl_port = false
+    redis_configuration {
+      maxclients         = "256"
+      rdb_backup_enabled = false
+    }
+}
+`, ri, ri)
+}
+
+func testAccAzureRMRedisCacheBackupEnabled(ri int, rs string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US"
+}
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location     = "westus"
+  account_type = "Standard_GRS"
+
+  tags {
+    environment = "staging"
+  }
+}
+resource "azurerm_redis_cache" "test" {
+    name                = "acctestRedis-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    capacity            = 3
+    family              = "P"
+    sku_name            = "Premium"
+    enable_non_ssl_port = false
+    redis_configuration {
+      maxclients                    = "256"
+      rdb_backup_enabled            = true
+      rdb_backup_frequency          = 60
+      rdb_backup_max_snapshot_count = 1
+      rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
+    }
+}
+`, ri, rs, ri)
 }

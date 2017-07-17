@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-resource-express-route-circuit"
+sidebar_current: "docs-azurerm-resource-network-express-route-circuit"
 description: |-
   Creates an ExpressRoute circuit.
 ---
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `peering_location` - (Required) The name of the peering location and not the ARM resource location.
 
-* `bandwidth_in_mbps` - (Required) The bandwidth in Mbps of the circuit being created. Once you increase your bandwidth, 
+* `bandwidth_in_mbps` - (Required) The bandwidth in Mbps of the circuit being created. Once you increase your bandwidth,
     you will not be able to decrease it to its previous value.
 
 * `sku` - (Required) Chosen SKU of ExpressRoute circuit as documented below.
@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `tier` - (Required) The service tier. Value must be either "Premium" or "Standard".
 
-* `family` - (Required) The billing mode. Value must be either "MeteredData" or "UnlimitedData". 
+* `family` - (Required) The billing mode. Value must be either "MeteredData" or "UnlimitedData".
    Once you set the billing model to "UnlimitedData", you will not be able to switch to "MeteredData".
 
 ## Attributes Reference
@@ -76,7 +76,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Resource ID of the ExpressRoute circuit.
-* `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider. 
+* `service_provider_provisioning_state` - The ExpressRoute circuit provisioning state from your chosen service provider.
     Possible values are "NotProvisioned", "Provisioning", "Provisioned", and "Deprovisioning".
 * `service_key` - The string needed by the service provider to provision the ExpressRoute circuit.
 

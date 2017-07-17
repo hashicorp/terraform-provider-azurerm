@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -50,7 +53,8 @@ type ArmClient struct {
 	vmImageClient          compute.VirtualMachineImagesClient
 	vmClient               compute.VirtualMachinesClient
 
-	diskClient disk.DisksClient
+	diskClient       disk.DisksClient
+	documentDBClient documentdb.DatabaseAccountsClient
 
 	applicationGatewayClient     network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
@@ -68,6 +72,7 @@ type ArmClient struct {
 	vnetPeeringsClient           network.VirtualNetworkPeeringsClient
 	routeTablesClient            network.RouteTablesClient
 	routesClient                 network.RoutesClient
+	dnsClient                    dns.RecordSetsClient
 
 	cdnProfilesClient  cdn.ProfilesClient
 	cdnEndpointsClient cdn.EndpointsClient
@@ -98,12 +103,15 @@ type ArmClient struct {
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
 	serviceBusNamespacesClient    servicebus.NamespacesClient
+	serviceBusQueuesClient        servicebus.QueuesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
 	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
 
 	keyVaultClient keyvault.VaultsClient
 
 	sqlElasticPoolsClient sql.ElasticPoolsClient
+
+	appInsightsClient appinsights.ComponentsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -254,6 +262,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	csc.Sender = autorest.CreateSender(withRequestLogging())
 	client.containerServicesClient = csc
 
+	ddb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ddb.Client)
+	ddb.Authorizer = auth
+	ddb.Sender = autorest.CreateSender(withRequestLogging())
+	client.documentDBClient = ddb
+
 	dkc := disk.NewDisksClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dkc.Client)
 	dkc.Authorizer = auth
@@ -362,6 +376,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rc.Sender = autorest.CreateSender(withRequestLogging())
 	client.routesClient = rc
 
+	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&dn.Client)
+	dn.Authorizer = auth
+	dn.Sender = autorest.CreateSender(withRequestLogging())
+	client.dnsClient = dn
+
 	rgc := resources.NewGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&rgc.Client)
 	rgc.Authorizer = auth
@@ -452,6 +472,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbnc.Sender = autorest.CreateSender(withRequestLogging())
 	client.serviceBusNamespacesClient = sbnc
 
+	sbqc := servicebus.NewQueuesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sbqc.Client)
+	sbqc.Authorizer = auth
+	sbqc.Sender = autorest.CreateSender(withRequestLogging())
+	client.serviceBusQueuesClient = sbqc
+
 	sbtc := servicebus.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sbtc.Client)
 	sbtc.Authorizer = auth
@@ -475,6 +501,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sqlepc.Authorizer = auth
 	sqlepc.Sender = autorest.CreateSender(withRequestLogging())
 	client.sqlElasticPoolsClient = sqlepc
+
+	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ai.Client)
+	ai.Authorizer = auth
+	ai.Sender = autorest.CreateSender(withRequestLogging())
+	client.appInsightsClient = ai
 
 	return &client, nil
 }
