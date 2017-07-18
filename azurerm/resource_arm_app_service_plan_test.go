@@ -89,13 +89,14 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West Europe"
 }
+
 resource "azurerm_app_service_plan" "test" {
-    name                = "acctestAppServicePlan-%d"
-    location            = "${azurerm_resource_group.test.location}"
+    name                = "acctestASP-%d"
+    location            = "West Europe"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku {
 			tier = "Standard"
-			size = "S0"
+			size = "S1"
 		}
 }
 `, rInt, rInt)
