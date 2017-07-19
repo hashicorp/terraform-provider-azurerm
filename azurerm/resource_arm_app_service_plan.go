@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"bytes"
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -62,7 +64,9 @@ func resourceArmAppServicePlan() *schema.Resource {
 }
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	AppServicePlanClient := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient)
+	AppServicePlanClient := client.appServicePlansClient
+	//AppServicePlanClient := meta.(*ArmClient).appServicePlansClient
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
@@ -99,6 +103,17 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(*read.ID)
+
+	log.Printf("[DEBUG] Waiting for App Service Plan (%s) to become available", name)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Accepted", "Updating"},
+		Target:  []string{"Succeeded"},
+		Refresh: appServicePlanStateRefreshFunc(client, resGroup, name),
+		Timeout: 10 * time.Minute,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for App Service Plan (%s) to become available: %s", name, err)
+	}
 
 	return resourceArmAppServicePlanRead(d, meta)
 }
