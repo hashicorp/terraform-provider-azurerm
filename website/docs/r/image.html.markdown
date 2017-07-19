@@ -23,10 +23,12 @@ resource "azurerm_image" "test" {
   location = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  os_disk_os_type = "Linux"
-  os_disk_os_state = "Generalized"
-  os_disk_blob_uri = "{blob_uri}"
-  os_disk_size_gb = 30
+  os_disk {
+    os_type = "Linux"
+    os_state = "Generalized"
+    blob_uri = "{blob_uri}"
+    size_gb = 30
+  }
 }
 ```
 
@@ -67,7 +69,7 @@ The following arguments are supported:
 * `os_state` - (Required) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
-* `caching` - (Optional) Specifies the caching mode as 'readonly', 'readwrite', or 'none'. The default is none.
+* `caching` - (Optional) Specifies the caching mode as `ReadOnly`, `ReadWrite`, or `None`. The default is `None`.
 
 `data_disk` supports the following:
 
