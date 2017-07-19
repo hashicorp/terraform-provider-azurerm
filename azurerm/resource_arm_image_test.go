@@ -261,7 +261,7 @@ func testCheckAzureRMImageDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Managed Disk still exists: \n%#v", resp.Properties)
+			return fmt.Errorf("Managed Image still exists: \n%#v", resp.Properties)
 		}
 	}
 
@@ -341,7 +341,7 @@ resource "azurerm_virtual_machine" "testsource" {
 		sku = "16.04-LTS"
 		version = "latest"
     }
-	
+
     storage_os_disk {
         name = "myosdisk1"
         vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
@@ -349,7 +349,7 @@ resource "azurerm_virtual_machine" "testsource" {
         create_option = "FromImage"
         disk_size_gb = "30"
     }
-	
+
     os_profile {
 		computer_name = "mdimagetestsource"
 		admin_username = "%[2]s"
@@ -441,7 +441,7 @@ resource "azurerm_virtual_machine" "testsource" {
 		sku = "16.04-LTS"
 		version = "latest"
     }
-	
+
     storage_os_disk {
         name = "myosdisk1"
         vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
@@ -449,7 +449,7 @@ resource "azurerm_virtual_machine" "testsource" {
         create_option = "FromImage"
         disk_size_gb = "30"
     }
-	
+
     os_profile {
 		computer_name = "mdimagetestsource"
 		admin_username = "%[2]s"
@@ -470,13 +470,13 @@ resource "azurerm_image" "test" {
 	name = "accteste"
 	location = "West US"
 	resource_group_name = "${azurerm_resource_group.test.name}"
-	
+
 	os_disk {
 		os_type = "Linux"
 		os_state = "Generalized"
 		blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
 		size_gb = 30
-		caching = "None"		 
+		caching = "None"
 	}
 
 	tags {
@@ -560,7 +560,7 @@ resource "azurerm_virtual_machine" "testsource" {
 		sku = "16.04-LTS"
 		version = "latest"
     }
-	
+
     storage_os_disk {
         name = "myosdisk1"
         vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
@@ -568,7 +568,7 @@ resource "azurerm_virtual_machine" "testsource" {
         create_option = "FromImage"
         disk_size_gb = "30"
     }
-	
+
     os_profile {
 		computer_name = "mdimagetestsource"
 		admin_username = "%[2]s"
@@ -668,7 +668,7 @@ resource "azurerm_virtual_machine" "testsource" {
 		create_option = "FromImage"
 		disk_size_gb = "45"
 	}
-	
+
 	os_profile {
 		computer_name = "mdimagetestsource"
 		admin_username = "%[2]s"
@@ -689,14 +689,14 @@ resource "azurerm_image" "testdestination" {
 	name = "accteste"
 	location = "West US"
 	resource_group_name = "${azurerm_resource_group.test.name}"
-	os_disk {	
+	os_disk {
 		os_type = "Linux"
 		os_state = "Generalized"
 		blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
 		size_gb = 30
-		caching = "None"		 
+		caching = "None"
 	}
-	
+
 	tags {
 		environment = "Dev"
 		cost-center = "Ops"
@@ -731,7 +731,7 @@ resource "azurerm_virtual_machine" "testdestination" {
 		caching = "ReadWrite"
 		create_option = "FromImage"
 	}
-	
+
 	os_profile {
 		computer_name = "mdimagetestsource"
 		admin_username = "%[2]s"
@@ -811,7 +811,7 @@ resource "azurerm_virtual_machine" "testsource" {
         caching = "ReadWrite"
         create_option = "FromImage"
     }
-	
+
     os_profile {
 		computer_name = "mdimagetestsource"
 		admin_username = "%[2]s"
@@ -868,7 +868,7 @@ resource "azurerm_network_interface" "testsource" {
     	name = "testconfigurationsource"
     	subnet_id = "${azurerm_subnet.test.id}"
     	private_ip_address_allocation = "dynamic"
-	    public_ip_address_id          = "${azurerm_public_ip.test.id}"		
+	    public_ip_address_id          = "${azurerm_public_ip.test.id}"
     }
 }
 
@@ -891,7 +891,7 @@ resource "azurerm_virtual_machine" "testsource" {
         caching = "ReadWrite"
         create_option = "FromImage"
     }
-	
+
     os_profile {
 		computer_name = "mdimagetestsource"
 		admin_username = "%[2]s"
@@ -912,7 +912,7 @@ resource "azurerm_image" "testdestination" {
     name = "acctestdest-%[1]d"
     location = "West US"
     resource_group_name = "${azurerm_resource_group.test.name}"
-	source_virtual_machine_id = "${azurerm_virtual_machine.testsource.id}"    
+	source_virtual_machine_id = "${azurerm_virtual_machine.testsource.id}"
 	tags {
         environment = "acctest"
         cost-center = "ops"
@@ -947,7 +947,7 @@ resource "azurerm_virtual_machine" "testdestination" {
         caching = "ReadWrite"
         create_option = "FromImage"
     }
-	
+
     os_profile {
 		computer_name = "mdimagetestdest"
 		admin_username = "%[2]s"
