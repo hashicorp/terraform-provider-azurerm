@@ -69,14 +69,14 @@ The following arguments are supported:
 * `os_state` - (Required) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
-* `caching` - (Optional) Specifies the caching mode as `ReadOnly`, `ReadWrite`, or `None`. The default is `None`.
+* `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
 
 `data_disk` supports the following:
 
 * `lun` - (Required) Specifies the logical unit number of the data disk.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
-* `caching` - (Optional) Specifies the caching mode as readonly, readwrite, or none. The default is none.
+* `caching` - (Optional) Specifies the caching mode as `ReadWrite`, `ReadOnly`, or `None`. The default is `None`.
 * `size_gb` - (Optional) Specifies the size of the image to be created. The target size can't be smaller than the source size.
 
 ## Attributes Reference
