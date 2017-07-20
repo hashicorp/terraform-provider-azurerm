@@ -2,12 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/dns"
 )
 
 func TestAccAzureRMDnsCNameRecord_basic(t *testing.T) {
@@ -116,17 +117,21 @@ func testCheckAzureRMDnsCNameRecordExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetCNAMERecordSet{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetCNAMERecordSet: %s", err)
+		cnameName := rs.Primary.Attributes["name"]
+		zoneName := rs.Primary.Attributes["zone_name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for DNS CNAME record: %s", cnameName)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetCNAMERecordSet: %s", readResponse.Error)
+
+		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		resp, err := conn.Get(resourceGroup, zoneName, cnameName, dns.CNAME)
+		if err != nil {
+			return fmt.Errorf("Bad: Get CNAME RecordSet: %v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: DNS CNAME record %s (resource group: %s) does not exist", cnameName, resourceGroup)
 		}
 
 		return nil
@@ -134,28 +139,80 @@ func testCheckAzureRMDnsCNameRecordExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+	conn := testAccProvider.Meta().(*ArmClient).dnsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_cname_record" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetCNAMERecordSet{}
+		cnameName := rs.Primary.Attributes["name"]
+		zoneName := rs.Primary.Attributes["zone_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, zoneName, cnameName, dns.CNAME)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetCNAMERecordSet: %s", err)
+			return nil
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: DNS CNAME Record still exists: %s", readResponse.Error)
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("DNS CNAME record still exists:\n%#v", resp.RecordSetProperties)
 		}
+
 	}
 
 	return nil
 }
+
+// func testCheckAzureRMDnsCNameRecordExists(name string) resource.TestCheckFunc {
+// 	return func(s *terraform.State) error {
+// 		// Ensure we have enough information in state to look up in API
+// 		rs, ok := s.RootModule().Resources[name]
+// 		if !ok {
+// 			return fmt.Errorf("Not found: %s", name)
+// 		}
+
+// 		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+
+// 		readRequest := conn.NewRequestForURI(rs.Primary.ID)
+// 		readRequest.Command = &riviera.GetCNAMERecordSet{}
+
+// 		readResponse, err := readRequest.Execute()
+// 		if err != nil {
+// 			return fmt.Errorf("Bad: GetCNAMERecordSet: %s", err)
+// 		}
+// 		if !readResponse.IsSuccessful() {
+// 			return fmt.Errorf("Bad: GetCNAMERecordSet: %s", readResponse.Error)
+// 		}
+
+// 		return nil
+// 	}
+// }
+
+// func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
+// 	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+
+// 	for _, rs := range s.RootModule().Resources {
+// 		if rs.Type != "azurerm_dns_cname_record" {
+// 			continue
+// 		}
+
+// 		readRequest := conn.NewRequestForURI(rs.Primary.ID)
+// 		readRequest.Command = &riviera.GetCNAMERecordSet{}
+
+// 		readResponse, err := readRequest.Execute()
+// 		if err != nil {
+// 			return fmt.Errorf("Bad: GetCNAMERecordSet: %s", err)
+// 		}
+
+// 		if readResponse.IsSuccessful() {
+// 			return fmt.Errorf("Bad: DNS CNAME Record still exists: %s", readResponse.Error)
+// 		}
+// 	}
+
+// 	return nil
+// }
 
 var testAccAzureRMDnsCNameRecord_basic = `
 resource "azurerm_resource_group" "test" {

@@ -2,17 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/dns"
 )
 
 func resourceArmDnsCNameRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsCNameRecordCreate,
+		Create: resourceArmDnsCNameRecordCreateOrUpdate,
 		Read:   resourceArmDnsCNameRecordRead,
-		Update: resourceArmDnsCNameRecordCreate,
+		Update: resourceArmDnsCNameRecordCreateOrUpdate,
 		Delete: resourceArmDnsCNameRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -54,112 +54,110 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Required: true,
 			},
 
+			"etag": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
 }
 
-func resourceArmDnsCNameRecordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	dnsClient := meta.(*ArmClient).dnsClient
+
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	zoneName := d.Get("zone_name").(string)
+	ttl := int64(d.Get("ttl").(int))
+	eTag := d.Get("etag").(string)
+
+	record := d.Get("record").(string)
+	cnameRecord := dns.CnameRecord{
+		Cname: &record,
+	}
 
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	metadata := expandTags(tags)
 
-	createCommand := &dns.CreateCNAMERecordSet{
-		Name:              d.Get("name").(string),
-		Location:          "global",
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
-		TTL:               d.Get("ttl").(int),
-		Tags:              *expandedTags,
-		CNAMERecord: dns.CNAMERecord{
-			CNAME: d.Get("record").(string),
-		},
+	props := dns.RecordSetProperties{
+		Metadata:    metadata,
+		TTL:         &ttl,
+		CnameRecord: &cnameRecord,
 	}
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = createCommand
+	parameters := dns.RecordSet{
+		Name:                &name,
+		RecordSetProperties: &props,
+	}
 
-	createResponse, err := createRequest.Execute()
+	//last parameter is set to empty to allow updates to records after creation
+	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.CNAME, parameters, eTag, "")
 	if err != nil {
-		return fmt.Errorf("Error creating DNS CName Record: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating DNS CName Record: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &dns.GetCNAMERecordSet{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read DNS CNAME Record %s (resource group %s) ID", name, resGroup)
 	}
 
-	readResponse, err := readRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error reading DNS CName Record: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading DNS CName Record: %s", readResponse.Error)
-	}
-
-	resp := readResponse.Parsed.(*dns.GetCNAMERecordSetResponse)
-	d.SetId(resp.ID)
+	d.SetId(*resp.ID)
 
 	return resourceArmDnsCNameRecordRead(d, meta)
 }
 
 func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	dnsClient := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &dns.GetCNAMERecordSet{}
+	resGroup := id.ResourceGroup
+	name := id.Path["CNAME"]
+	zoneName := id.Path["dnszones"]
 
-	readResponse, err := readRequest.Execute()
+	result, err := dnsClient.Get(resGroup, zoneName, name, dns.CNAME)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS A Record: %s", err)
+		return fmt.Errorf("Error reading DNS CNAME record %s: %v", name, err)
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading DNS A Record %q - removing from state", d.Id())
+	if result.Response.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading DNS A Record: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*dns.GetCNAMERecordSetResponse)
+	props := *result.RecordSetProperties
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.Path["dnszones"])
-	d.Set("ttl", resp.TTL)
-	d.Set("record", resp.CNAMERecord.CNAME)
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("zone_name", zoneName)
+	d.Set("ttl", *result.TTL)
+	d.Set("etag", *result.Etag)
+	d.Set("record", *props.CnameRecord)
 
-	flattenAndSetTags(d, &resp.Tags)
+	flattenAndSetTags(d, resp.Metadata)
 
 	return nil
 }
 
 func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	dnsClient := meta.(*ArmClient).dnsClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &dns.DeleteRecordSet{
-		RecordSetType: "CNAME",
-	}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting DNS CName Record: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting DNS CName Record: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	name := id.Path["CNAME"]
+	zoneName := id.Path["dnszones"]
+
+	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.CNAME, "")
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting DNS CNAME Record %s: %s", name, error)
 	}
 
 	return nil
