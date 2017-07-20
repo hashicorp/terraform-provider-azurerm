@@ -2,17 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/dns"
 )
 
 func resourceArmDnsNsRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsNsRecordCreate,
+		Create: resourceArmDnsNsRecordCreateOrUpdate,
 		Read:   resourceArmDnsNsRecordRead,
-		Update: resourceArmDnsNsRecordCreate,
+		Update: resourceArmDnsNsRecordCreateOrUpdate,
 		Delete: resourceArmDnsNsRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -54,152 +54,140 @@ func resourceArmDnsNsRecord() *schema.Resource {
 				Required: true,
 			},
 
+			"etag": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
 }
 
-func resourceArmDnsNsRecordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmDnsNsRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	dnsClient := meta.(*ArmClient).dnsClient
+
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	zoneName := d.Get("zone_name").(string)
+	ttl := int64(d.Get("ttl").(int))
+	eTag := d.Get("etag").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	metadata := expandTags(tags)
 
-	createCommand := &dns.CreateNSRecordSet{
-		Name:              d.Get("name").(string),
-		Location:          "global",
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
-		TTL:               d.Get("ttl").(int),
-		Tags:              *expandedTags,
+	records, err := expandAzureRmDnsNsRecords(d)
+	props := dns.RecordSetProperties{
+		Metadata:  metadata,
+		TTL:       &ttl,
+		NsRecords: &records,
 	}
 
-	nsRecords, recordErr := expandAzureRmDnsNsRecords(d)
-	if recordErr != nil {
-		return fmt.Errorf("Error Building list of Azure RM NS Records: %s", recordErr)
+	parameters := dns.RecordSet{
+		Name:                &name,
+		RecordSetProperties: &props,
 	}
-	createCommand.NSRecords = nsRecords
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = createCommand
-
-	createResponse, err := createRequest.Execute()
+	//last parameter is set to empty to allow updates to records after creation
+	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.NS, parameters, eTag, "")
 	if err != nil {
-		return fmt.Errorf("Error creating DNS NS Record: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating DNS NS Record: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &dns.GetNSRecordSet{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read DNS NS Record %s (resource group %s) ID", name, resGroup)
 	}
 
-	readResponse, err := readRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error reading DNS NS Record: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading DNS NS Record: %s", readResponse.Error)
-	}
-
-	resp := readResponse.Parsed.(*dns.GetNSRecordSetResponse)
-	d.SetId(resp.ID)
+	d.SetId(*resp.ID)
 
 	return resourceArmDnsNsRecordRead(d, meta)
 }
 
 func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	dnsClient := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &dns.GetNSRecordSet{}
+	resGroup := id.ResourceGroup
+	name := id.Path["NS"]
+	zoneName := id.Path["dnszones"]
 
-	readResponse, err := readRequest.Execute()
+	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.NS)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS Ns Record: %s", err)
+		return fmt.Errorf("Error reading DNS NS record %s: %v", name, err)
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading DNS NS Record %q - removing from state", d.Id())
+	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading DNS NS Record: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*dns.GetNSRecordSetResponse)
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.Path["dnszones"])
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
+	d.Set("etag", resp.Etag)
 
-	if resp.NSRecords != nil {
-		if err := d.Set("record", flattenAzureRmDnsNsRecords(resp.NSRecords)); err != nil {
-			log.Printf("[INFO] Error setting the Azure RM NS Record State: %s", err)
-			return err
-		}
+	if err := d.Set("record", flattenAzureRmDnsNsRecords(resp.NsRecords)); err != nil {
+		return err
 	}
-
-	flattenAndSetTags(d, &resp.Tags)
+	flattenAndSetTags(d, resp.Metadata)
 
 	return nil
 }
 
 func resourceArmDnsNsRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	dnsClient := meta.(*ArmClient).dnsClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &dns.DeleteRecordSet{
-		RecordSetType: "NS",
-	}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting DNS TXT Record: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting DNS TXT Record: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	name := id.Path["NS"]
+	zoneName := id.Path["dnszones"]
+
+	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.NS, "")
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting DNS NS Record %s: %s", name, error)
 	}
 
 	return nil
 }
 
-func expandAzureRmDnsNsRecords(d *schema.ResourceData) ([]dns.NSRecord, error) {
-	configs := d.Get("record").(*schema.Set).List()
-	nsRecords := make([]dns.NSRecord, 0, len(configs))
+func flattenAzureRmDnsNsRecords(records *[]dns.NsRecord) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0, len(*records))
 
-	for _, configRaw := range configs {
-		data := configRaw.(map[string]interface{})
+	if records != nil {
+		for _, record := range *records {
+			nsRecord := make(map[string]interface{})
+			nsRecord["nsdname"] = *record.Nsdname
 
-		nsRecord := dns.NSRecord{
-			NSDName: data["nsdname"].(string),
+			results = append(results, nsRecord)
 		}
-
-		nsRecords = append(nsRecords, nsRecord)
-
 	}
 
-	return nsRecords, nil
-
+	return results
 }
 
-func flattenAzureRmDnsNsRecords(records []dns.NSRecord) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(records))
-	for _, record := range records {
-		nsRecord := make(map[string]interface{})
-		nsRecord["nsdname"] = record.NSDName
+func expandAzureRmDnsNsRecords(d *schema.ResourceData) ([]dns.NsRecord, error) {
+	recordStrings := d.Get("record").(*schema.Set).List()
+	records := make([]dns.NsRecord, len(recordStrings))
 
-		result = append(result, nsRecord)
+	for i, v := range recordStrings {
+		record := v.(map[string]interface{})
+		nsdname := record["nsdname"].(string)
+
+		nsRecord := dns.NsRecord{
+			Nsdname: &nsdname,
+		}
+
+		records[i] = nsRecord
 	}
-	return result
+
+	return records, nil
 }

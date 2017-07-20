@@ -2,12 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/dns"
 )
 
 func TestAccAzureRMDnsNsRecord_basic(t *testing.T) {
@@ -99,17 +100,21 @@ func testCheckAzureRMDnsNsRecordExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetNSRecordSet{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetNSRecordSet: %s", err)
+		nsName := rs.Primary.Attributes["name"]
+		zoneName := rs.Primary.Attributes["zone_name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for DNS NS record: %s", nsName)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetNSRecordSet: %s", readResponse.Error)
+
+		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		resp, err := conn.Get(resourceGroup, zoneName, nsName, dns.NS)
+		if err != nil {
+			return fmt.Errorf("Bad: Get NS recordSet: %v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: DNS NS record %s (resource group: %s) does not exist", nsName, resourceGroup)
 		}
 
 		return nil
@@ -117,24 +122,27 @@ func testCheckAzureRMDnsNsRecordExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+	conn := testAccProvider.Meta().(*ArmClient).dnsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_ns_record" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetNSRecordSet{}
+		nsName := rs.Primary.Attributes["name"]
+		zoneName := rs.Primary.Attributes["zone_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, zoneName, nsName, dns.NS)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetNSRecordSet: %s", err)
+			return nil
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: DNS NS Record still exists: %s", readResponse.Error)
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("DNS MSNSecord still exists:\n%#v", resp.RecordSetProperties)
 		}
+
 	}
 
 	return nil
@@ -151,7 +159,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ns_record" "test" {
-    name = "myarecord%d"
+    name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -177,7 +185,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ns_record" "test" {
-    name = "myarecord%d"
+    name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -207,7 +215,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ns_record" "test" {
-    name = "myarecord%d"
+    name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
@@ -238,7 +246,7 @@ resource "azurerm_dns_zone" "test" {
 }
 
 resource "azurerm_dns_ns_record" "test" {
-    name = "myarecord%d"
+    name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
     ttl = "300"
