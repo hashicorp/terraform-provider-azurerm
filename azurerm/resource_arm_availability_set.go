@@ -8,8 +8,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/jen20/riviera/azure"
 )
 
 func resourceArmAvailabilitySet() *schema.Resource {
@@ -38,18 +38,18 @@ func resourceArmAvailabilitySet() *schema.Resource {
 			"location": locationSchema(),
 
 			"platform_update_domain_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  5,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      5,
+				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(1, 20),
 			},
 
 			"platform_fault_domain_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  3,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      3,
+				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
