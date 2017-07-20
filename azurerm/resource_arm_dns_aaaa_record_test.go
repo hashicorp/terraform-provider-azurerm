@@ -2,12 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/dns"
 )
 
 func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
@@ -17,12 +18,12 @@ func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDnsAAAARecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAAAARecordExists("azurerm_dns_aaaa_record.test"),
+					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
 				),
 			},
 		},
@@ -37,12 +38,12 @@ func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDnsAAAARecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAAAARecordExists("azurerm_dns_aaaa_record.test"),
+					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
 					resource.TestCheckResourceAttr(
 						"azurerm_dns_aaaa_record.test", "records.#", "2"),
 				),
@@ -51,7 +52,7 @@ func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 			resource.TestStep{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAAAARecordExists("azurerm_dns_aaaa_record.test"),
+					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
 					resource.TestCheckResourceAttr(
 						"azurerm_dns_aaaa_record.test", "records.#", "3"),
 				),
@@ -68,12 +69,12 @@ func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMDnsAAAARecordDestroy,
+		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
 			resource.TestStep{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAAAARecordExists("azurerm_dns_aaaa_record.test"),
+					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
 					resource.TestCheckResourceAttr(
 						"azurerm_dns_aaaa_record.test", "tags.%", "2"),
 				),
@@ -82,7 +83,7 @@ func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 			resource.TestStep{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAAAARecordExists("azurerm_dns_aaaa_record.test"),
+					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
 					resource.TestCheckResourceAttr(
 						"azurerm_dns_aaaa_record.test", "tags.%", "1"),
 				),
@@ -91,7 +92,7 @@ func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDnsAAAARecordExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDnsAaaaRecordExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -99,42 +100,49 @@ func testCheckAzureRMDnsAAAARecordExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetAAAARecordSet{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetAAAARecordSet: %s", err)
+		aaaaName := rs.Primary.Attributes["name"]
+		zoneName := rs.Primary.Attributes["zone_name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for DNS AAAA record: %s", aaaaName)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetAAAARecordSet: %s", readResponse.Error)
+
+		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		resp, err := conn.Get(resourceGroup, zoneName, aaaaName, dns.AAAA)
+		if err != nil {
+			return fmt.Errorf("Bad: Get AAAA RecordSet: %v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: DNS AAAA record %s (resource group: %s) does not exist", aaaaName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDnsAAAARecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+func testCheckAzureRMDnsAaaaRecordDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).dnsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_aaaa_record" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetAAAARecordSet{}
+		aaaaName := rs.Primary.Attributes["name"]
+		zoneName := rs.Primary.Attributes["zone_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, zoneName, aaaaName, dns.AAAA)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetAAAARecordSet: %s", err)
+			return nil
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: DNS AAAA Record still exists: %s", readResponse.Error)
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("DNS AAAA record still exists:\n%#v", resp.RecordSetProperties)
 		}
+
 	}
 
 	return nil
