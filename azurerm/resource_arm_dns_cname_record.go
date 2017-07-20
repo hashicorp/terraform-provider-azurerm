@@ -130,15 +130,17 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	props := *result.RecordSetProperties
+	cNameRecord := *props.CnameRecord
+	cName := *cNameRecord.Cname
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", *result.TTL)
 	d.Set("etag", *result.Etag)
-	d.Set("record", *props.CnameRecord)
+	d.Set("record", cName)
 
-	flattenAndSetTags(d, resp.Metadata)
+	flattenAndSetTags(d, result.Metadata)
 
 	return nil
 }
