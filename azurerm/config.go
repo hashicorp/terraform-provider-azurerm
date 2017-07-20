@@ -16,6 +16,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
+	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
@@ -113,6 +114,8 @@ type ArmClient struct {
 	sqlElasticPoolsClient sql.ElasticPoolsClient
 
 	appInsightsClient appinsights.ComponentsClient
+
+	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -198,8 +201,15 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 		return nil, err
 	}
 
+	graphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, env.GraphEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	endpoint := env.ResourceManagerEndpoint
 	auth := autorest.NewBearerAuthorizer(spt)
+	graphEndpoint := env.GraphEndpoint
+	graphAuth := autorest.NewBearerAuthorizer(graphSpt)
 
 	// NOTE: these declarations should be left separate for clarity should the
 	// clients be wished to be configured with custom Responders/PollingModess etc...
@@ -514,6 +524,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	ai.Authorizer = auth
 	ai.Sender = autorest.CreateSender(withRequestLogging())
 	client.appInsightsClient = ai
+
+	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, c.TenantID)
+	setUserAgent(&spc.Client)
+	spc.Authorizer = graphAuth
+	spc.Sender = autorest.CreateSender(withRequestLogging())
+	client.servicePrincipalsClient = spc
 
 	return &client, nil
 }
