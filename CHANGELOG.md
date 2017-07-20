@@ -8,7 +8,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azurerm_search_service` - Added import support [GH-172]
+* `azurerm_client_config` - added a `service_principal_object_id` attribute to the data source [GH-175]
+* `azurerm_search_service` - added import support [GH-172]
 * `azurerm_servicebus_topic` - added a `status` field to allow disabling the topic [GH-150]
 * `azurerm_storage_account` - Added support for Require secure transfer [GH-167]
 * `azurerm_storage_table` - updating the name validation [GH-143]
