@@ -191,7 +191,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error deleting resource group: %s", err)
 	}
 	if result.Response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting resource group: %s", result.Response.StatusCode)
+		return fmt.Errorf("Error deleting resource group: %v", result.Response.StatusCode)
 	}
 
 	return nil
