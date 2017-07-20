@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/jen20/riviera/azure"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmAvailabilitySet() *schema.Resource {
@@ -41,14 +42,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				Optional: true,
 				Default:  5,
 				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value > 20 {
-						errors = append(errors, fmt.Errorf(
-							"Maximum value for `platform_update_domain_count` is 20"))
-					}
-					return
-				},
+				ValidateFunc: validation.IntBetween(1, 20),
 			},
 
 			"platform_fault_domain_count": {
@@ -56,14 +50,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				Optional: true,
 				Default:  3,
 				ForceNew: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value > 3 {
-						errors = append(errors, fmt.Errorf(
-							"Maximum value for (%s) is 3", k))
-					}
-					return
-				},
+				ValidateFunc: validation.IntBetween(1, 3),
 			},
 
 			"managed": {
@@ -79,18 +66,17 @@ func resourceArmAvailabilitySet() *schema.Resource {
 }
 
 func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	availSetClient := client.availSetClient
+	client := meta.(*ArmClient).availSetClient
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Availability Set creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
-	tags := d.Get("tags").(map[string]interface{})
 	managed := d.Get("managed").(bool)
+	tags := d.Get("tags").(map[string]interface{})
 
 	availSet := compute.AvailabilitySet{
 		Name:     &name,
@@ -109,7 +95,7 @@ func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	resp, err := availSetClient.CreateOrUpdate(resGroup, name, availSet)
+	resp, err := client.CreateOrUpdate(resGroup, name, availSet)
 	if err != nil {
 		return err
 	}
@@ -120,7 +106,7 @@ func resourceArmAvailabilitySetCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
-	availSetClient := meta.(*ArmClient).availSetClient
+	client := meta.(*ArmClient).availSetClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -129,7 +115,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	resGroup := id.ResourceGroup
 	name := id.Path["availabilitySets"]
 
-	resp, err := availSetClient.Get(resGroup, name)
+	resp, err := client.Get(resGroup, name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -139,11 +125,11 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	availSet := *resp.AvailabilitySetProperties
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("platform_update_domain_count", availSet.PlatformUpdateDomainCount)
 	d.Set("platform_fault_domain_count", availSet.PlatformFaultDomainCount)
-	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
@@ -155,7 +141,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
-	availSetClient := meta.(*ArmClient).availSetClient
+	client := meta.(*ArmClient).availSetClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -164,7 +150,7 @@ func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) 
 	resGroup := id.ResourceGroup
 	name := id.Path["availabilitySets"]
 
-	_, err = availSetClient.Delete(resGroup, name)
+	_, err = client.Delete(resGroup, name)
 
 	return err
 }

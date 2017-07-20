@@ -287,6 +287,7 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
 }
+
 resource "azurerm_availability_set" "test" {
     name = "acctestavset-%d"
     location = "${azurerm_resource_group.test.location}"
@@ -294,5 +295,6 @@ resource "azurerm_availability_set" "test" {
     platform_update_domain_count = 10
     platform_fault_domain_count = 1
     managed = true
+}
 `, rInt, rInt)
 }
