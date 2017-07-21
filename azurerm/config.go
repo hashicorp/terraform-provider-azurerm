@@ -75,6 +75,7 @@ type ArmClient struct {
 	routeTablesClient            network.RouteTablesClient
 	routesClient                 network.RoutesClient
 	dnsClient                    dns.RecordSetsClient
+	zonesClient                  dns.ZonesClient
 
 	cdnProfilesClient  cdn.ProfilesClient
 	cdnEndpointsClient cdn.EndpointsClient
@@ -398,6 +399,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	dn.Authorizer = auth
 	dn.Sender = autorest.CreateSender(withRequestLogging())
 	client.dnsClient = dn
+
+	zo := dns.NewZonesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&zo.Client)
+	zo.Authorizer = auth
+	zo.Sender = autorest.CreateSender(withRequestLogging())
+	client.zonesClient = zo
 
 	rgc := resources.NewGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&rgc.Client)

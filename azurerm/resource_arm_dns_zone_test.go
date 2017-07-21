@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/dns"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
@@ -68,17 +68,20 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetDNSZone{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetDNSZone: %s", err)
+		zoneName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetDNSZone: %s", readResponse.Error)
+
+		conn := testAccProvider.Meta().(*ArmClient).zonesClient
+		resp, err := conn.Get(resourceGroup, zoneName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get zone: %v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: DNS zone %s (resource group: %s) does not exist", zoneName, resourceGroup)
 		}
 
 		return nil
@@ -86,24 +89,26 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+	conn := testAccProvider.Meta().(*ArmClient).zonesClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_dns_zone" {
+		if rs.Type != "azurerm_dns_zone_record" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetDNSZone{}
+		zoneName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, zoneName)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetDNSZone: %s", err)
+			return nil
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: DNS zone still exists: %s", readResponse.Error)
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("DNS zone still exists:\n%#v", resp.ZoneProperties)
 		}
+
 	}
 
 	return nil

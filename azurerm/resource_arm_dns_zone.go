@@ -2,10 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/dns"
 )
 
 func resourceArmDnsZone() *schema.Resource {
@@ -51,87 +51,78 @@ func resourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			"etag": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
 }
 
 func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	zonesClient := meta.(*ArmClient).zonesClient
+
+	zoneName := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	eTag := d.Get("etag").(string)
+	location := "global"
 
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	metadata := expandTags(tags)
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = &dns.CreateDNSZone{
-		Name:              d.Get("name").(string),
-		Location:          "global",
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		Tags:              *expandedTags,
+	parameters := dns.Zone{
+		Name:     &zoneName,
+		Location: &location,
+		Tags:     metadata,
 	}
 
-	createResponse, err := createRequest.Execute()
+	//last parameter is set to empty to allow updates to records after creation
+	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
+	resp, err := zonesClient.CreateOrUpdate(resGroup, zoneName, parameters, eTag, "")
 	if err != nil {
-		return fmt.Errorf("Error creating DNS Zone: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating DNS Zone: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &dns.GetDNSZone{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read DNS zone %s (resource group %s) ID", zoneName, resGroup)
 	}
 
-	readResponse, err := readRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error reading DNS Zone: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading DNS Zone: %s", readResponse.Error)
-	}
-
-	resp := readResponse.Parsed.(*dns.GetDNSZoneResponse)
 	d.SetId(*resp.ID)
 
 	return resourceArmDnsZoneRead(d, meta)
 }
 
 func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	zonesClient := meta.(*ArmClient).zonesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
+	zoneName := id.Path["dnszones"]
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &dns.GetDNSZone{}
-
-	readResponse, err := readRequest.Execute()
+	resp, err := zonesClient.Get(resGroup, zoneName)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS Zone: %s", err)
+		return fmt.Errorf("Error reading DNS zone %s: %v", zoneName, err)
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading DNS Zone %q - removing from state", d.Id())
+	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading DNS Zone: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*dns.GetDNSZoneResponse)
-
+	d.Set("name", zoneName)
 	d.Set("resource_group_name", resGroup)
+	d.Set("etag", resp.Etag)
 	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
 	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
-	d.Set("name", resp.Name)
 
-	nameServers := make([]string, 0, len(resp.NameServers))
-	for _, ns := range resp.NameServers {
-		nameServers = append(nameServers, *ns)
+	nameServers := make([]string, 0, len(*resp.NameServers))
+	for _, ns := range *resp.NameServers {
+		nameServers = append(nameServers, ns)
 	}
 	if err := d.Set("name_servers", nameServers); err != nil {
 		return err
@@ -143,18 +134,21 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	zonesClient := meta.(*ArmClient).zonesClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &dns.DeleteDNSZone{}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting DNS Zone: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting DNS Zone: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	zoneName := id.Path["dnszones"]
+
+	resultChan, errorChan := zonesClient.Delete(resGroup, zoneName, "", make(chan struct{}))
+	result := <-resultChan
+	error := <-errorChan
+	if result.Response.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting DNS zone %s: %s", zoneName, error)
 	}
 
 	return nil
