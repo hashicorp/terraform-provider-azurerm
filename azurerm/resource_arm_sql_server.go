@@ -2,18 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
-	"github.com/jen20/riviera/sql"
 )
 
 func resourceArmSqlServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlServerCreate,
+		Create: resourceArmSqlServerCreateOrUpdate,
 		Read:   resourceArmSqlServerRead,
-		Update: resourceArmSqlServerCreate,
+		Update: resourceArmSqlServerCreateOrUpdate,
 		Delete: resourceArmSqlServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -60,101 +59,111 @@ func resourceArmSqlServer() *schema.Resource {
 	}
 }
 
-func resourceArmSqlServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmSqlServerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	sqlServersClient := meta.(*ArmClient).sqlServersClient
+
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	location := d.Get("location").(string)
+	admin := d.Get("administrator_login").(string)
+	adminPw := d.Get("administrator_login_password").(string)
+	fqdn := d.Get("fully_qualified_domain_name").(string)
+
+	version := d.Get("version").(string)
+	var serverVersion sql.ServerVersion
+	if version == string(sql.OneTwoFullStopZero) {
+		serverVersion = sql.OneTwoFullStopZero
+	}
+	if version == string(sql.TwoFullStopZero) {
+		serverVersion = sql.TwoFullStopZero
+	}
+	if serverVersion == "" {
+		return fmt.Errorf("Invalid server version provided. It must be one of 12.0 or 2.0, passed as string: %s", version)
+	}
 
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	metadata := expandTags(tags)
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = &sql.CreateOrUpdateServer{
-		Name:                       d.Get("name").(string),
-		Location:                   d.Get("location").(string),
-		ResourceGroupName:          d.Get("resource_group_name").(string),
-		AdministratorLogin:         azure.String(d.Get("administrator_login").(string)),
-		AdministratorLoginPassword: azure.String(d.Get("administrator_login_password").(string)),
-		Version:                    azure.String(d.Get("version").(string)),
-		Tags:                       *expandedTags,
+	props := sql.ServerProperties{
+		FullyQualifiedDomainName:   &fqdn,
+		Version:                    serverVersion,
+		AdministratorLogin:         &admin,
+		AdministratorLoginPassword: &adminPw,
 	}
 
-	createResponse, err := createRequest.Execute()
+	parameters := sql.Server{
+		Name:             &name,
+		ServerProperties: &props,
+		Tags:             metadata,
+		Location:         &location,
+	}
+
+	//last parameter is set to empty to allow updates to records after creation
+	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
+	result, err := sqlServersClient.CreateOrUpdate(resGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating SQL Server: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating SQL Server: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &sql.GetServer{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
+	if result.ID == nil {
+		return fmt.Errorf("Cannot create Sql Server %s (resource group %s) ID", name, resGroup)
 	}
 
-	readResponse, err := readRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error reading SQL Server: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading SQL Server: %s", readResponse.Error)
-	}
-
-	resp := readResponse.Parsed.(*sql.GetServerResponse)
-	d.SetId(*resp.ID)
+	d.SetId(*result.ID)
 
 	return resourceArmSqlServerRead(d, meta)
 }
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	sqlServersClient := meta.(*ArmClient).sqlServersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &sql.GetServer{}
+	resGroup := id.ResourceGroup
+	name := id.Path["servers"]
 
-	readResponse, err := readRequest.Execute()
+	result, err := sqlServersClient.Get(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Server: %s", err)
+		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
+	if result.Response.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading SQL Server: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*sql.GetServerResponse)
+	serverProperties := *result.ServerProperties
 
-	d.Set("name", id.Path["servers"])
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	d.Set("fully_qualified_domain_name", resp.FullyQualifiedDomainName)
-	d.Set("administrator_login", resp.AdministratorLogin)
-	d.Set("version", resp.Version)
+	serverVersion := serverProperties.Version
 
-	flattenAndSetTags(d, resp.Tags)
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("version", string(serverVersion))
+	d.Set("location", *result.Location)
+	d.Set("administrator_login", *serverProperties.AdministratorLogin)
+	d.Set("fully_qualified_domain_name", *serverProperties.FullyQualifiedDomainName)
+
+	flattenAndSetTags(d, result.Tags)
 
 	return nil
 }
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	sqlServersClient := meta.(*ArmClient).sqlServersClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &sql.DeleteServer{}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Server: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting SQL Server: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	name := id.Path["servers"]
+
+	result, error := sqlServersClient.Delete(resGroup, name)
+	if result.Response.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting SQL Server %s: %s", name, error)
 	}
 
 	return nil
