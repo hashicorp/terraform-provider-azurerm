@@ -1,20 +1,20 @@
-## 0.1.3 (Unreleased)
+## 0.1.3 (July 21, 2017)
 
 FEATURES:
 
-* **New Resource:** `azurerm_dns_ptr_record` [GH-141]
-* **New Resource:**`azurerm_image` [GH-8]
-* **New Resource:** `azurerm_servicebus_queue` [GH-151]
+* **New Resource:** `azurerm_dns_ptr_record` ([#141](https://github.com/terraform-providers/terraform-provider-azurerm/issues/141))
+* **New Resource:**`azurerm_image` ([#8](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8))
+* **New Resource:** `azurerm_servicebus_queue` ([#151](https://github.com/terraform-providers/terraform-provider-azurerm/issues/151))
 
 IMPROVEMENTS:
 
-* `azurerm_client_config` - added a `service_principal_object_id` attribute to the data source [GH-175]
-* `azurerm_search_service` - added import support [GH-172]
-* `azurerm_servicebus_topic` - added a `status` field to allow disabling the topic [GH-150]
-* `azurerm_storage_account` - Added support for Require secure transfer [GH-167]
-* `azurerm_storage_table` - updating the name validation [GH-143]
-* `azurerm_virtual_machine` - making `admin_password` optional for Linux VM's [GH-154]
-* `azurerm_virtual_machine_scale_set` - adding a `plan` block for Marketplace images [GH-161]
+* `azurerm_client_config` - added a `service_principal_object_id` attribute to the data source ([#175](https://github.com/terraform-providers/terraform-provider-azurerm/issues/175))
+* `azurerm_search_service` - added import support ([#172](https://github.com/terraform-providers/terraform-provider-azurerm/issues/172))
+* `azurerm_servicebus_topic` - added a `status` field to allow disabling the topic ([#150](https://github.com/terraform-providers/terraform-provider-azurerm/issues/150))
+* `azurerm_storage_account` - Added support for Require secure transfer ([#167](https://github.com/terraform-providers/terraform-provider-azurerm/issues/167))
+* `azurerm_storage_table` - updating the name validation ([#143](https://github.com/terraform-providers/terraform-provider-azurerm/issues/143))
+* `azurerm_virtual_machine` - making `admin_password` optional for Linux VM's ([#154](https://github.com/terraform-providers/terraform-provider-azurerm/issues/154))
+* `azurerm_virtual_machine_scale_set` - adding a `plan` block for Marketplace images ([#161](https://github.com/terraform-providers/terraform-provider-azurerm/issues/161))
 
 ## 0.1.2 (June 29, 2017)
 
