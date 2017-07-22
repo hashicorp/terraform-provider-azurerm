@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmSqlServer() *schema.Resource {
@@ -36,6 +37,10 @@ func resourceArmSqlServer() *schema.Resource {
 			"version": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.OneTwoFullStopZero),
+					string(sql.TwoFullStopZero),
+				}, true),
 			},
 
 			"administrator_login": &schema.Schema{
@@ -69,24 +74,12 @@ func resourceArmSqlServerCreateOrUpdate(d *schema.ResourceData, meta interface{}
 	adminPw := d.Get("administrator_login_password").(string)
 	fqdn := d.Get("fully_qualified_domain_name").(string)
 
-	version := d.Get("version").(string)
-	var serverVersion sql.ServerVersion
-	if version == string(sql.OneTwoFullStopZero) {
-		serverVersion = sql.OneTwoFullStopZero
-	}
-	if version == string(sql.TwoFullStopZero) {
-		serverVersion = sql.TwoFullStopZero
-	}
-	if serverVersion == "" {
-		return fmt.Errorf("Invalid server version provided. It must be one of 12.0 or 2.0, passed as string: %s", version)
-	}
-
 	tags := d.Get("tags").(map[string]interface{})
 	metadata := expandTags(tags)
 
 	props := sql.ServerProperties{
 		FullyQualifiedDomainName:   &fqdn,
-		Version:                    serverVersion,
+		Version:                    sql.ServerVersion(d.Get("version").(string)),
 		AdministratorLogin:         &admin,
 		AdministratorLoginPassword: &adminPw,
 	}
@@ -98,8 +91,6 @@ func resourceArmSqlServerCreateOrUpdate(d *schema.ResourceData, meta interface{}
 		Location:         &location,
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
 	result, err := sqlServersClient.CreateOrUpdate(resGroup, name, parameters)
 	if err != nil {
 		return err
@@ -134,16 +125,15 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		return nil
 	}
 
-	serverProperties := *result.ServerProperties
-
-	serverVersion := serverProperties.Version
+	if serverProperties := result.ServerProperties; serverProperties != nil {
+		d.Set("version", string(serverProperties.Version))
+		d.Set("administrator_login", serverProperties.AdministratorLogin)
+		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
+	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("version", string(serverVersion))
-	d.Set("location", *result.Location)
-	d.Set("administrator_login", *serverProperties.AdministratorLogin)
-	d.Set("fully_qualified_domain_name", *serverProperties.FullyQualifiedDomainName)
+	d.Set("location", azureRMNormalizeLocation(*result.Location))
 
 	flattenAndSetTags(d, result.Tags)
 
@@ -163,7 +153,7 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 
 	result, error := sqlServersClient.Delete(resGroup, name)
 	if result.Response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting SQL Server %s: %s", name, error)
+		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, error)
 	}
 
 	return nil
