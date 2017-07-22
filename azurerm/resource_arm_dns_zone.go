@@ -51,11 +51,6 @@ func resourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"etag": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tagsSchema(),
 		},
 	}
@@ -66,7 +61,6 @@ func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
 
 	zoneName := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	eTag := d.Get("etag").(string)
 	location := "global"
 
 	tags := d.Get("tags").(map[string]interface{})
@@ -80,7 +74,7 @@ func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
 
 	//last parameter is set to empty to allow updates to records after creation
 	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := zonesClient.CreateOrUpdate(resGroup, zoneName, parameters, eTag, "")
+	resp, err := zonesClient.CreateOrUpdate(resGroup, zoneName, parameters, "", "")
 	if err != nil {
 		return err
 	}
@@ -116,7 +110,6 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", zoneName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("etag", resp.Etag)
 	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
 	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
 
@@ -148,7 +141,7 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	result := <-resultChan
 	error := <-errorChan
 	if result.Response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS zone %s: %s", zoneName, error)
+		return fmt.Errorf("Error deleting DNS zone %s: %+v", zoneName, error)
 	}
 
 	return nil
