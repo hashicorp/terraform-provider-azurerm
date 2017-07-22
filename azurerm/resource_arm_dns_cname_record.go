@@ -54,11 +54,6 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Required: true,
 			},
 
-			"etag": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tagsSchema(),
 		},
 	}
@@ -71,7 +66,6 @@ func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interf
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 	ttl := int64(d.Get("ttl").(int))
-	eTag := d.Get("etag").(string)
 
 	record := d.Get("record").(string)
 	cnameRecord := dns.CnameRecord{
@@ -94,7 +88,7 @@ func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interf
 
 	//last parameter is set to empty to allow updates to records after creation
 	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.CNAME, parameters, eTag, "")
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.CNAME, parameters, "", "")
 	if err != nil {
 		return err
 	}
@@ -129,16 +123,16 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 		return nil
 	}
 
-	props := *result.RecordSetProperties
-	cNameRecord := *props.CnameRecord
-	cName := *cNameRecord.Cname
+	if props := result.RecordSetProperties; props != nil {
+		if record := props.CnameRecord; record != nil {
+			d.Set("record", record.Cname)
+		}
+	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
-	d.Set("ttl", *result.TTL)
-	d.Set("etag", *result.Etag)
-	d.Set("record", cName)
+	d.Set("ttl", result.TTL)
 
 	flattenAndSetTags(d, result.Metadata)
 
