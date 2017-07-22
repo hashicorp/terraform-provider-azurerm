@@ -2,18 +2,18 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
-	"github.com/jen20/riviera/sql"
+	"github.com/satori/uuid"
 )
 
 func resourceArmSqlDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlDatabaseCreate,
+		Create: resourceArmSqlDatabaseCreateOrUpdate,
 		Read:   resourceArmSqlDatabaseRead,
-		Update: resourceArmSqlDatabaseCreate,
+		Update: resourceArmSqlDatabaseCreateOrUpdate,
 		Delete: resourceArmSqlDatabaseDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -38,9 +38,10 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"create_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "Default",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "Default",
+				ValidateFunc: validateArmSqlDatabaseCreateMode,
 			},
 
 			"source_database_id": {
@@ -118,128 +119,157 @@ func resourceArmSqlDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmSqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmSqlDatabaseCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	sqlDatabasesClient := meta.(*ArmClient).sqlDatabasesClient
+
+	databaseName := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	location := d.Get("location").(string)
+	serverName := d.Get("server_name").(string)
+	sourceDatabaseID := d.Get("source_database_id").(string)
+	collation := d.Get("collation").(string)
+	elasticPoolName := d.Get("elastic_pool_name").(string)
+
+	createMode := sql.CreateMode(d.Get("create_mode").(string))
+
+	maxSizeBytes := d.Get("max_size_bytes").(string)
+
+	edition := sql.DatabaseEdition(d.Get("edition").(string))
+
+	requestedServiceObjectiveIDString := d.Get("requested_service_objective_id").(string)
+	var requestedServiceObjectiveID uuid.UUID
+
+	requestedServiceObjectiveNameString := d.Get("requested_service_objective_name").(string)
+	var requestedServiceObjectiveName sql.ServiceObjectiveName
+
+	if requestedServiceObjectiveIDString != "" && requestedServiceObjectiveNameString == "" {
+
+		var errUUID error
+		requestedServiceObjectiveID, errUUID = uuid.FromString(requestedServiceObjectiveIDString)
+		if errUUID != nil {
+			return errUUID
+		}
+
+	} else if requestedServiceObjectiveIDString == "" && requestedServiceObjectiveNameString != "" {
+
+		requestedServiceObjectiveName = sql.ServiceObjectiveName(requestedServiceObjectiveNameString)
+
+	} else {
+
+		return fmt.Errorf("either service objective name or id must be specified")
+
+	}
 
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	metadata := expandTags(tags)
 
-	command := &sql.CreateOrUpdateDatabase{
-		Name:              d.Get("name").(string),
-		Location:          d.Get("location").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ServerName:        d.Get("server_name").(string),
-		Tags:              *expandedTags,
-		CreateMode:        azure.String(d.Get("create_mode").(string)),
+	props := sql.DatabaseProperties{
+		Collation:  &collation,
+		Edition:    edition,
+		CreateMode: createMode,
 	}
 
-	if v, ok := d.GetOk("source_database_id"); ok {
-		command.SourceDatabaseID = azure.String(v.(string))
+	if createMode == sql.Default && maxSizeBytes != "" {
+		props.MaxSizeBytes = &maxSizeBytes
+		props.SourceDatabaseID = nil
+	} else if sourceDatabaseID != "" {
+		props.MaxSizeBytes = nil
+		props.SourceDatabaseID = &sourceDatabaseID
 	}
 
-	if v, ok := d.GetOk("edition"); ok {
-		command.Edition = azure.String(v.(string))
+	if requestedServiceObjectiveName != "" {
+		props.RequestedServiceObjectiveName = requestedServiceObjectiveName
+	} else {
+		props.RequestedServiceObjectiveID = &requestedServiceObjectiveID
 	}
 
-	if v, ok := d.GetOk("collation"); ok {
-		command.Collation = azure.String(v.(string))
+	if requestedServiceObjectiveNameString == "ElasticPool" {
+		props.ElasticPoolName = &elasticPoolName
 	}
 
-	if v, ok := d.GetOk("max_size_bytes"); ok {
-		command.MaxSizeBytes = azure.String(v.(string))
+	parameters := sql.Database{
+		Name:               &databaseName,
+		DatabaseProperties: &props,
+		Tags:               metadata,
+		Location:           &location,
 	}
 
-	if v, ok := d.GetOk("source_database_deletion_date"); ok {
-		command.SourceDatabaseDeletionDate = azure.String(v.(string))
+	resultChan, errChan := sqlDatabasesClient.CreateOrUpdate(resGroup, serverName, databaseName, parameters, make(chan struct{}))
+	resultServer := <-resultChan
+	errServer := <-errChan
+	if errServer != nil {
+		return errServer
 	}
 
-	if v, ok := d.GetOk("requested_service_objective_id"); ok {
-		command.RequestedServiceObjectiveID = azure.String(v.(string))
+	if resultServer.StatusCode != http.StatusOK {
+		return fmt.Errorf("Cannot create Sql database %s (resource group %s) ID", databaseName, resGroup)
 	}
 
-	if v, ok := d.GetOk("elastic_pool_name"); ok {
-		command.ElasticPoolName = azure.String(v.(string))
+	resultDb, errDb := sqlDatabasesClient.Get(resGroup, serverName, databaseName, "")
+	if errDb != nil {
+		d.SetId("")
+		return fmt.Errorf("Error reading SQL database %s: %v", databaseName, errDb)
 	}
 
-	if v, ok := d.GetOk("requested_service_objective_name"); ok {
-		command.RequestedServiceObjectiveName = azure.String(v.(string))
-	}
-
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = command
-
-	createResponse, err := createRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error creating SQL Database: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating SQL Database: %s", createResponse.Error)
-	}
-
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &sql.GetDatabase{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ServerName:        d.Get("server_name").(string),
-	}
-
-	readResponse, err := readRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error reading SQL Database: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading SQL Database: %s", readResponse.Error)
-	}
-
-	resp := readResponse.Parsed.(*sql.GetDatabaseResponse)
-	d.SetId(*resp.ID)
+	d.SetId(*resultDb.ID)
 
 	return resourceArmSqlDatabaseRead(d, meta)
 }
 
 func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	sqlDatabasesClient := meta.(*ArmClient).sqlDatabasesClient
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &sql.GetDatabase{}
-
-	readResponse, err := readRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Database: %s", err)
+		return err
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
+
+	resGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+	databaseName := id.Path["databases"]
+
+	result, err := sqlDatabasesClient.Get(resGroup, serverName, databaseName, "")
+	if err != nil {
+		return fmt.Errorf("Error reading SQL database %s: %v", databaseName, err)
+	}
+	if result.Response.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading SQL Database: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*sql.GetDatabaseResponse)
+	databaseProperties := *result.DatabaseProperties
 
-	d.Set("name", resp.Name)
-	d.Set("creation_date", resp.CreationDate)
-	d.Set("default_secondary_location", resp.DefaultSecondaryLocation)
-	d.Set("elastic_pool_name", resp.ElasticPoolName)
+	d.Set("name", databaseName)
+	d.Set("resource_group_name", resGroup)
+	d.Set("location", *result.Location)
+	d.Set("server_name", serverName)
+	d.Set("creation_date", *result.CreationDate)
+	d.Set("default_secondary_location", *result.DefaultSecondaryLocation)
 
-	flattenAndSetTags(d, resp.Tags)
+	if databaseProperties.ElasticPoolName != nil {
+		d.Set("elastic_pool_name", *databaseProperties.ElasticPoolName)
+	}
+
+	flattenAndSetTags(d, result.Tags)
 
 	return nil
 }
 
 func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	sqlDatabasesClient := meta.(*ArmClient).sqlDatabasesClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &sql.DeleteDatabase{}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Database: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting SQL Database: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+	databaseName := id.Path["databases"]
+
+	result, error := sqlDatabasesClient.Delete(resGroup, serverName, databaseName)
+	if result.Response.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting SQL database %s: %s", databaseName, error)
 	}
 
 	return nil
@@ -254,6 +284,23 @@ func validateArmSqlDatabaseEdition(v interface{}, k string) (ws []string, errors
 	}
 	if !editions[v.(string)] {
 		errors = append(errors, fmt.Errorf("SQL Database Edition can only be Basic, Standard, Premium or DataWarehouse"))
+	}
+	return
+}
+
+func validateArmSqlDatabaseCreateMode(v interface{}, k string) (ws []string, errors []error) {
+	modes := map[string]bool{
+		"Copy":                           true,
+		"Default":                        true,
+		"NonReadableSecondary":           true,
+		"OnlineSecondary":                true,
+		"PointInTimeRestore":             true,
+		"Recovery":                       true,
+		"Restore":                        true,
+		"RestoreLongTermRetentionBackup": true,
+	}
+	if !modes[v.(string)] {
+		errors = append(errors, fmt.Errorf("SQL Database Create Mode can only be Copy, Default, NonReadableSecondary, OnlineSecondary, PointInTimeRestore, Recovery, Restore, RestoreLongTermRetentionBackup"))
 	}
 	return
 }
