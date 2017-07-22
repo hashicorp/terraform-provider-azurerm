@@ -59,12 +59,13 @@ func resourceArmSqlFirewallRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 	startIpAddress := d.Get("start_ip_address").(string)
 	endIpAddress := d.Get("end_ip_address").(string)
 
+	props := sql.FirewallRuleProperties{
+		StartIPAddress: &startIpAddress,
+		EndIPAddress:   &endIpAddress,
+	}
 	parameters := sql.FirewallRule{
 		Name: &name,
-		FirewallRuleProperties: &(sql.FirewallRuleProperties{
-			&startIpAddress,
-			&endIpAddress,
-		}),
+		FirewallRuleProperties: &props,
 	}
 
 	result, err := sqlFirewallRulesClient.CreateOrUpdate(resGroup, serverName, name, parameters)
