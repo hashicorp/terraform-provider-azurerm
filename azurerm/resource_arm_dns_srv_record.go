@@ -72,11 +72,6 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 				Required: true,
 			},
 
-			"etag": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tagsSchema(),
 		},
 	}
@@ -89,7 +84,6 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 	ttl := int64(d.Get("ttl").(int))
-	eTag := d.Get("etag").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
 	metadata := expandTags(tags)
@@ -108,7 +102,7 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 	//last parameter is set to empty to allow updates to records after creation
 	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, eTag, "")
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, "", "")
 	if err != nil {
 		return err
 	}
@@ -147,7 +141,6 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
-	d.Set("etag", resp.Etag)
 
 	if err := d.Set("record", flattenAzureRmDnsSrvRecords(resp.SrvRecords)); err != nil {
 		return err
@@ -171,7 +164,7 @@ func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) err
 
 	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.SRV, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS SRV Record %s: %s", name, error)
+		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, error)
 	}
 
 	return nil
