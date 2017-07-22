@@ -59,18 +59,14 @@ func resourceArmSqlFirewallRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 	startIpAddress := d.Get("start_ip_address").(string)
 	endIpAddress := d.Get("end_ip_address").(string)
 
-	props := sql.FirewallRuleProperties{
-		StartIPAddress: &startIpAddress,
-		EndIPAddress:   &endIpAddress,
-	}
-
 	parameters := sql.FirewallRule{
 		Name: &name,
-		FirewallRuleProperties: &props,
+		FirewallRuleProperties: &(sql.FirewallRuleProperties{
+			&startIpAddress,
+			&endIpAddress,
+		}),
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
 	result, err := sqlFirewallRulesClient.CreateOrUpdate(resGroup, serverName, name, parameters)
 	if err != nil {
 		return err
@@ -99,20 +95,21 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	result, err := sqlFirewallRulesClient.Get(resGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS PTR record %s: %v", name, err)
+		return fmt.Errorf("Error reading SQL firewall rule %s: %v", name, err)
 	}
 	if result.Response.StatusCode == http.StatusNotFound {
 		d.SetId("")
 		return nil
 	}
 
-	props := *result.FirewallRuleProperties
+	if props := result.FirewallRuleProperties; props != nil {
+		d.Set("start_ip_address", props.StartIPAddress)
+		d.Set("end_ip_address", props.EndIPAddress)
+	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("server_name", serverName)
-	d.Set("start_ip_address", *props.StartIPAddress)
-	d.Set("end_ip_address", *props.EndIPAddress)
 
 	return nil
 }
@@ -131,7 +128,7 @@ func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) 
 
 	result, error := sqlFirewallRulesClient.Delete(resGroup, serverName, name)
 	if result.Response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting sql firewall rule %s: %s", name, error)
+		return fmt.Errorf("Error deleting sql firewall rule %s: %+v", name, error)
 	}
 
 	return nil
