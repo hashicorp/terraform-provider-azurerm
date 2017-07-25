@@ -48,44 +48,36 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 				Required: true,
 			},
 
-			"etag": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"tags": tagsSchema(),
 		},
 	}
 }
 
 func resourceArmDnsPtrRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	dnsClient := client.dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 	ttl := int64(d.Get("ttl").(int))
-	eTag := d.Get("etag").(string)
-
 	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
 
 	records, err := expandAzureRmDnsPtrRecords(d)
-	props := dns.RecordSetProperties{
-		Metadata:   metadata,
-		TTL:        &ttl,
-		PtrRecords: &records,
+	if err != nil {
+		return err
 	}
 
 	parameters := dns.RecordSet{
-		Name:                &name,
-		RecordSetProperties: &props,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata:   expandTags(tags),
+			TTL:        &ttl,
+			PtrRecords: &records,
+		},
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.PTR, parameters, eTag, "")
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.PTR, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -114,7 +106,7 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 
 	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.PTR)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS PTR record %s: %v", name, err)
+		return fmt.Errorf("Error reading DNS PTR record %s: %+v", name, err)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
@@ -148,9 +140,13 @@ func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["PTR"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.PTR, "")
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS PTR Record %s: %s", name, error)
+	resp, err := dnsClient.Delete(resGroup, zoneName, name, dns.PTR, "")
+	if err != nil {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting DNS PTR Record %s: %+v", name, err)
 	}
 
 	return nil

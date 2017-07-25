@@ -18,11 +18,33 @@ func TestAccAzureRMDnsPtrRecord_importBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 
-			resource.TestStep{
+func TestAccAzureRMDnsPtrRecord_importWithTags(t *testing.T) {
+	resourceName := "azurerm_dns_ptr_record.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMDnsPtrRecord_withTags(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsPtrRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

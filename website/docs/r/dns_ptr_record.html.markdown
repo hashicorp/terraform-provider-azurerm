@@ -54,8 +54,6 @@ The following attributes are exported:
 
 * `id` - The DNS PTR Record ID.
 
-* `etag` - The etag of the record set.
-
 ## Import
 
 PTR records can be imported using the `resource id`, e.g.
