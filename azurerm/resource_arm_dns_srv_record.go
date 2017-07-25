@@ -3,62 +3,62 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/dns"
 )
 
 func resourceArmDnsSrvRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsSrvRecordCreate,
+		Create: resourceArmDnsSrvRecordCreateOrUpdate,
 		Read:   resourceArmDnsSrvRecordRead,
-		Update: resourceArmDnsSrvRecordCreate,
+		Update: resourceArmDnsSrvRecordCreateOrUpdate,
 		Delete: resourceArmDnsSrvRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"zone_name": &schema.Schema{
+			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"record": &schema.Schema{
+			"record": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"priority": &schema.Schema{
+						"priority": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
 
-						"weight": &schema.Schema{
+						"weight": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
 
-						"port": &schema.Schema{
+						"port": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
 
-						"target": &schema.Schema{
+						"target": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
@@ -67,7 +67,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 				Set: resourceArmDnsSrvRecordHash,
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -77,159 +77,144 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsSrvRecordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).dnsClient
 
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	zoneName := d.Get("zone_name").(string)
+	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
 
-	createCommand := &dns.CreateSRVRecordSet{
-		Name:              d.Get("name").(string),
-		Location:          "global",
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
-		TTL:               d.Get("ttl").(int),
-		Tags:              *expandedTags,
-	}
-
-	srvRecords, recordErr := expandAzureRmDnsSrvRecord(d)
-	if recordErr != nil {
-		return fmt.Errorf("Error Building Azure RM SRV Record: %s", recordErr)
-	}
-	createCommand.SRVRecords = srvRecords
-
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = createCommand
-
-	createResponse, err := createRequest.Execute()
+	records, err := expandAzureRmDnsSrvRecords(d)
 	if err != nil {
-		return fmt.Errorf("Error creating DNS SRV Record: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating DNS SRV Record: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &dns.GetSRVRecordSet{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
+	parameters := dns.RecordSet{
+		Name: &name,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata:   expandTags(tags),
+			TTL:        &ttl,
+			SrvRecords: &records,
+		},
 	}
 
-	readResponse, err := readRequest.Execute()
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS SRV Record: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading DNS SRV Record: %s", readResponse.Error)
+		return err
 	}
 
-	resp := readResponse.Parsed.(*dns.GetSRVRecordSetResponse)
-	d.SetId(resp.ID)
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read DNS SRV Record %s (resource group %s) ID", name, resGroup)
+	}
+
+	d.SetId(*resp.ID)
 
 	return resourceArmDnsSrvRecordRead(d, meta)
 }
 
 func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &dns.GetSRVRecordSet{}
+	resGroup := id.ResourceGroup
+	name := id.Path["SRV"]
+	zoneName := id.Path["dnszones"]
 
-	readResponse, err := readRequest.Execute()
+	resp, err := client.Get(resGroup, zoneName, name, dns.SRV)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS SRV Record: %s", err)
+		return fmt.Errorf("Error reading DNS SRV record %s: %v", name, err)
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading DNS SRV Record %q - removing from state", d.Id())
+	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading DNS SRV Record: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*dns.GetSRVRecordSetResponse)
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.Path["dnszones"])
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
 
-	if err := d.Set("record", flattenAzureRmDnsSrvRecord(resp.SRVRecords)); err != nil {
-		log.Printf("[INFO] Error setting the Azure RM SRV Record State: %s", err)
+	if err := d.Set("record", flattenAzureRmDnsSrvRecords(resp.SrvRecords)); err != nil {
 		return err
 	}
-
-	flattenAndSetTags(d, &resp.Tags)
+	flattenAndSetTags(d, resp.Metadata)
 
 	return nil
 }
 
 func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).dnsClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &dns.DeleteRecordSet{
-		RecordSetType: "SRV",
-	}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting DNS SRV Record: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting DNS SRV Record: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	name := id.Path["SRV"]
+	zoneName := id.Path["dnszones"]
+
+	resp, error := client.Delete(resGroup, zoneName, name, dns.SRV, "")
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, error)
 	}
 
 	return nil
 }
 
-func expandAzureRmDnsSrvRecord(d *schema.ResourceData) ([]dns.SRVRecord, error) {
-	config := d.Get("record").(*schema.Set).List()
-	records := make([]dns.SRVRecord, 0, len(config))
+func flattenAzureRmDnsSrvRecords(records *[]dns.SrvRecord) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0, len(*records))
 
-	for _, pRaw := range config {
-		data := pRaw.(map[string]interface{})
+	if records != nil {
+		for _, record := range *records {
+			results = append(results, map[string]interface{}{
+				"priority": *record.Priority,
+				"weight":   *record.Weight,
+				"port":     *record.Port,
+				"target":   *record.Target,
+			})
+		}
+	}
 
-		srvRecord := dns.SRVRecord{
-			Priority: data["priority"].(int),
-			Weight:   data["weight"].(int),
-			Port:     data["port"].(int),
-			Target:   data["target"].(string),
+	return results
+}
+
+func expandAzureRmDnsSrvRecords(d *schema.ResourceData) ([]dns.SrvRecord, error) {
+	recordStrings := d.Get("record").(*schema.Set).List()
+	records := make([]dns.SrvRecord, len(recordStrings))
+
+	for i, v := range recordStrings {
+		record := v.(map[string]interface{})
+		priority := int32(record["priority"].(int))
+		weight := int32(record["weight"].(int))
+		port := int32(record["port"].(int))
+		target := record["target"].(string)
+
+		srvRecord := dns.SrvRecord{
+			Priority: &priority,
+			Weight:   &weight,
+			Port:     &port,
+			Target:   &target,
 		}
 
-		records = append(records, srvRecord)
-
+		records[i] = srvRecord
 	}
 
 	return records, nil
-
-}
-
-func flattenAzureRmDnsSrvRecord(records []dns.SRVRecord) []map[string]interface{} {
-
-	result := make([]map[string]interface{}, 0, len(records))
-	for _, record := range records {
-		result = append(result, map[string]interface{}{
-			"priority": record.Priority,
-			"weight":   record.Weight,
-			"port":     record.Port,
-			"target":   record.Target,
-		})
-	}
-	return result
-
 }
 
 func resourceArmDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
+
 	buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
 	buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
 	buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))

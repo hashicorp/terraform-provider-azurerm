@@ -140,6 +140,7 @@ func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
 			return err
 		}
 
+		return fmt.Errorf("DNS TXT record still exists:\n%#v", resp.RecordSetProperties)
 	}
 
 	return nil
