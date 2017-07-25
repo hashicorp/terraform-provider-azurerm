@@ -177,7 +177,7 @@ func expandAzureRmDnsTxtRecords(d *schema.ResourceData) ([]dns.TxtRecord, error)
 
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
-		value := []string { record["value"].(string) }
+		value := []string{record["value"].(string)}
 
 		txtRecord := dns.TxtRecord{
 			Value: &value,
