@@ -78,7 +78,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 }
 
 func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -92,7 +92,7 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	parameters := dns.RecordSet{
-		Name:                &name,
+		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:   expandTags(tags),
 			TTL:        &ttl,
@@ -102,7 +102,7 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch)
+	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -128,7 +128,7 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["SRV"]
 	zoneName := id.Path["dnszones"]
 
-	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.SRV)
+	resp, err := client.Get(resGroup, zoneName, name, dns.SRV)
 	if err != nil {
 		return fmt.Errorf("Error reading DNS SRV record %s: %v", name, err)
 	}
@@ -151,7 +151,7 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -162,7 +162,7 @@ func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["SRV"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.SRV, "")
+	resp, error := client.Delete(resGroup, zoneName, name, dns.SRV, "")
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error deleting DNS SRV Record %s: %+v", name, error)
 	}

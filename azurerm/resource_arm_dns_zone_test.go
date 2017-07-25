@@ -106,6 +106,8 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 
 			return err
 		}
+
+		return fmt.Errorf("DNS Zone still exists:\n%#v", resp)
 	}
 
 	return nil
