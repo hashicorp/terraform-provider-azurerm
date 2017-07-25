@@ -11,18 +11,19 @@ import (
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
+	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMDnsZone_basic, ri, ri)
+	config := testAccAzureRMDnsZone_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists("azurerm_dns_zone.test"),
+					testCheckAzureRMDnsZoneExists(resourceName),
 				),
 			},
 		},
@@ -30,30 +31,28 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
+	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMDnsZone_withTags, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMDnsZone_withTagsUupdate, ri, ri)
+	preConfig := testAccAzureRMDnsZone_withTags(ri)
+	postConfig := testAccAzureRMDnsZone_withTagsUupdate(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists("azurerm_dns_zone.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_zone.test", "tags.%", "2"),
+					testCheckAzureRMDnsZoneExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists("azurerm_dns_zone.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_zone.test", "tags.%", "1"),
+					testCheckAzureRMDnsZoneExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 		},
@@ -74,10 +73,10 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).zonesClient
-		resp, err := conn.Get(resourceGroup, zoneName)
+		client := testAccProvider.Meta().(*ArmClient).zonesClient
+		resp, err := client.Get(resourceGroup, zoneName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get DNS zone: %v", err)
+			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -101,53 +100,62 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 
 		resp, err := conn.Get(resourceGroup, zoneName)
 		if err != nil {
-			return nil
-		}
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("DNS zone still exists:\n%#v", resp.ZoneProperties)
-		}
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
 
+			return err
+		}
 	}
 
 	return nil
 }
 
-var testAccAzureRMDnsZone_basic = `
+func testAccAzureRMDnsZone_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
-resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-`
 
-var testAccAzureRMDnsZone_withTags = `
+resource "azurerm_dns_zone" "test" {
+    name = "acctestzone%d.com"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, rInt)
+}
+
+func testAccAzureRMDnsZone_withTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
-	tags {
-		environment = "Production"
-		cost_center = "MSFT"
+    tags {
+	environment = "Production"
+	cost_center = "MSFT"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMDnsZone_withTagsUupdate = `
+func testAccAzureRMDnsZone_withTagsUupdate(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
-	tags {
-		environment = "staging"
+    tags {
+	environment = "staging"
     }
 }
-`
+`, rInt, rInt)
+}

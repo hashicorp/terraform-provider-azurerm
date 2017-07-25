@@ -19,32 +19,32 @@ func resourceArmDnsZone() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
 			},
 
-			"number_of_record_sets": &schema.Schema{
+			"number_of_record_sets": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
-			"max_number_of_record_sets": &schema.Schema{
+			"max_number_of_record_sets": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},
 
-			"name_servers": &schema.Schema{
+			"name_servers": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -57,30 +57,28 @@ func resourceArmDnsZone() *schema.Resource {
 }
 
 func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
-	zonesClient := meta.(*ArmClient).zonesClient
+	client := meta.(*ArmClient).zonesClient
 
-	zoneName := d.Get("name").(string)
+	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	location := "global"
 
 	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
 
 	parameters := dns.Zone{
-		Name:     &zoneName,
 		Location: &location,
-		Tags:     metadata,
+		Tags:     expandTags(tags),
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := zonesClient.CreateOrUpdate(resGroup, zoneName, parameters, "", "")
+	etag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := client.CreateOrUpdate(resGroup, name, parameters, etag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS zone %s (resource group %s) ID", zoneName, resGroup)
+		return fmt.Errorf("Cannot read DNS zone %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -97,18 +95,18 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	resGroup := id.ResourceGroup
-	zoneName := id.Path["dnszones"]
+	name := id.Path["dnszones"]
 
-	resp, err := zonesClient.Get(resGroup, zoneName)
+	resp, err := zonesClient.Get(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS zone %s: %v", zoneName, err)
+		return fmt.Errorf("Error reading DNS zone %s (resource group %s): %+v", name, resGroup, err)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", zoneName)
+	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
 	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
@@ -127,7 +125,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
-	zonesClient := meta.(*ArmClient).zonesClient
+	client := meta.(*ArmClient).zonesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -135,13 +133,14 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	resGroup := id.ResourceGroup
-	zoneName := id.Path["dnszones"]
+	name := id.Path["dnszones"]
 
-	resultChan, errorChan := zonesClient.Delete(resGroup, zoneName, "", make(chan struct{}))
-	result := <-resultChan
-	error := <-errorChan
-	if result.Response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS zone %s: %+v", zoneName, error)
+	etag := ""
+	_, error := client.Delete(resGroup, name, etag, make(chan struct{}))
+	err = <-error
+
+	if err != nil {
+		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", name, resGroup, err)
 	}
 
 	return nil
