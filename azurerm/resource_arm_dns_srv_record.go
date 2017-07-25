@@ -21,44 +21,44 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"zone_name": &schema.Schema{
+			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"record": &schema.Schema{
+			"record": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"priority": &schema.Schema{
+						"priority": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
 
-						"weight": &schema.Schema{
+						"weight": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
 
-						"port": &schema.Schema{
+						"port": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
 
-						"target": &schema.Schema{
+						"target": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
@@ -67,7 +67,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 				Set: resourceArmDnsSrvRecordHash,
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -84,25 +84,25 @@ func resourceArmDnsSrvRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 	ttl := int64(d.Get("ttl").(int))
-
 	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
 
 	records, err := expandAzureRmDnsSrvRecords(d)
-	props := dns.RecordSetProperties{
-		Metadata:   metadata,
-		TTL:        &ttl,
-		SrvRecords: &records,
+	if err != nil {
+		return err
 	}
 
 	parameters := dns.RecordSet{
 		Name:                &name,
-		RecordSetProperties: &props,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata:   expandTags(tags),
+			TTL:        &ttl,
+			SrvRecords: &records,
+		},
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, "", "")
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.SRV, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -214,6 +214,7 @@ func expandAzureRmDnsSrvRecords(d *schema.ResourceData) ([]dns.SrvRecord, error)
 func resourceArmDnsSrvRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
+
 	buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
 	buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
 	buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
