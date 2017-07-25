@@ -60,7 +60,7 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 }
 
 func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -84,7 +84,7 @@ func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 
 	eTag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.TXT, parameters, eTag, ifNoneMatch)
+	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.TXT, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func resourceArmDnsTxtRecordCreateOrUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -110,7 +110,7 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 	name := id.Path["TXT"]
 	zoneName := id.Path["dnszones"]
 
-	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.TXT)
+	resp, err := client.Get(resGroup, zoneName, name, dns.TXT)
 	if err != nil {
 		return fmt.Errorf("Error reading DNS TXT record %s: %+v", name, err)
 	}
@@ -133,7 +133,7 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -144,9 +144,9 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["TXT"]
 	zoneName := id.Path["dnszones"]
 
-	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.TXT, "")
+	resp, error := client.Delete(resGroup, zoneName, name, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS TXT Record %s: %s", name, error)
+		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", name, error)
 	}
 
 	return nil
@@ -176,9 +176,8 @@ func expandAzureRmDnsTxtRecords(d *schema.ResourceData) ([]dns.TxtRecord, error)
 	records := make([]dns.TxtRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
-		value := make([]string, 1)
 		record := v.(map[string]interface{})
-		value[0] = record["value"].(string)
+		value := []string { record["value"].(string) }
 
 		txtRecord := dns.TxtRecord{
 			Value: &value,
