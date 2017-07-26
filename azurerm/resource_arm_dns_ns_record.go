@@ -19,29 +19,29 @@ func resourceArmDnsNsRecord() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"zone_name": &schema.Schema{
+			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"record": &schema.Schema{
+			"record": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"nsdname": &schema.Schema{
+						"nsdname": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
@@ -49,7 +49,7 @@ func resourceArmDnsNsRecord() *schema.Resource {
 				},
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -66,25 +66,24 @@ func resourceArmDnsNsRecordCreateOrUpdate(d *schema.ResourceData, meta interface
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 	ttl := int64(d.Get("ttl").(int))
-
 	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
-
 	records, err := expandAzureRmDnsNsRecords(d)
-	props := dns.RecordSetProperties{
-		Metadata:  metadata,
-		TTL:       &ttl,
-		NsRecords: &records,
+	if err != nil {
+		return err
 	}
 
 	parameters := dns.RecordSet{
 		Name:                &name,
-		RecordSetProperties: &props,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata:  expandTags(tags),
+			TTL:       &ttl,
+			NsRecords: &records,
+		},
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.NS, parameters, "", "")
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.NS, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -112,7 +111,7 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 
 	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.NS)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS NS record %s: %v", name, err)
+		return fmt.Errorf("Error reading DNS NS record %s: %+v", name, err)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		d.SetId("")
@@ -127,6 +126,7 @@ func resourceArmDnsNsRecordRead(d *schema.ResourceData, meta interface{}) error 
 	if err := d.Set("record", flattenAzureRmDnsNsRecords(resp.NsRecords)); err != nil {
 		return err
 	}
+
 	flattenAndSetTags(d, resp.Metadata)
 
 	return nil
@@ -173,10 +173,10 @@ func expandAzureRmDnsNsRecords(d *schema.ResourceData) ([]dns.NsRecord, error) {
 
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
-		nsdname := record["nsdname"].(string)
+		nsdName := record["nsdname"].(string)
 
 		nsRecord := dns.NsRecord{
-			Nsdname: &nsdname,
+			Nsdname: &nsdName,
 		}
 
 		records[i] = nsRecord
