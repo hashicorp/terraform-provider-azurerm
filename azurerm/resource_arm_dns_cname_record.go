@@ -2,41 +2,41 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/dns"
 )
 
 func resourceArmDnsCNameRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsCNameRecordCreate,
+		Create: resourceArmDnsCNameRecordCreateOrUpdate,
 		Read:   resourceArmDnsCNameRecordRead,
-		Update: resourceArmDnsCNameRecordCreate,
+		Update: resourceArmDnsCNameRecordCreateOrUpdate,
 		Delete: resourceArmDnsCNameRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"zone_name": &schema.Schema{
+			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"records": &schema.Schema{
+			"records": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -44,12 +44,12 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Removed:  "Use `record` instead. This attribute will be removed in a future version",
 			},
 
-			"record": &schema.Schema{
+			"record": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -59,107 +59,95 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsCNameRecordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	dnsClient := meta.(*ArmClient).dnsClient
 
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	zoneName := d.Get("zone_name").(string)
+	ttl := int64(d.Get("ttl").(int))
+	record := d.Get("record").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
 
-	createCommand := &dns.CreateCNAMERecordSet{
-		Name:              d.Get("name").(string),
-		Location:          "global",
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
-		TTL:               d.Get("ttl").(int),
-		Tags:              *expandedTags,
-		CNAMERecord: dns.CNAMERecord{
-			CNAME: d.Get("record").(string),
+	parameters := dns.RecordSet{
+		Name: &name,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata: expandTags(tags),
+			TTL:      &ttl,
+			CnameRecord: &dns.CnameRecord{
+				Cname: &record,
+			},
 		},
 	}
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = createCommand
-
-	createResponse, err := createRequest.Execute()
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch)
 	if err != nil {
-		return fmt.Errorf("Error creating DNS CName Record: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating DNS CName Record: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &dns.GetCNAMERecordSet{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read DNS CNAME Record %s (resource group %s) ID", name, resGroup)
 	}
 
-	readResponse, err := readRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error reading DNS CName Record: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading DNS CName Record: %s", readResponse.Error)
-	}
-
-	resp := readResponse.Parsed.(*dns.GetCNAMERecordSetResponse)
-	d.SetId(resp.ID)
+	d.SetId(*resp.ID)
 
 	return resourceArmDnsCNameRecordRead(d, meta)
 }
 
 func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	dnsClient := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &dns.GetCNAMERecordSet{}
+	resGroup := id.ResourceGroup
+	name := id.Path["CNAME"]
+	zoneName := id.Path["dnszones"]
 
-	readResponse, err := readRequest.Execute()
+	result, err := dnsClient.Get(resGroup, zoneName, name, dns.CNAME)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS A Record: %s", err)
+		return fmt.Errorf("Error reading DNS CNAME record %s: %+v", name, err)
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading DNS A Record %q - removing from state", d.Id())
+	if result.Response.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading DNS A Record: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*dns.GetCNAMERecordSetResponse)
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("zone_name", zoneName)
+	d.Set("ttl", result.TTL)
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.Path["dnszones"])
-	d.Set("ttl", resp.TTL)
-	d.Set("record", resp.CNAMERecord.CNAME)
+	if props := result.RecordSetProperties; props != nil {
+		if record := props.CnameRecord; record != nil {
+			d.Set("record", record.Cname)
+		}
+	}
 
-	flattenAndSetTags(d, &resp.Tags)
+	flattenAndSetTags(d, result.Metadata)
 
 	return nil
 }
 
 func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	dnsClient := meta.(*ArmClient).dnsClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &dns.DeleteRecordSet{
-		RecordSetType: "CNAME",
-	}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting DNS CName Record: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting DNS CName Record: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	name := id.Path["CNAME"]
+	zoneName := id.Path["dnszones"]
+
+	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.CNAME, "")
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting DNS CNAME Record %s: %+v", name, error)
 	}
 
 	return nil
