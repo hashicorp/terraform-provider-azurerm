@@ -753,12 +753,6 @@
 			"revisionTime": "2017-01-04T10:03:54Z"
 		},
 		{
-			"checksumSHA1": "ncdT+1PFEF5ly0niXuQc9/pKzT0=",
-			"path": "github.com/jen20/riviera/dns",
-			"revision": "7ee711f4d8cc27b811bde3907614ecd86e98c9bc",
-			"revisionTime": "2017-01-04T10:03:54Z"
-		},
-		{
 			"checksumSHA1": "zVXx6ha3bt0N4ukRbRHXjSl91S4=",
 			"path": "github.com/jen20/riviera/search",
 			"revision": "7ee711f4d8cc27b811bde3907614ecd86e98c9bc",
