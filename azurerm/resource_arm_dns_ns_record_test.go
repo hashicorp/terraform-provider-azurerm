@@ -107,7 +107,7 @@ func testCheckAzureRMDnsNsRecordExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
 		resp, err := conn.Get(resourceGroup, zoneName, nsName, dns.NS)
 		if err != nil {
-			return fmt.Errorf("Bad: Get NS recordSet: %v", err)
+			return fmt.Errorf("Bad: Get DNS NS Record: %v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -137,7 +137,7 @@ func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("DNS MSNSecord still exists:\n%#v", resp.RecordSetProperties)
+			return fmt.Errorf("DNS NS Record still exists:\n%#v", resp.RecordSetProperties)
 		}
 
 	}
