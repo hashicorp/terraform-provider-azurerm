@@ -30,7 +30,6 @@ func TestAccAzureRMDnsCNameRecord_importBasic(t *testing.T) {
 	})
 }
 
-
 func TestAccAzureRMDnsCNameRecord_importWithTags(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 
