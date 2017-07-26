@@ -12,18 +12,19 @@ import (
 )
 
 func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
+	resourceName := "azurerm_dns_aaaa_record.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMDnsAAAARecord_basic, ri, ri, ri)
+	config := testAccAzureRMDnsAAAARecord_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
 				),
 			},
 		},
@@ -31,30 +32,28 @@ func TestAccAzureRMDnsAAAARecord_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
+	resourceName := "azurerm_dns_aaaa_record.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMDnsAAAARecord_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMDnsAAAARecord_updateRecords, ri, ri, ri)
+	preConfig := testAccAzureRMDnsAAAARecord_basic(ri)
+	postConfig := testAccAzureRMDnsAAAARecord_updateRecords(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_aaaa_record.test", "records.#", "2"),
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "records.#", "2"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_aaaa_record.test", "records.#", "3"),
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "records.#", "3"),
 				),
 			},
 		},
@@ -62,30 +61,28 @@ func TestAccAzureRMDnsAAAARecord_updateRecords(t *testing.T) {
 }
 
 func TestAccAzureRMDnsAAAARecord_withTags(t *testing.T) {
+	resourceName := "azurerm_dns_aaaa_record.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMDnsAAAARecord_withTags, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMDnsAAAARecord_withTagsUpdate, ri, ri, ri)
+	preConfig := testAccAzureRMDnsAAAARecord_withTags(ri)
+	postConfig := testAccAzureRMDnsAAAARecord_withTagsUpdate(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsAaaaRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_aaaa_record.test", "tags.%", "2"),
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsAaaaRecordExists("azurerm_dns_aaaa_record.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_aaaa_record.test", "tags.%", "1"),
+					testCheckAzureRMDnsAaaaRecordExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 		},
@@ -136,23 +133,26 @@ func testCheckAzureRMDnsAaaaRecordDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, zoneName, aaaaName, dns.AAAA)
 
 		if err != nil {
-			return nil
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("DNS AAAA record still exists:\n%#v", resp.RecordSetProperties)
-		}
-
+		return fmt.Errorf("DNS AAAA record still exists:\n%#v", resp.RecordSetProperties)
 	}
 
 	return nil
 }
 
-var testAccAzureRMDnsAAAARecord_basic = `
+func testAccAzureRMDnsAAAARecord_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -165,13 +165,16 @@ resource "azurerm_dns_aaaa_record" "test" {
     ttl = "300"
     records = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006"]
 }
-`
+`, rInt, rInt, rInt)
+}
 
-var testAccAzureRMDnsAAAARecord_updateRecords = `
+func testAccAzureRMDnsAAAARecord_updateRecords(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -184,13 +187,16 @@ resource "azurerm_dns_aaaa_record" "test" {
     ttl = "300"
     records = ["2607:f8b0:4009:1803::1005", "2607:f8b0:4009:1803::1006", "::1"]
 }
-`
+`, rInt, rInt, rInt)
+}
 
-var testAccAzureRMDnsAAAARecord_withTags = `
+func testAccAzureRMDnsAAAARecord_withTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -208,13 +214,16 @@ resource "azurerm_dns_aaaa_record" "test" {
 	cost_center = "MSFT"
     }
 }
-`
+`, rInt, rInt, rInt)
+}
 
-var testAccAzureRMDnsAAAARecord_withTagsUpdate = `
+func testAccAzureRMDnsAAAARecord_withTagsUpdate(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -231,4 +240,5 @@ resource "azurerm_dns_aaaa_record" "test" {
 	environment = "staging"
     }
 }
-`
+`, rInt, rInt, rInt)
+}

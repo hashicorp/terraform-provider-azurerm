@@ -19,31 +19,31 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"zone_name": &schema.Schema{
+			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"records": &schema.Schema{
+			"records": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -54,31 +54,31 @@ func resourceArmDnsAAAARecord() *schema.Resource {
 }
 
 func resourceArmDnsAaaaRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dnsClient
+	client := meta.(*ArmClient).dnsClient
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 	ttl := int64(d.Get("ttl").(int))
-
 	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
 
 	records, err := expandAzureRmDnsAaaaRecords(d)
-	props := dns.RecordSetProperties{
-		Metadata:    metadata,
-		TTL:         &ttl,
-		AaaaRecords: &records,
+	if err != nil {
+		return err
 	}
 
 	parameters := dns.RecordSet{
-		Name:                &name,
-		RecordSetProperties: &props,
+		Name: &name,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata:    expandTags(tags),
+			TTL:         &ttl,
+			AaaaRecords: &records,
+		},
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.AAAA, parameters, "", "")
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.AAAA, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
