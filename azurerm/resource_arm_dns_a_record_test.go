@@ -162,7 +162,7 @@ resource "azurerm_dns_a_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["1.2.3.4", "1.2.4.5"]
 }
 `, rInt, rInt, rInt)
@@ -184,7 +184,7 @@ resource "azurerm_dns_a_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["1.2.3.4", "1.2.4.5", "1.2.3.7"]
 }
 `, rInt, rInt, rInt)
@@ -206,7 +206,7 @@ resource "azurerm_dns_a_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["1.2.3.4", "1.2.4.5"]
 
     tags {
@@ -233,7 +233,7 @@ resource "azurerm_dns_a_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["1.2.3.4", "1.2.4.5"]
 
     tags {

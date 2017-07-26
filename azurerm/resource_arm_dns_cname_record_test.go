@@ -181,7 +181,7 @@ resource "azurerm_dns_cname_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     record = "contoso.com"
 }
 `, rInt, rInt, rInt)
@@ -203,7 +203,7 @@ resource "azurerm_dns_cname_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     record = "test.contoso.com"
 }
 `, rInt, rInt, rInt)
@@ -225,7 +225,7 @@ resource "azurerm_dns_cname_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     record = "contoso.co.uk"
 }
 `, rInt, rInt, rInt)
@@ -247,7 +247,7 @@ resource "azurerm_dns_cname_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     record = "contoso.com"
 
     tags {
@@ -274,7 +274,7 @@ resource "azurerm_dns_cname_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     record = "contoso.com"
 
     tags {

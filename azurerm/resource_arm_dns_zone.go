@@ -34,13 +34,11 @@ func resourceArmDnsZone() *schema.Resource {
 
 			"number_of_record_sets": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
