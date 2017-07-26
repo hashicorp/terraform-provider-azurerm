@@ -73,7 +73,7 @@ func resourceArmDnsNsRecordCreateOrUpdate(d *schema.ResourceData, meta interface
 	}
 
 	parameters := dns.RecordSet{
-		Name:                &name,
+		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
 			Metadata:  expandTags(tags),
 			TTL:       &ttl,
