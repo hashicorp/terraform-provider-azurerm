@@ -1,8 +1,8 @@
-## 0.1.4 (Unreleased)
+## 0.1.4 (July 26, 2017)
 
 BUG FIXES:
 
-* `azurerm_dns_*` - upgrading to version `2016-04-01` of the Azure DNS API by switching from Riviera -> Azure SDK for Go [GH-192]
+* `azurerm_dns_*` - upgrading to version `2016-04-01` of the Azure DNS API by switching from Riviera -> Azure SDK for Go ([#192](https://github.com/terraform-providers/terraform-provider-azurerm/issues/192))
 
 ## 0.1.3 (July 21, 2017)
 
