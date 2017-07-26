@@ -133,14 +133,14 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, zoneName, ptrName, dns.PTR)
 
 		if err != nil {
-			if resp.StatusCode != http.StatusNotFound {
+			if resp.StatusCode == http.StatusNotFound {
 				return nil
 			}
 
 			return err
 		}
 
-		fmt.Errorf("DNS PTR record still exists:\n%#v", resp)
+		return fmt.Errorf("DNS PTR record still exists:\n%#v", resp)
 	}
 
 	return nil
