@@ -19,24 +19,24 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"zone_name": &schema.Schema{
+			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"records": &schema.Schema{
+			"records": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
@@ -44,12 +44,12 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Removed:  "Use `record` instead. This attribute will be removed in a future version",
 			},
 
-			"record": &schema.Schema{
+			"record": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -66,29 +66,23 @@ func resourceArmDnsCNameRecordCreateOrUpdate(d *schema.ResourceData, meta interf
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 	ttl := int64(d.Get("ttl").(int))
-
 	record := d.Get("record").(string)
-	cnameRecord := dns.CnameRecord{
-		Cname: &record,
-	}
-
 	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
-
-	props := dns.RecordSetProperties{
-		Metadata:    metadata,
-		TTL:         &ttl,
-		CnameRecord: &cnameRecord,
-	}
 
 	parameters := dns.RecordSet{
-		Name:                &name,
-		RecordSetProperties: &props,
+		Name: &name,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata: expandTags(tags),
+			TTL:      &ttl,
+			CnameRecord: &dns.CnameRecord{
+				Cname: &record,
+			},
+		},
 	}
 
-	//last parameter is set to empty to allow updates to records after creation
-	// (per SDK, set it to '*' to prevent updates, all other values are ignored)
-	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.CNAME, parameters, "", "")
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := dnsClient.CreateOrUpdate(resGroup, zoneName, name, dns.CNAME, parameters, eTag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -116,23 +110,23 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 
 	result, err := dnsClient.Get(resGroup, zoneName, name, dns.CNAME)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS CNAME record %s: %v", name, err)
+		return fmt.Errorf("Error reading DNS CNAME record %s: %+v", name, err)
 	}
 	if result.Response.StatusCode == http.StatusNotFound {
 		d.SetId("")
 		return nil
 	}
 
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("zone_name", zoneName)
+	d.Set("ttl", result.TTL)
+
 	if props := result.RecordSetProperties; props != nil {
 		if record := props.CnameRecord; record != nil {
 			d.Set("record", record.Cname)
 		}
 	}
-
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
-	d.Set("ttl", result.TTL)
 
 	flattenAndSetTags(d, result.Metadata)
 
@@ -153,7 +147,7 @@ func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) e
 
 	resp, error := dnsClient.Delete(resGroup, zoneName, name, dns.CNAME, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS CNAME Record %s: %s", name, error)
+		return fmt.Errorf("Error deleting DNS CNAME Record %s: %+v", name, error)
 	}
 
 	return nil
