@@ -1,4 +1,9 @@
 ## 0.1.4 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_dns_*` - upgrading to version `2016-04-01` of the Azure DNS API by switching from Riviera -> Azure SDK for Go [GH-192]
+
 ## 0.1.3 (July 21, 2017)
 
 FEATURES:
