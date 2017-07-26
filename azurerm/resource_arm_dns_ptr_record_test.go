@@ -162,7 +162,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com"]
 }
 `, rInt)
@@ -184,7 +184,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com", "reddit.com"]
 }
 `, rInt)
@@ -206,7 +206,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com"]
 
     tags {
@@ -233,7 +233,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com"]
 
     tags {

@@ -161,7 +161,7 @@ resource "azurerm_dns_srv_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
 
     record {
 	priority = 1
@@ -195,7 +195,7 @@ resource "azurerm_dns_srv_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
 
     record {
 	priority = 1
@@ -237,7 +237,7 @@ resource "azurerm_dns_srv_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
 
     record {
 	priority = 1
@@ -277,7 +277,7 @@ resource "azurerm_dns_srv_record" "test" {
     name = "myarecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
 
     record {
 	priority = 1

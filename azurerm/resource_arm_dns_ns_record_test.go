@@ -161,7 +161,7 @@ resource "azurerm_dns_ns_record" "test" {
     name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
 
     record {
     	nsdname = "ns1.contoso.com"
@@ -190,7 +190,7 @@ resource "azurerm_dns_ns_record" "test" {
     name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
 
     record {
     	nsdname = "ns1.contoso.com"
@@ -223,7 +223,7 @@ resource "azurerm_dns_ns_record" "test" {
     name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
 
     record {
     	nsdname = "ns1.contoso.com"
@@ -257,7 +257,7 @@ resource "azurerm_dns_ns_record" "test" {
     name = "mynsrecord%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     record {
     	nsdname = "ns1.contoso.com"
     }
