@@ -2,8 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	"time"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -148,14 +148,14 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
-				PreventPostDestroyRefresh : true,
+				PreventPostDestroyRefresh: true,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
 				),
 			},
 			{
-				PreConfig: func()  {time.Sleep(timeToRestore.Sub(time.Now().Add(-1 * time.Minute)))},
-				Config: postCongif,
+				PreConfig: func() { time.Sleep(timeToRestore.Sub(time.Now().Add(-1 * time.Minute))) },
+				Config:    postCongif,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test_restore"),
