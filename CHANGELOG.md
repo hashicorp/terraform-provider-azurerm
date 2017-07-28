@@ -1,4 +1,9 @@
 ## 0.1.5 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_sql_*` - upgrading to version `2014-04-01` of the DNS API's [GH-201]
+
 ## 0.1.4 (July 26, 2017)
 
 BUG FIXES:
