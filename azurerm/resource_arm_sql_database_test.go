@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/sql"
 )
 
 func TestResourceAzureRMSqlDatabaseEdition_validation(t *testing.T) {
@@ -136,23 +136,27 @@ func TestAccAzureRMSqlDatabase_datawarehouse(t *testing.T) {
 
 func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
+		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetDatabase{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetDatabase: %s", err)
+		name := rs.Primary.Attributes["name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for SQL Database: %s", name)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetDatabase: %s", readResponse.Error)
+
+		conn := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		resp, err := conn.Get(resourceGroup, serverName, name, "")
+		if err != nil {
+			return fmt.Errorf("Bad: Get SQL Database: %v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: SQL Database %s (resource group: %s) does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -160,24 +164,27 @@ func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+	conn := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sql_database" {
+		if rs.Type != "azurerm_sql_database_record" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetDatabase{}
+		name := rs.Primary.Attributes["name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, serverName, name, "")
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetDatabase: %s", err)
+			return nil
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: SQL Database still exists: %s", readResponse.Error)
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("SQL Database still exists:\n%#v", resp.DatabaseProperties)
 		}
+
 	}
 
 	return nil
