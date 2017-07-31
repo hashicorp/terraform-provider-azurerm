@@ -260,7 +260,7 @@ For more information on the different example configurations, please check out t
 
 `storage_image_reference` supports the following:
 
-* `image_id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
 machine, for example:
 
 ```hcl
@@ -275,7 +275,7 @@ resource "azurerm_virtual_machine" "test" {
   ...
 
 	storage_image_reference {
-		image_id = "${azurerm_image.test.id}"
+		id = "${azurerm_image.test.id}"
 	}
 
 ...
