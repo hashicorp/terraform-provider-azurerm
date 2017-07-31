@@ -347,7 +347,7 @@ The following arguments are supported:
 `storage_profile_image_reference` supports the following:
 
 * `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
-machine scale set, as in the [example below](#example-of-storage-profile_image_reference-with-id).
+machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
 * `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines
 * `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
 * `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
