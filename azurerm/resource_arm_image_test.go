@@ -295,7 +295,7 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 
 		resp, err := vmssClient.Get(resourceGroup, vmssName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on vmssClient: %s", err)
+			return fmt.Errorf("Bad: Get on vmssClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound && shouldExist {

@@ -1366,16 +1366,13 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.R
 		sku := storageImageRef["sku"].(string)
 		version := storageImageRef["version"].(string)
 
-		imageReference = compute.ImageReference{
-			Publisher: &publisher,
-			Offer:     &offer,
-			Sku:       &sku,
-			Version:   &version,
-		}
+		imageReference.Publisher = &publisher
+		imageReference.Offer = &offer
+		imageReference.Sku = &sku
+		imageReference.Version = &version
 	}
 
 	return &imageReference, nil
-
 }
 
 func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *schema.ResourceData) (*compute.LinuxConfiguration, error) {
