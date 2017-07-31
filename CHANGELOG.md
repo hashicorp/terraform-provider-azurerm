@@ -2,7 +2,11 @@
 
 IMPROVEMENTS:
 
-* `azurerm_sql_*` - upgrading to version `2014-04-01` of the DNS API's [GH-201]
+* `azurerm_sql_*` - upgrading to version `2014-04-01` of the SQL API's [GH-201]
+
+BUG FIXES:
+
+* `azurerm_sql_database` - fixing creating a DB with a PointInTimeRestore [GH-197]
 
 ## 0.1.4 (July 26, 2017)
 
