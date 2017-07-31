@@ -117,6 +117,40 @@ func TestAccAzureRMImage_customImageVMFromVM(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
+	ri := acctest.RandInt()
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
+	sshPort := "22"
+	preConfig := testAccAzureRMImageVMSS_customImage_fromVHD_setup(ri, userName, password, hostName)
+	postConfig := testAccAzureRMImageVMSS_customImage_fromVHD_provision(ri, userName, password, hostName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMImageDestroy,
+		Steps: []resource.TestStep{
+			resource.TestStep{
+				//need to create a vm and then reference it in the image creation
+				Config:  preConfig,
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%[1]d", ri), "testsource",
+						userName, password, hostName, sshPort),
+				),
+			},
+			resource.TestStep{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMSSExists("azurerm_virtual_machine_scale_set.testdestination", true),
+				),
+			},
+		},
+	})
+}
+
 func testGeneralizeVMImage(groupName string, vmName string, userName string, password string, hostName string, port string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		vmClient := testAccProvider.Meta().(*ArmClient).vmClient
@@ -238,6 +272,40 @@ func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestChec
 		}
 
 		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - END.")
+
+		return nil
+	}
+}
+
+func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
+
+		vmssClient := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+		vmRs, vmOk := s.RootModule().Resources[sourceVMSS]
+		if !vmOk {
+			return fmt.Errorf("VMSS Not found: %s", sourceVMSS)
+		}
+		vmssName := vmRs.Primary.Attributes["name"]
+
+		resourceGroup, hasResourceGroup := vmRs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for VMSS: %s", vmssName)
+		}
+
+		resp, err := vmssClient.Get(resourceGroup, vmssName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on vmssClient: %s", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound && shouldExist {
+			return fmt.Errorf("Bad: VMSS %q (resource group %q) does not exist", vmssName, resourceGroup)
+		}
+		if resp.StatusCode != http.StatusNotFound && !shouldExist {
+			return fmt.Errorf("Bad: VMSS %q (resource group %q) still exists", vmssName, resourceGroup)
+		}
+
+		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - END.")
 
 		return nil
 	}
@@ -962,6 +1030,262 @@ resource "azurerm_virtual_machine" "testdestination" {
     	environment = "Dev"
     	cost-center = "Ops"
     }
+}
+`, rInt, userName, password, hostName)
+}
+
+func testAccAzureRMImageVMSS_customImage_fromVHD_setup(rInt int, userName string, password string, hostName string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%[1]d"
+    location = "West US"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctvn-%[1]d"
+    address_space = ["10.0.0.0/16"]
+    location = "West US"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+    name = "acctsub-%[1]d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                         = "acctpip-%[1]d"
+  location                     = "West US"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
+  domain_name_label            = "%[4]s"
+}
+
+resource "azurerm_network_interface" "testsource" {
+    name = "acctnicsource-%[1]d"
+    location = "West US"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    ip_configuration {
+    	name = "testconfigurationsource"
+    	subnet_id = "${azurerm_subnet.test.id}"
+    	private_ip_address_allocation = "dynamic"
+	    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    }
+}
+
+resource "azurerm_storage_account" "test" {
+    name = "accsa%[1]d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "West US"
+    account_type = "Standard_LRS"
+
+    tags {
+        environment = "Dev"
+    }
+}
+
+resource "azurerm_storage_container" "test" {
+    name = "vhds"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    storage_account_name = "${azurerm_storage_account.test.name}"
+    container_access_type = "blob"
+}
+
+resource "azurerm_virtual_machine" "testsource" {
+    name = "testsource"
+    location = "West US"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
+    vm_size = "Standard_D1_v2"
+
+    storage_image_reference {
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
+    }
+
+    storage_os_disk {
+        name = "myosdisk1"
+        vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+        caching = "ReadWrite"
+        create_option = "FromImage"
+        disk_size_gb = "30"
+    }
+
+    os_profile {
+		computer_name = "mdimagetestsource"
+		admin_username = "%[2]s"
+		admin_password = "%[3]s"
+    }
+
+    os_profile_linux_config {
+		disable_password_authentication = false
+    }
+
+    tags {
+    	environment = "Dev"
+    	cost-center = "Ops"
+    }
+}
+`, rInt, userName, password, hostName)
+}
+
+func testAccAzureRMImageVMSS_customImage_fromVHD_provision(rInt int, userName string, password string, hostName string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name = "acctestRG-%[1]d"
+	location = "West US"
+}
+
+resource "azurerm_virtual_network" "test" {
+	name = "acctvn-%[1]d"
+	address_space = ["10.0.0.0/16"]
+	location = "West US"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+	name = "acctsub-%[1]d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+	name                         = "acctpip-%[1]d"
+	location                     = "West US"
+	resource_group_name          = "${azurerm_resource_group.test.name}"
+	public_ip_address_allocation = "Dynamic"
+	domain_name_label            = "%[4]s"
+}
+
+resource "azurerm_network_interface" "testsource" {
+	name = "acctnicsource-%[1]d"
+	location = "West US"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+
+	ip_configuration {
+		name = "testconfigurationsource"
+		subnet_id = "${azurerm_subnet.test.id}"
+		private_ip_address_allocation = "dynamic"
+		public_ip_address_id          = "${azurerm_public_ip.test.id}"
+	}
+}
+
+resource "azurerm_storage_account" "test" {
+	name = "accsa%[1]d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	location = "West US"
+	account_type = "Standard_LRS"
+
+	tags {
+		environment = "Dev"
+	}
+}
+
+resource "azurerm_storage_container" "test" {
+	name = "vhds"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	storage_account_name = "${azurerm_storage_account.test.name}"
+	container_access_type = "blob"
+}
+
+resource "azurerm_virtual_machine" "testsource" {
+	name = "testsource"
+	location = "West US"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
+	vm_size = "Standard_D1_v2"
+
+	storage_image_reference {
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
+	}
+
+	storage_os_disk {
+		name = "myosdisk1"
+		vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+		caching = "ReadWrite"
+		create_option = "FromImage"
+		disk_size_gb = "45"
+	}
+
+	os_profile {
+		computer_name = "mdimagetestsource"
+		admin_username = "%[2]s"
+		admin_password = "%[3]s"
+	}
+
+	os_profile_linux_config {
+		disable_password_authentication = false
+	}
+
+	tags {
+		environment = "Dev"
+		cost-center = "Ops"
+	}
+}
+
+resource "azurerm_image" "testdestination" {
+	name = "accteste"
+	location = "West US"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	os_disk {
+		os_type = "Linux"
+		os_state = "Generalized"
+		blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+		size_gb = 30
+		caching = "None"
+	}
+
+	tags {
+		environment = "Dev"
+		cost-center = "Ops"
+	}
+}
+
+resource "azurerm_virtual_machine_scale_set" "testdestination" {
+  name = "testdestination"
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name = "Standard_D1_v2"
+    tier = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm%[1]d"
+	admin_username = "%[2]s"
+	admin_password = "%[3]s"
+  }
+
+  network_profile {
+      name = "TestNetworkProfile%[1]d"
+      primary = true
+      ip_configuration {
+        name = "TestIPConfiguration"
+        subnet_id = "${azurerm_subnet.test.id}"
+      }
+  }
+
+  storage_profile_os_disk {
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+	id = "${azurerm_image.testdestination.id}"		
+  }
 }
 `, rInt, userName, password, hostName)
 }
