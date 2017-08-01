@@ -37,7 +37,6 @@ func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 			},
 		},
@@ -66,7 +65,6 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 				Destroy: false,
 			},
@@ -79,7 +77,6 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-2"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 			},
 		},
@@ -109,7 +106,6 @@ func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
 					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned("azurerm_application_gateway.test", "auth-1"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 			},
 		},
@@ -139,7 +135,6 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
 					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned("azurerm_application_gateway.test", "auth-1"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 				Destroy: false,
 			},
@@ -153,7 +148,6 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
 					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned("azurerm_application_gateway.test", "auth-2"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 			},
 		},
@@ -182,7 +176,6 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 			},
 		},
