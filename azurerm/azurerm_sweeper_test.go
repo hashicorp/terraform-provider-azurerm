@@ -44,7 +44,7 @@ func buildConfigForSweepers() (*ArmClient, error) {
 func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {
 	loweredName := strings.ToLower(name)
 
-	prefixesToIgnore := []string { "acctest" }
+	prefixesToIgnore := []string{"acctest"}
 
 	for _, prefix := range prefixesToIgnore {
 		if !strings.HasPrefix(loweredName, prefix) {

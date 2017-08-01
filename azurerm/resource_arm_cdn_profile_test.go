@@ -47,7 +47,7 @@ func testSweepCDNProfiles(region string) error {
 
 		log.Printf("Deleting CDN Profile '%s' in Resource Group '%s'", name, resourceGroup)
 		_, error := client.Delete(resourceGroup, name, make(chan struct{}))
-		err = <- error
+		err = <-error
 		if err != nil {
 			return err
 		}
