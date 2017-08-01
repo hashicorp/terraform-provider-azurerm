@@ -19,7 +19,7 @@ func init() {
 }
 
 func testSweepCDNProfiles(region string) error {
-	armClient, err := sharedConfigForRegion(region)
+	armClient, err := buildConfigForSweepers()
 	if err != nil {
 		return err
 	}

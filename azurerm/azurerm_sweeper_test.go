@@ -14,7 +14,7 @@ func TestMain(m *testing.M) {
 	resource.TestMain(m)
 }
 
-func sharedConfigForRegion(region string) (*ArmClient, error) {
+func buildConfigForSweepers() (*ArmClient, error) {
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	clientID := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
