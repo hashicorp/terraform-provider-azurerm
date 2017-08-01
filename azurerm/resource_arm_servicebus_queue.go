@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -190,11 +189,11 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(resGroup, namespaceName, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue %s: %s", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", resp.Name)

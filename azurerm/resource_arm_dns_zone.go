@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -97,11 +96,11 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := zonesClient.Get(resGroup, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading DNS zone %s (resource group %s): %+v", name, resGroup, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", name)

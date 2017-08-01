@@ -2,11 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"net/http"
-	"testing"
 )
 
 func TestAccAzureRMSqlElasticPool_basic(t *testing.T) {

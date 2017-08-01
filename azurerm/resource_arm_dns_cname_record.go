@@ -108,27 +108,27 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["CNAME"]
 	zoneName := id.Path["dnszones"]
 
-	result, err := dnsClient.Get(resGroup, zoneName, name, dns.CNAME)
+	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.CNAME)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading DNS CNAME record %s: %+v", name, err)
-	}
-	if result.Response.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
-	d.Set("ttl", result.TTL)
+	d.Set("ttl", resp.TTL)
 
-	if props := result.RecordSetProperties; props != nil {
+	if props := resp.RecordSetProperties; props != nil {
 		if record := props.CnameRecord; record != nil {
 			d.Set("record", record.Cname)
 		}
 	}
 
-	flattenAndSetTags(d, result.Metadata)
+	flattenAndSetTags(d, resp.Metadata)
 
 	return nil
 }

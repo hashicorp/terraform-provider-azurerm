@@ -112,11 +112,11 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 
 	resp, err := client.Get(resGroup, zoneName, name, dns.TXT)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading DNS TXT record %s: %+v", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", name)
