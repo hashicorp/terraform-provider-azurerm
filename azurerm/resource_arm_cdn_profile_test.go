@@ -33,6 +33,10 @@ func testSweepCDNProfiles(region string) error {
 	}
 
 	for _, profile := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+			continue
+		}
+
 		resourceId, err := parseAzureResourceID(*profile.ID)
 		if err != nil {
 			return err
@@ -40,16 +44,6 @@ func testSweepCDNProfiles(region string) error {
 
 		resourceGroup := resourceId.ResourceGroup
 		name := resourceId.Path["profiles"]
-
-		if !resourceLocatedInRegion(*profile.Location, region) {
-			log.Printf("Region '%s' isn't '%s' - skipping", *profile.Location, region)
-			continue
-		}
-
-		if !shouldSweepAcceptanceTestResource(*profile.Name) {
-			log.Printf("Ignoring Resource '%s'", profile.Name)
-			continue
-		}
 
 		log.Printf("Deleting CDN Profile '%s' in Resource Group '%s'", name, resourceGroup)
 		_, error := client.Delete(resourceGroup, name, make(chan struct{}))

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"testing"
@@ -40,13 +41,25 @@ func sharedConfigForRegion(region string) (*ArmClient, error) {
 	return config.getArmClient()
 }
 
-func shouldSweepAcceptanceTestResource(name string) bool {
+func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {
 	loweredName := strings.ToLower(name)
-	return strings.HasPrefix(loweredName, "acctest")
-}
 
-func resourceLocatedInRegion(resourceLocation string, region string) bool {
+	prefixesToIgnore := []string { "acctest" }
+
+	for _, prefix := range prefixesToIgnore {
+		if !strings.HasPrefix(loweredName, prefix) {
+			log.Printf("Ignoring Resource '%s' due to prefix '%s'", name, prefix)
+			return false
+		}
+	}
+
 	normalisedResourceLocation := azureRMNormalizeLocation(resourceLocation)
 	normalisedRegion := azureRMNormalizeLocation(region)
-	return normalisedResourceLocation == normalisedRegion
+
+	if normalisedResourceLocation != normalisedRegion {
+		log.Printf("Region '%s' isn't '%s' - skipping", normalisedResourceLocation, normalisedRegion)
+		return false
+	}
+
+	return true
 }
