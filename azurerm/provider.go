@@ -70,13 +70,14 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			// These resources use the Azure ARM SDK
-			"azurerm_availability_set":   resourceArmAvailabilitySet(),
-			"azurerm_cdn_endpoint":       resourceArmCdnEndpoint(),
-			"azurerm_cdn_profile":        resourceArmCdnProfile(),
-			"azurerm_container_registry": resourceArmContainerRegistry(),
-			"azurerm_container_service":  resourceArmContainerService(),
-			"azurerm_cosmosdb_account":   resourceArmCosmosDBAccount(),
-			"azurerm_dns_ptr_record":     resourceArmDnsPtrRecord(),
+			"azurerm_application_gateway": resourceArmApplicationGateway(),
+			"azurerm_availability_set":    resourceArmAvailabilitySet(),
+			"azurerm_cdn_endpoint":        resourceArmCdnEndpoint(),
+			"azurerm_cdn_profile":         resourceArmCdnProfile(),
+			"azurerm_container_registry":  resourceArmContainerRegistry(),
+			"azurerm_container_service":   resourceArmContainerService(),
+			"azurerm_cosmosdb_account":    resourceArmCosmosDBAccount(),
+			"azurerm_dns_ptr_record":      resourceArmDnsPtrRecord(),
 
 			"azurerm_eventhub":                    resourceArmEventHub(),
 			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),

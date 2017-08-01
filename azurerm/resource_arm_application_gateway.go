@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 	"path"
-	"time"
+	//	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/errwrap"
@@ -140,7 +140,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"gateway_ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -164,7 +163,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"frontend_port": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -236,7 +234,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 			"backend_address_pool": {
 				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -743,17 +740,6 @@ func resourceArmApplicationGatewayCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*read.ID)
 
-	log.Printf("[DEBUG] Waiting for ApplicationGateway (%s) to become available", name)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating"},
-		Target:  []string{"Succeeded"},
-		Refresh: ApplicationGatewayStateRefreshFunc(meta.(*ArmClient), resGroup, name),
-		Timeout: 60 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for ApplicationGateway (%s) to become available: %s", name, err)
-	}
-
 	return resourceArmApplicationGatewayRead(d, meta)
 }
 
@@ -844,7 +830,7 @@ func retrieveApplicationGatewayById(ApplicationGatewayID string, meta interface{
 		if resp.StatusCode == http.StatusNotFound {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("Error making Read request on Azure ApplicationGateway %s: %s", name, err)
+		return nil, false, fmt.Errorf("Error making Read request on Azure ApplicationGateway %s: %+v", name, err)
 	}
 
 	return &resp, true, nil
@@ -855,7 +841,7 @@ func ApplicationGatewayStateRefreshFunc(client *ArmClient, resourceGroupName str
 		res, err := client.applicationGatewayClient.Get(resourceGroupName, name)
 		if err != nil {
 			return nil, "", fmt.Errorf(
-				"Error issuing read request in ApplicationGatewayStateRefreshFunc to Azure ARM for ApplicationGateway '%s' (RG: '%s'): %s",
+				"Error issuing read request in ApplicationGatewayStateRefreshFunc to Azure ARM for ApplicationGateway '%s' (RG: '%s'): %+v",
 				name, resourceGroupName, err)
 		}
 
@@ -884,10 +870,14 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 
 	enabled := waf["enabled"].(bool)
 	mode := waf["firewall_mode"].(string)
+	rulesettype := waf["rule_set_type"].(string)
+	rulesetversion := waf["rule_set_version"].(string)
 
 	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:      &enabled,
-		FirewallMode: network.ApplicationGatewayFirewallMode(mode),
+		Enabled:        &enabled,
+		FirewallMode:   network.ApplicationGatewayFirewallMode(mode),
+		RuleSetType:    &rulesettype,
+		RuleSetVersion: &rulesetversion,
 	}
 }
 
@@ -1344,6 +1334,8 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 
 	result["enabled"] = *waf.Enabled
 	result["firewall_mode"] = string(waf.FirewallMode)
+	result["rule_set_type"] = waf.RuleSetType
+	result["rule_set_version"] = waf.RuleSetVersion
 
 	return []interface{}{result}
 }
@@ -1669,6 +1661,8 @@ func hashApplicationGatewayWafConfig(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%t-", m["enabled"].(bool)))
 	buf.WriteString(fmt.Sprintf("%s-", m["firewall_mode"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["rule_set_type"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["rule_set_version"].(string)))
 
 	return hashcode.String(buf.String())
 }
