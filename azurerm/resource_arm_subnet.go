@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -154,7 +153,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := subnetClient.Get(resGroup, vnetName, name, "")
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

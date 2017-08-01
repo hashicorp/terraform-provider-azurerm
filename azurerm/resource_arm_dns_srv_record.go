@@ -130,11 +130,11 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 
 	resp, err := client.Get(resGroup, zoneName, name, dns.SRV)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading DNS SRV record %s: %v", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", name)

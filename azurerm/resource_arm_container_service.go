@@ -268,11 +268,12 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := containerServiceClient.Get(resGroup, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("Error making Read request on Azure Container Service %s: %s", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", resp.Name)
