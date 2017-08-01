@@ -16,12 +16,12 @@ func TestResponseNotFound_DroppedConnection(t *testing.T) {
 
 func TestResponseNotFound_StatusCodes(t *testing.T) {
 	testCases := []struct {
-		statusCode int
+		statusCode     int
 		expectedResult bool
 	}{
-		{ http.StatusOK, false, },
-		{ http.StatusInternalServerError, false },
-		{ http.StatusNotFound, true },
+		{http.StatusOK, false},
+		{http.StatusInternalServerError, false},
+		{http.StatusNotFound, true},
 	}
 
 	for _, test := range testCases {
