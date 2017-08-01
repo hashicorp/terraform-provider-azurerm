@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
 
@@ -9,6 +10,51 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_cdn_profile", &resource.Sweeper{
+		Name: "azurerm_cdn_profile",
+		F:    testSweepCDNProfiles,
+	})
+}
+
+func testSweepCDNProfiles(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).cdnProfilesClient
+
+	log.Printf("Retrieving the CDN Profiles..")
+	results, err := client.List()
+	if err != nil {
+		return fmt.Errorf("Error Listing on CDN Profiles: %+v", err)
+	}
+
+	for _, profile := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+			continue
+		}
+
+		resourceId, err := parseAzureResourceID(*profile.ID)
+		if err != nil {
+			return err
+		}
+
+		resourceGroup := resourceId.ResourceGroup
+		name := resourceId.Path["profiles"]
+
+		log.Printf("Deleting CDN Profile '%s' in Resource Group '%s'", name, resourceGroup)
+		_, error := client.Delete(resourceGroup, name, make(chan struct{}))
+		err = <-error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestResourceAzureRMCdnProfileSKU_validation(t *testing.T) {
 	cases := []struct {
