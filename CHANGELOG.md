@@ -7,6 +7,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_sql_database` - fixing creating a DB with a PointInTimeRestore [GH-197]
+* Checking to ensure the HTTP Response isn't `nil` before accessing it (fixes [GH-200]) [GH-204]
 
 ## 0.1.4 (July 26, 2017)
 
