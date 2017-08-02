@@ -397,31 +397,26 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 
 						"publisher": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 
 						"offer": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 
 						"sku": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 
 						"version": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 						},
 					},
 				},
