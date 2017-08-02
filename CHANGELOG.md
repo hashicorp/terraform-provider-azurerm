@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_sql_*` - upgrading to version `2014-04-01` of the SQL API's [GH-201]
+* `azurerm_virtual_machine_scale_set` - support for custom images and managed disks [GH-203]
 
 BUG FIXES:
 
