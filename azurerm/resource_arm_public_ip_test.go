@@ -187,7 +187,7 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 
 	ri := acctest.RandInt()
 	preConfig := fmt.Sprintf(testAccAzureRMVPublicIpStatic_basic, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVPublicIpStatic_update, ri, ri)
+	postConfig := fmt.Sprintf(testAccAzureRMVPublicIpStatic_update, ri, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -206,7 +206,7 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
 					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test", "domain_name_label", "mylabel01"),
+						"azurerm_public_ip.test", "domain_name_label", fmt.Sprintf("acctest-%d", ri)),
 				),
 			},
 		},
@@ -336,7 +336,7 @@ resource "azurerm_public_ip" "test" {
     location = "West US"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
-    domain_name_label = "mylabel01"
+    domain_name_label = "acctest-%d"
 }
 `
 
