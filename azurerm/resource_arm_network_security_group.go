@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -194,7 +193,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 
 	resp, err := secGroupClient.Get(resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

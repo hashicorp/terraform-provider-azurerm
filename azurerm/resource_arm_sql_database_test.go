@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -128,6 +129,36 @@ func TestAccAzureRMSqlDatabase_datawarehouse(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
+	ri := acctest.RandInt()
+	preConfig := fmt.Sprintf(testAccAzureRMSqlDatabase_basic, ri, ri, ri)
+	timeToRestore := time.Now().Add(15 * time.Minute)
+	postCongif := fmt.Sprintf(testAccAzureRMSqlDatabase_restorePointInTime, ri, ri, ri, ri, string(timeToRestore.UTC().Format(time.RFC3339)))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				PreventPostDestroyRefresh: true,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+				),
+			},
+			{
+				PreConfig: func() { time.Sleep(timeToRestore.Sub(time.Now().Add(-1 * time.Minute))) },
+				Config:    postCongif,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test_restore"),
 				),
 			},
 		},
@@ -330,5 +361,41 @@ resource "azurerm_sql_database" "test" {
     edition = "DataWarehouse"
     collation = "SQL_Latin1_General_CP1_CI_AS"
     requested_service_objective_name = "DW400"
+}
+`
+
+var testAccAzureRMSqlDatabase_restorePointInTime = `
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG_%d"
+    location = "West US"
+}
+resource "azurerm_sql_server" "test" {
+    name = "acctestsqlserver%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "West US"
+    version = "12.0"
+    administrator_login = "mradministrator"
+    administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+    name = "acctestdb%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    server_name = "${azurerm_sql_server.test.name}"
+    location = "West US"
+    edition = "Standard"
+    collation = "SQL_Latin1_General_CP1_CI_AS"
+    max_size_bytes = "1073741824"
+    requested_service_objective_name = "S0"
+}
+
+resource "azurerm_sql_database" "test_restore" {
+    name = "acctestdb_restore%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    server_name = "${azurerm_sql_server.test.name}"
+    location = "West US"
+    create_mode = "PointInTimeRestore"
+    source_database_id = "${azurerm_sql_database.test.id}"
+    restore_point_in_time = "%s"
 }
 `

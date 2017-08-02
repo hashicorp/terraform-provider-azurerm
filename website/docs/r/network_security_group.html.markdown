@@ -6,7 +6,7 @@ description: |-
   Create a network security group that contains a list of network security rules. Network security groups enable inbound or outbound traffic to be enabled or denied.
 ---
 
-# azurerm\_security\_group
+# azurerm\_network\_security\_group
 
 Create a network security group that contains a list of network security rules.
 

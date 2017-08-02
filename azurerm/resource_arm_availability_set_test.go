@@ -11,23 +11,21 @@ import (
 )
 
 func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
-
+	resourceName := "azurerm_availability_set.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVAvailabilitySet_basic, ri, ri)
+	config := testAccAzureRMAvailabilitySet_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists("azurerm_availability_set.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "platform_update_domain_count", "5"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "platform_fault_domain_count", "3"),
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "5"),
+					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
 				),
 			},
 		},
@@ -35,24 +33,22 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
-
+	resourceName := "azurerm_availability_set.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVAvailabilitySet_basic, ri, ri)
+	config := testAccAzureRMAvailabilitySet_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists("azurerm_availability_set.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "platform_update_domain_count", "5"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "platform_fault_domain_count", "3"),
-					testCheckAzureRMAvailabilitySetDisappears("azurerm_availability_set.test"),
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "5"),
+					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "3"),
+					testCheckAzureRMAvailabilitySetDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -61,37 +57,31 @@ func TestAccAzureRMAvailabilitySet_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
-
+	resourceName := "azurerm_availability_set.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVAvailabilitySet_withTags, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVAvailabilitySet_withUpdatedTags, ri, ri)
+	preConfig := testAccAzureRMAvailabilitySet_withTags(ri)
+	postConfig := testAccAzureRMAvailabilitySet_withUpdatedTags(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists("azurerm_availability_set.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists("azurerm_availability_set.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "tags.environment", "staging"),
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -99,23 +89,21 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
-
+	resourceName := "azurerm_availability_set.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVAvailabilitySet_withDomainCounts, ri, ri)
+	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists("azurerm_availability_set.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "platform_update_domain_count", "10"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "platform_fault_domain_count", "1"),
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "platform_update_domain_count", "10"),
+					resource.TestCheckResourceAttr(resourceName, "platform_fault_domain_count", "1"),
 				),
 			},
 		},
@@ -123,20 +111,20 @@ func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 }
 
 func TestAccAzureRMAvailabilitySet_managed(t *testing.T) {
+	resourceName := "azurerm_availability_set.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVAvailabilitySet_managed, ri, ri)
+	config := testAccAzureRMAvailabilitySet_managed(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAvailabilitySetExists("azurerm_availability_set.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_availability_set.test", "managed", "true"),
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "managed", "true"),
 				),
 			},
 		},
@@ -190,7 +178,7 @@ func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFu
 
 		_, err := conn.Delete(resourceGroup, availSetName)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on availSetClient: %s", err)
+			return fmt.Errorf("Bad: Delete on availSetClient: %+v", err)
 		}
 
 		return nil
@@ -222,26 +210,31 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMVAvailabilitySet_basic = `
+func testAccAzureRMAvailabilitySet_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
 }
+
 resource "azurerm_availability_set" "test" {
     name = "acctestavset-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMVAvailabilitySet_withTags = `
+func testAccAzureRMAvailabilitySet_withTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
 }
+
 resource "azurerm_availability_set" "test" {
     name = "acctestavset-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     tags {
@@ -249,49 +242,59 @@ resource "azurerm_availability_set" "test" {
        cost_center = "MSFT"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMVAvailabilitySet_withUpdatedTags = `
+func testAccAzureRMAvailabilitySet_withUpdatedTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
 }
+
 resource "azurerm_availability_set" "test" {
     name = "acctestavset-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     tags {
        environment = "staging"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMVAvailabilitySet_withDomainCounts = `
+func testAccAzureRMAvailabilitySet_withDomainCounts(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
 }
+
 resource "azurerm_availability_set" "test" {
     name = "acctestavset-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     platform_update_domain_count = 10
     platform_fault_domain_count = 1
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMVAvailabilitySet_managed = `
+func testAccAzureRMAvailabilitySet_managed(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "West US"
 }
+
 resource "azurerm_availability_set" "test" {
     name = "acctestavset-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     platform_update_domain_count = 10
     platform_fault_domain_count = 1
     managed = true
 }
-`
+`, rInt, rInt)
+}

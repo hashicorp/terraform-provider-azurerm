@@ -26,4 +26,4 @@ If you are committing this template to source control, please insure that you ad
 ## variables.tf
 The `variables.tf` file contains all of the input parameters that the user can specify when deploying this Terraform template.
 
-![`terraform graph`](/examples/azure-traffic-manager-vm/graph.png)
+![`terraform graph`](graph.png)

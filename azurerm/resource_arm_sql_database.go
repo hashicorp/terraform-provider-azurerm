@@ -166,6 +166,10 @@ func resourceArmSqlDatabaseCreate(d *schema.ResourceData, meta interface{}) erro
 		command.RequestedServiceObjectiveName = azure.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("restore_point_in_time"); ok {
+		command.RestorePointInTime = azure.String(v.(string))
+	}
+
 	createRequest := rivieraClient.NewRequest()
 	createRequest.Command = command
 

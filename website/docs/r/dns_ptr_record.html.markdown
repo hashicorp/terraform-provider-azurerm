@@ -27,7 +27,7 @@ resource "azurerm_dns_ptr_record" "test" {
   name                = "test"
   zone_name           = "${azurerm_dns_zone.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  ttl                 = "300"
+  ttl                 = 300
   records             = ["yourdomain.com"]
 }
 ```
@@ -53,8 +53,6 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The DNS PTR Record ID.
-
-* `etag` - The etag of the record set.
 
 ## Import
 

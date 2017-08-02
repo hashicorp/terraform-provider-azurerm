@@ -32,4 +32,4 @@ If a `terraform.tfvars` or any `.auto.tfvars` files are present in the current d
 ## variables.tf
 The `variables.tf` file contains all of the input parameters that the user can specify when deploying this Terraform template.
 
-![graph](/examples/azure-vm-specialized-vhd-existing-vnet/graph.png)
+![graph](graph.png)

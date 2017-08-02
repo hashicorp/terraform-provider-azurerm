@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
@@ -610,7 +609,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	resp, err := vmScaleSetClient.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			log.Printf("[INFO] AzureRM Virtual Machine Scale Set (%s) Not Found. Removing from State", name)
 			d.SetId("")
 			return nil

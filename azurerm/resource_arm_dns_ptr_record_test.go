@@ -133,13 +133,14 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, zoneName, ptrName, dns.PTR)
 
 		if err != nil {
-			return nil
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("DNS PTR record still exists:\n%#v", resp.RecordSetProperties)
-		}
-
+		return fmt.Errorf("DNS PTR record still exists:\n%#v", resp)
 	}
 
 	return nil
@@ -151,6 +152,7 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG_%[1]d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -160,7 +162,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com"]
 }
 `, rInt)
@@ -172,6 +174,7 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG_%[1]d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -181,7 +184,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com", "reddit.com"]
 }
 `, rInt)
@@ -193,6 +196,7 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG_%[1]d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -202,7 +206,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com"]
 
     tags {
@@ -219,6 +223,7 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG_%[1]d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%[1]d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -228,7 +233,7 @@ resource "azurerm_dns_ptr_record" "test" {
     name = "testptrrecord%[1]d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = "300"
+    ttl = 300
     records = ["hashicorp.com", "microsoft.com"]
 
     tags {

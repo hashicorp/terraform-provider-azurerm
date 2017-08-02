@@ -3,8 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
-
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
@@ -100,7 +98,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := cdnProfilesClient.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

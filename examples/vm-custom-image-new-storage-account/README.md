@@ -20,4 +20,4 @@ The process of this template is:
 * A preexisting generalized (sysprepped) Windows image. For more information on how to create custom Windows images, please refer to [How to capture a Windows virtual machine in the Resource Manager deployment model](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-windows-capture-image/) article.
 * Source image blob full URL. e.g. https://pmcstorage01.blob.core.windows.net/images/images/Win10MasterImage-osDisk.72451a98-4c26-4375-90c5-0a940dd56bab.vhd. Note that container name always comes after  https://pmcstorage01.blob.core.windows.net, in this example it is images. The actual blob name is **images/Win10MasterImage-osDisk.72451a98-4c26-4375-90c5-0a940dd56bab.vhd**.
 
-![graph](/examples/azure-vm-custom-image-new-storage-account/graph.png)
+![graph](graph.png)

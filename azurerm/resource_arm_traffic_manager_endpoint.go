@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
@@ -156,7 +155,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 
 	resp, err := client.Get(resGroup, profileName, endpointType, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
