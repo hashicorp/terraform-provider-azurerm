@@ -19,9 +19,6 @@ func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	gwID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
-		subscriptionID, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -47,9 +44,6 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	gwID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
-		subscriptionID, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -87,9 +81,6 @@ func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	gwID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
-		subscriptionID, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -116,9 +107,6 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	gwID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
-		subscriptionID, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -158,9 +146,6 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	gwID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
-		subscriptionID, ri, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
