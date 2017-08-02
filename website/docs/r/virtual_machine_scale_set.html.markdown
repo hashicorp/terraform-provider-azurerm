@@ -346,9 +346,11 @@ The following arguments are supported:
 
 `storage_profile_image_reference` supports the following:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
+machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 `extension` supports the following:
@@ -366,6 +368,26 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the image from the marketplace.
 * `publisher` - (Required) Specifies the publisher of the image.
 * `product` - (Required) Specifies the product of the image from the marketplace.
+
+## Example of storage_profile_image_reference with id
+
+```hcl
+
+resource "azurerm_image" "test" {
+	name = "test"
+  ...
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+	name = "test"
+  ...
+
+	storage_image_reference {
+		id = "${azurerm_image.test.id}"
+	}
+
+...
+```
 
 ## Attributes Reference
 

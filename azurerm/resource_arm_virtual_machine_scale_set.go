@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	riviera "github.com/jen20/riviera/azure"
 )
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
@@ -392,24 +393,29 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"publisher": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"offer": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"sku": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"version": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -921,12 +927,23 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]compute
 	return result
 }
 
-func flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(profile *compute.ImageReference) []interface{} {
+func flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(image *compute.ImageReference) []interface{} {
 	result := make(map[string]interface{})
-	result["publisher"] = *profile.Publisher
-	result["offer"] = *profile.Offer
-	result["sku"] = *profile.Sku
-	result["version"] = *profile.Version
+	if image.Publisher != nil {
+		result["publisher"] = *image.Publisher
+	}
+	if image.Offer != nil {
+		result["offer"] = *image.Offer
+	}
+	if image.Sku != nil {
+		result["sku"] = *image.Sku
+	}
+	if image.Version != nil {
+		result["version"] = *image.Version
+	}
+	if image.ID != nil {
+		result["id"] = *image.ID
+	}
 
 	return []interface{}{result}
 }
@@ -979,11 +996,21 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["version"].(string)))
-
+	if m["publisher"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+	}
+	if m["offer"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
+	}
+	if m["sku"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
+	}
+	if m["version"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["version"].(string)))
+	}
+	if m["id"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
+	}
 	return hashcode.String(buf.String())
 }
 
@@ -1317,17 +1344,29 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.R
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
 
+	imageID := storageImageRef["id"].(string)
 	publisher := storageImageRef["publisher"].(string)
-	offer := storageImageRef["offer"].(string)
-	sku := storageImageRef["sku"].(string)
-	version := storageImageRef["version"].(string)
 
-	return &compute.ImageReference{
-		Publisher: &publisher,
-		Offer:     &offer,
-		Sku:       &sku,
-		Version:   &version,
-	}, nil
+	imageReference := compute.ImageReference{}
+
+	if imageID != "" && publisher != "" {
+		return nil, fmt.Errorf("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
+	}
+
+	if imageID != "" {
+		imageReference.ID = riviera.String(storageImageRef["id"].(string))
+	} else {
+		offer := storageImageRef["offer"].(string)
+		sku := storageImageRef["sku"].(string)
+		version := storageImageRef["version"].(string)
+
+		imageReference.Publisher = &publisher
+		imageReference.Offer = &offer
+		imageReference.Sku = &sku
+		imageReference.Version = &version
+	}
+
+	return &imageReference, nil
 }
 
 func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *schema.ResourceData) (*compute.LinuxConfiguration, error) {
