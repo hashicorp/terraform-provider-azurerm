@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -17,8 +16,6 @@ func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 >>>>>>> made sure files are added
 	ri := acctest.RandInt()
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,8 +39,6 @@ func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 	ri := acctest.RandInt()
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -80,8 +75,6 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 	ri := acctest.RandInt()
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -105,8 +98,6 @@ func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 	ri := acctest.RandInt()
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -144,8 +135,6 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 
 func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 	ri := acctest.RandInt()
-
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
