@@ -149,17 +149,18 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	properties := postgresql.ServerForCreate{
 		Location: &location,
 		Sku:      sku,
-		Properties: &postgresql.ServerPropertiesForCreate{
+		Properties: &postgresql.ServerPropertiesForDefaultCreate{
 			Version:                    postgresql.ServerVersion(version),
 			StorageMB:                  azure.Int64(int64(storageMB)),
 			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
 			AdministratorLogin:         azure.String(adminLogin),
 			AdministratorLoginPassword: azure.String(adminLoginPassword),
+			CreateMode:                 postgresql.CreateModeDefault,
 		},
 		Tags: expandTags(tags),
 	}
 
-	_, error := client.Create(resGroup, name, properties, make(chan struct{}))
+	_, error := client.CreateOrUpdate(resGroup, name, properties, make(chan struct{}))
 	err := <-error
 	if err != nil {
 		return err

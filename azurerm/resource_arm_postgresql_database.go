@@ -72,7 +72,7 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 		},
 	}
 
-	_, error := client.Create(resGroup, serverName, name, properties, make(chan struct{}))
+	_, error := client.CreateOrUpdate(resGroup, serverName, name, properties, make(chan struct{}))
 	err := <-error
 	if err != nil {
 		return err

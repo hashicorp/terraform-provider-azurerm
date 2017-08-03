@@ -71,7 +71,7 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	_, error := client.Create(resGroup, serverName, name, properties, make(chan struct{}))
+	_, error := client.CreateOrUpdate(resGroup, serverName, name, properties, make(chan struct{}))
 	err := <-error
 	if err != nil {
 		return err
