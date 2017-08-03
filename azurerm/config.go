@@ -407,6 +407,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	vnpc.Sender = autorest.CreateSender(withRequestLogging())
 	client.vnetPeeringsClient = vnpc
 
+	pcc := postgresql.NewConfigurationsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&pcc.Client)
+	pcc.Authorizer = auth
+	pcc.Sender = autorest.CreateSender(withRequestLogging())
+	client.postgresqlConfigurationsClient = pcc
+
 	pdbc := postgresql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&pdbc.Client)
 	pdbc.Authorizer = auth
