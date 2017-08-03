@@ -43,6 +43,14 @@
 			"versionExact": "v10.2.1-beta"
 		},
 		{
+			"checksumSHA1": "6KEAuzVmOYYU+gE1j0oX+q3uH90=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/cosmos-db",
+			"revision": "2d49bb8f2cee530cc16f1f1a9f0aae763dee257d",
+			"revisionTime": "2017-08-01T23:52:55Z",
+			"version": "=v10.2.1-beta",
+			"versionExact": "v10.2.1-beta"
+		},
+		{
 			"checksumSHA1": "TZa+aR1MLk+nQVZaUWNPWCBHeBQ=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/disk",
 			"revision": "2d49bb8f2cee530cc16f1f1a9f0aae763dee257d",
@@ -53,14 +61,6 @@
 		{
 			"checksumSHA1": "PMVJlt6NglkevtvspPt/CVwMhsQ=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/dns",
-			"revision": "2d49bb8f2cee530cc16f1f1a9f0aae763dee257d",
-			"revisionTime": "2017-08-01T23:52:55Z",
-			"version": "=v10.2.1-beta",
-			"versionExact": "v10.2.1-beta"
-		},
-		{
-			"checksumSHA1": "5aGfdtA+XQGQKkJ6u8GVN0cMc1A=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/documentdb",
 			"revision": "2d49bb8f2cee530cc16f1f1a9f0aae763dee257d",
 			"revisionTime": "2017-08-01T23:52:55Z",
 			"version": "=v10.2.1-beta",

@@ -12,9 +12,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
+	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
-	"github.com/Azure/azure-sdk-for-go/arm/documentdb"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
@@ -55,8 +55,8 @@ type ArmClient struct {
 	vmClient               compute.VirtualMachinesClient
 	imageClient            compute.ImagesClient
 
-	diskClient       disk.DisksClient
-	documentDBClient documentdb.DatabaseAccountsClient
+	diskClient     disk.DisksClient
+	cosmosDBClient cosmosdb.DatabaseAccountsClient
 
 	appGatewayClient             network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
@@ -274,11 +274,11 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	csc.Sender = autorest.CreateSender(withRequestLogging())
 	client.containerServicesClient = csc
 
-	ddb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ddb.Client)
-	ddb.Authorizer = auth
-	ddb.Sender = autorest.CreateSender(withRequestLogging())
-	client.documentDBClient = ddb
+	cdb := cosmosdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&cdb.Client)
+	cdb.Authorizer = auth
+	cdb.Sender = autorest.CreateSender(withRequestLogging())
+	client.cosmosDBClient = cdb
 
 	dkc := disk.NewDisksClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dkc.Client)
