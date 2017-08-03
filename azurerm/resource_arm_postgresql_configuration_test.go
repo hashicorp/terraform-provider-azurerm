@@ -58,8 +58,8 @@ func testCheckAzureRMPostgreSQLConfigurationValue(name string, value string) res
 			return fmt.Errorf("Bad: PostgreSQL Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
 		}
 
-		if resp.Value != value {
-			return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, resp.Value, resp)
+		if *resp.Value != value {
+			return fmt.Errorf("PostgreSQL Configuration wasn't set. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
 		}
 
 		return nil
@@ -84,8 +84,8 @@ func testCheckAzureRMPostgreSQLConfigurationReset(s *terraform.State, value stri
 			return nil
 		}
 
-		if resp.Value != value {
-			return fmt.Errorf("PostgreSQL Configuration wasn't reset. Expected '%s' - got '%s': \n%+v", value, resp.Value, resp)
+		if *resp.Value != value {
+			return fmt.Errorf("PostgreSQL Configuration wasn't reset. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
 		}
 	}
 
