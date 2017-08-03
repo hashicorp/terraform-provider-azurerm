@@ -33,7 +33,7 @@ func validateIntInSlice(valid []int) schema.SchemaValidateFunc {
 			}
 		}
 
-		es = append(es, fmt.Errorf("expected %s to be one of %v, got %s", k, valid, v))
+		es = append(es, fmt.Errorf("expected %s to be one of %v, got %v", k, valid, v))
 		return
 	}
 }

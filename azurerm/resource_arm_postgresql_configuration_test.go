@@ -122,5 +122,5 @@ resource "azurerm_postgresql_configuration" "test" {
   server_name         = "${azurerm_postgresql_server.test.name}"
   value               = "on"
 }
-`, rInt, rInt, rInt)
+`, rInt, rInt)
 }
