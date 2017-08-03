@@ -161,7 +161,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).documentDBClient
+	conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmos_db" {
@@ -199,11 +199,11 @@ func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for CosmosDB Account: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).documentDBClient
+		conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on documentDBClient: %s", err)
+			return fmt.Errorf("Bad: Get on cosmosDBClient: %s", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {

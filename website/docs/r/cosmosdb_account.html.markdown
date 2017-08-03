@@ -6,7 +6,7 @@ description: |-
   Creates a new CosmosDB (formally DocumentDB) Account.
 ---
 
-# azurerm\_cosmos_db
+# azurerm\_cosmos\_db\_account
 
 Creates a new CosmosDB (formally DocumentDB) Account.
 
@@ -53,13 +53,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `offer_type` - (Required) Specifies the Offer Type to use for this DocumentDB Account - currently this can only be set to `Standard`.
+* `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to `Standard`.
 
-* `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this DocumentDB account.
+* `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
 
 * `failover_policy` - (Required) Specifies a `failover_policy` resource, used to define where data should be replicated.
 
-* `ip_range_filter` - (Optional) DocumentDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+* `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
