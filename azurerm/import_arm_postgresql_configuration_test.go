@@ -15,11 +15,11 @@ func TestAccAzureRMPostgreSQLConfiguration_importBackslashQuote(t *testing.T) {
 	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		CheckDestroy: func(s *terraform.State) error {
 			return testCheckAzureRMPostgreSQLConfigurationReset(s, "safe_encoding")
-		},,
+		},
 		Steps: []resource.TestStep{
 			{
 				Config: config,
