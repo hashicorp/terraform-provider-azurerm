@@ -48,7 +48,7 @@ resource "azurerm_postgresql_configuration" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the PostgreSQL Configration, which needs [to be a valid PostgreSQL configuration name](TODO). Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the PostgreSQL Configuration, which needs [to be a valid PostgreSQL configuration name](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIER). Changing this forces a new resource to be created.
 
 * `server_name` - (Required) Specifies the name of the PostgreSQL Server. Changing this forces a new resource to be created.
 
