@@ -7,11 +7,37 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMPostgreSQLServer_importBasic(t *testing.T) {
+func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basic(ri)
+	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

@@ -96,17 +96,17 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Azure PostgreSQL Configuration %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("server_name", serverName)
 	d.Set("resource_group_name", resGroup)
-
 	d.Set("value", resp.ConfigurationProperties.Value)
 
 	return nil

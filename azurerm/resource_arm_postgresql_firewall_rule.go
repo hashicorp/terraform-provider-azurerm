@@ -103,10 +103,11 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Azure PostgreSQL Firewall Rule %s: %+v", name, err)
 	}
 

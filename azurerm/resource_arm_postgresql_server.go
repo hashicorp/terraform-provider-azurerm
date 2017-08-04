@@ -237,10 +237,11 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp) {
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Azure PostgreSQL Server %s: %+v", name, err)
 	}
 

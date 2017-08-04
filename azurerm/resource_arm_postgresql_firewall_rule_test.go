@@ -49,7 +49,7 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(name string) resource.TestChec
 
 		resp, err := client.Get(resourceGroup, serverName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on postgresqlFirewallRulesClient: %s", err)
+			return fmt.Errorf("Bad: Get on postgresqlFirewallRulesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -75,12 +75,14 @@ func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
 		resp, err := client.Get(resourceGroup, serverName, name)
 
 		if err != nil {
-			return nil
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("PostgreSQL Firewall Rule still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("PostgreSQL Firewall Rule still exists:\n%#v", resp)
 	}
 
 	return nil

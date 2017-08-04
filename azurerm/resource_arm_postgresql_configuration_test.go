@@ -51,7 +51,7 @@ func testCheckAzureRMPostgreSQLConfigurationValue(name string, value string) res
 
 		resp, err := client.Get(resourceGroup, serverName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %s", err)
+			return fmt.Errorf("Bad: Get on postgresqlConfigurationsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -81,11 +81,12 @@ func testCheckAzureRMPostgreSQLConfigurationReset(s *terraform.State, value stri
 		resp, err := client.Get(resourceGroup, serverName, name)
 
 		if err != nil {
-			return nil
+			return err
 		}
 
-		if *resp.Value != value {
-			return fmt.Errorf("PostgreSQL Configuration wasn't reset. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
+		actualValue := *resp.Value
+		if actualValue != value {
+			return fmt.Errorf("PostgreSQL Configuration wasn't reset. Expected '%s' - got '%s': \n%+v", value, actualValue, resp)
 		}
 	}
 

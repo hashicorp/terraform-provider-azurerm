@@ -49,7 +49,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(name string) resource.TestCheckFun
 
 		resp, err := client.Get(resourceGroup, serverName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on postgresqlDatabasesClient: %s", err)
+			return fmt.Errorf("Bad: Get on postgresqlDatabasesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -75,12 +75,14 @@ func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
 		resp, err := client.Get(resourceGroup, serverName, name)
 
 		if err != nil {
-			return nil
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("PostgreSQL Database still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("PostgreSQL Database still exists:\n%#v", resp)
 	}
 
 	return nil
