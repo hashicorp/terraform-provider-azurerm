@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
@@ -237,7 +236,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -96,7 +95,7 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
