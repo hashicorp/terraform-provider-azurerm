@@ -50,6 +50,33 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri)
+	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMPostgreSQLServerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -154,6 +181,32 @@ resource "azurerm_postgresql_server" "test" {
   version = "9.6"
   storage_mb = 51200
   ssl_enforcement = "Enabled"
+}
+`, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US"
+}
+resource "azurerm_postgresql_server" "test" {
+  name = "acctestpsqlsvr-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name = "PGSQLB50"
+    capacity = 50
+    tier = "Basic"
+  }
+
+  administrator_login = "acctestun"
+  administrator_login_password = "R3dH0TCh1l1P3pp3rs!"
+  version = "9.6"
+  storage_mb = 51200
+  ssl_enforcement = "Disabled"
 }
 `, rInt, rInt)
 }
