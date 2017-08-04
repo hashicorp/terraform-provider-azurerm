@@ -701,7 +701,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 		if resp.VirtualMachineProperties.NetworkProfile.NetworkInterfaces != nil {
 			for _, nic := range *resp.VirtualMachineProperties.NetworkProfile.NetworkInterfaces {
-				if nic.NetworkInterfaceReferenceProperties != nil && *nic.NetworkInterfaceReferenceProperties.Primary {
+				if nic.NetworkInterfaceReferenceProperties != nil && nic.NetworkInterfaceReferenceProperties.Primary != nil && *nic.NetworkInterfaceReferenceProperties.Primary {
 					d.Set("primary_network_interface_id", nic.ID)
 					break
 				}
