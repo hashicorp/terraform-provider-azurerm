@@ -14,7 +14,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestpublicip-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
-	config := testAccDatSourceAzureRMPublicIPBasic(name, resourceGroupName)
+	config := testAccDatSourceAzureRMPublicIPBasic(name, resourceGroupName, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,7 +26,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "name", name),
 					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "domain_name_label", "mylabel01"),
+					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "domain_name_label", fmt.Sprintf("acctest-%d", ri)),
 					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "idle_timeout_in_minutes", "30"),
 					resource.TestCheckResourceAttrSet("data.azurerm_public_ip.test", "fqdn"),
 					resource.TestCheckResourceAttrSet("data.azurerm_public_ip.test", "ip_address"),
@@ -38,7 +38,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 	})
 }
 
-func testAccDatSourceAzureRMPublicIPBasic(name string, resourceGroupName string) string {
+func testAccDatSourceAzureRMPublicIPBasic(name string, resourceGroupName string, rInt int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "%s"
@@ -49,11 +49,11 @@ resource "azurerm_public_ip" "test" {
     location = "West US"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
-	domain_name_label = "mylabel01"
-	idle_timeout_in_minutes = 30
+    domain_name_label = "acctest-%d"
+    idle_timeout_in_minutes = 30
 	
     tags {
-		environment = "test"
+	environment = "test"
     }
 }
 
@@ -61,5 +61,5 @@ data "azurerm_public_ip" "test" {
     name = "${azurerm_public_ip.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, resourceGroupName, name)
+`, resourceGroupName, name, rInt)
 }

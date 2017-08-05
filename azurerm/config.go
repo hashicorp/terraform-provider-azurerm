@@ -12,8 +12,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
+	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
+	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
@@ -50,8 +53,10 @@ type ArmClient struct {
 	vmScaleSetClient       compute.VirtualMachineScaleSetsClient
 	vmImageClient          compute.VirtualMachineImagesClient
 	vmClient               compute.VirtualMachinesClient
+	imageClient            compute.ImagesClient
 
-	diskClient disk.DisksClient
+	diskClient     disk.DisksClient
+	cosmosDBClient cosmosdb.DatabaseAccountsClient
 
 	appGatewayClient             network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
@@ -69,6 +74,8 @@ type ArmClient struct {
 	vnetPeeringsClient           network.VirtualNetworkPeeringsClient
 	routeTablesClient            network.RouteTablesClient
 	routesClient                 network.RoutesClient
+	dnsClient                    dns.RecordSetsClient
+	zonesClient                  dns.ZonesClient
 
 	cdnProfilesClient  cdn.ProfilesClient
 	cdnEndpointsClient cdn.EndpointsClient
@@ -99,6 +106,7 @@ type ArmClient struct {
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
 	serviceBusNamespacesClient    servicebus.NamespacesClient
+	serviceBusQueuesClient        servicebus.QueuesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
 	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
 
@@ -107,6 +115,8 @@ type ArmClient struct {
 	sqlElasticPoolsClient sql.ElasticPoolsClient
 
 	appInsightsClient appinsights.ComponentsClient
+
+	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -192,8 +202,15 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 		return nil, err
 	}
 
+	graphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, env.GraphEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	endpoint := env.ResourceManagerEndpoint
 	auth := autorest.NewBearerAuthorizer(spt)
+	graphEndpoint := env.GraphEndpoint
+	graphAuth := autorest.NewBearerAuthorizer(graphSpt)
 
 	// NOTE: these declarations should be left separate for clarity should the
 	// clients be wished to be configured with custom Responders/PollingModess etc...
@@ -257,11 +274,23 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	csc.Sender = autorest.CreateSender(withRequestLogging())
 	client.containerServicesClient = csc
 
+	cdb := cosmosdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&cdb.Client)
+	cdb.Authorizer = auth
+	cdb.Sender = autorest.CreateSender(withRequestLogging())
+	client.cosmosDBClient = cdb
+
 	dkc := disk.NewDisksClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dkc.Client)
 	dkc.Authorizer = auth
 	dkc.Sender = autorest.CreateSender(withRequestLogging())
 	client.diskClient = dkc
+
+	img := compute.NewImagesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&img.Client)
+	img.Authorizer = auth
+	img.Sender = autorest.CreateSender(withRequestLogging())
+	client.imageClient = img
 
 	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ehc.Client)
@@ -365,6 +394,18 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rc.Sender = autorest.CreateSender(withRequestLogging())
 	client.routesClient = rc
 
+	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&dn.Client)
+	dn.Authorizer = auth
+	dn.Sender = autorest.CreateSender(withRequestLogging())
+	client.dnsClient = dn
+
+	zo := dns.NewZonesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&zo.Client)
+	zo.Authorizer = auth
+	zo.Sender = autorest.CreateSender(withRequestLogging())
+	client.zonesClient = zo
+
 	rgc := resources.NewGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&rgc.Client)
 	rgc.Authorizer = auth
@@ -455,6 +496,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbnc.Sender = autorest.CreateSender(withRequestLogging())
 	client.serviceBusNamespacesClient = sbnc
 
+	sbqc := servicebus.NewQueuesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sbqc.Client)
+	sbqc.Authorizer = auth
+	sbqc.Sender = autorest.CreateSender(withRequestLogging())
+	client.serviceBusQueuesClient = sbqc
+
 	sbtc := servicebus.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sbtc.Client)
 	sbtc.Authorizer = auth
@@ -484,6 +531,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	ai.Authorizer = auth
 	ai.Sender = autorest.CreateSender(withRequestLogging())
 	client.appInsightsClient = ai
+
+	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, c.TenantID)
+	setUserAgent(&spc.Client)
+	spc.Authorizer = graphAuth
+	spc.Sender = autorest.CreateSender(withRequestLogging())
+	client.servicePrincipalsClient = spc
 
 	return &client, nil
 }

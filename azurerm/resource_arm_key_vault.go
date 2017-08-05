@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -204,11 +203,11 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %s", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", resp.Name)

@@ -133,11 +133,11 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := namespaceClient.Get(resGroup, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure EventHub Namespace %s: %+v", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", resp.Name)

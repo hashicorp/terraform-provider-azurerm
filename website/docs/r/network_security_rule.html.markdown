@@ -10,6 +10,10 @@ description: |-
 
 Create a Network Security Rule.
 
+~> **NOTE on Network Security Groups and Network Security Rules:** Terraform currently
+provides both a standalone [Network Security Rule resource](network_security_rule.html), and allows for Network Security Rules to be defined in-line within the [Network Security Group resource](network_security_group.html).
+At this time you cannot use a Network Security Group with in-line Network Security Rules in conjunction with any Network Security Rule resources. Doing so will cause a conflict of rule settings and will overwrite rules.
+
 ## Example Usage
 
 ```hcl
@@ -43,7 +47,7 @@ resource "azurerm_network_security_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the security rule.
+* `name` - (Required) The name of the security rule. This needs to be unique across all Rules in the Network Security Group. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the Network Security Rule.

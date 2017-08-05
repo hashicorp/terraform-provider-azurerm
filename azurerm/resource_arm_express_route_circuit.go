@@ -168,8 +168,8 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if erc == nil {
-		d.SetId("")
 		log.Printf("[INFO] Express Route Circuit %q not found. Removing from state", d.Get("name").(string))
+		d.SetId("")
 		return nil
 	}
 

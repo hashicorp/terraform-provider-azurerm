@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -96,21 +95,27 @@ func resourceArmVirtualMachine() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+
 						"publisher": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 						},
 
 						"offer": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 						},
 
 						"sku": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 						},
 
@@ -333,8 +338,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"admin_password": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 
 						"custom_data": {
@@ -619,7 +625,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := vmClient.Get(resGroup, name, "")
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -695,7 +701,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 		if resp.VirtualMachineProperties.NetworkProfile.NetworkInterfaces != nil {
 			for _, nic := range *resp.VirtualMachineProperties.NetworkProfile.NetworkInterfaces {
-				if nic.NetworkInterfaceReferenceProperties != nil && *nic.NetworkInterfaceReferenceProperties.Primary {
+				if nic.NetworkInterfaceReferenceProperties != nil && nic.NetworkInterfaceReferenceProperties.Primary != nil && *nic.NetworkInterfaceReferenceProperties.Primary {
 					d.Set("primary_network_interface_id", nic.ID)
 					break
 				}
@@ -845,10 +851,18 @@ func resourceArmVirtualMachinePlanHash(v interface{}) int {
 func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
-
+	if m["publisher"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+	}
+	if m["offer"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
+	}
+	if m["sku"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
+	}
+	if m["id"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
+	}
 	return hashcode.String(buf.String())
 }
 
@@ -901,12 +915,20 @@ func flattenAzureRmVirtualMachinePlan(plan *compute.Plan) []interface{} {
 
 func flattenAzureRmVirtualMachineImageReference(image *compute.ImageReference) []interface{} {
 	result := make(map[string]interface{})
-	result["offer"] = *image.Offer
-	result["publisher"] = *image.Publisher
-	result["sku"] = *image.Sku
-
+	if image.Publisher != nil {
+		result["publisher"] = *image.Publisher
+	}
+	if image.Offer != nil {
+		result["offer"] = *image.Offer
+	}
+	if image.Sku != nil {
+		result["sku"] = *image.Sku
+	}
 	if image.Version != nil {
 		result["version"] = *image.Version
+	}
+	if image.ID != nil {
+		result["id"] = *image.ID
 	}
 
 	return []interface{}{result}
@@ -1332,14 +1354,12 @@ func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.Data
 			data_disk.ManagedDisk = managedDisk
 		}
 
-		//BEGIN: code to be removed after GH-13016 is merged
 		if vhdURI != "" && managedDiskID != "" {
 			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_id` (only one or the other can be used)")
 		}
 		if vhdURI != "" && managedDiskType != "" {
 			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
-		//END: code to be removed after GH-13016 is merged
 		if managedDiskID == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.Attach)) {
 			return nil, fmt.Errorf("[ERROR] Must specify which disk to attach")
 		}
@@ -1383,18 +1403,31 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 	storageImageRefs := d.Get("storage_image_reference").(*schema.Set).List()
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
-
+	imageID := storageImageRef["id"].(string)
 	publisher := storageImageRef["publisher"].(string)
-	offer := storageImageRef["offer"].(string)
-	sku := storageImageRef["sku"].(string)
-	version := storageImageRef["version"].(string)
 
-	return &compute.ImageReference{
-		Publisher: &publisher,
-		Offer:     &offer,
-		Sku:       &sku,
-		Version:   &version,
-	}, nil
+	imageReference := compute.ImageReference{}
+
+	if imageID != "" && publisher != "" {
+		return nil, fmt.Errorf("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
+	}
+
+	if imageID != "" {
+		imageReference.ID = riviera.String(storageImageRef["id"].(string))
+	} else {
+		offer := storageImageRef["offer"].(string)
+		sku := storageImageRef["sku"].(string)
+		version := storageImageRef["version"].(string)
+
+		imageReference = compute.ImageReference{
+			Publisher: &publisher,
+			Offer:     &offer,
+			Sku:       &sku,
+			Version:   &version,
+		}
+	}
+
+	return &imageReference, nil
 }
 
 func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.NetworkProfile {

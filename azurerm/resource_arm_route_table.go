@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -144,7 +143,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := routeTablesClient.Get(resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

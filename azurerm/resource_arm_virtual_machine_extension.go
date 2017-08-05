@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -156,7 +155,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	resp, err := client.Get(resGroup, vmName, name, "")
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

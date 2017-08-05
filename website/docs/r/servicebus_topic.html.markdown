@@ -10,8 +10,7 @@ description: |-
 
 Create a ServiceBus Topic.
 
-**Note** Topics can only be created in Namespaces with an SKU or `standard` or
-higher.
+**Note** Topics can only be created in Namespaces with an SKU of `standard` or higher.
 
 ## Example Usage
 
@@ -57,6 +56,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
+
+* `status` - (Optional) The Status of the Service Bus Topic. Acceptable values are `Active` or `Disabled`. Defaults to `Active`.
 
 * `auto_delete_on_idle` - (Optional) The idle interval after which the
     Topic is automatically deleted, minimum of 5 minutes. Provided in the [TimeSpan](#timespan-format)
