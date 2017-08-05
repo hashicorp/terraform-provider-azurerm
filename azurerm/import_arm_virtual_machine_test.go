@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -40,7 +39,7 @@ func TestAccAzureRMVirtualMachine_importBasic_managedDisk(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

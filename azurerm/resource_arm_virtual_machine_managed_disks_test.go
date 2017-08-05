@@ -17,7 +17,7 @@ import (
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -36,7 +36,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(t *test
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -55,7 +55,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(t *test
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach, ri, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -75,7 +75,7 @@ func TestAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit(t *testing.T
 	var vm compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit, ri, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -95,7 +95,7 @@ func TestAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(t *testing.T
 	var vm compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -116,8 +116,9 @@ func TestAccAzureRMVirtualMachine_deleteManagedDiskOptOut(t *testing.T) {
 	var osd string
 	var dtd string
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM_managedDisk, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(ri, location)
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM_managedDisk(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -148,8 +149,9 @@ func TestAccAzureRMVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 	var osd string
 	var dtd string
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksBefore, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksAfter, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksBefore(ri, location)
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksAfter(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -177,7 +179,7 @@ func TestAccAzureRMVirtualMachine_deleteManagedDiskOptIn(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_osDiskTypeConflict(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_osDiskTypeConflict, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_osDiskTypeConflict(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -193,7 +195,7 @@ func TestAccAzureRMVirtualMachine_osDiskTypeConflict(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_dataDiskTypeConflict(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_dataDiskTypeConflict, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_dataDiskTypeConflict(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -207,16 +209,17 @@ func TestAccAzureRMVirtualMachine_dataDiskTypeConflict(t *testing.T) {
 	})
 }
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -229,7 +232,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -241,7 +244,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -276,18 +279,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_implicit(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -300,7 +305,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -312,7 +317,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -346,18 +351,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -370,7 +377,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -382,7 +389,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_managed_disk" "test" {
     name = "acctmd-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     storage_account_type = "Standard_LRS"
     create_option = "Empty"
@@ -391,7 +398,7 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -434,18 +441,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksBefore = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksBefore(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -458,7 +467,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -470,7 +479,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -514,18 +523,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksAfter = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_DestroyDisksAfter(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -538,7 +549,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -547,18 +558,20 @@ resource "azurerm_network_interface" "test" {
     	private_ip_address_allocation = "dynamic"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM_managedDisk = `
+func testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM_managedDisk(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -571,7 +584,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -580,18 +593,20 @@ resource "azurerm_network_interface" "test" {
     	private_ip_address_allocation = "dynamic"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit = `
+func testAccAzureRMVirtualMachine_withDataDisk_managedDisk_explicit(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -604,7 +619,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -616,7 +631,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -659,18 +674,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit = `
+func testAccAzureRMVirtualMachine_withDataDisk_managedDisk_implicit(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -683,7 +700,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -695,7 +712,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -736,18 +753,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_osDiskTypeConflict = `
+func testAccAzureRMVirtualMachine_osDiskTypeConflict(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -760,7 +779,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -772,7 +791,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -817,18 +836,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_dataDiskTypeConflict = `
+func testAccAzureRMVirtualMachine_dataDiskTypeConflict(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -841,7 +862,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -853,7 +874,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -907,7 +928,8 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
 func testCheckAzureRMVirtualMachineManagedDiskExists(managedDiskID *string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
