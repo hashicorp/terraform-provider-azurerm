@@ -5,7 +5,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func getArmResourceNameAndGroupByTerraformName(s *terraform.State, name string) (string, string, error) {
+func getArmResourceNameAndGroup(s *terraform.State, name string) (string, string, error) {
 	rs, ok := s.RootModule().Resources[name]
 	if !ok {
 		return "", "", fmt.Errorf("Not found: %s", name)

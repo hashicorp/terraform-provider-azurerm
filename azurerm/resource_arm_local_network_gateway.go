@@ -171,10 +171,10 @@ func retrieveLocalNetworkGatewayById(localNetworkGatewayId string, meta interfac
 
 	resp, err := lnetClient.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("Error making Read request on Azure LocalNetworkGateway %s: %s", name, err)
+		return nil, false, fmt.Errorf("Error making Read request on Azure LocalNetworkGateway %s: %+v", name, err)
 	}
 
 	return &resp, true, nil

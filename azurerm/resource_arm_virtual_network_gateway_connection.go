@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"log"
-	"net/http"
 	"time"
 )
 
@@ -36,13 +35,14 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			},
 
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.ExpressRoute),
 					string(network.IPsec),
 					string(network.Vnet2Vnet),
-				}, false),
+				}, true),
 				ForceNew: true,
 			},
 
@@ -103,7 +103,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 	client := meta.(*ArmClient)
 	vnetGatewayConnectionsClient := client.vnetGatewayConnectionsClient
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Network Connection creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -128,7 +128,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 		return err
 	}
 
-	log.Printf("[DEBUG] Waiting for VirtualNetworkGatewayConnection (%s) to become available", name)
+	log.Printf("[DEBUG] Waiting for AzureRM Virtual Network Gateway Connection %s to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
@@ -136,7 +136,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 		Timeout: 15 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for VirtualNetworkGatewayConnection (%s) to become available: %s", name, err)
+		return fmt.Errorf("Error waiting for AzureRM Virtual Network Gateway Connection %s to become available: %+v", name, err)
 	}
 
 	read, err := vnetGatewayConnectionsClient.Get(resGroup, name)
@@ -144,7 +144,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read VirtualNetwork Gateway Connection %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM Virtual Network Gateway Connection %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -163,11 +163,11 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 
 	resp, err := vnetGatewayConnectionsClient.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on VirtualNetworkGatewayConnection %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %s: %+v", name, err)
 	}
 
 	conn := *resp.VirtualNetworkGatewayConnectionPropertiesFormat
@@ -227,7 +227,7 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 		return errwrap.Wrapf("Error Deleting VirtualNetworkGatewayConnection {{err}}", err)
 	}
 
-	log.Printf("[DEBUG] Waiting for VirtualNetworkGatewayConnection (%s) to be removed", name)
+	log.Printf("[DEBUG] Waiting for AzureRM Virtual Network Gateway Connection %s to be removed", name)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Deleting"},
 		Target:  []string{"NotFound"},
@@ -235,7 +235,7 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 		Timeout: 15 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for VirtualNetworkGatewayConnection (%s) to be removed: %s", name, err)
+		return fmt.Errorf("Error waiting for AzureRM Virtual Network Gateway Connection %s to be removed: %+v", name, err)
 	}
 
 	d.SetId("")
@@ -244,15 +244,15 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 
 func virtualNetworkGatewayConnectionStateRefreshFunc(client *ArmClient, resourceGroupName string, virtualNetworkGatewayConnection string, withNotFound bool) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.vnetGatewayConnectionsClient.Get(resourceGroupName, virtualNetworkGatewayConnection)
+		resp, err := client.vnetGatewayConnectionsClient.Get(resourceGroupName, virtualNetworkGatewayConnection)
 		if err != nil {
-			if withNotFound && res.StatusCode == http.StatusNotFound {
-				return res, "NotFound", nil
+			if withNotFound && responseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
 			}
-			return nil, "", fmt.Errorf("Error issuing read request in virtualNetworkGatewayConnectionStateRefreshFunc to Azure ARM for VirtualNetworkGatewayConnection '%s' (RG: '%s'): %s", virtualNetworkGatewayConnection, resourceGroupName, err)
+			return nil, "", fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %s: %+v", virtualNetworkGatewayConnection, err)
 		}
 
-		return res, *res.VirtualNetworkGatewayConnectionPropertiesFormat.ProvisioningState, nil
+		return resp, *resp.VirtualNetworkGatewayConnectionPropertiesFormat.ProvisioningState, nil
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetworkGatewayConnection_sitetosite, ri)
+	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,7 +30,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet, ri)
+	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,7 +50,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 
 func testCheckAzureRMVirtualNetworkGatewayConnectionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		name, resourceGroup, err := getArmResourceNameAndGroupByTerraformName(s, name)
+		name, resourceGroup, err := getArmResourceNameAndGroup(s, name)
 		if err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionExists(name string) resource
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on vnetGatewayConnectionsClient: %s", err)
+			return fmt.Errorf("Bad: Get on vnetGatewayConnectionsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -95,7 +95,8 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionDestroy(s *terraform.State) 
 	return nil
 }
 
-var testAccAzureRMVirtualNetworkGatewayConnection_sitetosite = `
+func testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "test-%[1]d"
     location = "West US"
@@ -159,9 +160,11 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
     shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
-`
+`, rInt)
+}
 
-var testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet = `
+func testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "us" {
     name = "us-%[1]d"
     location = "East US"
@@ -271,4 +274,5 @@ resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
 
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
-`
+`, rInt)
+}

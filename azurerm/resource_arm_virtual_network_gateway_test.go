@@ -12,7 +12,7 @@ import (
 
 func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetworkGateway_basic, ri)
+	config := testAccAzureRMVirtualNetworkGateway_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,7 +31,7 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetworkGateway_vpnGw1, ri)
+	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,7 +50,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 
 func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		name, resourceGroup, err := getArmResourceNameAndGroupByTerraformName(s, name)
+		name, resourceGroup, err := getArmResourceNameAndGroup(s, name)
 		if err != nil {
 			return err
 		}
@@ -59,7 +59,7 @@ func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheck
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on vnetGatewayClient: %s", err)
+			return fmt.Errorf("Bad: Get on vnetGatewayClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -86,7 +86,7 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 		if err != nil {
 			return nil
 		}
-
+		// TODO check if this is correct
 		if resp.StatusCode != http.StatusNotFound {
 			return fmt.Errorf("Virtual Network Gateway still exists:\n%#v", resp.VirtualNetworkGatewayPropertiesFormat)
 		}
@@ -95,7 +95,8 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMVirtualNetworkGateway_basic = `
+func testAccAzureRMVirtualNetworkGateway_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "test-%[1]d"
     location = "West US"
@@ -137,9 +138,11 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id = "${azurerm_subnet.test.id}"
   }
 }
-`
+`, rInt)
+}
 
-var testAccAzureRMVirtualNetworkGateway_vpnGw1 = `
+func testAccAzureRMVirtualNetworkGateway_vpnGw1(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "test-%[1]d"
     location = "West US"
@@ -181,4 +184,5 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id = "${azurerm_subnet.test.id}"
   }
 }
-`
+`, rInt)
+}

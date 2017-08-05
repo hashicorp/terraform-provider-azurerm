@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 
 	"time"
 
@@ -41,22 +40,25 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 			"location": locationSchema(),
 
 			"type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.VirtualNetworkGatewayTypeExpressRoute),
 					string(network.VirtualNetworkGatewayTypeVpn),
-				}, false),
+				}, true),
 				ForceNew: true,
 			},
 
 			"vpn_type": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          string(network.RouteBased),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.RouteBased),
 					string(network.PolicyBased),
-				}, false),
+				}, true),
 				ForceNew: true,
 			},
 
@@ -73,8 +75,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.VirtualNetworkGatewaySkuTierBasic),
 					string(network.VirtualNetworkGatewaySkuTierStandard),
@@ -83,7 +86,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 					string(network.VirtualNetworkGatewaySkuNameVpnGw1),
 					string(network.VirtualNetworkGatewaySkuNameVpnGw2),
 					string(network.VirtualNetworkGatewaySkuNameVpnGw3),
-				}, false),
+				}, true),
 			},
 
 			"ip_configuration": {
@@ -110,8 +113,9 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							Default: string(network.Dynamic),
 						},
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateArmVirtualNetworkGatewaySubnetId,
 						},
 						"public_ip_address_id": {
 							Type:     schema.TypeString,
@@ -211,7 +215,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient)
 	vnetGatewayClient := client.vnetGatewayClient
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Network Gateway creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -241,10 +245,10 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read VirtualNetworkGateway %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM Virtual Network Gateway '%s' (resource group %s) ID", name, resGroup)
 	}
 
-	log.Printf("[DEBUG] Waiting for VirtualNetworkGateway (%s) to become available", name)
+	log.Printf("[DEBUG] Waiting for AzureRM Virtual Network Gateway '%s' to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
@@ -252,7 +256,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 		Timeout: 60 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for VirtualNetworkGateway (%s) to become available: %s", name, err)
+		return fmt.Errorf("Error waiting for AzureRM Virtual Network Gateway '%s' to become available: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -270,44 +274,47 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on VirtualNetwork Gateway %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %s: %+v", name, err)
 	}
-
-	gw := *resp.VirtualNetworkGatewayPropertiesFormat
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	d.Set("type", string(gw.GatewayType))
-	d.Set("enable_bgp", gw.EnableBgp)
-	d.Set("active_active", gw.ActiveActive)
 
-	if string(gw.VpnType) != "" {
-		d.Set("vpn_type", string(gw.VpnType))
-	}
+	if resp.VirtualNetworkGatewayPropertiesFormat != nil {
+		gw := *resp.VirtualNetworkGatewayPropertiesFormat
 
-	if gw.GatewayDefaultSite != nil {
-		d.Set("default_local_network_gateway_id", gw.GatewayDefaultSite.ID)
-	}
+		d.Set("type", string(gw.GatewayType))
+		d.Set("enable_bgp", gw.EnableBgp)
+		d.Set("active_active", gw.ActiveActive)
 
-	if gw.Sku != nil {
-		d.Set("sku", string(gw.Sku.Name))
-	}
+		if string(gw.VpnType) != "" {
+			d.Set("vpn_type", string(gw.VpnType))
+		}
 
-	d.Set("ip_configuration", flattenArmVirtualNetworkGatewayIPConfigurations(gw.IPConfigurations))
+		if gw.GatewayDefaultSite != nil {
+			d.Set("default_local_network_gateway_id", gw.GatewayDefaultSite.ID)
+		}
 
-	if gw.VpnClientConfiguration != nil {
-		vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
-		d.Set("vpn_client_configuration", schema.NewSet(hashVirtualNetworkGatewayVpnClientConfig, vpnConfigFlat))
-	}
+		if gw.Sku != nil {
+			d.Set("sku", string(gw.Sku.Name))
+		}
 
-	if gw.BgpSettings != nil {
-		bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
-		d.Set("bgp_settings", schema.NewSet(hashVirtualNetworkGatewayBgpSettings, bgpSettingsFlat))
+		d.Set("ip_configuration", flattenArmVirtualNetworkGatewayIPConfigurations(gw.IPConfigurations))
+
+		if gw.VpnClientConfiguration != nil {
+			vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
+			d.Set("vpn_client_configuration", schema.NewSet(hashVirtualNetworkGatewayVpnClientConfig, vpnConfigFlat))
+		}
+
+		if gw.BgpSettings != nil {
+			bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
+			d.Set("bgp_settings", schema.NewSet(hashVirtualNetworkGatewayBgpSettings, bgpSettingsFlat))
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -330,7 +337,7 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	log.Printf("[DEBUG] Waiting for VirtualNetworkGateway (%s) to be removed", name)
+	log.Printf("[DEBUG] Waiting for AzureRM Virtual Network Gateway %s to be removed", name)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Deleting"},
 		Target:  []string{"NotFound"},
@@ -338,7 +345,7 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 		Timeout: 15 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for VirtualNetworkGateway (%s) to be removed: %s", name, err)
+		return fmt.Errorf("Error waiting for AzureRM Virtual Network Gateway %s to be removed: %+v", name, err)
 	}
 
 	// Gateways are not fully cleaned up when the API indicates the delete operation
@@ -353,17 +360,18 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
+// TODO check if this is necessary?
 func virtualNetworkGatewayStateRefreshFunc(client *ArmClient, resourceGroupName string, virtualNetworkGateway string, withNotFound bool) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.vnetGatewayClient.Get(resourceGroupName, virtualNetworkGateway)
+		resp, err := client.vnetGatewayClient.Get(resourceGroupName, virtualNetworkGateway)
 		if err != nil {
-			if withNotFound && res.StatusCode == http.StatusNotFound {
-				return res, "NotFound", nil
+			if withNotFound && responseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
 			}
-			return nil, "", fmt.Errorf("Error issuing read request in virtualNetworkGatewayStateRefreshFunc to Azure ARM for VirtualNetworkGateway '%s' (RG: '%s'): %s", virtualNetworkGateway, resourceGroupName, err)
+			return nil, "", fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %s: %+v", virtualNetworkGateway, err)
 		}
 
-		return res, *res.VirtualNetworkGatewayPropertiesFormat.ProvisioningState, nil
+		return resp, *resp.VirtualNetworkGatewayPropertiesFormat.ProvisioningState, nil
 	}
 }
 
@@ -660,10 +668,36 @@ func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string)
 	return resGroup, name, nil
 }
 
+func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (s []string, es []error) {
+	value, ok := i.(string)
+	if !ok {
+		es = append(es, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	id, err := parseAzureResourceID(value)
+	if err != nil {
+		es = append(es, fmt.Errorf("expected %s to be an Azure resource id", k))
+		return
+	}
+
+	subnet, ok := id.Path["subnets"]
+	if !ok {
+		es = append(es, fmt.Errorf("expected %s to reference a subnet resource", k))
+		return
+	}
+
+	if subnet != "GatewaySubnet" {
+		es = append(es, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
+	}
+
+	return
+}
+
 func validateArmVirtualNetworkGatewayPolicyBasedVpnSku() schema.SchemaValidateFunc {
 	return validation.StringInSlice([]string{
 		string(network.VirtualNetworkGatewaySkuTierBasic),
-	}, false)
+	}, true)
 }
 
 func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFunc {
@@ -674,7 +708,7 @@ func validateArmVirtualNetworkGatewayRouteBasedVpnSku() schema.SchemaValidateFun
 		string(network.VirtualNetworkGatewaySkuNameVpnGw1),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw2),
 		string(network.VirtualNetworkGatewaySkuNameVpnGw3),
-	}, false)
+	}, true)
 }
 
 func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc {
@@ -682,5 +716,5 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuTierStandard),
 		string(network.VirtualNetworkGatewaySkuTierHighPerformance),
 		string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
-	}, false)
+	}, true)
 }

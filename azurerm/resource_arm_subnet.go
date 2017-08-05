@@ -262,7 +262,7 @@ func resourceArmSubnetRetryDeleteGatewaySubnet(subnetClient network.SubnetsClien
 					return resp, "NotFound", nil
 				}
 
-				return nil, "", fmt.Errorf("Error issuing read request when retrying to delete Gateway Subnet %s/%s (resource group %s): %s", vnetName, name, resGroup, err)
+				return nil, "", fmt.Errorf("Error issuing read request when retrying to delete Gateway Subnet %s/%s (resource group %s): %+v", vnetName, name, resGroup, err)
 			}
 
 			// Retry deletion of gateway subnet if provisioning state is failed

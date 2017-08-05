@@ -14,8 +14,8 @@ Creates a new virtual network gateway to establish secure, cross-premises connec
 
 ```
 resource "azurerm_resource_group" "test" {
-    name = "test"
-    location = "West US"
+  name = "test"
+  location = "West US"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -106,27 +106,27 @@ The following arguments are supported:
     create the virtual network gateway.
 
 * `location` - (Required) The location/region where the virtual network gateway is
-    created. Changing the location/region forces a new resource to be created.
+    located. Changing the location/region forces a new resource to be created.
 
 * `type` - (Required) The type of the virtual network gateway. Valid options are
     `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
 
 * `vpn_type` - (Optional) The routing type of the virtual network gateway. Valid
-    options are `RouteBased` or `PolicyBased`. By default, a route based virtual
-    network gateway will be created.
+    options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
 
-* `enable_bgp` - (Optional) If true, BGP (Border Gateway Protocol) will be enabled
-    for this virtual network gateway. By default BGP is disabled.
+* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled
+    for this virtual network gateway. Defaults to `false`.
 
-* `active_active` - (Optional) If true, an active-active virtual network gateway
+* `active_active` - (Optional) If `true`, an active-active virtual network gateway
     will be created. An active-active gateway requires a `HighPerformance` or an
-    `UltraPerformance` sku. By default, an active-standby gateway will be created.
+    `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
+    Defaults to `false`.
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunneling*). Refer to the
     [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
-    By default, forced tunneling is not enabled.
+    If not provided, forced tunneling is disabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
@@ -146,12 +146,12 @@ The following arguments are supported:
 
 The `ip_configuration` block supports:
 
-* `name` - (Optional) A user-defined name of the IP configuration. If noted specified,
-    `vnetGatewayConfig` is used.
+* `name` - (Optional) A user-defined name of the IP configuration. Defaults to
+    `vnetGatewayConfig`.
 
 * `private_ip_address_allocation` - (Optional) Defines how the private IP address
     of the gateways virtual interface is assigned. Valid options are `Static` or
-    `Dynamic`. By default dynamic allocation will be used.
+    `Dynamic`. Defaults to `Dynamic`.
 
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in
     which the virtual network gateway will be created. It is mandatory that
@@ -184,11 +184,11 @@ The `bgp_settings` block supports:
     the virtual network gateway.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
-    through BGP peering. Valid values can be between 0 and 100.
+    through BGP peering. Valid values can be between `0` and `100`.
 
 The `root_certificate` block supports:
 
-* `name` - A user-defined name of the root certificate.
+* `name` - (Required) A user-defined name of the root certificate.
 
 * `public_cert_data` - (Required) The public certificate of the root certificate
     authority. The certificate must be provided in Base-64 encoded X.509 format
@@ -197,7 +197,7 @@ The `root_certificate` block supports:
 
 The `root_revoked_certificate` block supports:
 
-* `name` - A user-defined name of the revoked certificate.
+* `name` - (Required) A user-defined name of the revoked certificate.
 
 * `public_cert_data` - (Required) The SHA1 thumbprint of the certificate to be
     revoked.
@@ -212,7 +212,7 @@ The following attributes are exported:
 
 * `resource_group_name` - The name of the resource group in which to create the virtual network gateway.
 
-* `location` - The location/region where the virtual network gateway is created.
+* `location` - The location/region where the virtual network gateway is located.
 
 ## Import
 
