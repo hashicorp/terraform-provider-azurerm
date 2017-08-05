@@ -629,7 +629,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Virtual Machine %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Virtual Machine %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -701,9 +701,11 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 		if resp.VirtualMachineProperties.NetworkProfile.NetworkInterfaces != nil {
 			for _, nic := range *resp.VirtualMachineProperties.NetworkProfile.NetworkInterfaces {
-				if nic.NetworkInterfaceReferenceProperties != nil && nic.NetworkInterfaceReferenceProperties.Primary != nil && *nic.NetworkInterfaceReferenceProperties.Primary {
-					d.Set("primary_network_interface_id", nic.ID)
-					break
+				if props := nic.NetworkInterfaceReferenceProperties; props != nil {
+					if props.Primary != nil && *props.Primary {
+						d.Set("primary_network_interface_id", nic.ID)
+						break
+					}
 				}
 			}
 		}
@@ -742,11 +744,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 
 		if osDisk.Vhd != nil {
 			if err = resourceArmVirtualMachineDeleteVhd(*osDisk.Vhd.URI, meta); err != nil {
-				return fmt.Errorf("Error deleting OS Disk VHD: %s", err)
+				return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
 			}
 		} else if osDisk.ManagedDisk != nil {
 			if err = resourceArmVirtualMachineDeleteManagedDisk(*osDisk.ManagedDisk.ID, meta); err != nil {
-				return fmt.Errorf("Error deleting OS Managed Disk: %s", err)
+				return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
 			}
 		} else {
 			return fmt.Errorf("Unable to locate OS managed disk properties from %s", name)
@@ -765,11 +767,11 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 		for _, disk := range disks {
 			if disk.Vhd != nil {
 				if err = resourceArmVirtualMachineDeleteVhd(*disk.Vhd.URI, meta); err != nil {
-					return fmt.Errorf("Error deleting Data Disk VHD: %s", err)
+					return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
 				}
 			} else if disk.ManagedDisk != nil {
 				if err = resourceArmVirtualMachineDeleteManagedDisk(*disk.ManagedDisk.ID, meta); err != nil {
-					return fmt.Errorf("Error deleting Data Managed Disk: %s", err)
+					return fmt.Errorf("Error deleting Data Managed Disk: %+v", err)
 				}
 			} else {
 				return fmt.Errorf("Unable to locate data managed disk properties from %s", name)
@@ -794,12 +796,12 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 
 	storageAccountResourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
 	if err != nil {
-		return fmt.Errorf("Error finding resource group for storage account %s: %s", storageAccountName, err)
+		return fmt.Errorf("Error finding resource group for storage account %s: %+v", storageAccountName, err)
 	}
 
 	blobClient, saExists, err := meta.(*ArmClient).getBlobStorageClientForStorageAccount(storageAccountResourceGroupName, storageAccountName)
 	if err != nil {
-		return fmt.Errorf("Error creating blob store client for VHD deletion: %s", err)
+		return fmt.Errorf("Error creating blob store client for VHD deletion: %+v", err)
 	}
 
 	if !saExists {
@@ -813,7 +815,7 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 	options := &storage.DeleteBlobOptions{}
 	err = blob.Delete(options)
 	if err != nil {
-		return fmt.Errorf("Error deleting VHD blob: %s", err)
+		return fmt.Errorf("Error deleting VHD blob: %+v", err)
 	}
 
 	return nil
@@ -832,7 +834,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 	_, error := diskClient.Delete(resGroup, name, make(chan struct{}))
 	err = <-error
 	if err != nil {
-		return fmt.Errorf("Error deleting Managed Disk (%s %s) %s", name, resGroup, err)
+		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
 	}
 
 	return nil
@@ -1538,7 +1540,7 @@ func findStorageAccountResourceGroup(meta interface{}, storageAccountName string
 
 	rf, err := client.List(filter, expand, pager)
 	if err != nil {
-		return "", fmt.Errorf("Error making resource request for query %s: %s", filter, err)
+		return "", fmt.Errorf("Error making resource request for query %s: %+v", filter, err)
 	}
 
 	results := *rf.Value

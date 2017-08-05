@@ -935,7 +935,7 @@ func testCheckAzureRMVirtualMachineManagedDiskExists(managedDiskID *string, shou
 	return func(s *terraform.State) error {
 		d, err := testGetAzureRMVirtualMachineManagedDisk(managedDiskID)
 		if err != nil {
-			return fmt.Errorf("Error trying to retrieve Managed Disk %s, %s", *managedDiskID, err)
+			return fmt.Errorf("Error trying to retrieve Managed Disk %s, %+v", *managedDiskID, err)
 		}
 		if d.StatusCode == http.StatusNotFound && shouldExist {
 			return fmt.Errorf("Unable to find Managed Disk %s", *managedDiskID)
@@ -955,7 +955,7 @@ func testLookupAzureRMVirtualMachineManagedDiskID(vm *compute.VirtualMachine, di
 				if osd.ManagedDisk != nil {
 					id, err := findAzureRMVirtualMachineManagedDiskID(osd.ManagedDisk)
 					if err != nil {
-						return fmt.Errorf("Unable to parse Managed Disk ID for OS Disk %s, %s", diskName, err)
+						return fmt.Errorf("Unable to parse Managed Disk ID for OS Disk %s, %+v", diskName, err)
 					}
 					*managedDiskID = id
 					return nil
@@ -968,7 +968,7 @@ func testLookupAzureRMVirtualMachineManagedDiskID(vm *compute.VirtualMachine, di
 				if dataDisk.ManagedDisk != nil {
 					id, err := findAzureRMVirtualMachineManagedDiskID(dataDisk.ManagedDisk)
 					if err != nil {
-						return fmt.Errorf("Unable to parse Managed Disk ID for Data Disk %s, %s", diskName, err)
+						return fmt.Errorf("Unable to parse Managed Disk ID for Data Disk %s, %+v", diskName, err)
 					}
 					*managedDiskID = id
 					return nil
@@ -991,7 +991,7 @@ func findAzureRMVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (
 func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*disk.Model, error) {
 	armID, err := parseAzureResourceID(*managedDiskID)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %s", *managedDiskID, err)
+		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %+v", *managedDiskID, err)
 	}
 	name := armID.Path["disks"]
 	resourceGroup := armID.ResourceGroup

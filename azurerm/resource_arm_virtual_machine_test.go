@@ -27,7 +27,7 @@ func testCheckAzureRMVirtualMachineExists(name string, vm *compute.VirtualMachin
 
 		resp, err := conn.Get(resourceGroup, vmName, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on vmClient: %s", err)
+			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -54,12 +54,14 @@ func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name, "")
 
 		if err != nil {
-			return nil
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Virtual Machine still exists:\n%#v", resp.VirtualMachineProperties)
-		}
+		return fmt.Errorf("Virtual Machine still exists:\n%#v", resp.VirtualMachineProperties)
 	}
 
 	return nil

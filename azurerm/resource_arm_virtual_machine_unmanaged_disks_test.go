@@ -2797,14 +2797,14 @@ func testCheckAzureRMVirtualMachineVHDExistence(name string, shouldExist bool) r
 			containerName := rs.Primary.Attributes["name"]
 			storageClient, _, err := testAccProvider.Meta().(*ArmClient).getBlobStorageClientForStorageAccount(resourceGroup, storageAccountName)
 			if err != nil {
-				return fmt.Errorf("Error creating Blob storage client: %s", err)
+				return fmt.Errorf("Error creating Blob storage client: %+v", err)
 			}
 
 			container := storageClient.GetContainerReference(containerName)
 			blob := container.GetBlobReference(name)
 			exists, err := blob.Exists()
 			if err != nil {
-				return fmt.Errorf("Error checking if Disk VHD Blob exists: %s", err)
+				return fmt.Errorf("Error checking if Disk VHD Blob exists: %+v", err)
 			}
 
 			if exists && !shouldExist {
@@ -2837,7 +2837,7 @@ func testCheckAzureRMVirtualMachineDisappears(name string) resource.TestCheckFun
 		_, error := conn.Delete(resourceGroup, vmName, make(chan struct{}))
 		err := <-error
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on vmClient: %s", err)
+			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 		}
 
 		return nil
