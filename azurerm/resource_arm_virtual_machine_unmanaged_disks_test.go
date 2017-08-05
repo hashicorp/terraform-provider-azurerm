@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMVirtualMachine_basicLinuxMachine(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -33,7 +33,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine(t *testing.T) {
 func TestAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -52,7 +52,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(t *testing.T) {
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_disappears(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -74,7 +74,7 @@ func TestAccAzureRMVirtualMachine_withDataDisk(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_withDataDisk, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_withDataDisk(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -93,9 +93,11 @@ func TestAccAzureRMVirtualMachine_withDataDisk(t *testing.T) {
 func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 	var vm compute.VirtualMachine
 
+	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineUpdated, ri, ri, ri, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineUpdated(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -104,24 +106,19 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_machine.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_machine.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_machine.test", "tags.cost-center", "Ops"),
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost-center", "Ops"),
 				),
 			},
 
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_machine.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_machine.test", "tags.environment", "Production"),
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 				),
 			},
 		},
@@ -133,9 +130,11 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 	var vm compute.VirtualMachine
 
+	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_updatedLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
+	postConfig := testAccAzureRMVirtualMachine_updatedLinuxMachine(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -144,17 +143,15 @@ func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_machine.test", "vm_size", "Standard_D1_v2"),
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+					resource.TestCheckResourceAttr(resourceName, "vm_size", "Standard_D1_v2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_machine.test", "vm_size", "Standard_D2_v2"),
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+					resource.TestCheckResourceAttr(resourceName, "vm_size", "Standard_D2_v2"),
 				),
 			},
 		},
@@ -164,7 +161,7 @@ func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 func TestAccAzureRMVirtualMachine_basicWindowsMachine(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicWindowsMachine, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicWindowsMachine(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -183,7 +180,7 @@ func TestAccAzureRMVirtualMachine_basicWindowsMachine(t *testing.T) {
 func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_windowsUnattendedConfig, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -202,7 +199,7 @@ func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 func TestAccAzureRMVirtualMachine_diagnosticsProfile(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_diagnosticsProfile, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_diagnosticsProfile(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -221,7 +218,7 @@ func TestAccAzureRMVirtualMachine_diagnosticsProfile(t *testing.T) {
 func TestAccAzureRMVirtualMachine_winRMConfig(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_winRMConfig, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_winRMConfig(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -240,8 +237,8 @@ func TestAccAzureRMVirtualMachine_winRMConfig(t *testing.T) {
 func TestAccAzureRMVirtualMachine_deleteVHDOptOut(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_withDataDisk, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM, ri, ri, ri, ri, ri)
+	preConfig := testAccAzureRMVirtualMachine_withDataDisk(ri, testLocation())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -267,8 +264,8 @@ func TestAccAzureRMVirtualMachine_deleteVHDOptOut(t *testing.T) {
 func TestAccAzureRMVirtualMachine_deleteVHDOptIn(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore, ri, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter, ri, ri, ri, ri, ri, ri)
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(ri, testLocation())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -295,8 +292,8 @@ func TestAccAzureRMVirtualMachine_ChangeComputerName(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_machineNameBeforeUpdate, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_updateMachineName, ri, ri, ri, ri, ri, ri, ri)
+	preConfig := testAccAzureRMVirtualMachine_machineNameBeforeUpdate(ri, testLocation())
+	postConfig := testAccAzureRMVirtualMachine_updateMachineName(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -325,8 +322,8 @@ func TestAccAzureRMVirtualMachine_ChangeAvailabilitySet(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_withAvailabilitySet, ri, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_updateAvailabilitySet, ri, ri, ri, ri, ri, ri, ri, ri)
+	preConfig := testAccAzureRMVirtualMachine_withAvailabilitySet(ri, testLocation())
+	postConfig := testAccAzureRMVirtualMachine_updateAvailabilitySet(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -355,8 +352,8 @@ func TestAccAzureRMVirtualMachine_changeStorageImageReference(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter, ri, ri, ri, ri, ri, ri, ri)
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(ri, testLocation())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -385,8 +382,8 @@ func TestAccAzureRMVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged, ri, ri, ri, ri, ri, ri, ri)
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -414,7 +411,7 @@ func TestAccAzureRMVirtualMachine_changeOSDiskVhdUri(t *testing.T) {
 func TestAccAzureRMVirtualMachine_plan(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_plan, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_plan(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -432,9 +429,9 @@ func TestAccAzureRMVirtualMachine_plan(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_changeSSHKey(t *testing.T) {
 	var vm compute.VirtualMachine
-	ri := strings.ToLower(acctest.RandString(10))
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_linuxMachineWithSSH, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved, ri, ri, ri, ri, ri, ri, ri)
+	rs := strings.ToLower(acctest.RandString(10))
+	preConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSH(rs, testLocation())
+	postConfig := testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(rs, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -460,9 +457,10 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 	var vm compute.VirtualMachine
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
-	prepConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_destroy, ri, ri, ri, ri, ri)
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile, ri, ri, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
+	prepConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_destroy(ri, location)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -496,7 +494,7 @@ func TestAccAzureRMVirtualMachine_optionalOSProfile(t *testing.T) {
 func TestAccAzureRMVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_primaryNetworkInterfaceId, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -515,7 +513,7 @@ func TestAccAzureRMVirtualMachine_primaryNetworkInterfaceId(t *testing.T) {
 func TestAccAzureRMVirtualMachine_windowsLicenseType(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_windowsLicenseType, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_windowsLicenseType(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -531,16 +529,17 @@ func TestAccAzureRMVirtualMachine_windowsLicenseType(t *testing.T) {
 	})
 }
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -553,7 +552,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -566,7 +565,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -583,7 +582,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -618,19 +617,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-func testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(rInt int) string {
+func testAccAzureRMVirtualMachine_basicLinuxMachineSSHOnly(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -643,7 +643,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -656,7 +656,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -673,7 +673,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -711,19 +711,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
-var testAccAzureRMVirtualMachine_machineNameBeforeUpdate = `
+func testAccAzureRMVirtualMachine_machineNameBeforeUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -736,7 +737,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -749,7 +750,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -766,7 +767,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -801,23 +802,25 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore = `
+func testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksBefore(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_resource_group" "test-sa" {
     name = "acctestRG-sa-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -830,7 +833,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -843,7 +846,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test-sa.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test-sa.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -860,7 +863,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -906,23 +909,25 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter = `
+func testAccAzureRMVirtualMachine_basicLinuxMachineDestroyDisksAfter(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_resource_group" "test-sa" {
     name = "acctestRG-sa-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -935,7 +940,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -948,7 +953,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test-sa.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test-sa.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -962,18 +967,20 @@ resource "azurerm_storage_container" "test" {
     storage_account_name = "${azurerm_storage_account.test.name}"
     container_access_type = "private"
 }
-`
+`, rInt, location, rInt, location, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM = `
+func testAccAzureRMVirtualMachine_basicLinuxMachineDeleteVM(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -986,7 +993,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -999,7 +1006,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1013,18 +1020,20 @@ resource "azurerm_storage_container" "test" {
     storage_account_name = "${azurerm_storage_account.test.name}"
     container_access_type = "private"
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_withDataDisk = `
+func testAccAzureRMVirtualMachine_withDataDisk(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1037,7 +1046,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1050,7 +1059,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1067,7 +1076,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -1110,18 +1119,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineUpdated = `
+func testAccAzureRMVirtualMachine_basicLinuxMachineUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1134,7 +1145,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1147,7 +1158,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1164,7 +1175,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -1197,18 +1208,20 @@ resource "azurerm_virtual_machine" "test" {
     	environment = "Production"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_updatedLinuxMachine = `
+func testAccAzureRMVirtualMachine_updatedLinuxMachine(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1221,7 +1234,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1234,7 +1247,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1251,7 +1264,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D2_v2"
@@ -1280,18 +1293,20 @@ resource "azurerm_virtual_machine" "test" {
 	disable_password_authentication = false
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicWindowsMachine = `
+func testAccAzureRMVirtualMachine_basicWindowsMachine(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1304,7 +1319,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1317,7 +1332,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1334,7 +1349,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -1364,18 +1379,20 @@ resource "azurerm_virtual_machine" "test" {
 	provision_vm_agent = true
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_windowsUnattendedConfig = `
+func testAccAzureRMVirtualMachine_windowsUnattendedConfig(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1388,7 +1405,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1401,7 +1418,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1418,7 +1435,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -1454,18 +1471,20 @@ resource "azurerm_virtual_machine" "test" {
     }
 
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_diagnosticsProfile = `
+func testAccAzureRMVirtualMachine_diagnosticsProfile(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1478,7 +1497,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1491,7 +1510,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1508,7 +1527,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -1544,19 +1563,20 @@ resource "azurerm_virtual_machine" "test" {
         }
     }
 }
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
-`
-
-var testAccAzureRMVirtualMachine_winRMConfig = `
+func testAccAzureRMVirtualMachine_winRMConfig(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1569,7 +1589,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1582,7 +1602,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1599,7 +1619,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -1630,18 +1650,20 @@ resource "azurerm_virtual_machine" "test" {
         }
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_withAvailabilitySet = `
- resource "azurerm_resource_group" "test" {
+func testAccAzureRMVirtualMachine_withAvailabilitySet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
      name = "acctestRG-%d"
-     location = "West US 2"
+     location = "%s"
  }
 
  resource "azurerm_virtual_network" "test" {
      name = "acctvn-%d"
      address_space = ["10.0.0.0/16"]
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
  }
 
@@ -1654,7 +1676,7 @@ var testAccAzureRMVirtualMachine_withAvailabilitySet = `
 
  resource "azurerm_network_interface" "test" {
      name = "acctni-%d"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
 
      ip_configuration {
@@ -1667,7 +1689,7 @@ var testAccAzureRMVirtualMachine_withAvailabilitySet = `
  resource "azurerm_storage_account" "test" {
      name = "accsa%d"
      resource_group_name = "${azurerm_resource_group.test.name}"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      account_type = "Standard_LRS"
 
      tags {
@@ -1677,7 +1699,7 @@ var testAccAzureRMVirtualMachine_withAvailabilitySet = `
 
  resource "azurerm_availability_set" "test" {
     name = "availabilityset%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1690,7 +1712,7 @@ var testAccAzureRMVirtualMachine_withAvailabilitySet = `
 
  resource "azurerm_virtual_machine" "test" {
      name = "acctvm-%d"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
      network_interface_ids = ["${azurerm_network_interface.test.id}"]
      vm_size = "Standard_D1_v2"
@@ -1721,18 +1743,20 @@ var testAccAzureRMVirtualMachine_withAvailabilitySet = `
  	disable_password_authentication = false
      }
  }
-`
+ `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_updateAvailabilitySet = `
+func testAccAzureRMVirtualMachine_updateAvailabilitySet(rInt int, location string) string {
+	return fmt.Sprintf(`
  resource "azurerm_resource_group" "test" {
      name = "acctestRG-%d"
-     location = "West US 2"
+     location = "%s"
  }
 
  resource "azurerm_virtual_network" "test" {
      name = "acctvn-%d"
      address_space = ["10.0.0.0/16"]
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
  }
 
@@ -1745,7 +1769,7 @@ var testAccAzureRMVirtualMachine_updateAvailabilitySet = `
 
  resource "azurerm_network_interface" "test" {
      name = "acctni-%d"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
 
      ip_configuration {
@@ -1758,7 +1782,7 @@ var testAccAzureRMVirtualMachine_updateAvailabilitySet = `
  resource "azurerm_storage_account" "test" {
      name = "accsa%d"
      resource_group_name = "${azurerm_resource_group.test.name}"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      account_type = "Standard_LRS"
 
      tags {
@@ -1768,7 +1792,7 @@ var testAccAzureRMVirtualMachine_updateAvailabilitySet = `
 
  resource "azurerm_availability_set" "test" {
     name = "updatedAvailabilitySet%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1781,7 +1805,7 @@ var testAccAzureRMVirtualMachine_updateAvailabilitySet = `
 
  resource "azurerm_virtual_machine" "test" {
      name = "acctvm-%d"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
      network_interface_ids = ["${azurerm_network_interface.test.id}"]
      vm_size = "Standard_D1_v2"
@@ -1812,18 +1836,20 @@ var testAccAzureRMVirtualMachine_updateAvailabilitySet = `
  	disable_password_authentication = false
      }
  }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_updateMachineName = `
+func testAccAzureRMVirtualMachine_updateMachineName(rInt int, location string) string {
+	return fmt.Sprintf(`
  resource "azurerm_resource_group" "test" {
      name = "acctestRG-%d"
-     location = "West US 2"
+     location = "%s"
  }
 
  resource "azurerm_virtual_network" "test" {
      name = "acctvn-%d"
      address_space = ["10.0.0.0/16"]
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
  }
 
@@ -1836,7 +1862,7 @@ var testAccAzureRMVirtualMachine_updateMachineName = `
 
  resource "azurerm_network_interface" "test" {
      name = "acctni-%d"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
 
      ip_configuration {
@@ -1849,7 +1875,7 @@ var testAccAzureRMVirtualMachine_updateMachineName = `
  resource "azurerm_storage_account" "test" {
      name = "accsa%d"
      resource_group_name = "${azurerm_resource_group.test.name}"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      account_type = "Standard_LRS"
 
      tags {
@@ -1866,7 +1892,7 @@ var testAccAzureRMVirtualMachine_updateMachineName = `
 
  resource "azurerm_virtual_machine" "test" {
      name = "acctvm-%d"
-     location = "West US 2"
+     location = "${azurerm_resource_group.test.location}"
      resource_group_name = "${azurerm_resource_group.test.name}"
      network_interface_ids = ["${azurerm_network_interface.test.id}"]
      vm_size = "Standard_D1_v2"
@@ -1896,18 +1922,20 @@ var testAccAzureRMVirtualMachine_updateMachineName = `
  	disable_password_authentication = false
      }
  }
- `
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore = `
+func testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageBefore(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -1920,7 +1948,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -1933,7 +1961,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -1950,7 +1978,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -1986,18 +2014,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter = `
+func testAccAzureRMVirtualMachine_basicLinuxMachineStorageImageAfter(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2010,7 +2040,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2023,7 +2053,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -2040,7 +2070,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -2076,18 +2106,21 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
 
-var testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged = `
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachine_basicLinuxMachineWithOSDiskVhdUriChanged(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2100,7 +2133,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2113,7 +2146,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -2130,7 +2163,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -2165,18 +2198,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_windowsLicenseType = `
+func testAccAzureRMVirtualMachine_windowsLicenseType(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2189,7 +2224,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2202,7 +2237,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -2219,7 +2254,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -2250,18 +2285,20 @@ resource "azurerm_virtual_machine" "test" {
 	provision_vm_agent = true
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_plan = `
+func testAccAzureRMVirtualMachine_plan(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2274,7 +2311,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2287,7 +2324,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -2304,7 +2341,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_DS1_v2"
@@ -2345,18 +2382,20 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_linuxMachineWithSSH = `
+func testAccAzureRMVirtualMachine_linuxMachineWithSSH(rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestrg%s"
-    location = "southcentralus"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn%s"
     address_space = ["10.0.0.0/16"]
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2369,7 +2408,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni%s"
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2382,7 +2421,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%s"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 }
 
@@ -2395,7 +2434,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm%s"
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -2429,18 +2468,20 @@ resource "azurerm_virtual_machine" "test" {
         }
     }
 }
-`
+`, rString, location, rString, rString, rString, rString, rString, rString)
+}
 
-var testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved = `
+func testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestrg%s"
-    location = "southcentralus"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn%s"
     address_space = ["10.0.0.0/16"]
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2453,7 +2494,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni%s"
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2466,7 +2507,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%s"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 }
 
@@ -2479,7 +2520,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm%s"
-    location = "southcentralus"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
@@ -2509,18 +2550,20 @@ resource "azurerm_virtual_machine" "test" {
 	    disable_password_authentication = true
     }
 }
-`
+`, rString, location, rString, rString, rString, rString, rString, rString)
+}
 
-var testAccAzureRMVirtualMachine_primaryNetworkInterfaceId = `
+func testAccAzureRMVirtualMachine_primaryNetworkInterfaceId(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2533,7 +2576,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2545,7 +2588,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_network_interface" "test2" {
     name = "acctni2-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2558,7 +2601,7 @@ resource "azurerm_network_interface" "test2" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -2575,7 +2618,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}","${azurerm_network_interface.test2.id}"]
     primary_network_interface_id = "${azurerm_network_interface.test.id}"
@@ -2611,12 +2654,14 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine_destroy = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine_destroy(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -2662,18 +2707,20 @@ resource "azurerm_storage_container" "test" {
     storage_account_name = "${azurerm_storage_account.test.name}"
     container_access_type = "private"
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile = `
+func testAccAzureRMVirtualMachine_basicLinuxMachine_attach_without_osProfile(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US 2"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2686,7 +2733,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2699,7 +2746,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -2716,7 +2763,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_F2"
@@ -2734,7 +2781,8 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
 
 func testCheckAzureRMVirtualMachineVHDExistence(name string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

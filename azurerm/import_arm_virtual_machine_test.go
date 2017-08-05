@@ -12,7 +12,7 @@ func TestAccAzureRMVirtualMachine_importBasic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
