@@ -157,7 +157,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Subnet %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Subnet %s: %+v", name, err)
 	}
 
 	d.Set("name", name)
