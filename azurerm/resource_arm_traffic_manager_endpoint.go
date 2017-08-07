@@ -31,7 +31,11 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"azureEndpoints", "nestedEndpoints", "externalEndpoints"}, false),
+				ValidateFunc: validation.StringInSlice([]string{
+					"azureEndpoints",
+					"nestedEndpoints",
+					"externalEndpoints",
+				}, false),
 			},
 
 			"profile_name": {
@@ -159,7 +163,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %s: %+v", name, err)
 	}
 
 	endpoint := *resp.EndpointProperties
