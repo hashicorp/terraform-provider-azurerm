@@ -620,7 +620,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Virtual Machine Scale Set %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Virtual Machine Scale Set %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -1533,7 +1533,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 		if s := config["settings"].(string); s != "" {
 			settings, err := structure.ExpandJsonFromString(s)
 			if err != nil {
-				return nil, fmt.Errorf("unable to parse settings: %s", err)
+				return nil, fmt.Errorf("unable to parse settings: %+v", err)
 			}
 			extension.VirtualMachineScaleSetExtensionProperties.Settings = &settings
 		}
@@ -1541,7 +1541,7 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 		if s := config["protected_settings"].(string); s != "" {
 			protectedSettings, err := structure.ExpandJsonFromString(s)
 			if err != nil {
-				return nil, fmt.Errorf("unable to parse protected_settings: %s", err)
+				return nil, fmt.Errorf("unable to parse protected_settings: %+v", err)
 			}
 			extension.VirtualMachineScaleSetExtensionProperties.ProtectedSettings = &protectedSettings
 		}
