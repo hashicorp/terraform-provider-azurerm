@@ -245,6 +245,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"create_option": {
 							Type:             schema.TypeString,
 							Required:         true,
+							ForceNew:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
