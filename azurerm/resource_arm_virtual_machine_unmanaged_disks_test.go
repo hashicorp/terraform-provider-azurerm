@@ -2667,7 +2667,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -2680,7 +2680,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -2693,7 +2693,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US 2"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
