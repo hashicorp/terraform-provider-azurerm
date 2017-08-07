@@ -12,8 +12,9 @@ import (
 )
 
 func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTrafficManagerProfile_weighted, ri, ri, ri)
+	config := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
 
 	fqdn := fmt.Sprintf("acctesttmp%d.trafficmanager.net", ri)
 
@@ -22,12 +23,12 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerProfileExists("azurerm_traffic_manager_profile.test"),
-					resource.TestCheckResourceAttr("azurerm_traffic_manager_profile.test", "traffic_routing_method", "Weighted"),
-					resource.TestCheckResourceAttr("azurerm_traffic_manager_profile.test", "fqdn", fqdn),
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Weighted"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
 				),
 			},
 		},
@@ -35,8 +36,9 @@ func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTrafficManagerProfile_performance, ri, ri, ri)
+	config := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
 
 	fqdn := fmt.Sprintf("acctesttmp%d.trafficmanager.net", ri)
 
@@ -45,12 +47,12 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerProfileExists("azurerm_traffic_manager_profile.test"),
-					resource.TestCheckResourceAttr("azurerm_traffic_manager_profile.test", "traffic_routing_method", "Performance"),
-					resource.TestCheckResourceAttr("azurerm_traffic_manager_profile.test", "fqdn", fqdn),
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Performance"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
 				),
 			},
 		},
@@ -58,9 +60,9 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTrafficManagerProfile_priority, ri, ri, ri)
-
+	config := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
 	fqdn := fmt.Sprintf("acctesttmp%d.trafficmanager.net", ri)
 
 	resource.Test(t, resource.TestCase{
@@ -68,12 +70,12 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerProfileExists("azurerm_traffic_manager_profile.test"),
-					resource.TestCheckResourceAttr("azurerm_traffic_manager_profile.test", "traffic_routing_method", "Priority"),
-					resource.TestCheckResourceAttr("azurerm_traffic_manager_profile.test", "fqdn", fqdn),
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Priority"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
 				),
 			},
 		},
@@ -81,36 +83,31 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMTrafficManagerProfile_withTags, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMTrafficManagerProfile_withTagsUpdated, ri, ri, ri)
+	preConfig := testAccAzureRMTrafficManagerProfile_withTags(ri, testLocation())
+	postConfig := testAccAzureRMTrafficManagerProfile_withTagsUpdated(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerProfileExists("azurerm_traffic_manager_profile.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_traffic_manager_profile.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_traffic_manager_profile.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_traffic_manager_profile.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMTrafficManagerProfileExists("azurerm_traffic_manager_profile.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_traffic_manager_profile.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_traffic_manager_profile.test", "tags.environment", "staging"),
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -136,7 +133,7 @@ func testCheckAzureRMTrafficManagerProfileExists(name string) resource.TestCheck
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %s", err)
+			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -173,10 +170,11 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMTrafficManagerProfile_weighted = `
+func testAccAzureRMTrafficManagerProfile_weighted(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
@@ -195,12 +193,14 @@ resource "azurerm_traffic_manager_profile" "test" {
         path = "/"
     }
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMTrafficManagerProfile_performance = `
+func testAccAzureRMTrafficManagerProfile_performance(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
@@ -219,12 +219,14 @@ resource "azurerm_traffic_manager_profile" "test" {
         path = "/"
     }
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMTrafficManagerProfile_priority = `
+func testAccAzureRMTrafficManagerProfile_priority(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
@@ -243,12 +245,14 @@ resource "azurerm_traffic_manager_profile" "test" {
         path = "/"
     }
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMTrafficManagerProfile_withTags = `
+func testAccAzureRMTrafficManagerProfile_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
@@ -266,18 +270,20 @@ resource "azurerm_traffic_manager_profile" "test" {
         port = 443
         path = "/"
     }
-    
+
     tags {
         environment = "Production"
         cost_center = "MSFT"
     }
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMTrafficManagerProfile_withTagsUpdated = `
+func testAccAzureRMTrafficManagerProfile_withTagsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_traffic_manager_profile" "test" {
@@ -295,9 +301,10 @@ resource "azurerm_traffic_manager_profile" "test" {
         port = 443
         path = "/"
     }
-    
+
     tags {
         environment = "staging"
     }
 }
-`
+`, rInt, location, rInt, rInt)
+}
