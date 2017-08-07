@@ -28,9 +28,9 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"azureEndpoints",
 					"nestedEndpoints",
