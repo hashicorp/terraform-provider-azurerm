@@ -11,7 +11,7 @@ func TestAccAzureRMServiceBusQueue_importBasic(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusQueue_basic(ri)
+	config := testAccAzureRMServiceBusQueue_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
