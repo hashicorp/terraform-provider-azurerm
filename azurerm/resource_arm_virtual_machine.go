@@ -368,10 +368,12 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"provision_vm_agent": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"enable_automatic_upgrades": {
 							Type:     schema.TypeBool,
 							Optional: true,
+							Default:  false,
 						},
 						"winrm": {
 							Type:     schema.TypeList,
@@ -892,13 +894,17 @@ func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int
 
 func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if m["provision_vm_agent"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["provision_vm_agent"].(bool)))
+
+	if v != nil {
+		m := v.(map[string]interface{})
+		if m["provision_vm_agent"] != nil {
+			buf.WriteString(fmt.Sprintf("%t-", m["provision_vm_agent"].(bool)))
+		}
+		if m["enable_automatic_upgrades"] != nil {
+			buf.WriteString(fmt.Sprintf("%t-", m["enable_automatic_upgrades"].(bool)))
+		}
 	}
-	if m["enable_automatic_upgrades"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["enable_automatic_upgrades"].(bool)))
-	}
+
 	return hashcode.String(buf.String())
 }
 
