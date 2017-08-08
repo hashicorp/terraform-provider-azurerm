@@ -30,16 +30,24 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			},
 
 			"profile_status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Enabled", "Disabled"}, true),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Enabled",
+					"Disabled",
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"traffic_routing_method": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Performance", "Weighted", "Priority"}, false),
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Performance",
+					"Weighted",
+					"Priority",
+				}, false),
 			},
 
 			"dns_config": {
@@ -74,9 +82,12 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"http", "https"}, false),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"http",
+								"https",
+							}, false),
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -156,7 +167,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %+v", name, err)
 	}
 
 	profile := *resp.ProfileProperties
