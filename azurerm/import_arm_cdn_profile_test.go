@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,7 +11,7 @@ func TestAccAzureRMCdnProfile_importWithTags(t *testing.T) {
 	resourceName := "azurerm_cdn_profile.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMCdnProfile_withTags, ri, ri)
+	config := testAccAzureRMCdnProfile_withTags(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

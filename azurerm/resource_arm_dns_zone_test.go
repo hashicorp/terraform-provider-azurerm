@@ -2,27 +2,28 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/dns"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
+	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMDnsZone_basic, ri, ri)
+	config := testAccAzureRMDnsZone_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists("azurerm_dns_zone.test"),
+					testCheckAzureRMDnsZoneExists(resourceName),
 				),
 			},
 		},
@@ -30,30 +31,28 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
+	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMDnsZone_withTags, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMDnsZone_withTagsUupdate, ri, ri)
+	preConfig := testAccAzureRMDnsZone_withTags(ri)
+	postConfig := testAccAzureRMDnsZone_withTagsUupdate(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists("azurerm_dns_zone.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_zone.test", "tags.%", "2"),
+					testCheckAzureRMDnsZoneExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists("azurerm_dns_zone.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_dns_zone.test", "tags.%", "1"),
+					testCheckAzureRMDnsZoneExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 		},
@@ -68,17 +67,20 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetDNSZone{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetDNSZone: %s", err)
+		zoneName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetDNSZone: %s", readResponse.Error)
+
+		client := testAccProvider.Meta().(*ArmClient).zonesClient
+		resp, err := client.Get(resourceGroup, zoneName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: DNS zone %s (resource group: %s) does not exist", zoneName, resourceGroup)
 		}
 
 		return nil
@@ -86,65 +88,76 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+	conn := testAccProvider.Meta().(*ArmClient).zonesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_zone" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &dns.GetDNSZone{}
+		zoneName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, zoneName)
 		if err != nil {
-			return fmt.Errorf("Bad: GetDNSZone: %s", err)
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return err
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: DNS zone still exists: %s", readResponse.Error)
-		}
+		return fmt.Errorf("DNS Zone still exists:\n%#v", resp)
 	}
 
 	return nil
 }
 
-var testAccAzureRMDnsZone_basic = `
+func testAccAzureRMDnsZone_basic(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
-resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-`
 
-var testAccAzureRMDnsZone_withTags = `
+resource "azurerm_dns_zone" "test" {
+    name = "acctestzone%d.com"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, rInt)
+}
+
+func testAccAzureRMDnsZone_withTags(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
-	tags {
-		environment = "Production"
-		cost_center = "MSFT"
+    tags {
+	environment = "Production"
+	cost_center = "MSFT"
     }
 }
-`
+`, rInt, rInt)
+}
 
-var testAccAzureRMDnsZone_withTagsUupdate = `
+func testAccAzureRMDnsZone_withTagsUupdate(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
     location = "West US"
 }
+
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
-	tags {
-		environment = "staging"
+    tags {
+	environment = "staging"
     }
 }
-`
+`, rInt, rInt)
+}

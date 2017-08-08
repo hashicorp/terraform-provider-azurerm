@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,18 +11,40 @@ func TestAccAzureRMDnsNsRecord_importBasic(t *testing.T) {
 	resourceName := "azurerm_dns_ns_record.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMDnsNsRecord_basic, ri, ri, ri)
+	config := testAccAzureRMDnsNsRecord_basic(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 
-			resource.TestStep{
+func TestAccAzureRMDnsNsRecord_importWithTags(t *testing.T) {
+	resourceName := "azurerm_dns_ns_record.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMDnsNsRecord_withTags(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsNsRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

@@ -199,7 +199,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 	  lun 		   = 0
     caching        = "ReadWrite"
     create_option  = "Empty"
-    disk_size_gb   = 10	
+    disk_size_gb   = 10
   }
 
   os_profile {
@@ -256,6 +256,7 @@ The following arguments are supported:
 * `storage_profile_data_disk` - (Optional) A storage profile data disk block as documented below
 * `storage_profile_image_reference` - (Optional) A storage profile image reference block as documented below.
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
+* `plan` - (Optional) A plan block as documented below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 
@@ -325,7 +326,7 @@ The following arguments are supported:
 
 `storage_profile_os_disk` supports the following:
 
-* `name` - (Required) Specifies the disk name. Value must be blank (`""`) when `managed_disk_type` is specified. 
+* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
 * `vhd_containers` - (Optional) Specifies the vhd uri. Cannot be used when `image` or `managed_disk_type` is specified.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.
@@ -345,9 +346,11 @@ The following arguments are supported:
 
 `storage_profile_image_reference` supports the following:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
+machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 `extension` supports the following:
@@ -359,6 +362,32 @@ The following arguments are supported:
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
 * `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
+
+`plan` supports the following:
+
+* `name` - (Required) Specifies the name of the image from the marketplace.
+* `publisher` - (Required) Specifies the publisher of the image.
+* `product` - (Required) Specifies the product of the image from the marketplace.
+
+## Example of storage_profile_image_reference with id
+
+```hcl
+
+resource "azurerm_image" "test" {
+	name = "test"
+  ...
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+	name = "test"
+  ...
+
+	storage_image_reference {
+		id = "${azurerm_image.test.id}"
+	}
+
+...
+```
 
 ## Attributes Reference
 

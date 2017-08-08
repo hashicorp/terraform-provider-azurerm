@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
+	riviera "github.com/jen20/riviera/azure"
 )
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
@@ -299,7 +299,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 
 						"image": {
@@ -393,28 +393,57 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"publisher": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"offer": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"sku": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"version": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
+			},
+
+			"plan": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
 						"publisher": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
 
-						"offer": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"sku": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"version": {
+						"product": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
 			"extension": {
@@ -545,6 +574,16 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		Sku:      sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
 	}
+
+	if _, ok := d.GetOk("plan"); ok {
+		plan, err := expandAzureRmVirtualMachineScaleSetPlan(d)
+		if err != nil {
+			return err
+		}
+
+		scaleSetParams.Plan = plan
+	}
+
 	_, vmError := vmScaleSetClient.CreateOrUpdate(resGroup, name, scaleSetParams, make(chan struct{}))
 	vmErr := <-vmError
 	if vmErr != nil {
@@ -576,7 +615,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	resp, err := vmScaleSetClient.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			log.Printf("[INFO] AzureRM Virtual Machine Scale Set (%s) Not Found. Removing from State", name)
 			d.SetId("")
 			return nil
@@ -651,6 +690,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Extension Profile error: %#v", err)
 		}
 		d.Set("extension", extension)
+	}
+
+	if resp.Plan != nil {
+		if err := d.Set("plan", flattenAzureRmVirtualMachineScaleSetPlan(resp.Plan)); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Plan. Error: %#v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -882,12 +927,23 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(disks *[]compute
 	return result
 }
 
-func flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(profile *compute.ImageReference) []interface{} {
+func flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(image *compute.ImageReference) []interface{} {
 	result := make(map[string]interface{})
-	result["publisher"] = *profile.Publisher
-	result["offer"] = *profile.Offer
-	result["sku"] = *profile.Sku
-	result["version"] = *profile.Version
+	if image.Publisher != nil {
+		result["publisher"] = *image.Publisher
+	}
+	if image.Offer != nil {
+		result["offer"] = *image.Offer
+	}
+	if image.Sku != nil {
+		result["sku"] = *image.Sku
+	}
+	if image.Version != nil {
+		result["version"] = *image.Version
+	}
+	if image.ID != nil {
+		result["id"] = *image.ID
+	}
 
 	return []interface{}{result}
 }
@@ -940,11 +996,21 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["version"].(string)))
-
+	if m["publisher"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+	}
+	if m["offer"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
+	}
+	if m["sku"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
+	}
+	if m["version"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["version"].(string)))
+	}
+	if m["id"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
+	}
 	return hashcode.String(buf.String())
 }
 
@@ -1182,6 +1248,10 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	createOption := osDiskConfig["create_option"].(string)
 	managedDiskType := osDiskConfig["managed_disk_type"].(string)
 
+	if managedDiskType == "" && name == "" {
+		return nil, fmt.Errorf("[ERROR] `name` must be set in `storage_profile_os_disk` for unmanaged disk")
+	}
+
 	osDisk := &compute.VirtualMachineScaleSetOSDisk{
 		Name:         &name,
 		Caching:      compute.CachingTypes(caching),
@@ -1207,13 +1277,13 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.Resource
 	managedDisk := &compute.VirtualMachineScaleSetManagedDiskParameters{}
 
 	if managedDiskType != "" {
-		if name == "" {
-			osDisk.Name = nil
-			managedDisk.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
-			osDisk.ManagedDisk = managedDisk
-		} else {
-			return nil, fmt.Errorf("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please set name to blank)")
+		if name != "" {
+			return nil, fmt.Errorf("[ERROR] Conflict between `name` and `managed_disk_type` on `storage_profile_os_disk` (please remove name or set it to blank)")
 		}
+
+		osDisk.Name = nil
+		managedDisk.StorageAccountType = compute.StorageAccountTypes(managedDiskType)
+		osDisk.ManagedDisk = managedDisk
 	}
 
 	//BEGIN: code to be removed after GH-13016 is merged
@@ -1274,17 +1344,29 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.R
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
 
+	imageID := storageImageRef["id"].(string)
 	publisher := storageImageRef["publisher"].(string)
-	offer := storageImageRef["offer"].(string)
-	sku := storageImageRef["sku"].(string)
-	version := storageImageRef["version"].(string)
 
-	return &compute.ImageReference{
-		Publisher: &publisher,
-		Offer:     &offer,
-		Sku:       &sku,
-		Version:   &version,
-	}, nil
+	imageReference := compute.ImageReference{}
+
+	if imageID != "" && publisher != "" {
+		return nil, fmt.Errorf("[ERROR] Conflict between `id` and `publisher` (only one or the other can be used)")
+	}
+
+	if imageID != "" {
+		imageReference.ID = riviera.String(storageImageRef["id"].(string))
+	} else {
+		offer := storageImageRef["offer"].(string)
+		sku := storageImageRef["sku"].(string)
+		version := storageImageRef["version"].(string)
+
+		imageReference.Publisher = &publisher
+		imageReference.Offer = &offer
+		imageReference.Sku = &sku
+		imageReference.Version = &version
+	}
+
+	return &imageReference, nil
 }
 
 func expandAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(d *schema.ResourceData) (*compute.LinuxConfiguration, error) {
@@ -1470,4 +1552,30 @@ func expandAzureRMVirtualMachineScaleSetExtensions(d *schema.ResourceData) (*com
 	return &compute.VirtualMachineScaleSetExtensionProfile{
 		Extensions: &resources,
 	}, nil
+}
+
+func expandAzureRmVirtualMachineScaleSetPlan(d *schema.ResourceData) (*compute.Plan, error) {
+	planConfigs := d.Get("plan").(*schema.Set).List()
+
+	planConfig := planConfigs[0].(map[string]interface{})
+
+	publisher := planConfig["publisher"].(string)
+	name := planConfig["name"].(string)
+	product := planConfig["product"].(string)
+
+	return &compute.Plan{
+		Publisher: &publisher,
+		Name:      &name,
+		Product:   &product,
+	}, nil
+}
+
+func flattenAzureRmVirtualMachineScaleSetPlan(plan *compute.Plan) []interface{} {
+	result := make(map[string]interface{})
+
+	result["name"] = *plan.Name
+	result["publisher"] = *plan.Publisher
+	result["product"] = *plan.Product
+
+	return []interface{}{result}
 }

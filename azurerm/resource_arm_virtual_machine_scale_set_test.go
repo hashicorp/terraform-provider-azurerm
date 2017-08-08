@@ -97,6 +97,24 @@ func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(t *testing.T) {
+	ri := acctest.RandInt()
+	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName, ri, ri, ri, ri, ri, ri)
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSet_basic, ri, ri, ri, ri, ri, ri, ri, ri)
@@ -112,6 +130,24 @@ func TestAccAzureRMVirtualMachineScaleSet_basicLinux_disappears(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetDisappears("azurerm_virtual_machine_scale_set.test"),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSet_planManagedDisk(ri)
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+				),
 			},
 		},
 	})
@@ -898,6 +934,68 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 }
 `
 
+var testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName = `
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US 2"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctvn-%d"
+    address_space = ["10.0.0.0/16"]
+    location = "West US 2"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+    name = "acctsub-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name = "acctvmss-%d"
+  location = "West US 2"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name = "Standard_D1_v2"
+    tier = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%d"
+    admin_username = "myadmin"
+    admin_password = "Passwword1234"
+  }
+
+  network_profile {
+      name = "TestNetworkProfile-%d"
+      primary = true
+      ip_configuration {
+        name = "TestIPConfiguration"
+        subnet_id = "${azurerm_subnet.test.id}"
+      }
+  }
+
+  storage_profile_os_disk {
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`
+
 var testAccAzureRMVirtualMachineScaleSetLoadbalancerTemplate = `
 resource "azurerm_resource_group" "test" {
     name 	 = "acctestrg-%d"
@@ -1526,4 +1624,74 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 `, ri, ri, ri, ri, ri, ri, ri, ri)
+}
+
+func testAccAzureRMVirtualMachineScaleSet_planManagedDisk(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West US 2"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctvn-%d"
+    address_space = ["10.0.0.0/16"]
+    location = "West US 2"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+    name = "acctsub-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name = "acctvmss-%d"
+  location = "West US 2"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name = "Standard_D1_v2"
+    tier = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%d"
+    admin_username = "myadmin"
+    admin_password = "Passwword1234"
+  }
+
+  network_profile {
+      name = "TestNetworkProfile-%d"
+      primary = true
+      ip_configuration {
+        name = "TestIPConfiguration"
+        subnet_id = "${azurerm_subnet.test.id}"
+      }
+  }
+
+  plan {
+    name = "os"
+    product = "rancheros"
+    publisher = "rancher"
+  }
+
+  storage_profile_os_disk {
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "rancher"
+    offer     = "rancheros"
+    sku       = "os"
+    version   = "latest"
+  }
+}
+`, rInt, rInt, rInt, rInt, rInt, rInt)
 }

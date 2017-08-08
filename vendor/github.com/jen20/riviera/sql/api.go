@@ -2,7 +2,7 @@ package sql
 
 import "fmt"
 
-const apiVersion = "2014-04-01-preview"
+const apiVersion = "2014-04-01"
 const apiProvider = "Microsoft.Sql"
 
 func sqlServerDefaultURLPath(resourceGroupName, serverName string) func() string {

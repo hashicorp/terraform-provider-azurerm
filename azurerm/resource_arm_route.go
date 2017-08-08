@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -72,8 +71,8 @@ func resourceArmRouteCreate(d *schema.ResourceData, meta interface{}) error {
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
 
-	armMutexKV.Lock(rtName)
-	defer armMutexKV.Unlock(rtName)
+	azureRMLockByName(rtName, routeTableResourceName)
+	defer azureRMUnlockByName(rtName, routeTableResourceName)
 
 	properties := network.RoutePropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -121,7 +120,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := routesClient.Get(resGroup, rtName, routeName)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -153,8 +152,8 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	rtName := id.Path["routeTables"]
 	routeName := id.Path["routes"]
 
-	armMutexKV.Lock(rtName)
-	defer armMutexKV.Unlock(rtName)
+	azureRMLockByName(rtName, routeTableResourceName)
+	defer azureRMUnlockByName(rtName, routeTableResourceName)
 
 	_, error := routesClient.Delete(resGroup, rtName, routeName, make(chan struct{}))
 	err = <-error
