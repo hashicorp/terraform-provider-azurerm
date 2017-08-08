@@ -35,7 +35,8 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 	var d disk.Model
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	vmConfig := fmt.Sprintf(testAccAzureRMVirtualMachine_basicLinuxMachine, ri, ri, ri, ri, ri, ri, ri)
+	location := testLocation()
+	vmConfig := testAccAzureRMVirtualMachine_basicLinuxMachine(ri, location)
 	config := fmt.Sprintf(testAccAzureRMManagedDisk_import, ri, ri, ri)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

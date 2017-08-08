@@ -33,8 +33,13 @@ func testAccPreCheck(t *testing.T) {
 	clientID := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	tenantID := os.Getenv("ARM_TENANT_ID")
+	testLocation := os.Getenv("ARM_TEST_LOCATION")
 
-	if subscriptionID == "" || clientID == "" || clientSecret == "" || tenantID == "" {
-		t.Fatal("ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET and ARM_TENANT_ID must be set for acceptance tests")
+	if subscriptionID == "" || clientID == "" || clientSecret == "" || tenantID == "" || testLocation == "" {
+		t.Fatal("ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID and ARM_TEST_LOCATION must be set for acceptance tests")
 	}
+}
+
+func testLocation() string {
+	return os.Getenv("ARM_TEST_LOCATION")
 }
