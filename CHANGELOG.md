@@ -11,6 +11,7 @@ BUG FIXES:
 * `azurerm_sql_database` - fixing creating a DB with a PointInTimeRestore [GH-197]
 * `azurerm_virtual_machine` - fix a crash when the properties for a network inteface aren't returned [GH-208]
 * `azurerm_virtual_machine` - changes to custom data should force new resource [GH-211]
+* `azurerm_virtual_machine` - fixes a crash caused by an empty `os_profile_windows_config` block [GH-222]
 * Checking to ensure the HTTP Response isn't `nil` before accessing it (fixes [GH-200]) [GH-204]
 
 ## 0.1.4 (July 26, 2017)
