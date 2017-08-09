@@ -46,7 +46,7 @@ func TestAccAzureRMCosmosDBAccountName_validation(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_boundedStaleness(ri)
+	config := testAccAzureRMCosmosDBAccount_boundedStaleness(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -66,7 +66,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_boundedStalenessComplete(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_boundedStalenessComplete(ri)
+	config := testAccAzureRMCosmosDBAccount_boundedStalenessComplete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -85,7 +85,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStalenessComplete(t *testing.T) {
 
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_eventualConsistency(ri)
+	config := testAccAzureRMCosmosDBAccount_eventualConsistency(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -104,7 +104,7 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 
 func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_session(ri)
+	config := testAccAzureRMCosmosDBAccount_session(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -123,7 +123,7 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 
 func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_strong(ri)
+	config := testAccAzureRMCosmosDBAccount_strong(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -143,7 +143,7 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_geoReplicated(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_geoReplicated(ri)
+	config := testAccAzureRMCosmosDBAccount_geoReplicated(ri, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -203,7 +203,7 @@ func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on cosmosDBClient: %s", err)
+			return fmt.Errorf("Bad: Get on cosmosDBClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -214,12 +214,13 @@ func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMCosmosDBAccount_boundedStaleness(rInt int) string {
+func testAccAzureRMCosmosDBAccount_boundedStaleness(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -235,15 +236,16 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMCosmosDBAccount_boundedStalenessComplete(rInt int) string {
+func testAccAzureRMCosmosDBAccount_boundedStalenessComplete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -261,15 +263,16 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMCosmosDBAccount_eventualConsistency(rInt int) string {
+func testAccAzureRMCosmosDBAccount_eventualConsistency(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -285,15 +288,16 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMCosmosDBAccount_session(rInt int) string {
+func testAccAzureRMCosmosDBAccount_session(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -309,15 +313,16 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMCosmosDBAccount_strong(rInt int) string {
+func testAccAzureRMCosmosDBAccount_strong(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -333,15 +338,16 @@ resource "azurerm_cosmosdb_account" "test" {
     priority = 0
   }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int) string {
+func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
@@ -360,9 +366,9 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   failover_policy {
-    location = "West Europe"
+    location = "%s"
     priority = 1
   }
 }
-`, rInt, rInt)
+`, rInt, location, rInt, altLocation)
 }
