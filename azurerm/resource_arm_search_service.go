@@ -117,7 +117,7 @@ func resourceArmSearchServiceCreate(d *schema.ResourceData, meta interface{}) er
 		Pending:    []string{"provisioning"},
 		Target:     []string{"succeeded"},
 		Refresh:    azureStateRefreshFunc(*resp.ID, client, getSearchServiceCommand),
-		Timeout:    30 * time.Minute,
+		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {

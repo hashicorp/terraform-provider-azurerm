@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMSearchService_basic(t *testing.T) {
 	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMSearchService_basic(ri)
+	config := testAccAzureRMSearchService_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,8 +34,9 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 func TestAccAzureRMSearchService_updateReplicaCountAndTags(t *testing.T) {
 	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMSearchService_basic(ri)
-	postConfig := testAccAzureRMSearchService_updated(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMSearchService_basic(ri, location)
+	postConfig := testAccAzureRMSearchService_updated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -112,11 +113,11 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSearchService_basic(rInt int) string {
+func testAccAzureRMSearchService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_search_service" "test" {
@@ -130,14 +131,14 @@ resource "azurerm_search_service" "test" {
     	database = "test"
     }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMSearchService_updated(rInt int) string {
+func testAccAzureRMSearchService_updated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 resource "azurerm_search_service" "test" {
     name = "acctestsearchservice%d"
@@ -150,5 +151,5 @@ resource "azurerm_search_service" "test" {
     	environment = "production"
     }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
