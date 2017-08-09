@@ -9,57 +9,59 @@ import (
 )
 
 func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
+	dataSourceName := "data.azurerm_public_ip.test"
 	ri := acctest.RandInt()
 
 	name := fmt.Sprintf("acctestpublicip-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
-	config := testAccDatSourceAzureRMPublicIPBasic(name, resourceGroupName, ri)
+	config := testAccDatSourceAzureRMPublicIPBasic(name, resourceGroupName, ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "name", name),
-					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "domain_name_label", fmt.Sprintf("acctest-%d", ri)),
-					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "idle_timeout_in_minutes", "30"),
-					resource.TestCheckResourceAttrSet("data.azurerm_public_ip.test", "fqdn"),
-					resource.TestCheckResourceAttrSet("data.azurerm_public_ip.test", "ip_address"),
-					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr("data.azurerm_public_ip.test", "tags.environment", "test"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "domain_name_label", fmt.Sprintf("acctest-%d", ri)),
+					resource.TestCheckResourceAttr(dataSourceName, "idle_timeout_in_minutes", "30"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "fqdn"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "ip_address"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "test"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDatSourceAzureRMPublicIPBasic(name string, resourceGroupName string, rInt int) string {
+func testAccDatSourceAzureRMPublicIPBasic(name string, resourceGroupName string, rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "%s"
-    location = "West US"
+  name     = "%s"
+  location = "%s"
 }
+
 resource "azurerm_public_ip" "test" {
-    name = "%s"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
-    domain_name_label = "acctest-%d"
-    idle_timeout_in_minutes = 30
-	
-    tags {
-	environment = "test"
-    }
+  name                         = "%s"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
+  domain_name_label            = "acctest-%d"
+  idle_timeout_in_minutes      = 30
+
+  tags {
+    environment = "test"
+  }
 }
 
 data "azurerm_public_ip" "test" {
-    name = "${azurerm_public_ip.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "${azurerm_public_ip.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, resourceGroupName, name, rInt)
+`, resourceGroupName, location, name, rInt)
 }
