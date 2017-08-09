@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/sql"
 )
 
 func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
@@ -43,23 +43,27 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 
 func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
+		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetFirewallRule{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %s", err)
+		name := rs.Primary.Attributes["name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state forSQL Firewall Rule: %s", name)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetFirewallRule: %s", readResponse.Error)
+
+		conn := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+		resp, err := conn.Get(resourceGroup, serverName, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Get SQL Firewall Rule: %v", err)
+		}
+
+		if resp.Response.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad:SQL Firewall Rule %s (resource group: %s) does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -67,24 +71,27 @@ func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+	conn := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_firewall_rule" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetFirewallRule{}
+		name := rs.Primary.Attributes["name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, serverName, name)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %s", err)
+			return nil
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: SQL Server Firewall Rule still exists: %s", readResponse.Error)
+		if resp.Response.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("SQL Firewall Rule still exists:\n%#v", resp.FirewallRuleProperties)
 		}
+
 	}
 
 	return nil

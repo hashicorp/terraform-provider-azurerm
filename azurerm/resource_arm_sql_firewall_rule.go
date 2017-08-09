@@ -2,18 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"net/http"
 
+	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
-	"github.com/jen20/riviera/sql"
 )
 
 func resourceArmSqlFirewallRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlFirewallRuleCreate,
+		Create: resourceArmSqlFirewallRuleCreateOrUpdate,
 		Read:   resourceArmSqlFirewallRuleRead,
-		Update: resourceArmSqlFirewallRuleCreate,
+		Update: resourceArmSqlFirewallRuleCreateOrUpdate,
 		Delete: resourceArmSqlFirewallRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -51,96 +50,86 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 	}
 }
 
-func resourceArmSqlFirewallRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmSqlFirewallRuleCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	sqlFirewallRulesClient := meta.(*ArmClient).sqlFirewallRulesClient
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = &sql.CreateOrUpdateFirewallRule{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ServerName:        d.Get("server_name").(string),
-		StartIPAddress:    azure.String(d.Get("start_ip_address").(string)),
-		EndIPAddress:      azure.String(d.Get("end_ip_address").(string)),
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	serverName := d.Get("server_name").(string)
+	startIpAddress := d.Get("start_ip_address").(string)
+	endIpAddress := d.Get("end_ip_address").(string)
+
+	props := sql.FirewallRuleProperties{
+		StartIPAddress: &startIpAddress,
+		EndIPAddress:   &endIpAddress,
+	}
+	parameters := sql.FirewallRule{
+		Name: &name,
+		FirewallRuleProperties: &props,
 	}
 
-	createResponse, err := createRequest.Execute()
+	result, err := sqlFirewallRulesClient.CreateOrUpdate(resGroup, serverName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating SQL Server Firewall Rule: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating SQL Server Firewall Rule: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &sql.GetFirewallRule{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ServerName:        d.Get("server_name").(string),
+	if result.ID == nil {
+		return fmt.Errorf("Cannot create sql firewall rule %s (resource group %s) ID", name, resGroup)
 	}
 
-	readResponse, err := readRequest.Execute()
-	if err != nil {
-		return fmt.Errorf("Error reading SQL Server Firewall Rule: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading SQL Server Firewall Rule: %s", readResponse.Error)
-	}
-
-	resp := readResponse.Parsed.(*sql.GetFirewallRuleResponse)
-	d.SetId(*resp.ID)
+	d.SetId(*result.ID)
 
 	return resourceArmSqlFirewallRuleRead(d, meta)
 }
 
 func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
+	sqlFirewallRulesClient := meta.(*ArmClient).sqlFirewallRulesClient
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
+	name := id.Path["firewallRules"]
+	serverName := id.Path["servers"]
 
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
-
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &sql.GetFirewallRule{}
-
-	readResponse, err := readRequest.Execute()
+	result, err := sqlFirewallRulesClient.Get(resGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Server Firewall Rule: %s", err)
+		return fmt.Errorf("Error reading SQL firewall rule %s: %v", name, err)
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading SQL Server Firewall Rule %q - removing from state", d.Id())
+	if result.Response.StatusCode == http.StatusNotFound {
 		d.SetId("")
-		return fmt.Errorf("Error reading SQL Server Firewall Rule: %s", readResponse.Error)
+		return nil
 	}
 
-	resp := readResponse.Parsed.(*sql.GetFirewallRuleResponse)
+	if props := result.FirewallRuleProperties; props != nil {
+		d.Set("start_ip_address", props.StartIPAddress)
+		d.Set("end_ip_address", props.EndIPAddress)
+	}
 
+	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	d.Set("name", resp.Name)
-	d.Set("server_name", id.Path["servers"])
-	d.Set("start_ip_address", resp.StartIPAddress)
-	d.Set("end_ip_address", resp.EndIPAddress)
+	d.Set("server_name", serverName)
 
 	return nil
 }
 
 func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	sqlFirewallRulesClient := meta.(*ArmClient).sqlFirewallRulesClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &sql.DeleteFirewallRule{}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Server Firewall Rule: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting SQL Server Firewall Rule: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	name := id.Path["firewallRules"]
+	serverName := id.Path["servers"]
+
+	result, error := sqlFirewallRulesClient.Delete(resGroup, serverName, name)
+	if result.Response.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting sql firewall rule %s: %+v", name, error)
 	}
 
 	return nil
