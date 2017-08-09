@@ -18,7 +18,7 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt),
+				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
 				),
@@ -35,7 +35,7 @@ func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt),
+				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
 					testCheckAzureRMNetworkSecurityGroupDisappears("azurerm_network_security_group.test"),
@@ -54,7 +54,7 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityGroup_withTags(rInt),
+				Config: testAccAzureRMNetworkSecurityGroup_withTags(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
 					resource.TestCheckResourceAttr(
@@ -67,7 +67,7 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 			},
 
 			{
-				Config: testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt),
+				Config: testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
 					resource.TestCheckResourceAttr(
@@ -88,7 +88,7 @@ func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt),
+				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
 					resource.TestCheckResourceAttr(
@@ -97,7 +97,7 @@ func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
 			},
 
 			{
-				Config: testAccAzureRMNetworkSecurityGroup_anotherRule(rInt),
+				Config: testAccAzureRMNetworkSecurityGroup_anotherRule(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
 					resource.TestCheckResourceAttr(
@@ -126,7 +126,7 @@ func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckF
 
 		resp, err := conn.Get(resourceGroup, sgName, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on secGroupClient: %s", err)
+			return fmt.Errorf("Bad: Get on secGroupClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -156,7 +156,7 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(name string) resource.TestCh
 		_, error := conn.Delete(resourceGroup, sgName, make(chan struct{}))
 		err := <-error
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on secGroupClient: %s", err)
+			return fmt.Errorf("Bad: Delete on secGroupClient: %+v", err)
 		}
 
 		return nil
@@ -188,132 +188,133 @@ func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNetworkSecurityGroup_basic(rInt int) string {
+func testAccAzureRMNetworkSecurityGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_network_security_group" "test" {
-    name = "acceptanceTestSecurityGroup1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    security_rule {
-    	name = "test123"
-    	priority = 100
-    	direction = "Inbound"
-    	access = "Allow"
-    	protocol = "TCP"
-    	source_port_range = "*"
-    	destination_port_range = "*"
-    	source_address_prefix = "*"
-    	destination_address_prefix = "*"
-    }
-}
-`, rInt)
+  security_rule {
+    name                       = "test123"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "TCP"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 
-func testAccAzureRMNetworkSecurityGroup_anotherRule(rInt int) string {
+`, rInt, location)
+}
+
+func testAccAzureRMNetworkSecurityGroup_anotherRule(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_network_security_group" "test" {
-    name = "acceptanceTestSecurityGroup1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    security_rule {
-    	name = "test123"
-    	priority = 100
-    	direction = "Inbound"
-    	access = "Allow"
-    	protocol = "Tcp"
-    	source_port_range = "*"
-    	destination_port_range = "*"
-    	source_address_prefix = "*"
-    	destination_address_prefix = "*"
-    }
+  security_rule {
+    name                       = "test123"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 
-    security_rule {
-    	name = "testDeny"
-    	priority = 101
-    	direction = "Inbound"
-    	access = "Deny"
-    	protocol = "Udp"
-    	source_port_range = "*"
-    	destination_port_range = "*"
-    	source_address_prefix = "*"
-    	destination_address_prefix = "*"
-    }
+  security_rule {
+    name                       = "testDeny"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMNetworkSecurityGroup_withTags(rInt int) string {
+func testAccAzureRMNetworkSecurityGroup_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_network_security_group" "test" {
-    name = "acceptanceTestSecurityGroup1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    security_rule {
-    	name = "test123"
-    	priority = 100
-    	direction = "Inbound"
-    	access = "Allow"
-    	protocol = "Tcp"
-    	source_port_range = "*"
-    	destination_port_range = "*"
-    	source_address_prefix = "*"
-    	destination_address_prefix = "*"
-    }
+  security_rule {
+    name                       = "test123"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 
-
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt int) string {
+func testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_network_security_group" "test" {
-    name = "acceptanceTestSecurityGroup1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    security_rule {
-    	name = "test123"
-    	priority = 100
-    	direction = "Inbound"
-    	access = "Allow"
-    	protocol = "Tcp"
-    	source_port_range = "*"
-    	destination_port_range = "*"
-    	source_address_prefix = "*"
-    	destination_address_prefix = "*"
-    }
+  security_rule {
+    name                       = "test123"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
-`, rInt)
+
+`, rInt, location)
 }
