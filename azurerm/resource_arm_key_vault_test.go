@@ -12,7 +12,7 @@ import (
 
 func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMKeyVault_basic, ri, ri)
+	config := testAccAzureRMKeyVault_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,8 +31,9 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 
 func TestAccAzureRMKeyVault_update(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMKeyVault_basic, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMKeyVault_update, ri, ri)
+	resourceName := "azurerm_key_vault.test"
+	preConfig := testAccAzureRMKeyVault_basic(ri, testLocation())
+	postConfig := testAccAzureRMKeyVault_update(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,21 +43,21 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultExists("azurerm_key_vault.test"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.key_permissions.0", "all"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.secret_permissions.0", "all"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "tags.environment", "Production"),
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "all"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "all"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.key_permissions.0", "get"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "enabled_for_deployment", "true"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "enabled_for_disk_encryption", "true"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "enabled_for_template_deployment", "true"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "tags.environment", "Staging"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_deployment", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_disk_encryption", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_template_deployment", "true"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Staging"),
 				),
 			},
 		},
@@ -108,7 +109,7 @@ func testCheckAzureRMKeyVaultExists(name string) resource.TestCheckFunc {
 
 		resp, err := client.Get(resourceGroup, vaultName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on keyVaultClient: %s", err)
+			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -119,80 +120,84 @@ func testCheckAzureRMKeyVaultExists(name string) resource.TestCheckFunc {
 	}
 }
 
-var testAccAzureRMKeyVault_basic = `
+func testAccAzureRMKeyVault_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
-    name = "vault%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-	tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-    sku {
-		name = "premium"
-	}
+  sku {
+    name = "premium"
+  }
 
-	access_policy {
-		tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-		object_id = "${data.azurerm_client_config.current.client_id}"
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
 
-		key_permissions = [
-			"all"
-		]
+    key_permissions = [
+      "all",
+    ]
 
-		secret_permissions = [
-			"all"
-		]
-	}
+    secret_permissions = [
+      "all",
+    ]
+  }
 
-	tags {
-		environment = "Production"
-	}
+  tags {
+    environment = "Production"
+  }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMKeyVault_update = `
+func testAccAzureRMKeyVault_update(rInt int, location string) string {
+	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
-    name = "vault%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-	tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-    sku {
-		name = "premium"
-	}
+  sku {
+    name = "premium"
+  }
 
-	access_policy {
-		tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-		object_id = "${data.azurerm_client_config.current.client_id}"
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
 
-		key_permissions = [
-			"get"
-		]
+    key_permissions = [
+      "get",
+    ]
 
-		secret_permissions = [
-			"get"
-		]
-	}
+    secret_permissions = [
+      "get",
+    ]
+  }
 
-	enabled_for_deployment = true
-	enabled_for_disk_encryption = true
-	enabled_for_template_deployment = true
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
 
-	tags {
-		environment = "Staging"
-	}
+  tags {
+    environment = "Staging"
+  }
 }
-`
+`, rInt, location, rInt)
+}
