@@ -480,27 +480,8 @@ resource "azurerm_lb_rule" "test2" {
 func testAccAzureRMLoadBalancerRule_multipleRulesUpdate(rInt int, lbRuleName, lbRule2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
-  address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
-  location = "${azurerm_resource_group.test.location}"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
@@ -541,16 +522,6 @@ resource "azurerm_lb_rule" "test2" {
   frontend_port                  = 3391
   backend_port                   = 3391
   frontend_ip_configuration_name = "one-%d"
-
-  name                = "acceptanceTestNetworkInterface1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
-  }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, lbRuleName, rInt, lbRule2Name, rInt)
 }
