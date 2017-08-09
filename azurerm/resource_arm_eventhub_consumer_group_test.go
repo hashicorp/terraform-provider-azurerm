@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubConsumerGroup_basic, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubConsumerGroup_complete, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -98,7 +98,7 @@ func testCheckAzureRMEventHubConsumerGroupExists(name string) resource.TestCheck
 
 		resp, err := conn.Get(resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on eventHubConsumerGroupClient: %s", err)
+			return fmt.Errorf("Bad: Get on eventHubConsumerGroupClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -109,63 +109,69 @@ func testCheckAzureRMEventHubConsumerGroupExists(name string) resource.TestCheck
 	}
 }
 
-var testAccAzureRMEventHubConsumerGroup_basic = `
+func testAccAzureRMEventHubConsumerGroup_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-    name                = "acctesteventhub-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    partition_count     = 2
-    message_retention   = 7
+  name                = "acctesteventhub-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-    name = "acctesteventhubcg-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    eventhub_name       = "${azurerm_eventhub.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctesteventhubcg-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  eventhub_name       = "${azurerm_eventhub.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMEventHubConsumerGroup_complete = `
+func testAccAzureRMEventHubConsumerGroup_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-    name                = "acctesteventhub-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    partition_count     = 2
-    message_retention   = 7
+  name                = "acctesteventhub-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  partition_count     = 2
+  message_retention   = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-    name                = "acctesteventhubcg-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    eventhub_name       = "${azurerm_eventhub.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    user_metadata       = "some-meta-data"
+  name                = "acctesteventhubcg-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  eventhub_name       = "${azurerm_eventhub.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  user_metadata       = "some-meta-data"
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}
