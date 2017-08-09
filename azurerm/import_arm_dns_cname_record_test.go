@@ -11,7 +11,7 @@ func TestAccAzureRMDnsCNameRecord_importBasic(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsCNameRecord_basic(ri)
+	config := testAccAzureRMDnsCNameRecord_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,7 +34,7 @@ func TestAccAzureRMDnsCNameRecord_importWithTags(t *testing.T) {
 	resourceName := "azurerm_dns_cname_record.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsCNameRecord_withTags(ri)
+	config := testAccAzureRMDnsCNameRecord_withTags(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
