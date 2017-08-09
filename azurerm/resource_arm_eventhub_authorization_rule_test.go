@@ -12,7 +12,7 @@ import (
 
 func TestAccAzureRMEventHubAuthorizationRule_listen(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_listen, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_listen(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,7 +31,7 @@ func TestAccAzureRMEventHubAuthorizationRule_listen(t *testing.T) {
 
 func TestAccAzureRMEventHubAuthorizationRule_send(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_send, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_send(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,7 +50,7 @@ func TestAccAzureRMEventHubAuthorizationRule_send(t *testing.T) {
 
 func TestAccAzureRMEventHubAuthorizationRule_readwrite(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_readwrite, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_readWrite(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -69,7 +69,7 @@ func TestAccAzureRMEventHubAuthorizationRule_readwrite(t *testing.T) {
 
 func TestAccAzureRMEventHubAuthorizationRule_manage(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_manage, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_manage(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -142,17 +142,20 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(name string) resource.TestC
 	}
 }
 
-var testAccAzureRMEventHubAuthorizationRule_listen = `
+func testAccAzureRMEventHubAuthorizationRule_listen(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-  name = "acctesteventhubnamespace-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku = "Standard"
+  sku                 = "Standard"
 }
+
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -161,6 +164,7 @@ resource "azurerm_eventhub" "test" {
   partition_count     = 2
   message_retention   = 7
 }
+
 resource "azurerm_eventhub_authorization_rule" "test" {
   name                = "acctesteventhubrule-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -170,19 +174,24 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   listen              = true
   send                = false
   manage              = false
-}`
+}
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMEventHubAuthorizationRule_send = `
+func testAccAzureRMEventHubAuthorizationRule_send(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-  name = "acctesteventhubnamespace-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku = "Standard"
+  sku                 = "Standard"
 }
+
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -191,6 +200,7 @@ resource "azurerm_eventhub" "test" {
   partition_count     = 2
   message_retention   = 7
 }
+
 resource "azurerm_eventhub_authorization_rule" "test" {
   name                = "acctesteventhubrule-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -200,19 +210,24 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   listen              = false
   send                = true
   manage              = false
-}`
+}
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMEventHubAuthorizationRule_readwrite = `
+func testAccAzureRMEventHubAuthorizationRule_readWrite(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-  name = "acctesteventhubnamespace-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku = "Standard"
+  sku                 = "Standard"
 }
+
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -221,6 +236,7 @@ resource "azurerm_eventhub" "test" {
   partition_count     = 2
   message_retention   = 7
 }
+
 resource "azurerm_eventhub_authorization_rule" "test" {
   name                = "acctesteventhubrule-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -230,19 +246,24 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   listen              = true
   send                = true
   manage              = false
-}`
+}
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMEventHubAuthorizationRule_manage = `
+func testAccAzureRMEventHubAuthorizationRule_manage(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-  name = "acctesteventhubnamespace-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku = "Standard"
+  sku                 = "Standard"
 }
+
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -251,6 +272,7 @@ resource "azurerm_eventhub" "test" {
   partition_count     = 2
   message_retention   = 7
 }
+
 resource "azurerm_eventhub_authorization_rule" "test" {
   name                = "acctesteventhubrule-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -260,4 +282,6 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   listen              = true
   send                = true
   manage              = true
-}`
+}
+`, rInt, location, rInt, rInt, rInt)
+}

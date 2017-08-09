@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsZone_basic(ri)
+	config := testAccAzureRMDnsZone_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,8 +33,9 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsZone_withTags(ri)
-	postConfig := testAccAzureRMDnsZone_withTagsUupdate(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
+	postConfig := testAccAzureRMDnsZone_withTagsUupdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -113,25 +114,25 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsZone_basic(rInt int) string {
+func testAccAzureRMDnsZone_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMDnsZone_withTags(rInt int) string {
+func testAccAzureRMDnsZone_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
@@ -142,14 +143,14 @@ resource "azurerm_dns_zone" "test" {
 	cost_center = "MSFT"
     }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMDnsZone_withTagsUupdate(rInt int) string {
+func testAccAzureRMDnsZone_withTagsUupdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
@@ -159,5 +160,5 @@ resource "azurerm_dns_zone" "test" {
 	environment = "staging"
     }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }

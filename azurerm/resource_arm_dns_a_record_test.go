@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMDnsARecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_a_record.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsARecord_basic(ri)
+	config := testAccAzureRMDnsARecord_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,8 +34,9 @@ func TestAccAzureRMDnsARecord_basic(t *testing.T) {
 func TestAccAzureRMDnsARecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_a_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsARecord_basic(ri)
-	postConfig := testAccAzureRMDnsARecord_updateRecords(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsARecord_basic(ri, location)
+	postConfig := testAccAzureRMDnsARecord_updateRecords(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,8 +64,9 @@ func TestAccAzureRMDnsARecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsARecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_a_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsARecord_withTags(ri)
-	postConfig := testAccAzureRMDnsARecord_withTagsUpdate(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsARecord_withTags(ri, location)
+	postConfig := testAccAzureRMDnsARecord_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -146,99 +148,99 @@ func testCheckAzureRMDnsARecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsARecord_basic(rInt int) string {
+func testAccAzureRMDnsARecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_a_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["1.2.3.4", "1.2.4.5"]
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["1.2.3.4", "1.2.4.5"]
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsARecord_updateRecords(rInt int) string {
+func testAccAzureRMDnsARecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_a_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["1.2.3.4", "1.2.4.5", "1.2.3.7"]
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["1.2.3.4", "1.2.4.5", "1.2.3.7"]
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsARecord_withTags(rInt int) string {
+func testAccAzureRMDnsARecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_a_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["1.2.3.4", "1.2.4.5"]
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["1.2.3.4", "1.2.4.5"]
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsARecord_withTagsUpdate(rInt int) string {
+func testAccAzureRMDnsARecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_a_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["1.2.3.4", "1.2.4.5"]
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["1.2.3.4", "1.2.4.5"]
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
