@@ -69,7 +69,7 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 func TestAccAzureRMContainerRegistry_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs)
+	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -89,7 +89,7 @@ func TestAccAzureRMContainerRegistry_basic(t *testing.T) {
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_complete(ri, rs)
+	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -109,8 +109,9 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_complete(ri, rs)
-	updatedConfig := testAccAzureRMContainerRegistry_completeUpdated(ri, rs)
+	location := testLocation()
+	config := testAccAzureRMContainerRegistry_complete(ri, rs, location)
+	updatedConfig := testAccAzureRMContainerRegistry_completeUpdated(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -176,7 +177,7 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on containerRegistryClient: %s", err)
+			return fmt.Errorf("Bad: Get on containerRegistryClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -187,11 +188,11 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testAccAzureRMContainerRegistry_basic(rInt int, rStr string) string {
+func testAccAzureRMContainerRegistry_basic(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"
-  location = "West US"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -212,14 +213,14 @@ resource "azurerm_container_registry" "test" {
     access_key = "${azurerm_storage_account.test.primary_access_key}"
   }
 }
-`, rInt, rStr, rInt)
+`, rInt, location, rStr, rInt)
 }
 
-func testAccAzureRMContainerRegistry_complete(rInt int, rStr string) string {
+func testAccAzureRMContainerRegistry_complete(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"
-  location = "West US"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -245,14 +246,14 @@ resource "azurerm_container_registry" "test" {
     environment = "production"
   }
 }
-`, rInt, rStr, rInt)
+`, rInt, location, rStr, rInt)
 }
 
-func testAccAzureRMContainerRegistry_completeUpdated(rInt int, rStr string) string {
+func testAccAzureRMContainerRegistry_completeUpdated(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"
-  location = "West US"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -278,5 +279,5 @@ resource "azurerm_container_registry" "test" {
     environment = "production"
   }
 }
-`, rInt, rStr, rInt)
+`, rInt, location, rStr, rInt)
 }
