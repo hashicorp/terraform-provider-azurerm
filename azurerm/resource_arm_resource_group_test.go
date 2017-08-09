@@ -12,14 +12,14 @@ import (
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMResourceGroup_basic, ri)
+	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMResourceGroupExists("azurerm_resource_group.test"),
@@ -30,19 +30,20 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
+	resourceName := "azurerm_resource_group.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMResourceGroup_basic, ri)
+	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists("azurerm_resource_group.test"),
-					testCheckAzureRMResourceGroupDisappears("azurerm_resource_group.test"),
+					testCheckAzureRMResourceGroupExists(resourceName),
+					testCheckAzureRMResourceGroupDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -51,36 +52,32 @@ func TestAccAzureRMResourceGroup_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMResourceGroup_withTags(t *testing.T) {
+	resourceName := "azurerm_resource_group.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMResourceGroup_withTags, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMResourceGroup_withTagsUpdated, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMResourceGroup_withTags(ri, location)
+	postConfig := testAccAzureRMResourceGroup_withTagsUpdated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists("azurerm_resource_group.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_resource_group.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_resource_group.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_resource_group.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMResourceGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists("azurerm_resource_group.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_resource_group.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_resource_group.test", "tags.environment", "staging"),
+					testCheckAzureRMResourceGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -102,7 +99,7 @@ func testCheckAzureRMResourceGroupExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on resourceGroupClient: %s", err)
+			return fmt.Errorf("Bad: Get on resourceGroupClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -129,7 +126,7 @@ func testCheckAzureRMResourceGroupDisappears(name string) resource.TestCheckFunc
 		_, error := conn.Delete(resourceGroup, make(chan struct{}))
 		err := <-error
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on resourceGroupClient: %s", err)
+			return fmt.Errorf("Bad: Delete on resourceGroupClient: %+v", err)
 		}
 
 		return nil
@@ -159,32 +156,38 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMResourceGroup_basic = `
+func testAccAzureRMResourceGroup_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
-`
+`, rInt, location)
+}
 
-var testAccAzureRMResourceGroup_withTags = `
+func testAccAzureRMResourceGroup_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 
     tags {
-		environment = "Production"
-		cost_center = "MSFT"
+	environment = "Production"
+	cost_center = "MSFT"
     }
 }
-`
+`, rInt, location)
+}
 
-var testAccAzureRMResourceGroup_withTagsUpdated = `
+func testAccAzureRMResourceGroup_withTagsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 
     tags {
 	environment = "staging"
     }
 }
-`
+`, rInt, location)
+}

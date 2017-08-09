@@ -16,11 +16,10 @@ func TestAccAzureRMNetworkInterface_importBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMNetworkInterface_basic(rInt),
+			{
+				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -38,11 +37,10 @@ func TestAccAzureRMNetworkInterface_importIPForwarding(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMNetworkInterface_ipForwarding(rInt),
+			{
+				Config: testAccAzureRMNetworkInterface_ipForwarding(rInt, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -60,11 +58,10 @@ func TestAccAzureRMNetworkInterface_importWithTags(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMNetworkInterface_withTags(rInt),
+			{
+				Config: testAccAzureRMNetworkInterface_withTags(rInt, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -82,11 +79,10 @@ func TestAccAzureRMNetworkInterface_importMultipleLoadBalancers(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt),
+			{
+				Config: testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
@@ -104,11 +100,10 @@ func TestAccAzureRMNetworkInterface_importPublicIP(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMNetworkInterface_publicIP(rInt),
+			{
+				Config: testAccAzureRMNetworkInterface_publicIP(rInt, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

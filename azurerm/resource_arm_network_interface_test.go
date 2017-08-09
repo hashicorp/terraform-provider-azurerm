@@ -18,7 +18,7 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_basic(rInt),
+				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
 				),
@@ -35,7 +35,7 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_basic(rInt),
+				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
 					testCheckAzureRMNetworkInterfaceDisappears("azurerm_network_interface.test"),
@@ -54,7 +54,7 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_ipForwarding(rInt),
+				Config: testAccAzureRMNetworkInterface_ipForwarding(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
 					resource.TestCheckResourceAttr(
@@ -73,7 +73,7 @@ func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt),
+				Config: testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test1"),
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test2"),
@@ -91,7 +91,7 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_withTags(rInt),
+				Config: testAccAzureRMNetworkInterface_withTags(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
 					resource.TestCheckResourceAttr(
@@ -103,7 +103,7 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkInterface_withTagsUpdate(rInt),
+				Config: testAccAzureRMNetworkInterface_withTagsUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
 					resource.TestCheckResourceAttr(
@@ -124,7 +124,7 @@ func TestAccAzureRMNetworkInterface_bug7986(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkInterface_bug7986(rInt),
+				Config: testAccAzureRMNetworkInterface_bug7986(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test1"),
 					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test2"),
@@ -152,7 +152,7 @@ func testCheckAzureRMNetworkInterfaceExists(name string) resource.TestCheckFunc 
 
 		resp, err := conn.Get(resourceGroup, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on ifaceClient: %s", err)
+			return fmt.Errorf("Bad: Get on ifaceClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -182,7 +182,7 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 		_, error := conn.Delete(resourceGroup, name, make(chan struct{}))
 		err := <-error
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on ifaceClient: %s", err)
+			return fmt.Errorf("Bad: Delete on ifaceClient: %+v", err)
 		}
 
 		return nil
@@ -214,187 +214,187 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNetworkInterface_basic(rInt int) string {
+func testAccAzureRMNetworkInterface_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctest-rg-%d"
-    location = "West US"
+  name     = "acctest-rg-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acceptanceTestVirtualNetwork1"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestVirtualNetwork1"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "testsubnet"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acceptanceTestNetworkInterface1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestNetworkInterface1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMNetworkInterface_ipForwarding(rInt int) string {
+func testAccAzureRMNetworkInterface_ipForwarding(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctest-rg-%d"
-    location = "West US"
+  name     = "acctest-rg-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acceptanceTestVirtualNetwork1"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestVirtualNetwork1"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "testsubnet"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acceptanceTestNetworkInterface1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    enable_ip_forwarding = true
+  name                 = "acceptanceTestNetworkInterface1"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  enable_ip_forwarding = true
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMNetworkInterface_withTags(rInt int) string {
+func testAccAzureRMNetworkInterface_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctest-rg-%d"
-    location = "West US"
+  name     = "acctest-rg-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acceptanceTestVirtualNetwork1"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestVirtualNetwork1"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "testsubnet"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acceptanceTestNetworkInterface1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestNetworkInterface1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMNetworkInterface_withTagsUpdate(rInt int) string {
+func testAccAzureRMNetworkInterface_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctest-rg-%d"
-    location = "West US"
+  name     = "acctest-rg-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acceptanceTestVirtualNetwork1"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestVirtualNetwork1"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "testsubnet"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-    name = "acceptanceTestNetworkInterface1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestNetworkInterface1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt int) string {
+func testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctest-rg-%d"
-    location = "West US"
+  name     = "acctest-rg-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acceptanceTestVirtualNetwork1"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acceptanceTestVirtualNetwork1"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "testsubnet"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_public_ip" "testext" {
   name                         = "testpublicipext"
-  location                     = "West US"
+  location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "testext" {
   name                = "testlbext"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
@@ -404,101 +404,103 @@ resource "azurerm_lb" "testext" {
 }
 
 resource "azurerm_lb_backend_address_pool" "testext" {
-  location            = "West US"
+  name                = "testbackendpoolext"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.testext.id}"
-  name                = "testbackendpoolext"
 }
 
 resource "azurerm_lb_nat_rule" "testext" {
-  name = "testnatruleext"
-  location = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.testext.id}"
-  protocol = "Tcp"
-  frontend_port = 3389
-  backend_port = 3390
+  name                           = "testnatruleext"
+  location                       = "${azurerm_resource_group.test.location}"
+  resource_group_name            = "${azurerm_resource_group.test.name}"
+  loadbalancer_id                = "${azurerm_lb.testext.id}"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3390
   frontend_ip_configuration_name = "publicipext"
 }
 
 resource "azurerm_public_ip" "testint" {
   name                         = "testpublicipint"
-  location                     = "West US"
+  location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "testint" {
   name                = "testlbint"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
-    name                 		  = "publicipint"
+    name                          = "publicipint"
     subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "testint" {
-  location            = "West US"
+  name                = "testbackendpoolint"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   loadbalancer_id     = "${azurerm_lb.testint.id}"
-  name                = "testbackendpoolint"
 }
 
 resource "azurerm_lb_nat_rule" "testint" {
-  name = "testnatruleint"
-  location = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.testint.id}"
-  protocol = "Tcp"
-  frontend_port = 3389
-  backend_port = 3391
+  name                           = "testnatruleint"
+  location                       = "${azurerm_resource_group.test.location}"
+  resource_group_name            = "${azurerm_resource_group.test.name}"
+  loadbalancer_id                = "${azurerm_lb.testint.id}"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3391
   frontend_ip_configuration_name = "publicipint"
 }
 
 resource "azurerm_network_interface" "test1" {
-    name = "acceptanceTestNetworkInterface1"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    enable_ip_forwarding = true
+  name                 = "acceptanceTestNetworkInterface1"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  enable_ip_forwarding = true
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-		load_balancer_backend_address_pools_ids = [
-			"${azurerm_lb_backend_address_pool.testext.id}",
-			"${azurerm_lb_backend_address_pool.testint.id}",
-		]
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+
+    load_balancer_backend_address_pools_ids = [
+      "${azurerm_lb_backend_address_pool.testext.id}",
+      "${azurerm_lb_backend_address_pool.testint.id}",
+    ]
+  }
 }
 
 resource "azurerm_network_interface" "test2" {
-    name = "acceptanceTestNetworkInterface2"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    enable_ip_forwarding = true
+  name                 = "acceptanceTestNetworkInterface2"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  enable_ip_forwarding = true
 
-    ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
-		load_balancer_inbound_nat_rules_ids = [
-			"${azurerm_lb_nat_rule.testext.id}",
-			"${azurerm_lb_nat_rule.testint.id}",
-		]
-    }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+
+    load_balancer_inbound_nat_rules_ids = [
+      "${azurerm_lb_nat_rule.testext.id}",
+      "${azurerm_lb_nat_rule.testint.id}",
+    ]
+  }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMNetworkInterface_bug7986(rInt int) string {
+func testAccAzureRMNetworkInterface_bug7986(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-%d"
-  location = "West Europe"
+  location = "%s"
 }
 
 resource "azurerm_network_security_group" "test" {
@@ -595,48 +597,49 @@ resource "azurerm_network_interface" "test2" {
     environment = "staging"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMNetworkInterface_publicIP(rInt int) string {
+func testAccAzureRMNetworkInterface_publicIP(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctest-rg-%d"
-  location = "West US"
+  name     = "acctest-rg-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "acceptanceTestVirtualNetwork1"
-  address_space = ["10.0.0.0/16"]
-  location = "West US"
+  name                = "acceptanceTestVirtualNetwork1"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name = "testsubnet"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_public_ip" "testext" {
-  name                         = "testpublicipext"
-  location                     = "West US"
+  name                         = "acctestip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
 }
 
 resource "azurerm_network_interface" "test" {
-  name = "acceptanceTestNetworkInterface1"
-  location = "West US"
+  name                = "acctestnic-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id = "${azurerm_public_ip.testext.id}"
+    public_ip_address_id          = "${azurerm_public_ip.testext.id}"
   }
 }
-`, rInt)
+
+`, rInt, location, rInt, rInt)
 }

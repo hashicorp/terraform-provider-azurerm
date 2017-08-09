@@ -16,11 +16,10 @@ func TestAccAzureRMNetworkSecurityRule_importBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkSecurityRuleDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMNetworkSecurityRule_basic(rInt),
+			{
+				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
