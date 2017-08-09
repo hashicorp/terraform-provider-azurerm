@@ -11,7 +11,7 @@ func TestAccAzureRMAvailabilitySet_importBasic(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAvailabilitySet_basic(ri)
+	config := testAccAzureRMAvailabilitySet_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,7 +35,7 @@ func TestAccAzureRMAvailabilitySet_importWithTags(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAvailabilitySet_withTags(ri)
+	config := testAccAzureRMAvailabilitySet_withTags(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -59,7 +59,7 @@ func TestAccAzureRMAvailabilitySet_importWithDomainCounts(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri)
+	config := testAccAzureRMAvailabilitySet_withDomainCounts(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -83,7 +83,7 @@ func TestAccAzureRMAvailabilitySet_importManaged(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAvailabilitySet_managed(ri)
+	config := testAccAzureRMAvailabilitySet_managed(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
