@@ -21,7 +21,7 @@ func TestAccAzureRMExpressRouteCircuit_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basic(ri),
+				Config: testAccAzureRMExpressRouteCircuit_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 				),
@@ -51,7 +51,7 @@ func testCheckAzureRMExpressRouteCircuitExists(name string, erc *network.Express
 				return fmt.Errorf("Bad: Express Route Circuit %q (resource group: %q) does not exist", expressRouteCircuitName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on expressRouteCircuitClient: %s", err)
+			return fmt.Errorf("Bad: Get on expressRouteCircuitClient: %+v", err)
 		}
 
 		*erc = resp
@@ -85,29 +85,32 @@ func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMExpressRouteCircuit_basic(rInt int) string {
+func testAccAzureRMExpressRouteCircuit_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-		resource "azurerm_resource_group" "test" {
-			name = "acctestrg-%d"
-			location = "West US"
-		}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
 
-		resource "azurerm_express_route_circuit" "test" {
-			name = "acctest-erc-%[1]d"
-			location = "West US"
-			resource_group_name = "${azurerm_resource_group.test.name}"
-			service_provider_name = "Equinix"
-			peering_location = "Silicon Valley"
-			bandwidth_in_mbps = 50
-			sku {
-			    tier = "Standard"
-			    family = "MeteredData"
-		    }
-			allow_classic_operations = false
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
 
-			tags {
-				Environment = "production"
-				Purpose = "AcceptanceTests"
-			}
-		}`, rInt)
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, rInt, location, rInt)
 }

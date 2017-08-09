@@ -10,16 +10,18 @@ import (
 func TestAccAzureRMExpressRouteCircuit_importBasic(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit.test"
 
+	ri := acctest.RandInt()
+	config := testAccAzureRMExpressRouteCircuit_basic(ri, testLocation())
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMExpressRouteCircuit_basic(acctest.RandInt()),
+			{
+				Config: config,
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
