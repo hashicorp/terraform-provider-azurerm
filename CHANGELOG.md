@@ -1,18 +1,18 @@
-## 0.1.5 (Unreleased)
+## 0.1.5 (August 09, 2017)
 
 IMPROVEMENTS:
 
-* `azurerm_sql_*` - upgrading to version `2014-04-01` of the SQL API's [GH-201]
-* `azurerm_virtual_machine` - support for the `Windows_Client` Hybrid Use Benefit type [GH-212]
-* `azurerm_virtual_machine_scale_set` - support for custom images and managed disks [GH-203]
+* `azurerm_sql_*` - upgrading to version `2014-04-01` of the SQL API's ([#201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/201))
+* `azurerm_virtual_machine` - support for the `Windows_Client` Hybrid Use Benefit type ([#212](https://github.com/terraform-providers/terraform-provider-azurerm/issues/212))
+* `azurerm_virtual_machine_scale_set` - support for custom images and managed disks ([#203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/203))
 
 BUG FIXES:
 
-* `azurerm_sql_database` - fixing creating a DB with a PointInTimeRestore [GH-197]
-* `azurerm_virtual_machine` - fix a crash when the properties for a network inteface aren't returned [GH-208]
-* `azurerm_virtual_machine` - changes to custom data should force new resource [GH-211]
-* `azurerm_virtual_machine` - fixes a crash caused by an empty `os_profile_windows_config` block [GH-222]
-* Checking to ensure the HTTP Response isn't `nil` before accessing it (fixes [GH-200]) [GH-204]
+* `azurerm_sql_database` - fixing creating a DB with a PointInTimeRestore ([#197](https://github.com/terraform-providers/terraform-provider-azurerm/issues/197))
+* `azurerm_virtual_machine` - fix a crash when the properties for a network inteface aren't returned ([#208](https://github.com/terraform-providers/terraform-provider-azurerm/issues/208))
+* `azurerm_virtual_machine` - changes to custom data should force new resource ([#211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/211))
+* `azurerm_virtual_machine` - fixes a crash caused by an empty `os_profile_windows_config` block ([#222](https://github.com/terraform-providers/terraform-provider-azurerm/issues/222))
+* Checking to ensure the HTTP Response isn't `nil` before accessing it (fixes ([#200](https://github.com/terraform-providers/terraform-provider-azurerm/issues/200)]) [[#204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/204))
 
 ## 0.1.4 (July 26, 2017)
 
