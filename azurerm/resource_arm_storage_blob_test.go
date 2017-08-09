@@ -493,7 +493,7 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMStorageBlob_basic(rInt int, location string, rString string) string {
+func testAccAzureRMStorageBlob_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
