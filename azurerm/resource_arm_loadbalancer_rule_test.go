@@ -523,5 +523,5 @@ resource "azurerm_lb_rule" "test2" {
   backend_port                   = 3391
   frontend_ip_configuration_name = "one-%d"
 }
-`, rInt, location, rInt, rInt, rInt, rInt, lbRuleName, rInt, lbRule2Name, rInt)
+`, rInt, location, rInt, rInt, rInt, lbRuleName, rInt, lbRule2Name, rInt)
 }
