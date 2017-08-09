@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -104,9 +103,11 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 			return fmt.Errorf("Bad: GetServer: % +v", err)
 		}
 
-		if resp.Response.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("SQL Server still exists:\n%#v", resp.ServerProperties)
+		if resp.StatusCode == http.StatusNotFound {
+			return nil
 		}
+
+		return fmt.Errorf("sql server %s still exists", sqlServerName)
 
 	}
 
