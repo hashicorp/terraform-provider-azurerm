@@ -195,7 +195,7 @@ resource "azurerm_resource_group" "test1" {
 
 resource "azurerm_network_security_group" "test1" {
   name                = "acceptanceTestSecurityGroup2"
-  location            = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
 }
 
@@ -224,7 +224,7 @@ resource "azurerm_resource_group" "test1" {
 
 resource "azurerm_network_security_group" "test1" {
   name                = "acceptanceTestSecurityGroup2"
-  location            = "${azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
 }
 
