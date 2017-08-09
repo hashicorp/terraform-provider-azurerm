@@ -29,17 +29,27 @@ func TestProvider_impl(t *testing.T) {
 }
 
 func testAccPreCheck(t *testing.T) {
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	clientID := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	tenantID := os.Getenv("ARM_TENANT_ID")
-	testLocation := os.Getenv("ARM_TEST_LOCATION")
+	variables := []string{
+		"ARM_SUBSCRIPTION_ID",
+		"ARM_CLIENT_ID",
+		"ARM_CLIENT_SECRET",
+		"ARM_TENANT_ID",
+		"ARM_TEST_LOCATION",
+		"ARM_TEST_LOCATION_ALT",
+	}
 
-	if subscriptionID == "" || clientID == "" || clientSecret == "" || tenantID == "" || testLocation == "" {
-		t.Fatal("ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID and ARM_TEST_LOCATION must be set for acceptance tests")
+	for _, variable := range variables {
+		value := os.Getenv(variable)
+		if value == "" {
+			t.Fatalf("`%s` must be set for acceptance tests!", variable)
+		}
 	}
 }
 
 func testLocation() string {
 	return os.Getenv("ARM_TEST_LOCATION")
+}
+
+func testAltLocation() string {
+	return os.Getenv("ARM_TEST_LOCATION_ALT")
 }
