@@ -590,7 +590,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -681,7 +681,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -776,7 +776,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -871,7 +871,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -1084,7 +1084,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -1183,7 +1183,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -1272,7 +1272,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -1722,7 +1722,7 @@ resource "azurerm_resource_group" "test" {
      storage_image_reference {
  	publisher = "Canonical"
  	offer = "UbuntuServer"
- 	sku = "14.04.2-LTS"
+ 	sku = "16.04-LTS"
  	version = "latest"
      }
 
@@ -1815,7 +1815,7 @@ func testAccAzureRMVirtualMachine_updateAvailabilitySet(rInt int, location strin
      storage_image_reference {
  	publisher = "Canonical"
  	offer = "UbuntuServer"
- 	sku = "14.04.2-LTS"
+ 	sku = "16.04-LTS"
  	version = "latest"
      }
 
@@ -1901,7 +1901,7 @@ func testAccAzureRMVirtualMachine_updateMachineName(rInt int, location string) s
      storage_image_reference {
  	publisher = "Canonical"
  	offer = "UbuntuServer"
- 	sku = "14.04.2-LTS"
+ 	sku = "16.04-LTS"
  	version = "latest"
      }
 
@@ -1987,7 +1987,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -2171,7 +2171,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -2442,7 +2442,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
         publisher = "Canonical"
         offer = "UbuntuServer"
-        sku = "14.04.2-LTS"
+        sku = "16.04-LTS"
         version = "latest"
     }
 
@@ -2528,7 +2528,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
         publisher = "Canonical"
         offer = "UbuntuServer"
-        sku = "14.04.2-LTS"
+        sku = "16.04-LTS"
         version = "latest"
     }
 
@@ -2627,7 +2627,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
