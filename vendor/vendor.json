@@ -1,6 +1,6 @@
 {
 	"comment": "",
-	"ignore": "test",
+	"ignore": "test github.com/hashicorp/terraform/backend",
 	"package": [
 		{
 			"checksumSHA1": "WUSacvJanKBuAZ7YVhWMBFyxfxA=",
