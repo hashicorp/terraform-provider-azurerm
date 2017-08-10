@@ -2,15 +2,15 @@ package azurerm
 
 import (
 	"os"
-	"testing"
-
 	"regexp"
+	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMClientConfig_basic(t *testing.T) {
+func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
+	dataSourceName := "data.azurerm_client_config.current"
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -22,10 +22,10 @@ func TestAccAzureRMClientConfig_basic(t *testing.T) {
 			{
 				Config: testAccCheckArmClientConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
-					testAzureRMClientConfigAttr("data.azurerm_client_config.current", "client_id", clientId),
-					testAzureRMClientConfigAttr("data.azurerm_client_config.current", "tenant_id", tenantId),
-					testAzureRMClientConfigAttr("data.azurerm_client_config.current", "subscription_id", subscriptionId),
-					testAzureRMClientConfigGUIDAttr("data.azurerm_client_config.current", "service_principal_object_id"),
+					testAzureRMClientConfigAttr(dataSourceName, "client_id", clientId),
+					testAzureRMClientConfigAttr(dataSourceName, "tenant_id", tenantId),
+					testAzureRMClientConfigAttr(dataSourceName, "subscription_id", subscriptionId),
+					testAzureRMClientConfigGUIDAttr(dataSourceName, "service_principal_object_id"),
 				),
 			},
 		},

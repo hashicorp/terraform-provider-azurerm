@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMCdnEndpoint_basic(ri)
+	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMCdnEndpoint_basic(ri)
+	config := testAccAzureRMCdnEndpoint_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -55,8 +55,9 @@ func TestAccAzureRMCdnEndpoint_disappears(t *testing.T) {
 func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example.com")
-	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example2.com")
+	location := testLocation()
+	config := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example.com", location)
+	updatedConfig := testAccAzureRMCdnEndpoint_hostHeader(ri, "www.example2.com", location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -84,8 +85,9 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMCdnEndpoint_withTags(ri)
-	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMCdnEndpoint_withTags(ri, location)
+	postConfig := testAccAzureRMCdnEndpoint_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -133,7 +135,7 @@ func testCheckAzureRMCdnEndpointExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, profileName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on cdnEndpointsClient: %s", err)
+			return fmt.Errorf("Bad: Get on cdnEndpointsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -164,7 +166,7 @@ func testCheckAzureRMCdnEndpointDisappears(name string) resource.TestCheckFunc {
 		_, error := conn.Delete(resourceGroup, profileName, name, make(chan struct{}))
 		err := <-error
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %s", err)
+			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %+v", err)
 		}
 
 		return nil
@@ -196,133 +198,137 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMCdnEndpoint_basic(rInt int) string {
+func testAccAzureRMCdnEndpoint_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cdn_profile" "test" {
-    name = "acctestcdnprof%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard_Verizon"
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-    name = "acctestcdnend%d"
-    profile_name = "${azurerm_cdn_profile.test.name}"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestcdnend%d"
+  profile_name        = "${azurerm_cdn_profile.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    origin {
-	name = "acceptanceTestCdnOrigin1"
-	host_name = "www.example.com"
-	https_port = 443
-	http_port = 80
-    }
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMCdnEndpoint_hostHeader(rInt int, domain string) string {
+func testAccAzureRMCdnEndpoint_hostHeader(rInt int, domain string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cdn_profile" "test" {
-    name = "acctestcdnprof%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard_Verizon"
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-    name = "acctestcdnend%d"
-    profile_name = "${azurerm_cdn_profile.test.name}"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    origin_host_header = "%s"
+  name                = "acctestcdnend%d"
+  profile_name        = "${azurerm_cdn_profile.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  origin_host_header  = "%s"
 
-    origin {
-	name = "acceptanceTestCdnOrigin2"
-	host_name = "www.example.com"
-	https_port = 443
-	http_port = 80
-    }
+  origin {
+    name       = "acceptanceTestCdnOrigin2"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
-`, rInt, rInt, rInt, domain)
+`, rInt, location, rInt, rInt, domain)
 }
 
-func testAccAzureRMCdnEndpoint_withTags(rInt int) string {
+func testAccAzureRMCdnEndpoint_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cdn_profile" "test" {
-    name = "acctestcdnprof%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard_Verizon"
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-    name = "acctestcdnend%d"
-    profile_name = "${azurerm_cdn_profile.test.name}"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestcdnend%d"
+  profile_name        = "${azurerm_cdn_profile.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    origin {
-	name = "acceptanceTestCdnOrigin2"
-	host_name = "www.example.com"
-	https_port = 443
-	http_port = 80
-    }
+  origin {
+    name       = "acceptanceTestCdnOrigin2"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMCdnEndpoint_withTagsUpdate(rInt int) string {
+func testAccAzureRMCdnEndpoint_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_cdn_profile" "test" {
-    name = "acctestcdnprof%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard_Verizon"
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
-    name = "acctestcdnend%d"
-    profile_name = "${azurerm_cdn_profile.test.name}"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestcdnend%d"
+  profile_name        = "${azurerm_cdn_profile.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    origin {
-	name = "acceptanceTestCdnOrigin2"
-	host_name = "www.example.com"
-	https_port = 443
-	http_port = 80
-    }
+  origin {
+    name       = "acceptanceTestCdnOrigin2"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
