@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMClientConfig_basic(t *testing.T) {
+func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_client_config.current"
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")

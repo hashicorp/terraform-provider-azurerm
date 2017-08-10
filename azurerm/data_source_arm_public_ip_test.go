@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestpublicip-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
-	config := testAccDatSourceAzureRMPublicIPBasic(name, resourceGroupName, ri, testLocation())
+	config := testAccDataSourceAzureRMPublicIPBasic(name, resourceGroupName, ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,7 +39,7 @@ func TestAccDataSourceAzureRMPublicIP_basic(t *testing.T) {
 	})
 }
 
-func testAccDatSourceAzureRMPublicIPBasic(name string, resourceGroupName string, rInt int, location string) string {
+func testAccDataSourceAzureRMPublicIPBasic(name string, resourceGroupName string, rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"

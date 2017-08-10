@@ -15,7 +15,7 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	name := fmt.Sprintf("acctestmanageddisk-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
-	config := testAccDatSourceAzureRMManagedDiskBasic(name, resourceGroupName, testLocation())
+	config := testAccDataSourceAzureRMManagedDiskBasic(name, resourceGroupName, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,7 +37,7 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	})
 }
 
-func testAccDatSourceAzureRMManagedDiskBasic(name string, resourceGroupName string, location string) string {
+func testAccDataSourceAzureRMManagedDiskBasic(name string, resourceGroupName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"
