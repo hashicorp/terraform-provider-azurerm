@@ -1,13 +1,13 @@
 package azurerm
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"fmt"
-	"github.com/Azure/go-autorest/autorest/azure"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
