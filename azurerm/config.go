@@ -8,6 +8,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
+	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
@@ -55,8 +56,12 @@ type ArmClient struct {
 	vmClient               compute.VirtualMachinesClient
 	imageClient            compute.ImagesClient
 
-	diskClient     disk.DisksClient
-	cosmosDBClient cosmosdb.DatabaseAccountsClient
+	diskClient                 disk.DisksClient
+	cosmosDBClient             cosmosdb.DatabaseAccountsClient
+	automationAccountClient    automation.AccountClient
+	automationRunbookClient    automation.RunbookClient
+	automationCredentialClient automation.CredentialClient
+	automationScheduleClient   automation.ScheduleClient
 
 	appGatewayClient             network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
@@ -537,6 +542,30 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	spc.Authorizer = graphAuth
 	spc.Sender = autorest.CreateSender(withRequestLogging())
 	client.servicePrincipalsClient = spc
+
+	aadb := automation.NewAccountClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&aadb.Client)
+	aadb.Authorizer = auth
+	aadb.Sender = autorest.CreateSender(withRequestLogging())
+	client.automationAccountClient = aadb
+
+	arc := automation.NewRunbookClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&arc.Client)
+	arc.Authorizer = auth
+	arc.Sender = autorest.CreateSender(withRequestLogging())
+	client.automationRunbookClient = arc
+
+	acc := automation.NewCredentialClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&acc.Client)
+	acc.Authorizer = auth
+	acc.Sender = autorest.CreateSender(withRequestLogging())
+	client.automationCredentialClient = acc
+
+	aschc := automation.NewScheduleClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&aschc.Client)
+	aschc.Authorizer = auth
+	aschc.Sender = autorest.CreateSender(withRequestLogging())
+	client.automationScheduleClient = aschc
 
 	return &client, nil
 }
