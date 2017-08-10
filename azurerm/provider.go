@@ -259,6 +259,7 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 			"Microsoft.Compute":           struct{}{},
 			"Microsoft.ContainerRegistry": struct{}{},
 			"Microsoft.ContainerService":  struct{}{},
+			"Microsoft.DocumentDB":        struct{}{},
 			"Microsoft.EventHub":          struct{}{},
 			"Microsoft.KeyVault":          struct{}{},
 			"Microsoft.Insights":          struct{}{},
