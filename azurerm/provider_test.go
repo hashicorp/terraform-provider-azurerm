@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"fmt"
+	"github.com/Azure/go-autorest/autorest/azure"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -52,4 +54,24 @@ func testLocation() string {
 
 func testAltLocation() string {
 	return os.Getenv("ARM_TEST_LOCATION_ALT")
+}
+
+func testArmEnvironment() (*azure.Environment, error) {
+	envName, exists := os.LookupEnv("ARM_ENVIRONMENT")
+	if !exists {
+		envName = "public"
+	}
+
+	// detect cloud from environment
+	env, envErr := azure.EnvironmentFromName(envName)
+	if envErr != nil {
+		// try again with wrapped value to support readable values like german instead of AZUREGERMANCLOUD
+		wrapped := fmt.Sprintf("AZURE%sCLOUD", envName)
+		var innerErr error
+		if env, innerErr = azure.EnvironmentFromName(wrapped); innerErr != nil {
+			return nil, envErr
+		}
+	}
+
+	return &env, nil
 }
