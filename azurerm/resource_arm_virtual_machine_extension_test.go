@@ -173,7 +173,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
     name = "accsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {

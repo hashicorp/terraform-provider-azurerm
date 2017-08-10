@@ -264,39 +264,39 @@ func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
 func testAccAzureRMSubnet_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctestsubnet%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-    route_table_id = "${azurerm_route_table.test.id}"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
 }
 
 resource "azurerm_route_table" "test" {
-    name = "acctestroutetable%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+  name                = "acctestroutetable%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_route" "test" {
-    name = "acctestroute%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    route_table_name  = "${azurerm_route_table.test.name}"
+  name                = "acctestroute%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.test.name}"
 
-    address_prefix = "10.100.0.0/14"
-    next_hop_type = "VirtualAppliance"
-    next_hop_in_ip_address = "10.10.1.1"
+  address_prefix         = "10.100.0.0/14"
+  next_hop_type          = "VirtualAppliance"
+  next_hop_in_ip_address = "10.10.1.1"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
 }
@@ -304,28 +304,28 @@ resource "azurerm_route" "test" {
 func testAccAzureRMSubnet_routeTable(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctestsubnet%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-	route_table_id       = "${azurerm_route_table.test.id}"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctest-%d"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -337,63 +337,67 @@ resource "azurerm_route" "route_a" {
   address_prefix         = "10.100.0.0/14"
   next_hop_type          = "VirtualAppliance"
   next_hop_in_ip_address = "10.10.1.1"
-}`, rInt, rInt, rInt, rInt, rInt)
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMSubnet_updatedRouteTable(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
-	tags {
-		environment = "Testing"
-	}
+  name     = "acctestRG-%d"
+  location = "%s"
+
+  tags {
+    environment = "Testing"
+  }
 }
 
 resource "azurerm_network_security_group" "test_secgroup" {
-    name = "acctest-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    security_rule {
-        name = "acctest-%d"
-        priority = 100
-        direction = "Inbound"
-        access = "Allow"
-        protocol = "Tcp"
-        source_port_range = "*"
-        destination_port_range = "*"
-        source_address_prefix = "*"
-        destination_address_prefix = "*"
-    }
+  security_rule {
+    name                       = "acctest-%d"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 
-    tags {
-        environment = "Testing"
-    }
+  tags {
+    environment = "Testing"
+  }
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-	tags {
-		environment = "Testing"
-	}
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  tags {
+    environment = "Testing"
+  }
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctestsubnet%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-	route_table_id       = "${azurerm_route_table.test.id}"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
     environment = "Testing"
   }
@@ -407,7 +411,8 @@ resource "azurerm_route" "route_a" {
   address_prefix         = "10.100.0.0/14"
   next_hop_type          = "VirtualAppliance"
   next_hop_in_ip_address = "10.10.1.1"
-}`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMSubnet_bug7986(rInt int, location string) string {
