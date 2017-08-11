@@ -1,4 +1,9 @@
 ## 0.1.6 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_virtual_machine` - Force recreation if storage_data_disk.creation_option changes [GH-240]
+
 ## 0.1.5 (August 09, 2017)
 
 IMPROVEMENTS:
