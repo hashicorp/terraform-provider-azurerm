@@ -227,9 +227,11 @@ func TestAccAzureRMVirtualMachine_bugAzureRM33(t *testing.T) {
 
 func TestAccAzureRMVirtualMachine_changeStorageDataDiskCreationOption(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
+	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_empty(ri, testLocation())
-	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(ri, testLocation())
+	location := testLocation()
+	preConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_empty(ri, location)
+	postConfig := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_attach(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -238,14 +240,16 @@ func TestAccAzureRMVirtualMachine_changeStorageDataDiskCreationOption(t *testing
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &afterCreate),
+					testCheckAzureRMVirtualMachineExists(resourceName, &afterCreate),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.create_option", "Empty"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &afterUpdate),
+					testCheckAzureRMVirtualMachineExists(resourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(t, &afterCreate, &afterUpdate),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.create_option", "Attach"),
 				),
 			},
 		},
