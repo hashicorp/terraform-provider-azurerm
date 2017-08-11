@@ -11,12 +11,24 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func getTrafficManagerFQDN(hostname string) (string, error) {
+	environment, err := testArmEnvironment()
+	if err != nil {
+		return "", err
+	}
+	dnsSuffix := environment.TrafficManagerDNSSuffix
+	return fmt.Sprintf("%s.%s", hostname, dnsSuffix), nil
+}
+
 func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
 
-	fqdn := fmt.Sprintf("acctesttmp%d.trafficmanager.net", ri)
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -40,7 +52,10 @@ func TestAccAzureRMTrafficManagerProfile_performance(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
 
-	fqdn := fmt.Sprintf("acctesttmp%d.trafficmanager.net", ri)
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,7 +78,11 @@ func TestAccAzureRMTrafficManagerProfile_priority(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
-	fqdn := fmt.Sprintf("acctesttmp%d.trafficmanager.net", ri)
+
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
