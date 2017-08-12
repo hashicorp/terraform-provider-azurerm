@@ -23,7 +23,7 @@ resource "azurerm_eventhub_namespace" "test" {
   location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
-  capacity            = 2
+  capacity            = 1
 
   tags {
     environment = "Production"
@@ -36,7 +36,7 @@ resource "azurerm_eventhub" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
-  message_retention   = 2
+  message_retention   = 1
 }
 ```
 
