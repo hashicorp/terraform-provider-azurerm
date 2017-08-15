@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmNetworkInterface() *schema.Resource {
@@ -81,9 +82,12 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"private_ip_address_allocation": {
-							Type:             schema.TypeString,
-							Required:         true,
-							ValidateFunc:     validateNetworkInterfacePrivateIpAddressAllocation,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Dynamic),
+								string(network.Static),
+							}, true),
 							StateFunc:        ignoreCaseStateFunc,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -415,19 +419,6 @@ func resourceArmNetworkInterfaceIpConfigurationHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func validateNetworkInterfacePrivateIpAddressAllocation(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	allocations := map[string]bool{
-		"static":  true,
-		"dynamic": true,
-	}
-
-	if !allocations[value] {
-		errors = append(errors, fmt.Errorf("Network Interface Allocations can only be Static or Dynamic"))
-	}
-	return
-}
-
 func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPConfiguration) []interface{} {
 	result := make([]interface{}, 0, len(*ipConfigs))
 	for _, ipConfig := range *ipConfigs {
@@ -477,18 +468,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 		subnet_id := data["subnet_id"].(string)
 		private_ip_allocation_method := data["private_ip_address_allocation"].(string)
 
-		var allocationMethod network.IPAllocationMethod
-		switch strings.ToLower(private_ip_allocation_method) {
-		case "dynamic":
-			allocationMethod = network.Dynamic
-		case "static":
-			allocationMethod = network.Static
-		default:
-			return []network.InterfaceIPConfiguration{}, nil, nil, fmt.Errorf(
-				"valid values for private_ip_allocation_method are 'dynamic' and 'static' - got '%s'",
-				private_ip_allocation_method)
-		}
-
+		allocationMethod := network.IPAllocationMethod(private_ip_allocation_method)
 		properties := network.InterfaceIPConfigurationPropertiesFormat{
 			Subnet: &network.Subnet{
 				ID: &subnet_id,
@@ -500,6 +480,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 		if err != nil {
 			return []network.InterfaceIPConfiguration{}, nil, nil, err
 		}
+
 		subnetName := subnetId.Path["subnets"]
 		virtualNetworkName := subnetId.Path["virtualNetworks"]
 		subnetNamesToLock = append(subnetNamesToLock, subnetName)
