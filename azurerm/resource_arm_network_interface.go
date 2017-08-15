@@ -1,22 +1,20 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmNetworkInterface() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkInterfaceCreate,
+		Create: resourceArmNetworkInterfaceCreateUpdate,
 		Read:   resourceArmNetworkInterfaceRead,
-		Update: resourceArmNetworkInterfaceCreate,
+		Update: resourceArmNetworkInterfaceCreateUpdate,
 		Delete: resourceArmNetworkInterfaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,11 +47,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 			},
 
-			"private_ip_address": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"virtual_machine_id": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -61,7 +54,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"ip_configuration": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -115,7 +108,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmNetworkInterfaceIpConfigurationHash,
 			},
 
 			"dns_servers": {
@@ -152,12 +144,17 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Default:  false,
 			},
 
+			"private_ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
 }
 
-func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Network Interface creation.")
@@ -291,8 +288,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if iface.IPConfigurations != nil {
-		configurations := flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)
-		d.Set("ip_configuration", schema.NewSet(resourceArmNetworkInterfaceIpConfigurationHash, configurations))
+		d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations))
 	}
 
 	if iface.VirtualMachine != nil {
@@ -360,7 +356,7 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
-	configs := d.Get("ip_configuration").(*schema.Set).List()
+	configs := d.Get("ip_configuration").([]interface{})
 	subnetNamesToLock := make([]string, 0)
 	virtualNetworkNamesToLock := make([]string, 0)
 
@@ -389,34 +385,6 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	err = <-deleteErr
 
 	return err
-}
-
-func resourceArmNetworkInterfaceIpConfigurationHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["subnet_id"].(string)))
-	if m["private_ip_address"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["private_ip_address"].(string)))
-	}
-	buf.WriteString(fmt.Sprintf("%s-", m["private_ip_address_allocation"].(string)))
-	if m["public_ip_address_id"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["public_ip_address_id"].(string)))
-	}
-	if m["load_balancer_backend_address_pools_ids"] != nil {
-		ids := m["load_balancer_backend_address_pools_ids"].(*schema.Set).List()
-		for _, id := range ids {
-			buf.WriteString(fmt.Sprintf("%d-", schema.HashString(id.(string))))
-		}
-	}
-	if m["load_balancer_inbound_nat_rules_ids"] != nil {
-		ids := m["load_balancer_inbound_nat_rules_ids"].(*schema.Set).List()
-		for _, id := range ids {
-			buf.WriteString(fmt.Sprintf("%d-", schema.HashString(id.(string))))
-		}
-	}
-
-	return hashcode.String(buf.String())
 }
 
 func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPConfiguration) []interface{} {
@@ -460,7 +428,7 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 }
 
 func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]network.InterfaceIPConfiguration, *[]string, *[]string, error) {
-	configs := d.Get("ip_configuration").(*schema.Set).List()
+	configs := d.Get("ip_configuration").([]interface{})
 	ipConfigs := make([]network.InterfaceIPConfiguration, 0, len(configs))
 	subnetNamesToLock := make([]string, 0)
 	virtualNetworkNamesToLock := make([]string, 0)
