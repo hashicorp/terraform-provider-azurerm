@@ -158,8 +158,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 }
 
 func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ifaceClient := client.ifaceClient
+	client := meta.(*ArmClient).ifaceClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Network Interface creation.")
 
@@ -213,7 +212,7 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 
 	ipConfigs, subnetnToLock, vnnToLock, sgErr := expandAzureRmNetworkInterfaceIpConfigurations(d)
 	if sgErr != nil {
-		return fmt.Errorf("Error Building list of Network Interface IP Configurations: %s", sgErr)
+		return fmt.Errorf("Error Building list of Network Interface IP Configurations: %+v", sgErr)
 	}
 
 	azureRMLockMultipleByName(subnetnToLock, subnetResourceName)
@@ -233,13 +232,13 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, error := ifaceClient.CreateOrUpdate(resGroup, name, iface, make(chan struct{}))
+	_, error := client.CreateOrUpdate(resGroup, name, iface, make(chan struct{}))
 	err := <-error
 	if err != nil {
 		return err
 	}
 
-	read, err := ifaceClient.Get(resGroup, name, "")
+	read, err := client.Get(resGroup, name, "")
 	if err != nil {
 		return err
 	}
@@ -253,7 +252,7 @@ func resourceArmNetworkInterfaceCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	ifaceClient := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).ifaceClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -262,13 +261,13 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["networkInterfaces"]
 
-	resp, err := ifaceClient.Get(resGroup, name, "")
+	resp, err := client.Get(resGroup, name, "")
 	if err != nil {
 		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Interface %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Network Interface %s: %+v", name, err)
 	}
 
 	iface := *resp.InterfacePropertiesFormat
@@ -292,7 +291,8 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if iface.IPConfigurations != nil {
-		d.Set("ip_configuration", schema.NewSet(resourceArmNetworkInterfaceIpConfigurationHash, flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)))
+		configurations := flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)
+		d.Set("ip_configuration", schema.NewSet(resourceArmNetworkInterfaceIpConfigurationHash, configurations))
 	}
 
 	if iface.VirtualMachine != nil {
@@ -340,7 +340,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
-	ifaceClient := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).ifaceClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -385,8 +385,8 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	azureRMLockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 
-	_, error := ifaceClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
+	err = <-deleteErr
 
 	return err
 }
@@ -423,29 +423,32 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 	result := make([]interface{}, 0, len(*ipConfigs))
 	for _, ipConfig := range *ipConfigs {
 		niIPConfig := make(map[string]interface{})
-		niIPConfig["name"] = *ipConfig.Name
-		niIPConfig["subnet_id"] = *ipConfig.InterfaceIPConfigurationPropertiesFormat.Subnet.ID
-		niIPConfig["private_ip_address_allocation"] = strings.ToLower(string(ipConfig.InterfaceIPConfigurationPropertiesFormat.PrivateIPAllocationMethod))
 
-		if ipConfig.InterfaceIPConfigurationPropertiesFormat.PrivateIPAllocationMethod == network.Static {
-			niIPConfig["private_ip_address"] = *ipConfig.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
+		props := ipConfig.InterfaceIPConfigurationPropertiesFormat
+
+		niIPConfig["name"] = *ipConfig.Name
+		niIPConfig["subnet_id"] = *props.Subnet.ID
+		niIPConfig["private_ip_address_allocation"] = strings.ToLower(string(props.PrivateIPAllocationMethod))
+
+		if props.PrivateIPAllocationMethod == network.Static {
+			niIPConfig["private_ip_address"] = *props.PrivateIPAddress
 		}
 
-		if ipConfig.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress != nil {
-			niIPConfig["public_ip_address_id"] = *ipConfig.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID
+		if props.PublicIPAddress != nil {
+			niIPConfig["public_ip_address_id"] = *props.PublicIPAddress.ID
 		}
 
 		var pools []interface{}
-		if ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools != nil {
-			for _, pool := range *ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerBackendAddressPools {
+		if props.LoadBalancerBackendAddressPools != nil {
+			for _, pool := range *props.LoadBalancerBackendAddressPools {
 				pools = append(pools, *pool.ID)
 			}
 		}
 		niIPConfig["load_balancer_backend_address_pools_ids"] = schema.NewSet(schema.HashString, pools)
 
 		var rules []interface{}
-		if ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules != nil {
-			for _, rule := range *ipConfig.InterfaceIPConfigurationPropertiesFormat.LoadBalancerInboundNatRules {
+		if props.LoadBalancerInboundNatRules != nil {
+			for _, rule := range *props.LoadBalancerInboundNatRules {
 				rules = append(rules, *rule.ID)
 			}
 		}
