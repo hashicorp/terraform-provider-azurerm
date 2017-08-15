@@ -12,6 +12,7 @@ variable "address_space" {
   default     = "10.0.0.0/16"
 }
 
+# If no values specified, this defaults to Azure DNS 
 variable "dns_servers" {
   description = "The DNS servers to be used with vNet"
   default     = []
@@ -25,4 +26,12 @@ variable "subnet_prefixes" {
 variable "subnet_names" {
   description = "A list of public subnets inside the vNet."
   default     = ["subnet1"]
+}
+
+variable "tags" {
+  type = map
+  default = {
+    tag1 = ""
+    tag2 = ""
+  }
 }
