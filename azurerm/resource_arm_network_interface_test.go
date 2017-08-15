@@ -499,7 +499,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -513,7 +513,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                 = "acceptanceTestNetworkInterface1"
+  name                 = "acctestni-%d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
@@ -524,7 +524,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "dynamic"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_withTags(rInt int, location string) string {
@@ -535,7 +535,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -549,7 +549,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acceptanceTestNetworkInterface1"
+  name                = "acctestni-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -564,7 +564,7 @@ resource "azurerm_network_interface" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_withTagsUpdate(rInt int, location string) string {
@@ -575,7 +575,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -589,7 +589,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acceptanceTestNetworkInterface1"
+  name                = "acctestni-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -603,7 +603,7 @@ resource "azurerm_network_interface" "test" {
     environment = "staging"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt int, location string) string {
@@ -614,7 +614,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -628,14 +628,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "testext" {
-  name                         = "testpublicipext"
+  name                         = "acctestpip1-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "testext" {
-  name                = "testlbext"
+  name                = "acctestlb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -664,14 +664,14 @@ resource "azurerm_lb_nat_rule" "testext" {
 }
 
 resource "azurerm_public_ip" "testint" {
-  name                         = "testpublicipint"
+  name                         = "acctestpip2-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "testint" {
-  name                = "testlbint"
+  name                = "acctestlb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -700,8 +700,8 @@ resource "azurerm_lb_nat_rule" "testint" {
   frontend_ip_configuration_name = "publicipint"
 }
 
-resource "azurerm_network_interface" "test1" {
-  name                 = "acceptanceTestNetworkInterface1"
+resource "azurerm_network_interface" "test" {
+  name                 = "acctestni-%d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
@@ -719,7 +719,7 @@ resource "azurerm_network_interface" "test1" {
 }
 
 resource "azurerm_network_interface" "test2" {
-  name                 = "acceptanceTestNetworkInterface2"
+  name                 = "acctestnic2-%d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
@@ -735,7 +735,7 @@ resource "azurerm_network_interface" "test2" {
     ]
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_bug7986(rInt int, location string) string {
@@ -850,7 +850,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -883,5 +883,5 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
