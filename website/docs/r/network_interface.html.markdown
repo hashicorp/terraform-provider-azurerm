@@ -92,6 +92,8 @@ The `ip_configuration` block supports:
 
 * `load_balancer_inbound_nat_rules_ids` - (Optional) List of Load Balancer Inbound Nat Rules IDs involving this NIC
 
+* `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
+
 ## Attributes Reference
 
 The following attributes are exported:
