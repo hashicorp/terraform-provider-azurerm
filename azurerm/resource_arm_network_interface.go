@@ -298,9 +298,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if iface.VirtualMachine != nil {
-		if *iface.VirtualMachine.ID != "" {
-			d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
-		}
+		d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
 	}
 
 	var appliedDNSServers []string
@@ -327,6 +325,8 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 	if iface.NetworkSecurityGroup != nil {
 		d.Set("network_security_group_id", resp.NetworkSecurityGroup.ID)
+	} else {
+		d.Set("network_security_group_id", "")
 	}
 
 	d.Set("name", resp.Name)
@@ -375,10 +375,14 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 			return err
 		}
 		subnetName := subnetId.Path["subnets"]
-		subnetNamesToLock = append(subnetNamesToLock, subnetName)
+		if !sliceContainsValue(subnetNamesToLock, subnetName) {
+			subnetNamesToLock = append(subnetNamesToLock, subnetName)
+		}
 
 		virtualNetworkName := subnetId.Path["virtualNetworks"]
-		virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+		if !sliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+		}
 	}
 
 	azureRMLockMultipleByName(&subnetNamesToLock, subnetResourceName)
@@ -465,11 +469,11 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 		subnetName := subnetId.Path["subnets"]
 		virtualNetworkName := subnetId.Path["virtualNetworks"]
 
-		if !structContainsValue(subnetNamesToLock, subnetName) {
+		if !sliceContainsValue(subnetNamesToLock, subnetName) {
 			subnetNamesToLock = append(subnetNamesToLock, subnetName)
 		}
 
-		if !structContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+		if !sliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 		}
 
@@ -530,7 +534,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 	return ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
 }
 
-func structContainsValue(input []string, value string) bool {
+func sliceContainsValue(input []string, value string) bool {
 	for _, v := range input {
 		if v == value {
 			return true
