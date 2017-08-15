@@ -106,6 +106,12 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
+						"primary": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -406,6 +412,10 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 			niIPConfig["public_ip_address_id"] = *props.PublicIPAddress.ID
 		}
 
+		if props.Primary != nil {
+			niIPConfig["primary"] = *props.Primary
+		}
+
 		var pools []interface{}
 		if props.LoadBalancerBackendAddressPools != nil {
 			for _, pool := range *props.LoadBalancerBackendAddressPools {
@@ -454,8 +464,14 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 
 		subnetName := subnetId.Path["subnets"]
 		virtualNetworkName := subnetId.Path["virtualNetworks"]
-		subnetNamesToLock = append(subnetNamesToLock, subnetName)
-		virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+
+		if !structContainsValue(subnetNamesToLock, subnetName) {
+			subnetNamesToLock = append(subnetNamesToLock, subnetName)
+		}
+
+		if !structContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+			virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+		}
 
 		if v := data["private_ip_address"].(string); v != "" {
 			properties.PrivateIPAddress = &v
@@ -465,6 +481,11 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 			properties.PublicIPAddress = &network.PublicIPAddress{
 				ID: &v,
 			}
+		}
+
+		if v, ok := data["primary"]; ok {
+			b := v.(bool)
+			properties.Primary = &b
 		}
 
 		if v, ok := data["load_balancer_backend_address_pools_ids"]; ok {
@@ -507,4 +528,14 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 	}
 
 	return ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
+}
+
+func structContainsValue(input []string, value string) bool {
+	for _, v := range input {
+		if v == value {
+			return true
+		}
+	}
+
+	return false
 }
