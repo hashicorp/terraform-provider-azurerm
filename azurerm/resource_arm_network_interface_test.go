@@ -76,6 +76,36 @@ func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
+	updatedConfig := testAccAzureRMNetworkInterface_basic(rInt, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "network_security_group_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
 	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
@@ -115,15 +145,19 @@ func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.primary", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "testconfiguration1"),
 					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.primary", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.name", "testconfiguration2"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.primary", "false"),
-					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.primary", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.primary", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "testconfiguration2"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.primary", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.name", "testconfiguration1"),
 				),
 			},
 		},
@@ -442,17 +476,16 @@ resource "azurerm_network_interface" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
-    primary                       = false
-  }
-
-  ip_configuration {
     name                          = "testconfiguration2"
     subnet_id                     = "${azurerm_subnet.test.id}"
     private_ip_address_allocation = "dynamic"
     primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
   }
 }
 `, rInt, location, rInt, rInt)
