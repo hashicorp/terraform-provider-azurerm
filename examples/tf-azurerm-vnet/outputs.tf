@@ -19,5 +19,6 @@ output "azurerm_vnet_dns_servers" {
 }
 
 output "azurerm_vnet_subnet" {
-  value = "${azurerm_virtual_network.vnet.dns_servers}"
+  value = "${azurerm_virtual_network.vnet.subnet}"
 }
+
