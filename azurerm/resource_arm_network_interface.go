@@ -531,6 +531,21 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 		ipConfigs = append(ipConfigs, ipConfig)
 	}
 
+	// if we've got multiple IP Configurations - one must be designated Primary
+	if len(ipConfigs) > 1 {
+		hasPrimary := false
+		for _, config := range ipConfigs {
+			if config.Primary != nil && *config.Primary {
+				hasPrimary = true
+				break
+			}
+		}
+
+		if !hasPrimary {
+			return nil, nil, nil, fmt.Errorf("If multiple `ip_configurations` are specified - one must be designated as `primary`.")
+		}
+	}
+
 	return ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
 }
 
