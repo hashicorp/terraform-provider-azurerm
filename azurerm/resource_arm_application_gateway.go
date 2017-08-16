@@ -2,10 +2,8 @@ package azurerm
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"log"
-	"net/http"
 	"path"
 	//	"time"
 
@@ -81,7 +79,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 					},
 				},
-				Set: hashApplicationGatewaySku,
 			},
 
 			"disabled_ssl_protocols": {
@@ -120,10 +117,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"rule_set_type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc:     validation.StringInSlice([]string{"OWASP"}, true),
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "OWASP",
 						},
 
 						"rule_set_version": {
@@ -134,7 +130,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 					},
 				},
-				Set: hashApplicationGatewayWafConfig,
 			},
 
 			"gateway_ip_configuration": {
@@ -768,8 +763,11 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	d.Set("frontend_port", flattenApplicationGatewayFrontendPorts(ApplicationGateway.ApplicationGatewayPropertiesFormat.FrontendPorts))
 	d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(ApplicationGateway.ApplicationGatewayPropertiesFormat.FrontendIPConfigurations))
 	d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(ApplicationGateway.ApplicationGatewayPropertiesFormat.BackendAddressPools))
+
 	d.Set("backend_http_settings", flattenApplicationGatewayBackendHTTPSettings(ApplicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection))
+
 	d.Set("http_listener", flattenApplicationGatewayHTTPListeners(ApplicationGateway.ApplicationGatewayPropertiesFormat.HTTPListeners))
+
 	d.Set("probe", flattenApplicationGatewayProbes(ApplicationGateway.ApplicationGatewayPropertiesFormat.Probes))
 	d.Set("request_routing_rule", flattenApplicationGatewayRequestRoutingRules(ApplicationGateway.ApplicationGatewayPropertiesFormat.RequestRoutingRules))
 	d.Set("url_path_map", flattenApplicationGatewayURLPathMaps(ApplicationGateway.ApplicationGatewayPropertiesFormat.URLPathMaps))
@@ -827,7 +825,7 @@ func retrieveApplicationGatewayById(ApplicationGatewayID string, meta interface{
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			return nil, false, nil
 		}
 		return nil, false, fmt.Errorf("Error making Read request on Azure ApplicationGateway %s: %+v", name, err)
@@ -1294,7 +1292,7 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 		data := raw["data"].(string)
 
 		// data must be base64 encoded
-		data = base64.StdEncoding.EncodeToString([]byte(data))
+		data = base64Encode(data)
 
 		cert := network.ApplicationGatewayAuthenticationCertificate{
 			Name: &name,
@@ -1321,7 +1319,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 		password := raw["password"].(string)
 
 		// data must be base64 encoded
-		data = base64.StdEncoding.EncodeToString([]byte(data))
+		data = base64Encode(data)
 
 		cert := network.ApplicationGatewaySslCertificate{
 			Name: &name,
@@ -1480,6 +1478,7 @@ func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.App
 			authCerts := make([]interface{}, 0, len(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates))
 
 			for _, config := range *config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates {
+
 				authCert := map[string]interface{}{
 					"name": path.Base(*config.ID),
 					"id":   *config.ID,
