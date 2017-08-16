@@ -28,6 +28,13 @@ variable "frontend_private_ip" {
   default = ""
 }
 
+variable "tags" {
+  type = "map"
+  default = {
+    tag1 = ""
+    tag2 = ""
+  }
+}
 /* TODO: Move to provision via module not within LB module itself
 variable "frontend_public_ip_address_id" {
   description = "(Optional) Reference to Public IP address to be associated with the Load Balancer."

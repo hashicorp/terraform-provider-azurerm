@@ -23,5 +23,5 @@ resource "azurerm_lb" "mylb" {
     private_ip_address   = "${var.frontend_private_ip}"
     public_ip_address_id = "${azurerm_public_ip.mypublicIP.id}"
   }
-  #TODO: tags
+  tags                = "${var.tags}"
 }
