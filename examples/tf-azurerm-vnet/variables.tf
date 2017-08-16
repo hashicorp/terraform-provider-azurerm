@@ -29,7 +29,7 @@ variable "subnet_names" {
 }
 
 variable "tags" {
-  type = map
+  type = "map"
   default = {
     tag1 = ""
     tag2 = ""
