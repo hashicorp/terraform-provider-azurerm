@@ -17,7 +17,7 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageContainer_basic, ri, rs)
+	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,7 +39,7 @@ func TestAccAzureRMStorageContainer_disappears(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageContainer_basic, ri, rs)
+	config := testAccAzureRMStorageContainer_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,7 +63,7 @@ func TestAccAzureRMStorageContainer_root(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageContainer_root, ri, rs)
+	config := testAccAzureRMStorageContainer_root(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -242,16 +242,17 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 	}
 }
 
-var testAccAzureRMStorageContainer_basic = `
+func testAccAzureRMStorageContainer_basic(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
     name = "acctestacc%s"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -265,18 +266,20 @@ resource "azurerm_storage_container" "test" {
     storage_account_name = "${azurerm_storage_account.test.name}"
     container_access_type = "private"
 }
-`
+`, rInt, location, rString)
+}
 
-var testAccAzureRMStorageContainer_root = `
+func testAccAzureRMStorageContainer_root(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
     name = "acctestacc%s"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -290,4 +293,5 @@ resource "azurerm_storage_container" "test" {
     storage_account_name = "${azurerm_storage_account.test.name}"
     container_access_type = "private"
 }
-`
+`, rInt, location, rString)
+}

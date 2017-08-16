@@ -11,7 +11,7 @@ func TestAccAzureRMServiceBusNamespace_importBasic(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusNamespace_basic(ri)
+	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

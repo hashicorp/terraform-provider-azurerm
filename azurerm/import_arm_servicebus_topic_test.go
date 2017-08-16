@@ -11,7 +11,7 @@ func TestAccAzureRMServiceBusTopic_importBasic(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusTopic_basic(ri)
+	config := testAccAzureRMServiceBusTopic_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,7 +34,7 @@ func TestAccAzureRMServiceBusTopic_importBasicDisabled(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusTopic_basicDisabled(ri)
+	config := testAccAzureRMServiceBusTopic_basicDisabled(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

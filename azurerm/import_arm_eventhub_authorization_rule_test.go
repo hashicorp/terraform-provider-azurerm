@@ -3,8 +3,6 @@ package azurerm
 import (
 	"testing"
 
-	"fmt"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
@@ -13,7 +11,7 @@ func TestAccAzureRMEventHubAuthorizationRule_importListen(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_listen, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_listen(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,7 +35,7 @@ func TestAccAzureRMEventHubAuthorizationRule_importSend(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_send, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_send(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -61,7 +59,7 @@ func TestAccAzureRMEventHubAuthorizationRule_importReadWrite(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_readwrite, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_readWrite(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -85,7 +83,7 @@ func TestAccAzureRMEventHubAuthorizationRule_importManage(t *testing.T) {
 	resourceName := "azurerm_eventhub_authorization_rule.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubAuthorizationRule_manage, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubAuthorizationRule_manage(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

@@ -97,7 +97,7 @@ func TestAccAzureRMEventHubMessageRetentionCount_validation(t *testing.T) {
 func TestAccAzureRMEventHub_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHub_basic, ri, ri, ri)
+	config := testAccAzureRMEventHub_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,7 +117,7 @@ func TestAccAzureRMEventHub_basic(t *testing.T) {
 func TestAccAzureRMEventHub_standard(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHub_standard, ri, ri, ri)
+	config := testAccAzureRMEventHub_standard(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -179,7 +179,7 @@ func testCheckAzureRMEventHubExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, namespaceName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on eventHubClient: %s", err)
+			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -190,16 +190,18 @@ func testCheckAzureRMEventHubExists(name string) resource.TestCheckFunc {
 	}
 }
 
-var testAccAzureRMEventHub_basic = `
+func testAccAzureRMEventHub_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Basic"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
 }
 
 resource "azurerm_eventhub" "test" {
@@ -210,18 +212,21 @@ resource "azurerm_eventhub" "test" {
   partition_count     = 2
   message_retention   = 1
 }
-`
-
-var testAccAzureRMEventHub_standard = `
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+`, rInt, location, rInt, rInt)
 }
+
+func testAccAzureRMEventHub_standard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
 resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
@@ -232,4 +237,5 @@ resource "azurerm_eventhub" "test" {
   partition_count     = 2
   message_retention   = 7
 }
-`
+`, rInt, location, rInt, rInt)
+}

@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,7 +11,7 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSet_basic, ri, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineScaleSet_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,7 +34,7 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk(t *testing.T) 
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -58,7 +57,7 @@ func TestAccAzureRMVirtualMachineScaleSet_importLinux(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineScaleSet_linux(ri)
+	config := testAccAzureRMVirtualMachineScaleSet_linux(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -81,7 +80,7 @@ func TestAccAzureRMVirtualMachineScaleSet_importLoadBalancer(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSetLoadbalancerTemplate, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -101,8 +100,10 @@ func TestAccAzureRMVirtualMachineScaleSet_importLoadBalancer(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSet_importOverProvision(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSetOverprovisionTemplate, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineScaleSetOverProvisionTemplate(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -111,8 +112,8 @@ func TestAccAzureRMVirtualMachineScaleSet_importOverProvision(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
-					testCheckAzureRMVirtualMachineScaleSetOverprovision("azurerm_virtual_machine_scale_set.test"),
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					testCheckAzureRMVirtualMachineScaleSetOverprovision(resourceName),
 				),
 			},
 		},
@@ -120,8 +121,10 @@ func TestAccAzureRMVirtualMachineScaleSet_importOverProvision(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSet_importExtension(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSetExtensionTemplate, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineScaleSetExtensionTemplate(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -130,8 +133,8 @@ func TestAccAzureRMVirtualMachineScaleSet_importExtension(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
-					testCheckAzureRMVirtualMachineScaleSetExtension("azurerm_virtual_machine_scale_set.test"),
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					testCheckAzureRMVirtualMachineScaleSetExtension(resourceName),
 				),
 			},
 		},
@@ -139,8 +142,10 @@ func TestAccAzureRMVirtualMachineScaleSet_importExtension(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSet_importMultipleExtensions(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineScaleSetMultipleExtensionsTemplate(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -149,8 +154,8 @@ func TestAccAzureRMVirtualMachineScaleSet_importMultipleExtensions(t *testing.T)
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
-					testCheckAzureRMVirtualMachineScaleSetExtension("azurerm_virtual_machine_scale_set.test"),
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					testCheckAzureRMVirtualMachineScaleSetExtension(resourceName),
 				),
 			},
 		},

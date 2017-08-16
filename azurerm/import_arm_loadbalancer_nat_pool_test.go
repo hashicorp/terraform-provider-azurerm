@@ -19,11 +19,10 @@ func TestAccAzureRMLoadBalancerNatPool_importBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName),
+			{
+				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

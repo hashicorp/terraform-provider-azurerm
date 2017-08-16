@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsMxRecord_basic(ri)
+	config := testAccAzureRMDnsMxRecord_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,8 +34,9 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsMxRecord_basic(ri)
-	postConfig := testAccAzureRMDnsMxRecord_updateRecords(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsMxRecord_basic(ri, location)
+	postConfig := testAccAzureRMDnsMxRecord_updateRecords(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,8 +64,9 @@ func TestAccAzureRMDnsMxRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsMxRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_mx_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsMxRecord_withTags(ri)
-	postConfig := testAccAzureRMDnsMxRecord_withTagsUpdate(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsMxRecord_withTags(ri, location)
+	postConfig := testAccAzureRMDnsMxRecord_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -146,140 +148,140 @@ func testCheckAzureRMDnsMxRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsMxRecord_basic(rInt int) string {
+func testAccAzureRMDnsMxRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_mx_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
 
-    record {
-	preference = "10"
-	exchange = "mail1.contoso.com"
-    }
+  record {
+    preference = "10"
+    exchange   = "mail1.contoso.com"
+  }
 
-    record {
-	preference = "20"
-	exchange = "mail2.contoso.com"
-    }
+  record {
+    preference = "20"
+    exchange   = "mail2.contoso.com"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsMxRecord_updateRecords(rInt int) string {
+func testAccAzureRMDnsMxRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_mx_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
 
-    record {
-	preference = "10"
-	exchange = "mail1.contoso.com"
-    }
+  record {
+    preference = "10"
+    exchange   = "mail1.contoso.com"
+  }
 
-    record {
-	preference = "20"
-	exchange = "mail2.contoso.com"
-    }
+  record {
+    preference = "20"
+    exchange   = "mail2.contoso.com"
+  }
 
-    record {
-	preference = "50"
-	exchange = "mail3.contoso.com"
-    }
+  record {
+    preference = "50"
+    exchange   = "mail3.contoso.com"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsMxRecord_withTags(rInt int) string {
+func testAccAzureRMDnsMxRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_mx_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
 
-    record {
-	preference = "10"
-	exchange = "mail1.contoso.com"
-    }
+  record {
+    preference = "10"
+    exchange   = "mail1.contoso.com"
+  }
 
-    record {
-	preference = "20"
-	exchange = "mail2.contoso.com"
-    }
+  record {
+    preference = "20"
+    exchange   = "mail2.contoso.com"
+  }
 
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsMxRecord_withTagsUpdate(rInt int) string {
+func testAccAzureRMDnsMxRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_mx_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
 
-    record {
-	preference = "10"
-	exchange = "mail1.contoso.com"
-    }
+  record {
+    preference = "10"
+    exchange   = "mail1.contoso.com"
+  }
 
-    record {
-	preference = "20"
-	exchange = "mail2.contoso.com"
-    }
+  record {
+    preference = "20"
+    exchange   = "mail2.contoso.com"
+  }
 
-    tags {
-	environment = "staging"
-    }
+  tags {
+    environment = "staging"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }

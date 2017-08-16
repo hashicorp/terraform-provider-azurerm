@@ -53,7 +53,7 @@ variable "image_offer" {
 
 variable "image_sku" {
   description = "The Ubuntu version for the VM. This will pick a fully patched image of this given Ubuntu version. Allowed values: 12.04.5-LTS, 14.04.2-LTS, 15.10."
-  default     = "14.04.2-LTS"
+  default     = "16.04-LTS"
 }
 
 variable "image_version" {

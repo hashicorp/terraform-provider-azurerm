@@ -13,7 +13,7 @@ import (
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsPtrRecord_basic(ri)
+	config := testAccAzureRMDnsPtrRecord_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -32,8 +32,9 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 
 func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsPtrRecord_basic(ri)
-	postConfig := testAccAzureRMDnsPtrRecord_updateRecords(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsPtrRecord_basic(ri, location)
+	postConfig := testAccAzureRMDnsPtrRecord_updateRecords(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -61,8 +62,9 @@ func TestAccAzureRMDnsPtrRecord_updateRecords(t *testing.T) {
 
 func TestAccAzureRMDnsPtrRecord_withTags(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsPtrRecord_withTags(ri)
-	postConfig := testAccAzureRMDnsPtrRecord_withTagsUpdate(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsPtrRecord_withTags(ri, location)
+	postConfig := testAccAzureRMDnsPtrRecord_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -107,7 +109,7 @@ func testCheckAzureRMDnsPtrRecordExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
 		resp, err := conn.Get(resourceGroup, zoneName, ptrName, dns.PTR)
 		if err != nil {
-			return fmt.Errorf("Bad: Get PTR RecordSet: %v", err)
+			return fmt.Errorf("Bad: Get PTR RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -146,99 +148,99 @@ func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsPtrRecord_basic(rInt int) string {
+func testAccAzureRMDnsPtrRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%[1]d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%[1]d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%[1]d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["hashicorp.com", "microsoft.com"]
+  name                = "testptrrecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["hashicorp.com", "microsoft.com"]
 }
-`, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsPtrRecord_updateRecords(rInt int) string {
+func testAccAzureRMDnsPtrRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%[1]d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%[1]d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%[1]d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["hashicorp.com", "microsoft.com", "reddit.com"]
+  name                = "testptrrecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["hashicorp.com", "microsoft.com", "reddit.com"]
 }
-`, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsPtrRecord_withTags(rInt int) string {
+func testAccAzureRMDnsPtrRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%[1]d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%[1]d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%[1]d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["hashicorp.com", "microsoft.com"]
+  name                = "testptrrecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["hashicorp.com", "microsoft.com"]
 
-    tags {
-	environment = "Dev"
-	cost_center = "Ops"
-    }
+  tags {
+    environment = "Dev"
+    cost_center = "Ops"
+  }
 }
-`, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsPtrRecord_withTagsUpdate(rInt int) string {
+func testAccAzureRMDnsPtrRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%[1]d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%[1]d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_ptr_record" "test" {
-    name = "testptrrecord%[1]d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-    records = ["hashicorp.com", "microsoft.com"]
+  name                = "testptrrecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+  records             = ["hashicorp.com", "microsoft.com"]
 
-    tags {
-	environment = "Stage"
-    }
+  tags {
+    environment = "Stage"
+  }
 }
-`, rInt)
+`, rInt, location, rInt, rInt)
 }

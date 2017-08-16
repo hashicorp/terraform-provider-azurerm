@@ -17,7 +17,7 @@ func TestAccAzureRMLocalNetworkGateway_importBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt),
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, testLocation()),
 			},
 
 			{

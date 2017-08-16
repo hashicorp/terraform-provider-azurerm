@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMRoute_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRoute_basic, ri, ri, ri)
+	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 func TestAccAzureRMRoute_disappears(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRoute_basic, ri, ri, ri)
+	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -55,8 +55,9 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMRoute_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMRoute_multipleRoutes, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMRoute_basic(ri, location)
+	postConfig := testAccAzureRMRoute_multipleRoutes(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -99,7 +100,7 @@ func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, rtName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on routesClient: %s", err)
+			return fmt.Errorf("Bad: Get on routesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -130,7 +131,7 @@ func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
 		_, error := conn.Delete(resourceGroup, rtName, name, make(chan struct{}))
 		err := <-error
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on routesClient: %s", err)
+			return fmt.Errorf("Bad: Delete on routesClient: %+v", err)
 		}
 
 		return nil
@@ -163,15 +164,16 @@ func testCheckAzureRMRouteDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMRoute_basic = `
+func testAccAzureRMRoute_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -183,17 +185,19 @@ resource "azurerm_route" "test" {
     address_prefix = "10.1.0.0/16"
     next_hop_type = "vnetlocal"
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMRoute_multipleRoutes = `
+func testAccAzureRMRoute_multipleRoutes(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -205,4 +209,5 @@ resource "azurerm_route" "test1" {
     address_prefix = "10.2.0.0/16"
     next_hop_type = "none"
 }
-`
+`, rInt, location, rInt, rInt)
+}
