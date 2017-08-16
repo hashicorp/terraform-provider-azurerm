@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -108,6 +109,11 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 	ri := acctest.RandInt()
 
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	gwID := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
+		subscriptionID, ri, ri)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -118,6 +124,7 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
+					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
 				),
 			},
 		},
@@ -145,7 +152,7 @@ func testCheckAzureRMApplicationGatewayExists(name string) resource.TestCheckFun
 				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %s", err)
+			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %+v", err)
 		}
 
 		return nil
@@ -173,7 +180,7 @@ func testCheckAzureRMApplicationGatewaySslCertificateAssigned(name string, certN
 				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %s", err)
+			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %+v", err)
 		}
 
 		var certId *string
@@ -219,7 +226,7 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %s", err)
+			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %+v", err)
 		}
 
 		var certId *string
@@ -281,7 +288,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "vnet"
+  name                = "acctest-vnet"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -295,7 +302,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "public-ip"
+  name                         = "acctest-public-ip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -464,7 +471,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "vnet"
+  name                = "acctest-vnet"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -478,7 +485,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "public-ip"
+  name                         = "acctest-public-ip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -647,7 +654,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "vnet"
+  name                = "acctest-vnet"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -661,7 +668,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "public-ip"
+  name                         = "acctest-public-ip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -848,7 +855,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "vnet"
+  name                = "acctest-vnet"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -862,7 +869,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "public-ip"
+  name                         = "acctest-public-ip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -1049,7 +1056,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "vnet"
+  name                = "acctest-vnet"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -1063,7 +1070,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "public-ip"
+  name                         = "acctest-public-ip"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
