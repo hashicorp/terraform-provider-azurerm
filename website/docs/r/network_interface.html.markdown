@@ -3,12 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_network_interface"
 sidebar_current: "docs-azurerm-resource-network-interface"
 description: |-
-  Manages the Network Interface cards that link the Virtual Machines and Virtual Network.
+  Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
+
 ---
 
 # azurerm\_network\_interface
 
-Network interface cards are virtual network cards that form the link between virtual machines and the virtual network
+Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
 
 ## Example Usage
 
@@ -71,7 +72,7 @@ The following arguments are supported:
 
 * `dns_servers` - (Optional) List of DNS servers IP addresses to use for this NIC, overrides the VNet-level server list
 
-* `ip_configuration` - (Required) Collection of ipConfigurations associated with this NIC. Each `ip_configuration` block supports fields documented below.
+* `ip_configuration` - (Required) One or more `ip_configuration` associated with this NIC as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -91,11 +92,13 @@ The `ip_configuration` block supports:
 
 * `load_balancer_inbound_nat_rules_ids` - (Optional) List of Load Balancer Inbound Nat Rules IDs involving this NIC
 
+* `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The virtual NetworkConfiguration ID.
+* `id` - The Virtual Network Interface ID.
 * `mac_address` - The media access control (MAC) address of the network interface.
 * `private_ip_address` - The private ip address of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
