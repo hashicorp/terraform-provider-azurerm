@@ -38,7 +38,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 			"network_security_group_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 
 			"mac_address": {

@@ -98,7 +98,7 @@ func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
-					resource.TestCheckNoResourceAttr(resourceName, "network_security_group_id"),
+					resource.TestCheckResourceAttr(resourceName, "network_security_group_id", ""),
 				),
 			},
 		},
