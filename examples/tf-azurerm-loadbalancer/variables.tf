@@ -1,6 +1,6 @@
 variable "prefix" {
   description = "(Required) Default prefix to use with your resource names."
-  default = "myapp"
+  default = "myapp2"
 }
 
 variable "location" {
@@ -10,7 +10,7 @@ variable "location" {
 
 variable "number_of_endpoints" {
   description = "Number of nics and associated inbound remote access rules to create which are load balanced on the vnet"
-  default = 3
+  default = 2
 }
 
 variable "remote_port"{ 
@@ -46,27 +46,6 @@ variable "frontend_name" {
 variable "public_ip_address_allocation" {
   description = "(Required) Defines how an IP address is assigned. Options are Static or Dynamic."
   default = "static"
-}
-
-variable "address_space" {
-  description = "The address space that is used by the virtual network."
-  default     = "10.0.0.0/16"
-}
-
-# If no values specified, this defaults to Azure DNS 
-variable "dns_servers" {
-  description = "The DNS servers to be used with vNet"
-  default     = []
-}
-
-variable "subnet_prefixes" {
-  description = "The address prefix to use for the subnet."
-  default     = ["10.0.1.0/24"]
-}
-
-variable "subnet_names" {
-  description = "A list of public subnets inside the vNet."
-  default     = ["subnet1"]
 }
 
 variable "tags" {
