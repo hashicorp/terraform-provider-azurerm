@@ -4,11 +4,11 @@ You can use this module to create a basic SQL Server Database in Azure. Below is
 
 ```
 module "sql-database" {
-  source           = "./path/to/module"
-  resource_group   = "my-resource-group"
-  location         = "west us"
-  db_name          = "mydatabase"
-  sql_admin        = "adminaccount"
-  sql_password     = "adminpassword"
+  source             = "./path/to/module"
+  resource_group     = "my-resource-group"
+  location           = "west us"
+  db_name            = "mydatabase"
+  sql_admin_username = "adminaccount"
+  sql_password       = "adminpassword"
 }
 ```

@@ -24,11 +24,11 @@ variable "sql_password" {
 }
 
 variable start_ip_address {
-  definition = "Defines the start IP address used in your database firewall rule."
-  default    = "0.0.0.0"
+  description = "Defines the start IP address used in your database firewall rule."
+  default     = "0.0.0.0"
 }
 
 variable end_ip_address {
-  definition = "Defines the end IP address used in your database firewall rule."
-  default    = "0.0.0.0"
+  description = "Defines the end IP address used in your database firewall rule."
+  default     = "0.0.0.0"
 }
