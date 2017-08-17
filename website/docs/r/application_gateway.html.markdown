@@ -17,32 +17,94 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 ## Example Usage
 
 ```hcl
-resource "azurerm_virtual_network" "test" {
-  name                = "virtualNetwork1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["10.0.0.0/16"]
+# Create a resource group
+resource "azurerm_resource_group" "rg" {
+  name     = "my-rg-application-gateway-12345"
+  location = "West US"
+}
+ 
+# Create a virtual network in the web_servers resource group
+resource "azurerm_virtual_network" "vnet" {
+  name                = "my-vnet-12345"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  address_space       = ["10.254.0.0/16"]
+  location            = "${azurerm_resource_group.rg.location}"
+}
+
+resource "azurerm_subnet" "sub1" {
+  name                 = "my-subnet-1"
+  resource_group_name  = "${azurerm_resource_group.rg.name}"
+  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+  address_prefix       = "10.254.0.0/24"
+}
+
+resource "azurerm_subnet" "sub2" {
+  name                 = "my-subnet-2"
+  resource_group_name  = "${azurerm_resource_group.rg.name}"
+  virtual_network_name = "${azurerm_virtual_network.vnet.name}"
+  address_prefix       = "10.254.2.0/24"
+}
+
+resource "azurerm_public_ip" "pip" {
+  name                         = "my-pip-12345"
+  location                     = "${azurerm_resource_group.rg.location}"
+  resource_group_name          = "${azurerm_resource_group.rg.name}"
+  public_ip_address_allocation = "dynamic"
+}
+
+# Create an application gateway
+resource "azurerm_application_gateway" "network" {
+  name                = "my-application-gateway-12345"
   location            = "West US"
-  dns_servers         = ["10.0.0.4", "10.0.0.5"]
-
-  subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+ 
+  sku {
+    name           = "Standard_Small"
+    tier           = "Standard"
+    capacity       = 2
+  }
+ 
+  gateway_ip_configuration {
+      name         = "my-gateway-ip-configuration"
+      subnet_id    = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
+  }
+ 
+  frontend_port {
+      name         = "my-frontend-port"
+      port         = 80
+  }
+ 
+  frontend_ip_configuration {
+      name         = "my-frontend-ip-configuration"  
+      public_ip_address_id = "${azurerm_public_ip.pip.id}"
   }
 
-  subnet {
-    name           = "subnet2"
-    address_prefix = "10.0.2.0/24"
+  backend_address_pool {
+      name = "my-backend-address-pool"
   }
-
-  subnet {
-    name           = "subnet3"
-    address_prefix = "10.0.3.0/24"
-    security_group = "${azurerm_network_security_group.test.id}"
+ 
+  backend_http_settings {
+      name                  = "${azurerm_virtual_network.vnet.name}-be-htst"
+      cookie_based_affinity = "Disabled"
+      port                  = 80
+      protocol              = "Http"
+     request_timeout        = 1
   }
-
-  tags {
-    environment = "Production"
+ 
+  http_listener {
+        name                                  = "${azurerm_virtual_network.vnet.name}-httplstn"
+        frontend_ip_configuration_name        = "${azurerm_virtual_network.vnet.name}-feip"
+        frontend_port_name                    = "${azurerm_virtual_network.vnet.name}-feport"
+        protocol                              = "Http"
   }
+ 
+request_routing_rule {
+        name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
+        rule_type                  = "Basic"
+        http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
+        backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
+        backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
+}
 }
 ```
 
