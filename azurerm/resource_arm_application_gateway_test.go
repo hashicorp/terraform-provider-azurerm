@@ -340,7 +340,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet"
+  name                = "acctest-vnet-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -354,7 +354,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-public-ip"
+  name                         = "acctest-pubip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -516,7 +516,7 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt)
+`, rInt, rInt, rInt, rInt)
 }
 
 <<<<<<< HEAD
@@ -531,7 +531,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet"
+  name                = "acctest-vnet-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -545,7 +545,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-public-ip"
+  name                         = "acctest-pubip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -707,7 +707,7 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt)
+`, rInt, rInt, rInt, rInt)
 }
 
 <<<<<<< HEAD
@@ -722,7 +722,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet"
+  name                = "acctest-vnet-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -736,7 +736,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-public-ip"
+  name                         = "acctest-pubip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -920,7 +920,7 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt)
+`, rInt, rInt, rInt, rInt)
 }
 
 <<<<<<< HEAD
@@ -935,7 +935,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet"
+  name                = "acctest-vnet-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -949,7 +949,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-public-ip"
+  name                         = "acctest-pubip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -1133,7 +1133,7 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt)
+`, rInt, rInt, rInt, rInt)
 }
 
 <<<<<<< HEAD
@@ -1148,7 +1148,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-vnet"
+  name                = "acctest-vnet-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.254.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
@@ -1162,7 +1162,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "acctest-public-ip"
+  name                         = "acctest-pubip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "dynamic"
@@ -1334,5 +1334,5 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt)
+`, rInt, rInt, rInt, rInt)
 }
