@@ -2,6 +2,7 @@
 resource "azurerm_resource_group" "rg" {
   name     = "${var.prefix}-rg"
   location = "${var.location}"
+  tags     = "${var.tags}"
 }
 
 resource "azurerm_public_ip" "mypublicIP" {
@@ -34,12 +35,8 @@ resource "azurerm_lb" "mylb" {
   location                  = "${var.location}"
   frontend_ip_configuration {
     name                 = "${var.frontend_name}"
-    # subnet_id and private_ip_address not used by default since using public_ip_address
-    subnet_id            = "${var.frontend_subnet_id}"
-    private_ip_address   = "${var.frontend_private_ip}"
     public_ip_address_id = "${azurerm_public_ip.mypublicIP.id}"
   }
-  tags                = "${var.tags}"
 }
 
 resource "azurerm_lb_backend_address_pool" "mybackendpool" {
@@ -54,41 +51,43 @@ resource "azurerm_lb_nat_rule" "tcp-remotevm" {
   name                           = "VM-${count.index}"
   protocol                       = "tcp"
   frontend_port                  = "5000${count.index + 1}"
-  backend_port                   = 22
+  backend_port                   = "${element(var.remote_port["${element(keys(var.remote_port), count.index)}"], 1)}"
   frontend_ip_configuration_name = "${var.frontend_name}"
-  count                          = 2
+  count                          = "${var.number_of_endpoints}"
+}
+
+resource "azurerm_lb_probe" "lb_probe" {
+  count               = "${length(var.lb_port)}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
+  loadbalancer_id     = "${azurerm_lb.mylb.id}"
+  name                = "${element(keys(var.lb_port), count.index)}"
+  protocol            = "${element(var.lb_port["${element(keys(var.lb_port), count.index)}"], 1)}"
+  port                = "${element(var.lb_port["${element(keys(var.lb_port), count.index)}"], 2)}"
+  interval_in_seconds = "${var.lb_probe_interval}"
+  number_of_probes    = "${var.lb_probe_unhealthy_threshold}"
 }
 
 resource "azurerm_lb_rule" "lb_rule" {
+  count                          = "${length(var.lb_port)}"
   resource_group_name            = "${azurerm_resource_group.rg.name}"
   loadbalancer_id                = "${azurerm_lb.mylb.id}"
-  name                           = "LBRule"
-  protocol                       = "tcp"
-  frontend_port                  = 80
-  backend_port                   = 80
+  name                           = "${element(keys(var.lb_port), count.index)}"
+  protocol                       = "${element(var.lb_port["${element(keys(var.lb_port), count.index)}"], 1)}"
+  frontend_port                  = "${element(var.lb_port["${element(keys(var.lb_port), count.index)}"], 0)}"
+  backend_port                   = "${element(var.lb_port["${element(keys(var.lb_port), count.index)}"], 2)}"
   frontend_ip_configuration_name = "${var.frontend_name}"
   enable_floating_ip             = false
   backend_address_pool_id        = "${azurerm_lb_backend_address_pool.mybackendpool.id}"
   idle_timeout_in_minutes        = 5
-  probe_id                       = "${azurerm_lb_probe.lb_probe.id}"
+  probe_id                       = "${element(azurerm_lb_probe.lb_probe.*.id,count.index)}"
   depends_on                     = ["azurerm_lb_probe.lb_probe"]
-}
-
-resource "azurerm_lb_probe" "lb_probe" {
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  loadbalancer_id     = "${azurerm_lb.mylb.id}"
-  name                = "tcpProbe"
-  protocol            = "tcp"
-  port                = 80
-  interval_in_seconds = 5
-  number_of_probes    = 2
 }
 
 resource "azurerm_network_interface" "nic" {
   name                = "nic${count.index}"
   location            = "${var.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
-  count               = 2
+  count               = "${var.number_of_endpoints}"
 
   ip_configuration {
     name                                    = "ipconfig${count.index}"

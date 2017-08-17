@@ -45,3 +45,15 @@ output "vnet_dns_servers" {
 output "vnet_subnet" {
   value = "${azurerm_virtual_network.vnet.subnet}"
 }
+
+output "azurerm_network_interface_ids" {
+  value = "${azurerm_network_interface.nic.*.id}"
+}
+
+output "azurerm_lb_probe_ids" {
+  value = "${azurerm_lb_probe.lb_probe.*.id}"
+}
+
+output "azurerm_lb_nat_rule_tcp-remotevm" {
+  value = "${azurerm_lb_nat_rule.tcp-remotevm.*.*}"
+}

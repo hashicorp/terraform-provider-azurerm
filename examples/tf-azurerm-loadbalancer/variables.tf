@@ -8,24 +8,44 @@ variable "location" {
   default = "West US 2"
 }
 
+variable "number_of_endpoints" {
+  description = "Number of nics and associated inbound remote access rules to create which are load balanced on the vnet"
+  default = 3
+}
+
+variable "remote_port"{ 
+  description = "Protocols to be used for remote vm access. [protocol, backend_port].  Frontend port will be automatically generated starting at 50000 and in the output." 
+  default = { 
+      ssh = ["Tcp", "22"]
+    }
+}
+
+variable "lb_port"{ 
+  description = "Protocols to be used for lb health probes and rules. [frontend_port, protocol, backend_port]"
+  default = { 
+      http = ["80", "Tcp", "80"]
+      https = ["443", "Tcp", "443"]
+    }
+}
+
+variable "lb_probe_unhealthy_threshold"{
+  description = "Number of times the load balancer health probe has an unsuccessful attempt before considering the endpoint unhealthy."
+  default = 2
+}
+
+variable "lb_probe_interval"{
+  description = "Interval in seconds the load balancer health probe rule does a check"
+  default = 5
+}
+
 variable "frontend_name" {
   description = "(Required) Specifies the name of the frontend ip configuration."
   default = "myPublicIP"
 }
 
 variable "public_ip_address_allocation" {
-  description = "(Required) Defines how a private IP address is assigned. Options are Static or Dynamic."
+  description = "(Required) Defines how an IP address is assigned. Options are Static or Dynamic."
   default = "static"
-}
-
-variable "frontend_subnet_id" {
-  description = "(Optional) Reference to subnet associated with the IP Configuration."
-  default = ""
-}
-
-variable "frontend_private_ip" {
-  description = "(Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned."
-  default = ""
 }
 
 variable "address_space" {
