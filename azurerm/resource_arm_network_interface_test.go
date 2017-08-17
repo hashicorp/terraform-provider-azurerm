@@ -627,7 +627,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "testext" {
-  name                         = "acctestpip1-%d"
+  name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
@@ -663,14 +663,14 @@ resource "azurerm_lb_nat_rule" "testext" {
 }
 
 resource "azurerm_public_ip" "testint" {
-  name                         = "acctestpip2-%d"
+  name                         = "testpublicipint"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "testint" {
-  name                = "acctestlb-%d"
+  name                = "testlbint"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -699,8 +699,8 @@ resource "azurerm_lb_nat_rule" "testint" {
   frontend_ip_configuration_name = "publicipint"
 }
 
-resource "azurerm_network_interface" "test" {
-  name                 = "acctestni-%d"
+resource "azurerm_network_interface" "test1" {
+  name                 = "acctestnic1-%d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
@@ -734,7 +734,7 @@ resource "azurerm_network_interface" "test2" {
     ]
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_bug7986(rInt int, location string) string {
