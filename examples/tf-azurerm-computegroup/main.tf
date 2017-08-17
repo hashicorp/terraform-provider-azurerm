@@ -46,38 +46,16 @@ resource "azurerm_lb_backend_address_pool" "bpepool" {
 }
 
 resource "azurerm_lb_nat_pool" "lbnatpool" {
-  count                          = "${length(var.port)}"
+  count                          = "${length(var.protocol)}"
  resource_group_name            = "${azurerm_resource_group.rg.name}"
- name                           = "${element(keys(var.port), count.index)}"
+ name                           = "${element(keys(var.protocol), count.index)}"
  loadbalancer_id                = "${azurerm_lb.loadbalancer.id}"
- protocol                       = "${element(var.port["${element(keys(var.port), count.index)}"], 1)}"
- frontend_port_start            = "${element(var.port["${element(keys(var.port), count.index)}"], 2)}"
- frontend_port_end              = "${element(var.port["${element(keys(var.port), count.index)}"], 3)}"
- backend_port                   = "${element(var.port["${element(keys(var.port), count.index)}"], 0)}"
+ protocol                       = "${element(var.protocol["${element(keys(var.protocol), count.index)}"], 1)}"
+ frontend_port_start            = "${element(var.protocol["${element(keys(var.protocol), count.index)}"], 2)}"
+ frontend_port_end              = "${element(var.protocol["${element(keys(var.protocol), count.index)}"], 3)}"
+ backend_port                   = "${element(var.protocol["${element(keys(var.protocol), count.index)}"], 0)}"
  frontend_ip_configuration_name = "PublicIPAddress"
 }
-
-#resource "azurerm_lb_nat_pool" "lbnatpool1" {
-#  resource_group_name            = "${azurerm_resource_group.rg.name}"
-#  name                           = "ssh"
-#  loadbalancer_id                = "${azurerm_lb.loadbalancer.id}"
-#  protocol                       = "Tcp"
-#  frontend_port_start            = "50000"
-#  frontend_port_end              = "50119"
-#  backend_port                   = "22"
-#  frontend_ip_configuration_name = "PublicIPAddress"
-#}
-
-#resource "azurerm_lb_nat_pool" "lbnatpool2" {
-#  resource_group_name            = "${azurerm_resource_group.rg.name}"
-#  name                           = "http"
-#  loadbalancer_id                = "${azurerm_lb.loadbalancer.id}"
-#  protocol                       = "Tcp"
-#  frontend_port_start            = "51000"
-#  frontend_port_end              = "51119"
-#  backend_port                   = "80"
-#  frontend_ip_configuration_name = "PublicIPAddress"
-#}
 
 resource "azurerm_virtual_machine_scale_set" "vmss" {
   name                = "vmscaleset"

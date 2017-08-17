@@ -10,7 +10,7 @@ variable "location" {
 
 variable "vm_size" {
     default = "Standard_A0"
-    description = "Size of the Virtual Machine"
+    description = "Size of the Virtual Machine based on Azure sizing"
 }
 
 variable "admin_username" {
@@ -28,12 +28,11 @@ variable "ssh_key" {
 }
 
 variable "nb_instance" { 
-    description = "specify the number of vm instances"
+    description = "Specify the number of vm instances"
     default = "1"
 }
 
-
-variable "port"{ 
+variable "protocol"{ 
     default = { 
         ssh = ["22", "Tcp", "50000", "50119"]
         http = ["80", "Tcp", "51000", "51119"]
