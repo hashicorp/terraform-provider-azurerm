@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"path"
 	//	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -764,13 +763,32 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	d.Set("frontend_ip_configuration", flattenApplicationGatewayFrontendIPConfigurations(ApplicationGateway.ApplicationGatewayPropertiesFormat.FrontendIPConfigurations))
 	d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(ApplicationGateway.ApplicationGatewayPropertiesFormat.BackendAddressPools))
 
-	d.Set("backend_http_settings", flattenApplicationGatewayBackendHTTPSettings(ApplicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection))
+	v1, err1 := flattenApplicationGatewayBackendHTTPSettings(ApplicationGateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection)
+	if err1 != nil {
+		return fmt.Errorf("error flattening BackendHTTPSettings: %+v", err1)
+	}
+	d.Set("backend_http_settings", v1)
 
-	d.Set("http_listener", flattenApplicationGatewayHTTPListeners(ApplicationGateway.ApplicationGatewayPropertiesFormat.HTTPListeners))
+	v2, err2 := flattenApplicationGatewayHTTPListeners(ApplicationGateway.ApplicationGatewayPropertiesFormat.HTTPListeners)
+	if err2 != nil {
+		return fmt.Errorf("error flattening HTTPListeners: %+v", err2)
+	}
+	d.Set("http_listener", v2)
 
 	d.Set("probe", flattenApplicationGatewayProbes(ApplicationGateway.ApplicationGatewayPropertiesFormat.Probes))
-	d.Set("request_routing_rule", flattenApplicationGatewayRequestRoutingRules(ApplicationGateway.ApplicationGatewayPropertiesFormat.RequestRoutingRules))
-	d.Set("url_path_map", flattenApplicationGatewayURLPathMaps(ApplicationGateway.ApplicationGatewayPropertiesFormat.URLPathMaps))
+
+	v3, err3 := flattenApplicationGatewayRequestRoutingRules(ApplicationGateway.ApplicationGatewayPropertiesFormat.RequestRoutingRules)
+	if err3 != nil {
+		return fmt.Errorf("error flattening RequestRoutingRules: %+v", err3)
+	}
+	d.Set("request_routing_rule", v3)
+
+	v4, err4 := flattenApplicationGatewayURLPathMaps(ApplicationGateway.ApplicationGatewayPropertiesFormat.URLPathMaps)
+	if err4 != nil {
+		return fmt.Errorf("error flattening URLPathMaps: %+v", err4)
+	}
+	d.Set("url_path_map", v4)
+
 	d.Set("authentication_certificate", schema.NewSet(hashApplicationGatewayAuthenticationCertificates, flattenApplicationGatewayAuthenticationCertificates(ApplicationGateway.ApplicationGatewayPropertiesFormat.AuthenticationCertificates)))
 	d.Set("ssl_certificate", schema.NewSet(hashApplicationGatewaySslCertificates, flattenApplicationGatewaySslCertificates(ApplicationGateway.ApplicationGatewayPropertiesFormat.SslCertificates)))
 
@@ -1435,7 +1453,7 @@ func flattenApplicationGatewayBackendAddressPools(poolConfigs *[]network.Applica
 	return result
 }
 
-func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.ApplicationGatewayBackendHTTPSettings) []interface{} {
+func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.ApplicationGatewayBackendHTTPSettings) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(*backendSettings))
 
 	for _, config := range *backendSettings {
@@ -1452,9 +1470,13 @@ func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.App
 			authCerts := make([]interface{}, 0, len(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates))
 
 			for _, config := range *config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates {
+				id, err := parseAzureResourceID(*config.ID)
+				if err != nil {
+					return result, err
+				}
 
 				authCert := map[string]interface{}{
-					"name": path.Base(*config.ID),
+					"name": id.Path["name"],
 					"id":   *config.ID,
 				}
 
@@ -1465,26 +1487,36 @@ func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.App
 		}
 
 		if config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe != nil {
-			settings["probe_name"] = path.Base(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe.ID)
+			id, err := parseAzureResourceID(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe.ID)
+			if err != nil {
+				return result, err
+			}
+
+			settings["probe_name"] = id.Path["name"]
 			settings["probe_id"] = *config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe.ID
 		}
 
 		result = append(result, settings)
 	}
 
-	return result
+	return result, nil
 }
 
-func flattenApplicationGatewayHTTPListeners(httpListeners *[]network.ApplicationGatewayHTTPListener) []interface{} {
+func flattenApplicationGatewayHTTPListeners(httpListeners *[]network.ApplicationGatewayHTTPListener) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(*httpListeners))
 
 	for _, config := range *httpListeners {
+		id, err := parseAzureResourceID(*config.ID)
+		if err != nil {
+			return result, err
+		}
+
 		listener := map[string]interface{}{
 			"id":   *config.ID,
 			"name": *config.Name,
 			"frontend_ip_configuration_id":   *config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendIPConfiguration.ID,
-			"frontend_ip_configuration_name": path.Base(*config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendIPConfiguration.ID),
-			"frontend_port_name":             path.Base(*config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendPort.ID),
+			"frontend_ip_configuration_name": id.Path["frontendIPName"],
+			"frontend_port_name":             id.Path["frontEndPortName"],
 			"frontend_port_id":               *config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendPort.ID,
 			"protocol":                       string(config.ApplicationGatewayHTTPListenerPropertiesFormat.Protocol),
 		}
@@ -1494,7 +1526,12 @@ func flattenApplicationGatewayHTTPListeners(httpListeners *[]network.Application
 		}
 
 		if config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate != nil {
-			listener["ssl_certificate_name"] = path.Base(*config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate.ID)
+			id, err := parseAzureResourceID(*config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate.ID)
+			if err != nil {
+				return result, err
+			}
+
+			listener["ssl_certificate_name"] = id.Path["sslCertFriendlyName"]
 			listener["ssl_certificate_id"] = *config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate.ID
 		}
 
@@ -1505,7 +1542,7 @@ func flattenApplicationGatewayHTTPListeners(httpListeners *[]network.Application
 		result = append(result, listener)
 	}
 
-	return result
+	return result, nil
 }
 
 func flattenApplicationGatewayProbes(probes *[]network.ApplicationGatewayProbe) []interface{} {
@@ -1529,72 +1566,82 @@ func flattenApplicationGatewayProbes(probes *[]network.ApplicationGatewayProbe) 
 	return result
 }
 
-func flattenApplicationGatewayRequestRoutingRules(rules *[]network.ApplicationGatewayRequestRoutingRule) []interface{} {
+func flattenApplicationGatewayRequestRoutingRules(rules *[]network.ApplicationGatewayRequestRoutingRule) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(*rules))
 
 	for _, config := range *rules {
+		id, err := parseAzureResourceID(*config.ID)
+		if err != nil {
+			return result, err
+		}
+
 		listener := map[string]interface{}{
 			"id":                 *config.ID,
 			"name":               *config.Name,
 			"rule_type":          string(config.ApplicationGatewayRequestRoutingRulePropertiesFormat.RuleType),
 			"http_listener_id":   *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.HTTPListener.ID,
-			"http_listener_name": path.Base(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.HTTPListener.ID),
+			"http_listener_name": id.Path["listenerName"],
 		}
 
 		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool != nil {
-			listener["backend_address_pool_name"] = path.Base(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool.ID)
+			listener["backend_address_pool_name"] = id.Path["backendPoolName"]
 			listener["backend_address_pool_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool.ID
 		}
 
 		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings != nil {
-			listener["backend_http_settings_name"] = path.Base(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings.ID)
+			listener["backend_http_settings_name"] = id.Path["backendHttpSettingsName"]
 			listener["backend_http_settings_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings.ID
-		}
-
-		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap != nil {
-			listener["url_path_map_name"] = path.Base(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap.ID)
-			listener["url_path_map_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap.ID
 		}
 
 		result = append(result, listener)
 	}
 
-	return result
+	return result, nil
 }
 
-func flattenApplicationGatewayURLPathMaps(pathMaps *[]network.ApplicationGatewayURLPathMap) []interface{} {
+func flattenApplicationGatewayURLPathMaps(pathMaps *[]network.ApplicationGatewayURLPathMap) ([]interface{}, error) {
 	result := make([]interface{}, 0, len(*pathMaps))
 
 	for _, config := range *pathMaps {
+		id, err := parseAzureResourceID(*config.ID)
+		if err != nil {
+			return result, err
+		}
+
 		pathMap := map[string]interface{}{
 			"id":   *config.ID,
 			"name": *config.Name,
 		}
 
 		if config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool != nil {
-			pathMap["default_backend_address_pool_name"] = path.Base(*config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool.ID)
+			pathMap["default_backend_address_pool_name"] = id.Path["poolName"]
 			pathMap["default_backend_address_pool_id"] = *config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool.ID
 		}
 
 		if config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings != nil {
-			pathMap["default_backend_http_settings_name"] = path.Base(*config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings.ID)
+			pathMap["default_backend_http_settings_name"] = id.Path["settingsName"]
 			pathMap["default_backend_http_settings_id"] = *config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings.ID
 		}
 
 		pathRules := make([]interface{}, 0, len(*config.ApplicationGatewayURLPathMapPropertiesFormat.PathRules))
 		for _, pathRuleConfig := range *config.ApplicationGatewayURLPathMapPropertiesFormat.PathRules {
+			id, err := parseAzureResourceID(*pathRuleConfig.ID)
+			if err != nil {
+				return result, err
+			}
+
 			rule := map[string]interface{}{
 				"id":   *pathRuleConfig.ID,
 				"name": *pathRuleConfig.Name,
 			}
 
 			if pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool != nil {
-				rule["backend_address_pool_name"] = path.Base(*pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool.ID)
+				rule["backend_address_pool_name"] = id.Path["poolName2"]
 				rule["backend_address_pool_id"] = *pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool.ID
 			}
 
 			if pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings != nil {
-				rule["backend_http_settings_name"] = path.Base(*pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings.ID)
+				rule["backend_http_settings_name"] = id.Path["settingsName2"]
 				rule["backend_http_settings_id"] = *pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings.ID
 			}
 
@@ -1611,7 +1658,7 @@ func flattenApplicationGatewayURLPathMaps(pathMaps *[]network.ApplicationGateway
 		result = append(result, pathMap)
 	}
 
-	return result
+	return result, nil
 }
 
 func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate) []interface{} {
