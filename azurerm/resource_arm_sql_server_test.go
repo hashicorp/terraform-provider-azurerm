@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/sql"
 )
 
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
@@ -61,23 +60,25 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 
 func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
+		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetServer{}
-
-		readResponse, err := readRequest.Execute()
-		if err != nil {
-			return fmt.Errorf("Bad: GetServer: %+v", err)
+		sqlServerName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetServer: %+v", readResponse.Error)
+
+		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
+		resp, err := conn.Get(resourceGroup, sqlServerName)
+		if err != nil {
+			if responseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
+			}
+			return fmt.Errorf("Bad: Get SQL Server: %v", err)
 		}
 
 		return nil
@@ -85,24 +86,28 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+	conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_server" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetServer{}
+		sqlServerName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		readResponse, err := readRequest.Execute()
+		resp, err := conn.Get(resourceGroup, sqlServerName)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetServer: % +v", err)
+			if responseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Get Server: %+v", err)
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: SQL Server still exists: %+v", readResponse.Error)
-		}
+		return fmt.Errorf("SQL Server %s still exists", sqlServerName)
+
 	}
 
 	return nil
