@@ -90,6 +90,11 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	response, err := client.CreateOrUpdate(resGroup, name, parameters)
 	if err != nil {
+		// if the name is in-use, Azure returns a 409 "Unknown Service Error" which is a bad UX
+		if responseWasConflict(response.Response) {
+			return fmt.Errorf("SQL Server names need to be globally unique and '%s' is already in use.", name)
+		}
+
 		return err
 	}
 
