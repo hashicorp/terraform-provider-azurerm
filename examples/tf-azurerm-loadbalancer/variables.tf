@@ -1,6 +1,10 @@
 variable "location" {
   description = "(Required) The location/region where the core network will be created. The full list of Azure regions can be found at https://azure.microsoft.com/regions"
-  default = ""
+}
+
+variable "resource_group_name" {
+  description = "(Required) The name of the resource group where the load balancer resources will be placed."
+  default = "azure_lb-rg"
 }
 
 variable "prefix" {
@@ -9,22 +13,19 @@ variable "prefix" {
 }
 
 variable "number_of_endpoints" {
-  description = "Number of nics and associated inbound remote access rules to create which are load balanced on the vnet"
+  description = "Number of inbound remote access rules to create which are load balanced on the vnet"
   default = 2
 }
 
 variable "remote_port"{ 
   description = "Protocols to be used for remote vm access. [protocol, backend_port].  Frontend port will be automatically generated starting at 50000 and in the output." 
   default = { 
-      ssh = ["Tcp", "22"]
     }
 }
 
 variable "lb_port"{ 
   description = "Protocols to be used for lb health probes and rules. [frontend_port, protocol, backend_port]"
   default = { 
-      http = ["80", "Tcp", "80"]
-      https = ["443", "Tcp", "443"]
     }
 }
 
@@ -51,7 +52,6 @@ variable "public_ip_address_allocation" {
 variable "tags" {
   type = "map"
   default = {
-    tag1 = ""
-    tag2 = ""
+    source = "terraform"
   }
 }

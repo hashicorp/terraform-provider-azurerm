@@ -1,6 +1,6 @@
 # Azure load balancer module
 resource "azurerm_resource_group" "azlb" {
-  name     = "${var.prefix}-rg"
+  name     = "${var.resource_group_name}"
   location = "${var.location}"
   tags     = "${var.tags}"
 }
@@ -29,6 +29,7 @@ resource "azurerm_lb_backend_address_pool" "azlb" {
 }
 
 resource "azurerm_lb_nat_rule" "azlb" {
+  count                          = "${length(var.remote_port)}"
   resource_group_name            = "${azurerm_resource_group.azlb.name}"
   loadbalancer_id                = "${azurerm_lb.azlb.id}"
   name                           = "VM-${count.index}"
