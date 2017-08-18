@@ -12,15 +12,19 @@ Module Input Variables
 
 - `resource_group_name` - The name of the resource group in which the resources will be created.
 - `location` - The Azure location where the resources will be created.
-- `vn_size` - The initial size of the virtual machine that will be used in the VM Scale Set.
+- `vm_size` - The initial size of the virtual machine that will be used in the VM Scale Set.
 - `admin_username` - The name of the administrator to access the machines part of the virtual machine scale set. 
 - `admin_password` - The password of the administrator account. The password must comply with the complexity requirements for Azure virtual machines.
 - `ssh_key` - The path on the local machine of the ssh public key in the case of a Linux deployment.  
-- `nb_instace` - The number of instances that will be initially deployed in the virtual machine scale set.
+- `nb_instance` - The number of instances that will be initially deployed in the virtual machine scale set.
 - `protocol` - A map representing the protocols and ports to open on the load balancer in front of the virtual machine scale set.
-- `os` - A map indentifying the operating system to use for that virtual machine scale set.
+- `vm_os_publisher` - The name of the publisher of the image that you want to deploy, for example "Canonical".
+- `vm_os_offer` - The name of the offer of the image that you want to deploy, for example "UbuntuServer"
+- `vm_os_sku` - The sku of the image that you want to deploy, for example "14.04.2-LTS"
+- `vm_os_id` - The ID of the image that you want to deploy if you are using a custom image.
+- `remote_port` - A map of the port that you want to use for remote access [protocol, backend_port]. Frontend port will be automatically generated starting at 50000 and in the output.
+- `lb_port` - Protocols to be used for lb health probes and rules. [frontend_port, protocol, backend_port]
 - `tags` - A map of the tags to use on the resources that are deployed with this module.
-
 
 Usage
 -----
@@ -33,18 +37,18 @@ module "computegroup" {
     vm_size             = "Standard_A0"
     admin_username      = "azureuser"
     admin_password      = "ComplexPassword"
-    ssh_key             = "~/.ssh/demo_key.pub"
+    ssh_key             = "~/.ssh/id_rsa.pub"
     nb_instance         = 2
-    protocol            = {
-                            ssh = ["22", "Tcp", "50000", "50119"]
-                            ftp = ["21", "Tcp", "51000", "51119"]
+    vm_os_publisher     = "Canonical"
+    vm_os_offer         = "UbuntuServer"
+    vm_os_sku           = "14.04.2-LTS"
+    vm_os_id            = ""
+    remote_port         = {
+                            ssh = ["Tcp", "22"]
                           }
-    os                  = {
-                            id = ""
-                            publisher = "Canonical"
-                            offer = "UbuntuServer"
-                            sku = "14.04.2-LTS"
-                            version = "latest"
+    lb_port             = { 
+                            http = ["80", "Tcp", "80"]
+                            https = ["443", "Tcp", "443"]
                           }
     tags                = {
                             environment = "dev"
@@ -64,7 +68,4 @@ Outputs
 Authors
 =======
 Originally created by Microsoft
-
-License
-=======
 
