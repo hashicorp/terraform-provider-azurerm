@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_network_interface` - support for multiple IP Configurations / setting the Primary IP Configuration [GH-245]
+* `azurerm_sql_server`: migrate to using the azure-sdk-for-go, handle deleted servers correctly, added checks to handle `name` not being globally unique and making `administrator_login` `ForceNew` [GH-189]
 * `azurerm_virtual_machine` - Force recreation if storage_data_disk.creation_option changes [GH-240]
 
 ## 0.1.5 (August 09, 2017)
