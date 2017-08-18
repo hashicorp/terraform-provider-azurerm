@@ -100,14 +100,14 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, sqlServerName)
 
 		if err != nil {
-			return fmt.Errorf("Bad: GetServer: % +v", err)
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Get Server: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return nil
-		}
-
-		return fmt.Errorf("sql server %s still exists", sqlServerName)
+		return fmt.Errorf("SQL Server %s still exists", sqlServerName)
 
 	}
 
