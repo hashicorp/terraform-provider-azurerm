@@ -71,7 +71,7 @@ variable "tags" {
   type = "map"
   description = "A map of the tags to use on the resources that are deployed with this module."
   default = {
-    tag1 = "dev"
-    tag2 = "demo"
+    tag1 = ""
+    tag2 = ""
   }
 }
