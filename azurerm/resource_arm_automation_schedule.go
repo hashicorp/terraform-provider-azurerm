@@ -116,7 +116,7 @@ func resourceAzureRMAutomationScheduleFreqConstraint(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%d-%d-%d-%d-%d-%d", m["second"], m["minute"], m["hour"], m["day_of_week"], m["day_of_month"]))
+	buf.WriteString(fmt.Sprintf("%d-%d-%d-%d-%d", m["second"], m["minute"], m["hour"], m["day_of_week"], m["day_of_month"]))
 	return hashcode.String(buf.String())
 }
 
@@ -193,7 +193,7 @@ func computeValidStartTime(firstRunSet *schema.Set, freq automation.ScheduleFreq
 
 	}
 
-	fmt.Errorf("Error compute first valid run time")
+	log.Printf("[WARN] error compute first valid run time")
 	return closestValidStartTime
 }
 

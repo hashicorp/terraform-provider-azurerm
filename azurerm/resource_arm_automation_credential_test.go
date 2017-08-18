@@ -86,7 +86,7 @@ func testCheckAzureRMAutomationCredentialExistsAndUserName(name string, username
 		}
 
 		if *resp.UserName != username {
-			return fmt.Errorf("Current username %s is not consistant with the checked value %s", resp.UserName, username)
+			return fmt.Errorf("Current username %s is not consistant with the checked value %s", *resp.UserName, username)
 		}
 
 		return nil
