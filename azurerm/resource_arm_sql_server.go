@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -11,16 +10,16 @@ import (
 
 func resourceArmSqlServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlServerCreateOrUpdate,
+		Create: resourceArmSqlServerCreateUpdate,
 		Read:   resourceArmSqlServerRead,
-		Update: resourceArmSqlServerCreateOrUpdate,
+		Update: resourceArmSqlServerCreateUpdate,
 		Delete: resourceArmSqlServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -28,33 +27,35 @@ func resourceArmSqlServer() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"version": &schema.Schema{
+			"version": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.OneTwoFullStopZero),
 					string(sql.TwoFullStopZero),
+					string(sql.OneTwoFullStopZero),
 				}, true),
+				// TODO: is this ForceNew?
 			},
 
-			"administrator_login": &schema.Schema{
+			"administrator_login": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
-			"administrator_login_password": &schema.Schema{
+			"administrator_login_password": {
 				Type:      schema.TypeString,
 				Required:  true,
 				Sensitive: true,
 			},
 
-			"fully_qualified_domain_name": &schema.Schema{
+			"fully_qualified_domain_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -64,49 +65,45 @@ func resourceArmSqlServer() *schema.Resource {
 	}
 }
 
-func resourceArmSqlServerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	sqlServersClient := meta.(*ArmClient).sqlServersClient
+func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).sqlServersClient
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	location := d.Get("location").(string)
-	admin := d.Get("administrator_login").(string)
-	adminPw := d.Get("administrator_login_password").(string)
-	fqdn := d.Get("fully_qualified_domain_name").(string)
+	adminUsername := d.Get("administrator_login").(string)
+	adminPassword := d.Get("administrator_login_password").(string)
+	version := d.Get("version").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
 	metadata := expandTags(tags)
 
-	props := sql.ServerProperties{
-		FullyQualifiedDomainName:   &fqdn,
-		Version:                    sql.ServerVersion(d.Get("version").(string)),
-		AdministratorLogin:         &admin,
-		AdministratorLoginPassword: &adminPw,
-	}
-
 	parameters := sql.Server{
-		Name:             &name,
-		ServerProperties: &props,
-		Tags:             metadata,
-		Location:         &location,
+		Location: &location,
+		Tags:     metadata,
+		ServerProperties: &sql.ServerProperties{
+			Version:                    sql.ServerVersion(version),
+			AdministratorLogin:         &adminUsername,
+			AdministratorLoginPassword: &adminPassword,
+		},
 	}
 
-	result, err := sqlServersClient.CreateOrUpdate(resGroup, name, parameters)
+	response, err := client.CreateOrUpdate(resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	if result.ID == nil {
-		return fmt.Errorf("Cannot create Sql Server %s (resource group %s) ID", name, resGroup)
+	if response.ID == nil {
+		return fmt.Errorf("Cannot create SQL Server %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*result.ID)
+	d.SetId(*response.ID)
 
 	return resourceArmSqlServerRead(d, meta)
 }
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	sqlServersClient := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sqlServersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -116,14 +113,18 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	result, err := sqlServersClient.Get(resGroup, name)
+	result, err := client.Get(resGroup, name)
 	if err != nil {
+		if responseWasNotFound(result.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
 	}
-	if result.Response.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
+
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*result.Location))
 
 	if serverProperties := result.ServerProperties; serverProperties != nil {
 		d.Set("version", string(serverProperties.Version))
@@ -131,17 +132,13 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*result.Location))
-
 	flattenAndSetTags(d, result.Tags)
 
 	return nil
 }
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	sqlServersClient := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sqlServersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -151,9 +148,13 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	result, error := sqlServersClient.Delete(resGroup, name)
-	if result.Response.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, error)
+	response, err := client.Delete(resGroup, name)
+	if err != nil {
+		if responseWasNotFound(response) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
 	}
 
 	return nil

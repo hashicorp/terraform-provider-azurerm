@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -76,10 +75,10 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
 		resp, err := conn.Get(resourceGroup, sqlServerName)
 		if err != nil {
+			if responseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
+			}
 			return fmt.Errorf("Bad: Get SQL Server: %v", err)
-		}
-		if resp.Response.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
 		}
 
 		return nil
@@ -100,7 +99,7 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, sqlServerName)
 
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if responseWasNotFound(resp.Response) {
 				return nil
 			}
 
