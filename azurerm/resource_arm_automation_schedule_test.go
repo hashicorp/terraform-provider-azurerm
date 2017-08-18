@@ -87,9 +87,8 @@ func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq 
 			return fmt.Errorf("Bad: Automation Schedule '%s' (resource group: '%s') does not exist", name, resourceGroup)
 		}
 
-
 		if resp.Frequency != freq {
-			return fmt.Errorf("Current frequency %s is not consistent with checked value %s", resp.Frequency, freq) 
+			return fmt.Errorf("Current frequency %s is not consistent with checked value %s", resp.Frequency, freq)
 		}
 		return nil
 	}

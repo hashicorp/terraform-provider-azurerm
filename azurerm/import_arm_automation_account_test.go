@@ -32,25 +32,25 @@ func TestAccAzureRMAutomationAccount_importAccoutWithFreeSku(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationAccount_importAccoutWithBasicSku(t *testing.T) {
-        resourceName := "azurerm_automation_account.test"
+	resourceName := "azurerm_automation_account.test"
 
-        ri := acctest.RandInt()
-        config := testAccAzureRMAutomationAccount_skuBasic(ri, testLocation())
+	ri := acctest.RandInt()
+	config := testAccAzureRMAutomationAccount_skuBasic(ri, testLocation())
 
-        resource.Test(t, resource.TestCase{
-                PreCheck:     func() { testAccPreCheck(t) },
-                Providers:    testAccProviders,
-                CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
-                Steps: []resource.TestStep{
-                        {
-                                Config: config,
-                        },
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
 
-                        {
-                                ResourceName:      resourceName,
-                                ImportState:       true,
-                                ImportStateVerify: true,
-                        },
-                },
-        })
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }

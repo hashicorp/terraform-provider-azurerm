@@ -225,12 +225,12 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	//TODO Interval handling currently not supported via Go SDK
 	//Related ticket in the azure go sdk: https://github.com/Azure/azure-sdk-for-go/issues/725
-        //Related ticket in the azure rest api spec: https://github.com/Azure/azure-rest-api-specs/issues/1545
+	//Related ticket in the azure rest api spec: https://github.com/Azure/azure-rest-api-specs/issues/1545
 	//interval :=
 
 	description := d.Get("description").(string)
- 	timezone := "UTC"
-	
+	timezone := "UTC"
+
 	parameters := automation.ScheduleCreateOrUpdateParameters{
 		Name: &name,
 		ScheduleCreateOrUpdateProperties: &automation.ScheduleCreateOrUpdateProperties{
@@ -238,7 +238,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 			//Interval:    &interval,
 			Frequency: freq,
 			StartTime: &ardt,
-			TimeZone: &timezone,
+			TimeZone:  &timezone,
 		},
 	}
 
