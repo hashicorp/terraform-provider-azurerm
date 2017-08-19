@@ -11,30 +11,30 @@ import (
 )
 
 func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
+	resourceName := "azurerm_sql_firewall_rule.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMSqlFirewallRule_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMSqlFirewallRule_withUpdates, ri, ri, ri)
+	preConfig := testAccAzureRMSqlFirewallRule_basic(ri, testLocation())
+	postConfig := testAccAzureRMSqlFirewallRule_withUpdates(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFirewallRuleExists("azurerm_sql_firewall_rule.test"),
-					resource.TestCheckResourceAttr("azurerm_sql_firewall_rule.test", "start_ip_address", "0.0.0.0"),
-					resource.TestCheckResourceAttr("azurerm_sql_firewall_rule.test", "end_ip_address", "255.255.255.255"),
+					testCheckAzureRMSqlFirewallRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "255.255.255.255"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlFirewallRuleExists("azurerm_sql_firewall_rule.test"),
-					resource.TestCheckResourceAttr("azurerm_sql_firewall_rule.test", "start_ip_address", "10.0.17.62"),
-					resource.TestCheckResourceAttr("azurerm_sql_firewall_rule.test", "end_ip_address", "10.0.17.62"),
+					testCheckAzureRMSqlFirewallRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "10.0.17.62"),
+					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "10.0.17.62"),
 				),
 			},
 		},
@@ -56,10 +56,10 @@ func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 
 		readResponse, err := readRequest.Execute()
 		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %s", err)
+			return fmt.Errorf("Bad: GetFirewallRule: %+v", err)
 		}
 		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetFirewallRule: %s", readResponse.Error)
+			return fmt.Errorf("Bad: GetFirewallRule: %+v", readResponse.Error)
 		}
 
 		return nil
@@ -79,26 +79,28 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 
 		readResponse, err := readRequest.Execute()
 		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %s", err)
+			return fmt.Errorf("Bad: GetFirewallRule: %+v", err)
 		}
 
 		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: SQL Server Firewall Rule still exists: %s", readResponse.Error)
+			return fmt.Errorf("Bad: SQL Server Firewall Rule still exists: %+v", readResponse.Error)
 		}
 	}
 
 	return nil
 }
 
-var testAccAzureRMSqlFirewallRule_basic = `
+func testAccAzureRMSqlFirewallRule_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_sql_server" "test" {
     name = "acctestsqlserver%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     version = "12.0"
     administrator_login = "mradministrator"
     administrator_login_password = "thisIsDog11"
@@ -111,17 +113,20 @@ resource "azurerm_sql_firewall_rule" "test" {
     start_ip_address = "0.0.0.0"
     end_ip_address = "255.255.255.255"
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMSqlFirewallRule_withUpdates = `
+func testAccAzureRMSqlFirewallRule_withUpdates(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_sql_server" "test" {
     name = "acctestsqlserver%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     version = "12.0"
     administrator_login = "mradministrator"
     administrator_login_password = "thisIsDog11"
@@ -134,4 +139,5 @@ resource "azurerm_sql_firewall_rule" "test" {
     start_ip_address = "10.0.17.62"
     end_ip_address = "10.0.17.62"
 }
-`
+`, rInt, location, rInt, rInt)
+}

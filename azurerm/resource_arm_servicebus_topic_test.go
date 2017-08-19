@@ -11,18 +11,73 @@ import (
 )
 
 func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMServiceBusTopic_basic, ri, ri, ri)
+	config := testAccAzureRMServiceBusTopic_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicExists("azurerm_servicebus_topic.test"),
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusTopic_basicDisabled(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMServiceBusTopic_basicDisabled(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusTopic_basicDisableEnable(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	enabledConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
+	disabledConfig := testAccAzureRMServiceBusTopic_basicDisabled(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: enabledConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+			{
+				Config: disabledConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
+				),
+			},
+			{
+				Config: enabledConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicExists(resourceName),
 				),
 			},
 		},
@@ -30,28 +85,28 @@ func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_update, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusTopic_update(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicExists("azurerm_servicebus_topic.test"),
+					testCheckAzureRMServiceBusTopicExists(resourceName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_topic.test", "enable_batched_operations", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_topic.test", "enable_express", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_batched_operations", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_express", "true"),
 				),
 			},
 		},
@@ -59,29 +114,29 @@ func TestAccAzureRMServiceBusTopic_update(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_enablePartitioningStandard, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningStandard(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicExists("azurerm_servicebus_topic.test"),
+					testCheckAzureRMServiceBusTopicExists(resourceName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_topic.test", "enable_partitioning", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "true"),
 					// Ensure size is read back in it's original value and not the x16 value returned by Azure
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_topic.test", "max_size_in_megabytes", "5120"),
+					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "5120"),
 				),
 			},
 		},
@@ -89,28 +144,28 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_enablePartitioningPremium, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningPremium(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicExists("azurerm_servicebus_topic.test"),
+					testCheckAzureRMServiceBusTopicExists(resourceName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_topic.test", "enable_partitioning", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_topic.test", "max_size_in_megabytes", "81920"),
+					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "true"),
+					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "81920"),
 				),
 			},
 		},
@@ -118,26 +173,27 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMServiceBusTopic_enableDuplicateDetection, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusTopic_enableDuplicateDetection(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicExists("azurerm_servicebus_topic.test"),
+					testCheckAzureRMServiceBusTopicExists(resourceName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_topic.test", "requires_duplicate_detection", "true"),
+					resource.TestCheckResourceAttr(resourceName, "requires_duplicate_detection", "true"),
 				),
 			},
 		},
@@ -202,135 +258,148 @@ func testCheckAzureRMServiceBusTopicExists(name string) resource.TestCheckFunc {
 	}
 }
 
-var testAccAzureRMServiceBusTopic_basic = `
+func testAccAzureRMServiceBusTopic_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMServiceBusTopic_basicPremium = `
+func testAccAzureRMServiceBusTopic_basicDisabled(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "premium"
-}
-
-resource "azurerm_servicebus_topic" "test" {
-    name = "acctestservicebustopic-%d"
-    location = "West US"
-    namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-`
-
-var testAccAzureRMServiceBusTopic_update = `
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    status = "disabled"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusTopic_update(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "standard"
+}
+
+resource "azurerm_servicebus_topic" "test" {
+    name = "acctestservicebustopic-%d"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     enable_batched_operations = true
     enable_express = true
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMServiceBusTopic_enablePartitioningStandard = `
+func testAccAzureRMServiceBusTopic_enablePartitioningStandard(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     enable_partitioning = true
-	max_size_in_megabytes = 5120
+    max_size_in_megabytes = 5120
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMServiceBusTopic_enablePartitioningPremium = `
+func testAccAzureRMServiceBusTopic_enablePartitioningPremium(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "premium"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     enable_partitioning = true
-	max_size_in_megabytes = 81920
+    max_size_in_megabytes = 81920
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMServiceBusTopic_enableDuplicateDetection = `
+func testAccAzureRMServiceBusTopic_enableDuplicateDetection(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     requires_duplicate_detection = true
 }
-`
+`, rInt, location, rInt, rInt)
+}

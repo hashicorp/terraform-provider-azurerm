@@ -12,14 +12,14 @@ import (
 
 func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMServiceBusSubscription_basic, ri, ri, ri, ri)
+	config := testAccAzureRMServiceBusSubscription_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusSubscriptionExists("azurerm_servicebus_subscription.test"),
@@ -30,26 +30,27 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusSubscription_update(t *testing.T) {
+	resourceName := "azurerm_servicebus_subscription.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMServiceBusSubscription_basic, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMServiceBusSubscription_update, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusSubscription_update(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists("azurerm_servicebus_subscription.test"),
+					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_subscription.test", "enable_batched_operations", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_batched_operations", "true"),
 				),
 			},
 		},
@@ -57,26 +58,27 @@ func TestAccAzureRMServiceBusSubscription_update(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
+	resourceName := "azurerm_servicebus_subscription.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMServiceBusSubscription_basic, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMServiceBusSubscription_updateRequiresSession, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusSubscription_updateRequiresSession(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusSubscriptionExists("azurerm_servicebus_subscription.test"),
+					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(
-						"azurerm_servicebus_subscription.test", "requires_session", "true"),
+					resource.TestCheckResourceAttr(resourceName, "requires_session", "true"),
 				),
 			},
 		},
@@ -143,94 +145,100 @@ func testCheckAzureRMServiceBusSubscriptionExists(name string) resource.TestChec
 	}
 }
 
-var testAccAzureRMServiceBusSubscription_basic = `
+func testAccAzureRMServiceBusSubscription_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
     name = "acctestservicebussubscription-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     topic_name = "${azurerm_servicebus_topic.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     max_delivery_count = 10
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMServiceBusSubscription_update = `
+func testAccAzureRMServiceBusSubscription_update(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
     name = "acctestservicebussubscription-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     topic_name = "${azurerm_servicebus_topic.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     max_delivery_count = 10
     enable_batched_operations = true
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMServiceBusSubscription_updateRequiresSession = `
+func testAccAzureRMServiceBusSubscription_updateRequiresSession(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
     name = "acctestservicebussubscription-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     topic_name = "${azurerm_servicebus_topic.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     max_delivery_count = 10
     requires_session = true
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}

@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 
@@ -161,7 +160,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := publicIPClient.Get(resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -169,7 +168,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("name", resp.Name)
 	d.Set("public_ip_address_allocation", strings.ToLower(string(resp.PublicIPAddressPropertiesFormat.PublicIPAllocationMethod)))
 

@@ -63,6 +63,9 @@ The following arguments are supported:
     Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
     for more information.
 
+* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here] (https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
+    for more information.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 Note that although the Azure API supports setting custom domain names for
@@ -84,6 +87,8 @@ The following attributes are exported in addition to the arguments listed above:
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 * `primary_access_key` - The primary access key for the storage account
 * `secondary_access_key` - The secondary access key for the storage account
+* `primary_blob_connection_string` - The connection string associated with the primary blob location
+* `secondary_blob_connection_string` - The connection string associated with the secondary blob location
 
 ## Import
 
@@ -92,4 +97,3 @@ Storage Accounts can be imported using the `resource id`, e.g.
 ```
 terraform import azurerm_storage_account.storageAcc1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
 ```
-

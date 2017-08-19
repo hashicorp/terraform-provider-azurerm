@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -125,7 +124,7 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 
 	resp, err := client.Get(resGroup, vnetName, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -11,23 +11,24 @@ import (
 )
 
 func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
+	firstResourceName := "azurerm_virtual_network_peering.test1"
+	secondResourceName := "azurerm_virtual_network_peering.test2"
+
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetworkPeering_basic, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test1"),
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test1", "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test2", "allow_virtual_network_access", "true"),
+					testCheckAzureRMVirtualNetworkPeeringExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "allow_virtual_network_access", "true"),
+					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
 				),
 			},
 		},
@@ -35,24 +36,25 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
+	firstResourceName := "azurerm_virtual_network_peering.test1"
+	secondResourceName := "azurerm_virtual_network_peering.test2"
+
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetworkPeering_basic, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test1"),
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test1", "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test2", "allow_virtual_network_access", "true"),
-					testCheckAzureRMVirtualNetworkPeeringDisappears("azurerm_virtual_network_peering.test1"),
+					testCheckAzureRMVirtualNetworkPeeringExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "allow_virtual_network_access", "true"),
+					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+					testCheckAzureRMVirtualNetworkPeeringDisappears(firstResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -61,44 +63,39 @@ func TestAccAzureRMVirtualNetworkPeering_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkPeering_update(t *testing.T) {
+	firstResourceName := "azurerm_virtual_network_peering.test1"
+	secondResourceName := "azurerm_virtual_network_peering.test2"
+
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualNetworkPeering_basic, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualNetworkPeering_basicUpdate, ri, ri, ri, ri, ri)
+	preConfig := testAccAzureRMVirtualNetworkPeering_basic(ri, testLocation())
+	postConfig := testAccAzureRMVirtualNetworkPeering_basicUpdate(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkPeeringDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test1"),
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test1", "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test2", "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test1", "allow_forwarded_traffic", "false"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test2", "allow_forwarded_traffic", "false"),
+					testCheckAzureRMVirtualNetworkPeeringExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "allow_virtual_network_access", "true"),
+					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+					resource.TestCheckResourceAttr(firstResourceName, "allow_forwarded_traffic", "false"),
+					resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "false"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test1"),
-					testCheckAzureRMVirtualNetworkPeeringExists("azurerm_virtual_network_peering.test2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test1", "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test2", "allow_virtual_network_access", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test1", "allow_forwarded_traffic", "true"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network_peering.test2", "allow_forwarded_traffic", "true"),
+					testCheckAzureRMVirtualNetworkPeeringExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkPeeringExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "allow_virtual_network_access", "true"),
+					resource.TestCheckResourceAttr(secondResourceName, "allow_virtual_network_access", "true"),
+					resource.TestCheckResourceAttr(firstResourceName, "allow_forwarded_traffic", "true"),
+					resource.TestCheckResourceAttr(secondResourceName, "allow_forwarded_traffic", "true"),
 				),
 			},
 		},
@@ -189,10 +186,11 @@ func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMVirtualNetworkPeering_basic = `
+func testAccAzureRMVirtualNetworkPeering_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "West US"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test1" {
@@ -224,12 +222,14 @@ resource "azurerm_virtual_network_peering" "test2" {
     remote_virtual_network_id = "${azurerm_virtual_network.test1.id}"
     allow_virtual_network_access = true
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualNetworkPeering_basicUpdate = `
+func testAccAzureRMVirtualNetworkPeering_basicUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "West US"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test1" {
@@ -263,4 +263,5 @@ resource "azurerm_virtual_network_peering" "test2" {
     allow_forwarded_traffic = true
     allow_virtual_network_access = true
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt)
+}

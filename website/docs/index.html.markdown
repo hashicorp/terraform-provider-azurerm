@@ -222,5 +222,5 @@ It's also possible to create credentials via [the legacy cross-platform CLI](htt
 ## Testing
 
 Credentials must be provided via the `ARM_SUBSCRIPTION_ID`, `ARM_CLIENT_ID`,
-`ARM_CLIENT_SECRET` and `ARM_TENANT_ID` environment variables in order to run
+`ARM_CLIENT_SECRET`, `ARM_TENANT_ID` and `ARM_TEST_LOCATION` environment variables in order to run
 acceptance tests.

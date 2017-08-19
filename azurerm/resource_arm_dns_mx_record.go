@@ -3,52 +3,54 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
-	"log"
+	"net/http"
+	"strconv"
 
+	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/dns"
 )
 
 func resourceArmDnsMxRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsMxRecordCreate,
+		Create: resourceArmDnsMxRecordCreateOrUpdate,
 		Read:   resourceArmDnsMxRecordRead,
-		Update: resourceArmDnsMxRecordCreate,
+		Update: resourceArmDnsMxRecordCreateOrUpdate,
 		Delete: resourceArmDnsMxRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"zone_name": &schema.Schema{
+			"zone_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"record": &schema.Schema{
+			"record": {
 				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"preference": &schema.Schema{
+						"preference": {
+							// TODO: this should become an Int
 							Type:     schema.TypeString,
 							Required: true,
 						},
 
-						"exchange": &schema.Schema{
+						"exchange": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
@@ -57,7 +59,7 @@ func resourceArmDnsMxRecord() *schema.Resource {
 				Set: resourceArmDnsMxRecordHash,
 			},
 
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
@@ -67,155 +69,145 @@ func resourceArmDnsMxRecord() *schema.Resource {
 	}
 }
 
-func resourceArmDnsMxRecordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmDnsMxRecordCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).dnsClient
 
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	zoneName := d.Get("zone_name").(string)
+	ttl := int64(d.Get("ttl").(int))
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
-
-	createCommand := &dns.CreateMXRecordSet{
-		Name:              d.Get("name").(string),
-		Location:          "global",
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
-		TTL:               d.Get("ttl").(int),
-		Tags:              *expandedTags,
-	}
-
-	mxRecords, recordErr := expandAzureRmDnsMxRecord(d)
-	if recordErr != nil {
-		return fmt.Errorf("Error Building Azure RM MX Record: %s", recordErr)
-	}
-	createCommand.MXRecords = mxRecords
-
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = createCommand
-
-	createResponse, err := createRequest.Execute()
+	records, err := expandAzureRmDnsMxRecords(d)
 	if err != nil {
-		return fmt.Errorf("Error creating DNS MX Record: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating DNS MX Record: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &dns.GetMXRecordSet{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ZoneName:          d.Get("zone_name").(string),
+	parameters := dns.RecordSet{
+		Name: &name,
+		RecordSetProperties: &dns.RecordSetProperties{
+			Metadata:  expandTags(tags),
+			TTL:       &ttl,
+			MxRecords: &records,
+		},
 	}
 
-	readResponse, err := readRequest.Execute()
+	eTag := ""
+	ifNoneMatch := "" // set to empty to allow updates to records after creation
+	resp, err := client.CreateOrUpdate(resGroup, zoneName, name, dns.MX, parameters, eTag, ifNoneMatch)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS MX Record: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading DNS MX Record: %s", readResponse.Error)
+		return err
 	}
 
-	resp := readResponse.Parsed.(*dns.GetMXRecordSetResponse)
-	d.SetId(resp.ID)
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read DNS MX Record %s (resource group %s) ID", name, resGroup)
+	}
+
+	d.SetId(*resp.ID)
 
 	return resourceArmDnsMxRecordRead(d, meta)
 }
 
 func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).dnsClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &dns.GetMXRecordSet{}
+	resGroup := id.ResourceGroup
+	name := id.Path["MX"]
+	zoneName := id.Path["dnszones"]
 
-	readResponse, err := readRequest.Execute()
+	resp, err := client.Get(resGroup, zoneName, name, dns.MX)
 	if err != nil {
-		return fmt.Errorf("Error reading DNS MX Record: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading DNS MX Record %q - removing from state", d.Id())
-		d.SetId("")
-		return fmt.Errorf("Error reading DNS MX Record: %s", readResponse.Error)
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error reading DNS MX record %s: %v", name, err)
 	}
 
-	resp := readResponse.Parsed.(*dns.GetMXRecordSetResponse)
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("zone_name", id.Path["dnszones"])
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
 
-	if err := d.Set("record", flattenAzureRmDnsMxRecord(resp.MXRecords)); err != nil {
-		log.Printf("[INFO] Error setting the Azure RM MX Record State: %s", err)
+	if err := d.Set("record", flattenAzureRmDnsMxRecords(resp.MxRecords)); err != nil {
 		return err
 	}
-
-	flattenAndSetTags(d, &resp.Tags)
+	flattenAndSetTags(d, resp.Metadata)
 
 	return nil
 }
 
 func resourceArmDnsMxRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).dnsClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &dns.DeleteRecordSet{
-		RecordSetType: "MX",
-	}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting DNS MX Record: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting DNS MX Record: %s", deleteResponse.Error)
+
+	resGroup := id.ResourceGroup
+	name := id.Path["MX"]
+	zoneName := id.Path["dnszones"]
+
+	resp, error := client.Delete(resGroup, zoneName, name, dns.MX, "")
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error deleting DNS MX Record %s: %+v", name, error)
 	}
 
 	return nil
 }
 
-func expandAzureRmDnsMxRecord(d *schema.ResourceData) ([]dns.MXRecord, error) {
-	config := d.Get("record").(*schema.Set).List()
-	records := make([]dns.MXRecord, 0, len(config))
+// flatten creates an array of map where preference is a string to suit
+// the expectations of the ResourceData schema, so that this data can be
+// managed by Terradata state.
+func flattenAzureRmDnsMxRecords(records *[]dns.MxRecord) []map[string]interface{} {
+	results := make([]map[string]interface{}, 0, len(*records))
 
-	for _, pRaw := range config {
-		data := pRaw.(map[string]interface{})
-
-		mxrecord := dns.MXRecord{
-			Preference: data["preference"].(string),
-			Exchange:   data["exchange"].(string),
+	if records != nil {
+		for _, record := range *records {
+			preferenceI32 := *record.Preference
+			preference := strconv.Itoa(int(preferenceI32))
+			results = append(results, map[string]interface{}{
+				"preference": preference,
+				"exchange":   *record.Exchange,
+			})
 		}
+	}
 
-		records = append(records, mxrecord)
+	return results
+}
 
+// expand creates an array of dns.MxRecord, that is, the array needed
+// by azure-sdk-for-go to manipulate azure resources, hence Preference
+// is an int32
+func expandAzureRmDnsMxRecords(d *schema.ResourceData) ([]dns.MxRecord, error) {
+	recordStrings := d.Get("record").(*schema.Set).List()
+	records := make([]dns.MxRecord, len(recordStrings))
+
+	for i, v := range recordStrings {
+		mxrecord := v.(map[string]interface{})
+		preference := mxrecord["preference"].(string)
+		i64, _ := strconv.ParseInt(preference, 10, 32)
+		i32 := int32(i64)
+		exchange := mxrecord["exchange"].(string)
+
+		records[i] = dns.MxRecord{
+			Preference: &i32,
+			Exchange:   &exchange,
+		}
 	}
 
 	return records, nil
-
-}
-
-func flattenAzureRmDnsMxRecord(records []dns.MXRecord) []map[string]interface{} {
-
-	result := make([]map[string]interface{}, 0, len(records))
-	for _, record := range records {
-		result = append(result, map[string]interface{}{
-			"preference": record.Preference,
-			"exchange":   record.Exchange,
-		})
-	}
-	return result
-
 }
 
 func resourceArmDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
+
 	buf.WriteString(fmt.Sprintf("%s-", m["preference"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
 

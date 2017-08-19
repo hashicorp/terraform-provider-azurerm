@@ -16,9 +16,12 @@ func resourceArmSearchService() *schema.Resource {
 		Read:   resourceArmSearchServiceRead,
 		Update: resourceArmSearchServiceCreate,
 		Delete: resourceArmSearchServiceDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -26,24 +29,24 @@ func resourceArmSearchService() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			"sku": &schema.Schema{
+			"sku": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"replica_count": &schema.Schema{
+			"replica_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
 
-			"partition_count": &schema.Schema{
+			"partition_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
@@ -86,10 +89,10 @@ func resourceArmSearchServiceCreate(d *schema.ResourceData, meta interface{}) er
 
 	createResponse, err := createRequest.Execute()
 	if err != nil {
-		return fmt.Errorf("Error creating Search Service: %s", err)
+		return fmt.Errorf("Error creating Search Service: %+v", err)
 	}
 	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating Search Service: %s", createResponse.Error)
+		return fmt.Errorf("Error creating Search Service: %+v", createResponse.Error)
 	}
 
 	getSearchServiceCommand := &search.GetSearchService{
@@ -102,10 +105,10 @@ func resourceArmSearchServiceCreate(d *schema.ResourceData, meta interface{}) er
 
 	readResponse, err := readRequest.Execute()
 	if err != nil {
-		return fmt.Errorf("Error reading Search Service: %s", err)
+		return fmt.Errorf("Error reading Search Service: %+v", err)
 	}
 	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading Search Service: %s", readResponse.Error)
+		return fmt.Errorf("Error reading Search Service: %+v", readResponse.Error)
 	}
 	resp := readResponse.Parsed.(*search.GetSearchServiceResponse)
 
@@ -114,11 +117,11 @@ func resourceArmSearchServiceCreate(d *schema.ResourceData, meta interface{}) er
 		Pending:    []string{"provisioning"},
 		Target:     []string{"succeeded"},
 		Refresh:    azureStateRefreshFunc(*resp.ID, client, getSearchServiceCommand),
-		Timeout:    30 * time.Minute,
+		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Search Service (%s) to become available: %s", d.Get("name"), err)
+		return fmt.Errorf("Error waiting for Search Service (%s) to become available: %+v", d.Get("name"), err)
 	}
 
 	d.SetId(*resp.ID)
@@ -130,27 +133,43 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient)
 	rivieraClient := client.rivieraClient
 
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["searchServices"]
+
 	readRequest := rivieraClient.NewRequestForURI(d.Id())
 	readRequest.Command = &search.GetSearchService{}
 
 	readResponse, err := readRequest.Execute()
 	if err != nil {
-		return fmt.Errorf("Error reading Search Service: %s", err)
+		return fmt.Errorf("Error reading Search Service: %+v", err)
 	}
 	if !readResponse.IsSuccessful() {
 		log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
 		d.SetId("")
-		return fmt.Errorf("Error reading Search Service: %s", readResponse.Error)
+		return fmt.Errorf("Error reading Search Service: %+v", readResponse.Error)
 	}
 
 	resp := readResponse.Parsed.(*search.GetSearchServiceResponse)
-	d.Set("sku", resp.Sku)
+
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(resp.Location))
+	d.Set("sku", string(resp.Sku.Name))
+
 	if resp.PartitionCount != nil {
 		d.Set("partition_count", resp.PartitionCount)
 	}
+
 	if resp.ReplicaCount != nil {
 		d.Set("replica_count", resp.ReplicaCount)
 	}
+
+	flattenAndSetTags(d, &resp.Tags)
+
 	return nil
 }
 
@@ -163,10 +182,10 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 
 	deleteResponse, err := deleteRequest.Execute()
 	if err != nil {
-		return fmt.Errorf("Error deleting Search Service: %s", err)
+		return fmt.Errorf("Error deleting Search Service: %+v", err)
 	}
 	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting Search Service: %s", deleteResponse.Error)
+		return fmt.Errorf("Error deleting Search Service: %+v", deleteResponse.Error)
 	}
 
 	return nil

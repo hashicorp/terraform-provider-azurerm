@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var virtualNetworkResourceName = "azurerm_virtual_network"
+
 func resourceArmVirtualNetwork() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmVirtualNetworkCreate,
@@ -114,8 +116,8 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultiple(&networkSecurityGroupNames)
-	defer azureRMUnlockMultiple(&networkSecurityGroupNames)
+	azureRMLockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	defer azureRMUnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 
 	_, error := vnetClient.CreateOrUpdate(resGroup, name, vnet, make(chan struct{}))
 	err := <-error
@@ -148,7 +150,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := vnetClient.Get(resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -160,7 +162,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 	// update appropriate values
 	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("address_space", vnet.AddressSpace.AddressPrefixes)
 
 	subnets := &schema.Set{
@@ -208,8 +210,8 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("[ERROR] Error parsing Network Security Group ID's: %+v", err)
 	}
 
-	azureRMLockMultiple(&nsgNames)
-	defer azureRMUnlockMultiple(&nsgNames)
+	azureRMLockMultipleByName(&nsgNames, virtualNetworkResourceName)
+	defer azureRMUnlockMultipleByName(&nsgNames, virtualNetworkResourceName)
 
 	_, error := vnetClient.Delete(resGroup, name, make(chan struct{}))
 	err = <-error

@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"log"
-	"net/http"
-	"time"
 )
 
 func resourceArmSqlElasticPool() *schema.Resource {
@@ -131,7 +131,7 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := elasticPoolsClient.Get(resGroup, serverName, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

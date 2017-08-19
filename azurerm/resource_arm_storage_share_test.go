@@ -17,7 +17,7 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageShare_basic, ri, rs)
+	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,7 +39,7 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageShare_basic, ri, rs)
+	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -219,16 +219,17 @@ func TestValidateArmStorageShareName(t *testing.T) {
 	}
 }
 
-var testAccAzureRMStorageShare_basic = `
+func testAccAzureRMStorageShare_basic(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestrg-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
     name = "acctestacc%s"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -240,5 +241,5 @@ resource "azurerm_storage_share" "test" {
     name = "testshare"
     resource_group_name = "${azurerm_resource_group.test.name}"
     storage_account_name = "${azurerm_storage_account.test.name}"
+}`, rInt, location, rString)
 }
-`

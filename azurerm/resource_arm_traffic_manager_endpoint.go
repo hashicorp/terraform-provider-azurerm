@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
@@ -29,10 +28,14 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"azureEndpoints", "nestedEndpoints", "externalEndpoints"}, false),
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"azureEndpoints",
+					"nestedEndpoints",
+					"externalEndpoints",
+				}, false),
 			},
 
 			"profile_name": {
@@ -73,12 +76,13 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				ValidateFunc: validation.IntBetween(1, 1000),
 			},
 
+			// when targeting an Azure resource the location of that resource will be set on the endpoint
 			"endpoint_location": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// when targeting an Azure resource the location of that resource will be set on the endpoint
-				Computed:  true,
-				StateFunc: azureRMNormalizeLocation,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				StateFunc:        azureRMNormalizeLocation,
+				DiffSuppressFunc: azureRMSuppressLocationDiff,
 			},
 
 			"min_child_endpoints": {
@@ -155,11 +159,11 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 
 	resp, err := client.Get(resGroup, profileName, endpointType, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %s: %+v", name, err)
 	}
 
 	endpoint := *resp.EndpointProperties

@@ -268,11 +268,12 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := containerServiceClient.Get(resGroup, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+
 		return fmt.Errorf("Error making Read request on Azure Container Service %s: %s", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", resp.Name)
@@ -336,10 +337,11 @@ func flattenAzureRmContainerServiceMasterProfile(profile containerservice.Master
 		F: resourceAzureRMContainerServiceMasterProfileHash,
 	}
 
-	masterProfile := make(map[string]interface{}, 2)
+	masterProfile := make(map[string]interface{}, 3)
 
 	masterProfile["count"] = int(*profile.Count)
 	masterProfile["dns_prefix"] = *profile.DNSPrefix
+	masterProfile["fqdn"] = *profile.Fqdn
 
 	masterProfiles.Add(masterProfile)
 

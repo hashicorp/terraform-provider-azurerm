@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -25,7 +26,7 @@ func TestAccAzureRMContainerService_orchestrationPlatformValidation(t *testing.T
 		_, errors := validateArmContainerServiceOrchestrationPlatform(tc.Value, "azurerm_container_service")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Container Service Orchestration Platform to trigger a validation error")
+			t.Fatalf("Expected the Azure RM Container Service Orchestration Platform to trigger a validation error for '%s'", tc.Value)
 		}
 	}
 }
@@ -48,7 +49,7 @@ func TestAccAzureRMContainerService_masterProfileCountValidation(t *testing.T) {
 		_, errors := validateArmContainerServiceMasterProfileCount(tc.Value, "azurerm_container_service")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Container Service Master Profile Count to trigger a validation error")
+			t.Fatalf("Expected the Azure RM Container Service Master Profile Count to trigger a validation error for '%d'", tc.Value)
 		}
 	}
 }
@@ -70,14 +71,14 @@ func TestAccAzureRMContainerService_agentProfilePoolCountValidation(t *testing.T
 		_, errors := validateArmContainerServiceAgentPoolProfileCount(tc.Value, "azurerm_container_service")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Container Service Agent Pool Profile Count to trigger a validation error")
+			t.Fatalf("Expected the Azure RM Container Service Agent Pool Profile Count to trigger a validation error for '%d'", tc.Value)
 		}
 	}
 }
 
 func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMContainerService_dcosBasic, ri, ri, ri, ri, ri)
+	config := testAccAzureRMContainerService_dcosBasic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -96,7 +97,9 @@ func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 
 func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMContainerService_kubernetesBasic, ri, ri, ri, ri, ri)
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMContainerService_kubernetesBasic(ri, clientId, clientSecret, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -115,7 +118,9 @@ func TestAccAzureRMContainerService_kubernetesBasic(t *testing.T) {
 
 func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMContainerService_kubernetesComplete, ri, ri, ri, ri, ri)
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMContainerService_kubernetesComplete(ri, clientId, clientSecret, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -134,7 +139,7 @@ func TestAccAzureRMContainerService_kubernetesComplete(t *testing.T) {
 
 func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMContainerService_swarmBasic, ri, ri, ri, ri, ri)
+	config := testAccAzureRMContainerService_swarmBasic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -151,10 +156,11 @@ func TestAccAzureRMContainerService_swarmBasic(t *testing.T) {
 	})
 }
 
-var testAccAzureRMContainerService_dcosBasic = `
+func testAccAzureRMContainerService_dcosBasic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "East US"
+  location = "%s"
 }
 
 resource "azurerm_container_service" "test" {
@@ -187,12 +193,14 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMContainerService_kubernetesBasic = `
+func testAccAzureRMContainerService_kubernetesBasic(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "East US"
+  location = "%s"
 }
 
 resource "azurerm_container_service" "test" {
@@ -222,20 +230,22 @@ resource "azurerm_container_service" "test" {
   }
 
   service_principal {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "00000000000000000000000000000000"
+    client_id     = "%s"
+    client_secret = "%s"
   }
 
   diagnostics_profile {
     enabled = false
   }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
+}
 
-var testAccAzureRMContainerService_kubernetesComplete = `
+func testAccAzureRMContainerService_kubernetesComplete(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "East US"
+  location = "%s"
 }
 
 resource "azurerm_container_service" "test" {
@@ -265,8 +275,8 @@ resource "azurerm_container_service" "test" {
   }
 
   service_principal {
-    client_id     = "00000000-0000-0000-0000-000000000000"
-    client_secret = "00000000000000000000000000000000"
+    client_id     = "%s"
+    client_secret = "%s"
   }
 
   diagnostics_profile {
@@ -277,12 +287,14 @@ resource "azurerm_container_service" "test" {
     you = "me"
   }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
+}
 
-var testAccAzureRMContainerService_swarmBasic = `
+func testAccAzureRMContainerService_swarmBasic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "East US"
+  location = "%s"
 }
 
 resource "azurerm_container_service" "test" {
@@ -315,7 +327,8 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
 
 func testCheckAzureRMContainerServiceExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -335,7 +348,7 @@ func testCheckAzureRMContainerServiceExists(name string) resource.TestCheckFunc 
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on containerServicesClient: %s", err)
+			return fmt.Errorf("Bad: Get on containerServicesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {

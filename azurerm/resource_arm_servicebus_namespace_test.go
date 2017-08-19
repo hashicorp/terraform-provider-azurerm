@@ -43,52 +43,20 @@ func TestAccAzureRMServiceBusNamespaceCapacity_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMServiceBusNamespaceSku_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Basic",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateServiceBusNamespaceSku(tc.Value, "azurerm_servicebus_namespace")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM ServiceBus Namespace Sku to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
-
+	resourceName := "azurerm_servicebus_namespace.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMServiceBusNamespace_basic, ri, ri)
+	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists("azurerm_servicebus_namespace.test"),
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 				),
 			},
 		},
@@ -96,26 +64,27 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
+	resourceName := "azurerm_servicebus_namespace.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMServiceBusNamespace_basic, ri, ri)
+	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists("azurerm_servicebus_namespace.test"),
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 					resource.TestMatchResourceAttr(
-						"azurerm_servicebus_namespace.test", "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+						resourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(
-						"azurerm_servicebus_namespace.test", "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
+						resourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(
-						"azurerm_servicebus_namespace.test", "default_primary_key", regexp.MustCompile(".+")),
+						resourceName, "default_primary_key", regexp.MustCompile(".+")),
 					resource.TestMatchResourceAttr(
-						"azurerm_servicebus_namespace.test", "default_secondary_key", regexp.MustCompile(".+")),
+						resourceName, "default_secondary_key", regexp.MustCompile(".+")),
 				),
 			},
 		},
@@ -123,22 +92,23 @@ func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
+	resourceName := "azurerm_servicebus_namespace.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri)
+	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceExists("azurerm_servicebus_namespace.test"),
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
 				),
 			},
-			resource.TestStep{
+			{
 				Config:             config,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
@@ -201,30 +171,32 @@ func testCheckAzureRMServiceBusNamespaceExists(name string) resource.TestCheckFu
 	}
 }
 
-var testAccAzureRMServiceBusNamespace_basic = `
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
-}
-resource "azurerm_servicebus_namespace" "test" {
-    name = "acctestservicebusnamespace-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "basic"
-}
-`
-
-func testAccAzureRMServiceBusNamespaceNonStandardCasing(ri int) string {
+func testAccAzureRMServiceBusNamespace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "basic"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceBusNamespaceNonStandardCasing(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "Basic"
 }
-`, ri, ri)
+`, rInt, location, rInt)
 }

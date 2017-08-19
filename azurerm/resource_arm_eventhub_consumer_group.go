@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
@@ -109,11 +108,11 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 
 	resp, err := eventhubClient.Get(resGroup, namespaceName, eventHubName, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure EventHub Consumer Group %s: %+v", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", name)
