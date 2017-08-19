@@ -133,12 +133,11 @@ type ArmClient struct {
 	sqlServersClient       sql.ServersClient
 
 	appServicePlansClient web.AppServicePlansClient
+	appsClient web.AppsClient
 
 	appInsightsClient appinsights.ComponentsClient
 
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
-
-	appsClient web.AppsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -630,6 +629,15 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sqlepc.Sender = sender
 	client.sqlElasticPoolsClient = sqlepc
 
+<<<<<<< HEAD
+=======
+	ac := web.NewAppsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ac.Client)
+	ac.Authorizer = auth
+	ac.Sender = autorest.CreateSender(withRequestLogging())
+	client.appsClient = ac
+
+>>>>>>> setting tags
 	sqlsrv := sql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sqlsrv.Client)
 	sqlsrv.Authorizer = auth
