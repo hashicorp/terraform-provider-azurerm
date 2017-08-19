@@ -548,17 +548,17 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sqlepc.Sender = autorest.CreateSender(withRequestLogging())
 	client.sqlElasticPoolsClient = sqlepc
 
-	aspc := web.NewAppServicePlansClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&aspc.Client)
-	aspc.Authorizer = auth
-	aspc.Sender = autorest.CreateSender(withRequestLogging())
-	client.appServicePlansClient = aspc
-
 	sqlsrv := sql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sqlsrv.Client)
 	sqlsrv.Authorizer = auth
 	sqlsrv.Sender = autorest.CreateSender(withRequestLogging())
 	client.sqlServersClient = sqlsrv
+
+	aspc := web.NewAppServicePlansClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&aspc.Client)
+	aspc.Authorizer = auth
+	aspc.Sender = autorest.CreateSender(withRequestLogging())
+	client.appServicePlansClient = aspc
 
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ai.Client)
