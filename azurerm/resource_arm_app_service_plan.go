@@ -55,10 +55,11 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Set: resourceAzureRMAppServicePlanSkuHash,
 			},
 			"maximum_number_of_workers": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -72,19 +73,21 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
+	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
 
 	properties := web.AppServicePlanProperties{}
 	if v, ok := d.GetOk("maximum_number_of_workers"); ok {
-		maximumNumberOfWorkers := v.(int32)
+		maximumNumberOfWorkers := int32(v.(int))
 		properties.MaximumNumberOfWorkers = &maximumNumberOfWorkers
 	}
 
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
 		AppServicePlanProperties: &properties,
-		Sku: &sku,
+		Tags: expandTags(tags),
+		Sku:  &sku,
 	}
 
 	_, error := AppServicePlanClient.CreateOrUpdate(resGroup, name, appServicePlan, make(chan struct{}))
@@ -111,7 +114,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for App Service Plan (%s) to become available: %s", name, err)
+		return fmt.Errorf("Error waiting for App Service Plan (%s) to become available: %+v", name, err)
 	}
 
 	return resourceArmAppServicePlanRead(d, meta)
@@ -204,7 +207,7 @@ func flattenAzureRmAppServicePlanSku(profile web.SkuDescription) *schema.Set {
 		F: resourceAzureRMAppServicePlanSkuHash,
 	}
 
-	sku := make(map[string]interface{}, 3)
+	sku := make(map[string]interface{}, 2)
 
 	sku["tier"] = *profile.Tier
 	sku["size"] = *profile.Size
@@ -212,4 +215,15 @@ func flattenAzureRmAppServicePlanSku(profile web.SkuDescription) *schema.Set {
 	skus.Add(sku)
 
 	return skus
+}
+
+func appServicePlanStateRefreshFunc(client *ArmClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.appServicePlansClient.Get(resourceGroupName, name)
+		if err != nil {
+			return nil, "", fmt.Errorf("Error issuing read request in appServicePlanStateRefreshFunc to Azure ARM for App Service Plan '%s' (RG: '%s'): %+v", name, resourceGroupName, err)
+		}
+
+		return res, string(res.AppServicePlanProperties.ProvisioningState), nil
+	}
 }
