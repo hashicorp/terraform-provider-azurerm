@@ -136,6 +136,10 @@ resource "azurerm_app_service_plan" "test" {
 			tier = "Basic"
 			size = "B1"
 		}
+
+		tags {
+			environment = "Test"
+		}
 }
 `, rInt, rInt)
 }
@@ -155,6 +159,10 @@ resource "azurerm_app_service_plan" "test" {
 			tier = "Standard"
 			size = "S1"
 		}
+
+		tags {
+			environment = "Test"
+		}
 }
 `, rInt, location, rInt)
 }
@@ -173,6 +181,10 @@ resource "azurerm_app_service_plan" "test" {
     sku {
 			tier = "Premium"
 			size = "P1"
+		}
+
+		tags {
+			environment = "Test"
 		}
 }
 `, rInt, location, rInt)
