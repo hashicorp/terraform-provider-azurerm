@@ -12,7 +12,7 @@ import (
 
 func TestAccAzureRMAppService_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_basic(ri)
+	config := testAccAzureRMAppService_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -83,21 +83,21 @@ func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMAppService_basic(rInt int) string {
+func testAccAzureRMAppService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West Europe"
+    location = "%s"
 }
 
 resource "azurerm_app_service" "test" {
     name                = "acctestAS-%d"
-    location            = "West Europe"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
 		tags {
 			environment = "Production"
 		}
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }

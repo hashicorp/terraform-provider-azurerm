@@ -11,7 +11,7 @@ func TestAccAzureRMAppService_importBasic(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_basic(ri)
+	config := testAccAzureRMAppService_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
