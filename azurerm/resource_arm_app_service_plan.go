@@ -153,6 +153,8 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	sku := flattenAzureRmAppServicePlanSku(*resp.Sku)
 	d.Set("sku", &sku)
 
+	flattenAndSetTags(d, resp.Tags)
+
 	return nil
 }
 
