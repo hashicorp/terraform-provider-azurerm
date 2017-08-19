@@ -23,10 +23,9 @@ resource "azurerm_app_service_plan" "test" {
   location            = "West Europe"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-		name = "Standard_S0"
-		tier = "Standard"
-		size = "S0"
-	}
+    tier = "Standard"
+    size = "S1"
+  }
 }
 ```
 
@@ -44,8 +43,8 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `tier` - (Required) .
-* `size` - (Required) .
+* `tier` - (Required) Specified the plan's pricing tier.
+* `size` - (Required) Specified the plan's instance size. 
 
 * `maximum_number_of_workers` - (Optional) .
 
