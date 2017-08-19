@@ -18,7 +18,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationReset,
+		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -30,7 +30,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 				Config: serverOnlyConfig,
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "backslash_quote", "safe_encoding"),
+					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "backslash_quote"),
 				),
 			},
 		},
@@ -45,7 +45,7 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationReset,
+		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -57,7 +57,7 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 				Config: serverOnlyConfig,
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "client_min_messages", "NOTICE"),
+					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "client_min_messages"),
 				),
 			},
 		},
@@ -72,7 +72,7 @@ func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationReset,
+		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -84,7 +84,7 @@ func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 				Config: serverOnlyConfig,
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
-					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "deadlock_timeout", "1000"),
+					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "deadlock_timeout"),
 				),
 			},
 		},
@@ -125,7 +125,7 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 	}
 }
 
-func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationName string, value string) resource.TestCheckFunc {
+func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
@@ -146,14 +146,14 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 		defaultValue := *resp.DefaultValue
 
 		if defaultValue != actualValue {
-			return fmt.Errorf("PostgreSQL Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", value, *resp.Value, resp)
+			return fmt.Errorf("PostgreSQL Configuration wasn't set to the default value. Expected '%s' - got '%s': \n%+v", defaultValue, actualValue, resp)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMPostgreSQLConfigurationReset(s *terraform.State) error {
+func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
 
 	for _, rs := range s.RootModule().Resources {
@@ -169,10 +169,10 @@ func testCheckAzureRMPostgreSQLConfigurationReset(s *terraform.State) error {
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return err
+				return nil
 			}
 
-			return nil
+			return err
 		}
 	}
 

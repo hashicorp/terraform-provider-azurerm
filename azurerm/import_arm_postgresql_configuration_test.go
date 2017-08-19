@@ -16,7 +16,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importBackslashQuote(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationReset,
+		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -39,7 +39,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importClientMinMessages(t *testing.T)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationReset,
+		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -62,7 +62,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importDeadlockTimeout(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationReset,
+		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
