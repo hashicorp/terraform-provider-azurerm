@@ -137,11 +137,14 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service %s: %+v", name, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
