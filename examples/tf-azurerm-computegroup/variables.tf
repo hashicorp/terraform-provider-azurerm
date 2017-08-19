@@ -14,12 +14,13 @@ variable "vm_size" {
 }
 
 variable "admin_username" {
-  description = "The admin username of the VMSS being deployed"
+  description = "The admin username of the VMSS that will be deployed"
   default     = "azureuser"
 }
 
 variable "admin_password" {
-  default = "CpmplexP@ssw0rd"
+  description = "The admin password to be used on the VMSS that will be deployed. The password must meet the complexity requirements of Azure"
+  default = ""
 }
 
 variable "ssh_key" {
@@ -52,18 +53,9 @@ variable "vm_os_id" {
   default = ""
 }
 
-variable "remote_port" { 
-    description = "A map of the port that you want to use for remote access [protocol, backend_port]. Frontend port will be automatically generated starting at 50000 and in the output."
-    default = {
-        ssh = ["Tcp", "22"]
-    }
-}
-
 variable "lb_port" {
     description = "Protocols to be used for lb health probes and rules. [frontend_port, protocol, backend_port]"
     default = {
-        http = ["80", "Tcp", "80"]
-        https = ["443", "Tcp", "443"]
     }
 }
 

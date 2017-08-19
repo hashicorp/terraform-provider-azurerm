@@ -22,8 +22,7 @@ Module Input Variables
 - `vm_os_offer` - The name of the offer of the image that you want to deploy, for example "UbuntuServer"
 - `vm_os_sku` - The sku of the image that you want to deploy, for example "14.04.2-LTS"
 - `vm_os_id` - The ID of the image that you want to deploy if you are using a custom image.
-- `remote_port` - A map of the port that you want to use for remote access [protocol, backend_port]. Frontend port will be automatically generated starting at 50000 and in the output.
-- `lb_port` - Protocols to be used for lb health probes and rules. [frontend_port, protocol, backend_port]
+- `lb_port` - Protocols to be used for the load balancer rules [frontend_port, protocol, backend_port]. Set to blank to disable.
 - `tags` - A map of the tags to use on the resources that are deployed with this module.
 
 Usage
@@ -43,9 +42,6 @@ module "computegroup" {
     vm_os_offer         = "UbuntuServer"
     vm_os_sku           = "14.04.2-LTS"
     vm_os_id            = ""
-    remote_port         = {
-                            ssh = ["Tcp", "22"]
-                          }
     lb_port             = { 
                             http = ["80", "Tcp", "80"]
                             https = ["443", "Tcp", "443"]
@@ -67,5 +63,6 @@ Outputs
 
 Authors
 =======
-Originally created by Microsoft
+Originally created by [Damien Caro](http://github.com/dcaro)
+
 

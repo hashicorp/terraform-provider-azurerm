@@ -3,7 +3,6 @@
 module "loadbalancer" {
   source = "../tf-azurerm-loadbalancer"
   location = "${var.location}"
-  remote_port = "${var.remote_port}"
   lb_port = "${var.lb_port}"
   prefix = "${ var.resource_group_name }"
 }
