@@ -83,7 +83,7 @@ func resourceArmImage() *schema.Resource {
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  compute.None,
+							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -127,7 +127,7 @@ func resourceArmImage() *schema.Resource {
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
