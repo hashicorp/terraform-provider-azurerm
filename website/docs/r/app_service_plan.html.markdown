@@ -44,9 +44,9 @@ The following arguments are supported:
 `sku` supports the following:
 
 * `tier` - (Required) Specified the plan's pricing tier.
-* `size` - (Required) Specified the plan's instance size. 
+* `size` - (Required) Specified the plan's instance size.
 
-* `maximum_number_of_workers` - (Optional) .
+* `maximum_number_of_workers` - (Optional) Maximum number of instances that can be assigned to this App Service plan.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
