@@ -15,6 +15,9 @@ func resourceArmAppService() *schema.Resource {
 		Read:   resourceArmAppServiceRead,
 		Update: resourceArmAppServiceCreateUpdate,
 		Delete: resourceArmAppServiceDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": {
