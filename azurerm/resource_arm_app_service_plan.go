@@ -66,7 +66,6 @@ func resourceArmAppServicePlan() *schema.Resource {
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	AppServicePlanClient := client.appServicePlansClient
-	//AppServicePlanClient := meta.(*ArmClient).appServicePlansClient
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
