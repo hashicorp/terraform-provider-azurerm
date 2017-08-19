@@ -12,7 +12,7 @@ import (
 
 func TestAccAzureRMAppServicePlan_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_basic(ri)
+	config := testAccAzureRMAppServicePlan_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,7 +31,7 @@ func TestAccAzureRMAppServicePlan_basic(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_standard(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_standard(ri)
+	config := testAccAzureRMAppServicePlan_standard(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,7 +50,7 @@ func TestAccAzureRMAppServicePlan_standard(t *testing.T) {
 
 func TestAccAzureRMAppServicePlan_premium(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_premium(ri)
+	config := testAccAzureRMAppServicePlan_premium(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -121,7 +121,7 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMAppServicePlan_basic(rInt int) string {
+func testAccAzureRMAppServicePlan_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
@@ -140,40 +140,40 @@ resource "azurerm_app_service_plan" "test" {
 `, rInt, rInt)
 }
 
-func testAccAzureRMAppServicePlan_standard(rInt int) string {
+func testAccAzureRMAppServicePlan_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West Europe"
+    location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
     name                = "acctestASP-%d"
-    location            = "West Europe"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku {
 			tier = "Standard"
 			size = "S1"
 		}
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMAppServicePlan_premium(rInt int) string {
+func testAccAzureRMAppServicePlan_premium(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West Europe"
+    location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
     name                = "acctestASP-%d"
-    location            = "West Europe"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku {
 			tier = "Premium"
 			size = "P1"
 		}
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }

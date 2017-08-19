@@ -11,7 +11,7 @@ func TestAccAzureRMAppServicePlan_importBasic(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_basic(ri)
+	config := testAccAzureRMAppServicePlan_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,7 +35,7 @@ func TestAccAzureRMAppServicePlan_importStandard(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_standard(ri)
+	config := testAccAzureRMAppServicePlan_standard(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -59,7 +59,7 @@ func TestAccAzureRMAppServicePlan_importPremium(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_premium(ri)
+	config := testAccAzureRMAppServicePlan_premium(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
