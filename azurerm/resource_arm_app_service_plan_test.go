@@ -29,6 +29,44 @@ func TestAccAzureRMAppServicePlan_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_standard(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServicePlan_standard(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists("azurerm_app_service_plan.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServicePlan_premium(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServicePlan_premium(ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists("azurerm_app_service_plan.test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
 
@@ -95,8 +133,46 @@ resource "azurerm_app_service_plan" "test" {
     location            = "West Europe"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku {
+			tier = "Basic"
+			size = "B1"
+		}
+}
+`, rInt, rInt)
+}
+
+func testAccAzureRMAppServicePlan_standard(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "test" {
+    name                = "acctestASP-%d"
+    location            = "West Europe"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku {
 			tier = "Standard"
 			size = "S1"
+		}
+}
+`, rInt, rInt)
+}
+
+func testAccAzureRMAppServicePlan_premium(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "test" {
+    name                = "acctestASP-%d"
+    location            = "West Europe"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku {
+			tier = "Premium"
+			size = "P1"
 		}
 }
 `, rInt, rInt)
