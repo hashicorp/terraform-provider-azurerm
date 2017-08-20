@@ -11,7 +11,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importBackslashQuote(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri)
+	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,7 +34,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importClientMinMessages(t *testing.T)
 	resourceName := "azurerm_postgresql_configuration.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri)
+	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,7 +57,7 @@ func TestAccAzureRMPostgreSQLConfiguration_importDeadlockTimeout(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri)
+	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

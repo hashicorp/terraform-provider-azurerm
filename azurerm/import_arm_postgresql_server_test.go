@@ -11,7 +11,7 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri)
+	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,7 +37,7 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri)
+	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

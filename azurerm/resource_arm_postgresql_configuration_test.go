@@ -12,8 +12,9 @@ import (
 
 func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri)
-	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri)
+	location := testLocation()
+	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, location)
+	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,8 +40,9 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri)
-	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri)
+	location := testLocation()
+	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri, location)
+	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -66,8 +68,9 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri)
-	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri)
+	location := testLocation()
+	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri, location)
+	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -179,20 +182,20 @@ func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPostgreSQLConfiguration_backslashQuote(rInt int) string {
-	return testAccAzureRMPostgreSQLConfiguration_template(rInt, "backslash_quote", "on")
+func testAccAzureRMPostgreSQLConfiguration_backslashQuote(rInt int, location string) string {
+	return testAccAzureRMPostgreSQLConfiguration_template(rInt, location, "backslash_quote", "on")
 }
 
-func testAccAzureRMPostgreSQLConfiguration_clientMinMessages(rInt int) string {
-	return testAccAzureRMPostgreSQLConfiguration_template(rInt, "client_min_messages", "DEBUG5")
+func testAccAzureRMPostgreSQLConfiguration_clientMinMessages(rInt int, location string) string {
+	return testAccAzureRMPostgreSQLConfiguration_template(rInt, location, "client_min_messages", "DEBUG5")
 }
 
-func testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(rInt int) string {
-	return testAccAzureRMPostgreSQLConfiguration_template(rInt, "deadlock_timeout", "5000")
+func testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(rInt int, location string) string {
+	return testAccAzureRMPostgreSQLConfiguration_template(rInt, location, "deadlock_timeout", "5000")
 }
 
-func testAccAzureRMPostgreSQLConfiguration_template(rInt int, name string, value string) string {
-	server := testAccAzureRMPostgreSQLConfiguration_empty(rInt)
+func testAccAzureRMPostgreSQLConfiguration_template(rInt int, location string, name string, value string) string {
+	server := testAccAzureRMPostgreSQLConfiguration_empty(rInt, location)
 	config := fmt.Sprintf(`
 resource "azurerm_postgresql_configuration" "test" {
   name                = "%s"
@@ -204,28 +207,29 @@ resource "azurerm_postgresql_configuration" "test" {
 	return server + config
 }
 
-func testAccAzureRMPostgreSQLConfiguration_empty(rInt int) string {
+func testAccAzureRMPostgreSQLConfiguration_empty(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_postgresql_server" "test" {
-  name = "acctestpsqlsvr-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "PGSQLB50"
+    name     = "PGSQLB50"
     capacity = 50
-    tier = "Basic"
+    tier     = "Basic"
   }
 
-  administrator_login = "acctestun"
+  administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "9.6"
-  storage_mb = 51200
-  ssl_enforcement = "Enabled"
+  version                      = "9.6"
+  storage_mb                   = 51200
+  ssl_enforcement              = "Enabled"
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }

@@ -11,7 +11,7 @@ func TestAccAzureRMPostgreSQLDatabase_importBasic(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLDatabase_basic(ri)
+	config := testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

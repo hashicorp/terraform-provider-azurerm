@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri)
+	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri)
+	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -53,8 +53,9 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri)
-	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(ri)
+	location := testLocation()
+	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
+	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -133,80 +134,84 @@ func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPostgreSQLServer_basicNinePointFive(rInt int) string {
+func testAccAzureRMPostgreSQLServer_basicNinePointFive(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_postgresql_server" "test" {
-  name = "acctestpsqlsvr-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "PGSQLB50"
+    name     = "PGSQLB50"
     capacity = 50
-    tier = "Basic"
+    tier     = "Basic"
   }
 
-  administrator_login = "acctestun"
+  administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "9.5"
-  storage_mb = 51200
-  ssl_enforcement = "Enabled"
+  version                      = "9.5"
+  storage_mb                   = 51200
+  ssl_enforcement              = "Enabled"
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMPostgreSQLServer_basicNinePointSix(rInt int) string {
+func testAccAzureRMPostgreSQLServer_basicNinePointSix(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_postgresql_server" "test" {
-  name = "acctestpsqlsvr-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "PGSQLB50"
+    name     = "PGSQLB50"
     capacity = 50
-    tier = "Basic"
+    tier     = "Basic"
   }
 
-  administrator_login = "acctestun"
+  administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "9.6"
-  storage_mb = 51200
-  ssl_enforcement = "Enabled"
+  version                      = "9.6"
+  storage_mb                   = 51200
+  ssl_enforcement              = "Enabled"
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(rInt int) string {
+func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_postgresql_server" "test" {
-  name = "acctestpsqlsvr-%d"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "PGSQLB50"
+    name     = "PGSQLB50"
     capacity = 50
-    tier = "Basic"
+    tier     = "Basic"
   }
 
-  administrator_login = "acctestun"
+  administrator_login          = "acctestun"
   administrator_login_password = "R3dH0TCh1l1P3pp3rs!"
-  version = "9.6"
-  storage_mb = 51200
-  ssl_enforcement = "Disabled"
+  version                      = "9.6"
+  storage_mb                   = 51200
+  ssl_enforcement              = "Disabled"
 }
-`, rInt, rInt)
+
+`, rInt, location, rInt)
 }
