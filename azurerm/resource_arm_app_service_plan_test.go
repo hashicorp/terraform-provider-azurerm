@@ -67,6 +67,28 @@ func TestAccAzureRMAppServicePlan_premium(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_complete(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServicePlan_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "properties.0.maximum_number_of_workers", "3"),
+					resource.TestCheckResourceAttr(resourceName, "properties.0.per_site_scaling", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
 
@@ -124,45 +146,39 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 func testAccAzureRMAppServicePlan_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West Europe"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-    name                = "acctestASP-%d"
-    location            = "West Europe"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku {
-			tier = "Basic"
-			size = "B1"
-		}
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-		tags {
-			environment = "Test"
-		}
+  sku {
+    tier = "Basic"
+    size = "B1"
+  }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMAppServicePlan_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-    name                = "acctestASP-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku {
-			tier = "Standard"
-			size = "S1"
-		}
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-		tags {
-			environment = "Test"
-		}
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -170,22 +186,48 @@ resource "azurerm_app_service_plan" "test" {
 func testAccAzureRMAppServicePlan_premium(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-    name                = "acctestASP-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku {
-			tier = "Premium"
-			size = "P1"
-		}
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-		tags {
-			environment = "Test"
-		}
+  sku {
+    tier = "Premium"
+    size = "P1"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+
+  properties {
+    maximum_number_of_workers = 3
+    per_site_scaling          = true
+  }
+
+  tags {
+    environment = "Test"
+  }
 }
 `, rInt, location, rInt)
 }

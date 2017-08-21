@@ -33,22 +33,29 @@ resource "azurerm_app_service_plan" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Service Plan component. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the App Service Plan component. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the App Service Plan component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Plan component.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `properties` - (Optional) A Properties block as documented below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `sku` supports the following:
 
 * `tier` - (Required) Specified the plan's pricing tier.
+
 * `size` - (Required) Specified the plan's instance size.
+
+`properties` supports the following:
 
 * `maximum_number_of_workers` - (Optional) Maximum number of instances that can be assigned to this App Service plan.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
+
+* `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
 ## Attributes Reference
 
