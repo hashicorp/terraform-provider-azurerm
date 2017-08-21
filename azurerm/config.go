@@ -58,7 +58,7 @@ type ArmClient struct {
 	diskClient     disk.DisksClient
 	cosmosDBClient cosmosdb.DatabaseAccountsClient
 
-	appGatewayClient             network.ApplicationGatewaysClient
+	applicationGatewayClient     network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
 	expressRouteCircuitClient    network.ExpressRouteCircuitsClient
 	loadBalancerClient           network.LoadBalancersClient
@@ -261,7 +261,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	setUserAgent(&agc.Client)
 	agc.Authorizer = auth
 	agc.Sender = autorest.CreateSender(withRequestLogging())
-	client.appGatewayClient = agc
+	client.applicationGatewayClient = agc
 
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&crc.Client)
