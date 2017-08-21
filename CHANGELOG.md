@@ -1,5 +1,9 @@
 ## 0.1.6 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_eventgrid_topic` [GH-260]
+
 IMPROVEMENTS:
 
 * `azurerm_image` - added a default to the `caching` field [GH-259]
