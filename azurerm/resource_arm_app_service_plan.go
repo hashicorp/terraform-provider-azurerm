@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/jen20/riviera/azure"
 )
@@ -123,18 +121,6 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(*read.ID)
-
-	// TODO: is this needed?
-	log.Printf("[DEBUG] Waiting for App Service Plan (%s) to become available", name)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"Accepted", "Updating"},
-		Target:  []string{"Succeeded"},
-		Refresh: appServicePlanStateRefreshFunc(client, resGroup, name),
-		Timeout: 10 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for App Service Plan (%s) to become available: %+v", name, err)
-	}
 
 	return resourceArmAppServicePlanRead(d, meta)
 }
@@ -278,15 +264,4 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) map[string
 	}
 
 	return properties
-}
-
-func appServicePlanStateRefreshFunc(client web.AppServicePlansClient, resourceGroupName string, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(resourceGroupName, name)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in appServicePlanStateRefreshFunc to Azure ARM for App Service Plan '%s' (RG: '%s'): %+v", name, resourceGroupName, err)
-		}
-
-		return res, string(res.AppServicePlanProperties.ProvisioningState), nil
-	}
 }
