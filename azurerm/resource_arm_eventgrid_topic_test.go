@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
+	resourceName := "azurerm_eventgrid_topic.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventGridTopic_basic(ri)
 
@@ -22,7 +23,10 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists("azurerm_eventgrid_topic.test"),
+					testCheckAzureRMEventGridTopicExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 		},
@@ -30,6 +34,7 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
+	resourceName := "azurerm_eventgrid_topic.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventGridTopic_basicWithTags(ri)
 
@@ -41,7 +46,12 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventGridTopicExists("azurerm_eventgrid_topic.test"),
+					testCheckAzureRMEventGridTopicExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.foo", "bar"),
+					resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
 				),
 			},
 		},
