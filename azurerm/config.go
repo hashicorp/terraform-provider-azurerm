@@ -17,6 +17,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/arm/insights"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
@@ -45,6 +46,8 @@ type ArmClient struct {
 	StopContext context.Context
 
 	rivieraClient *riviera.Client
+
+	autoscaleSettingsClient insights.AutoscaleSettingsClient
 
 	availSetClient         compute.AvailabilitySetsClient
 	usageOpsClient         compute.UsageClient
@@ -215,6 +218,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// NOTE: these declarations should be left separate for clarity should the
 	// clients be wished to be configured with custom Responders/PollingModess etc...
+	assc := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&assc.Client)
+	assc.Authorizer = auth
+	assc.Sender = autorest.CreateSender(withRequestLogging())
+	client.autoscaleSettingsClient = assc
+
 	asc := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&asc.Client)
 	asc.Authorizer = auth
