@@ -19,7 +19,7 @@ output "vnet_dns_servers" {
 }
 
 output "vnet_subnets" {
-  value = "${azurerm_virtual_network.vnet.subnet}"
+  value = "${azurerm_subnet.subnet.*.id}"
 }
 
 output "security_group_id" {
