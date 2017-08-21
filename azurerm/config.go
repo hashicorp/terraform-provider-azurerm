@@ -295,11 +295,11 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	img.Sender = autorest.CreateSender(withRequestLogging())
 	client.imageClient = img
 
-	ehtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ehtc.Client)
-	ehtc.Authorizer = auth
-	ehtc.Sender = autorest.CreateSender(withRequestLogging())
-	client.eventGridTopicsClient = ehtc
+	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&egtc.Client)
+	egtc.Authorizer = auth
+	egtc.Sender = autorest.CreateSender(withRequestLogging())
+	client.eventGridTopicsClient = egtc
 
 	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ehc.Client)

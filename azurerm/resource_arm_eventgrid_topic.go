@@ -41,13 +41,15 @@ func resourceArmEventGridTopic() *schema.Resource {
 			},
 
 			"primary_access_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_access_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -55,8 +57,6 @@ func resourceArmEventGridTopic() *schema.Resource {
 
 func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventGridTopicsClient
-
-	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -68,6 +68,8 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 		TopicProperties: &eventgrid.TopicProperties{},
 		Tags:            expandTags(tags),
 	}
+
+	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Topic creation with Properties: %+v.", properties)
 
 	_, createErr := client.CreateOrUpdate(resourceGroup, name, properties, make(chan struct{}))
 	err := <-createErr
@@ -101,9 +103,11 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := client.Get(resourceGroup, name)
 	if err != nil {
 		if responseWasNotFound(resp.Response) {
+			log.Printf("[WARN] EventGrid Topic '%s' was not found (resource group '%s')", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on EventGrid Topic '%s': %+v", name, err)
 	}
 
@@ -112,9 +116,9 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Topic '%s': %+v", name, err)
 	}
 
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	d.Set("name", resp.Name)
 
 	if props := resp.TopicProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)
@@ -142,13 +146,9 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 	resp := <-deleteResp
 	err = <-deleteErr
 
-	if err != nil {
-		if responseWasNotFound(resp) {
-			return nil
-		}
-
-		return err
+	if responseWasNotFound(resp) {
+		return nil
 	}
 
-	return nil
+	return err
 }
