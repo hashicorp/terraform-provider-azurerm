@@ -15,6 +15,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/arm/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
@@ -83,6 +84,7 @@ type ArmClient struct {
 	containerRegistryClient containerregistry.RegistriesClient
 	containerServicesClient containerservice.ContainerServicesClient
 
+	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
@@ -292,6 +294,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	img.Authorizer = auth
 	img.Sender = autorest.CreateSender(withRequestLogging())
 	client.imageClient = img
+
+	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&egtc.Client)
+	egtc.Authorizer = auth
+	egtc.Sender = autorest.CreateSender(withRequestLogging())
+	client.eventGridTopicsClient = egtc
 
 	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ehc.Client)
