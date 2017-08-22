@@ -157,7 +157,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", flattenAzureRmAppServicePlanSku(sku))
+		d.Set("sku", flattenAppServicePlanSku(sku))
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -211,7 +211,7 @@ func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
 	return sku
 }
 
-func flattenAzureRmAppServicePlanSku(profile *web.SkuDescription) *schema.Set {
+func flattenAppServicePlanSku(profile *web.SkuDescription) *schema.Set {
 	skus := &schema.Set{
 		F: resourceAzureRMAppServicePlanSkuHash,
 	}
@@ -248,7 +248,8 @@ func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanP
 	return &properties
 }
 
-func flattenAppServiceProperties(props *web.AppServicePlanProperties) map[string]interface{} {
+func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interface{} {
+	result := make([]interface{}, 0, 1)
 	properties := make(map[string]interface{}, 0)
 
 	if props.MaximumNumberOfWorkers != nil {
@@ -263,5 +264,6 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) map[string
 		properties["reserved"] = *props.Reserved
 	}
 
-	return properties
+	result = append(result, properties)
+	return result
 }

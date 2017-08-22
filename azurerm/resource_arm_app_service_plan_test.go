@@ -221,8 +221,9 @@ resource "azurerm_app_service_plan" "test" {
   }
 
   properties {
-    maximum_number_of_workers = 3
+    maximum_number_of_workers = 10
     per_site_scaling          = true
+    reserved                  = false
   }
 
   tags {

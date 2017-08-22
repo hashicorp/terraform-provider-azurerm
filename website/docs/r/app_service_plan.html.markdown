@@ -22,6 +22,7 @@ resource "azurerm_app_service_plan" "test" {
   name                = "api-appserviceplan-pro"
   location            = "West Europe"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   sku {
     tier = "Standard"
     size = "S1"
