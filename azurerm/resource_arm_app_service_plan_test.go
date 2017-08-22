@@ -81,8 +81,9 @@ func TestAccAzureRMAppServicePlan_complete(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "properties.0.maximum_number_of_workers", "3"),
+					resource.TestCheckResourceAttr(resourceName, "properties.0.maximum_number_of_workers", "10"),
 					resource.TestCheckResourceAttr(resourceName, "properties.0.per_site_scaling", "true"),
+					resource.TestCheckResourceAttr(resourceName, "properties.0.reserved", "false"),
 				),
 			},
 		},
