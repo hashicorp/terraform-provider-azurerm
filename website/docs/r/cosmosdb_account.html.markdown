@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "cosmosDBAccount1"
+  name                = "cosmos-db-account1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   offer_type          = "Standard"
