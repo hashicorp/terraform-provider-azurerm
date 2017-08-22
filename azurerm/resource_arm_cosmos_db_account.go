@@ -398,7 +398,7 @@ func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 func validateAzureRmCosmosDBAccountName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
-	r, _ := regexp.Compile("^([a-z0-9\\-]+)$")
+	r, _ := regexp.Compile("^[a-z0-9\\-]+$")
 	if !r.MatchString(value) {
 		errors = append(errors, fmt.Errorf("CosmosDB Account Name can only contain lower-case characters, numbers and the `-` character."))
 	}
