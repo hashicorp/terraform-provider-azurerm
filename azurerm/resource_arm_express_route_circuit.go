@@ -168,14 +168,14 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if erc == nil {
-		d.SetId("")
 		log.Printf("[INFO] Express Route Circuit %q not found. Removing from state", d.Get("name").(string))
+		d.SetId("")
 		return nil
 	}
 
 	d.Set("name", erc.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", erc.Location)
+	d.Set("location", azureRMNormalizeLocation(*erc.Location))
 
 	if erc.ServiceProviderProperties != nil {
 		d.Set("service_provider_name", erc.ServiceProviderProperties.ServiceProviderName)

@@ -12,16 +12,17 @@ import (
 func TestAccDataSourceAzureRMResourceGroup_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	name := fmt.Sprintf("acctestRg_%d", ri)
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMResourceGroupBasic(name),
+				Config: testAccDataSourceAzureRMResourceGroupBasic(name, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "name", name),
-					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "location", "westus2"),
+					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "location", azureRMNormalizeLocation(location)),
 					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "tags.%", "1"),
 					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "tags.env", "test"),
 				),
@@ -30,17 +31,19 @@ func TestAccDataSourceAzureRMResourceGroup_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMResourceGroupBasic(name string) string {
-	return fmt.Sprintf(`resource "azurerm_resource_group" "test" {
-		name     = "%s"
-		location = "West US 2"
-		tags {
-			env = "test"
-		}
-	}
+func testAccDataSourceAzureRMResourceGroupBasic(name string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "%s"
+  location = "%s"
 
-	data "azurerm_resource_group" "test" {
-		name = "${azurerm_resource_group.test.name}"
-	}
-	`, name)
+  tags {
+    env = "test"
+  }
+}
+
+data "azurerm_resource_group" "test" {
+  name = "${azurerm_resource_group.test.name}"
+}
+`, name, location)
 }

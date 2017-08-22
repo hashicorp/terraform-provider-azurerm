@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/errwrap"
@@ -30,7 +29,7 @@ func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.
 
 	resp, err := ercClient.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			return nil, "", nil
 		}
 		return nil, "", errwrap.Wrapf(fmt.Sprintf("Error making Read request on Express Route Circuit %s: {{err}}", name), err)

@@ -20,7 +20,7 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt),
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(name),
 					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
@@ -41,7 +41,7 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt),
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(name),
 					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
@@ -81,7 +81,7 @@ func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFu
 			if resp.StatusCode == http.StatusNotFound {
 				return fmt.Errorf("Local network gateway '%s' (resource group '%s') does not exist on Azure.", localNetName, resGrp)
 			}
-			return fmt.Errorf("Error reading the state of local network gateway '%s'.", localNetName)
+			return fmt.Errorf("Error reading the state of local network gateway '%s': %+v", localNetName, err)
 		}
 
 		return nil
@@ -114,7 +114,7 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(name string) resource.TestChe
 			if resp.StatusCode == http.StatusNotFound {
 				return fmt.Errorf("Local network gateway '%s' (resource group '%s') does not exist on Azure.", localNetName, resGrp)
 			}
-			return fmt.Errorf("Error deleting the state of local network gateway '%s'.", localNetName)
+			return fmt.Errorf("Error deleting the state of local network gateway '%s': %+v", localNetName, err)
 		}
 
 		return nil
@@ -149,11 +149,11 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMLocalNetworkGatewayConfig_basic(rInt int) string {
+func testAccAzureRMLocalNetworkGatewayConfig_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctest-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_local_network_gateway" "test" {
@@ -163,5 +163,5 @@ resource "azurerm_local_network_gateway" "test" {
 	gateway_address = "127.0.0.1"
 	address_space = ["127.0.0.0/8"]
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }

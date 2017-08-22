@@ -2,9 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	"testing"
-
 	"strings"
+	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -54,14 +53,14 @@ func TestResourceAzureRMStorageQueueName_Validation(t *testing.T) {
 func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageQueue_basic, ri, rs, ri)
+	config := testAccAzureRMStorageQueue_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageQueueDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageQueueExists("azurerm_storage_queue.test"),
@@ -145,16 +144,17 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMStorageQueue_basic = `
+func testAccAzureRMStorageQueue_basic(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
     name = "acctestacc%s"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -167,4 +167,5 @@ resource "azurerm_storage_queue" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     storage_account_name = "${azurerm_storage_account.test.name}"
 }
-`
+`, rInt, location, rString, rInt)
+}

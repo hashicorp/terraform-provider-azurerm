@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -34,6 +33,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			"network_security_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"description": {
@@ -120,8 +120,8 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 	direction := d.Get("direction").(string)
 	protocol := d.Get("protocol").(string)
 
-	armMutexKV.Lock(nsgName)
-	defer armMutexKV.Unlock(nsgName)
+	azureRMLockByName(nsgName, networkSecurityGroupResourceName)
+	defer azureRMUnlockByName(nsgName, networkSecurityGroupResourceName)
 
 	properties := network.SecurityRulePropertiesFormat{
 		SourcePortRange:          &source_port_range,
@@ -155,8 +155,7 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Security Group Rule %s/%s (resource group %s) ID",
-			nsgName, name, resGroup)
+		return fmt.Errorf("Cannot read Security Group Rule %s/%s (resource group %s) ID", nsgName, name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -177,7 +176,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := secRuleClient.Get(resGroup, networkSGName, sgRuleName)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -211,8 +210,8 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	nsgName := id.Path["networkSecurityGroups"]
 	sgRuleName := id.Path["securityRules"]
 
-	armMutexKV.Lock(nsgName)
-	defer armMutexKV.Unlock(nsgName)
+	azureRMLockByName(nsgName, networkSecurityGroupResourceName)
+	defer azureRMUnlockByName(nsgName, networkSecurityGroupResourceName)
 
 	_, error := secRuleClient.Delete(resGroup, nsgName, sgRuleName, make(chan struct{}))
 	err = <-error

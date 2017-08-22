@@ -15,14 +15,14 @@ import (
 func TestAccAzureRMSubnet_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMSubnet_basic(ri)
+	config := testAccAzureRMSubnet_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
@@ -35,22 +35,23 @@ func TestAccAzureRMSubnet_basic(t *testing.T) {
 func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 
 	ri := acctest.RandInt()
-	initConfig := testAccAzureRMSubnet_routeTable(ri)
-	updatedConfig := testAccAzureRMSubnet_updatedRouteTable(ri)
+	location := testLocation()
+	initConfig := testAccAzureRMSubnet_routeTable(ri, location)
+	updatedConfig := testAccAzureRMSubnet_updatedRouteTable(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: initConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
 				),
 			},
 
-			resource.TestStep{
+			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetRouteTableExists("azurerm_subnet.test", fmt.Sprintf("acctest-%d", ri)),
@@ -60,17 +61,56 @@ func TestAccAzureRMSubnet_routeTableUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSubnet_disappears(t *testing.T) {
-
+func TestAccAzureRMSubnet_bug7986(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMSubnet_basic(ri)
+	initConfig := testAccAzureRMSubnet_bug7986(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSubnetDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
+				Config: initConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists("azurerm_subnet.first"),
+					testCheckAzureRMSubnetExists("azurerm_subnet.second"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSubnet_bug15204(t *testing.T) {
+	ri := acctest.RandInt()
+	initConfig := testAccAzureRMSubnet_bug15204(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: initConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSubnet_disappears(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMSubnet_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
@@ -103,7 +143,7 @@ func testCheckAzureRMSubnetExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, vnetName, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on subnetClient: %s", err)
+			return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -138,7 +178,7 @@ func testCheckAzureRMSubnetRouteTableExists(subnetName string, routeTableId stri
 		vnetConn := testAccProvider.Meta().(*ArmClient).vnetClient
 		vnetResp, vnetErr := vnetConn.Get(resourceGroup, vnetName, "")
 		if vnetErr != nil {
-			return fmt.Errorf("Bad: Get on vnetClient: %s", vnetErr)
+			return fmt.Errorf("Bad: Get on vnetClient: %+v", vnetErr)
 		}
 
 		if vnetResp.Subnets == nil {
@@ -149,7 +189,7 @@ func testCheckAzureRMSubnetRouteTableExists(subnetName string, routeTableId stri
 
 		resp, err := conn.Get(resourceGroup, vnetName, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on subnetClient: %s", err)
+			return fmt.Errorf("Bad: Get on subnetClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -188,7 +228,7 @@ func testCheckAzureRMSubnetDisappears(name string) resource.TestCheckFunc {
 		_, error := conn.Delete(resourceGroup, vnetName, name, make(chan struct{}))
 		err := <-error
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on subnetClient: %s", err)
+			return fmt.Errorf("Bad: Delete on subnetClient: %+v", err)
 		}
 
 		return nil
@@ -221,71 +261,71 @@ func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSubnet_basic(rInt int) string {
+func testAccAzureRMSubnet_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctestsubnet%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-	route_table_id = "${azurerm_route_table.test.id}" 
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
 }
 
 resource "azurerm_route_table" "test" {
-	name = "acctestroutetable%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location = "West US"
+  name                = "acctestroutetable%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_route" "test" {
-	name = "acctestroute%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	route_table_name  = "${azurerm_route_table.test.name}" 
+  name                = "acctestroute%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.test.name}"
 
-	address_prefix = "10.100.0.0/14" 
-	next_hop_type = "VirtualAppliance" 
-	next_hop_in_ip_address = "10.10.1.1" 
+  address_prefix         = "10.100.0.0/14"
+  next_hop_type          = "VirtualAppliance"
+  next_hop_in_ip_address = "10.10.1.1"
 }
-`, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMSubnet_routeTable(rInt int) string {
+func testAccAzureRMSubnet_routeTable(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctestsubnet%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-	route_table_id       = "${azurerm_route_table.test.id}"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctest-%d"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -297,63 +337,67 @@ resource "azurerm_route" "route_a" {
   address_prefix         = "10.100.0.0/14"
   next_hop_type          = "VirtualAppliance"
   next_hop_in_ip_address = "10.10.1.1"
-}`, rInt, rInt, rInt, rInt, rInt)
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMSubnet_updatedRouteTable(rInt int) string {
+func testAccAzureRMSubnet_updatedRouteTable(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
-	tags {
-		environment = "Testing"
-	}
+  name     = "acctestRG-%d"
+  location = "%s"
+
+  tags {
+    environment = "Testing"
+  }
 }
 
 resource "azurerm_network_security_group" "test_secgroup" {
-    name = "acctest-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    security_rule {
-        name = "acctest-%d"
-        priority = 100
-        direction = "Inbound"
-        access = "Allow"
-        protocol = "Tcp"
-        source_port_range = "*"
-        destination_port_range = "*"
-        source_address_prefix = "*"
-        destination_address_prefix = "*"
-    }
+  security_rule {
+    name                       = "acctest-%d"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 
-    tags {
-        environment = "Testing"
-    }
+  tags {
+    environment = "Testing"
+  }
 }
 
 resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-	tags {
-		environment = "Testing"
-	}
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  tags {
+    environment = "Testing"
+  }
 }
 
 resource "azurerm_subnet" "test" {
-    name = "acctestsubnet%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    virtual_network_name = "${azurerm_virtual_network.test.name}"
-    address_prefix = "10.0.2.0/24"
-	route_table_id       = "${azurerm_route_table.test.id}"
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+  route_table_id       = "${azurerm_route_table.test.id}"
 }
 
 resource "azurerm_route_table" "test" {
   name                = "acctest-%d"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   tags {
     environment = "Testing"
   }
@@ -367,5 +411,102 @@ resource "azurerm_route" "route_a" {
   address_prefix         = "10.100.0.0/14"
   next_hop_type          = "VirtualAppliance"
   next_hop_in_ip_address = "10.10.1.1"
-}`, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_bug7986(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest%d-rg"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest%d-vn"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route_table" "first" {
+  name                = "acctest%d-private-1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route" "first" {
+  name                = "acctest%d-private-1"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.first.name}"
+  address_prefix      = "0.0.0.0/0"
+  next_hop_type       = "None"
+}
+
+resource "azurerm_subnet" "first" {
+  name                 = "acctest%d-private-1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.0.0/24"
+  route_table_id       = "${azurerm_route_table.first.id}"
+}
+
+resource "azurerm_route_table" "second" {
+  name                = "acctest%d-private-2"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route" "second" {
+  name                = "acctest%d-private-2"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  route_table_name    = "${azurerm_route_table.second.name}"
+  address_prefix      = "0.0.0.0/0"
+  next_hop_type       = "None"
+}
+
+resource "azurerm_subnet" "second" {
+  name                 = "acctest%d-private-2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+  route_table_id       = "${azurerm_route_table.second.id}"
+}`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_bug15204(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.85.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name = "acctestnsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                      = "acctestsubnet-%d"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  address_prefix            = "10.85.9.0/24"
+  route_table_id            = "${azurerm_route_table.test.id}"
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
 }

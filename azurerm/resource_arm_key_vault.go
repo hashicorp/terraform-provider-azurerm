@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -73,6 +72,7 @@ func resourceArmKeyVault() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MinItems: 1,
+				MaxItems: 16,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"tenant_id": {
@@ -203,11 +203,11 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
+		if responseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %s", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", resp.Name)
@@ -313,7 +313,7 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 		}
 
 		policyRaw["tenant_id"] = policy.TenantID.String()
-		policyRaw["object_id"] = policy.ObjectID
+		policyRaw["object_id"] = *policy.ObjectID
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
 

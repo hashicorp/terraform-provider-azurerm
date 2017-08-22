@@ -27,7 +27,7 @@ resource "azurerm_dns_aaaa_record" "test" {
   name                = "test"
   zone_name           = "${azurerm_dns_zone.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  ttl                 = "300"
+  ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005"]
 }
 ```

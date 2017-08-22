@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 )
+
+var routeTableResourceName = "azurerm_route_table"
 
 func resourceArmRouteTable() *schema.Resource {
 	return &schema.Resource{
@@ -142,7 +143,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := routeTablesClient.Get(resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -151,7 +152,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if resp.RouteTablePropertiesFormat.Routes != nil {
 		d.Set("route", schema.NewSet(resourceArmRouteTableRouteHash, flattenAzureRmRouteTableRoutes(resp.RouteTablePropertiesFormat.Routes)))

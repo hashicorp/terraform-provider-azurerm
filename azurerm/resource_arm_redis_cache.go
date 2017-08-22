@@ -3,14 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/jen20/riviera/azure"
 )
 
@@ -54,9 +55,13 @@ func resourceArmRedisCache() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateFunc:     validateRedisSku,
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(redis.Basic),
+					string(redis.Standard),
+					string(redis.Premium),
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
@@ -78,19 +83,19 @@ func resourceArmRedisCache() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"maxclients": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_delta": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
 
 						"maxmemory_reserved": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
 						},
@@ -100,6 +105,23 @@ func resourceArmRedisCache() *schema.Resource {
 							Optional:     true,
 							Default:      "volatile-lru",
 							ValidateFunc: validateRedisMaxMemoryPolicy,
+						},
+						"rdb_backup_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"rdb_backup_frequency": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validateRedisBackupFrequency,
+						},
+						"rdb_backup_max_snapshot_count": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"rdb_storage_connection_string": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -364,39 +386,45 @@ func redisStateRefreshFunc(client redis.GroupClient, resourceGroupName string, s
 }
 
 func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
-	configuration := d.Get("redis_configuration").([]interface{})
-
 	output := make(map[string]*string)
 
-	if configuration == nil {
-		return &output
+	if v, ok := d.GetOk("redis_configuration.0.maxclients"); ok {
+		clients := strconv.Itoa(v.(int))
+		output["maxclients"] = azure.String(clients)
 	}
 
-	// TODO: can we use this to remove the below? \/
-	//config := configuration[0].(map[string]interface{})
+	if v, ok := d.GetOk("redis_configuration.0.maxmemory_delta"); ok {
+		delta := strconv.Itoa(v.(int))
+		output["maxmemory-delta"] = azure.String(delta)
+	}
 
-	for _, v := range configuration {
-		config := v.(map[string]interface{})
+	if v, ok := d.GetOk("redis_configuration.0.maxmemory_reserved"); ok {
+		delta := strconv.Itoa(v.(int))
+		output["maxmemory-reserved"] = azure.String(delta)
+	}
 
-		maxClients := config["maxclients"].(string)
-		if maxClients != "" {
-			output["maxclients"] = azure.String(maxClients)
-		}
+	if v, ok := d.GetOk("redis_configuration.0.maxmemory_policy"); ok {
+		output["maxmemory-policy"] = azure.String(v.(string))
+	}
 
-		maxMemoryDelta := config["maxmemory_delta"].(string)
-		if maxMemoryDelta != "" {
-			output["maxmemory-delta"] = azure.String(maxMemoryDelta)
-		}
+	// Backup
+	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
+		delta := strconv.FormatBool(v.(bool))
+		output["rdb-backup-enabled"] = azure.String(delta)
+	}
 
-		maxMemoryReserved := config["maxmemory_reserved"].(string)
-		if maxMemoryReserved != "" {
-			output["maxmemory-reserved"] = azure.String(maxMemoryReserved)
-		}
+	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_frequency"); ok {
+		delta := strconv.Itoa(v.(int))
+		output["rdb-backup-frequency"] = azure.String(delta)
+	}
 
-		maxMemoryPolicy := config["maxmemory_policy"].(string)
-		if maxMemoryPolicy != "" {
-			output["maxmemory-policy"] = azure.String(maxMemoryPolicy)
-		}
+	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_max_snapshot_count"); ok {
+		delta := strconv.Itoa(v.(int))
+		output["rdb-backup-max-snapshot-count"] = azure.String(delta)
+	}
+
+	if v, ok := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); ok {
+		output["rdb-storage-connection-string"] = azure.String(v.(string))
 	}
 
 	return &output
@@ -410,6 +438,11 @@ func flattenRedisConfiguration(configuration *map[string]*string) map[string]*st
 	redisConfiguration["maxmemory_delta"] = config["maxmemory-delta"]
 	redisConfiguration["maxmemory_reserved"] = config["maxmemory-reserved"]
 	redisConfiguration["maxmemory_policy"] = config["maxmemory-policy"]
+
+	redisConfiguration["rdb_backup_enabled"] = config["rdb-backup-enabled"]
+	redisConfiguration["rdb_backup_frequency"] = config["rdb-backup-frequency"]
+	redisConfiguration["rdb_backup_max_snapshot_count"] = config["rdb-backup-max-snapshot-count"]
+	redisConfiguration["rdb_storage_connection_string"] = config["rdb-storage-connection-string"]
 
 	return redisConfiguration
 }
@@ -445,16 +478,20 @@ func validateRedisMaxMemoryPolicy(v interface{}, k string) (ws []string, errors 
 	return
 }
 
-func validateRedisSku(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	skus := map[string]bool{
-		"basic":    true,
-		"standard": true,
-		"premium":  true,
+func validateRedisBackupFrequency(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(int)
+	families := map[int]bool{
+		15:   true,
+		30:   true,
+		60:   true,
+		360:  true,
+		720:  true,
+		1440: true,
 	}
 
-	if !skus[value] {
-		errors = append(errors, fmt.Errorf("Redis SKU can only be Basic, Standard or Premium"))
+	if !families[value] {
+		errors = append(errors, fmt.Errorf("Redis Backup Frequency can only be '15', '30', '60', '360', '720' or '1440'"))
 	}
+
 	return
 }

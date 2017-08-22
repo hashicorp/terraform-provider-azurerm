@@ -3,11 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
 )
+
+var subnetResourceName = "azurerm_subnet"
 
 func resourceArmSubnet() *schema.Resource {
 	return &schema.Resource{
@@ -77,11 +78,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	addressPrefix := d.Get("address_prefix").(string)
 
-	armMutexKV.Lock(name)
-	defer armMutexKV.Unlock(name)
-
-	armMutexKV.Lock(vnetName)
-	defer armMutexKV.Unlock(vnetName)
+	azureRMLockByName(vnetName, virtualNetworkResourceName)
+	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -98,8 +96,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(networkSecurityGroupName)
-		defer armMutexKV.Unlock(networkSecurityGroupName)
+		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
@@ -113,8 +111,8 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(routeTableName)
-		defer armMutexKV.Unlock(routeTableName)
+		azureRMLockByName(routeTableName, routeTableResourceName)
+		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
 	}
 
 	subnet := network.Subnet{
@@ -155,11 +153,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := subnetClient.Get(resGroup, vnetName, name, "")
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Subnet %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Subnet %s: %+v", name, err)
 	}
 
 	d.Set("name", name)
@@ -169,10 +167,14 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if resp.SubnetPropertiesFormat.NetworkSecurityGroup != nil {
 		d.Set("network_security_group_id", resp.SubnetPropertiesFormat.NetworkSecurityGroup.ID)
+	} else {
+		d.Set("network_security_group_id", "")
 	}
 
 	if resp.SubnetPropertiesFormat.RouteTable != nil {
 		d.Set("route_table_id", resp.SubnetPropertiesFormat.RouteTable.ID)
+	} else {
+		d.Set("route_table_id", "")
 	}
 
 	if resp.SubnetPropertiesFormat.IPConfigurations != nil {
@@ -209,8 +211,8 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(networkSecurityGroupName)
-		defer armMutexKV.Unlock(networkSecurityGroupName)
+		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
@@ -220,15 +222,15 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		armMutexKV.Lock(routeTableName)
-		defer armMutexKV.Unlock(routeTableName)
+		azureRMLockByName(routeTableName, routeTableResourceName)
+		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
 	}
 
-	armMutexKV.Lock(vnetName)
-	defer armMutexKV.Unlock(vnetName)
+	azureRMLockByName(vnetName, virtualNetworkResourceName)
+	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
 
-	armMutexKV.Lock(name)
-	defer armMutexKV.Unlock(name)
+	azureRMLockByName(name, subnetResourceName)
+	defer azureRMUnlockByName(name, subnetResourceName)
 
 	_, error := subnetClient.Delete(resGroup, vnetName, name, make(chan struct{}))
 	err = <-error

@@ -42,7 +42,7 @@ func TestAccAzureRMEventHubNamespaceCapacity_validation(t *testing.T) {
 		_, errors := validateEventHubNamespaceCapacity(tc.Value, "azurerm_eventhub_namespace")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM EventHub Namespace Capacity to trigger a validation error")
+			t.Fatalf("Expected the Azure RM EventHub Namespace Capacity '%d' to trigger a validation error", tc.Value)
 		}
 	}
 }
@@ -74,7 +74,7 @@ func TestAccAzureRMEventHubNamespaceSku_validation(t *testing.T) {
 		_, errors := validateEventHubNamespaceSku(tc.Value, "azurerm_eventhub_namespace")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM EventHub Namespace Sku to trigger a validation error")
+			t.Fatalf("Expected the Azure RM EventHub Namespace Sku '%s' to trigger a validation error", tc.Value)
 		}
 	}
 }
@@ -82,7 +82,7 @@ func TestAccAzureRMEventHubNamespaceSku_validation(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubNamespace_basic, ri, ri)
+	config := testAccAzureRMEventHubNamespace_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -102,7 +102,7 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubNamespace_standard, ri, ri)
+	config := testAccAzureRMEventHubNamespace_standard(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -120,8 +120,33 @@ func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
+	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubNamespace_basic, ri, ri)
+	config := testAccAzureRMEventHubNamespace_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+					resource.TestMatchResourceAttr(resourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
+					resource.TestMatchResourceAttr(resourceName, "default_primary_key", regexp.MustCompile(".+")),
+					resource.TestMatchResourceAttr(resourceName, "default_secondary_key", regexp.MustCompile(".+")),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMEventHubNamespaceNonStandardCasing(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -132,37 +157,9 @@ func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists("azurerm_eventhub_namespace.test"),
-					resource.TestMatchResourceAttr(
-						"azurerm_eventhub_namespace.test", "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
-					resource.TestMatchResourceAttr(
-						"azurerm_eventhub_namespace.test", "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
-					resource.TestMatchResourceAttr(
-						"azurerm_eventhub_namespace.test", "default_primary_key", regexp.MustCompile(".+")),
-					resource.TestMatchResourceAttr(
-						"azurerm_eventhub_namespace.test", "default_secondary_key", regexp.MustCompile(".+")),
 				),
 			},
-		},
-	})
-}
-
-func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
-
-	ri := acctest.RandInt()
-	config := testAccAzureRMEventHubNamespaceNonStandardCasing(ri)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists("azurerm_eventhub_namespace.test"),
-				),
-			},
-			resource.TestStep{
+			{
 				Config:             config,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
@@ -214,7 +211,7 @@ func testCheckAzureRMEventHubNamespaceExists(name string) resource.TestCheckFunc
 
 		resp, err := conn.Get(resourceGroup, namespaceName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on eventHubNamespacesClient: %s", err)
+			return fmt.Errorf("Bad: Get on eventHubNamespacesClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -225,44 +222,52 @@ func testCheckAzureRMEventHubNamespaceExists(name string) resource.TestCheckFunc
 	}
 }
 
-var testAccAzureRMEventHubNamespace_basic = `
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
-}
-resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Basic"
-}
-`
-
-var testAccAzureRMEventHubNamespace_standard = `
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
-}
-resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
-    capacity = "2"
-}
-`
-
-func testAccAzureRMEventHubNamespaceNonStandardCasing(ri int) string {
+func testAccAzureRMEventHubNamespace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "basic"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Basic"
 }
-`, ri, ri)
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMEventHubNamespace_standard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  capacity            = "2"
+}
+
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMEventHubNamespaceNonStandardCasing(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "basic"
+}
+`, rInt, location, rInt)
 }

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_search_service" "test" {
   name                = "acceptanceTestSearchService1"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   sku                 = "standard"
 
   tags {
@@ -54,3 +54,11 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Search Service ID.
+
+## Import
+
+Search Services can be imported using the `resource id`, e.g.
+
+```
+terraform import azurerm_search_service.service1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Search/searchServices/service1
+```

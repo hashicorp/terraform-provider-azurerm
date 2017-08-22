@@ -17,7 +17,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageTable_basic, ri, rs, ri)
+	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,7 +39,7 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageTable_basic, ri, rs, ri)
+	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -192,6 +192,8 @@ func TestValidateArmStorageTableName(t *testing.T) {
 		"mytable",
 		"myTable",
 		"MYTABLE",
+		"tbl",
+		strings.Repeat("w", 63),
 	}
 	for _, v := range validNames {
 		_, errors := validateArmStorageTableName(v, "name")
@@ -206,7 +208,7 @@ func TestValidateArmStorageTableName(t *testing.T) {
 		"invalid_name",
 		"invalid!",
 		"ww",
-		strings.Repeat("w", 65),
+		strings.Repeat("w", 64),
 	}
 	for _, v := range invalidNames {
 		_, errors := validateArmStorageTableName(v, "name")
@@ -216,16 +218,17 @@ func TestValidateArmStorageTableName(t *testing.T) {
 	}
 }
 
-var testAccAzureRMStorageTable_basic = `
+func testAccAzureRMStorageTable_basic(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
     name = "acctestacc%s"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
+    location = "${azurerm_resource_group.test.location}"
     account_type = "Standard_LRS"
 
     tags {
@@ -234,8 +237,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_table" "test" {
-    name = "tfacceptancetest%d"
+    name = "acctestst%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     storage_account_name = "${azurerm_storage_account.test.name}"
 }
-`
+`, rInt, location, rString, rInt)
+}

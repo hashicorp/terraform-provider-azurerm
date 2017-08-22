@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,18 +11,17 @@ func TestAccAzureRMResourceGroup_importBasic(t *testing.T) {
 	resourceName := "azurerm_resource_group.test"
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMResourceGroup_basic, ri)
+	config := testAccAzureRMResourceGroup_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

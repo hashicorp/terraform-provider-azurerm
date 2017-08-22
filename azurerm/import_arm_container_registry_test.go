@@ -12,7 +12,7 @@ func TestAccAzureRMContainerRegistry_importBasic(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs)
+	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -38,7 +38,7 @@ func TestAccAzureRMContainerRegistry_importComplete(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_complete(ri, rs)
+	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
