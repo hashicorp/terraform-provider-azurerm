@@ -14,6 +14,8 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine` - Force recreation if storage_data_disk.creation_option changes [GH-240]
 
 BUG FIXES:
+
+* `azurerm_cosmosdb_account` - fixing the validation on the name field [GH-263]
 * `azurerm_sql_server` - handle deleted servers correctly [GH-189]
 
 ## 0.1.5 (August 09, 2017)
