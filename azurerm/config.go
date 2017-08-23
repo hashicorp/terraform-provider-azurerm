@@ -27,6 +27,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
+	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -112,7 +113,8 @@ type ArmClient struct {
 	serviceBusTopicsClient        servicebus.TopicsClient
 	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
 
-	keyVaultClient keyvault.VaultsClient
+	keyVaultClient           keyvault.VaultsClient
+	keyVaultManagementClient keyVault.ManagementClient
 
 	sqlElasticPoolsClient sql.ElasticPoolsClient
 	sqlServersClient      sql.ServersClient
@@ -200,23 +202,35 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, env.ResourceManagerEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	graphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, env.GraphEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
+	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
+	spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, endpoint)
+	if err != nil {
+		return nil, err
+	}
 	auth := autorest.NewBearerAuthorizer(spt)
+
+	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
+	graphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, graphEndpoint)
+	if err != nil {
+		return nil, err
+	}
 	graphAuth := autorest.NewBearerAuthorizer(graphSpt)
 
+	// Key Vault Endpoints
+	sender := autorest.CreateSender(withRequestLogging())
+	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
+		keyVaultSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, resource)
+		if err != nil {
+			return nil, err
+		}
+
+		return autorest.NewBearerAuthorizer(keyVaultSpt), nil
+	})
+
 	// NOTE: these declarations should be left separate for clarity should the
-	// clients be wished to be configured with custom Responders/PollingModess etc...
+	// clients be wished to be configured with custom Responders/PollingModes etc...
 	asc := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&asc.Client)
 	asc.Authorizer = auth
@@ -523,12 +537,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbsc.Sender = autorest.CreateSender(withRequestLogging())
 	client.serviceBusSubscriptionsClient = sbsc
 
-	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&kvc.Client)
-	kvc.Authorizer = auth
-	kvc.Sender = autorest.CreateSender(withRequestLogging())
-	client.keyVaultClient = kvc
-
 	sqlepc := sql.NewElasticPoolsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sqlepc.Client)
 	sqlepc.Authorizer = auth
@@ -552,6 +560,18 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	spc.Authorizer = graphAuth
 	spc.Sender = autorest.CreateSender(withRequestLogging())
 	client.servicePrincipalsClient = spc
+
+	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&kvc.Client)
+	kvc.Authorizer = auth
+	kvc.Sender = autorest.CreateSender(withRequestLogging())
+	client.keyVaultClient = kvc
+
+	kvmc := keyVault.New()
+	setUserAgent(&kvmc.Client)
+	kvmc.Authorizer = keyVaultAuth
+	kvmc.Sender = sender
+	client.keyVaultManagementClient = kvmc
 
 	return &client, nil
 }
