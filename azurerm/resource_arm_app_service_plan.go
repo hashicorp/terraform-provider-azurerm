@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -141,7 +140,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := AppServicePlanClient.Get(resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if responseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -104,12 +104,15 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
-			return nil
+
+			if responseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("App Service Plan still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("App Service Plan still exists:\n%#v", resp)
 	}
 
 	return nil
