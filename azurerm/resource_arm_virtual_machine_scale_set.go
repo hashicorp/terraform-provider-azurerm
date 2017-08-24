@@ -177,7 +177,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							},
 						},
 						"additional_unattend_config": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -1445,7 +1445,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.Resourc
 		}
 	}
 	if v := osProfileConfig["additional_unattend_config"]; v != nil {
-		additionalConfig := v.(*schema.Set).List()
+		additionalConfig := v.([]interface{})
 		if len(additionalConfig) > 0 {
 			additionalConfigContent := make([]compute.AdditionalUnattendContent, 0, len(additionalConfig))
 			for _, addConfig := range additionalConfig {
