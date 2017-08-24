@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -135,15 +134,13 @@ func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(resourceGroup, name)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if responseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Key Vault still exists:\n%#v", resp.Properties)
-		}
+		return fmt.Errorf("Key Vault still exists:\n%#v", resp.Properties)
 	}
 
 	return nil
@@ -167,11 +164,11 @@ func testCheckAzureRMKeyVaultExists(name string) resource.TestCheckFunc {
 
 		resp, err := client.Get(resourceGroup, vaultName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
-		}
+			if responseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Vault %q (resource group: %q) does not exist", vaultName, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Vault %q (resource group: %q) does not exist", vaultName, resourceGroup)
+			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
 		}
 
 		return nil
