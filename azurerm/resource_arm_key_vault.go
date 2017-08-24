@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -27,9 +28,10 @@ func resourceArmKeyVault() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateKeyVaultName,
 			},
 
 			"location": locationSchema(),
@@ -207,7 +209,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -321,4 +323,13 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 	}
 
 	return result
+}
+
+func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
+	}
+
+	return
 }
