@@ -190,7 +190,6 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
-// TODO: tests
 func parseKeyVaultSecretID(id string) (*SecretID, error) {
 	// example: https://tharvey-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	idURL, err := url.ParseRequestURI(id)
