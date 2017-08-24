@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
@@ -23,9 +24,10 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateKeyVaultSecretName,
 			},
 
 			"vault_uri": {
@@ -226,4 +228,14 @@ type SecretID struct {
 	KeyVaultBaseUrl string
 	Name            string
 	Version         string
+}
+
+func validateKeyVaultSecretName(v interface{}, k string) (ws []string, es []error) {
+	value := v.(string)
+
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	}
+
+	return
 }
