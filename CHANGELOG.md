@@ -11,7 +11,8 @@ IMPROVEMENTS:
 * `azurerm_sql_server` - added checks to handle `name` not being globally unique [GH-189]
 * `azurerm_sql_server` - making `administrator_login` `ForceNew` [GH-189]
 * `azurerm_sql_server` - migrate to using the azure-sdk-for-go [GH-189]
-* `azurerm_virtual_machine` - Force recreation if storage_data_disk.creation_option changes [GH-240]
+* `azurerm_virtual_machine` - Force recreation if `storage_data_disk`.`create_option` changes [GH-240]
+* `azurerm_key_vault` - validation for the `name` field #270
 
 BUG FIXES:
 
