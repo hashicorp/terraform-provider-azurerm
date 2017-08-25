@@ -1,12 +1,10 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/jen20/riviera/azure"
 )
@@ -37,7 +35,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 			"location": locationSchema(),
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -50,9 +48,13 @@ func resourceArmAppServicePlan() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+						"capacity": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
-				Set: resourceAzureRMAppServicePlanSkuHash,
 			},
 
 			"properties": {
@@ -62,11 +64,6 @@ func resourceArmAppServicePlan() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"maximum_number_of_workers": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Computed: true,
-						},
 						"reserved": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -79,6 +76,11 @@ func resourceArmAppServicePlan() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"maximum_number_of_workers": {
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 
 			"tags": tagsSchema(),
@@ -126,7 +128,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	AppServicePlanClient := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).appServicePlansClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -138,7 +140,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["serverfarms"]
 
-	resp, err := AppServicePlanClient.Get(resGroup, name)
+	resp, err := client.Get(resGroup, name)
 	if err != nil {
 		if responseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -154,6 +156,10 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		d.Set("properties", flattenAppServiceProperties(props))
+
+		if props.MaximumNumberOfWorkers != nil {
+			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
+		}
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -182,21 +188,8 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
-func resourceAzureRMAppServicePlanSkuHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	tier := m["tier"].(string)
-	size := m["size"].(string)
-
-	buf.WriteString(fmt.Sprintf("%s-", tier))
-	buf.WriteString(fmt.Sprintf("%s-", size))
-
-	return hashcode.String(buf.String())
-}
-
 func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
-	configs := d.Get("sku").(*schema.Set).List()
+	configs := d.Get("sku").([]interface{})
 	config := configs[0].(map[string]interface{})
 
 	tier := config["tier"].(string)
@@ -208,20 +201,26 @@ func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
 		Size: &size,
 	}
 
+	if v, ok := config["capacity"]; ok {
+		capacity := v.(int)
+		sku.Capacity = azure.Int32(int32(capacity))
+	}
+
 	return sku
 }
 
-func flattenAppServicePlanSku(profile *web.SkuDescription) *schema.Set {
-	skus := &schema.Set{
-		F: resourceAzureRMAppServicePlanSkuHash,
-	}
-
+func flattenAppServicePlanSku(profile *web.SkuDescription) []interface{} {
+	skus := make([]interface{}, 0, 1)
 	sku := make(map[string]interface{}, 2)
 
 	sku["tier"] = *profile.Tier
 	sku["size"] = *profile.Size
 
-	skus.Add(sku)
+	if profile.Capacity != nil {
+		sku["capacity"] = *profile.Capacity
+	}
+
+	skus = append(skus, sku)
 
 	return skus
 }
@@ -240,21 +239,12 @@ func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanP
 	reserved := config["reserved"].(bool)
 	properties.Reserved = azure.Bool(reserved)
 
-	if v, ok := config["maximum_number_of_workers"]; ok {
-		maximumNumberOfWorkers := int32(v.(int))
-		properties.MaximumNumberOfWorkers = &maximumNumberOfWorkers
-	}
-
 	return &properties
 }
 
 func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interface{} {
 	result := make([]interface{}, 0, 1)
 	properties := make(map[string]interface{}, 0)
-
-	if props.MaximumNumberOfWorkers != nil {
-		properties["maximum_number_of_workers"] = int(*props.MaximumNumberOfWorkers)
-	}
 
 	if props.PerSiteScaling != nil {
 		properties["per_site_scaling"] = *props.PerSiteScaling

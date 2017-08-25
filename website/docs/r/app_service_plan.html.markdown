@@ -40,15 +40,19 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `properties` - (Optional) A Properties block as documented below.
+* `sku` - (Required) A `sku` block as documented below.
+
+* `properties` - (Optional) A `properties` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `sku` supports the following:
 
-* `tier` - (Required) Specified the plan's pricing tier.
+* `tier` - (Required) Specifies the plan's pricing tier.
 
-* `size` - (Required) Specified the plan's instance size.
+* `size` - (Required) Specifies the plan's instance size.
+
+* `capacity` - (Optional) Specifies the number of workers associated with this App Service Plan.
 
 `properties` supports the following:
 
@@ -63,6 +67,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the App Service Plan component.
+* `maximum_number_of_workers` - The maximum number of workers supported with the App Service Plan's sku.
 
 ## Import
 

@@ -67,6 +67,36 @@ func TestAccAzureRMAppServicePlan_premium(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_premiumUpdated(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMAppServicePlan_premium(ri, location)
+	updatedConfig := testAccAzureRMAppServicePlan_premiumUpdated(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "1"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "2"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServicePlan_complete(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
@@ -81,7 +111,6 @@ func TestAccAzureRMAppServicePlan_complete(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServicePlanExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "properties.0.maximum_number_of_workers", "10"),
 					resource.TestCheckResourceAttr(resourceName, "properties.0.per_site_scaling", "true"),
 					resource.TestCheckResourceAttr(resourceName, "properties.0.reserved", "false"),
 				),
@@ -207,6 +236,27 @@ resource "azurerm_app_service_plan" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMAppServicePlan_premiumUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier     = "Premium"
+    size     = "P1"
+    capacity = 2
+  }
+}
+`, rInt, location, rInt)
+}
+
 func testAccAzureRMAppServicePlan_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -225,7 +275,6 @@ resource "azurerm_app_service_plan" "test" {
   }
 
   properties {
-    maximum_number_of_workers = 10
     per_site_scaling          = true
     reserved                  = false
   }
