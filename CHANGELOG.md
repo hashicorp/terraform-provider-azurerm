@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_eventgrid_topic` [GH-260]
+* **New Resource:** `azurerm_key_vault_secret` [GH-269]
 
 IMPROVEMENTS:
 
