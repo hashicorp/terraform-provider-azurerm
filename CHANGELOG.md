@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_sql_server` - migrate to using the azure-sdk-for-go [GH-189]
 * `azurerm_virtual_machine` - Force recreation if `storage_data_disk`.`create_option` changes [GH-240]
 * `azurerm_key_vault` - validation for the `name` field #270
+* updating to `v10.3.0-beta` of the Azure SDK for Go [GH-258]
 
 BUG FIXES:
 
