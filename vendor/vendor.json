@@ -171,6 +171,14 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
+			"checksumSHA1": "PBefmgCVsIElMuypHfMgBBFiEZQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/web",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z",
+			"version": "=v10.3.0-beta",
+			"versionExact": "v10.3.0-beta"
+		},
+		{
 			"checksumSHA1": "KWdWO4eMy7/x85pgQhngfaTiqz8=",
 			"path": "github.com/Azure/azure-sdk-for-go/storage",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",

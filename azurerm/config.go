@@ -27,6 +27,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/arm/web"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -119,9 +120,13 @@ type ArmClient struct {
 	sqlElasticPoolsClient sql.ElasticPoolsClient
 	sqlServersClient      sql.ServersClient
 
+	appServicePlansClient web.AppServicePlansClient
+
 	appInsightsClient appinsights.ComponentsClient
 
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
+
+	appsClient web.AppsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -549,6 +554,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sqlsrv.Sender = autorest.CreateSender(withRequestLogging())
 	client.sqlServersClient = sqlsrv
 
+	aspc := web.NewAppServicePlansClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&aspc.Client)
+	aspc.Authorizer = auth
+	aspc.Sender = autorest.CreateSender(withRequestLogging())
+	client.appServicePlansClient = aspc
+
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ai.Client)
 	ai.Authorizer = auth
@@ -560,6 +571,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	spc.Authorizer = graphAuth
 	spc.Sender = autorest.CreateSender(withRequestLogging())
 	client.servicePrincipalsClient = spc
+
+	ac := web.NewAppsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ac.Client)
+	ac.Authorizer = auth
+	ac.Sender = autorest.CreateSender(withRequestLogging())
+	client.appsClient = ac
 
 	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&kvc.Client)
