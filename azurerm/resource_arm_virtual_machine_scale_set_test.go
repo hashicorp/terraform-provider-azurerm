@@ -33,6 +33,27 @@ func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_basicWindows(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSet_basicWindows(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+
+					// single placement group should default to true
+					testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup("azurerm_virtual_machine_scale_set.test", true),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(ri, testLocation())
@@ -573,6 +594,110 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineScaleSet_basicWindows(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctvn-%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+    name = "acctsub-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+    name = "acctni-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    ip_configuration {
+    	name = "testconfiguration1"
+    	subnet_id = "${azurerm_subnet.test.id}"
+    	private_ip_address_allocation = "dynamic"
+    }
+}
+
+resource "azurerm_storage_account" "test" {
+    name = "accsa%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    account_type = "Standard_LRS"
+
+    tags {
+        environment = "staging"
+    }
+}
+
+resource "azurerm_storage_container" "test" {
+    name = "vhds"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    storage_account_name = "${azurerm_storage_account.test.name}"
+    container_access_type = "private"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name = "acctvmss-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name = "Standard_D1_v2"
+    tier = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm"
+    admin_username = "myadmin"
+    admin_password = "Passwword1234"
+  }
+
+  os_profile_windows_config {
+    enable_automatic_upgrades = false
+    provision_vm_agent = true
+
+    winrm {
+      protocol = "http"
+    }
+  }
+
+  network_profile {
+      name = "TestNetworkProfile-%d"
+      primary = true
+      ip_configuration {
+        name = "TestIPConfiguration"
+        subnet_id = "${azurerm_subnet.test.id}"
+      }
+  }
+
+  storage_profile_os_disk {
+    name = "osDiskProfile"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
+    version   = "latest"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachineScaleSet_singlePlacementGroupFalse(rInt int, location string) string {
