@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
+	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
@@ -109,6 +110,7 @@ type ArmClient struct {
 	trafficManagerProfilesClient  trafficmanager.ProfilesClient
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
+	searchServicesClient          search.ServicesClient
 	serviceBusNamespacesClient    servicebus.NamespacesClient
 	serviceBusQueuesClient        servicebus.QueuesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
@@ -517,6 +519,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rdc.Authorizer = auth
 	rdc.Sender = autorest.CreateSender(withRequestLogging())
 	client.redisClient = rdc
+
+	sesc := search.NewServicesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sesc.Client)
+	sesc.Authorizer = auth
+	sesc.Sender = autorest.CreateSender(withRequestLogging())
+	client.searchServicesClient = sesc
 
 	sbnc := servicebus.NewNamespacesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sbnc.Client)

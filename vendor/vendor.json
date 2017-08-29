@@ -131,6 +131,14 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
+			"checksumSHA1": "uynmf605xpu1FyfD+bmt32ab6eQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/search",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z",
+			"version": "=v10.3.0-beta",
+			"versionExact": "v10.3.0-beta"
+		},
+		{
 			"checksumSHA1": "b1ekMKqRHDX/sFBquWhRmodxKI8=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/servicebus",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
@@ -163,16 +171,16 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
-			"checksumSHA1": "EIFhjVyipEiPt8ajjsYddMThIWc=",
-			"path": "github.com/Azure/azure-sdk-for-go/dataplane/keyvault",
+			"checksumSHA1": "PBefmgCVsIElMuypHfMgBBFiEZQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/web",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
 			"revisionTime": "2017-08-18T20:19:01Z",
 			"version": "=v10.3.0-beta",
 			"versionExact": "v10.3.0-beta"
 		},
 		{
-			"checksumSHA1": "PBefmgCVsIElMuypHfMgBBFiEZQ=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/web",
+			"checksumSHA1": "EIFhjVyipEiPt8ajjsYddMThIWc=",
+			"path": "github.com/Azure/azure-sdk-for-go/dataplane/keyvault",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
 			"revisionTime": "2017-08-18T20:19:01Z",
 			"version": "=v10.3.0-beta",
@@ -793,12 +801,6 @@
 		{
 			"checksumSHA1": "hD8LA+lIAv6MB82Db29L71c2Jjc=",
 			"path": "github.com/jen20/riviera/azure",
-			"revision": "6d39def2c43fa5854b413c44da7a2fef012e464d",
-			"revisionTime": "2017-07-28T08:41:01Z"
-		},
-		{
-			"checksumSHA1": "zVXx6ha3bt0N4ukRbRHXjSl91S4=",
-			"path": "github.com/jen20/riviera/search",
 			"revision": "6d39def2c43fa5854b413c44da7a2fef012e464d",
 			"revisionTime": "2017-07-28T08:41:01Z"
 		},
