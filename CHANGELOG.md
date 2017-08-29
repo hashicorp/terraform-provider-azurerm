@@ -9,12 +9,13 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_image` - added a default to the `caching` field [GH-259]
+* `azurerm_key_vault` - validation for the `name` field [GH-270]
 * `azurerm_network_interface` - support for multiple IP Configurations / setting the Primary IP Configuration [GH-245]
 * `azurerm_sql_server` - added checks to handle `name` not being globally unique [GH-189]
 * `azurerm_sql_server` - making `administrator_login` `ForceNew` [GH-189]
 * `azurerm_sql_server` - migrate to using the azure-sdk-for-go [GH-189]
 * `azurerm_virtual_machine` - Force recreation if `storage_data_disk`.`create_option` changes [GH-240]
-* `azurerm_key_vault` - validation for the `name` field [GH-270]
+* `azurerm_virtual_machine_scale_set` - Fix address issue when setting the `winrm` block [GH-271]
 * updating to `v10.3.0-beta` of the Azure SDK for Go [GH-258]
 
 BUG FIXES:
