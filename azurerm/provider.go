@@ -268,7 +268,7 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 			"Microsoft.EventGrid":         struct{}{},
 			"Microsoft.EventHub":          struct{}{},
 			"Microsoft.KeyVault":          struct{}{},
-			"Microsoft.Insights":          struct{}{},
+			"microsoft.insights":          struct{}{},
 			"Microsoft.Network":           struct{}{},
 			"Microsoft.Resources":         struct{}{},
 			"Microsoft.Search":            struct{}{},
