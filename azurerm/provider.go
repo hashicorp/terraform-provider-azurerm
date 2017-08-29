@@ -251,6 +251,41 @@ func registerProviderWithSubscription(providerName string, client resources.Prov
 
 var providerRegistrationOnce sync.Once
 
+func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
+	providers := map[string]struct{}{
+		"Microsoft.Cache":             struct{}{},
+		"Microsoft.Cdn":               struct{}{},
+		"Microsoft.Compute":           struct{}{},
+		"Microsoft.ContainerRegistry": struct{}{},
+		"Microsoft.ContainerService":  struct{}{},
+		"Microsoft.DocumentDB":        struct{}{},
+		"Microsoft.EventGrid":         struct{}{},
+		"Microsoft.EventHub":          struct{}{},
+		"Microsoft.KeyVault":          struct{}{},
+		"microsoft.insights":          struct{}{},
+		"Microsoft.Network":           struct{}{},
+		"Microsoft.Resources":         struct{}{},
+		"Microsoft.Search":            struct{}{},
+		"Microsoft.ServiceBus":        struct{}{},
+		"Microsoft.Sql":               struct{}{},
+		"Microsoft.Storage":           struct{}{},
+	}
+
+	// filter out any providers already registered
+	for _, p := range providerList {
+		if _, ok := providers[*p.Namespace]; !ok {
+			continue
+		}
+
+		if strings.ToLower(*p.RegistrationState) == "registered" {
+			log.Printf("[DEBUG] Skipping provider registration for namespace %s\n", *p.Namespace)
+			delete(providers, *p.Namespace)
+		}
+	}
+
+	return providers
+}
+
 // registerAzureResourceProvidersWithSubscription uses the providers client to register
 // all Azure resource providers which the Terraform provider may require (regardless of
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
@@ -258,36 +293,8 @@ var providerRegistrationOnce sync.Once
 func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
 	var err error
 	providerRegistrationOnce.Do(func() {
-		providers := map[string]struct{}{
-			"Microsoft.Cache":             struct{}{},
-			"Microsoft.Cdn":               struct{}{},
-			"Microsoft.Compute":           struct{}{},
-			"Microsoft.ContainerRegistry": struct{}{},
-			"Microsoft.ContainerService":  struct{}{},
-			"Microsoft.DocumentDB":        struct{}{},
-			"Microsoft.EventGrid":         struct{}{},
-			"Microsoft.EventHub":          struct{}{},
-			"Microsoft.KeyVault":          struct{}{},
-			"microsoft.insights":          struct{}{},
-			"Microsoft.Network":           struct{}{},
-			"Microsoft.Resources":         struct{}{},
-			"Microsoft.Search":            struct{}{},
-			"Microsoft.ServiceBus":        struct{}{},
-			"Microsoft.Sql":               struct{}{},
-			"Microsoft.Storage":           struct{}{},
-		}
 
-		// filter out any providers already registered
-		for _, p := range providerList {
-			if _, ok := providers[*p.Namespace]; !ok {
-				continue
-			}
-
-			if strings.ToLower(*p.RegistrationState) == "registered" {
-				log.Printf("[DEBUG] Skipping provider registration for namespace %s\n", *p.Namespace)
-				delete(providers, *p.Namespace)
-			}
-		}
+		providers := determineAzureResourceProvidersToRegister(providerList)
 
 		var wg sync.WaitGroup
 		wg.Add(len(providers))
