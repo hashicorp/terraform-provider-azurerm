@@ -24,19 +24,17 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMSearchService_updateReplicaCountAndTags(t *testing.T) {
+func TestAccAzureRMSearchService_complete(t *testing.T) {
 	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
-	location := testLocation()
-	preConfig := testAccAzureRMSearchService_basic(ri, location)
-	postConfig := testAccAzureRMSearchService_updated(ri, location)
+	config := testAccAzureRMSearchService_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -44,16 +42,7 @@ func TestAccAzureRMSearchService_updateReplicaCountAndTags(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "replica_count", "1"),
-				),
-			},
-
-			{
-				Config: postConfig,
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -128,13 +117,12 @@ resource "azurerm_search_service" "test" {
 
     tags {
     	environment = "staging"
-    	database = "test"
     }
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMSearchService_updated(rInt int, location string) string {
+func testAccAzureRMSearchService_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
