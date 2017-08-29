@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -83,10 +84,17 @@ func testArmEnvironment() (*azure.Environment, error) {
 	return &env, nil
 }
 
-func TestAzureRMResourceProviderRegistration(t *testing.T) {
-	testAccPreCheck(t)
-
+func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
 	environment := testArmEnvironmentName()
+
+	if os.Getenv(resource.TestEnvVar) == "" {
+		t.Skip(fmt.Sprintf(
+			"Integration test skipped unless env '%s' set",
+			resource.TestEnvVar))
+		return
+	}
+
+	// we deliberately don't use the main config - since we care about
 	config := Config{
 		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
 		ClientID:                 os.Getenv("ARM_CLIENT_ID"),
