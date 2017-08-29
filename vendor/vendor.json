@@ -805,12 +805,6 @@
 			"revisionTime": "2017-07-28T08:41:01Z"
 		},
 		{
-			"checksumSHA1": "zVXx6ha3bt0N4ukRbRHXjSl91S4=",
-			"path": "github.com/jen20/riviera/search",
-			"revision": "6d39def2c43fa5854b413c44da7a2fef012e464d",
-			"revisionTime": "2017-07-28T08:41:01Z"
-		},
-		{
 			"checksumSHA1": "gZWAvYUikitg+7l2y8cOR42gPyo=",
 			"path": "github.com/jen20/riviera/sql",
 			"revision": "6d39def2c43fa5854b413c44da7a2fef012e464d",
