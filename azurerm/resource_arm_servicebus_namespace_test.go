@@ -6,10 +6,61 @@ import (
 	"regexp"
 	"testing"
 
+	"log"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_servicebus_namespace", &resource.Sweeper{
+		Name: "azurerm_servicebus_namespace",
+		F:    testSweepServicebusNamespace,
+	})
+}
+
+func testSweepServicebusNamespace(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).serviceBusNamespacesClient
+
+	log.Printf("Retrieving the Servicebus Namespaces..")
+	results, err := client.ListBySubscription()
+	if err != nil {
+		return fmt.Errorf("Error Listing on Servicebus Namespaces: %+v", err)
+	}
+
+	for _, profile := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+			continue
+		}
+
+		resourceId, err := parseAzureResourceID(*profile.ID)
+		if err != nil {
+			return err
+		}
+
+		resourceGroup := resourceId.ResourceGroup
+		name := resourceId.Path["namespaces"]
+
+		log.Printf("Deleting Servicebus Namespace '%s' in Resource Group '%s'", name, resourceGroup)
+		deleteResponse, error := client.Delete(resourceGroup, name, make(chan struct{}))
+		err = <-error
+		resp := <-deleteResponse
+		if err != nil {
+			if responseWasNotFound(resp) {
+				return nil
+			}
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMServiceBusNamespaceCapacity_validation(t *testing.T) {
 	cases := []struct {
