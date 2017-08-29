@@ -31,7 +31,6 @@ func TestAccAzureRMSearchService_importBasic(t *testing.T) {
 	})
 }
 
-
 func TestAccAzureRMSearchService_importComplete(t *testing.T) {
 	resourceName := "azurerm_search_service.test"
 

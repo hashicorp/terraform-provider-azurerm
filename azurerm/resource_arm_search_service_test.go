@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/search"
 )
 
 func TestAccAzureRMSearchService_basic(t *testing.T) {
@@ -61,17 +60,19 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		searchName := rs.Primary.Attributes["name"]
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &search.GetSearchService{}
+		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
 
-		readResponse, err := readRequest.Execute()
+		resp, err := client.Get(resourceGroup, searchName, nil)
+
 		if err != nil {
+			if responseWasNotFound(resp.Response) {
+				return fmt.Errorf("Search Service '%s' (resource group '%s') was not found: %+v", searchName, resourceGroup, err)
+			}
+
 			return fmt.Errorf("Bad: GetSearchService: %+v", err)
-		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetSearchService: %+v", readResponse.Error)
 		}
 
 		return nil
@@ -79,24 +80,27 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_search_service" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &search.GetSearchService{}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		searchName := rs.Primary.Attributes["name"]
 
-		readResponse, err := readRequest.Execute()
+		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
+
+		resp, err := client.Get(resourceGroup, searchName, nil)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetSearchService: %+v", err)
+			if responseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: Search Service still exists: %+v", readResponse.Error)
-		}
+		return fmt.Errorf("Bad: Search Service '%s' (resource group '%s') still exists: %+v", searchName, resourceGroup, resp)
 	}
 
 	return nil
