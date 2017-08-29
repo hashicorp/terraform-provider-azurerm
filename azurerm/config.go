@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
 	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
@@ -93,6 +94,8 @@ type ArmClient struct {
 	resourceGroupClient resources.GroupsClient
 	tagsClient          resources.TagsClient
 	resourceFindClient  resources.GroupClient
+
+	subscriptionsGroupClient subscriptions.GroupClient
 
 	jobsClient            scheduler.JobsClient
 	jobsCollectionsClient scheduler.JobCollectionsClient
@@ -445,6 +448,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rf.Authorizer = auth
 	rf.Sender = autorest.CreateSender(withRequestLogging())
 	client.resourceFindClient = rf
+
+	subgc := subscriptions.NewGroupClientWithBaseURI(endpoint)
+	setUserAgent(&subgc.Client)
+	subgc.Authorizer = auth
+	subgc.Sender = autorest.CreateSender(withRequestLogging())
+	client.subscriptionsGroupClient = subgc
 
 	jc := scheduler.NewJobsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&jc.Client)
