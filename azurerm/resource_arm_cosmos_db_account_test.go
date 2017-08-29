@@ -25,6 +25,14 @@ func TestAccAzureRMCosmosDBAccountName_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
+			Value:    "cosmosDBAccount1",
+			ErrCount: 1,
+		},
+		{
+			Value:    "hello-world",
+			ErrCount: 0,
+		},
+		{
 			Value:    str,
 			ErrCount: 0,
 		},

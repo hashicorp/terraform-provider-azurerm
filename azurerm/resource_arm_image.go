@@ -83,7 +83,7 @@ func resourceArmImage() *schema.Resource {
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -127,7 +127,7 @@ func resourceArmImage() *schema.Resource {
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -301,7 +301,7 @@ func flattenAzureRmStorageProfileOsDisk(d *schema.ResourceData, storageProfile *
 			result["managed_disk_id"] = *osDisk.ManagedDisk.ID
 		}
 		result["blob_uri"] = *osDisk.BlobURI
-		result["caching"] = osDisk.Caching
+		result["caching"] = string(osDisk.Caching)
 		if osDisk.DiskSizeGB != nil {
 			result["size_gb"] = *osDisk.DiskSizeGB
 		}

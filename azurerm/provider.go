@@ -94,13 +94,16 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_dns_txt_record":   resourceArmDnsTxtRecord(),
 			"azurerm_dns_zone":         resourceArmDnsZone(),
 
+			"azurerm_eventgrid_topic":             resourceArmEventGridTopic(),
 			"azurerm_eventhub":                    resourceArmEventHub(),
 			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),
 			"azurerm_eventhub_consumer_group":     resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":          resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":       resourceArmExpressRouteCircuit(),
-			"azurerm_image":                       resourceArmImage(),
-			"azurerm_key_vault":                   resourceArmKeyVault(),
+
+			"azurerm_image":            resourceArmImage(),
+			"azurerm_key_vault":        resourceArmKeyVault(),
+			"azurerm_key_vault_secret": resourceArmKeyVaultSecret(),
 
 			"azurerm_lb":                      resourceArmLoadBalancer(),
 			"azurerm_lb_backend_address_pool": resourceArmLoadBalancerBackendAddressPool(),
@@ -141,6 +144,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_machine_scale_set": resourceArmVirtualMachineScaleSet(),
 			"azurerm_virtual_network":           resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_peering":   resourceArmVirtualNetworkPeering(),
+
+			"azurerm_app_service_plan": resourceArmAppServicePlan(),
 
 			// These resources use the Riviera SDK
 			"azurerm_resource_group":    resourceArmResourceGroup(),
@@ -266,6 +271,7 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 			"Microsoft.ContainerRegistry": struct{}{},
 			"Microsoft.ContainerService":  struct{}{},
 			"Microsoft.DocumentDB":        struct{}{},
+			"Microsoft.EventGrid":         struct{}{},
 			"Microsoft.EventHub":          struct{}{},
 			"Microsoft.KeyVault":          struct{}{},
 			"Microsoft.Insights":          struct{}{},

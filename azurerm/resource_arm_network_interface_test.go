@@ -28,6 +28,7 @@ func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,8 +38,8 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkInterface_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
-					testCheckAzureRMNetworkInterfaceDisappears("azurerm_network_interface.test"),
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					testCheckAzureRMNetworkInterfaceDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -46,7 +47,124 @@ func TestAccAzureRMNetworkInterface_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_setNetworkSecurityGroupId(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMNetworkInterface_basic(rInt, location)
+	updatedConfig := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterface_removeNetworkSecurityGroupId(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt, location)
+	updatedConfig := testAccAzureRMNetworkInterface_basic(rInt, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_security_group_id", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterface_multipleSubnets(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterface_multipleSubnetsPrimary(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMNetworkInterface_multipleSubnets(rInt, location)
+	updatedConfig := testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(rInt, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.primary", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "testconfiguration1"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.primary", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.name", "testconfiguration2"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.primary", "true"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "testconfiguration2"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.primary", "false"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.1.name", "testconfiguration1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -56,9 +174,8 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkInterface_ipForwarding(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_interface.test", "enable_ip_forwarding", "true"),
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_ip_forwarding", "true"),
 				),
 			},
 		},
@@ -84,6 +201,7 @@ func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -93,23 +211,18 @@ func TestAccAzureRMNetworkInterface_withTags(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkInterface_withTags(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_interface.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_interface.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_interface.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
 			{
 				Config: testAccAzureRMNetworkInterface_withTagsUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkInterfaceExists("azurerm_network_interface.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_interface.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_interface.test", "tags.environment", "staging"),
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -179,8 +292,8 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 
 		conn := testAccProvider.Meta().(*ArmClient).ifaceClient
 
-		_, error := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-error
+		_, deleteErr := conn.Delete(resourceGroup, name, make(chan struct{}))
+		err := <-deleteErr
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on ifaceClient: %+v", err)
 		}
@@ -203,12 +316,14 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name, "")
 
 		if err != nil {
-			return nil
+			if responseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Network Interface still exists:\n%#v", resp.InterfacePropertiesFormat)
-		}
+		return fmt.Errorf("Network Interface still exists:\n%#v", resp.InterfacePropertiesFormat)
 	}
 
 	return nil
@@ -222,7 +337,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -236,7 +351,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acceptanceTestNetworkInterface1"
+  name                = "acctestni-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -246,7 +361,133 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "dynamic"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_basicWithNetworkSecurityGroup(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_multipleSubnets(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+    primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration2"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_multipleSubnetsUpdatedPrimary(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfiguration2"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+    primary                       = true
+  }
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_ipForwarding(rInt int, location string) string {
@@ -257,7 +498,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -271,7 +512,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                 = "acceptanceTestNetworkInterface1"
+  name                 = "acctestni-%d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
@@ -282,7 +523,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "dynamic"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_withTags(rInt int, location string) string {
@@ -293,7 +534,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -307,7 +548,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acceptanceTestNetworkInterface1"
+  name                = "acctestni-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -322,7 +563,7 @@ resource "azurerm_network_interface" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_withTagsUpdate(rInt int, location string) string {
@@ -333,7 +574,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -347,7 +588,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acceptanceTestNetworkInterface1"
+  name                = "acctestni-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -361,7 +602,7 @@ resource "azurerm_network_interface" "test" {
     environment = "staging"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_multipleLoadBalancers(rInt int, location string) string {
@@ -372,7 +613,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -386,14 +627,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "testext" {
-  name                         = "testpublicipext"
+  name                         = "acctestpip-%d"
   location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "testext" {
-  name                = "testlbext"
+  name                = "acctestlb-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -459,7 +700,7 @@ resource "azurerm_lb_nat_rule" "testint" {
 }
 
 resource "azurerm_network_interface" "test1" {
-  name                 = "acceptanceTestNetworkInterface1"
+  name                 = "acctestnic1-%d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
@@ -477,7 +718,7 @@ resource "azurerm_network_interface" "test1" {
 }
 
 resource "azurerm_network_interface" "test2" {
-  name                 = "acceptanceTestNetworkInterface2"
+  name                 = "acctestnic2-%d"
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
@@ -493,7 +734,7 @@ resource "azurerm_network_interface" "test2" {
     ]
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_bug7986(rInt int, location string) string {
@@ -608,7 +849,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+  name                = "acctestvn-%d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -641,5 +882,5 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt)
 }

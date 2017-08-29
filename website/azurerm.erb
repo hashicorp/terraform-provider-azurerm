@@ -42,6 +42,17 @@
               </ul>
             </li>
 
+            <li<%= sidebar_current("docs-azurerm-resource-app-service") %>>
+              <a href="#">App Service (Web Apps) Resources</a>
+              <ul class="nav nav-visible">
+
+                <li<%= sidebar_current("docs-azurerm-resource-app-service-plan") %>>
+                  <a href="/docs/providers/azurerm/r/app_service_plan.html">azurerm_app_service_plan</a>
+                </li>
+
+              </ul>
+            </li>
+
             <li<%= sidebar_current("docs-azurerm-resource-application-insights") %>>
               <a href="#">Application Insights Resources</a>
               <ul class="nav nav-visible">
@@ -137,31 +148,18 @@
                 </ul>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
-              <a href="#">Event Hubs</a>
-              <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
-                  <a href="/docs/providers/azurerm/r/eventhub.html">azurerm_eventhub</a>
-                </li>
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub-authorization-rule") %>>
-                  <a href="/docs/providers/azurerm/r/eventhub_authorization_rule.html">azurerm_eventhub_authorization_rule</a>
-                </li>
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub-consumer-group") %>>
-                  <a href="/docs/providers/azurerm/r/eventhub_consumer_group.html">azurerm_eventhub_consumer_group</a>
-                </li>
-                <li<%= sidebar_current("docs-azurerm-resource-eventhub-namespace") %>>
-                  <a href="/docs/providers/azurerm/r/eventhub_namespace.html">azurerm_eventhub_namespace</a>
-                </li>
-              </ul>
-            </li>
-
             <li<%= sidebar_current("docs-azurerm-resource-key-vault") %>>
               <a href="#">Key Vault Resources</a>
               <ul class="nav nav-visible">
 
-                <li<%= sidebar_current("docs-azurerm-resource-key-vault") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-key-vault-x") %>>
                   <a href="/docs/providers/azurerm/r/key_vault.html">azurerm_key_vault</a>
                 </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-key-vault-secret") %>>
+                  <a href="/docs/providers/azurerm/r/key_vault_secret.html">azurerm_key_vault_secret</a>
+                </li>
+
               </ul>
             </li>
 
@@ -204,7 +202,45 @@
                 </li>
                 <li<%= sidebar_current("docs-azurerm-resource-image") %>>
                   <a href="/docs/providers/azurerm/r/image.html">azurerm_image</a>
-                </li>                
+                </li>
+              </ul>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
+              <a href="#">Messaging Resources</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-resource-eventgrid-topic") %>>
+                  <a href="/docs/providers/azurerm/r/eventgrid_topic.html">azurerm_eventgrid_topic</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
+                  <a href="/docs/providers/azurerm/r/eventhub.html">azurerm_eventhub</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-resource-eventhub-authorization-rule") %>>
+                  <a href="/docs/providers/azurerm/r/eventhub_authorization_rule.html">azurerm_eventhub_authorization_rule</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-resource-eventhub-consumer-group") %>>
+                  <a href="/docs/providers/azurerm/r/eventhub_consumer_group.html">azurerm_eventhub_consumer_group</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-resource-eventhub-namespace") %>>
+                  <a href="/docs/providers/azurerm/r/eventhub_namespace.html">azurerm_eventhub_namespace</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-servicebus-namespace") %>>
+                  <a href="/docs/providers/azurerm/r/servicebus_namespace.html">azurerm_servicebus_namespace</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-servicebus-queue") %>>
+                  <a href="/docs/providers/azurerm/r/servicebus_queue.html">azurerm_servicebus_queue</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-servicebus-subscription") %>>
+                  <a href="/docs/providers/azurerm/r/servicebus_subscription.html">azurerm_servicebus_subscription</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-servicebus-topic") %>>
+                  <a href="/docs/providers/azurerm/r/servicebus_topic.html">azurerm_servicebus_topic</a>
+                </li>
               </ul>
             </li>
 
@@ -280,27 +316,6 @@
               <ul class="nav nav-visible">
                 <li<%= sidebar_current("docs-azurerm-resource-search-service") %>>
                   <a href="/docs/providers/azurerm/r/search_service.html">azurerm_search_service</a>
-                </li>
-              </ul>
-            </li>
-
-            <li<%= sidebar_current("docs-azurerm-resource-servicebus") %>>
-              <a href="#">ServiceBus</a>
-              <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-namespace") %>>
-                  <a href="/docs/providers/azurerm/r/servicebus_namespace.html">azurerm_servicebus_namespace</a>
-                </li>
-
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-queue") %>>
-                  <a href="/docs/providers/azurerm/r/servicebus_queue.html">azurerm_servicebus_queue</a>
-                </li>
-
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-subscription") %>>
-                  <a href="/docs/providers/azurerm/r/servicebus_subscription.html">azurerm_servicebus_subscription</a>
-                </li>
-
-                <li<%= sidebar_current("docs-azurerm-resource-servicebus-topic") %>>
-                  <a href="/docs/providers/azurerm/r/servicebus_topic.html">azurerm_servicebus_topic</a>
                 </li>
               </ul>
             </li>
