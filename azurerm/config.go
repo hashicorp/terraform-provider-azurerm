@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
+	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
@@ -35,7 +36,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
-	riviera "github.com/jen20/riviera/azure"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -47,8 +47,6 @@ type ArmClient struct {
 	environment    azure.Environment
 
 	StopContext context.Context
-
-	rivieraClient *riviera.Client
 
 	availSetClient         compute.AvailabilitySetsClient
 	usageOpsClient         compute.UsageClient
@@ -114,6 +112,7 @@ type ArmClient struct {
 	trafficManagerProfilesClient  trafficmanager.ProfilesClient
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
+	searchServicesClient          search.ServicesClient
 	serviceBusNamespacesClient    servicebus.NamespacesClient
 	serviceBusQueuesClient        servicebus.QueuesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
@@ -122,8 +121,10 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
-	sqlElasticPoolsClient sql.ElasticPoolsClient
-	sqlServersClient      sql.ServersClient
+	sqlDatabasesClient     sql.DatabasesClient
+	sqlElasticPoolsClient  sql.ElasticPoolsClient
+	sqlFirewallRulesClient sql.FirewallRulesClient
+	sqlServersClient       sql.ServersClient
 
 	appServicePlansClient web.AppServicePlansClient
 
@@ -188,19 +189,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 		subscriptionId: c.SubscriptionID,
 		environment:    env,
 	}
-
-	rivieraClient, err := riviera.NewClient(&riviera.AzureResourceManagerCredentials{
-		ClientID:                c.ClientID,
-		ClientSecret:            c.ClientSecret,
-		TenantID:                c.TenantID,
-		SubscriptionID:          c.SubscriptionID,
-		ResourceManagerEndpoint: env.ResourceManagerEndpoint,
-		ActiveDirectoryEndpoint: env.ActiveDirectoryEndpoint,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Error creating Riviera client: %s", err)
-	}
-	client.rivieraClient = rivieraClient
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
 	if err != nil {
@@ -523,6 +511,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rdc.Sender = autorest.CreateSender(withRequestLogging())
 	client.redisClient = rdc
 
+	sesc := search.NewServicesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sesc.Client)
+	sesc.Authorizer = auth
+	sesc.Sender = autorest.CreateSender(withRequestLogging())
+	client.searchServicesClient = sesc
+
 	sbnc := servicebus.NewNamespacesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sbnc.Client)
 	sbnc.Authorizer = auth
@@ -546,6 +540,18 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbsc.Authorizer = auth
 	sbsc.Sender = autorest.CreateSender(withRequestLogging())
 	client.serviceBusSubscriptionsClient = sbsc
+
+	sqldc := sql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sqldc.Client)
+	sqldc.Authorizer = auth
+	sqldc.Sender = autorest.CreateSender(withRequestLogging())
+	client.sqlDatabasesClient = sqldc
+
+	sqlfrc := sql.NewFirewallRulesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sqlfrc.Client)
+	sqlfrc.Authorizer = auth
+	sqlfrc.Sender = autorest.CreateSender(withRequestLogging())
+	client.sqlFirewallRulesClient = sqlfrc
 
 	sqlepc := sql.NewElasticPoolsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sqlepc.Client)

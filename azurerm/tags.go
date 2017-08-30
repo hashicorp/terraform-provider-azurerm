@@ -16,6 +16,16 @@ func tagsSchema() *schema.Schema {
 	}
 }
 
+func tagsForceNewSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeMap,
+		Optional:     true,
+		Computed:     true,
+		ForceNew:     true,
+		ValidateFunc: validateAzureRMTags,
+	}
+}
+
 func tagsForDataSourceSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeMap,

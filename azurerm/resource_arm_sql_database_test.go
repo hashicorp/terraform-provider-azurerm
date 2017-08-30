@@ -8,44 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/sql"
 )
-
-func TestResourceAzureRMSqlDatabaseEdition_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Basic",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium",
-			ErrCount: 0,
-		},
-		{
-			Value:    "DataWarehouse",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateArmSqlDatabaseEdition(tc.Value, "azurerm_sql_database")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM SQL Database edition to trigger a validation error")
-		}
-	}
-}
 
 func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	ri := acctest.RandInt()
@@ -66,7 +29,30 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlDatabase_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					testCheckAzureRMSqlDatabaseDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlDatabase_elasticPool(ri, testLocation())
 
@@ -78,8 +64,8 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
-					resource.TestCheckResourceAttr("azurerm_sql_database.test", "elastic_pool_name", fmt.Sprintf("acctestep%d", ri)),
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "elastic_pool_name", fmt.Sprintf("acctestep%d", ri)),
 				),
 			},
 		},
@@ -87,6 +73,7 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_withTags(ri, location)
@@ -100,17 +87,15 @@ func TestAccAzureRMSqlDatabase_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_sql_database.test", "tags.%", "2"),
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_sql_database.test", "tags.%", "1"),
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 		},
@@ -137,6 +122,7 @@ func TestAccAzureRMSqlDatabase_dataWarehouse(t *testing.T) {
 }
 
 func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMSqlDatabase_basic(ri, location)
@@ -153,14 +139,14 @@ func TestAccAzureRMSqlDatabase_restorePointInTime(t *testing.T) {
 				Config: preConfig,
 				PreventPostDestroyRefresh: true,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+					testCheckAzureRMSqlDatabaseExists(resourceName),
 				),
 			},
 			{
 				PreConfig: func() { time.Sleep(timeToRestore.Sub(time.Now().Add(-1 * time.Minute))) },
 				Config:    postCongif,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+					testCheckAzureRMSqlDatabaseExists(resourceName),
 					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test_restore"),
 				),
 			},
@@ -176,17 +162,19 @@ func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		databaseName := rs.Primary.Attributes["name"]
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetDatabase{}
+		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
 
-		readResponse, err := readRequest.Execute()
+		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
 		if err != nil {
-			return fmt.Errorf("Bad: GetDatabase: %s", err)
-		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetDatabase: %s", readResponse.Error)
+			if responseWasNotFound(resp.Response) {
+				return fmt.Errorf("SQL Database %q (server %q / resource group %q) was not found", databaseName, serverName, resourceGroup)
+			}
+
+			return err
 		}
 
 		return nil
@@ -194,27 +182,53 @@ func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_database" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetDatabase{}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		databaseName := rs.Primary.Attributes["name"]
 
-		readResponse, err := readRequest.Execute()
+		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+
+		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
 		if err != nil {
-			return fmt.Errorf("Bad: GetDatabase: %s", err)
+			if responseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: SQL Database still exists: %s", readResponse.Error)
-		}
+		return fmt.Errorf("SQL Database %q (server %q / resource group %q) still exists: %+v", databaseName, serverName, resourceGroup, resp)
 	}
 
 	return nil
+}
+
+func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		databaseName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+
+		_, err := client.Delete(resourceGroup, serverName, databaseName)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on sqlDatabasesClient: %+v", err)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMSqlDatabase_basic(rInt int, location string) string {

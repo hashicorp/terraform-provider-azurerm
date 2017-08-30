@@ -14,14 +14,14 @@ Allows you to manage an Azure SQL Elastic Pool.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "test"
+  name = "my-resource-group"
   location = "West US"
 }
 
 resource "azurerm_sql_server" "test" {
-    name = "test"
+    name = "my-sql-server" # NOTE: needs to be globally unique
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     version = "12.0"
     administrator_login = "4dm1n157r470r"
     administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -30,10 +30,10 @@ resource "azurerm_sql_server" "test" {
 resource "azurerm_sql_elasticpool" "test" {
     name = "test"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     server_name = "${azurerm_sql_server.test.name}"
     edition = "Basic"
-    dtu = 100
+    dtu = 50
     db_dtu_min = 0
     db_dtu_max = 5
     pool_size = 5000
@@ -46,7 +46,7 @@ resource "azurerm_sql_elasticpool" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the elastic pool.
+* `name` - (Required) The name of the elastic pool. This needs to be globally unique. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the elastic pool. This must be the same as the resource group of the underlying SQL server.
 
