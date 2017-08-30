@@ -70,3 +70,12 @@ The following attributes are exported:
 * `id` - The SQL Database ID.
 * `creation_data` - The creation date of the SQL Database.
 * `default_secondary_location` - The default secondary location of the SQL Database.
+
+## Import
+
+SQL Databases can be imported using the `resource id`, e.g.
+
+```
+terraform import azurerm_sql_database.database1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/databases/database1
+```
+

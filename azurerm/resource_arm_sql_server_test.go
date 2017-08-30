@@ -2,12 +2,57 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_sql_server", &resource.Sweeper{
+		Name: "azurerm_sql_server",
+		F:    testSweepSQLServer,
+	})
+}
+
+func testSweepSQLServer(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).sqlServersClient
+
+	log.Printf("Retrieving the SQL Servers..")
+	results, err := client.List()
+	if err != nil {
+		return fmt.Errorf("Error Listing on SQL Servers: %+v", err)
+	}
+
+	for _, server := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*server.Name, *server.Location, region) {
+			continue
+		}
+
+		resourceId, err := parseAzureResourceID(*server.ID)
+		if err != nil {
+			return err
+		}
+
+		resourceGroup := resourceId.ResourceGroup
+		name := resourceId.Path["servers"]
+
+		log.Printf("Deleting SQL Server '%s' in Resource Group '%s'", name, resourceGroup)
+		_, err = client.Delete(resourceGroup, name)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	ri := acctest.RandInt()
@@ -23,6 +68,28 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists("azurerm_sql_server.test"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlServer_disappears(t *testing.T) {
+	resourceName := "azurerm_sql_server.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlServer_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+					testCheckAzureRMSqlServerDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -111,6 +178,28 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
+
+		_, err := client.Delete(resourceGroup, serverName)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on sqlServersClient: %+v", err)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMSqlServer_basic(rInt int, location string) string {

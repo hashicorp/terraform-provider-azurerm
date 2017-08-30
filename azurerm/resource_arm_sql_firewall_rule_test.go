@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/sql"
 )
 
 func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
@@ -41,25 +40,48 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
+	resourceName := "azurerm_sql_firewall_rule.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlFirewallRule_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlFirewallRuleExists(resourceName),
+					testCheckAzureRMSqlFirewallRuleDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		ruleName := rs.Primary.Attributes["name"]
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetFirewallRule{}
+		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
 
-		readResponse, err := readRequest.Execute()
+		resp, err := client.Get(resourceGroup, serverName, ruleName)
 		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %+v", err)
-		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetFirewallRule: %+v", readResponse.Error)
+			if responseWasNotFound(resp.Response) {
+				return fmt.Errorf("SQL Firewall Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
+			}
+
+			return err
 		}
 
 		return nil
@@ -67,27 +89,53 @@ func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_firewall_rule" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetFirewallRule{}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		ruleName := rs.Primary.Attributes["name"]
 
-		readResponse, err := readRequest.Execute()
+		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+
+		resp, err := client.Get(resourceGroup, serverName, ruleName)
 		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %+v", err)
+			if responseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: SQL Server Firewall Rule still exists: %+v", readResponse.Error)
-		}
+		return fmt.Errorf("SQL Firewall Rule %q (server %q / resource group %q) still exists: %+v", ruleName, serverName, resourceGroup, resp)
 	}
 
 	return nil
+}
+
+func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		ruleName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+
+		_, err := client.Delete(resourceGroup, serverName, ruleName)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on sqlFirewallRulesClient: %+v", err)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMSqlFirewallRule_basic(rInt int, location string) string {

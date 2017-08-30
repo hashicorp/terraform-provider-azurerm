@@ -6,17 +6,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/mutexkv"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	riviera "github.com/jen20/riviera/azure"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -69,84 +66,72 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			// These resources use the Azure ARM SDK
-			"azurerm_application_insights": resourceArmApplicationInsights(),
-			"azurerm_availability_set":     resourceArmAvailabilitySet(),
-			"azurerm_cdn_endpoint":         resourceArmCdnEndpoint(),
-			"azurerm_cdn_profile":          resourceArmCdnProfile(),
-			"azurerm_container_registry":   resourceArmContainerRegistry(),
-			"azurerm_container_service":    resourceArmContainerService(),
-			"azurerm_cosmosdb_account":     resourceArmCosmosDBAccount(),
-
-			"azurerm_dns_a_record":     resourceArmDnsARecord(),
-			"azurerm_dns_aaaa_record":  resourceArmDnsAAAARecord(),
-			"azurerm_dns_cname_record": resourceArmDnsCNameRecord(),
-			"azurerm_dns_mx_record":    resourceArmDnsMxRecord(),
-			"azurerm_dns_ns_record":    resourceArmDnsNsRecord(),
-			"azurerm_dns_ptr_record":   resourceArmDnsPtrRecord(),
-			"azurerm_dns_srv_record":   resourceArmDnsSrvRecord(),
-			"azurerm_dns_txt_record":   resourceArmDnsTxtRecord(),
-			"azurerm_dns_zone":         resourceArmDnsZone(),
-
+			"azurerm_application_insights":        resourceArmApplicationInsights(),
+			"azurerm_app_service_plan":            resourceArmAppServicePlan(),
+			"azurerm_availability_set":            resourceArmAvailabilitySet(),
+			"azurerm_cdn_endpoint":                resourceArmCdnEndpoint(),
+			"azurerm_cdn_profile":                 resourceArmCdnProfile(),
+			"azurerm_container_registry":          resourceArmContainerRegistry(),
+			"azurerm_container_service":           resourceArmContainerService(),
+			"azurerm_cosmosdb_account":            resourceArmCosmosDBAccount(),
+			"azurerm_dns_a_record":                resourceArmDnsARecord(),
+			"azurerm_dns_aaaa_record":             resourceArmDnsAAAARecord(),
+			"azurerm_dns_cname_record":            resourceArmDnsCNameRecord(),
+			"azurerm_dns_mx_record":               resourceArmDnsMxRecord(),
+			"azurerm_dns_ns_record":               resourceArmDnsNsRecord(),
+			"azurerm_dns_ptr_record":              resourceArmDnsPtrRecord(),
+			"azurerm_dns_srv_record":              resourceArmDnsSrvRecord(),
+			"azurerm_dns_txt_record":              resourceArmDnsTxtRecord(),
+			"azurerm_dns_zone":                    resourceArmDnsZone(),
 			"azurerm_eventgrid_topic":             resourceArmEventGridTopic(),
 			"azurerm_eventhub":                    resourceArmEventHub(),
 			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),
 			"azurerm_eventhub_consumer_group":     resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":          resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":       resourceArmExpressRouteCircuit(),
-
-			"azurerm_image":            resourceArmImage(),
-			"azurerm_key_vault":        resourceArmKeyVault(),
-			"azurerm_key_vault_secret": resourceArmKeyVaultSecret(),
-
-			"azurerm_lb":                      resourceArmLoadBalancer(),
-			"azurerm_lb_backend_address_pool": resourceArmLoadBalancerBackendAddressPool(),
-			"azurerm_lb_nat_rule":             resourceArmLoadBalancerNatRule(),
-			"azurerm_lb_nat_pool":             resourceArmLoadBalancerNatPool(),
-			"azurerm_lb_probe":                resourceArmLoadBalancerProbe(),
-			"azurerm_lb_rule":                 resourceArmLoadBalancerRule(),
-			"azurerm_local_network_gateway":   resourceArmLocalNetworkGateway(),
-
-			"azurerm_managed_disk":           resourceArmManagedDisk(),
-			"azurerm_network_interface":      resourceArmNetworkInterface(),
-			"azurerm_network_security_group": resourceArmNetworkSecurityGroup(),
-			"azurerm_network_security_rule":  resourceArmNetworkSecurityRule(),
-			"azurerm_public_ip":              resourceArmPublicIp(),
-
-			"azurerm_redis_cache": resourceArmRedisCache(),
-			"azurerm_route":       resourceArmRoute(),
-			"azurerm_route_table": resourceArmRouteTable(),
-
-			"azurerm_servicebus_namespace":    resourceArmServiceBusNamespace(),
-			"azurerm_servicebus_queue":        resourceArmServiceBusQueue(),
-			"azurerm_servicebus_subscription": resourceArmServiceBusSubscription(),
-			"azurerm_servicebus_topic":        resourceArmServiceBusTopic(),
-			"azurerm_sql_elasticpool":         resourceArmSqlElasticPool(),
-			"azurerm_storage_account":         resourceArmStorageAccount(),
-			"azurerm_storage_blob":            resourceArmStorageBlob(),
-			"azurerm_storage_container":       resourceArmStorageContainer(),
-			"azurerm_storage_share":           resourceArmStorageShare(),
-			"azurerm_storage_queue":           resourceArmStorageQueue(),
-			"azurerm_storage_table":           resourceArmStorageTable(),
-			"azurerm_subnet":                  resourceArmSubnet(),
-
-			"azurerm_template_deployment":       resourceArmTemplateDeployment(),
-			"azurerm_traffic_manager_endpoint":  resourceArmTrafficManagerEndpoint(),
-			"azurerm_traffic_manager_profile":   resourceArmTrafficManagerProfile(),
-			"azurerm_virtual_machine_extension": resourceArmVirtualMachineExtensions(),
-			"azurerm_virtual_machine":           resourceArmVirtualMachine(),
-			"azurerm_virtual_machine_scale_set": resourceArmVirtualMachineScaleSet(),
-			"azurerm_virtual_network":           resourceArmVirtualNetwork(),
-			"azurerm_virtual_network_peering":   resourceArmVirtualNetworkPeering(),
-
-			"azurerm_app_service_plan": resourceArmAppServicePlan(),
-
-			// These resources use the Riviera SDK
-			"azurerm_resource_group":    resourceArmResourceGroup(),
-			"azurerm_search_service":    resourceArmSearchService(),
-			"azurerm_sql_database":      resourceArmSqlDatabase(),
-			"azurerm_sql_firewall_rule": resourceArmSqlFirewallRule(),
-			"azurerm_sql_server":        resourceArmSqlServer(),
+			"azurerm_image":                       resourceArmImage(),
+			"azurerm_key_vault":                   resourceArmKeyVault(),
+			"azurerm_key_vault_secret":            resourceArmKeyVaultSecret(),
+			"azurerm_lb":                          resourceArmLoadBalancer(),
+			"azurerm_lb_backend_address_pool":     resourceArmLoadBalancerBackendAddressPool(),
+			"azurerm_lb_nat_rule":                 resourceArmLoadBalancerNatRule(),
+			"azurerm_lb_nat_pool":                 resourceArmLoadBalancerNatPool(),
+			"azurerm_lb_probe":                    resourceArmLoadBalancerProbe(),
+			"azurerm_lb_rule":                     resourceArmLoadBalancerRule(),
+			"azurerm_local_network_gateway":       resourceArmLocalNetworkGateway(),
+			"azurerm_managed_disk":                resourceArmManagedDisk(),
+			"azurerm_network_interface":           resourceArmNetworkInterface(),
+			"azurerm_network_security_group":      resourceArmNetworkSecurityGroup(),
+			"azurerm_network_security_rule":       resourceArmNetworkSecurityRule(),
+			"azurerm_public_ip":                   resourceArmPublicIp(),
+			"azurerm_redis_cache":                 resourceArmRedisCache(),
+			"azurerm_resource_group":              resourceArmResourceGroup(),
+			"azurerm_route":                       resourceArmRoute(),
+			"azurerm_route_table":                 resourceArmRouteTable(),
+			"azurerm_search_service":              resourceArmSearchService(),
+			"azurerm_servicebus_namespace":        resourceArmServiceBusNamespace(),
+			"azurerm_servicebus_queue":            resourceArmServiceBusQueue(),
+			"azurerm_servicebus_subscription":     resourceArmServiceBusSubscription(),
+			"azurerm_servicebus_topic":            resourceArmServiceBusTopic(),
+			"azurerm_sql_database":                resourceArmSqlDatabase(),
+			"azurerm_sql_elasticpool":             resourceArmSqlElasticPool(),
+			"azurerm_sql_firewall_rule":           resourceArmSqlFirewallRule(),
+			"azurerm_sql_server":                  resourceArmSqlServer(),
+			"azurerm_storage_account":             resourceArmStorageAccount(),
+			"azurerm_storage_blob":                resourceArmStorageBlob(),
+			"azurerm_storage_container":           resourceArmStorageContainer(),
+			"azurerm_storage_share":               resourceArmStorageShare(),
+			"azurerm_storage_queue":               resourceArmStorageQueue(),
+			"azurerm_storage_table":               resourceArmStorageTable(),
+			"azurerm_subnet":                      resourceArmSubnet(),
+			"azurerm_template_deployment":         resourceArmTemplateDeployment(),
+			"azurerm_traffic_manager_endpoint":    resourceArmTrafficManagerEndpoint(),
+			"azurerm_traffic_manager_profile":     resourceArmTrafficManagerProfile(),
+			"azurerm_virtual_machine_extension":   resourceArmVirtualMachineExtensions(),
+			"azurerm_virtual_machine":             resourceArmVirtualMachine(),
+			"azurerm_virtual_machine_scale_set":   resourceArmVirtualMachineScaleSet(),
+			"azurerm_virtual_network":             resourceArmVirtualNetwork(),
+			"azurerm_virtual_network_peering":     resourceArmVirtualNetworkPeering(),
 		},
 	}
 
@@ -315,35 +300,6 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
-
-func azureStateRefreshFunc(resourceURI string, client *ArmClient, command riviera.APICall) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		req := client.rivieraClient.NewRequestForURI(resourceURI)
-		req.Command = command
-
-		res, err := req.Execute()
-		if err != nil {
-			return nil, "", fmt.Errorf("Error executing %T command in azureStateRefreshFunc", req.Command)
-		}
-
-		var value reflect.Value
-		if reflect.ValueOf(res.Parsed).Kind() == reflect.Ptr {
-			value = reflect.ValueOf(res.Parsed).Elem()
-		} else {
-			value = reflect.ValueOf(res.Parsed)
-		}
-
-		for i := 0; i < value.NumField(); i++ { // iterates through every struct type field
-			tag := value.Type().Field(i).Tag // returns the tag string
-			tagValue := tag.Get("mapstructure")
-			if tagValue == "provisioningState" {
-				return res.Parsed, value.Field(i).Elem().String(), nil
-			}
-		}
-
-		panic(fmt.Errorf("azureStateRefreshFunc called on structure %T with no mapstructure:provisioningState tag. This is a bug", res.Parsed))
-	}
-}
 
 // Resource group names can be capitalised, but we store them in lowercase.
 // Use a custom diff function to avoid creation of new resources.
