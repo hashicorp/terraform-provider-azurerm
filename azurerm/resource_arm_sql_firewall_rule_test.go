@@ -40,6 +40,28 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlFirewallRule_disappears(t *testing.T) {
+	resourceName := "azurerm_sql_firewall_rule.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlFirewallRule_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlFirewallRuleExists(resourceName),
+					testCheckAzureRMSqlFirewallRuleDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -91,6 +113,29 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		ruleName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+
+		_, err := client.Delete(resourceGroup, serverName, ruleName)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on sqlFirewallRulesClient: %+v", err)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMSqlFirewallRule_basic(rInt int, location string) string {
