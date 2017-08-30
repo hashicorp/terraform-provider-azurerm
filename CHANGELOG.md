@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source**: `azurerm_subscription` [GH-285]
 * **New Resource:** `azurerm_app_service_plan` [GH-1]
 * **New Resource:** `azurerm_eventgrid_topic` [GH-260]
 * **New Resource:** `azurerm_key_vault_secret` [GH-269]
