@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"log"
 )
 
 func resourceArmSqlServer() *schema.Resource {
@@ -118,26 +119,28 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	result, err := client.Get(resGroup, name)
+	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(result.Response) {
+		if responseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*result.Location))
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	if serverProperties := result.ServerProperties; serverProperties != nil {
+	if serverProperties := resp.ServerProperties; serverProperties != nil {
 		d.Set("version", string(serverProperties.Version))
 		d.Set("administrator_login", serverProperties.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	flattenAndSetTags(d, result.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
