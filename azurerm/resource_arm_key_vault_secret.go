@@ -9,7 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
 )
 
 func resourceArmKeyVaultSecret() *schema.Resource {

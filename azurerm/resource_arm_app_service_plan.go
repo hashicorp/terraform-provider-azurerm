@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
 )
 
 func resourceArmAppServicePlan() *schema.Resource {

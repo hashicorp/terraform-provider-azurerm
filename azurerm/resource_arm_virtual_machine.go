@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	riviera "github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
 )
 
 func resourceArmVirtualMachine() *schema.Resource {
@@ -1392,8 +1392,8 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *schema.ResourceData) *comp
 		bootDiagnostic := bootDiagnostics[0].(map[string]interface{})
 
 		diagnostic := &compute.BootDiagnostics{
-			Enabled:    riviera.Bool(bootDiagnostic["enabled"].(bool)),
-			StorageURI: riviera.String(bootDiagnostic["storage_uri"].(string)),
+			Enabled:    azure.Bool(bootDiagnostic["enabled"].(bool)),
+			StorageURI: azure.String(bootDiagnostic["storage_uri"].(string)),
 		}
 
 		diagnosticsProfile.BootDiagnostics = diagnostic
@@ -1418,7 +1418,7 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 	}
 
 	if imageID != "" {
-		imageReference.ID = riviera.String(storageImageRef["id"].(string))
+		imageReference.ID = azure.String(storageImageRef["id"].(string))
 	} else {
 		offer := storageImageRef["offer"].(string)
 		sku := storageImageRef["sku"].(string)

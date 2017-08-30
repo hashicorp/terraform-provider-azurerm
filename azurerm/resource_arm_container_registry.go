@@ -3,16 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
 	"net/http"
-
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
 )
 
 func resourceArmContainerRegistry() *schema.Resource {

@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
 )
 
 func resourceArmSearchService() *schema.Resource {

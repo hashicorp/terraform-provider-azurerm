@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
-	riviera "github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
 )
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
@@ -1322,7 +1322,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *schema.Resour
 			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
 		}
 
-		//assume that data disks in VMSS can only be Managed Disks
+		// assume that data disks in VMSS can only be Managed Disks
 		dataDisk.ManagedDisk = managedDiskVMSS
 		if v := config["caching"].(string); v != "" {
 			dataDisk.Caching = compute.CachingTypes(v)
@@ -1354,16 +1354,16 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.R
 	}
 
 	if imageID != "" {
-		imageReference.ID = riviera.String(storageImageRef["id"].(string))
+		imageReference.ID = azure.String(storageImageRef["id"].(string))
 	} else {
 		offer := storageImageRef["offer"].(string)
 		sku := storageImageRef["sku"].(string)
 		version := storageImageRef["version"].(string)
 
-		imageReference.Publisher = &publisher
-		imageReference.Offer = &offer
-		imageReference.Sku = &sku
-		imageReference.Version = &version
+		imageReference.Publisher = azure.String(publisher)
+		imageReference.Offer = azure.String(offer)
+		imageReference.Sku = azure.String(sku)
+		imageReference.Version = azure.String(version)
 	}
 
 	return &imageReference, nil
