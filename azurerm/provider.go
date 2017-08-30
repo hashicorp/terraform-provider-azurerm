@@ -6,17 +6,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
-	"reflect"
 	"strings"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/mutexkv"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	riviera "github.com/jen20/riviera/azure"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -315,35 +312,6 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
-
-func azureStateRefreshFunc(resourceURI string, client *ArmClient, command riviera.APICall) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		req := client.rivieraClient.NewRequestForURI(resourceURI)
-		req.Command = command
-
-		res, err := req.Execute()
-		if err != nil {
-			return nil, "", fmt.Errorf("Error executing %T command in azureStateRefreshFunc", req.Command)
-		}
-
-		var value reflect.Value
-		if reflect.ValueOf(res.Parsed).Kind() == reflect.Ptr {
-			value = reflect.ValueOf(res.Parsed).Elem()
-		} else {
-			value = reflect.ValueOf(res.Parsed)
-		}
-
-		for i := 0; i < value.NumField(); i++ { // iterates through every struct type field
-			tag := value.Type().Field(i).Tag // returns the tag string
-			tagValue := tag.Get("mapstructure")
-			if tagValue == "provisioningState" {
-				return res.Parsed, value.Field(i).Elem().String(), nil
-			}
-		}
-
-		panic(fmt.Errorf("azureStateRefreshFunc called on structure %T with no mapstructure:provisioningState tag. This is a bug", res.Parsed))
-	}
-}
 
 // Resource group names can be capitalised, but we store them in lowercase.
 // Use a custom diff function to avoid creation of new resources.

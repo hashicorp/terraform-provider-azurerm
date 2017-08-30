@@ -35,7 +35,6 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
-	riviera "github.com/jen20/riviera/azure"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -47,8 +46,6 @@ type ArmClient struct {
 	environment    azure.Environment
 
 	StopContext context.Context
-
-	rivieraClient *riviera.Client
 
 	availSetClient         compute.AvailabilitySetsClient
 	usageOpsClient         compute.UsageClient
@@ -187,19 +184,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 		subscriptionId: c.SubscriptionID,
 		environment:    env,
 	}
-
-	rivieraClient, err := riviera.NewClient(&riviera.AzureResourceManagerCredentials{
-		ClientID:                c.ClientID,
-		ClientSecret:            c.ClientSecret,
-		TenantID:                c.TenantID,
-		SubscriptionID:          c.SubscriptionID,
-		ResourceManagerEndpoint: env.ResourceManagerEndpoint,
-		ActiveDirectoryEndpoint: env.ActiveDirectoryEndpoint,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Error creating Riviera client: %s", err)
-	}
-	client.rivieraClient = rivieraClient
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
 	if err != nil {
