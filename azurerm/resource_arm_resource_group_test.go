@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-
 func TestValidateArmResourceGroupName(t *testing.T) {
 	cases := []struct {
 		Value    string
@@ -37,19 +36,19 @@ func TestValidateArmResourceGroupName(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value: "HelloWithNumbers12345",
+			Value:    "HelloWithNumbers12345",
 			ErrCount: 0,
 		},
 		{
-			Value: "(Did)You(Know)That(Brackets)Are(Allowed)In(Resource)Group(Names)",
+			Value:    "(Did)You(Know)That(Brackets)Are(Allowed)In(Resource)Group(Names)",
 			ErrCount: 0,
 		},
 		{
-			Value: "EndingWithAPeriod.",
+			Value:    "EndingWithAPeriod.",
 			ErrCount: 1,
 		},
 		{
-			Value: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
+			Value:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			ErrCount: 1,
 		},
 		{
