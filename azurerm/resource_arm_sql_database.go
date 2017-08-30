@@ -69,7 +69,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				// TODO: validation for an RFC3339 Date
+				ValidateFunc: validateRFC3339Date,
 			},
 
 			"edition": {
@@ -101,7 +101,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				// TODO: validation as a UUID
+				ValidateFunc: validateUUID,
 			},
 
 			"requested_service_objective_name": {
@@ -117,7 +117,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				// TODO: validation for an RFC3339 Date
+				ValidateFunc: validateRFC3339Date,
 			},
 
 			"elastic_pool_name": {
