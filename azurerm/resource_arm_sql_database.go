@@ -131,8 +131,6 @@ func resourceArmSqlDatabase() *schema.Resource {
 			"encryption": {
 				Type:     schema.TypeString,
 				Computed: true,
-				// TODO: expose this field
-				Removed: "This field is now removed.",
 			},
 
 			"creation_date": {
@@ -302,6 +300,8 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		if sddd := props.SourceDatabaseDeletionDate; sddd != nil {
 			d.Set("source_database_deletion_date", sddd.String())
 		}
+
+		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -335,4 +335,17 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string {
+	if encryption != nil {
+		encrypted := *encryption
+		if len(encrypted) > 0 {
+			if props := encrypted[0].TransparentDataEncryptionProperties; props != nil {
+				return string(props.Status)
+			}
+		}
+	}
+
+	return ""
 }
