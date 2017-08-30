@@ -16,7 +16,6 @@ func resourceArmSqlElasticPool() *schema.Resource {
 		Read:   resourceArmSqlElasticPoolRead,
 		Update: resourceArmSqlElasticPoolCreate,
 		Delete: resourceArmSqlElasticPoolDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

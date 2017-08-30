@@ -63,19 +63,18 @@ func TestAccAzureRMSqlElasticPool_resizeDtu(t *testing.T) {
 
 func testCheckAzureRMSqlElasticPoolExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		ressource, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		resourceGroup, serverName, name, err := parseArmSqlElasticPoolId(ressource.Primary.ID)
-		if err != nil {
-			return err
-		}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		poolName := rs.Primary.Attributes["name"]
 
 		conn := testAccProvider.Meta().(*ArmClient).sqlElasticPoolsClient
 
-		resp, err := conn.Get(resourceGroup, serverName, name)
+		resp, err := conn.Get(resourceGroup, serverName, poolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on sqlElasticPoolsClient: %+v", err)
 		}
@@ -96,11 +95,11 @@ func testCheckAzureRMSqlElasticPoolDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
+		poolName := rs.Primary.Attributes["name"]
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, serverName, name)
+		resp, err := conn.Get(resourceGroup, serverName, poolName)
 
 		if err != nil {
 			return nil
