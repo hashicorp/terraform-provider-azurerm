@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
@@ -230,6 +230,6 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 
 func expandAzureRmLoadBalancerBackendAddressPools(d *schema.ResourceData) network.BackendAddressPool {
 	return network.BackendAddressPool{
-		Name: azure.String(d.Get("name").(string)),
+		Name: utils.String(d.Get("name").(string)),
 	}
 }

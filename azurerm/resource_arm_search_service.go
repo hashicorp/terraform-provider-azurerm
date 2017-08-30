@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSearchService() *schema.Resource {
@@ -77,7 +77,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := search.Service{
-		Location: azure.String(location),
+		Location: utils.String(location),
 		Sku: &search.Sku{
 			Name: search.SkuName(skuName),
 		},
@@ -87,12 +87,12 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 
 	if v, ok := d.GetOk("replica_count"); ok {
 		replica_count := int32(v.(int))
-		properties.ServiceProperties.ReplicaCount = azure.Int32(replica_count)
+		properties.ServiceProperties.ReplicaCount = utils.Int32(replica_count)
 	}
 
 	if v, ok := d.GetOk("partition_count"); ok {
 		partition_count := int32(v.(int))
-		properties.ServiceProperties.PartitionCount = azure.Int32(partition_count)
+		properties.ServiceProperties.PartitionCount = utils.Int32(partition_count)
 	}
 
 	_, err := client.CreateOrUpdate(resourceGroupName, name, properties, nil)

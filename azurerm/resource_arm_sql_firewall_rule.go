@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSqlFirewallRule() *schema.Resource {
@@ -64,8 +64,8 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 
 	parameters := sql.FirewallRule{
 		FirewallRuleProperties: &sql.FirewallRuleProperties{
-			StartIPAddress: azure.String(startIPAddress),
-			EndIPAddress:   azure.String(endIPAddress),
+			StartIPAddress: utils.String(startIPAddress),
+			EndIPAddress:   utils.String(endIPAddress),
 		},
 	}
 

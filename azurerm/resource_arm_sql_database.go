@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/uuid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSqlDatabase() *schema.Resource {
@@ -160,7 +160,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := sql.Database{
-		Location: azure.String(location),
+		Location: utils.String(location),
 		DatabaseProperties: &sql.DatabaseProperties{
 			CreateMode: sql.CreateMode(createMode),
 		},
@@ -169,7 +169,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("source_database_id"); ok {
 		sourceDatabaseID := v.(string)
-		properties.DatabaseProperties.SourceDatabaseID = azure.String(sourceDatabaseID)
+		properties.DatabaseProperties.SourceDatabaseID = utils.String(sourceDatabaseID)
 	}
 
 	if v, ok := d.GetOk("edition"); ok {
@@ -179,12 +179,12 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("collation"); ok {
 		collation := v.(string)
-		properties.DatabaseProperties.Collation = azure.String(collation)
+		properties.DatabaseProperties.Collation = utils.String(collation)
 	}
 
 	if v, ok := d.GetOk("max_size_bytes"); ok {
 		maxSizeBytes := v.(string)
-		properties.DatabaseProperties.MaxSizeBytes = azure.String(maxSizeBytes)
+		properties.DatabaseProperties.MaxSizeBytes = utils.String(maxSizeBytes)
 	}
 
 	if v, ok := d.GetOk("source_database_deletion_date"); ok {
@@ -210,7 +210,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("elastic_pool_name"); ok {
 		elasticPoolName := v.(string)
-		properties.DatabaseProperties.ElasticPoolName = azure.String(elasticPoolName)
+		properties.DatabaseProperties.ElasticPoolName = utils.String(elasticPoolName)
 	}
 
 	if v, ok := d.GetOk("requested_service_objective_name"); ok {

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmContainerRegistry() *schema.Resource {
@@ -127,8 +127,8 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	storageAccountName := account["name"].(string)
 	storageAccountAccessKey := account["access_key"].(string)
 	parameters.RegistryPropertiesCreateParameters.StorageAccount = &containerregistry.StorageAccountParameters{
-		Name:      azure.String(storageAccountName),
-		AccessKey: azure.String(storageAccountAccessKey),
+		Name:      utils.String(storageAccountName),
+		AccessKey: utils.String(storageAccountAccessKey),
 	}
 
 	_, error := client.Create(resourceGroup, name, parameters, make(<-chan struct{}))
@@ -170,8 +170,8 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: &adminUserEnabled,
 			StorageAccount: &containerregistry.StorageAccountParameters{
-				Name:      azure.String(storageAccountName),
-				AccessKey: azure.String(storageAccountAccessKey),
+				Name:      utils.String(storageAccountName),
+				AccessKey: utils.String(storageAccountAccessKey),
 			},
 		},
 		Tags: expandTags(tags),

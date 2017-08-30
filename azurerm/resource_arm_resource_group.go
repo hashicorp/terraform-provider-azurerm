@@ -8,7 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmResourceGroup() *schema.Resource {
@@ -44,7 +44,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	parameters := resources.Group{
-		Location: azure.String(location),
+		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
 	_, err := client.CreateOrUpdate(name, parameters)

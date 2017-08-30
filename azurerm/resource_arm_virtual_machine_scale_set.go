@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
@@ -1354,16 +1354,16 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.R
 	}
 
 	if imageID != "" {
-		imageReference.ID = azure.String(storageImageRef["id"].(string))
+		imageReference.ID = utils.String(storageImageRef["id"].(string))
 	} else {
 		offer := storageImageRef["offer"].(string)
 		sku := storageImageRef["sku"].(string)
 		version := storageImageRef["version"].(string)
 
-		imageReference.Publisher = azure.String(publisher)
-		imageReference.Offer = azure.String(offer)
-		imageReference.Sku = azure.String(sku)
-		imageReference.Version = azure.String(version)
+		imageReference.Publisher = utils.String(publisher)
+		imageReference.Offer = utils.String(offer)
+		imageReference.Sku = utils.String(sku)
+		imageReference.Version = utils.String(version)
 	}
 
 	return &imageReference, nil
