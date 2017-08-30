@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/sql"
 )
 
 func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
@@ -43,23 +42,24 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 
 func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		ruleName := rs.Primary.Attributes["name"]
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetFirewallRule{}
+		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
 
-		readResponse, err := readRequest.Execute()
+		resp, err := client.Get(resourceGroup, serverName, ruleName)
 		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %+v", err)
-		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetFirewallRule: %+v", readResponse.Error)
+			if responseWasNotFound(resp.Response) {
+				return fmt.Errorf("SQL Firewall Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
+			}
+
+			return err
 		}
 
 		return nil
@@ -67,24 +67,27 @@ func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_firewall_rule" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &sql.GetFirewallRule{}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		ruleName := rs.Primary.Attributes["name"]
 
-		readResponse, err := readRequest.Execute()
+		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+
+		resp, err := client.Get(resourceGroup, serverName, ruleName)
 		if err != nil {
-			return fmt.Errorf("Bad: GetFirewallRule: %+v", err)
+			if responseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: SQL Server Firewall Rule still exists: %+v", readResponse.Error)
-		}
+		return fmt.Errorf("SQL Firewall Rule %q (server %q / resource group %q) still exists: %+v", ruleName, serverName, resourceGroup, resp)
 	}
 
 	return nil
