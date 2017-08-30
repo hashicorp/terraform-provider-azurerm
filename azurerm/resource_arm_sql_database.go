@@ -19,7 +19,9 @@ func resourceArmSqlDatabase() *schema.Resource {
 		Read:   resourceArmSqlDatabaseRead,
 		Update: resourceArmSqlDatabaseCreateUpdate,
 		Delete: resourceArmSqlDatabaseDelete,
-		// TODO: Import Support
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
