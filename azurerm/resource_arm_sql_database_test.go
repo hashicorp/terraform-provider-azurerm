@@ -11,42 +11,6 @@ import (
 	"github.com/jen20/riviera/sql"
 )
 
-func TestResourceAzureRMSqlDatabaseEdition_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Basic",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium",
-			ErrCount: 0,
-		},
-		{
-			Value:    "DataWarehouse",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateArmSqlDatabaseEdition(tc.Value, "azurerm_sql_database")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM SQL Database edition to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlDatabase_basic(ri, testLocation())

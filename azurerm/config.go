@@ -119,6 +119,7 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
+	sqlDatabasesClient    sql.DatabasesClient
 	sqlElasticPoolsClient sql.ElasticPoolsClient
 	sqlServersClient      sql.ServersClient
 
@@ -549,6 +550,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbsc.Authorizer = auth
 	sbsc.Sender = autorest.CreateSender(withRequestLogging())
 	client.serviceBusSubscriptionsClient = sbsc
+
+	sqldc := sql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sqldc.Client)
+	sqldc.Authorizer = auth
+	sqldc.Sender = autorest.CreateSender(withRequestLogging())
+	client.sqlDatabasesClient = sqldc
 
 	sqlepc := sql.NewElasticPoolsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sqlepc.Client)
