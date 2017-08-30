@@ -68,9 +68,9 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"restore_point_in_time": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateRFC3339Date,
 			},
 
@@ -100,25 +100,25 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"requested_service_objective_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateUUID,
 			},
 
 			"requested_service_objective_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				// TODO: add validation once the Enum's complete
 				// https://github.com/Azure/azure-rest-api-specs/issues/1609
 			},
 
 			"source_database_deletion_date": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateRFC3339Date,
 			},
 
@@ -132,7 +132,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 				// TODO: expose this field
-				Removed:  "This field is now removed.",
+				Removed: "This field is now removed.",
 			},
 
 			"creation_date": {

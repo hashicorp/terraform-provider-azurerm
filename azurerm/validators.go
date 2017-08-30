@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/satori/uuid"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/satori/uuid"
 )
 
 func validateRFC3339Date(v interface{}, k string) (ws []string, errors []error) {

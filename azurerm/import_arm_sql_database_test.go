@@ -22,10 +22,10 @@ func TestAccAzureRMSqlDatabase_importBasic(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string { "create_mode" },
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
@@ -46,10 +46,10 @@ func TestAccAzureRMSqlDatabase_importDataWarehouse(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string { "create_mode" },
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})
@@ -70,10 +70,10 @@ func TestAccAzureRMSqlDatabase_importElasticPool(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string { "create_mode" },
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"create_mode"},
 			},
 		},
 	})

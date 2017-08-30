@@ -65,7 +65,7 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 	parameters := sql.FirewallRule{
 		FirewallRuleProperties: &sql.FirewallRuleProperties{
 			StartIPAddress: azure.String(startIPAddress),
-			EndIPAddress: azure.String(endIPAddress),
+			EndIPAddress:   azure.String(endIPAddress),
 		},
 	}
 
@@ -106,7 +106,6 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 
 		return fmt.Errorf("Error reading SQL Firewall Rule: %+v", err)
 	}
-
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)

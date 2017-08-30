@@ -119,10 +119,10 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
-	sqlDatabasesClient    sql.DatabasesClient
-	sqlElasticPoolsClient sql.ElasticPoolsClient
+	sqlDatabasesClient     sql.DatabasesClient
+	sqlElasticPoolsClient  sql.ElasticPoolsClient
 	sqlFirewallRulesClient sql.FirewallRulesClient
-	sqlServersClient      sql.ServersClient
+	sqlServersClient       sql.ServersClient
 
 	appServicePlansClient web.AppServicePlansClient
 
