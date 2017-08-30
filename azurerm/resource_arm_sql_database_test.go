@@ -29,6 +29,28 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_disappears(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlDatabase_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					testCheckAzureRMSqlDatabaseDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 	resourceName := "azurerm_sql_database.test"
 	ri := acctest.RandInt()
@@ -184,6 +206,29 @@ func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		serverName := rs.Primary.Attributes["server_name"]
+		databaseName := rs.Primary.Attributes["name"]
+
+		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+
+		_, err := client.Delete(resourceGroup, serverName, databaseName)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on sqlDatabasesClient: %+v", err)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMSqlDatabase_basic(rInt int, location string) string {
