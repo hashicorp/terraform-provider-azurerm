@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
 	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
@@ -83,6 +84,7 @@ type ArmClient struct {
 
 	containerRegistryClient containerregistry.RegistriesClient
 	containerServicesClient containerservice.ContainerServicesClient
+	containerGroupsClient   containerinstance.ContainerGroupsClient
 
 	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
@@ -276,6 +278,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	csc.Authorizer = auth
 	csc.Sender = autorest.CreateSender(withRequestLogging())
 	client.containerServicesClient = csc
+
+	cgc := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&cgc.Client)
+	cgc.Authorizer = auth
+	cgc.Sender = autorest.CreateSender(withRequestLogging())
+	client.containerGroupsClient = cgc
 
 	cdb := cosmosdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&cdb.Client)

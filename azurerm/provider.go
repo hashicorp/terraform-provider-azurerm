@@ -76,6 +76,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cdn_profile":          resourceArmCdnProfile(),
 			"azurerm_container_registry":   resourceArmContainerRegistry(),
 			"azurerm_container_service":    resourceArmContainerService(),
+			"azurerm_container_group":      resourceArmContainerGroup(),
 			"azurerm_cosmosdb_account":     resourceArmCosmosDBAccount(),
 
 			"azurerm_dns_a_record":     resourceArmDnsARecord(),
@@ -261,6 +262,7 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 			"Microsoft.Compute":           struct{}{},
 			"Microsoft.ContainerRegistry": struct{}{},
 			"Microsoft.ContainerService":  struct{}{},
+			"Microsoft.ContainerInstance": struct{}{},
 			"Microsoft.DocumentDB":        struct{}{},
 			"Microsoft.EventGrid":         struct{}{},
 			"Microsoft.EventHub":          struct{}{},
