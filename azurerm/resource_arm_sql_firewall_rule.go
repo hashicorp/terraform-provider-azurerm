@@ -98,7 +98,7 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(resourceGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Firewall Rule %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -130,7 +130,7 @@ func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := client.Delete(resourceGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

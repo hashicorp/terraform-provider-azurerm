@@ -116,7 +116,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

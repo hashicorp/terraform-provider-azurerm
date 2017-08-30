@@ -74,7 +74,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := client.Get(name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -102,7 +102,7 @@ func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (b
 
 	resp, err := client.Get(name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
 
@@ -126,7 +126,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 	resp := <-deleteResp
 	err = <-deleteErr
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

@@ -260,7 +260,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 
 	resp, err := client.Get(resourceGroup, serverName, name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -323,7 +323,7 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := client.Delete(resourceGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

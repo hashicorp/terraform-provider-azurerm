@@ -208,7 +208,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := client.Get(resourceGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -122,7 +122,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := client.Get(resourceGroup, name, nil)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -167,7 +167,7 @@ func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Delete(resourceGroup, name, nil)
 
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

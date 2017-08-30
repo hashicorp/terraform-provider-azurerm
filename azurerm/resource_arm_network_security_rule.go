@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmNetworkSecurityRule() *schema.Resource {
@@ -176,7 +177,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := secRuleClient.Get(resGroup, networkSGName, sgRuleName)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

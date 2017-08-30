@@ -624,7 +624,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := vmClient.Get(resGroup, name, "")
 
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

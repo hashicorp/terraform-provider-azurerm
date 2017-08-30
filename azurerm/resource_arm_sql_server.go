@@ -6,6 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"log"
 )
 
@@ -92,7 +93,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	response, err := client.CreateOrUpdate(resGroup, name, parameters)
 	if err != nil {
 		// if the name is in-use, Azure returns a 409 "Unknown Service Error" which is a bad UX
-		if responseWasConflict(response.Response) {
+		if utils.ResponseWasConflict(response.Response) {
 			return fmt.Errorf("SQL Server names need to be globally unique and '%s' is already in use.", name)
 		}
 
@@ -121,7 +122,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -158,7 +159,7 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 
 	response, err := client.Delete(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(response) {
+		if utils.ResponseWasNotFound(response) {
 			return nil
 		}
 

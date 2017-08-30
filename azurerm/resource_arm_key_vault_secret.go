@@ -154,7 +154,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	// we always want to get the latest version
 	resp, err := client.GetSecret(id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

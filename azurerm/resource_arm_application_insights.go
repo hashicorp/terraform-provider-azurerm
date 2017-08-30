@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmApplicationInsights() *schema.Resource {
@@ -118,7 +119,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
