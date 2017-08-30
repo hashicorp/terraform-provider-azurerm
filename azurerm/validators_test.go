@@ -29,6 +29,10 @@ func TestValidateRFC3339Date(t *testing.T) {
 			Value:    "2017-01-01T01:23:45+00:00",
 			ErrCount: 0,
 		},
+		{
+			Value:    "2017-01-01T01:23:45Z",
+			ErrCount: 0,
+		},
 	}
 
 	for _, tc := range cases {
