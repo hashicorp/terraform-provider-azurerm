@@ -23,6 +23,7 @@ BUG FIXES:
 
 * `azurerm_cosmosdb_account` - fixing the validation on the name field [GH-263]
 * `azurerm_sql_server` - handle deleted servers correctly [GH-189]
+- Fixing the `Microsoft.Insights` Resource Provider Registration [GH-282]
 
 ## 0.1.5 (August 09, 2017)
 
