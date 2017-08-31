@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAutomationSchedule() *schema.Resource {
@@ -273,7 +274,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 
 	resp, err := client.Get(resGroup, accName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
