@@ -1,36 +1,36 @@
-## 0.1.6 (Unreleased)
+## 0.1.6 (August 31, 2017)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_subscription` [GH-285]
-* **New Resource:** `azurerm_app_service_plan` [GH-1]
-* **New Resource:** `azurerm_eventgrid_topic` [GH-260]
-* **New Resource:** `azurerm_key_vault_secret` [GH-269]
+* **New Data Source**: `azurerm_subscription` ([#285](https://github.com/terraform-providers/terraform-provider-azurerm/issues/285))
+* **New Resource:** `azurerm_app_service_plan` ([#1](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1))
+* **New Resource:** `azurerm_eventgrid_topic` ([#260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/260))
+* **New Resource:** `azurerm_key_vault_secret` ([#269](https://github.com/terraform-providers/terraform-provider-azurerm/issues/269))
 
 IMPROVEMENTS:
 
-* `azurerm_image` - added a default to the `caching` field [GH-259]
-* `azurerm_key_vault` - validation for the `name` field [GH-270]
-* `azurerm_network_interface` - support for multiple IP Configurations / setting the Primary IP Configuration [GH-245]
-* `azurerm_resource_group` - poll until the resource group is created (by migrating to the Azure SDK for Go) [GH-289]
-* `azurerm_search_service` - migrating to use the Azure SDK for Go [GH-283]
-* `azurerm_sql_*` - ensuring deleted resources are detected [GH-289] / [GH-255]
-* `azurerm_sql_database` - Import Support [GH-289]
-* `azurerm_sql_database` - migrating to using the Azure SDK for Go [GH-289]
-* `azurerm_sql_firewall_rule` - migrating to using the Azure SDK for Go [GH-289]
-* `azurerm_sql_server` - added checks to handle `name` not being globally unique [GH-189]
-* `azurerm_sql_server` - making `administrator_login` `ForceNew` [GH-189]
-* `azurerm_sql_server` - migrate to using the azure-sdk-for-go [GH-189]
-* `azurerm_virtual_machine` - Force recreation if `storage_data_disk`.`create_option` changes [GH-240]
-* `azurerm_virtual_machine_scale_set` - Fix address issue when setting the `winrm` block [GH-271]
-* updating to `v10.3.0-beta` of the Azure SDK for Go [GH-258]
-* Removing the (now unused) Riviera SDK [GH-289] [GH-291]
+* `azurerm_image` - added a default to the `caching` field ([#259](https://github.com/terraform-providers/terraform-provider-azurerm/issues/259))
+* `azurerm_key_vault` - validation for the `name` field ([#270](https://github.com/terraform-providers/terraform-provider-azurerm/issues/270))
+* `azurerm_network_interface` - support for multiple IP Configurations / setting the Primary IP Configuration ([#245](https://github.com/terraform-providers/terraform-provider-azurerm/issues/245))
+* `azurerm_resource_group` - poll until the resource group is created (by migrating to the Azure SDK for Go) ([#289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/289))
+* `azurerm_search_service` - migrating to use the Azure SDK for Go ([#283](https://github.com/terraform-providers/terraform-provider-azurerm/issues/283))
+* `azurerm_sql_*` - ensuring deleted resources are detected ([#289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/289)] / [[#255](https://github.com/terraform-providers/terraform-provider-azurerm/issues/255))
+* `azurerm_sql_database` - Import Support ([#289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/289))
+* `azurerm_sql_database` - migrating to using the Azure SDK for Go ([#289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/289))
+* `azurerm_sql_firewall_rule` - migrating to using the Azure SDK for Go ([#289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/289))
+* `azurerm_sql_server` - added checks to handle `name` not being globally unique ([#189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/189))
+* `azurerm_sql_server` - making `administrator_login` `ForceNew` ([#189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/189))
+* `azurerm_sql_server` - migrate to using the azure-sdk-for-go ([#189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/189))
+* `azurerm_virtual_machine` - Force recreation if `storage_data_disk`.`create_option` changes ([#240](https://github.com/terraform-providers/terraform-provider-azurerm/issues/240))
+* `azurerm_virtual_machine_scale_set` - Fix address issue when setting the `winrm` block ([#271](https://github.com/terraform-providers/terraform-provider-azurerm/issues/271))
+* updating to `v10.3.0-beta` of the Azure SDK for Go ([#258](https://github.com/terraform-providers/terraform-provider-azurerm/issues/258))
+* Removing the (now unused) Riviera SDK ([#289](https://github.com/terraform-providers/terraform-provider-azurerm/issues/289)] [[#291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/291))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - fixing the validation on the name field [GH-263]
-* `azurerm_sql_server` - handle deleted servers correctly [GH-189]
-* Fixing the `Microsoft.Insights` Resource Provider Registration [GH-282]
+* `azurerm_cosmosdb_account` - fixing the validation on the name field ([#263](https://github.com/terraform-providers/terraform-provider-azurerm/issues/263))
+* `azurerm_sql_server` - handle deleted servers correctly ([#189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/189))
+* Fixing the `Microsoft.Insights` Resource Provider Registration ([#282](https://github.com/terraform-providers/terraform-provider-azurerm/issues/282))
 
 ## 0.1.5 (August 09, 2017)
 
