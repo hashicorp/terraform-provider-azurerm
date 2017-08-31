@@ -67,34 +67,12 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-
-			// These resources use the Azure ARM SDK
-			"azurerm_application_insights": resourceArmApplicationInsights(),
-
-			"azurerm_automation_account":    resourceArmAutomationAccount(),
-			"azurerm_automation_runbook":    resourceArmAutomationRunbook(),
-			"azurerm_automation_credential": resourceArmAutomationCredential(),
-			"azurerm_automation_schedule":   resourceArmAutomationSchedule(),
-
-			"azurerm_availability_set":   resourceArmAvailabilitySet(),
-			"azurerm_cdn_endpoint":       resourceArmCdnEndpoint(),
-			"azurerm_cdn_profile":        resourceArmCdnProfile(),
-			"azurerm_container_registry": resourceArmContainerRegistry(),
-			"azurerm_container_service":  resourceArmContainerService(),
-			"azurerm_cosmosdb_account":   resourceArmCosmosDBAccount(),
-
-			"azurerm_dns_a_record":     resourceArmDnsARecord(),
-			"azurerm_dns_aaaa_record":  resourceArmDnsAAAARecord(),
-			"azurerm_dns_cname_record": resourceArmDnsCNameRecord(),
-			"azurerm_dns_mx_record":    resourceArmDnsMxRecord(),
-			"azurerm_dns_ns_record":    resourceArmDnsNsRecord(),
-			"azurerm_dns_ptr_record":   resourceArmDnsPtrRecord(),
-			"azurerm_dns_srv_record":   resourceArmDnsSrvRecord(),
-			"azurerm_dns_txt_record":   resourceArmDnsTxtRecord(),
-			"azurerm_dns_zone":         resourceArmDnsZone(),
-
 			"azurerm_application_insights":        resourceArmApplicationInsights(),
 			"azurerm_app_service_plan":            resourceArmAppServicePlan(),
+			"azurerm_automation_account":          resourceArmAutomationAccount(),
+			"azurerm_automation_runbook":          resourceArmAutomationRunbook(),
+			"azurerm_automation_credential":       resourceArmAutomationCredential(),
+			"azurerm_automation_schedule":         resourceArmAutomationSchedule(),
 			"azurerm_availability_set":            resourceArmAvailabilitySet(),
 			"azurerm_cdn_endpoint":                resourceArmCdnEndpoint(),
 			"azurerm_cdn_profile":                 resourceArmCdnProfile(),
