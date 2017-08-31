@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
@@ -316,7 +317,7 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name, "")
 
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 

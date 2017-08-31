@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmRedisCache() *schema.Resource {
@@ -390,41 +390,41 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 
 	if v, ok := d.GetOk("redis_configuration.0.maxclients"); ok {
 		clients := strconv.Itoa(v.(int))
-		output["maxclients"] = azure.String(clients)
+		output["maxclients"] = utils.String(clients)
 	}
 
 	if v, ok := d.GetOk("redis_configuration.0.maxmemory_delta"); ok {
 		delta := strconv.Itoa(v.(int))
-		output["maxmemory-delta"] = azure.String(delta)
+		output["maxmemory-delta"] = utils.String(delta)
 	}
 
 	if v, ok := d.GetOk("redis_configuration.0.maxmemory_reserved"); ok {
 		delta := strconv.Itoa(v.(int))
-		output["maxmemory-reserved"] = azure.String(delta)
+		output["maxmemory-reserved"] = utils.String(delta)
 	}
 
 	if v, ok := d.GetOk("redis_configuration.0.maxmemory_policy"); ok {
-		output["maxmemory-policy"] = azure.String(v.(string))
+		output["maxmemory-policy"] = utils.String(v.(string))
 	}
 
 	// Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
 		delta := strconv.FormatBool(v.(bool))
-		output["rdb-backup-enabled"] = azure.String(delta)
+		output["rdb-backup-enabled"] = utils.String(delta)
 	}
 
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_frequency"); ok {
 		delta := strconv.Itoa(v.(int))
-		output["rdb-backup-frequency"] = azure.String(delta)
+		output["rdb-backup-frequency"] = utils.String(delta)
 	}
 
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_max_snapshot_count"); ok {
 		delta := strconv.Itoa(v.(int))
-		output["rdb-backup-max-snapshot-count"] = azure.String(delta)
+		output["rdb-backup-max-snapshot-count"] = utils.String(delta)
 	}
 
 	if v, ok := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); ok {
-		output["rdb-storage-connection-string"] = azure.String(v.(string))
+		output["rdb-storage-connection-string"] = utils.String(v.(string))
 	}
 
 	return &output

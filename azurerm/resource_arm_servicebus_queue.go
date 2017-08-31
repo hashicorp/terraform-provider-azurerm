@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmServiceBusQueue() *schema.Resource {
@@ -189,7 +190,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(resGroup, namespaceName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

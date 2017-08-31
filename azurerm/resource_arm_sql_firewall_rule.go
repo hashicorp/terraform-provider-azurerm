@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSqlFirewallRule() *schema.Resource {
@@ -64,8 +64,8 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 
 	parameters := sql.FirewallRule{
 		FirewallRuleProperties: &sql.FirewallRuleProperties{
-			StartIPAddress: azure.String(startIPAddress),
-			EndIPAddress:   azure.String(endIPAddress),
+			StartIPAddress: utils.String(startIPAddress),
+			EndIPAddress:   utils.String(endIPAddress),
 		},
 	}
 
@@ -98,7 +98,7 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(resourceGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Firewall Rule %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -130,7 +130,7 @@ func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := client.Delete(resourceGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

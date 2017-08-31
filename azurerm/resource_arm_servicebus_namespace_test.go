@@ -11,16 +11,17 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func init() {
 	resource.AddTestSweepers("azurerm_servicebus_namespace", &resource.Sweeper{
 		Name: "azurerm_servicebus_namespace",
-		F:    testSweepServicebusNamespace,
+		F:    testSweepServiceBusNamespace,
 	})
 }
 
-func testSweepServicebusNamespace(region string) error {
+func testSweepServiceBusNamespace(region string) error {
 	armClient, err := buildConfigForSweepers()
 	if err != nil {
 		return err
@@ -52,9 +53,10 @@ func testSweepServicebusNamespace(region string) error {
 		err = <-error
 		resp := <-deleteResponse
 		if err != nil {
-			if responseWasNotFound(resp) {
+			if utils.ResponseWasNotFound(resp) {
 				return nil
 			}
+
 			return err
 		}
 	}

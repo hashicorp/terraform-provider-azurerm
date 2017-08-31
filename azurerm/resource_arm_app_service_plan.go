@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAppServicePlan() *schema.Resource {
@@ -142,7 +142,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -203,7 +203,7 @@ func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
 
 	if v, ok := config["capacity"]; ok {
 		capacity := v.(int)
-		sku.Capacity = azure.Int32(int32(capacity))
+		sku.Capacity = utils.Int32(int32(capacity))
 	}
 
 	return sku
@@ -234,10 +234,10 @@ func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanP
 	config := configs[0].(map[string]interface{})
 
 	perSiteScaling := config["per_site_scaling"].(bool)
-	properties.PerSiteScaling = azure.Bool(perSiteScaling)
+	properties.PerSiteScaling = utils.Bool(perSiteScaling)
 
 	reserved := config["reserved"].(bool)
-	properties.Reserved = azure.Bool(reserved)
+	properties.Reserved = utils.Bool(reserved)
 
 	return &properties
 }

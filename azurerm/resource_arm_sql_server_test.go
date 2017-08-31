@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func init() {
@@ -142,7 +143,7 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
 		resp, err := conn.Get(resourceGroup, sqlServerName)
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
 			}
 			return fmt.Errorf("Bad: Get SQL Server: %v", err)
@@ -166,7 +167,7 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, sqlServerName)
 
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 
@@ -193,8 +194,12 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
 
-		_, err := client.Delete(resourceGroup, serverName)
+		resp, err := client.Delete(resourceGroup, serverName)
 		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				return nil
+			}
+
 			return fmt.Errorf("Bad: Delete on sqlServersClient: %+v", err)
 		}
 

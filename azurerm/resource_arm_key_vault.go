@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // As can be seen in the API definition, the Sku Family only supports the value
@@ -205,7 +206,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
