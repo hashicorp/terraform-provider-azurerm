@@ -125,7 +125,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if utils.responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
