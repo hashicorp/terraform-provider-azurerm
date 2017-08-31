@@ -8,7 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmResourceGroup() *schema.Resource {
@@ -44,7 +44,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	parameters := resources.Group{
-		Location: azure.String(location),
+		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
 	_, err := client.CreateOrUpdate(name, parameters)
@@ -74,7 +74,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := client.Get(name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -102,7 +102,7 @@ func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (b
 
 	resp, err := client.Get(name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
 
@@ -126,7 +126,7 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 	resp := <-deleteResp
 	err = <-deleteErr
 	if err != nil {
-		if responseWasNotFound(resp) {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

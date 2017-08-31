@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServicePlan_basic(t *testing.T) {
@@ -133,8 +133,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
-
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 
@@ -165,11 +164,11 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, appServicePlanName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on appServicePlansClient: %s", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: App Service Plan %q (resource group: %q) does not exist", appServicePlanName, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: App Service Plan %q (resource group: %q) does not exist", appServicePlanName, resourceGroup)
+			return fmt.Errorf("Bad: Get on appServicePlansClient: %+v", err)
 		}
 
 		return nil

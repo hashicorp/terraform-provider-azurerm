@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKeyVaultSecret_validateName(t *testing.T) {
@@ -207,7 +207,7 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 		// get the latest version
 		resp, err := client.GetSecret(vaultBaseUrl, name, "")
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
@@ -233,11 +233,11 @@ func testCheckAzureRMKeyVaultSecretExists(name string) resource.TestCheckFunc {
 
 		resp, err := client.GetSecret(vaultBaseUrl, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Key Vault Secret %q (resource group: %q) does not exist", name, vaultBaseUrl)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Key Vault Secret %q (resource group: %q) does not exist", name, vaultBaseUrl)
+			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
 		}
 
 		return nil

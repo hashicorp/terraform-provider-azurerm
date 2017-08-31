@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMKeyVault_name(t *testing.T) {
@@ -134,7 +135,7 @@ func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(resourceGroup, name)
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
@@ -164,7 +165,7 @@ func testCheckAzureRMKeyVaultExists(name string) resource.TestCheckFunc {
 
 		resp, err := client.Get(resourceGroup, vaultName)
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Vault %q (resource group: %q) does not exist", vaultName, resourceGroup)
 			}
 

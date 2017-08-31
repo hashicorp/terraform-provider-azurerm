@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmCdnProfile() *schema.Resource {
@@ -98,7 +99,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := cdnProfilesClient.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

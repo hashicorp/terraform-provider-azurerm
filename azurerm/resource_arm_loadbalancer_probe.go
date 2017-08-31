@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerProbe() *schema.Resource {
@@ -257,9 +257,9 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 func expandAzureRmLoadBalancerProbe(d *schema.ResourceData, lb *network.LoadBalancer) (*network.Probe, error) {
 
 	properties := network.ProbePropertiesFormat{
-		NumberOfProbes:    azure.Int32(int32(d.Get("number_of_probes").(int))),
-		IntervalInSeconds: azure.Int32(int32(d.Get("interval_in_seconds").(int))),
-		Port:              azure.Int32(int32(d.Get("port").(int))),
+		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
+		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),
+		Port:              utils.Int32(int32(d.Get("port").(int))),
 	}
 
 	if v, ok := d.GetOk("protocol"); ok {
@@ -267,11 +267,11 @@ func expandAzureRmLoadBalancerProbe(d *schema.ResourceData, lb *network.LoadBala
 	}
 
 	if v, ok := d.GetOk("request_path"); ok {
-		properties.RequestPath = azure.String(v.(string))
+		properties.RequestPath = utils.String(v.(string))
 	}
 
 	probe := network.Probe{
-		Name: azure.String(d.Get("name").(string)),
+		Name: utils.String(d.Get("name").(string)),
 		ProbePropertiesFormat: &properties,
 	}
 

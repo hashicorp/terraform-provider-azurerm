@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
@@ -77,7 +78,7 @@ func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 
 		resp, err := client.Get(resourceGroup, serverName, ruleName)
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("SQL Firewall Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
 			}
 
@@ -102,7 +103,7 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(resourceGroup, serverName, ruleName)
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 
@@ -129,8 +130,12 @@ func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFu
 
 		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
 
-		_, err := client.Delete(resourceGroup, serverName, ruleName)
+		resp, err := client.Delete(resourceGroup, serverName, ruleName)
 		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				return nil
+			}
+
 			return fmt.Errorf("Bad: Delete on sqlFirewallRulesClient: %+v", err)
 		}
 
