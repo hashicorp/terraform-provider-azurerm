@@ -22,7 +22,7 @@ resource "azurerm_cdn_profile" "test" {
   name                = "acceptanceTestCdnProfile1"
   location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
+  sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
@@ -32,8 +32,10 @@ resource "azurerm_cdn_endpoint" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   origin {
-    name      = "acceptanceTestCdnOrigin1"
-    host_name = "www.example.com"
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    http_port  = "80"
+    https_port = "443"
   }
 }
 ```
@@ -77,9 +79,9 @@ The `origin` block supports:
 
 * `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string can be a domain name, Storage Account endpoint, Web App endpoint, IPv4 address or IPv6 address.
 
-* `http_port` - (Optional) The HTTP port of the origin. Defaults to null. When null, 80 will be used for HTTP.
+* `http_port` - (Required) The HTTP port of the origin.
 
-* `https_port` - (Optional) The HTTPS port of the origin. Defaults to null. When null, 443 will be used for HTTPS.
+* `https_port` - (Required) The HTTPS port of the origin.
 
 ## Attributes Reference
 
