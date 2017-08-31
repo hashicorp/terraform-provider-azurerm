@@ -24,7 +24,7 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine` - Force recreation if `storage_data_disk`.`create_option` changes [GH-240]
 * `azurerm_virtual_machine_scale_set` - Fix address issue when setting the `winrm` block [GH-271]
 * updating to `v10.3.0-beta` of the Azure SDK for Go [GH-258]
-* Removing the (now unused) Riviera SDK [GH-289]
+* Removing the (now unused) Riviera SDK [GH-289] [GH-291]
 
 BUG FIXES:
 
