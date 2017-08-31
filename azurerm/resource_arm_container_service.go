@@ -278,10 +278,10 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("orchestration_platform", string(resp.Properties.OrchestratorProfile.OrchestratorType))
 
-	masterProfile := flattenAzureRmContainerServiceMasterProfile(*resp.Properties.MasterProfile)
+	masterProfile := flattenAzureRmContainerServiceMasterProfile(resp.Properties.MasterProfile)
 	d.Set("master_profile", &masterProfile)
 
-	linuxProfile := flattenAzureRmContainerServiceLinuxProfile(*resp.Properties.LinuxProfile)
+	linuxProfile := flattenAzureRmContainerServiceLinuxProfile(resp.Properties.LinuxProfile)
 	d.Set("linux_profile", &linuxProfile)
 
 	agentPoolProfiles := flattenAzureRmContainerServiceAgentPoolProfiles(resp.Properties.AgentPoolProfiles, d)
@@ -289,7 +289,7 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 
 	servicePrincipal := flattenAzureRmContainerServiceServicePrincipalProfile(resp.Properties.ServicePrincipalProfile, d)
 	if servicePrincipal != nil {
-		d.Set("service_principal", servicePrincipal)
+		d.Set("service_principal", &servicePrincipal)
 	}
 
 	diagnosticProfile := flattenAzureRmContainerServiceDiagnosticsProfile(resp.Properties.DiagnosticsProfile)
@@ -329,7 +329,7 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 }
 
 // change output to a List
-func flattenAzureRmContainerServiceMasterProfile(profile containerservice.MasterProfile) []interface{} {
+func flattenAzureRmContainerServiceMasterProfile(profile *containerservice.MasterProfile) []interface{} {
 	masterProfile := make(map[string]interface{}, 3)
 
 	masterProfile["count"] = int(*profile.Count)
@@ -342,7 +342,7 @@ func flattenAzureRmContainerServiceMasterProfile(profile containerservice.Master
 	return masterProfiles
 }
 
-func flattenAzureRmContainerServiceLinuxProfile(profile containerservice.LinuxProfile) []interface{} {
+func flattenAzureRmContainerServiceLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
 	values := map[string]interface{}{}
 
 	sshKeys := make([]interface{}, 0)
@@ -361,14 +361,14 @@ func flattenAzureRmContainerServiceLinuxProfile(profile containerservice.LinuxPr
 	return profiles
 }
 
-func flattenAzureRmContainerServiceAgentPoolProfiles(profiles []*containerservice.AgentPoolProfile, d *schema.ResourceData) []interface{} {
+func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile, d *schema.ResourceData) []interface{} {
 	configs := d.Get("agent_pool_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
 	dnsPrefix := config["dns_prefix"].(string)
 
 	agentPoolProfiles := make([]interface{}, 0)
 
-	for _, profile := range profiles {
+	for _, profile := range *profiles {
 		agentPoolProfile := map[string]interface{}{}
 		agentPoolProfile["count"] = int(*profile.Count)
 		agentPoolProfile["dns_prefix"] = dnsPrefix //*profile.DNSPrefix // not returned from the API
@@ -383,7 +383,7 @@ func flattenAzureRmContainerServiceAgentPoolProfiles(profiles []*containerservic
 
 func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile, d *schema.ResourceData) []interface{} {
 
-	if profile == nil {
+	if profile == nil || profile.ClientID == nil {
 		return nil
 	}
 
@@ -502,10 +502,10 @@ func expandAzureRmContainerServiceServicePrincipal(d *schema.ResourceData) *cont
 	return &principal
 }
 
-func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []*containerservice.AgentPoolProfile {
+func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) *[]containerservice.AgentPoolProfile {
 	configs := d.Get("agent_pool_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
-	profiles := make([]*containerservice.AgentPoolProfile, 0, len(configs))
+	profiles := make([]containerservice.AgentPoolProfile, 0, len(configs))
 
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
@@ -519,9 +519,9 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []*conta
 		DNSPrefix: &dnsPrefix,
 	}
 
-	profiles = append(profiles, &profile)
+	profiles = append(profiles, profile)
 
-	return profiles
+	return &profiles
 }
 
 func resourceAzureRMContainerServiceLinuxProfilesSSHKeysHash(v interface{}) int {
