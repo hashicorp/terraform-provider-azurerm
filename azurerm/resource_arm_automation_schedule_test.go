@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,7 +87,6 @@ func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq 
 
 			return fmt.Errorf("Bad: Get on automationScheduleClient: %+v", err)
 		}
-
 
 		if resp.Frequency != freq {
 			return fmt.Errorf("Current frequency %s is not consistent with checked value %s", resp.Frequency, freq)
