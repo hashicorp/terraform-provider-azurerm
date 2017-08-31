@@ -2,12 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestValidateArmResourceGroupName(t *testing.T) {
@@ -68,6 +70,55 @@ func TestValidateArmResourceGroupName(t *testing.T) {
 			t.Fatalf("Expected validateArmResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
 		}
 	}
+}
+
+func init() {
+	resource.AddTestSweepers("azurerm_resource_group", &resource.Sweeper{
+		Name: "azurerm_resource_group",
+		F:    testSweepResourceGroups,
+	})
+}
+
+func testSweepResourceGroups(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).resourceGroupClient
+
+	log.Printf("Retrieving the Resource Groups..")
+	results, err := client.List("", nil)
+	if err != nil {
+		return fmt.Errorf("Error Listing on Resource Groups: %+v", err)
+	}
+
+	for _, profile := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+			continue
+		}
+
+		resourceId, err := parseAzureResourceID(*profile.ID)
+		if err != nil {
+			return err
+		}
+
+		name := resourceId.ResourceGroup
+
+		log.Printf("Deleting Resource Group %q", name)
+		deleteResponse, error := client.Delete(name, make(chan struct{}))
+		err = <-error
+		resp := <-deleteResponse
+		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				return nil
+			}
+
+			return err
+		}
+	}
+
+	return nil
 }
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
