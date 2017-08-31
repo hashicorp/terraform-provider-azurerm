@@ -31,7 +31,7 @@ resource "azurerm_automation_credential" "example" {
   name                = "credential1"
   resource_group_name = "${azurerm_resource_group.example.name}"
   account_name        = "${azurerm_automation_account.example.name}"
-  user_name           = "example_user"
+  username           = "example_user"
   password            = "example_pwd"
   description         = "This is an example credential"
 ```
@@ -46,11 +46,11 @@ The following arguments are supported:
 
 * `account_name` - (Required) The name of the automation account in which the Credential is created. Changing this forces a new resource to be created.
 
-* `user_name` - (Required) The user name of the Credential.
+* `username` - (Required) The username associated with this Automation Credential.
 
-* `password` - (Required) The password of the Credential.
+* `password` - (Required) The password associated with this Automation Credential.
 
-* `description` -  (Optional) A description for this Credential.
+* `description` -  (Optional) The description associated with this Automation Credential.
 
 ## Attributes Reference
 

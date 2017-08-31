@@ -2,14 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationAccount_skuBasic(t *testing.T) {
@@ -64,12 +63,14 @@ func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
-			return nil
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Automation Account still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("Automation Account still exists:\n%#v", resp)
 	}
 
 	return nil
@@ -95,15 +96,15 @@ func testCheckAzureRMAutomationAccountExistsAndSku(name string, sku automation.S
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Automation Account '%s' (resource group: '%s') was not found: %+v", name, resourceGroup, err)
+			}
+
 			return fmt.Errorf("Bad: Get on automationClient: %s", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Automation Account '%s' (resource group: '%s') does not exist", name, resourceGroup)
-		}
-
 		if resp.Sku.Name != sku {
-			return fmt.Errorf("Actual sku %s is not consistent with the checked value %s", resp.Sku.Name, sku)
+			return fmt.Errorf("Actual sku %s is not consistent with the expected value %q", resp.Sku.Name, sku)
 		}
 
 		return nil

@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -37,14 +36,15 @@ func resourceArmAutomationCredential() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"user_name": {
+			"username": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
 			"password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -61,7 +61,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("account_name").(string)
-	user := d.Get("user_name").(string)
+	user := d.Get("username").(string)
 	password := d.Get("password").(string)
 	description := d.Get("description").(string)
 
@@ -71,7 +71,6 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 			Password:    &password,
 			Description: &description,
 		},
-
 		Name: &name,
 	}
 
@@ -112,13 +111,13 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Credential '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Credential '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("account_name", accName)
-	d.Set("user_name", resp.UserName)
+	d.Set("username", resp.UserName)
 	d.Set("password", nil)
 	d.Set("description", resp.Description)
 
@@ -139,7 +138,7 @@ func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interfac
 	resp, err := client.Delete(resGroup, accName, name)
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

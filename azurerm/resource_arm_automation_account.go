@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -29,12 +28,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
-			},
+			"location": locationSchema(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -130,7 +124,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Account '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Account '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -156,7 +150,7 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	resp, err := client.Delete(resGroup, name)
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
@@ -307,7 +306,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	resp, err := client.Delete(resGroup, accName, name)
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

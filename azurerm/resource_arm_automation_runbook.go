@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -35,12 +34,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
-			},
+			"location": locationSchema(),
 
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -132,7 +126,6 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 			PublishContentLink: &contentLink,
 		},
 
-		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
 	}
@@ -173,7 +166,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Runbook '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Runbook '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -206,7 +199,7 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 	resp, err := client.Delete(resGroup, accName, name)
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 

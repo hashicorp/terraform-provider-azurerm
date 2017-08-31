@@ -2,14 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationSchedule_oneTime(t *testing.T) {
@@ -47,12 +46,14 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, accName, name)
 
 		if err != nil {
-			return nil
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Automation Schedule still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("Automation Schedule still exists:\n%#v", resp)
 	}
 
 	return nil
@@ -80,12 +81,13 @@ func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq 
 		resp, err := conn.Get(resourceGroup, accName, name)
 
 		if err != nil {
-			return fmt.Errorf("Bad: Get on automationScheduleClient: %s", err)
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Automation Schedule '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on automationScheduleClient: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Automation Schedule '%s' (resource group: '%s') does not exist", name, resourceGroup)
-		}
 
 		if resp.Frequency != freq {
 			return fmt.Errorf("Current frequency %s is not consistent with checked value %s", resp.Frequency, freq)

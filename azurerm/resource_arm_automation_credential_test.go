@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAutomationCredential_testCredential(t *testing.T) {
@@ -45,12 +45,15 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, accName, name)
 
 		if err != nil {
-			return nil
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Automation Credential still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("EventGrid Topic still exists:\n%#v", resp)
+
 	}
 
 	return nil
@@ -78,11 +81,11 @@ func testCheckAzureRMAutomationCredentialExistsAndUserName(name string, username
 		resp, err := conn.Get(resourceGroup, accName, name)
 
 		if err != nil {
-			return fmt.Errorf("Bad: Get on automationCredentialClient: %s\nName: %s, Account name: %s, Resource group: %s OBJECT: %+v", err, name, accName, resourceGroup, rs.Primary)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Automation Credential '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Automation Credential '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Get on automationCredentialClient: %s\nName: %s, Account name: %s, Resource group: %s OBJECT: %+v", err, name, accName, resourceGroup, rs.Primary)
 		}
 
 		if *resp.UserName != username {
@@ -113,7 +116,7 @@ resource "azurerm_automation_credential" "test" {
   name     	      = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_automation_account.test.name}"
-  user_name           = "test_user"
+  username            = "test_user"
   password            = "test_pwd"
   description         = "This is a test credential for terraform acceptance test"
 }
