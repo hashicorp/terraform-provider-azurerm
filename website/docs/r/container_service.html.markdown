@@ -212,7 +212,13 @@ The following attributes are exported:
 * `id` - The Container Service ID.
 
 * `master_profile.fqdn` - FDQN for the master.
+```hcl
+# Example usage:  
+output "master_fqdn" {
+  value = "${azurerm_container_service.default.master_profile.0.fqdn}"
+}
+```
 
-* `agent_pool_profile.fqdn` - FDQN for the agent pool.
+* `agent_pool_profile.fqdn` - FDQN for the agent pool, only exported for Swarm and DCOS clusters.
 
 * `diagnostics_profile.storage_uri` - The URI of the storage account where diagnostics are stored.
