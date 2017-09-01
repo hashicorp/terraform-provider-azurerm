@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -37,7 +36,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -53,19 +52,10 @@ func resourceArmAutomationAccount() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMAutomationAccountSkuHash,
 			},
 			"tags": tagsSchema(),
 		},
 	}
-}
-
-func resourceAzureRMAutomationAccountSkuHash(v interface{}) int {
-	m := v.(map[string]interface{})
-
-	name := m["name"].(string)
-
-	return hashcode.String(name)
 }
 
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -84,7 +74,6 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 			Sku: &sku,
 		},
 
-		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
 	}
@@ -161,19 +150,17 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 }
 
 func flattenAndSetSku(d *schema.ResourceData, sku *automation.Sku) {
-	results := schema.Set{
-		F: resourceAzureRMAutomationAccountSkuHash,
-	}
+	results := make([]interface{}, 1)
 
 	result := map[string]interface{}{}
 	result["name"] = string(sku.Name)
-	results.Add(result)
+	results[0] = result
 
 	d.Set("sku", &results)
 }
 
 func expandSku(d *schema.ResourceData) automation.Sku {
-	inputs := d.Get("sku").(*schema.Set).List()
+	inputs := d.Get("sku").([]interface{})
 	input := inputs[0].(map[string]interface{})
 	name := automation.SkuNameEnum(input["name"].(string))
 
