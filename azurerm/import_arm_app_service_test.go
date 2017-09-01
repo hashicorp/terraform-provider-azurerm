@@ -23,9 +23,9 @@ func TestAccAzureRMAppService_importBasic(t *testing.T) {
 			},
 
 			resource.TestStep{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"force_dns_registration", "skip_custom_domain_verification", "skip_dns_registration"},
 			},
 		},
