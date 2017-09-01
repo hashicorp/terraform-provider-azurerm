@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_cdn_endpoint` - defaulting the `http_port` and `https_port` [GH-301]
 * `azurerm_cosmos_db_account`: allow setting the Kind to MongoDB/GlobalDocumentDB [GH-299]
 
 ## 0.1.6 (August 31, 2017)
