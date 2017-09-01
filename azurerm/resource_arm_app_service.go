@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -46,7 +47,7 @@ func resourceArmAppService() *schema.Resource {
 				Default:  false,
 			},
 			"ttl_in_seconds": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  "",
 			},
@@ -57,6 +58,7 @@ func resourceArmAppService() *schema.Resource {
 			"always_on": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 			"location": locationSchema(),
 			"tags":     tagsSchema(),
@@ -65,10 +67,9 @@ func resourceArmAppService() *schema.Resource {
 }
 
 func resourceArmAppServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	appClient := client.appsClient
+	appClient := meta.(*ArmClient).appsClient
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Web App creation.")
+	log.Printf("[INFO] preparing arguments for Azure ARM App Service creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -76,7 +77,7 @@ func resourceArmAppServiceCreateUpdate(d *schema.ResourceData, meta interface{})
 	skipDNSRegistration := d.Get("skip_dns_registration").(bool)
 	skipCustomDomainVerification := d.Get("skip_custom_domain_verification").(bool)
 	forceDNSRegistration := d.Get("force_dns_registration").(bool)
-	ttlInSeconds := d.Get("ttl_in_seconds").(string)
+	ttlInSeconds := d.Get("ttl_in_seconds").(int)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := web.SiteConfig{}
@@ -99,7 +100,7 @@ func resourceArmAppServiceCreateUpdate(d *schema.ResourceData, meta interface{})
 		SiteProperties: &siteProps,
 	}
 
-	_, error := appClient.CreateOrUpdate(resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds, make(chan struct{}))
+	_, error := appClient.CreateOrUpdate(resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, strconv.Itoa(ttlInSeconds), make(chan struct{}))
 	err := <-error
 	if err != nil {
 		return err
