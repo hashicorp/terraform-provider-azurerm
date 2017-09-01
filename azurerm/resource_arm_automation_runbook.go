@@ -187,10 +187,13 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", resGroup)
 
 	d.Set("account_name", accName)
-	d.Set("log_verbose", resp.LogVerbose)
-	d.Set("log_progress", resp.LogProgress)
-	d.Set("runbook_type", resp.RunbookType)
-	d.Set("description", resp.Description)
+	if props := resp.RunbookProperties; props != nil {
+		d.Set("log_verbose", props.LogVerbose)
+		d.Set("log_progress", props.LogProgress)
+		d.Set("runbook_type", props.RunbookType)
+		d.Set("description", props.Description)
+	}
+
 	d.Set("publish_content_link", nil) //publish content link is not set during Get()
 
 	flattenAndSetTags(d, resp.Tags)
