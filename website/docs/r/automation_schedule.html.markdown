@@ -58,8 +58,6 @@ The following arguments are supported:
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
-* `interval` -  (Optional) The interval of the schedule. Must be set if the schedule is recurring. NOT YET SUPPORTED due to lack of SDK support.
- 
 * `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
 
 * `timezone` - (Optional) The timezone of the start time. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
