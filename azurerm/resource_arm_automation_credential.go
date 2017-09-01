@@ -118,7 +118,7 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resGroup)
 	d.Set("account_name", accName)
 	if props := resp.CredentialProperties; props != nil {
-  		d.Set("username", props.UserName)
+		d.Set("username", props.UserName)
 	}
 	d.Set("password", nil)
 	d.Set("description", resp.Description)

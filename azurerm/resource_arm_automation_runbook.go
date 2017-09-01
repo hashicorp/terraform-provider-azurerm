@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -74,7 +73,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 			},
 
 			"publish_content_link": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -83,21 +82,35 @@ func resourceArmAutomationRunbook() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
+
+						"version": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"hash": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"algorithm": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"value": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+								},
+							},
+						},
 					},
 				},
-				Set: resourceAzureRMAutomationRunbookContentLinkHash,
 			},
 			"tags": tagsSchema(),
 		},
 	}
-}
-
-func resourceAzureRMAutomationRunbookContentLinkHash(v interface{}) int {
-	m := v.(map[string]interface{})
-
-	uri := m["uri"].(string)
-
-	return hashcode.String(uri)
 }
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -210,12 +223,34 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 }
 
 func expandContentLink(d *schema.ResourceData) automation.ContentLink {
-	inputs := d.Get("publish_content_link").(*schema.Set).List()
+	inputs := d.Get("publish_content_link").([]interface{})
 	input := inputs[0].(map[string]interface{})
 	uri := input["uri"].(string)
+	version := input["version"].(string)
+	
+	hashes := input["hash"].([]interface{})
+	var contentLink automation.ContentLink
+	var contentHash automation.ContentHash
 
-	contentLink := automation.ContentLink{
-		URI: &uri,
+	if len(hashes) > 0 {
+		hash := hashes[0].(map[string]interface{})
+		hashValue := hash["value"].(string)
+		hashAlgorithm := hash["algorithm"].(string)
+		contentHash = automation.ContentHash{
+        		Algorithm: &hashAlgorithm,
+		        Value:     &hashValue,
+		}
+	
+		contentLink = automation.ContentLink{
+ 		       URI:     &uri,
+		        Version: &version,
+		        ContentHash: &contentHash,
+		}
+	} else {
+		contentLink = automation.ContentLink{
+			URI:     &uri,
+			Version: &version,
+		}
 	}
 
 	return contentLink
