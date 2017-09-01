@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -60,7 +61,6 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 }
 
 func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq automation.ScheduleFrequency) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -96,6 +96,8 @@ func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq 
 }
 
 func testAccAzureRMAutomationSchedule_oneTime(rInt int, location string) string {
+	startTime := time.Now().UTC().Add(time.Duration(7) * time.Minute)
+
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name = "acctestRG-%d"
@@ -117,12 +119,8 @@ resource "azurerm_automation_schedule" "test" {
   account_name        = "${azurerm_automation_account.test.name}"
   frequency	      = "OneTime"
   timezone	      = "Central Europe Standard Time"
-  first_run {
-        "hour" = 20
-        "minute" = 5
-        "second" = 0
-  }
+  start_time	      = "%s"
   description	      = "This is a test runbook for terraform acceptance test"
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, startTime.Format(time.RFC3339))
 }

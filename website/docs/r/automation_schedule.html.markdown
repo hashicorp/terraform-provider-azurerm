@@ -33,11 +33,7 @@ resource "azurerm_automation_schedule" "example" {
   account_name        = "${azurerm_automation_account.example.name}"
   frequency           = "OneTime"
   timezone            = "Central Europe Standard Time"
-  first_run { 
-        "hour" = 20
-        "minute" = 5
-        "second" = 0
-  }
+  start_time	      = "2014-04-15T18:00:15-07:00"
   description         = "This is an example schedule"
 }
 ```
@@ -54,7 +50,7 @@ The following arguments are supported:
 
 * `description` -  (Optional) A description for this Schedule.
 
-* `start_time` -  (Optional) Start time of the schedule. Must be at least five minutes in the future.
+* `start_time` -  (Required) Start time of the schedule. Must be at least five minutes in the future.
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
@@ -62,20 +58,6 @@ The following arguments are supported:
 
 * `timezone` - (Optional) The timezone of the start time. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
 
-* `first_run` - (Optional) If an exact start time is not suitable, it can be used to make constraints for the first run. The start time will be calculated depending on these constraints. `start_time` will override this settings if defined.
-
-`first_run` supports the following:
-
-* `second` - (Optional) In which second should the schedule first triggered.
- 
-* `minute` - (Optional) In which minute should the schedule first triggered.
-
-* `hour` - (Optional) In which hour should the schedule first triggered. Ignored if the frequency is `Hour`.
-
-* `day_of_week` - (Optional) On which day of the week should the schedule first triggered. Ignored if the frequency is `OneTime`, `Hour` or `Day`. (0 - Sunday)
-
-* `day_of_month` - (Optional) On which day of the month should the schedule first triggered. Ignored if the frequency is `Hour`, `Day` or `Week`.
- 
 ## Attributes Reference
 
 The following attributes are exported:

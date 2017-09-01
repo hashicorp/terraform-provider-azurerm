@@ -47,7 +47,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			},
 			"start_time": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 
 			"expiry_time": {
@@ -71,117 +71,8 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"first_run": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"second": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  -1,
-						},
-						"minute": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  -1,
-						},
-						"hour": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  -1,
-						},
-						"day_of_week": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  -1,
-						},
-						"day_of_month": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  -1,
-						},
-					},
-				},
-			},
 		},
 	}
-}
-
-func computeValidStartTime(firstRunList []interface{}, freq automation.ScheduleFrequency) time.Time {
-
-	closestValidStartTime := time.Now().UTC().Add(time.Duration(7) * time.Minute)
-	if len(firstRunList) == 0 {
-		return closestValidStartTime
-	}
-
-	firstRun := firstRunList[0].(map[string]interface{})
-
-	firstRunSec := int(firstRun["second"].(int))
-	if firstRunSec == -1 {
-		firstRunSec = closestValidStartTime.Second()
-	}
-
-	firstRunMinute := int(firstRun["minute"].(int))
-	if firstRunMinute == -1 {
-		firstRunMinute = closestValidStartTime.Minute()
-	}
-
-	firstRunHour := int(firstRun["hour"].(int))
-	if firstRunHour == -1 {
-		firstRunHour = closestValidStartTime.Hour()
-	}
-
-	firstRunDayOfWeek := int(firstRun["day_of_week"].(int))
-	if firstRunDayOfWeek == -1 {
-		firstRunDayOfWeek = int(closestValidStartTime.Weekday())
-	}
-
-	firstRunDayOfMonth := int(firstRun["day_of_month"].(int))
-	if firstRunDayOfMonth == -1 {
-		firstRunDayOfMonth = closestValidStartTime.Day()
-	}
-
-	switch freq {
-	case automation.Hour:
-		validStartTime := time.Date(closestValidStartTime.Year(), closestValidStartTime.Month(), closestValidStartTime.Day(), closestValidStartTime.Hour(), firstRunMinute, firstRunSec, 0, time.UTC)
-		if firstRunMinute <= closestValidStartTime.Minute() {
-			validStartTime.Add(time.Duration(1) * time.Hour)
-		}
-
-		return validStartTime
-
-	case automation.Day:
-		validStartTime := time.Date(closestValidStartTime.Year(), closestValidStartTime.Month(), closestValidStartTime.Day(), firstRunHour, firstRunMinute, firstRunSec, 0, time.UTC)
-		if firstRunHour <= closestValidStartTime.Hour() {
-			validStartTime.AddDate(0, 0, 1)
-		}
-		return validStartTime
-
-	case automation.Week:
-		validStartTime := time.Date(closestValidStartTime.Year(), closestValidStartTime.Month(), closestValidStartTime.Day(), firstRunHour, firstRunMinute, firstRunSec, 0, time.UTC)
-		if firstRunDayOfWeek <= int(closestValidStartTime.Weekday()) {
-			dayadd := 7 - (int(closestValidStartTime.Weekday()) - firstRunDayOfWeek)
-			validStartTime.AddDate(0, 0, dayadd)
-		}
-		return validStartTime
-
-	case automation.Month:
-		validStartTime := time.Date(closestValidStartTime.Year(), closestValidStartTime.Month(), firstRunDayOfMonth, firstRunHour, firstRunMinute, firstRunSec, 0, time.UTC)
-		if firstRunDayOfMonth <= closestValidStartTime.Day() {
-			validStartTime.AddDate(0, 1, 0)
-		}
-		return validStartTime
-
-	case automation.OneTime:
-		validStartTime := time.Date(closestValidStartTime.Year(), closestValidStartTime.Month(), firstRunDayOfMonth, firstRunHour, firstRunMinute, firstRunSec, 0, time.UTC)
-		return validStartTime
-
-	}
-
-	log.Printf("[WARN] error compute first valid run time")
-	return closestValidStartTime
 }
 
 func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -196,16 +87,9 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	freq := automation.ScheduleFrequency(freqstr)
 
 	cst := d.Get("start_time").(string)
-	var starttime time.Time
-
-	if cst != "" {
-		var tperr error
-		starttime, tperr = time.Parse(time.RFC3339, cst)
-		if tperr != nil {
-			return fmt.Errorf("Cannot parse start_time: %s", cst)
-		}
-	} else {
-		starttime = computeValidStartTime(d.Get("first_run").([]interface{}), freq)
+	starttime, tperr := time.Parse(time.RFC3339, cst)
+	if tperr != nil {
+		return fmt.Errorf("Cannot parse start_time: %s", cst)
 	}
 
 	ardt := date.Time{Time: starttime}
@@ -221,10 +105,9 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		Name: &name,
 		ScheduleCreateOrUpdateProperties: &automation.ScheduleCreateOrUpdateProperties{
 			Description: &description,
-			//Interval:    &interval,
-			Frequency: freq,
-			StartTime: &ardt,
-			TimeZone:  &timezone,
+			Frequency:   freq,
+			StartTime:   &ardt,
+			TimeZone:    &timezone,
 		},
 	}
 
@@ -273,7 +156,6 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("frequency", resp.Frequency)
 	d.Set("description", resp.Description)
 	d.Set("start_time", string(resp.StartTime.Format(time.RFC3339)))
-	d.Set("first_run", nil)
 	return nil
 }
 
