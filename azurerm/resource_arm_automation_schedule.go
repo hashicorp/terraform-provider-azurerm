@@ -71,6 +71,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 					string(automation.Week),
 				}, true),
 			},
+			"timezone": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"first_run": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -216,8 +220,12 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	//interval :=
 
 	description := d.Get("description").(string)
-	timezone := "UTC"
-
+	var timezone string
+	if v, ok := d.GetOk("timezone"); ok {
+		timezone = v.(string)
+	} else {
+		timezone = "UTC"
+	}
 	parameters := automation.ScheduleCreateOrUpdateParameters{
 		Name: &name,
 		ScheduleCreateOrUpdateProperties: &automation.ScheduleCreateOrUpdateProperties{

@@ -116,6 +116,7 @@ resource "azurerm_automation_schedule" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_automation_account.test.name}"
   frequency	      = "OneTime"
+  timezone	      = "Central Europe Standard Time"
   first_run {
         "hour" = 20
         "minute" = 5

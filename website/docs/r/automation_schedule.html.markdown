@@ -32,6 +32,7 @@ resource "azurerm_automation_schedule" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   account_name        = "${azurerm_automation_account.example.name}"
   frequency           = "OneTime"
+  timezone            = "Central Europe Standard Time"
   first_run { 
         "hour" = 20
         "minute" = 5
@@ -60,6 +61,8 @@ The following arguments are supported:
 * `interval` -  (Optional) The interval of the schedule. Must be set if the schedule is recurring. NOT YET SUPPORTED due to lack of SDK support.
  
 * `frequency` - (Required) The frequency of the schedule. - can be either `OneTime`, `Day`, `Hour`, `Week`, or `Month`.
+
+* `timezone` - (Optional) The timezone of the start time. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
 
 * `first_run` - (Optional) If an exact start time is not suitable, it can be used to make constraints for the first run. The start time will be calculated depending on these constraints. `start_time` will override this settings if defined.
 
