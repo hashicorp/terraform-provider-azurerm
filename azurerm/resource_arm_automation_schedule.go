@@ -1,14 +1,12 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -74,7 +72,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				}, true),
 			},
 			"first_run": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -106,30 +104,19 @@ func resourceArmAutomationSchedule() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMAutomationScheduleFreqConstraint,
 			},
 		},
 	}
 }
 
-func resourceAzureRMAutomationScheduleFreqConstraint(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	buf.WriteString(fmt.Sprintf("%d-%d-%d-%d-%d", m["second"], m["minute"], m["hour"], m["day_of_week"], m["day_of_month"]))
-	return hashcode.String(buf.String())
-}
-
-func computeValidStartTime(firstRunSet *schema.Set, freq automation.ScheduleFrequency) time.Time {
-
-	firstRunSetList := firstRunSet.List()
+func computeValidStartTime(firstRunList []interface{}, freq automation.ScheduleFrequency) time.Time {
 
 	closestValidStartTime := time.Now().UTC().Add(time.Duration(7) * time.Minute)
-	if len(firstRunSetList) == 0 {
+	if len(firstRunList) == 0 {
 		return closestValidStartTime
 	}
 
-	firstRun := firstRunSetList[0].(map[string]interface{})
+	firstRun := firstRunList[0].(map[string]interface{})
 
 	firstRunSec := int(firstRun["second"].(int))
 	if firstRunSec == -1 {
@@ -218,7 +205,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 			return fmt.Errorf("Cannot parse start_time: %s", cst)
 		}
 	} else {
-		starttime = computeValidStartTime(d.Get("first_run").(*schema.Set), freq)
+		starttime = computeValidStartTime(d.Get("first_run").([]interface{}), freq)
 	}
 
 	ardt := date.Time{Time: starttime}

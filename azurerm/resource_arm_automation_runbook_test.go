@@ -32,23 +32,23 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
-        ri := acctest.RandInt()
-        config := testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, testLocation())
+	ri := acctest.RandInt()
+	config := testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, testLocation())
 
-        resource.Test(t, resource.TestCase{
-                PreCheck:     func() { testAccPreCheck(t) },
-                Providers:    testAccProviders,
-                CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
-                Steps: []resource.TestStep{
-                        {
-                                Config: config,
-                                Check: resource.ComposeTestCheckFunc(
-                                        testCheckAzureRMAutomationRunbookExistsAndType("azurerm_automation_runbook.test", automation.PowerShellWorkflow),
-                                ),
-                                ExpectNonEmptyPlan: true,
-                        },
-                },
-        })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExistsAndType("azurerm_automation_runbook.test", automation.PowerShellWorkflow),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
 }
 
 func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
@@ -150,7 +150,7 @@ resource "azurerm_automation_runbook" "test" {
 }
 
 func testAccAzureRMAutomationRunbook_PSWorkflowWithHash(rInt int, location string) string {
-        return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name = "acctestRG-%d"
  location = "%s"
