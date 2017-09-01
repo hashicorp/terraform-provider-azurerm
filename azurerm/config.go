@@ -124,9 +124,6 @@ type ArmClient struct {
 	sqlFirewallRulesClient sql.FirewallRulesClient
 	sqlServersClient       sql.ServersClient
 
-	sqlElasticPoolsClient sql.ElasticPoolsClient
-  sqlServersClient sql.ServersClient
-	
   appServicePlansClient web.AppServicePlansClient
   appsClient web.AppsClient
 
@@ -576,7 +573,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aspc.Authorizer = auth
 	aspc.Sender = autorest.CreateSender(withRequestLogging())
 	client.appServicePlansClient = aspc
-  
+
   ac := web.NewAppsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ac.Client)
 	ac.Authorizer = auth
