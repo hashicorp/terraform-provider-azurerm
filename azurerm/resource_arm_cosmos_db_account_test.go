@@ -52,7 +52,7 @@ func TestAccAzureRMCosmosDBAccountName_validation(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
-
+	resourceName := "azurerm_cosmosdb_account.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_boundedStaleness(ri, testLocation())
 
@@ -64,7 +64,8 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
+					testCheckAzureRMCosmosDBAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
 				),
 			},
 		},
