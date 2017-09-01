@@ -6,6 +6,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
 )
 
 func resourceArmSqlServer() *schema.Resource {
@@ -91,7 +93,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	response, err := client.CreateOrUpdate(resGroup, name, parameters)
 	if err != nil {
 		// if the name is in-use, Azure returns a 409 "Unknown Service Error" which is a bad UX
-		if responseWasConflict(response.Response) {
+		if utils.ResponseWasConflict(response.Response) {
 			return fmt.Errorf("SQL Server names need to be globally unique and '%s' is already in use.", name)
 		}
 
@@ -118,26 +120,28 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	result, err := client.Get(resGroup, name)
+	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(result.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error reading SQL Server %s: %v", name, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*result.Location))
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	if serverProperties := result.ServerProperties; serverProperties != nil {
+	if serverProperties := resp.ServerProperties; serverProperties != nil {
 		d.Set("version", string(serverProperties.Version))
 		d.Set("administrator_login", serverProperties.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	flattenAndSetTags(d, result.Tags)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
@@ -155,7 +159,7 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 
 	response, err := client.Delete(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(response) {
+		if utils.ResponseWasNotFound(response) {
 			return nil
 		}
 

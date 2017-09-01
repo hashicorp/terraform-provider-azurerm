@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmImage() *schema.Resource {
@@ -83,7 +84,7 @@ func resourceArmImage() *schema.Resource {
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -127,7 +128,7 @@ func resourceArmImage() *schema.Resource {
 						"caching": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
+							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.None),
 								string(compute.ReadOnly),
@@ -241,7 +242,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := imageClient.Get(resGroup, name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -301,7 +302,7 @@ func flattenAzureRmStorageProfileOsDisk(d *schema.ResourceData, storageProfile *
 			result["managed_disk_id"] = *osDisk.ManagedDisk.ID
 		}
 		result["blob_uri"] = *osDisk.BlobURI
-		result["caching"] = osDisk.Caching
+		result["caching"] = string(osDisk.Caching)
 		if osDisk.DiskSizeGB != nil {
 			result["size_gb"] = *osDisk.DiskSizeGB
 		}

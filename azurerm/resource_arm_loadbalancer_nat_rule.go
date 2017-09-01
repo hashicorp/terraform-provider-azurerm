@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerNatRule() *schema.Resource {
@@ -257,8 +257,8 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 
 	properties := network.InboundNatRulePropertiesFormat{
 		Protocol:     network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort: azure.Int32(int32(d.Get("frontend_port").(int))),
-		BackendPort:  azure.Int32(int32(d.Get("backend_port").(int))),
+		FrontendPort: utils.Int32(int32(d.Get("frontend_port").(int))),
+		BackendPort:  utils.Int32(int32(d.Get("backend_port").(int))),
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {
@@ -275,7 +275,7 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 	}
 
 	natRule := network.InboundNatRule{
-		Name: azure.String(d.Get("name").(string)),
+		Name: utils.String(d.Get("name").(string)),
 		InboundNatRulePropertiesFormat: &properties,
 	}
 

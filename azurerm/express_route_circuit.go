@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/errwrap"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func extractResourceGroupAndErcName(resourceId string) (resourceGroup string, name string, err error) {
@@ -29,7 +30,7 @@ func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.
 
 	resp, err := ercClient.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, "", nil
 		}
 		return nil, "", errwrap.Wrapf(fmt.Sprintf("Error making Read request on Express Route Circuit %s: {{err}}", name), err)

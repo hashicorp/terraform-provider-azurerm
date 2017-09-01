@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmRoute() *schema.Resource {
@@ -120,7 +121,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := routesClient.Get(resGroup, rtName, routeName)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

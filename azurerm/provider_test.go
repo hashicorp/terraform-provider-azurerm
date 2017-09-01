@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -56,11 +58,17 @@ func testAltLocation() string {
 	return os.Getenv("ARM_TEST_LOCATION_ALT")
 }
 
-func testArmEnvironment() (*azure.Environment, error) {
+func testArmEnvironmentName() string {
 	envName, exists := os.LookupEnv("ARM_ENVIRONMENT")
 	if !exists {
 		envName = "public"
 	}
+
+	return envName
+}
+
+func testArmEnvironment() (*azure.Environment, error) {
+	envName := testArmEnvironmentName()
 
 	// detect cloud from environment
 	env, envErr := azure.EnvironmentFromName(envName)
@@ -74,4 +82,48 @@ func testArmEnvironment() (*azure.Environment, error) {
 	}
 
 	return &env, nil
+}
+
+func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
+	environment := testArmEnvironmentName()
+
+	if os.Getenv(resource.TestEnvVar) == "" {
+		t.Skip(fmt.Sprintf(
+			"Integration test skipped unless env '%s' set",
+			resource.TestEnvVar))
+		return
+	}
+
+	// we deliberately don't use the main config - since we care about
+	config := Config{
+		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
+		ClientID:                 os.Getenv("ARM_CLIENT_ID"),
+		TenantID:                 os.Getenv("ARM_TENANT_ID"),
+		ClientSecret:             os.Getenv("ARM_CLIENT_SECRET"),
+		Environment:              environment,
+		SkipProviderRegistration: false,
+	}
+
+	armClient, err := config.getArmClient()
+	if err != nil {
+		t.Fatalf("Error building ARM Client: %+v", err)
+	}
+
+	client := armClient.providers
+	providerList, err := client.List(nil, "")
+	if err != nil {
+		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+
+			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
+			"error: %s", err)
+	}
+
+	err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client)
+	if err != nil {
+		t.Fatalf("Error registering Resource Providers: %+v", err)
+	}
+
+	needingRegistration := determineAzureResourceProvidersToRegister(*providerList.Value)
+	if len(needingRegistration) > 0 {
+		t.Fatalf("'%d' Resource Providers are still Pending Registration: %s", len(needingRegistration), spew.Sprint(needingRegistration))
+	}
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
-	riviera "github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmVirtualMachineScaleSet() *schema.Resource {
@@ -161,7 +161,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Optional: true,
 						},
 						"winrm": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -615,7 +615,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	resp, err := vmScaleSetClient.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] AzureRM Virtual Machine Scale Set (%s) Not Found. Removing from State", name)
 			d.SetId("")
 			return nil
@@ -1322,7 +1322,7 @@ func expandAzureRMVirtualMachineScaleSetsStorageProfileDataDisk(d *schema.Resour
 			managedDiskVMSS.StorageAccountType = compute.StorageAccountTypes(compute.StandardLRS)
 		}
 
-		//assume that data disks in VMSS can only be Managed Disks
+		// assume that data disks in VMSS can only be Managed Disks
 		dataDisk.ManagedDisk = managedDiskVMSS
 		if v := config["caching"].(string); v != "" {
 			dataDisk.Caching = compute.CachingTypes(v)
@@ -1354,16 +1354,16 @@ func expandAzureRmVirtualMachineScaleSetStorageProfileImageReference(d *schema.R
 	}
 
 	if imageID != "" {
-		imageReference.ID = riviera.String(storageImageRef["id"].(string))
+		imageReference.ID = utils.String(storageImageRef["id"].(string))
 	} else {
 		offer := storageImageRef["offer"].(string)
 		sku := storageImageRef["sku"].(string)
 		version := storageImageRef["version"].(string)
 
-		imageReference.Publisher = &publisher
-		imageReference.Offer = &offer
-		imageReference.Sku = &sku
-		imageReference.Version = &version
+		imageReference.Publisher = utils.String(publisher)
+		imageReference.Offer = utils.String(offer)
+		imageReference.Sku = utils.String(sku)
+		imageReference.Version = utils.String(version)
 	}
 
 	return &imageReference, nil
@@ -1420,7 +1420,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.Resourc
 	}
 
 	if v := osProfileConfig["winrm"]; v != nil {
-		winRm := v.(*schema.Set).List()
+		winRm := v.([]interface{})
 		if len(winRm) > 0 {
 			winRmListeners := make([]compute.WinRMListener, 0, len(winRm))
 			for _, winRmConfig := range winRm {

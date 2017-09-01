@@ -13,100 +13,7 @@ Create a virtual machine scale set.
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-## Example Usage
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
-  location = "West US"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn"
-  address_space       = ["10.0.0.0/16"]
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "accsa"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "westus"
-  account_type        = "Standard_LRS"
-
-  tags {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-
-resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "mytestscaleset-1"
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  upgrade_policy_mode = "Manual"
-
-  sku {
-    name     = "Standard_A0"
-    tier     = "Standard"
-    capacity = 2
-  }
-
-  os_profile {
-    computer_name_prefix = "testvm"
-    admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = true
-
-    ssh_keys {
-      path     = "/home/myadmin/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/demo_key.pub")}"
-    }
-  }
-
-  network_profile {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      subnet_id = "${azurerm_subnet.test.id}"
-    }
-  }
-
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
-  }
-
-  storage_profile_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-}
-```
-
-## Example Usage with Managed Disks
+## Example Usage with Managed Disks (Recommended)
 
 ```hcl
 resource "azurerm_resource_group" "test" {
@@ -235,6 +142,99 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 }
 ```
 
+## Example Usage with Unmanaged Disks
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg"
+  location = "West US"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn"
+  address_space       = ["10.0.0.0/16"]
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "accsa"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "westus"
+  account_type        = "Standard_LRS"
+
+  tags {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "mytestscaleset-1"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name     = "Standard_A0"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = true
+
+    ssh_keys {
+      path     = "/home/myadmin/.ssh/authorized_keys"
+      key_data = "${file("~/.ssh/demo_key.pub")}"
+    }
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+
+  storage_profile_os_disk {
+    name           = "osDiskProfile"
+    caching        = "ReadWrite"
+    create_option  = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -346,7 +346,7 @@ The following arguments are supported:
 
 `storage_profile_image_reference` supports the following:
 
-* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
 machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
 * `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
 * `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.

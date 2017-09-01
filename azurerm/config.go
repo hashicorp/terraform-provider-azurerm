@@ -15,24 +15,27 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/arm/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
+	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/arm/web"
+	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
-	riviera "github.com/jen20/riviera/azure"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -44,8 +47,6 @@ type ArmClient struct {
 	environment    azure.Environment
 
 	StopContext context.Context
-
-	rivieraClient *riviera.Client
 
 	availSetClient         compute.AvailabilitySetsClient
 	usageOpsClient         compute.UsageClient
@@ -84,6 +85,7 @@ type ArmClient struct {
 	containerRegistryClient containerregistry.RegistriesClient
 	containerServicesClient containerservice.ContainerServicesClient
 
+	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
@@ -92,6 +94,8 @@ type ArmClient struct {
 	resourceGroupClient resources.GroupsClient
 	tagsClient          resources.TagsClient
 	resourceFindClient  resources.GroupClient
+
+	subscriptionsGroupClient subscriptions.GroupClient
 
 	jobsClient            scheduler.JobsClient
 	jobsCollectionsClient scheduler.JobCollectionsClient
@@ -106,18 +110,25 @@ type ArmClient struct {
 	trafficManagerProfilesClient  trafficmanager.ProfilesClient
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
+	searchServicesClient          search.ServicesClient
 	serviceBusNamespacesClient    servicebus.NamespacesClient
 	serviceBusQueuesClient        servicebus.QueuesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
 	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
 
-	keyVaultClient keyvault.VaultsClient
+	keyVaultClient           keyvault.VaultsClient
+	keyVaultManagementClient keyVault.ManagementClient
+
+	sqlDatabasesClient     sql.DatabasesClient
+	sqlElasticPoolsClient  sql.ElasticPoolsClient
+	sqlFirewallRulesClient sql.FirewallRulesClient
+	sqlServersClient       sql.ServersClient
 
 	sqlElasticPoolsClient sql.ElasticPoolsClient
-
-	appsClient web.AppsClient
-
-	sqlServersClient sql.ServersClient
+  sqlServersClient sql.ServersClient
+	
+  appServicePlansClient web.AppServicePlansClient
+  appsClient web.AppsClient
 
 	appInsightsClient appinsights.ComponentsClient
 
@@ -179,19 +190,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 		environment:    env,
 	}
 
-	rivieraClient, err := riviera.NewClient(&riviera.AzureResourceManagerCredentials{
-		ClientID:                c.ClientID,
-		ClientSecret:            c.ClientSecret,
-		TenantID:                c.TenantID,
-		SubscriptionID:          c.SubscriptionID,
-		ResourceManagerEndpoint: env.ResourceManagerEndpoint,
-		ActiveDirectoryEndpoint: env.ActiveDirectoryEndpoint,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Error creating Riviera client: %s", err)
-	}
-	client.rivieraClient = rivieraClient
-
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
 	if err != nil {
 		return nil, err
@@ -202,23 +200,35 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
 	}
 
-	spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, env.ResourceManagerEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	graphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, env.GraphEndpoint)
-	if err != nil {
-		return nil, err
-	}
-
+	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
+	spt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, endpoint)
+	if err != nil {
+		return nil, err
+	}
 	auth := autorest.NewBearerAuthorizer(spt)
+
+	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
+	graphSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, graphEndpoint)
+	if err != nil {
+		return nil, err
+	}
 	graphAuth := autorest.NewBearerAuthorizer(graphSpt)
 
+	// Key Vault Endpoints
+	sender := autorest.CreateSender(withRequestLogging())
+	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
+		keyVaultSpt, err := adal.NewServicePrincipalToken(*oauthConfig, c.ClientID, c.ClientSecret, resource)
+		if err != nil {
+			return nil, err
+		}
+
+		return autorest.NewBearerAuthorizer(keyVaultSpt), nil
+	})
+
 	// NOTE: these declarations should be left separate for clarity should the
-	// clients be wished to be configured with custom Responders/PollingModess etc...
+	// clients be wished to be configured with custom Responders/PollingModes etc...
 	asc := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&asc.Client)
 	asc.Authorizer = auth
@@ -296,6 +306,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	img.Authorizer = auth
 	img.Sender = autorest.CreateSender(withRequestLogging())
 	client.imageClient = img
+
+	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&egtc.Client)
+	egtc.Authorizer = auth
+	egtc.Sender = autorest.CreateSender(withRequestLogging())
+	client.eventGridTopicsClient = egtc
 
 	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ehc.Client)
@@ -435,6 +451,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rf.Sender = autorest.CreateSender(withRequestLogging())
 	client.resourceFindClient = rf
 
+	subgc := subscriptions.NewGroupClientWithBaseURI(endpoint)
+	setUserAgent(&subgc.Client)
+	subgc.Authorizer = auth
+	subgc.Sender = autorest.CreateSender(withRequestLogging())
+	client.subscriptionsGroupClient = subgc
+
 	jc := scheduler.NewJobsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&jc.Client)
 	jc.Authorizer = auth
@@ -495,6 +517,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	rdc.Sender = autorest.CreateSender(withRequestLogging())
 	client.redisClient = rdc
 
+	sesc := search.NewServicesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sesc.Client)
+	sesc.Authorizer = auth
+	sesc.Sender = autorest.CreateSender(withRequestLogging())
+	client.searchServicesClient = sesc
+
 	sbnc := servicebus.NewNamespacesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sbnc.Client)
 	sbnc.Authorizer = auth
@@ -519,11 +547,17 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbsc.Sender = autorest.CreateSender(withRequestLogging())
 	client.serviceBusSubscriptionsClient = sbsc
 
-	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&kvc.Client)
-	kvc.Authorizer = auth
-	kvc.Sender = autorest.CreateSender(withRequestLogging())
-	client.keyVaultClient = kvc
+	sqldc := sql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sqldc.Client)
+	sqldc.Authorizer = auth
+	sqldc.Sender = autorest.CreateSender(withRequestLogging())
+	client.sqlDatabasesClient = sqldc
+
+	sqlfrc := sql.NewFirewallRulesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sqlfrc.Client)
+	sqlfrc.Authorizer = auth
+	sqlfrc.Sender = autorest.CreateSender(withRequestLogging())
+	client.sqlFirewallRulesClient = sqlfrc
 
 	sqlepc := sql.NewElasticPoolsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sqlepc.Client)
@@ -531,17 +565,23 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sqlepc.Sender = autorest.CreateSender(withRequestLogging())
 	client.sqlElasticPoolsClient = sqlepc
 
-	ac := web.NewAppsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ac.Client)
-	ac.Authorizer = auth
-	ac.Sender = autorest.CreateSender(withRequestLogging())
-	client.appsClient = ac
-
 	sqlsrv := sql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sqlsrv.Client)
 	sqlsrv.Authorizer = auth
 	sqlsrv.Sender = autorest.CreateSender(withRequestLogging())
 	client.sqlServersClient = sqlsrv
+
+	aspc := web.NewAppServicePlansClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&aspc.Client)
+	aspc.Authorizer = auth
+	aspc.Sender = autorest.CreateSender(withRequestLogging())
+	client.appServicePlansClient = aspc
+  
+  ac := web.NewAppsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ac.Client)
+	ac.Authorizer = auth
+	ac.Sender = autorest.CreateSender(withRequestLogging())
+	client.appsClient = ac
 
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ai.Client)
@@ -554,6 +594,18 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	spc.Authorizer = graphAuth
 	spc.Sender = autorest.CreateSender(withRequestLogging())
 	client.servicePrincipalsClient = spc
+
+	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&kvc.Client)
+	kvc.Authorizer = auth
+	kvc.Sender = autorest.CreateSender(withRequestLogging())
+	client.keyVaultClient = kvc
+
+	kvmc := keyVault.New()
+	setUserAgent(&kvmc.Client)
+	kvmc.Authorizer = keyVaultAuth
+	kvmc.Sender = sender
+	client.keyVaultManagementClient = kvmc
 
 	return &client, nil
 }
