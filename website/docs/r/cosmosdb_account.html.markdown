@@ -12,7 +12,7 @@ Creates a new CosmosDB (formally DocumentDB) Account.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
     name = "resourceGroup1"
     location = "West Europe"
