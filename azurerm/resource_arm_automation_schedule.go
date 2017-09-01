@@ -55,10 +55,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Optional: true,
 			},
 
-			"interval": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
 			"frequency": {
 				Type:             schema.TypeString,
 				Required:         true,
