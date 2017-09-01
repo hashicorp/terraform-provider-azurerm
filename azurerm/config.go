@@ -133,7 +133,7 @@ type ArmClient struct {
 	sqlServersClient       sql.ServersClient
 
 	appServicePlansClient web.AppServicePlansClient
-	appsClient web.AppsClient
+	appsClient            web.AppsClient
 
 	appInsightsClient appinsights.ComponentsClient
 
