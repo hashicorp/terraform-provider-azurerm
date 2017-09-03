@@ -2,17 +2,36 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppService_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists("azurerm_app_service.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_complete(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -43,12 +62,13 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
-			return nil
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("App Service still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("App Service still exists:\n%#v", resp)
 	}
 
 	return nil
@@ -72,11 +92,11 @@ func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, appServiceName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on appsClient: %s", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: App Service %q (resource group: %q) does not exist", appServiceName, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: App Service %q (resource group: %q) does not exist", appServiceName, resourceGroup)
+			return fmt.Errorf("Bad: Get on appsClient: %+v", err)
 		}
 
 		return nil
@@ -86,18 +106,49 @@ func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
 func testAccAzureRMAppService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "%s"
+  name = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_app_service" "test" {
-    name                = "acctestAS-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-		tags {
-			environment = "Production"
-		}
+	tags {
+		environment = "Production"
+	}
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAppService_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+	site_config {
+		app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+		always_on           = true
+	}
+}
+`, rInt, location, rInt, rInt)
 }
