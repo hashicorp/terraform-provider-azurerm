@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/jen20/riviera/azure"
 )
 
 func resourceArmAppService() *schema.Resource {
@@ -49,19 +50,33 @@ func resourceArmAppService() *schema.Resource {
 			"ttl_in_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  "",
 			},
-			"app_service_plan_id": {
-				Type:     schema.TypeString,
+			"site_config": {
+				Type:     schema.TypeList,
 				Optional: true,
-			},
-			"always_on": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"app_service_plan_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
+						"always_on": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
 			},
 			"location": locationSchema(),
 			"tags":     tagsSchema(),
+			"delete_metrics": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
@@ -73,26 +88,17 @@ func resourceArmAppServiceCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	skipDNSRegistration := d.Get("skip_dns_registration").(bool)
 	skipCustomDomainVerification := d.Get("skip_custom_domain_verification").(bool)
 	forceDNSRegistration := d.Get("force_dns_registration").(bool)
-	ttlInSeconds := d.Get("ttl_in_seconds").(int)
+	ttlInSeconds := 0
+	if v, ok := d.GetOk("ttl_in_seconds"); ok {
+		ttlInSeconds = v.(int)
+	}
+	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	siteConfig := web.SiteConfig{}
-	if v, ok := d.GetOk("always_on"); ok {
-		alwaysOn := v.(bool)
-		siteConfig.AlwaysOn = &alwaysOn
-	}
-
-	siteProps := web.SiteProperties{
-		SiteConfig: &siteConfig,
-	}
-	if v, ok := d.GetOk("app_service_plan_id"); ok {
-		serverFarmID := v.(string)
-		siteProps.ServerFarmID = &serverFarmID
-	}
+	siteProps := expandAzureRmAppServiceSiteProps(d)
 
 	siteEnvelope := web.Site{
 		Location:       &location,
@@ -145,6 +151,10 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
+	// if siteProps := resp.SiteProperties; siteProps != nil {
+	// 	d.Set("site_config", flattenAzureRmAppServiceSiteProps(siteProps))
+	// }
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -162,11 +172,46 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Deleting App Service %s: %s", resGroup, name)
 
-	deleteMetrics := true
+	deleteMetrics := d.Get("delete_metrics").(bool)
 	deleteEmptyServerFarm := true
-	skipDNSRegistration := true
+	skipDNSRegistration := d.Get("skip_dns_registration").(bool)
 
 	_, err = appClient.Delete(resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
 
 	return err
+}
+
+func expandAzureRmAppServiceSiteProps(d *schema.ResourceData) web.SiteProperties {
+	configs := d.Get("site_config").([]interface{})
+	siteProps := web.SiteProperties{}
+	if len(configs) == 0 {
+		return siteProps
+	}
+	config := configs[0].(map[string]interface{})
+
+	siteConfig := web.SiteConfig{}
+	alwaysOn := config["always_on"].(bool)
+	siteConfig.AlwaysOn = azure.Bool(alwaysOn)
+	siteProps.SiteConfig = &siteConfig
+
+	serverFarmID := config["app_service_plan_id"].(string)
+	siteProps.ServerFarmID = &serverFarmID
+
+	return siteProps
+}
+
+func flattenAzureRmAppServiceSiteProps(siteProps *web.SiteProperties) []interface{} {
+	result := make([]interface{}, 0, 1)
+	site_config := make(map[string]interface{}, 0)
+
+	if siteProps.ServerFarmID != nil {
+		site_config["app_service_plan_id"] = *siteProps.ServerFarmID
+	}
+
+	if siteProps.SiteConfig.AlwaysOn != nil {
+		site_config["app_service_plan_id"] = *siteProps.ServerFarmID
+	}
+
+	result = append(result, site_config)
+	return result
 }
