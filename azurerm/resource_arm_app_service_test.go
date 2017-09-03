@@ -48,6 +48,25 @@ func TestAccAzureRMAppService_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_completeAlwaysOn(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_completeAlwaysOn(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists("azurerm_app_service.test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appsClient
 
@@ -123,6 +142,37 @@ resource "azurerm_app_service" "test" {
 }
 
 func testAccAzureRMAppService_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+	site_config {
+		app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+		always_on           = false
+	}
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_completeAlwaysOn(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
