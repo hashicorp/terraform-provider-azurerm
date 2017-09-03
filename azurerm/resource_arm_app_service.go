@@ -54,6 +54,7 @@ func resourceArmAppService() *schema.Resource {
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -65,7 +66,7 @@ func resourceArmAppService() *schema.Resource {
 						"always_on": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 					},
 				},
@@ -151,9 +152,9 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	// if siteProps := resp.SiteProperties; siteProps != nil {
-	// 	d.Set("site_config", flattenAzureRmAppServiceSiteProps(siteProps))
-	// }
+	if siteProps := resp.SiteProperties; siteProps != nil {
+		d.Set("site_config", flattenAzureRmAppServiceSiteProps(siteProps))
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -208,8 +209,12 @@ func flattenAzureRmAppServiceSiteProps(siteProps *web.SiteProperties) []interfac
 		site_config["app_service_plan_id"] = *siteProps.ServerFarmID
 	}
 
-	if siteProps.SiteConfig.AlwaysOn != nil {
-		site_config["app_service_plan_id"] = *siteProps.ServerFarmID
+	siteConfig := siteProps.SiteConfig
+	log.Printf("[DEBUG] SiteConfig is %s", siteConfig)
+	if siteConfig != nil {
+		if siteConfig.AlwaysOn != nil {
+			site_config["always_on"] = *siteConfig.AlwaysOn
+		}
 	}
 
 	result = append(result, site_config)
