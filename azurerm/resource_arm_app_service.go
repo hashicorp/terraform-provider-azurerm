@@ -8,7 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAppService() *schema.Resource {
@@ -104,7 +104,7 @@ func resourceArmAppServiceCreateUpdate(d *schema.ResourceData, meta interface{})
 	siteEnvelope := web.Site{
 		Location:       &location,
 		Tags:           expandTags(tags),
-		SiteProperties: &siteProps,
+		SiteProperties: siteProps,
 	}
 
 	_, error := appClient.CreateOrUpdate(resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, strconv.Itoa(ttlInSeconds), make(chan struct{}))
@@ -182,23 +182,24 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	return err
 }
 
-func expandAzureRmAppServiceSiteProps(d *schema.ResourceData) web.SiteProperties {
+func expandAzureRmAppServiceSiteProps(d *schema.ResourceData) *web.SiteProperties {
 	configs := d.Get("site_config").([]interface{})
 	siteProps := web.SiteProperties{}
 	if len(configs) == 0 {
-		return siteProps
+		return &siteProps
 	}
 	config := configs[0].(map[string]interface{})
 
 	siteConfig := web.SiteConfig{}
 	alwaysOn := config["always_on"].(bool)
-	siteConfig.AlwaysOn = azure.Bool(alwaysOn)
+	siteConfig.AlwaysOn = utils.Bool(alwaysOn)
+
 	siteProps.SiteConfig = &siteConfig
 
 	serverFarmID := config["app_service_plan_id"].(string)
 	siteProps.ServerFarmID = &serverFarmID
 
-	return siteProps
+	return &siteProps
 }
 
 func flattenAzureRmAppServiceSiteProps(siteProps *web.SiteProperties) []interface{} {
