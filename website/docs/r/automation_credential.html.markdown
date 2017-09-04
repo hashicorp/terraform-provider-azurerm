@@ -34,6 +34,7 @@ resource "azurerm_automation_credential" "example" {
   username           = "example_user"
   password            = "example_pwd"
   description         = "This is an example credential"
+}
 ```
 
 ## Argument Reference
