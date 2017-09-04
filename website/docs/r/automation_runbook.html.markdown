@@ -30,7 +30,7 @@ resource "azurerm_automation_account" "example" {
 resource "azurerm_automation_runbook" "example" {
   name                = "Get-AzureVMTutorial"
   location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.exmaple.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   account_name        = "${azurerm_automation_account.example.name}"
   log_verbose         = "true"
   log_progress        = "true"
