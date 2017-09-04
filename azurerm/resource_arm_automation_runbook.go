@@ -194,8 +194,6 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("description", props.Description)
 	}
 
-	d.Set("publish_content_link", nil) //publish content link is not set during Get()
-
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil

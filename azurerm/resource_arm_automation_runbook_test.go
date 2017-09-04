@@ -25,7 +25,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExistsAndType("azurerm_automation_runbook.test", automation.PowerShellWorkflow),
 				),
-				ExpectNonEmptyPlan: true,
+				//ExpectNonEmptyPlan: true,
 			},
 		},
 	})
