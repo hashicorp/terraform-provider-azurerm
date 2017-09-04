@@ -83,7 +83,7 @@ func validateStartTime(v interface{}, k string) (ws []string, errors []error) {
 	}
 
 	u := time.Until(starttime)
-	if u < 5 * time.Minute {
+	if u < 5*time.Minute {
 		errors = append(errors, fmt.Errorf("%q should be at least 5 minutes in the future", k))
 	}
 
