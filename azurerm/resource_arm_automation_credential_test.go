@@ -24,7 +24,6 @@ func TestAccAzureRMAutomationCredential_testCredential(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCredentialExistsAndUserName("azurerm_automation_credential.test", "test_user"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
