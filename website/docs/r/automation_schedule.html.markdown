@@ -33,7 +33,7 @@ resource "azurerm_automation_schedule" "example" {
   account_name        = "${azurerm_automation_account.example.name}"
   frequency           = "OneTime"
   timezone            = "Central Europe Standard Time"
-  start_time	      = "2014-04-15T18:00:15-07:00"
+  start_time	      = "2014-04-15T18:00:15+02:00"
   description         = "This is an example schedule"
 }
 ```
