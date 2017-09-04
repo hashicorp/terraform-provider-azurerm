@@ -243,6 +243,7 @@ var providerRegistrationOnce sync.Once
 
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
+		"Microsoft.Automation":        struct{}{},
 		"Microsoft.Cache":             struct{}{},
 		"Microsoft.Cdn":               struct{}{},
 		"Microsoft.Compute":           struct{}{},
