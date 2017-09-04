@@ -46,8 +46,9 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				ForceNew: true,
 			},
 			"start_time": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateStartTime,
 			},
 
 			"expiry_time": {
@@ -73,6 +74,20 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			},
 		},
 	}
+}
+
+func validateStartTime(v interface{}, k string) (ws []string, errors []error) {
+	starttime, tperr := time.Parse(time.RFC3339, v.(string))
+	if tperr != nil {
+		errors = append(errors, fmt.Errorf("Cannot parse %q", k))
+	}
+
+	u := time.Until(starttime)
+	if u < 5 * time.Minute {
+		errors = append(errors, fmt.Errorf("%q should be at least 5 minutes in the future", k))
+	}
+
+	return
 }
 
 func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
