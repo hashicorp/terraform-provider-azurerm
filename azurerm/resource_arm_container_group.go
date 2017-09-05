@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
@@ -71,6 +72,11 @@ func resourceArmContainerGroup() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"ip_address": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -78,7 +84,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	containterGroupsClient := client.containerGroupsClient
+	containerGroupsClient := client.containerGroupsClient
 
 	// container group properties
 	resGroup := d.Get("resource_group_name").(string)
@@ -158,10 +164,21 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	_, error := containterGroupsClient.CreateOrUpdate(resGroup, name, containerGroup)
+	_, error := containerGroupsClient.CreateOrUpdate(resGroup, name, containerGroup)
 	if error != nil {
 		return error
 	}
+
+	read, readErr := containerGroupsClient.Get(resGroup, name)
+	if readErr != nil {
+		return readErr
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read container group %s (resource group %s) ID", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
 
 	return nil
 }
@@ -169,15 +186,41 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient)
 	containterGroupsClient := client.containerGroupsClient
 
-	// container group properties
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
+	id, err := parseAzureResourceID(d.Id())
 
-	_, error := containterGroupsClient.Get(resGroup, name)
+	if err != nil {
+		return err
+	}
+
+	resGroup := id.ResourceGroup
+	name := id.Path["containergroups"]
+
+	resp, error := containterGroupsClient.Get(resGroup, name)
 
 	if error != nil {
 		return error
 	}
+
+	d.Set("name", name)
+	d.Set("resource_group_name", resGroup)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	flattenAndSetTags(d, resp.Tags)
+
+	d.Set("os_type", string(resp.OsType))
+	d.Set("ip_address_type", *resp.IPAddress.Type)
+	d.Set("ip_address", *resp.IPAddress.IP)
+
+	ports := *resp.IPAddress.Ports
+	d.Set("protocol", string(ports[0].Protocol))
+
+	containers := *resp.Containers
+	d.Set("image", containers[0].Image)
+	resourceRequirements := *containers[0].Resources
+	resourceRequests := *resourceRequirements.Requests
+	d.Set("cpu", *resourceRequests.CPU)
+	d.Set("memory", *resourceRequests.MemoryInGB)
+	containerPorts := *containers[0].Ports
+	d.Set("port", containerPorts[0].Port)
 
 	return nil
 }
