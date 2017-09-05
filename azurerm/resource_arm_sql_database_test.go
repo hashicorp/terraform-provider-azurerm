@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
@@ -170,7 +171,7 @@ func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 
 		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("SQL Database %q (server %q / resource group %q) was not found", databaseName, serverName, resourceGroup)
 			}
 
@@ -195,7 +196,7 @@ func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmKeyVaultSecret() *schema.Resource {
@@ -69,8 +69,8 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
-		Value:       azure.String(value),
-		ContentType: azure.String(contentType),
+		Value:       utils.String(value),
+		ContentType: utils.String(contentType),
 		Tags:        expandTags(tags),
 	}
 
@@ -109,8 +109,8 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("value") {
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
-			Value:       azure.String(value),
-			ContentType: azure.String(contentType),
+			Value:       utils.String(value),
+			ContentType: utils.String(contentType),
 			Tags:        expandTags(tags),
 		}
 
@@ -130,7 +130,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetId(*read.ID)
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
-			ContentType: azure.String(contentType),
+			ContentType: utils.String(contentType),
 			Tags:        expandTags(tags),
 		}
 
@@ -154,7 +154,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	// we always want to get the latest version
 	resp, err := client.GetSecret(id.KeyVaultBaseUrl, id.Name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

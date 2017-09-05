@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSearchService_basic(t *testing.T) {
@@ -68,7 +69,7 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 		resp, err := client.Get(resourceGroup, searchName, nil)
 
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Search Service '%s' (resource group '%s') was not found: %+v", searchName, resourceGroup, err)
 			}
 
@@ -93,7 +94,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 		resp, err := client.Get(resourceGroup, searchName, nil)
 
 		if err != nil {
-			if responseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var subnetResourceName = "azurerm_subnet"
@@ -153,7 +154,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := subnetClient.Get(resGroup, vnetName, name, "")
 
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

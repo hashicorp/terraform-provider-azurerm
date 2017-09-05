@@ -1,4 +1,4 @@
-package azurerm
+package utils
 
 import (
 	"net/http"
@@ -6,11 +6,11 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-func responseWasConflict(resp autorest.Response) bool {
+func ResponseWasConflict(resp autorest.Response) bool {
 	return responseWasStatusCode(resp, http.StatusConflict)
 }
 
-func responseWasNotFound(resp autorest.Response) bool {
+func ResponseWasNotFound(resp autorest.Response) bool {
 	return responseWasStatusCode(resp, http.StatusNotFound)
 }
 

@@ -1,4 +1,4 @@
-package azurerm
+package utils
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 
 func TestResponseNotFound_DroppedConnection(t *testing.T) {
 	resp := autorest.Response{}
-	if responseWasNotFound(resp) {
+	if ResponseWasNotFound(resp) {
 		t.Fatalf("responseWasNotFound should return `false` for a dropped connection")
 	}
 }
@@ -30,7 +30,7 @@ func TestResponseNotFound_StatusCodes(t *testing.T) {
 				StatusCode: test.statusCode,
 			},
 		}
-		result := responseWasNotFound(resp)
+		result := ResponseWasNotFound(resp)
 		if test.expectedResult != result {
 			t.Fatalf("Expected '%+v' for status code '%d' - got '%+v'",
 				test.expectedResult, test.statusCode, result)
