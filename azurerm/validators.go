@@ -15,6 +15,8 @@ func validateRFC3339Date(v interface{}, k string) (ws []string, errors []error) 
 	if _, err := date.ParseTime(time.RFC3339, dateString); err != nil {
 		errors = append(errors, fmt.Errorf("`%s` is an invalid RFC3339 date: %+v", k, err))
 	}
+
+	return
 }
 
 // validateIntInSlice returns a SchemaValidateFunc which tests if the provided value

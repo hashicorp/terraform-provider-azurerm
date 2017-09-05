@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmPostgreSQLServer() *schema.Resource {
@@ -150,10 +150,10 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		Sku:      sku,
 		Properties: &postgresql.ServerPropertiesForDefaultCreate{
 			Version:                    postgresql.ServerVersion(version),
-			StorageMB:                  azure.Int64(int64(storageMB)),
+			StorageMB:                  utils.Int64(int64(storageMB)),
 			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
-			AdministratorLogin:         azure.String(adminLogin),
-			AdministratorLoginPassword: azure.String(adminLoginPassword),
+			AdministratorLogin:         utils.String(adminLogin),
+			AdministratorLoginPassword: utils.String(adminLoginPassword),
 			CreateMode:                 postgresql.CreateModeDefault,
 		},
 		Tags: expandTags(tags),
@@ -198,9 +198,9 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		Sku: sku,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
-			StorageMB:                  azure.Int64(int64(storageMB)),
+			StorageMB:                  utils.Int64(int64(storageMB)),
 			Version:                    postgresql.ServerVersion(version),
-			AdministratorLoginPassword: azure.String(adminLoginPassword),
+			AdministratorLoginPassword: utils.String(adminLoginPassword),
 		},
 		Tags: expandTags(tags),
 	}
@@ -236,7 +236,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -272,8 +272,8 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	_, error := client.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
+	err = <-deleteErr
 
 	return err
 }
@@ -287,10 +287,10 @@ func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData, storageMB int) *po
 	tier := sku["tier"].(string)
 
 	return &postgresql.Sku{
-		Name:     azure.String(name),
-		Capacity: azure.Int32(int32(capacity)),
+		Name:     utils.String(name),
+		Capacity: utils.Int32(int32(capacity)),
 		Tier:     postgresql.SkuTier(tier),
-		Size:     azure.String(strconv.Itoa(storageMB)),
+		Size:     utils.String(strconv.Itoa(storageMB)),
 	}
 }
 

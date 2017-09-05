@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmPostgreSQLFirewallRule() *schema.Resource {
@@ -65,8 +65,8 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 
 	properties := postgresql.FirewallRule{
 		FirewallRuleProperties: &postgresql.FirewallRuleProperties{
-			StartIPAddress: azure.String(startIPAddress),
-			EndIPAddress:   azure.String(endIPAddress),
+			StartIPAddress: utils.String(startIPAddress),
+			EndIPAddress:   utils.String(endIPAddress),
 		},
 	}
 
@@ -102,7 +102,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

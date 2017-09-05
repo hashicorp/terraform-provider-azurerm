@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmPostgreSQLConfiguration() *schema.Resource {
@@ -59,7 +59,7 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 
 	properties := postgresql.Configuration{
 		ConfigurationProperties: &postgresql.ConfigurationProperties{
-			Value: azure.String(value),
+			Value: utils.String(value),
 		},
 	}
 
@@ -95,7 +95,7 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmPostgreSQLDatabase() *schema.Resource {
@@ -66,8 +66,8 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 
 	properties := postgresql.Database{
 		DatabaseProperties: &postgresql.DatabaseProperties{
-			Charset:   azure.String(charset),
-			Collation: azure.String(collation),
+			Charset:   utils.String(charset),
+			Collation: utils.String(collation),
 		},
 	}
 
@@ -103,7 +103,7 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
