@@ -20,6 +20,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
@@ -89,6 +90,11 @@ type ArmClient struct {
 	eventHubClient              eventhub.EventHubsClient
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
+
+	postgresqlConfigurationsClient postgresql.ConfigurationsClient
+	postgresqlDatabasesClient      postgresql.DatabasesClient
+	postgresqlFirewallRulesClient  postgresql.FirewallRulesClient
+	postgresqlServersClient        postgresql.ServersClient
 
 	providers           resources.ProvidersClient
 	resourceGroupClient resources.GroupsClient
@@ -400,6 +406,30 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	vnpc.Authorizer = auth
 	vnpc.Sender = autorest.CreateSender(withRequestLogging())
 	client.vnetPeeringsClient = vnpc
+
+	pcc := postgresql.NewConfigurationsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&pcc.Client)
+	pcc.Authorizer = auth
+	pcc.Sender = autorest.CreateSender(withRequestLogging())
+	client.postgresqlConfigurationsClient = pcc
+
+	pdbc := postgresql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&pdbc.Client)
+	pdbc.Authorizer = auth
+	pdbc.Sender = autorest.CreateSender(withRequestLogging())
+	client.postgresqlDatabasesClient = pdbc
+
+	pfwc := postgresql.NewFirewallRulesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&pfwc.Client)
+	pfwc.Authorizer = auth
+	pfwc.Sender = autorest.CreateSender(withRequestLogging())
+	client.postgresqlFirewallRulesClient = pfwc
+
+	psc := postgresql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&psc.Client)
+	psc.Authorizer = auth
+	psc.Sender = autorest.CreateSender(withRequestLogging())
+	client.postgresqlServersClient = psc
 
 	rtc := network.NewRouteTablesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&rtc.Client)
