@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
@@ -49,11 +49,10 @@ func testCheckAzureRMPostgreSQLDatabaseExists(name string) resource.TestCheckFun
 
 		resp, err := client.Get(resourceGroup, serverName, name)
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: PostgreSQL Database %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
+			}
 			return fmt.Errorf("Bad: Get on postgresqlDatabasesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: PostgreSQL Database %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
 		}
 
 		return nil
@@ -75,7 +74,7 @@ func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
 		resp, err := client.Get(resourceGroup, serverName, name)
 
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 

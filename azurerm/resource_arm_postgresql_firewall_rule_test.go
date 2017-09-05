@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
@@ -49,11 +49,11 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(name string) resource.TestChec
 
 		resp, err := client.Get(resourceGroup, serverName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on postgresqlFirewallRulesClient: %+v", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: PostgreSQL Firewall Rule %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: PostgreSQL Firewall Rule %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
+			return fmt.Errorf("Bad: Get on postgresqlFirewallRulesClient: %+v", err)
 		}
 
 		return nil
@@ -75,7 +75,7 @@ func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
 		resp, err := client.Get(resourceGroup, serverName, name)
 
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 
