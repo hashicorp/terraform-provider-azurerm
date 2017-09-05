@@ -253,8 +253,8 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("version", string(resp.Version))
 	d.Set("storage_mb", int(*resp.StorageMB))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
+	d.Set("sku", flattenPostgreSQLServerSku(resp.Sku))
 
-	flattenAndSetAzureRmPostgreSQLServerSku(d, resp.Sku)
 	flattenAndSetTags(d, resp.Tags)
 
 	// Computed
@@ -295,7 +295,7 @@ func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData, storageMB int) *po
 	}
 }
 
-func flattenAndSetAzureRmPostgreSQLServerSku(d *schema.ResourceData, resp *postgresql.Sku) {
+func flattenPostgreSQLServerSku(resp *postgresql.Sku) []interface{} {
 	values := map[string]interface{}{}
 
 	values["name"] = *resp.Name
@@ -303,5 +303,5 @@ func flattenAndSetAzureRmPostgreSQLServerSku(d *schema.ResourceData, resp *postg
 	values["tier"] = string(resp.Tier)
 
 	sku := []interface{}{values}
-	d.Set("sku", sku)
+	return sku
 }
