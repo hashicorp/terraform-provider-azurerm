@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // The KeySource of storage.Encryption appears to require this value
@@ -367,7 +368,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := client.GetProperties(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

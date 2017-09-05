@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/eventgrid"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmEventGridTopic() *schema.Resource {
@@ -102,7 +103,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := client.Get(resourceGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] EventGrid Topic '%s' was not found (resource group '%s')", name, resourceGroup)
 			d.SetId("")
 			return nil
@@ -146,7 +147,7 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 	resp := <-deleteResp
 	err = <-deleteErr
 
-	if responseWasNotFound(resp) {
+	if utils.ResponseWasNotFound(resp) {
 		return nil
 	}
 

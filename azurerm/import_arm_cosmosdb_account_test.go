@@ -79,6 +79,30 @@ func TestAccAzureRMCosmosDBAccount_importEventualConsistency(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_importMongoDB(t *testing.T) {
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMCosmosDBAccount_mongoDB(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_importSession(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 

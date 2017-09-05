@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmImage() *schema.Resource {
@@ -241,7 +242,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := imageClient.Get(resGroup, name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
