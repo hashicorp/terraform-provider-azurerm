@@ -99,7 +99,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	image := d.Get("image").(string)
 	cpu := d.Get("cpu").(float64)
 	memory := d.Get("memory").(float64)
-	port := d.Get("port").(int32)
+	port := int32(d.Get("port").(int))
 
 	// type ContainerGroupProperties struct {
 	// 	ProvisioningState        *string                    `json:"provisioningState,omitempty"`
@@ -152,7 +152,6 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
-		Type:     &OSType,
 		Location: &location,
 		Tags:     expandTags(tags),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
@@ -161,6 +160,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 				Type:  &IPAddressType,
 				Ports: &[]containerinstance.Port{containerGroupPort},
 			},
+			OsType: containerinstance.OperatingSystemTypes(OSType),
 		},
 	}
 
@@ -193,7 +193,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["containergroups"]
+	name := id.Path["containerGroups"]
 
 	resp, error := containterGroupsClient.Get(resGroup, name)
 
