@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
+	resourceName := "azurerm_postgresql_configuration.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, location)
@@ -24,7 +25,7 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue("azurerm_postgresql_configuration.test", "on"),
+					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "on"),
 				),
 			},
 			{

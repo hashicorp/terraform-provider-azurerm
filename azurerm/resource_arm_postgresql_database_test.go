@@ -24,6 +24,9 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
 				),
 			},
 		},

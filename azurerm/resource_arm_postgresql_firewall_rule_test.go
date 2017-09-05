@@ -24,6 +24,8 @@ func TestAccAzureRMPostgreSQLFirewallRule_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "end_ip_address", "255.255.255.255"),
 				),
 			},
 		},

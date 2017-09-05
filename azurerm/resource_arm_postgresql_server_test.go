@@ -24,6 +24,10 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(resourceName, "version", "9.5"),
+					resource.TestCheckResourceAttr(resourceName, "storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
 		},
@@ -44,6 +48,10 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
+					resource.TestCheckResourceAttr(resourceName, "storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
 		},
