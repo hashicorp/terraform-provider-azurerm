@@ -103,6 +103,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] PostgreSQL Firewall Rule '%s' was not found (resource group '%s')", name, resGroup)
 			d.SetId("")
 			return nil
 		}

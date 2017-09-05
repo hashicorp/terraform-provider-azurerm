@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_postgresql_server" "test" {
-  ...
+  # ...
 }
 
 resource "azurerm_postgresql_firewall_rule" "test" {
@@ -40,7 +40,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_postgresql_server" "test" {
-  ...
+  # ...
 }
 
 resource "azurerm_postgresql_firewall_rule" "test" {

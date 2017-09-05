@@ -96,6 +96,7 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] PostgreSQL Configuration '%s' was not found (resource group '%s')", name, resGroup)
 			d.SetId("")
 			return nil
 		}

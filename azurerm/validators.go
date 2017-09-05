@@ -13,7 +13,7 @@ func validateRFC3339Date(v interface{}, k string) (ws []string, errors []error) 
 	dateString := v.(string)
 
 	if _, err := date.ParseTime(time.RFC3339, dateString); err != nil {
-		errors = append(errors, fmt.Errorf("`%s` is an invalid RFC3339 date: %+v", k, err))
+		errors = append(errors, fmt.Errorf("%q is an invalid RFC3339 date: %+v", k, err))
 	}
 
 	return
@@ -35,7 +35,7 @@ func validateIntInSlice(valid []int) schema.SchemaValidateFunc {
 			}
 		}
 
-		es = append(es, fmt.Errorf("expected %s to be one of %v, got %v", k, valid, v))
+		es = append(es, fmt.Errorf("expected %q to be one of %v, got %v", k, valid, v))
 		return
 	}
 }

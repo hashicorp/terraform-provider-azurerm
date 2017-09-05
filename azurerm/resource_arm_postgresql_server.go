@@ -237,6 +237,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] PostgreSQL Server '%s' was not found (resource group '%s')", name, resGroup)
 			d.SetId("")
 			return nil
 		}

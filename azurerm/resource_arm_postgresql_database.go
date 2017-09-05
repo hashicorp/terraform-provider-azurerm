@@ -104,6 +104,7 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] PostgreSQL Database '%s' was not found (resource group '%s')", name, resGroup)
 			d.SetId("")
 			return nil
 		}
