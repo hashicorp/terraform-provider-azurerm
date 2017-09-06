@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_server"
-sidebar_current: "docs-azurerm-resource-sql-server"
+sidebar_current: "docs-azurerm-resource-database-sql-server"
 description: |-
   Manages a SQL Azure Database Server.
 
