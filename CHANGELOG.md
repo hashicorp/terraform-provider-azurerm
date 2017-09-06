@@ -1,5 +1,12 @@
 ## 0.1.7 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_postgresql_configuration` [GH-210]
+* **New Resource:** `azurerm_postgresql_database` [GH-210]
+* **New Resource:** `azurerm_postgresql_firewall_rule` [GH-210]
+* **New Resource:** `azurerm_postgresql_server` [GH-210]
+
 IMPROVEMENTS:
 
 * `azurerm_cdn_endpoint` - defaulting the `http_port` and `https_port` [GH-301]
