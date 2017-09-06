@@ -83,7 +83,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 						"port": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 						},
 
@@ -112,10 +112,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	tags := d.Get("tags").(map[string]interface{})
 
 	containersConfig := d.Get("container").([]interface{})
-	containers := make([]containerinstance.Container, len(containersConfig))
-	containerGroupPorts := make([]containerinstance.Port, len(containersConfig))
+	containers := make([]containerinstance.Container, 0, len(containersConfig))
+	containerGroupPorts := make([]containerinstance.Port, 0, len(containersConfig))
 
-	for index, containerConfig := range containersConfig {
+	for _, containerConfig := range containersConfig {
 		data := containerConfig.(map[string]interface{})
 
 		// required
@@ -128,25 +128,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		port := int32(data["port"].(int))
 		protocol := data["protocol"].(string)
 
-		containerPort := containerinstance.ContainerPort{
-			Port: &port,
-		}
-
-		// container group port (port number + protocol)
-		containerGroupPort := containerinstance.Port{
-			Port: &port,
-		}
-
-		if strings.ToUpper(protocol) == "TCP" || strings.ToUpper(protocol) == "UDP" {
-			containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
-		}
-		containerGroupPorts[index] = containerGroupPort
-
 		container := containerinstance.Container{
 			Name: &name,
 			ContainerProperties: &containerinstance.ContainerProperties{
 				Image: &image,
-				Ports: &[]containerinstance.ContainerPort{containerPort},
 				Resources: &containerinstance.ResourceRequirements{
 					Requests: &containerinstance.ResourceRequests{
 						MemoryInGB: &memory,
@@ -156,7 +141,29 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			},
 		}
 
-		containers[index] = container
+		if port != 0 {
+			// container port (port number)
+			containerPort := containerinstance.ContainerPort{
+				Port: &port,
+			}
+
+			container.Ports = &[]containerinstance.ContainerPort{containerPort}
+
+			// container group port (port number + protocol)
+			containerGroupPort := containerinstance.Port{
+				Port: &port,
+			}
+
+			if protocol != "" && (strings.ToUpper(protocol) == "TCP" || strings.ToUpper(protocol) == "UDP") {
+				containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
+			} else if protocol != "" {
+				return fmt.Errorf("Invalid protocol %s for container %s", protocol, name)
+			}
+
+			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
+		}
+
+		containers = append(containers, container)
 	}
 
 	containerGroup := containerinstance.ContainerGroup{
@@ -219,11 +226,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("ip_address_type", *resp.IPAddress.Type)
 	d.Set("ip_address", *resp.IPAddress.IP)
 
-	ports := *resp.IPAddress.Ports
 	containers := *resp.Containers
 
 	containerConfigs := make([]interface{}, 0, len(containers))
-	for index, container := range containers {
+	for _, container := range containers {
 		containerConfig := make(map[string]interface{})
 		containerConfig["name"] = *container.Name
 		containerConfig["image"] = *container.Image
@@ -233,7 +239,6 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		containerConfig["memory"] = *resourceRequests.MemoryInGB
 
 		containerConfig["port"] = *(*container.Ports)[0].Port
-		containerConfig["protocol"] = string(ports[index].Protocol)
 
 		containerConfigs = append(containerConfigs, containerConfig)
 	}
