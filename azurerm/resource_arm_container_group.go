@@ -12,7 +12,6 @@ func resourceArmContainerGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmContainerGroupCreate,
 		Read:   resourceArmContainerGroupRead,
-		Update: resourceArmContainerGroupCreate,
 		Delete: resourceArmContainerGroupDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -31,18 +30,20 @@ func resourceArmContainerGroup() *schema.Resource {
 			},
 
 			"ip_address_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"os_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tagsForceNewSchema(),
 
 			"ip_address": {
 				Type:     schema.TypeString,
@@ -107,13 +108,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	OSType := d.Get("os_type").(string)
-	if OSType == "" {
-		OSType = "linux"
-	}
 	IPAddressType := d.Get("ip_address_type").(string)
-	if IPAddressType == "" {
-		IPAddressType = "public"
-	}
 	tags := d.Get("tags").(map[string]interface{})
 
 	containersConfig := d.Get("container").([]interface{})
@@ -164,27 +159,6 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containers[index] = container
 	}
 
-	// type ContainerGroupProperties struct {
-	// 	ProvisioningState        *string                    `json:"provisioningState,omitempty"`
-	// 	Containers               *[]Container               `json:"containers,omitempty"`
-	// 	ImageRegistryCredentials *[]ImageRegistryCredential `json:"imageRegistryCredentials,omitempty"`
-	// 	RestartPolicy            ContainerRestartPolicy     `json:"restartPolicy,omitempty"`
-	// 	IPAddress                *IPAddress                 `json:"ipAddress,omitempty"`
-	// 	OsType                   OperatingSystemTypes       `json:"osType,omitempty"`
-	// 	State                    *string                    `json:"state,omitempty"`
-	// 	Volumes                  *[]Volume                  `json:"volumes,omitempty"`
-	// }
-
-	// type ContainerProperties struct {
-	// 	Image                *string                          `json:"image,omitempty"`
-	// 	Command              *[]string                        `json:"command,omitempty"`
-	// 	Ports                *[]ContainerPort                 `json:"ports,omitempty"`
-	// 	EnvironmentVariables *[]EnvironmentVariable           `json:"environmentVariables,omitempty"`
-	// 	InstanceView         *ContainerPropertiesInstanceView `json:"instanceView,omitempty"`
-	// 	Resources            *ResourceRequirements            `json:"resources,omitempty"`
-	// 	VolumeMounts         *[]VolumeMount                   `json:"volumeMounts,omitempty"`
-	// }
-
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -215,7 +189,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return nil
+	return resourceArmContainerGroupRead(d, meta)
 }
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
@@ -245,8 +219,26 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("ip_address_type", *resp.IPAddress.Type)
 	d.Set("ip_address", *resp.IPAddress.IP)
 
-	// ports := *resp.IPAddress.Ports
-	// containers := *resp.Containers
+	ports := *resp.IPAddress.Ports
+	containers := *resp.Containers
+
+	containerConfigs := make([]interface{}, 0, len(containers))
+	for index, container := range containers {
+		containerConfig := make(map[string]interface{})
+		containerConfig["name"] = *container.Name
+		containerConfig["image"] = *container.Image
+
+		resourceRequests := *(*container.Resources).Requests
+		containerConfig["cpu"] = *resourceRequests.CPU
+		containerConfig["memory"] = *resourceRequests.MemoryInGB
+
+		containerConfig["port"] = *(*container.Ports)[0].Port
+		containerConfig["protocol"] = string(ports[index].Protocol)
+
+		containerConfigs = append(containerConfigs, containerConfig)
+	}
+
+	d.Set("container", containerConfigs)
 
 	return nil
 }
