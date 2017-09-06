@@ -81,13 +81,13 @@ func resourceArmCdnEndpoint() *schema.Resource {
 						"http_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  80,
 						},
 
 						"https_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  443,
 						},
 					},
 				},
