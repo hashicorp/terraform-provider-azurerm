@@ -121,10 +121,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		// required
 		name := data["name"].(string)
 		image := data["image"].(string)
-
-		// optional
 		cpu := data["cpu"].(float64)
 		memory := data["memory"].(float64)
+
+		// optional
 		port := int32(data["port"].(int))
 		protocol := data["protocol"].(string)
 
@@ -239,6 +239,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		containerConfig["memory"] = *resourceRequests.MemoryInGB
 
 		containerConfig["port"] = *(*container.Ports)[0].Port
+		// protocol isn't returned in container config
 
 		containerConfigs = append(containerConfigs, containerConfig)
 	}
