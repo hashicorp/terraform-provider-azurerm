@@ -38,6 +38,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 
 			"resource_group_name": {
@@ -54,6 +55,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"expiry_time": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 
 			"frequency": {
@@ -71,6 +73,8 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"timezone": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+				Default:  "UTC",
 			},
 		},
 	}
@@ -104,24 +108,27 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	cst := d.Get("start_time").(string)
 	starttime, tperr := time.Parse(time.RFC3339, cst)
 	if tperr != nil {
-		return fmt.Errorf("Cannot parse start_time: %s", cst)
+		return fmt.Errorf("Cannot parse start_time: %q", cst)
 	}
 
-	ardt := date.Time{Time: starttime}
+	expirytime, teperr := time.Parse(time.RFC3339, cst)
+	if teperr != nil {
+		return fmt.Errorf("Cannot parse expiry_time: %q", cst)
+	}
+
+	stdt := date.Time{Time: starttime}
+	etdt := date.Time{Time: expirytime}
 
 	description := d.Get("description").(string)
-	var timezone string
-	if v, ok := d.GetOk("timezone"); ok {
-		timezone = v.(string)
-	} else {
-		timezone = "UTC"
-	}
+	timezone := d.Get("timezone").(string)
+
 	parameters := automation.ScheduleCreateOrUpdateParameters{
 		Name: &name,
 		ScheduleCreateOrUpdateProperties: &automation.ScheduleCreateOrUpdateProperties{
 			Description: &description,
 			Frequency:   freq,
-			StartTime:   &ardt,
+			StartTime:   &stdt,
+			ExpiryTime:  &etdt,
 			TimeZone:    &timezone,
 		},
 	}
@@ -162,7 +169,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Automation Schedule '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Automation Schedule '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -171,6 +178,8 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("frequency", resp.Frequency)
 	d.Set("description", resp.Description)
 	d.Set("start_time", string(resp.StartTime.Format(time.RFC3339)))
+	d.Set("expiry_time", string(resp.ExpiryTime.Format(time.RFC3339)))
+	d.Set("timezone", resp.TimeZone)
 	return nil
 }
 

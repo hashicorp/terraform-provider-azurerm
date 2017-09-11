@@ -51,7 +51,7 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("EventGrid Topic still exists:\n%#v", resp)
+		return fmt.Errorf("Automation Credential still exists:\n%#v", resp)
 
 	}
 

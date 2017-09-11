@@ -25,7 +25,6 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExistsAndType("azurerm_automation_runbook.test", automation.PowerShellWorkflow),
 				),
-				//ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -45,7 +44,6 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExistsAndType("azurerm_automation_runbook.test", automation.PowerShellWorkflow),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -105,7 +103,7 @@ func testCheckAzureRMAutomationRunbookExistsAndType(name string, runbookType aut
 				return fmt.Errorf("Automation Runbook '%s' (resource group: '%s') does not exist", name, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on automationRunbookClient: %s", err)
+			return fmt.Errorf("Bad: Get on automationRunbookClient: %+v", err)
 		}
 
 		if resp.RunbookType != runbookType {
