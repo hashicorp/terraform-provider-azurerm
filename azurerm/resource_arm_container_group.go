@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmContainerGroup() *schema.Resource {
@@ -82,15 +83,41 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"port": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 
 						"protocol": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"tcp",
+								"udp",
+							}, true),
+						},
+
+						"env_var": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+
+									"value": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -154,14 +181,26 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 				Port: &port,
 			}
 
-			if protocol != "" && (strings.ToUpper(protocol) == "TCP" || strings.ToUpper(protocol) == "UDP") {
+			if protocol != "" {
 				containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
-			} else if protocol != "" {
-				return fmt.Errorf("Invalid protocol %s for container %s", protocol, name)
 			}
 
 			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
 		}
+
+		// envVars := data["env_vars"].([]interface{})
+		// if len(envVars) > 0 {
+		// 	envVarsList := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
+
+		// 	for _, envVarRaw := range envVars {
+		// 		envVar := containerinstance.EnvironmentVariable{
+		// 			Name:  &envVarRaw.get("name").(string),
+		// 			Value: &envVarRaw.get("value").(string),
+		// 		}
+		// 		envVarsList = append(envVarsList, envVar)
+		// 	}
+		// 	container.EnvironmentVariables = &envVarsList
+		// }
 
 		containers = append(containers, container)
 	}
@@ -238,7 +277,9 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		containerConfig["cpu"] = *resourceRequests.CPU
 		containerConfig["memory"] = *resourceRequests.MemoryInGB
 
-		containerConfig["port"] = *(*container.Ports)[0].Port
+		if len(*container.Ports) > 0 {
+			containerConfig["port"] = *(*container.Ports)[0].Port
+		}
 		// protocol isn't returned in container config
 
 		containerConfigs = append(containerConfigs, containerConfig)
