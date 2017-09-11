@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -69,6 +70,23 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists("azurerm_sql_server.test"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlServer_upperCaseName(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlServer_upperCaseName(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("SQLDB Account Name can only contain lower-case characters"),
 			},
 		},
 	})
@@ -216,6 +234,24 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
     name = "acctestsqlserver%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    version = "12.0"
+    administrator_login = "mradministrator"
+    administrator_login_password = "thisIsDog11"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMSqlServer_upperCaseName(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG_%d"
+    location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+    name = "AccTestSQLserver%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     location = "${azurerm_resource_group.test.location}"
     version = "12.0"

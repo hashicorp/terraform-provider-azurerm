@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -22,9 +23,10 @@ func resourceArmSqlServer() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAzureRmSQLDBAccountName,
 			},
 
 			"location": locationSchema(),
@@ -167,4 +169,20 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
+}
+
+func validateAzureRmSQLDBAccountName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	r, _ := regexp.Compile("^[a-z0-9\\-]+$")
+	if !r.MatchString(value) {
+		errors = append(errors, fmt.Errorf("SQLDB Account Name can only contain lower-case characters, numbers and the `-` character."))
+	}
+
+	length := len(value)
+	if length > 50 || 3 > length {
+		errors = append(errors, fmt.Errorf("SQLDB Account Name can only be between 3 and 50 seconds."))
+	}
+
+	return
 }
