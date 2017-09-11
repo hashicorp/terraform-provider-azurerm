@@ -376,8 +376,6 @@ func registerProviderWithSubscription(providerName string, client resources.Prov
 	return nil
 }
 
-var providerRegistrationOnce sync.Once
-
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
 		"Microsoft.Automation":          {},
@@ -422,24 +420,23 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
 func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
+	providers := determineAzureResourceProvidersToRegister(providerList)
+
 	var err error
-	providerRegistrationOnce.Do(func() {
+	var wg sync.WaitGroup
+	wg.Add(len(providers))
 
-		providers := determineAzureResourceProvidersToRegister(providerList)
+	for providerName := range providers {
+		go func(p string) {
+			defer wg.Done()
+			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
+			if innerErr := registerProviderWithSubscription(p, client); err != nil {
+				err = innerErr
+			}
+		}(providerName)
+	}
 
-		var wg sync.WaitGroup
-		wg.Add(len(providers))
-		for providerName := range providers {
-			go func(p string) {
-				defer wg.Done()
-				log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-				if innerErr := registerProviderWithSubscription(p, client); err != nil {
-					err = innerErr
-				}
-			}(providerName)
-		}
-		wg.Wait()
-	})
+	wg.Wait()
 
 	return err
 }
