@@ -2,13 +2,63 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_cosmosdb_account", &resource.Sweeper{
+		Name: "azurerm_cosmosdb_account",
+		F:    testSweepCosmosDBAccount,
+	})
+}
+
+func testSweepCosmosDBAccount(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).cosmosDBClient
+
+	log.Printf("Retrieving the CosmosDB Accounts..")
+	results, err := client.List()
+	if err != nil {
+		return fmt.Errorf("Error Listing on CosmosDB Accounts: %+v", err)
+	}
+
+	for _, account := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*account.Name, *account.Location, region) {
+			continue
+		}
+
+		resourceId, err := parseAzureResourceID(*account.ID)
+		if err != nil {
+			return err
+		}
+
+		resourceGroup := resourceId.ResourceGroup
+		name := resourceId.Path["databaseAccounts"]
+
+		log.Printf("Deleting CosmosDB Account '%s' in Resource Group '%s'", name, resourceGroup)
+		deleteResp, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
+		resp := <-deleteResp
+		err = <-deleteErr
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp) {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMCosmosDBAccountName_validation(t *testing.T) {
 	str := acctest.RandString(50)
@@ -52,7 +102,7 @@ func TestAccAzureRMCosmosDBAccountName_validation(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
-
+	resourceName := "azurerm_cosmosdb_account.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMCosmosDBAccount_boundedStaleness(ri, testLocation())
 
@@ -64,7 +114,8 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
+					testCheckAzureRMCosmosDBAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
 				),
 			},
 		},
@@ -104,6 +155,27 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
+	resourceName := "azurerm_cosmosdb_account.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMCosmosDBAccount_mongoDB(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCosmosDBAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
 				),
 			},
 		},
@@ -172,7 +244,7 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_cosmos_db" {
+		if rs.Type != "azurerm_cosmosdb_account" {
 			continue
 		}
 
@@ -314,6 +386,32 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "Session"
+  }
+
+  failover_policy {
+    location = "${azurerm_resource_group.test.location}"
+    priority = 0
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMCosmosDBAccount_mongoDB(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "MongoDB"
+  offer_type          = "Standard"
+
+  consistency_policy {
+    consistency_level = "BoundedStaleness"
   }
 
   failover_policy {

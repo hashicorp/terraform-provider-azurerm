@@ -53,6 +53,18 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				}, true),
 			},
 
+			"kind": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(cosmosdb.GlobalDocumentDB),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cosmosdb.GlobalDocumentDB),
+					string(cosmosdb.MongoDB),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"ip_range_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -152,6 +164,7 @@ func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 
@@ -163,12 +176,13 @@ func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interfa
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := cosmosdb.DatabaseAccountCreateUpdateParameters{
-		Location: &location,
+		Location: utils.String(location),
+		Kind:     cosmosdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &cosmosdb.DatabaseAccountCreateUpdateProperties{
 			ConsistencyPolicy:        &consistencyPolicy,
-			DatabaseAccountOfferType: &offerType,
 			Locations:                &failoverPolicies,
-			IPRangeFilter:            &ipRangeFilter,
+			DatabaseAccountOfferType: utils.String(offerType),
+			IPRangeFilter:            utils.String(ipRangeFilter),
 		},
 		Tags: expandTags(tags),
 	}
@@ -215,6 +229,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.Name)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	d.Set("kind", string(resp.Kind))
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
 	d.Set("ip_range_filter", resp.IPRangeFilter)
 	flattenAndSetAzureRmCosmosDBAccountConsistencyPolicy(d, resp.ConsistencyPolicy)
