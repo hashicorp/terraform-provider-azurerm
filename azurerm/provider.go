@@ -173,8 +173,6 @@ type Config struct {
 	// Bearer Auth
 	AccessToken  *adal.Token
 	IsCloudShell bool
-
-	validateCredentialsOnce sync.Once
 }
 
 func (c *Config) validateServicePrincipal() error {
