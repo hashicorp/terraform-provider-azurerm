@@ -1,16 +1,16 @@
-## 0.1.7 (Unreleased)
+## 0.1.7 (September 11, 2017)
 
 FEATURES:
 
-* **New Resource:** `azurerm_postgresql_configuration` [GH-210]
-* **New Resource:** `azurerm_postgresql_database` [GH-210]
-* **New Resource:** `azurerm_postgresql_firewall_rule` [GH-210]
-* **New Resource:** `azurerm_postgresql_server` [GH-210]
+* **New Resource:** `azurerm_postgresql_configuration` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
+* **New Resource:** `azurerm_postgresql_database` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
+* **New Resource:** `azurerm_postgresql_firewall_rule` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
+* **New Resource:** `azurerm_postgresql_server` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
 
 IMPROVEMENTS:
 
-* `azurerm_cdn_endpoint` - defaulting the `http_port` and `https_port` [GH-301]
-* `azurerm_cosmos_db_account`: allow setting the Kind to MongoDB/GlobalDocumentDB [GH-299]
+* `azurerm_cdn_endpoint` - defaulting the `http_port` and `https_port` ([#301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/301))
+* `azurerm_cosmos_db_account`: allow setting the Kind to MongoDB/GlobalDocumentDB ([#299](https://github.com/terraform-providers/terraform-provider-azurerm/issues/299))
 
 ## 0.1.6 (August 31, 2017)
 
