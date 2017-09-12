@@ -13,13 +13,13 @@ func resourceArmContainerGroup() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmContainerGroupCreate,
 		Read:   resourceArmContainerGroupRead,
+		Update: resourceArmContainerGroupCreate,
 		Delete: resourceArmContainerGroupDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"location": locationSchema(),
@@ -27,24 +27,21 @@ func resourceArmContainerGroup() *schema.Resource {
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"ip_address_type": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"os_type": {
 				Type:             schema.TypeString,
 				Required:         true,
-				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"tags": tagsForceNewSchema(),
+			"tags": tagsSchema(),
 
 			"ip_address": {
 				Type:     schema.TypeString,
@@ -54,45 +51,38 @@ func resourceArmContainerGroup() *schema.Resource {
 			"container": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"image": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"cpu": {
 							Type:     schema.TypeFloat,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"memory": {
 							Type:     schema.TypeFloat,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"port": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 
 						"protocol": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"tcp",
 								"udp",
@@ -102,19 +92,16 @@ func resourceArmContainerGroup() *schema.Resource {
 						"env_var": {
 							Type:     schema.TypeList,
 							Optional: true,
-							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
 										Required: true,
-										ForceNew: true,
 									},
 
 									"value": {
 										Type:     schema.TypeString,
 										Required: true,
-										ForceNew: true,
 									},
 								},
 							},
