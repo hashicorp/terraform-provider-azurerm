@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -12,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
+	resourceName := "azurerm_automation_runbook.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAutomationRunbook_PSWorkflow(ri, testLocation())
 
@@ -23,7 +23,8 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExistsAndType("azurerm_automation_runbook.test", automation.PowerShellWorkflow),
+					testCheckAzureRMAutomationRunbookExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
 				),
 			},
 		},
@@ -31,6 +32,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
+	resourceName := "azurerm_automation_runbook.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAutomationRunbook_PSWorkflowWithHash(ri, testLocation())
 
@@ -42,7 +44,8 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationRunbookExistsAndType("azurerm_automation_runbook.test", automation.PowerShellWorkflow),
+					testCheckAzureRMAutomationRunbookExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "runbook_type", "PowerShellWorkflow"),
 				),
 			},
 		},
@@ -77,7 +80,7 @@ func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationRunbookExistsAndType(name string, runbookType automation.RunbookTypeEnum) resource.TestCheckFunc {
+func testCheckAzureRMAutomationRunbookExists(name string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -104,10 +107,6 @@ func testCheckAzureRMAutomationRunbookExistsAndType(name string, runbookType aut
 			}
 
 			return fmt.Errorf("Bad: Get on automationRunbookClient: %+v", err)
-		}
-
-		if resp.RunbookType != runbookType {
-			return fmt.Errorf("Current runbook type %s is not consistent with the checked value %s", resp.RunbookType, runbookType)
 		}
 
 		return nil
