@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -70,23 +69,6 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists("azurerm_sql_server.test"),
 				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSqlServer_upperCaseName(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMSqlServer_upperCaseName(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      config,
-				ExpectError: regexp.MustCompile("SQLDB Account Name can only contain lower-case characters"),
 			},
 		},
 	})

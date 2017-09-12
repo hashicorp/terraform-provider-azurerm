@@ -26,7 +26,7 @@ func resourceArmSqlServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRmSQLDBAccountName,
+				ValidateFunc: validateDBAccountName,
 			},
 
 			"location": locationSchema(),

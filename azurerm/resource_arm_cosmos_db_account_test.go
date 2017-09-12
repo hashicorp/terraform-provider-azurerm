@@ -60,47 +60,6 @@ func testSweepCosmosDBAccount(region string) error {
 	return nil
 }
 
-func TestAccAzureRMCosmosDBAccountName_validation(t *testing.T) {
-	str := acctest.RandString(50)
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "ab",
-			ErrCount: 1,
-		},
-		{
-			Value:    "abc",
-			ErrCount: 0,
-		},
-		{
-			Value:    "cosmosDBAccount1",
-			ErrCount: 1,
-		},
-		{
-			Value:    "hello-world",
-			ErrCount: 0,
-		},
-		{
-			Value:    str,
-			ErrCount: 0,
-		},
-		{
-			Value:    str + "a",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAzureRmCosmosDBAccountName(tc.Value, "azurerm_cosmosdb_account")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AzureRM CosmosDB Name to trigger a validation error for '%s'", tc.Value)
-		}
-	}
-}
-
 func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 	ri := acctest.RandInt()
