@@ -229,29 +229,24 @@ func expandContentLink(d *schema.ResourceData) automation.ContentLink {
 	version := input["version"].(string)
 
 	hashes := input["hash"].([]interface{})
-	var contentLink automation.ContentLink
-	var contentHash automation.ContentHash
 
 	if len(hashes) > 0 {
 		hash := hashes[0].(map[string]interface{})
 		hashValue := hash["value"].(string)
 		hashAlgorithm := hash["algorithm"].(string)
-		contentHash = automation.ContentHash{
-			Algorithm: &hashAlgorithm,
-			Value:     &hashValue,
-		}
 
-		contentLink = automation.ContentLink{
-			URI:         &uri,
-			Version:     &version,
-			ContentHash: &contentHash,
-		}
-	} else {
-		contentLink = automation.ContentLink{
+		return automation.ContentLink{
 			URI:     &uri,
 			Version: &version,
+			ContentHash: &automation.ContentHash{
+				Algorithm: &hashAlgorithm,
+				Value:     &hashValue,
+			},
 		}
 	}
 
-	return contentLink
+	return automation.ContentLink{
+		URI:     &uri,
+		Version: &version,
+	}
 }
