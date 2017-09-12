@@ -1,4 +1,9 @@
 ## 0.2.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_public_ip` - verifying the ID is valid before importing [GH-320]
+
 ## 0.1.7 (September 11, 2017)
 
 FEATURES:
