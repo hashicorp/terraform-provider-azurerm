@@ -102,7 +102,13 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validateIntInSlice([]int{
 					51200,
-					102400,
+					179200,
+					307200,
+					435200,
+					563200,
+					691200,
+					819200,
+					947200,
 				}),
 			},
 
