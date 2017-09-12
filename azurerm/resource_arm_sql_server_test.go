@@ -225,24 +225,6 @@ resource "azurerm_sql_server" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMSqlServer_upperCaseName(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
-}
-
-resource "azurerm_sql_server" "test" {
-    name = "AccTestSQLserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
-}
-`, rInt, location, rInt)
-}
-
 func testAccAzureRMSqlServer_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
