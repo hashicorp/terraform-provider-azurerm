@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
