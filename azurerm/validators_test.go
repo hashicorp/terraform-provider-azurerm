@@ -128,11 +128,5 @@ func TestDBAccountName_validation(t *testing.T) {
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AzureRM CosmosDB Name to trigger a validation error for '%s'", tc.Value)
 		}
-
-		_, errors = validateDBAccountName(tc.Value, "azurerm_sql_server")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AzureRM SQL Server Name to trigger a validation error for '%s'", tc.Value)
-		}
 	}
 }
