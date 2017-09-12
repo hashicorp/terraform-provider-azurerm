@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/Azure/go-autorest/autorest/adal/cli"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -214,12 +215,12 @@ func (c *Config) validateBearerAuth() error {
 }
 
 func (c *Config) LoadTokensFromAzureCLI() error {
-	profilePath, err := adal.AzureCLIProfilePath()
+	profilePath, err := cli.AzureCLIProfilePath()
 	if err != nil {
 		return fmt.Errorf("Error loading the Profile Path from the Azure CLI: %+v", err)
 	}
 
-	profile, err := adal.LoadCLIProfile(profilePath)
+	profile, err := cli.LoadCLIProfile(profilePath)
 	if err != nil {
 		return fmt.Errorf("Error loading Profile from the Azure CLI: %+v", err)
 	}
@@ -236,12 +237,12 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 	}
 
 	// pull out the ClientID and the AccessToken from the Azure Access Token
-	tokensPath, err := adal.AzureCLIAccessTokensPath()
+	tokensPath, err := cli.AzureCLIAccessTokensPath()
 	if err != nil {
 		return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
 	}
 
-	tokens, err := adal.LoadCLITokens(tokensPath)
+	tokens, err := cli.LoadCLITokens(tokensPath)
 	if err != nil {
 		return fmt.Errorf("Error loading Access Tokens from the Azure CLI: %+v", err)
 	}
@@ -253,7 +254,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 			return fmt.Errorf("[DEBUG] Error converting access token to token: %+v", err)
 		}
 
-		expirationDate, err := adal.ParseAzureCLIExpirationDate(accessToken.ExpiresOn)
+		expirationDate, err := cli.ParseAzureCLIExpirationDate(accessToken.ExpiresOn)
 		if err != nil {
 			return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
 		}
