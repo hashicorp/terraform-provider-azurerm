@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -13,6 +12,7 @@ import (
 
 func TestAccAzureRMAutomationAccount_skuBasic(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_automation_account.test"
 	config := testAccAzureRMAutomationAccount_skuBasic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -23,7 +23,8 @@ func TestAccAzureRMAutomationAccount_skuBasic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationAccountExistsAndSku("azurerm_automation_account.test", automation.Basic),
+					testCheckAzureRMAutomationAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
 				),
 			},
 		},
@@ -32,6 +33,7 @@ func TestAccAzureRMAutomationAccount_skuBasic(t *testing.T) {
 
 func TestAccAzureRMAutomationAccount_skuFree(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_automation_account.test"
 	config := testAccAzureRMAutomationAccount_skuFree(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -42,7 +44,8 @@ func TestAccAzureRMAutomationAccount_skuFree(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationAccountExistsAndSku("azurerm_automation_account.test", automation.Free),
+					testCheckAzureRMAutomationAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
 				),
 			},
 		},
@@ -76,7 +79,7 @@ func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationAccountExistsAndSku(name string, sku automation.SkuNameEnum) resource.TestCheckFunc {
+func testCheckAzureRMAutomationAccountExists(name string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -101,10 +104,6 @@ func testCheckAzureRMAutomationAccountExistsAndSku(name string, sku automation.S
 			}
 
 			return fmt.Errorf("Bad: Get on automationClient: %s", err)
-		}
-
-		if resp.Sku.Name != sku {
-			return fmt.Errorf("Actual sku %s is not consistent with the expected value %q", resp.Sku.Name, sku)
 		}
 
 		return nil
