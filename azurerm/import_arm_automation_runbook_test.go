@@ -20,14 +20,13 @@ func TestAccAzureRMAutomationRunbook_importRunbookPSWorkflow(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				// publish content link is not returned after the runbook is created
-				ExpectNonEmptyPlan: true,
 			},
 
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"publish_content_link"},
 			},
 		},
 	})
