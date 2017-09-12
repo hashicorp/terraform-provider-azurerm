@@ -73,7 +73,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"timezone": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				Default:  "UTC",
 			},
 		},
