@@ -23,11 +23,7 @@ func resourceArmStorageQueue() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateArmStorageQueueName,
 			},
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,

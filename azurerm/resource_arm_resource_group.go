@@ -3,8 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -23,12 +21,7 @@ func resourceArmResourceGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateArmResourceGroupName,
-			},
+			"name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
 
@@ -134,23 +127,4 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
-}
-
-func validateArmResourceGroupName(v interface{}, k string) (ws []string, es []error) {
-	value := v.(string)
-
-	if len(value) > 80 {
-		es = append(es, fmt.Errorf("%q may not exceed 80 characters in length", k))
-	}
-
-	if strings.HasSuffix(value, ".") {
-		es = append(es, fmt.Errorf("%q may not end with a period", k))
-	}
-
-	// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
-	if matched := regexp.MustCompile(`^[-\w\._\(\)]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
-	}
-
-	return
 }
