@@ -58,6 +58,30 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPostgreSQLServer_basicMaxStorage(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
+					resource.TestCheckResourceAttr(resourceName, "storage_mb", "947200"),
+					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
@@ -221,5 +245,32 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Disabled"
 }
 
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_basicMaxStorage(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "PGSQLB50"
+    capacity = 50
+    tier     = "Basic"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  storage_mb                   = 947200
+  ssl_enforcement              = "Enabled"
+}
 `, rInt, location, rInt)
 }
