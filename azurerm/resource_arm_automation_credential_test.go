@@ -10,9 +10,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAutomationCredential_testCredential(t *testing.T) {
+func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
+	resourceName := "azurerm_automation_credential.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationCredential_testCredential(ri, testLocation())
+	config := testAccAzureRMAutomationCredential_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +23,30 @@ func TestAccAzureRMAutomationCredential_testCredential(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationCredentialExistsAndUserName("azurerm_automation_credential.test", "test_user"),
+					testCheckAzureRMAutomationCredentialExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
+	resourceName := "azurerm_automation_credential.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAutomationCredential_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationCredentialExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
+					resource.TestCheckResourceAttr(resourceName, "description", "This is a test credential for terraform acceptance test"),
 				),
 			},
 		},
@@ -58,7 +82,7 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationCredentialExistsAndUserName(name string, username string) resource.TestCheckFunc {
+func testCheckAzureRMAutomationCredentialExists(name string) resource.TestCheckFunc {
 
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -87,15 +111,37 @@ func testCheckAzureRMAutomationCredentialExistsAndUserName(name string, username
 			return fmt.Errorf("Bad: Get on automationCredentialClient: %s\nName: %s, Account name: %s, Resource group: %s OBJECT: %+v", err, name, accName, resourceGroup, rs.Primary)
 		}
 
-		if *resp.UserName != username {
-			return fmt.Errorf("Current username %s is not consistant with the checked value %s", *resp.UserName, username)
-		}
-
 		return nil
 	}
 }
 
-func testAccAzureRMAutomationCredential_testCredential(rInt int, location string) string {
+func testAccAzureRMAutomationCredential_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+ name = "acctestRG-%d"
+ location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku {
+        name = "Free"
+  }
+}
+
+resource "azurerm_automation_credential" "test" {
+  name                = "acctest-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_automation_account.test.name}"
+  username            = "test_user"
+  password            = "test_pwd"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAutomationCredential_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name = "acctestRG-%d"

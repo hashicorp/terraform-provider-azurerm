@@ -11,7 +11,7 @@ func TestAccAzureRMAutomationCredential_importCredential(t *testing.T) {
 	resourceName := "azurerm_automation_credential.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationCredential_testCredential(ri, testLocation())
+	config := testAccAzureRMAutomationCredential_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,14 +20,13 @@ func TestAccAzureRMAutomationCredential_importCredential(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				// publish content link is not returned after the runbook is created
-				ExpectNonEmptyPlan: true,
 			},
 
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
 			},
 		},
 	})
