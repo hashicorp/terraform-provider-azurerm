@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -44,5 +45,21 @@ func validateUUID(v interface{}, k string) (ws []string, errors []error) {
 	if _, err := uuid.FromString(v.(string)); err != nil {
 		errors = append(errors, fmt.Errorf("%q is an invalid UUUID: %s", k, err))
 	}
+	return
+}
+
+func validateDBAccountName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	r, _ := regexp.Compile("^[a-z0-9\\-]+$")
+	if !r.MatchString(value) {
+		errors = append(errors, fmt.Errorf("Account Name can only contain lower-case characters, numbers and the `-` character."))
+	}
+
+	length := len(value)
+	if length > 50 || 3 > length {
+		errors = append(errors, fmt.Errorf("Account Name can only be between 3 and 50 seconds."))
+	}
+
 	return
 }
