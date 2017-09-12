@@ -4,6 +4,8 @@ IMPROVEMENTS:
 
 * `azurerm_public_ip` - verifying the ID is valid before importing [GH-320]
 
+* `azurerm_sql_server` - verifying the name is valid before creating [GH-323]
+
 ## 0.1.7 (September 11, 2017)
 
 FEATURES:
