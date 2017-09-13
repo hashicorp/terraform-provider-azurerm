@@ -25,7 +25,7 @@ func resourceArmDnsZone() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameDiffSupressSchema(),
 
 			"number_of_record_sets": {
 				Type:     schema.TypeString,
