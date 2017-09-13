@@ -144,6 +144,7 @@ resource "azurerm_operational_insight_workspace" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Free"
 }
 `, rInt, location, rInt)
 }

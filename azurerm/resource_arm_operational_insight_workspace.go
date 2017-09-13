@@ -48,8 +48,8 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 			},
 			"sku": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
+				ForceNew: true,
 			},
 			"retention_in_days": {
 				Type:     schema.TypeInt,
