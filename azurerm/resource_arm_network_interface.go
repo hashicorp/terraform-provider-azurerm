@@ -30,11 +30,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"network_security_group_id": {
 				Type:     schema.TypeString,

@@ -33,11 +33,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
 				Type:     schema.TypeSet,

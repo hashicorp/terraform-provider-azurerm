@@ -9,11 +9,7 @@ func dataSourceArmResourceGroup() *schema.Resource {
 		Read: dataSourceArmResourceGroupRead,
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
+			"name":     resourceGroupNameForDataSourceSchema(),
 			"location": locationForDataSourceSchema(),
 			"tags":     tagsForDataSourceSchema(),
 		},

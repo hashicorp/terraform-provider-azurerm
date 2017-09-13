@@ -28,11 +28,7 @@ func resourceArmSubnet() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"virtual_network_name": {
 				Type:     schema.TypeString,

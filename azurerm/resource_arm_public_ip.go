@@ -40,11 +40,7 @@ func resourceArmPublicIp() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"public_ip_address_allocation": {
 				Type:             schema.TypeString,
