@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` and `Linux`. Changing this forces a new resource to be created.
+* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` and `Linux`. Defaults to `Windows`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as documented below.
 
