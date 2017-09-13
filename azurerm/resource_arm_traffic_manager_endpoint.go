@@ -91,7 +91,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Optional: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSupressSchema(),
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 		},
 	}
 }

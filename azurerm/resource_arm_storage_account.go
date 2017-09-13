@@ -38,7 +38,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validateArmStorageAccountName,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSupressSchema(),
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"location": locationSchema(),
 

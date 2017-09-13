@@ -104,7 +104,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSupressSchema(),
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"tags": tagsSchema(),
 		},

@@ -17,7 +17,7 @@ func resourceGroupNameSchema() *schema.Schema {
 	}
 }
 
-func resourceGroupNameDiffSupressSchema() *schema.Schema {
+func resourceGroupNameDiffSuppressSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
 		Required:         true,
