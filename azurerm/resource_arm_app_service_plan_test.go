@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppServicePlan_basic(t *testing.T) {
+func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_basic(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_basicWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,9 +29,9 @@ func TestAccAzureRMAppServicePlan_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_standard(t *testing.T) {
+func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_standard(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_basicLinux(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -48,9 +48,9 @@ func TestAccAzureRMAppServicePlan_standard(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premium(t *testing.T) {
+func TestAccAzureRMAppServicePlan_standardWindows(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_premium(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_standardWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -67,12 +67,31 @@ func TestAccAzureRMAppServicePlan_premium(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_premiumUpdated(t *testing.T) {
+func TestAccAzureRMAppServicePlan_premiumWindows(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServicePlan_premiumWindows(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists("azurerm_app_service_plan.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServicePlan_premiumWindowsUpdated(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	config := testAccAzureRMAppServicePlan_premium(ri, location)
-	updatedConfig := testAccAzureRMAppServicePlan_premiumUpdated(ri, location)
+	config := testAccAzureRMAppServicePlan_premiumWindows(ri, location)
+	updatedConfig := testAccAzureRMAppServicePlan_premiumWindowsUpdated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -97,10 +116,10 @@ func TestAccAzureRMAppServicePlan_premiumUpdated(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_complete(t *testing.T) {
+func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_complete(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_completeWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -175,7 +194,7 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMAppServicePlan_basic(rInt int, location string) string {
+func testAccAzureRMAppServicePlan_basicWindows(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -195,7 +214,28 @@ resource "azurerm_app_service_plan" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMAppServicePlan_standard(rInt int, location string) string {
+func testAccAzureRMAppServicePlan_basicLinux(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "Linux"
+
+  sku {
+    tier = "Basic"
+    size = "B1"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_standardWindows(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -215,7 +255,7 @@ resource "azurerm_app_service_plan" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMAppServicePlan_premium(rInt int, location string) string {
+func testAccAzureRMAppServicePlan_premiumWindows(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -235,7 +275,7 @@ resource "azurerm_app_service_plan" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMAppServicePlan_premiumUpdated(rInt int, location string) string {
+func testAccAzureRMAppServicePlan_premiumWindowsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -256,7 +296,7 @@ resource "azurerm_app_service_plan" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMAppServicePlan_complete(rInt int, location string) string {
+func testAccAzureRMAppServicePlan_completeWindows(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -267,6 +307,7 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "Windows"
 
   sku {
     tier = "Standard"

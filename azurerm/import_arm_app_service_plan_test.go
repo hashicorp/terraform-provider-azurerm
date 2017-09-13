@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMAppServicePlan_importBasic(t *testing.T) {
+func TestAccAzureRMAppServicePlan_importBasicWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_basic(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_basicWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,11 +30,11 @@ func TestAccAzureRMAppServicePlan_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_importStandard(t *testing.T) {
+func TestAccAzureRMAppServicePlan_importWindowsStandard(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_standard(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_standardWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -53,11 +53,11 @@ func TestAccAzureRMAppServicePlan_importStandard(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_importPremium(t *testing.T) {
+func TestAccAzureRMAppServicePlan_importPremiumWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_premium(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_premiumWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -76,11 +76,11 @@ func TestAccAzureRMAppServicePlan_importPremium(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServicePlan_importComplete(t *testing.T) {
+func TestAccAzureRMAppServicePlan_importCompleteWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_plan.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppServicePlan_complete(ri, testLocation())
+	config := testAccAzureRMAppServicePlan_completeWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
