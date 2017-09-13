@@ -5,6 +5,7 @@ IMPROVEMENTS:
 * `azurerm_postgresql_server` - supporting additional storage sizes [GH-239]
 * `azurerm_public_ip` - verifying the ID is valid before importing [GH-320]
 * `azurerm_sql_server` - verifying the name is valid before creating [GH-323]
+* `resource_group_name` - validation has been added to all resources that use this attribute [GH-330]
 
 ## 0.1.7 (September 11, 2017)
 
