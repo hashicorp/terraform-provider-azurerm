@@ -19,6 +19,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
@@ -86,6 +87,8 @@ type ArmClient struct {
 	eventHubClient              eventhub.EventHubsClient
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
+
+	workspacesClient operationalinsights.WorkspacesClient
 
 	providers           resources.ProvidersClient
 	resourceGroupClient resources.GroupsClient
@@ -333,6 +336,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	lgc.Authorizer = auth
 	lgc.Sender = autorest.CreateSender(withRequestLogging())
 	client.localNetConnClient = lgc
+
+	opwc := operationalinsights.NewWorkspacesClient(c.SubscriptionID)
+	setUserAgent(&opwc.Client)
+	opwc.Authorizer = auth
+	opwc.Sender = autorest.CreateSender(withRequestLogging())
+	client.workspacesClient = opwc
 
 	pipc := network.NewPublicIPAddressesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&pipc.Client)

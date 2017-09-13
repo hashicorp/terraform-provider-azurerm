@@ -99,6 +99,12 @@
 			"versionExact": "v10.2.1-beta"
 		},
 		{
+			"checksumSHA1": "/TBRYaTTjpsuKRCKH6nvQfSlLOw=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/operationalinsights",
+			"revision": "df4dd90d076ebbf6e87d08d3f00bfac8ff4bde1a",
+			"revisionTime": "2017-09-06T21:46:31Z"
+		},
+		{
 			"checksumSHA1": "olhzqBgaJuavhtLduDqKF88RJXU=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/redis",
 			"revision": "2d49bb8f2cee530cc16f1f1a9f0aae763dee257d",
