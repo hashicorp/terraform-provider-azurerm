@@ -30,6 +30,35 @@ func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMContainerGroup_basicLinuxUpdate(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+
+	config := testAccAzureRMContainerGroupBasicLinux(ri, testLocation())
+	updatedConfig := testAccAzureRMContainerGroupBasicLinuxUpdated(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "2"),
+				),
+			},
+		},
+	})
+}
 
 func TestAccAzureRMContainerGroup_basicWindows(t *testing.T) {
 	ri := acctest.RandInt()
@@ -59,31 +88,60 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_group" "test" {
-	
-	name = "acctestcontainergroup-%d"
-	location = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	ip_address_type="public"
-	os_type = "linux"
-  
-	container {
-        name = "hw"
-        image = "microsoft/aci-helloworld:latest"
-        cpu ="0.5"
-        memory =  "1.5"
-        port = "80"
-    }
-    container {
-        name = "sidecar"
-        image = "microsoft/aci-tutorial-sidecar"
-        cpu="0.5"
-        memory="1.5"
-    }
-  
-	tags {
-	  environment = "testing"
-	}
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = "80"
   }
+
+  tags {
+    environment = "testing"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroupBasicLinuxUpdated(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = "80"
+  }
+
+  container {
+    name   = "sidecar"
+    image  = "microsoft/aci-tutorial-sidecar"
+    cpu    = "0.5"
+    memory = "0.5"
+  }
+
+  tags {
+    environment = "testing"
+  }
+}
 `, ri, location, ri)
 }
 
@@ -95,25 +153,24 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_container_group" "test" {
-	
-	name = "acctestcontainergroup-%d"
-	location = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	ip_address_type="public"
-	os_type = "windows"
-  
-	container {
-	  name = "winapp"
-	  image = "winappimage:latest"
-	  cpu ="2.0"
-	  memory = "3.5"
-	  port = "80"
-	}
-  
-	tags {
-	  environment = "testing"
-	}
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "windows"
+
+  container {
+    name   = "winapp"
+    image  = "winappimage:latest"
+    cpu    = "2.0"
+    memory = "3.5"
+    port   = "80"
   }
+
+  tags {
+    environment = "testing"
+  }
+}
 `, ri, location, ri)
 }
 
