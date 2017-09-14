@@ -58,7 +58,6 @@ func resourceArmContainerGroup() *schema.Resource {
 			"ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"container": {
@@ -213,7 +212,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	containerConfigs := flattenContainerGroupContainers(resp.Containers)
-	d.Set("container", containerConfigs)
+	err = d.Set("container", containerConfigs)
+	if err != nil {
+		return fmt.Errorf("Error setting `container`: %+v", err)
+	}
 
 	return nil
 }
@@ -251,9 +253,12 @@ func flattenContainerGroupContainers(containers *[]containerinstance.Container) 
 		containerConfig["name"] = *container.Name
 		containerConfig["image"] = *container.Image
 
-		resourceRequests := *(*container.Resources).Requests
-		containerConfig["cpu"] = *resourceRequests.CPU
-		containerConfig["memory"] = *resourceRequests.MemoryInGB
+		if resources := container.Resources; resources != nil {
+			if resourceRequests := resources.Requests; resourceRequests != nil {
+				containerConfig["cpu"] = *resourceRequests.CPU
+				containerConfig["memory"] = *resourceRequests.MemoryInGB
+			}
+		}
 
 		if len(*container.Ports) > 0 {
 			containerConfig["port"] = *(*container.Ports)[0].Port
