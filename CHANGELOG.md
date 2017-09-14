@@ -1,5 +1,9 @@
 ## 0.2.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_container_group` [GH-333] [GH-311]
+
 IMPROVEMENTS:
 
 * `azurerm_app_service_plan` - support for Linux App Services [GH-332]
