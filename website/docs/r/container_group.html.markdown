@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "aci-rg" {
 
 resource "azurerm_container_group" "aci-helloworld" {
   
-  name = "mynginx"
+  name = "aci-hw"
   location = "west us"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type="public"
@@ -94,9 +94,9 @@ The following arguments are supported:
 
 The `container` block supports:
 
-* `name` - (Required) Specifies the name of the Container. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Container.
 
-* `image` - (Required) The container image name. Changing this forces a new resource to be created.
+* `image` - (Required) The container image name.
 
 * `cpu` - (Required) The required number of CPU cores of the containers.
 
@@ -108,6 +108,6 @@ The `container` block supports:
 
 The following attributes are exported:
 
-* `ip_address` - The IP address allocated to the container group.
-
 * `id` - The container group ID.
+
+* `ip_address` - The IP address allocated to the container group.

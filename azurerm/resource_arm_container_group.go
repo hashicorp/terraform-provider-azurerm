@@ -67,13 +67,11 @@ func resourceArmContainerGroup() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"image": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"cpu": {
