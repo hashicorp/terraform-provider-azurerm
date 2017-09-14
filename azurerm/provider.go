@@ -230,11 +230,12 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		if subscription.IsDefault {
 			c.SubscriptionID = subscription.ID
 			c.TenantID = subscription.TenantID
-			// TODO: can we determine the environment too?
-			//c.Environment = subscription.EnvironmentName
+			c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
 			break
 		}
 	}
+
+	// TODO: validation if there's no TenantID
 
 	// pull out the ClientID and the AccessToken from the Azure Access Token
 	tokensPath, err := cli.AccessTokensPath()
@@ -259,7 +260,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 			return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
 		}
 
-		if expirationDate.Before(time.Now().UTC()) {
+		if expirationDate.UTC().Before(time.Now().UTC()) {
 			log.Printf("[DEBUG] Token '%s' has expired", token.AccessToken)
 			continue
 		}
@@ -270,6 +271,12 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 			continue
 		}
 
+		if !strings.HasSuffix(accessToken.Authority, c.TenantID) {
+			log.Printf("[DEBUG] Resource '%s' isn't for the correct Tenant", accessToken.Resource)
+			continue
+		}
+
+		// note: we don't make use of the CLI Refresh Token at this time, but we potentially could
 		c.ClientID = accessToken.ClientID
 		c.AccessToken = &token
 		c.IsCloudShell = accessToken.RefreshToken == ""
@@ -282,6 +289,19 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 	}
 
 	return nil
+}
+
+func normalizeEnvironmentName(input string) string {
+	// Environment is stored as `Azure{Environment}Cloud`
+	output := strings.ToLower(input)
+	output = strings.TrimPrefix(output, "azure")
+	output = strings.TrimSuffix(output, "cloud")
+
+	// however Azure Public is `AzureCloud` in the CLI Profile and not `AzurePublicCloud`.
+	if output == "" {
+		return "public"
+	}
+	return output
 }
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
