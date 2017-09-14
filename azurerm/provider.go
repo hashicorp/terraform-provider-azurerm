@@ -74,6 +74,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_cdn_profile":                 resourceArmCdnProfile(),
 			"azurerm_container_registry":          resourceArmContainerRegistry(),
 			"azurerm_container_service":           resourceArmContainerService(),
+			"azurerm_container_group":             resourceArmContainerGroup(),
 			"azurerm_cosmosdb_account":            resourceArmCosmosDBAccount(),
 			"azurerm_dns_a_record":                resourceArmDnsARecord(),
 			"azurerm_dns_aaaa_record":             resourceArmDnsAAAARecord(),
@@ -246,6 +247,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.Cache":             {},
 		"Microsoft.Cdn":               {},
 		"Microsoft.Compute":           {},
+		"Microsoft.ContainerInstance": {},
 		"Microsoft.ContainerRegistry": {},
 		"Microsoft.ContainerService":  {},
 		"Microsoft.DBforPostgreSQL":   {},
@@ -284,7 +286,6 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
 	var err error
 	providerRegistrationOnce.Do(func() {
-
 		providers := determineAzureResourceProvidersToRegister(providerList)
 
 		var wg sync.WaitGroup
