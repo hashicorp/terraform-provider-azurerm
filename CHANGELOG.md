@@ -6,7 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azurerm_app_service_plan` - support for Linux App Services [GH-332]
+* `azurerm_app_service_plan` - support for Linux App Service Plans [GH-332]
 * `azurerm_postgresql_server` - supporting additional storage sizes [GH-239]
 * `azurerm_public_ip` - verifying the ID is valid before importing [GH-320]
 * `azurerm_sql_server` - verifying the name is valid before creating [GH-323]
