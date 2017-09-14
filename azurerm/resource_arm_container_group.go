@@ -20,6 +20,7 @@ func resourceArmContainerGroup() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"location": locationSchema(),
@@ -27,18 +28,27 @@ func resourceArmContainerGroup() *schema.Resource {
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"ip_address_type": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Public",
+				}, true),
+				Default: "Public",
 			},
 
 			"os_type": {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					"windows",
+					"linux",
+				}, true),
 			},
 
 			"tags": tagsSchema(),
@@ -57,11 +67,13 @@ func resourceArmContainerGroup() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"image": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"cpu": {
@@ -206,14 +218,14 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	_, error := containerGroupsClient.CreateOrUpdate(resGroup, name, containerGroup)
-	if error != nil {
-		return error
+	_, err := containerGroupsClient.CreateOrUpdate(resGroup, name, containerGroup)
+	if err != nil {
+		return err
 	}
 
-	read, readErr := containerGroupsClient.Get(resGroup, name)
-	if readErr != nil {
-		return readErr
+	read, err := containerGroupsClient.Get(resGroup, name)
+	if err != nil {
+		return err
 	}
 
 	if read.ID == nil {
@@ -237,10 +249,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
-	resp, error := containterGroupsClient.Get(resGroup, name)
+	resp, err := containterGroupsClient.Get(resGroup, name)
 
-	if error != nil {
-		return error
+	if err != nil {
+		return err
 	}
 
 	d.Set("name", name)
@@ -249,13 +261,44 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	flattenAndSetTags(d, resp.Tags)
 
 	d.Set("os_type", string(resp.OsType))
-	d.Set("ip_address_type", *resp.IPAddress.Type)
-	d.Set("ip_address", *resp.IPAddress.IP)
+	if address := resp.IPAddress; address != nil {
+		d.Set("ip_address_type", address.Type)
+		d.Set("ip_address", address.IP)
+	}
 
-	containers := *resp.Containers
+	containerConfigs := flattenContainerInstanceContainers(resp.Containers)
+	d.Set("container", containerConfigs)
 
-	containerConfigs := make([]interface{}, 0, len(containers))
-	for _, container := range containers {
+	return nil
+}
+
+func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient)
+	containterGroupsClient := client.containerGroupsClient
+
+	id, err := parseAzureResourceID(d.Id())
+
+	if err != nil {
+		return err
+	}
+
+	// container group properties
+	resGroup := id.ResourceGroup
+	name := id.Path["containerGroups"]
+
+	_, err = containterGroupsClient.Delete(resGroup, name)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func flattenContainerInstanceContainers(containers *[]containerinstance.Container) []interface{} {
+
+	containerConfigs := make([]interface{}, 0, len(*containers))
+	for _, container := range *containers {
 		containerConfig := make(map[string]interface{})
 		containerConfig["name"] = *container.Name
 		containerConfig["image"] = *container.Image
@@ -272,23 +315,5 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		containerConfigs = append(containerConfigs, containerConfig)
 	}
 
-	d.Set("container", containerConfigs)
-
-	return nil
-}
-func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	containterGroupsClient := client.containerGroupsClient
-
-	// container group properties
-	resGroup := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-
-	_, error := containterGroupsClient.Delete(resGroup, name)
-
-	if error != nil {
-		return error
-	}
-
-	return nil
+	return containerConfigs
 }

@@ -8,15 +8,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
 	ri := acctest.RandInt()
 
-	name := fmt.Sprintf("acctestcontainergroup-%d", ri)
-	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
-
-	config := testAccAzureRMContainerGroupBasicLinux(name, resourceGroupName, testLocation())
+	config := testAccAzureRMContainerGroupBasicLinux(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -36,10 +34,7 @@ func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
 func TestAccAzureRMContainerGroup_basicWindows(t *testing.T) {
 	ri := acctest.RandInt()
 
-	name := fmt.Sprintf("acctestcontainergroup-%d", ri)
-	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
-
-	config := testAccAzureRMContainerGroupBasicWindows(name, resourceGroupName, testLocation())
+	config := testAccAzureRMContainerGroupBasicWindows(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -56,66 +51,70 @@ func TestAccAzureRMContainerGroup_basicWindows(t *testing.T) {
 	})
 }
 
-func testAccAzureRMContainerGroupBasicLinux(name string, resourceGroupName string, location string) string {
+func testAccAzureRMContainerGroupBasicLinux(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_container_group" "test" {
 	
-	name = "%s"
+	name = "acctestcontainergroup-%d"
 	location = "%s"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	ip_address_type="public"
 	os_type = "linux"
   
 	container {
-	  name = "%s"
-	  image = "nginx:latest"
-	  cpu ="1"
-	  memory = "1.0"
-	  port = "80"
-#	  protocol = "TCP"
-	}
+        name = "hw"
+        image = "microsoft/aci-helloworld:latest"
+        cpu ="0.5"
+        memory =  "1.5"
+        port = "80"
+    }
+    container {
+        name = "sidecar"
+        image = "microsoft/aci-tutorial-sidecar"
+        cpu="0.5"
+        memory="1.5"
+    }
   
 	tags {
 	  environment = "testing"
 	}
   }
-`, resourceGroupName, location, name, location, name)
+`, ri, location, location)
 }
 
-func testAccAzureRMContainerGroupBasicWindows(name string, resourceGroupName string, location string) string {
+func testAccAzureRMContainerGroupBasicWindows(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "%s"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_container_group" "test" {
 	
-	name = "%s"
+	name = "acctestcontainergroup-%d"
 	location = "%s"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	ip_address_type="public"
 	os_type = "windows"
   
 	container {
-	  name = "%s"
+	  name = "winapp"
 	  image = "winappimage:latest"
 	  cpu ="2.0"
 	  memory = "3.5"
 	  port = "80"
-#	  protocol = "TCP"
 	}
   
 	tags {
 	  environment = "testing"
 	}
   }
-`, resourceGroupName, location, name, location, name)
+`, ri, location, location)
 }
 
 func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
@@ -136,11 +135,10 @@ func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Container Group %q (resource group: %q) does not exist", name, resourceGroup)
+			}
 			return fmt.Errorf("Bad: Get on containerGroupsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Container Group %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -161,12 +159,13 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
+			if resp.StatusCode != http.StatusNotFound {
+				return fmt.Errorf("Container Group still exists:\n%#v", resp)
+			}
+
 			return nil
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Container Group still exists:\n%#v", resp)
-		}
 	}
 
 	return nil
