@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "aci-rg" {
 resource "azurerm_container_group" "aci-helloworld" {
   
   name = "aci-hw"
-  location = "west us"
+  location = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type="public"
   os_type = "linux"
@@ -46,36 +46,6 @@ resource "azurerm_container_group" "aci-helloworld" {
 }
 ```
 
-## Example Usage (Windows)
-
-```hcl
-resource "azurerm_resource_group" "aci-rg" {
-  name     = "aci-test"
-  location = "west us"
-}
-
-resource "azurerm_container_group" "winapp" {
-  
-  name = "mywinapp"
-  location = "west us"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  ip_address_type="public"
-  os_type = "windows"
-
-  container {
-    name = "winapp1"
-    image = "winappimage:latest"
-	cpu ="2.0"
-    memory = "3.5"
-    port = "80"
-  }
-
-  tags {
-    environment = "testing"
-  }
-}
-```
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -90,7 +60,9 @@ The following arguments are supported:
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `linux` and `windows` Changing this forces a new resource to be created.
 
-* `container` - (Required) The definition of a container that is part of the group. Currently, only single containers are supported for Windows OS and multiple containers are supported for Linux OS.
+* `container` - (Required) The definition of a container that is part of the group.
+
+~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
 
 The `container` block supports:
 

@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmContainerGroup() *schema.Resource {
@@ -91,8 +92,9 @@ func resourceArmContainerGroup() *schema.Resource {
 						},
 
 						"protocol": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								"tcp",
 								"udp",
@@ -135,82 +137,17 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	containersConfig := d.Get("container").([]interface{})
-	containers := make([]containerinstance.Container, 0, len(containersConfig))
-	containerGroupPorts := make([]containerinstance.Port, 0, len(containersConfig))
-
-	for _, containerConfig := range containersConfig {
-		data := containerConfig.(map[string]interface{})
-
-		// required
-		name := data["name"].(string)
-		image := data["image"].(string)
-		cpu := data["cpu"].(float64)
-		memory := data["memory"].(float64)
-
-		// optional
-		port := int32(data["port"].(int))
-		protocol := data["protocol"].(string)
-
-		container := containerinstance.Container{
-			Name: &name,
-			ContainerProperties: &containerinstance.ContainerProperties{
-				Image: &image,
-				Resources: &containerinstance.ResourceRequirements{
-					Requests: &containerinstance.ResourceRequests{
-						MemoryInGB: &memory,
-						CPU:        &cpu,
-					},
-				},
-			},
-		}
-
-		if port != 0 {
-			// container port (port number)
-			containerPort := containerinstance.ContainerPort{
-				Port: &port,
-			}
-
-			container.Ports = &[]containerinstance.ContainerPort{containerPort}
-
-			// container group port (port number + protocol)
-			containerGroupPort := containerinstance.Port{
-				Port: &port,
-			}
-
-			if protocol != "" {
-				containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
-			}
-
-			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
-		}
-
-		// envVars := data["env_vars"].([]interface{})
-		// if len(envVars) > 0 {
-		// 	envVarsList := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
-
-		// 	for _, envVarRaw := range envVars {
-		// 		envVar := containerinstance.EnvironmentVariable{
-		// 			Name:  &envVarRaw.get("name").(string),
-		// 			Value: &envVarRaw.get("value").(string),
-		// 		}
-		// 		envVarsList = append(envVarsList, envVar)
-		// 	}
-		// 	container.EnvironmentVariables = &envVarsList
-		// }
-
-		containers = append(containers, container)
-	}
+	containers, containerGroupPorts := expandContainerGroupContainers(d)
 
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			Containers: &containers,
+			Containers: containers,
 			IPAddress: &containerinstance.IPAddress{
 				Type:  &IPAddressType,
-				Ports: &containerGroupPorts,
+				Ports: containerGroupPorts,
 			},
 			OsType: containerinstance.OperatingSystemTypes(OSType),
 		},
@@ -264,7 +201,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_address", address.IP)
 	}
 
-	containerConfigs := flattenContainerInstanceContainers(resp.Containers)
+	containerConfigs := flattenContainerGroupContainers(resp.Containers)
 	d.Set("container", containerConfigs)
 
 	return nil
@@ -284,16 +221,18 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
-	_, err = containterGroupsClient.Delete(resGroup, name)
-
+	resp, err := containterGroupsClient.Delete(resGroup, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
 		return err
 	}
 
 	return nil
 }
 
-func flattenContainerInstanceContainers(containers *[]containerinstance.Container) []interface{} {
+func flattenContainerGroupContainers(containers *[]containerinstance.Container) []interface{} {
 
 	containerConfigs := make([]interface{}, 0, len(*containers))
 	for _, container := range *containers {
@@ -314,4 +253,60 @@ func flattenContainerInstanceContainers(containers *[]containerinstance.Containe
 	}
 
 	return containerConfigs
+}
+
+func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port) {
+	containersConfig := d.Get("container").([]interface{})
+	containers := make([]containerinstance.Container, 0, len(containersConfig))
+	containerGroupPorts := make([]containerinstance.Port, 0, len(containersConfig))
+
+	for _, containerConfig := range containersConfig {
+		data := containerConfig.(map[string]interface{})
+
+		// required
+		name := data["name"].(string)
+		image := data["image"].(string)
+		cpu := data["cpu"].(float64)
+		memory := data["memory"].(float64)
+
+		container := containerinstance.Container{
+			Name: &name,
+			ContainerProperties: &containerinstance.ContainerProperties{
+				Image: &image,
+				Resources: &containerinstance.ResourceRequirements{
+					Requests: &containerinstance.ResourceRequests{
+						MemoryInGB: &memory,
+						CPU:        &cpu,
+					},
+				},
+			},
+		}
+
+		if v, _ := data["port"]; v != 0 {
+			port := int32(v.(int))
+
+			// container port (port number)
+			containerPort := containerinstance.ContainerPort{
+				Port: &port,
+			}
+
+			container.Ports = &[]containerinstance.ContainerPort{containerPort}
+
+			// container group port (port number + protocol)
+			containerGroupPort := containerinstance.Port{
+				Port: &port,
+			}
+
+			if v, ok := data["protocol"]; ok {
+				protocol := v.(string)
+				containerGroupPort.Protocol = containerinstance.ContainerGroupNetworkProtocol(strings.ToUpper(protocol))
+			}
+
+			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
+		}
+
+		containers = append(containers, container)
+	}
+
+	return &containers, &containerGroupPorts
 }

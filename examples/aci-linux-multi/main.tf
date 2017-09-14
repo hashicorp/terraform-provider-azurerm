@@ -4,8 +4,8 @@ resource "azurerm_resource_group" "aci-rg" {
 }
 
 resource "azurerm_container_group" "aci-test" {
-    name = "mynginx"
-    location = "west us"
+    name = "my-aci-hw"
+    location = "${azurerm_resource_group.aci-rg.location}"
     resource_group_name =  "${azurerm_resource_group.aci-rg.name}"
     ip_address_type="public"
     os_type = "linux"

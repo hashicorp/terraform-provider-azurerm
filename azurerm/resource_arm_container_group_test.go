@@ -61,7 +61,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_container_group" "test" {
 	
 	name = "acctestcontainergroup-%d"
-	location = "%s"
+	location = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	ip_address_type="public"
 	os_type = "linux"
@@ -84,7 +84,7 @@ resource "azurerm_container_group" "test" {
 	  environment = "testing"
 	}
   }
-`, ri, location, ri, location)
+`, ri, location, ri)
 }
 
 func testAccAzureRMContainerGroupBasicWindows(ri int, location string) string {
@@ -97,7 +97,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_container_group" "test" {
 	
 	name = "acctestcontainergroup-%d"
-	location = "%s"
+	location = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	ip_address_type="public"
 	os_type = "windows"
@@ -114,7 +114,7 @@ resource "azurerm_container_group" "test" {
 	  environment = "testing"
 	}
   }
-`, ri, location, ri, location)
+`, ri, location, ri)
 }
 
 func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
