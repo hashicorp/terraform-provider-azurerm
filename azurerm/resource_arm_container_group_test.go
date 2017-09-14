@@ -84,7 +84,7 @@ resource "azurerm_container_group" "test" {
 	  environment = "testing"
 	}
   }
-`, ri, location, location)
+`, ri, location, ri, location)
 }
 
 func testAccAzureRMContainerGroupBasicWindows(ri int, location string) string {
@@ -114,7 +114,7 @@ resource "azurerm_container_group" "test" {
 	  environment = "testing"
 	}
   }
-`, ri, location, location)
+`, ri, location, ri, location)
 }
 
 func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
