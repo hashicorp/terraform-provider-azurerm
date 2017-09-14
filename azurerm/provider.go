@@ -12,7 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/adal/cli"
+	"github.com/Azure/go-autorest/autorest/azure/cli"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -215,12 +215,12 @@ func (c *Config) validateBearerAuth() error {
 }
 
 func (c *Config) LoadTokensFromAzureCLI() error {
-	profilePath, err := cli.AzureCLIProfilePath()
+	profilePath, err := cli.ProfilePath()
 	if err != nil {
 		return fmt.Errorf("Error loading the Profile Path from the Azure CLI: %+v", err)
 	}
 
-	profile, err := cli.LoadCLIProfile(profilePath)
+	profile, err := cli.LoadProfile(profilePath)
 	if err != nil {
 		return fmt.Errorf("Error loading Profile from the Azure CLI: %+v", err)
 	}
@@ -237,24 +237,24 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 	}
 
 	// pull out the ClientID and the AccessToken from the Azure Access Token
-	tokensPath, err := cli.AzureCLIAccessTokensPath()
+	tokensPath, err := cli.AccessTokensPath()
 	if err != nil {
 		return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
 	}
 
-	tokens, err := cli.LoadCLITokens(tokensPath)
+	tokens, err := cli.LoadTokens(tokensPath)
 	if err != nil {
 		return fmt.Errorf("Error loading Access Tokens from the Azure CLI: %+v", err)
 	}
 
 	foundToken := false
 	for _, accessToken := range tokens {
-		token, err := accessToken.ToToken()
+		token, err := accessToken.ToADALToken()
 		if err != nil {
 			return fmt.Errorf("[DEBUG] Error converting access token to token: %+v", err)
 		}
 
-		expirationDate, err := cli.ParseAzureCLIExpirationDate(accessToken.ExpiresOn)
+		expirationDate, err := cli.ParseExpirationDate(accessToken.ExpiresOn)
 		if err != nil {
 			return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
 		}
@@ -271,7 +271,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		}
 
 		c.ClientID = accessToken.ClientID
-		c.AccessToken = token
+		c.AccessToken = &token
 		c.IsCloudShell = accessToken.RefreshToken == ""
 		foundToken = true
 		break
