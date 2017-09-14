@@ -56,25 +56,25 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time.
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `linux` and `windows` Changing this forces a new resource to be created.
 
-* `container` - (Required) The definition of a container that is part of the group.
+* `container` - (Required) The definition of a container that is part of the group. Changing this forces a new resource to be created.
 
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
 
 The `container` block supports:
 
-* `name` - (Required) Specifies the name of the Container.
+* `name` - (Required) Specifies the name of the Container. Changing this forces a new resource to be created.
 
-* `image` - (Required) The container image name.
+* `image` - (Required) The container image name. Changing this forces a new resource to be created.
 
-* `cpu` - (Required) The required number of CPU cores of the containers.
+* `cpu` - (Required) The required number of CPU cores of the containers. Changing this forces a new resource to be created.
 
-* `memory` - (Required) The required memory of the containers in GB.
+* `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-* `port` - (Optional) A public port for the container.
+* `port` - (Optional) A public port for the container. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
