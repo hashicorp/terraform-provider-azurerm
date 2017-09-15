@@ -191,13 +191,6 @@ func resourceArmAppService() *schema.Resource {
 				ForceNew: true, // due to a bug in the Azure API :(
 			},
 
-			"reserved": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-				ForceNew: true, // due to a bug in the Azure API :(
-			},
-
 			"app_settings": {
 				Type:     schema.TypeMap,
 				Optional: true,
@@ -273,11 +266,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	if v, ok := d.GetOk("client_affinity_enabled"); ok {
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
-	}
-
-	if v, ok := d.GetOk("reserved"); ok {
-		reserved := v.(bool)
-		siteEnvelope.SiteProperties.Reserved = utils.Bool(reserved)
 	}
 
 	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
@@ -418,7 +406,6 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
-		d.Set("reserved", props.Reserved)
 	}
 
 	d.Set("app_settings", appSettingsResp.Properties)

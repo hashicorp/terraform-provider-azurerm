@@ -44,7 +44,7 @@ func TestAccAzureRMAppService_32Bit(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "use_32_bit_worker_process", "true"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
 			},
 		},
@@ -65,7 +65,7 @@ func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "always_on", "true"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
 				),
 			},
 		},
@@ -301,27 +301,6 @@ func TestAccAzureRMAppService_managedPipelineMode(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.managed_pipeline_mode", "Classic"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppService_reserved(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_reserved(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "reserved", "true"),
 				),
 			},
 		},
@@ -1100,34 +1079,6 @@ resource "azurerm_app_service" "test" {
   site_config {
   	managed_pipeline_mode = "Classic"
   }
-}
-`, rInt, location, rInt, rInt)
-}
-
-func testAccAzureRMAppService_reserved(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  reserved            = true
 }
 `, rInt, location, rInt, rInt)
 }
