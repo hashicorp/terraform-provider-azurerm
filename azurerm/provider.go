@@ -222,7 +222,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 
 	profile, err := cli.LoadProfile(profilePath)
 	if err != nil {
-		return fmt.Errorf("Error loading Profile from the Azure CLI: %+v", err)
+		return fmt.Errorf("Azure CLI Authorization Profile was not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
 	}
 
 	// pull out the TenantID and Subscription ID from the Azure Profile
@@ -245,7 +245,7 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 
 		tokens, err := cli.LoadTokens(tokensPath)
 		if err != nil {
-			return fmt.Errorf("Error loading Access Tokens from the Azure CLI: %+v", err)
+			return fmt.Errorf("Azure CLI Authorization Tokens were not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
 		}
 
 		for _, accessToken := range tokens {
