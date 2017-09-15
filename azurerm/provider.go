@@ -235,53 +235,52 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		}
 	}
 
-	// TODO: validation if there's no TenantID
-
-	// pull out the ClientID and the AccessToken from the Azure Access Token
-	tokensPath, err := cli.AccessTokensPath()
-	if err != nil {
-		return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
-	}
-
-	tokens, err := cli.LoadTokens(tokensPath)
-	if err != nil {
-		return fmt.Errorf("Error loading Access Tokens from the Azure CLI: %+v", err)
-	}
-
 	foundToken := false
-	for _, accessToken := range tokens {
-		token, err := accessToken.ToADALToken()
+	if c.TenantID != "" {
+		// pull out the ClientID and the AccessToken from the Azure Access Token
+		tokensPath, err := cli.AccessTokensPath()
 		if err != nil {
-			return fmt.Errorf("[DEBUG] Error converting access token to token: %+v", err)
+			return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
 		}
 
-		expirationDate, err := cli.ParseExpirationDate(accessToken.ExpiresOn)
+		tokens, err := cli.LoadTokens(tokensPath)
 		if err != nil {
-			return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
+			return fmt.Errorf("Error loading Access Tokens from the Azure CLI: %+v", err)
 		}
 
-		if expirationDate.UTC().Before(time.Now().UTC()) {
-			log.Printf("[DEBUG] Token '%s' has expired", token.AccessToken)
-			continue
-		}
+		for _, accessToken := range tokens {
+			token, err := accessToken.ToADALToken()
+			if err != nil {
+				return fmt.Errorf("[DEBUG] Error converting access token to token: %+v", err)
+			}
 
-		// TODO: replace this with something that's not terrible
-		if !strings.Contains(accessToken.Resource, "management") {
-			log.Printf("[DEBUG] Resource '%s' isn't a management domain", accessToken.Resource)
-			continue
-		}
+			expirationDate, err := cli.ParseExpirationDate(accessToken.ExpiresOn)
+			if err != nil {
+				return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
+			}
 
-		if !strings.HasSuffix(accessToken.Authority, c.TenantID) {
-			log.Printf("[DEBUG] Resource '%s' isn't for the correct Tenant", accessToken.Resource)
-			continue
-		}
+			if expirationDate.UTC().Before(time.Now().UTC()) {
+				log.Printf("[DEBUG] Token '%s' has expired", token.AccessToken)
+				continue
+			}
 
-		// note: we don't make use of the CLI Refresh Token at this time, but we potentially could
-		c.ClientID = accessToken.ClientID
-		c.AccessToken = &token
-		c.IsCloudShell = accessToken.RefreshToken == ""
-		foundToken = true
-		break
+			if !strings.Contains(accessToken.Resource, "management") {
+				log.Printf("[DEBUG] Resource '%s' isn't a management domain", accessToken.Resource)
+				continue
+			}
+
+			if !strings.HasSuffix(accessToken.Authority, c.TenantID) {
+				log.Printf("[DEBUG] Resource '%s' isn't for the correct Tenant", accessToken.Resource)
+				continue
+			}
+
+			// note: we don't make use of the CLI Refresh Token at this time, but we potentially could
+			c.ClientID = accessToken.ClientID
+			c.AccessToken = &token
+			c.IsCloudShell = accessToken.RefreshToken == ""
+			foundToken = true
+			break
+		}
 	}
 
 	if !foundToken {
