@@ -27,6 +27,7 @@ func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists("azurerm_container_group.test"),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.command", "/bin/bash -c ls"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.cpu", "0.5"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.foo", "bar"),
@@ -75,6 +76,7 @@ func TestAccAzureRMContainerGroup_basicLinuxUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMContainerGroup_basicWindows(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
 	config := testAccAzureRMContainerGroupBasicWindows(ri, testLocation())
@@ -88,6 +90,16 @@ func TestAccAzureRMContainerGroup_basicWindows(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists("azurerm_container_group.test"),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.cpu", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.image", "winappimage:latest"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.memory", "3.5"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.name", "winapp"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Public"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "testing"),
 				),
 			},
 		},
@@ -118,6 +130,7 @@ resource "azurerm_container_group" "test" {
 		"foo" = "bar"
 		"foo1" = "bar1"
 	}
+	command = "/bin/bash -c ls"
   }
 
   tags {

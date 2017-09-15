@@ -113,6 +113,12 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 						},
+
+						"command": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
 					},
 				},
 			},
@@ -182,6 +188,9 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := containterGroupsClient.Get(resGroup, name)
 
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
 		return err
 	}
 
@@ -252,6 +261,10 @@ func flattenContainerGroupContainers(containers *[]containerinstance.Container) 
 
 		if len(*container.EnvironmentVariables) > 0 {
 			containerConfig["env_vars"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables)
+		}
+
+		if command := container.Command; command != nil {
+			containerConfig["command"] = strings.Join(*command, " ")
 		}
 
 		containerConfigs = append(containerConfigs, containerConfig)
@@ -325,6 +338,11 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 
 		if v, ok := data["env_vars"]; ok {
 			container.EnvironmentVariables = expandContainerEnvironmentVariables(v)
+		}
+
+		if v, _ := data["command"]; v != "" {
+			command := strings.Split(v.(string), " ")
+			container.Command = &command
 		}
 
 		containers = append(containers, container)
