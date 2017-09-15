@@ -1,17 +1,17 @@
-## 0.2.0 (Unreleased)
+## 0.2.0 (September 15, 2017)
 
 FEATURES:
 
-* **Support for authenticating using the Azure CLI** [GH-316]
-* **New Resource:** `azurerm_container_group` [GH-333] [GH-311] [GH-338]
+* **Support for authenticating using the Azure CLI** ([#316](https://github.com/terraform-providers/terraform-provider-azurerm/issues/316))
+* **New Resource:** `azurerm_container_group` ([#333](https://github.com/terraform-providers/terraform-provider-azurerm/issues/333)] [[#311](https://github.com/terraform-providers/terraform-provider-azurerm/issues/311)] [[#338](https://github.com/terraform-providers/terraform-provider-azurerm/issues/338))
 
 IMPROVEMENTS:
 
-* `azurerm_app_service_plan` - support for Linux App Service Plans [GH-332]
-* `azurerm_postgresql_server` - supporting additional storage sizes [GH-239]
-* `azurerm_public_ip` - verifying the ID is valid before importing [GH-320]
-* `azurerm_sql_server` - verifying the name is valid before creating [GH-323]
-* `resource_group_name` - validation has been added to all resources that use this attribute [GH-330]
+* `azurerm_app_service_plan` - support for Linux App Service Plans ([#332](https://github.com/terraform-providers/terraform-provider-azurerm/issues/332))
+* `azurerm_postgresql_server` - supporting additional storage sizes ([#239](https://github.com/terraform-providers/terraform-provider-azurerm/issues/239))
+* `azurerm_public_ip` - verifying the ID is valid before importing ([#320](https://github.com/terraform-providers/terraform-provider-azurerm/issues/320))
+* `azurerm_sql_server` - verifying the name is valid before creating ([#323](https://github.com/terraform-providers/terraform-provider-azurerm/issues/323))
+* `resource_group_name` - validation has been added to all resources that use this attribute ([#330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/330))
 
 ## 0.1.7 (September 11, 2017)
 
