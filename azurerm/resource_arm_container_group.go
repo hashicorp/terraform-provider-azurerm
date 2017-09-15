@@ -108,25 +108,16 @@ func resourceArmContainerGroup() *schema.Resource {
 							}, true),
 						},
 
-						"env_var": {
-							Type:     schema.TypeList,
+						"environment_variables": {
+							Type:     schema.TypeMap,
 							Optional: true,
 							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
-									},
+						},
 
-									"value": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
-									},
-								},
-							},
+						"command": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -197,6 +188,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := containterGroupsClient.Get(resGroup, name)
 
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return err
 	}
 
@@ -265,10 +260,33 @@ func flattenContainerGroupContainers(containers *[]containerinstance.Container) 
 		}
 		// protocol isn't returned in container config
 
+		if container.EnvironmentVariables != nil {
+			if len(*container.EnvironmentVariables) > 0 {
+				containerConfig["environment_variables"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables)
+			}
+		}
+
+		if command := container.Command; command != nil {
+			containerConfig["command"] = strings.Join(*command, " ")
+		}
+
 		containerConfigs = append(containerConfigs, containerConfig)
 	}
 
 	return containerConfigs
+}
+
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	for _, envVar := range *input {
+		k := *envVar.Name
+		v := *envVar.Value
+
+		output[k] = v
+	}
+
+	return output
 }
 
 func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port) {
@@ -321,8 +339,32 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
 		}
 
+		if v, ok := data["environment_variables"]; ok {
+			container.EnvironmentVariables = expandContainerEnvironmentVariables(v)
+		}
+
+		if v, _ := data["command"]; v != "" {
+			command := strings.Split(v.(string), " ")
+			container.Command = &command
+		}
+
 		containers = append(containers, container)
 	}
 
 	return &containers, &containerGroupPorts
+}
+
+func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance.EnvironmentVariable {
+	envVars := input.(map[string]interface{})
+	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
+
+	for k, v := range envVars {
+		ev := containerinstance.EnvironmentVariable{
+			Name:  utils.String(k),
+			Value: utils.String(v.(string)),
+		}
+		output = append(output, ev)
+	}
+
+	return &output
 }

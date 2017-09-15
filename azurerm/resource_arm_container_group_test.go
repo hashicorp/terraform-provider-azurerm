@@ -11,10 +11,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
+func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroupBasicLinux(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,18 +25,21 @@ func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists("azurerm_container_group.test"),
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 				),
 			},
 		},
 	})
 }
-func TestAccAzureRMContainerGroup_basicLinuxUpdate(t *testing.T) {
+
+func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroupBasicLinux(ri, testLocation())
-	updatedConfig := testAccAzureRMContainerGroupBasicLinuxUpdated(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
+	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -60,10 +64,11 @@ func TestAccAzureRMContainerGroup_basicLinuxUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMContainerGroup_basicWindows(t *testing.T) {
+func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroupBasicWindows(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxComplete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -73,14 +78,70 @@ func TestAccAzureRMContainerGroup_basicWindows(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists("azurerm_container_group.test"),
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.command", "/bin/bash -c ls"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMContainerGroupBasicLinux(ri int, location string) string {
+func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+
+	config := testAccAzureRMContainerGroup_windowsBasic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+
+	config := testAccAzureRMContainerGroup_windowsComplete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.command", "cmd.exe echo hi"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMContainerGroup_linuxBasic(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -99,7 +160,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+	port   = "80"
   }
 
   tags {
@@ -109,7 +170,7 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri)
 }
 
-func testAccAzureRMContainerGroupBasicLinuxUpdated(ri int, location string) string {
+func testAccAzureRMContainerGroup_linuxBasicUpdated(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -128,7 +189,7 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+	port   = "80"
   }
 
   container {
@@ -145,7 +206,41 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri)
 }
 
-func testAccAzureRMContainerGroupBasicWindows(ri int, location string) string {
+func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+	port   = "80"
+	environment_variables {
+		"foo" = "bar"
+		"foo1" = "bar1"
+	}
+	command = "/bin/bash -c ls"
+  }
+
+  tags {
+    environment = "testing"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_windowsBasic(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -165,6 +260,40 @@ resource "azurerm_container_group" "test" {
     cpu    = "2.0"
     memory = "3.5"
     port   = "80"
+  }
+
+  tags {
+    environment = "testing"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_windowsComplete(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "windows"
+
+  container {
+    name   = "winapp"
+    image  = "winappimage:latest"
+    cpu    = "2.0"
+    memory = "3.5"
+    port   = "80"
+	environment_variables {
+		"foo" = "bar"
+		"foo1" = "bar1"
+	}
+	command = "cmd.exe echo hi"
   }
 
   tags {
