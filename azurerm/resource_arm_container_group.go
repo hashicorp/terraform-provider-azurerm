@@ -108,25 +108,10 @@ func resourceArmContainerGroup() *schema.Resource {
 							}, true),
 						},
 
-						"env_var": {
-							Type:     schema.TypeList,
+						"env_vars": {
+							Type:     schema.TypeMap,
 							Optional: true,
 							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
-									},
-
-									"value": {
-										Type:     schema.TypeString,
-										Required: true,
-										ForceNew: true,
-									},
-								},
-							},
 						},
 					},
 				},
@@ -265,10 +250,27 @@ func flattenContainerGroupContainers(containers *[]containerinstance.Container) 
 		}
 		// protocol isn't returned in container config
 
+		if len(*container.EnvironmentVariables) > 0 {
+			containerConfig["env_vars"] = flattenContainerEnvironmentVariables(container.EnvironmentVariables)
+		}
+
 		containerConfigs = append(containerConfigs, containerConfig)
 	}
 
 	return containerConfigs
+}
+
+func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	for _, envVar := range *input {
+		k := *envVar.Name
+		v := *envVar.Value
+
+		output[k] = v
+	}
+
+	return output
 }
 
 func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port) {
@@ -321,8 +323,27 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			containerGroupPorts = append(containerGroupPorts, containerGroupPort)
 		}
 
+		if v, ok := data["env_vars"]; ok {
+			container.EnvironmentVariables = expandContainerEnvironmentVariables(v)
+		}
+
 		containers = append(containers, container)
 	}
 
 	return &containers, &containerGroupPorts
+}
+
+func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance.EnvironmentVariable {
+	envVars := input.(map[string]interface{})
+	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
+
+	for k, v := range envVars {
+		ev := containerinstance.EnvironmentVariable{
+			Name:  utils.String(k),
+			Value: utils.String(v.(string)),
+		}
+		output = append(output, ev)
+	}
+
+	return &output
 }

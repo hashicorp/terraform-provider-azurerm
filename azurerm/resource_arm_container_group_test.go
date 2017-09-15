@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
 	config := testAccAzureRMContainerGroupBasicLinux(ri, testLocation())
@@ -25,6 +26,19 @@ func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists("azurerm_container_group.test"),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.cpu", "0.5"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.image", "microsoft/aci-helloworld:latest"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.memory", "0.5"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.name", "hw"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Public"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "testing"),
 				),
 			},
 		},
@@ -99,7 +113,11 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+	port   = "80"
+	env_vars {
+		"foo" = "bar"
+		"foo1" = "bar1"
+	}
   }
 
   tags {
@@ -128,7 +146,11 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+	port   = "80"
+	env_vars {
+		"foo" = "bar"
+		"foo1" = "bar1"
+	}
   }
 
   container {
