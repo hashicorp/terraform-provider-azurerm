@@ -3,7 +3,7 @@
 FEATURES:
 
 * **Support for authenticating using the Azure CLI** [GH-316]
-* **New Resource:** `azurerm_container_group` [GH-333] [GH-311]
+* **New Resource:** `azurerm_container_group` [GH-333] [GH-311] [GH-338]
 
 IMPROVEMENTS:
 
