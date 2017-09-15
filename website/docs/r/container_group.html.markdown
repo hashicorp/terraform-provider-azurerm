@@ -32,8 +32,8 @@ resource "azurerm_container_group" "aci-helloworld" {
         cpu ="0.5"
         memory =  "1.5"
         port = "80"
-        env_vars {
-            "env"="staging"
+        environment_variables {
+            "NODE_ENV"="Staging"
         }
         command = "/bin/bash -c '/path to/myscript.sh'"
     }
@@ -80,7 +80,7 @@ The `container` block supports:
 
 * `port` - (Optional) A public port for the container. Changing this forces a new resource to be created.
 
-* `env_vars` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+* `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
 * `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
 
