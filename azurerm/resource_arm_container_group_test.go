@@ -28,9 +28,9 @@ func TestAccAzureRMContainerGroup_basicLinux(t *testing.T) {
 					testCheckAzureRMContainerGroupExists("azurerm_container_group.test"),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.command", "/bin/bash -c ls"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.%", "2"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.foo", "bar"),
-					resource.TestCheckResourceAttr(resourceName, "container.0.env_vars.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 				),
 			},
@@ -110,7 +110,7 @@ resource "azurerm_container_group" "test" {
     cpu    = "0.5"
     memory = "0.5"
 	port   = "80"
-	env_vars {
+	environment_variables {
 		"foo" = "bar"
 		"foo1" = "bar1"
 	}
@@ -144,7 +144,7 @@ resource "azurerm_container_group" "test" {
     cpu    = "0.5"
     memory = "0.5"
 	port   = "80"
-	env_vars {
+	environment_variables {
 		"foo" = "bar"
 		"foo1" = "bar1"
 	}
