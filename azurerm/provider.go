@@ -274,7 +274,6 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 				continue
 			}
 
-			// note: we don't make use of the CLI Refresh Token at this time, but we potentially could
 			c.ClientID = accessToken.ClientID
 			c.AccessToken = &token
 			c.IsCloudShell = accessToken.RefreshToken == ""
