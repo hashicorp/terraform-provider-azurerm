@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"log"
 	"time"
 )
@@ -163,7 +164,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 
 	resp, err := vnetGatewayConnectionsClient.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -246,7 +247,7 @@ func virtualNetworkGatewayConnectionStateRefreshFunc(client *ArmClient, resource
 	return func() (interface{}, string, error) {
 		resp, err := client.vnetGatewayConnectionsClient.Get(resourceGroupName, virtualNetworkGatewayConnection)
 		if err != nil {
-			if withNotFound && responseWasNotFound(resp.Response) {
+			if withNotFound && utils.ResponseWasNotFound(resp.Response) {
 				return resp, "NotFound", nil
 			}
 			return nil, "", fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %s: %+v", virtualNetworkGatewayConnection, err)

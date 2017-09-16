@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmCdnEndpoint() *schema.Resource {
@@ -31,11 +32,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"profile_name": {
 				Type:     schema.TypeString,
@@ -80,13 +77,13 @@ func resourceArmCdnEndpoint() *schema.Resource {
 						"http_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  80,
 						},
 
 						"https_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  443,
 						},
 					},
 				},
@@ -225,7 +222,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	log.Printf("[INFO] Trying to find the AzureRM CDN Endpoint %s (Profile: %s, RG: %s)", name, profileName, resGroup)
 	resp, err := cdnEndpointsClient.Get(resGroup, profileName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

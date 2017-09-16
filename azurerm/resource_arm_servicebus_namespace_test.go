@@ -6,10 +6,63 @@ import (
 	"regexp"
 	"testing"
 
+	"log"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_servicebus_namespace", &resource.Sweeper{
+		Name: "azurerm_servicebus_namespace",
+		F:    testSweepServiceBusNamespace,
+	})
+}
+
+func testSweepServiceBusNamespace(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).serviceBusNamespacesClient
+
+	log.Printf("Retrieving the Servicebus Namespaces..")
+	results, err := client.ListBySubscription()
+	if err != nil {
+		return fmt.Errorf("Error Listing on Servicebus Namespaces: %+v", err)
+	}
+
+	for _, profile := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+			continue
+		}
+
+		resourceId, err := parseAzureResourceID(*profile.ID)
+		if err != nil {
+			return err
+		}
+
+		resourceGroup := resourceId.ResourceGroup
+		name := resourceId.Path["namespaces"]
+
+		log.Printf("Deleting Servicebus Namespace '%s' in Resource Group '%s'", name, resourceGroup)
+		deleteResponse, error := client.Delete(resourceGroup, name, make(chan struct{}))
+		err = <-error
+		resp := <-deleteResponse
+		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				return nil
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMServiceBusNamespaceCapacity_validation(t *testing.T) {
 	cases := []struct {
@@ -46,7 +99,7 @@ func TestAccAzureRMServiceBusNamespaceCapacity_validation(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusNamespace_basic(ri)
+	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -66,7 +119,7 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 func TestAccAzureRMServiceBusNamespace_readDefaultKeys(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusNamespace_basic(ri)
+	config := testAccAzureRMServiceBusNamespace_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -95,7 +148,7 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri)
+	config := testAccAzureRMServiceBusNamespaceNonStandardCasing(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -171,11 +224,11 @@ func testCheckAzureRMServiceBusNamespaceExists(name string) resource.TestCheckFu
 	}
 }
 
-func testAccAzureRMServiceBusNamespace_basic(rInt int) string {
+func testAccAzureRMServiceBusNamespace_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
@@ -183,14 +236,14 @@ resource "azurerm_servicebus_namespace" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "basic"
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMServiceBusNamespaceNonStandardCasing(ri int) string {
+func testAccAzureRMServiceBusNamespaceNonStandardCasing(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 resource "azurerm_servicebus_namespace" "test" {
     name = "acctestservicebusnamespace-%d"
@@ -198,5 +251,5 @@ resource "azurerm_servicebus_namespace" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "Basic"
 }
-`, ri, ri)
+`, rInt, location, rInt)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSqlElasticPool() *schema.Resource {
@@ -16,7 +17,6 @@ func resourceArmSqlElasticPool() *schema.Resource {
 		Read:   resourceArmSqlElasticPoolRead,
 		Update: resourceArmSqlElasticPoolCreate,
 		Delete: resourceArmSqlElasticPoolDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -30,11 +30,7 @@ func resourceArmSqlElasticPool() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"server_name": {
 				Type:     schema.TypeString,
@@ -131,7 +127,7 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := elasticPoolsClient.Get(resGroup, serverName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

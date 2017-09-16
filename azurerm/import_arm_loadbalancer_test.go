@@ -9,17 +9,18 @@ import (
 
 func TestAccAzureRMLoadBalancer_importBasic(t *testing.T) {
 	resourceName := "azurerm_lb.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMLoadBalancer_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMLoadBalancer_basic(acctest.RandInt()),
+			{
+				Config: config,
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,

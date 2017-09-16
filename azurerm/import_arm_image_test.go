@@ -10,35 +10,36 @@ import (
 
 func TestAccAzureRMImage_importStandalone(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234s!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%[1]d", ri)
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName)
-	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName)
+	location := testLocation()
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMImageDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				//need to create a vm and then reference it in the image creation
 				Config:  preConfig,
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(fmt.Sprintf("acctestRG-%[1]d", ri), "testsource",
-						userName, password, hostName, sshPort),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
-			resource.TestStep{
+			{
 				ResourceName:      "azurerm_image.test",
 				ImportState:       true,
 				ImportStateVerify: true,

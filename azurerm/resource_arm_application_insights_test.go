@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMApplicationInsights_basicWeb(ri)
+	config := testAccAzureRMApplicationInsights_basicWeb(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMApplicationInsights_basicWeb(t *testing.T) {
 func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMApplicationInsights_basicOther(ri)
+	config := testAccAzureRMApplicationInsights_basicOther(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -93,7 +93,7 @@ func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFu
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on appInsightsClient: %s", err)
+			return fmt.Errorf("Bad: Get on appInsightsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -104,34 +104,34 @@ func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFu
 	}
 }
 
-func testAccAzureRMApplicationInsights_basicWeb(rInt int) string {
+func testAccAzureRMApplicationInsights_basicWeb(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "West Europe"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_insights" "test" {
-  name = "acctestappinsights-%d"
-  location = "West Europe"
+  name                = "acctestappinsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type = "web"
+  application_type    = "web"
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
 
-func testAccAzureRMApplicationInsights_basicOther(rInt int) string {
+func testAccAzureRMApplicationInsights_basicOther(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "West Europe"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_application_insights" "test" {
-  name = "acctestappinsights-%d"
-  location = "West Europe"
+  name                = "acctestappinsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type = "other"
+  application_type    = "other"
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }

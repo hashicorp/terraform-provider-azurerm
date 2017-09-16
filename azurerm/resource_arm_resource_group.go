@@ -3,18 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
-	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmResourceGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmResourceGroupCreate,
+		Create: resourceArmResourceGroupCreateUpdate,
 		Read:   resourceArmResourceGroupRead,
-		Update: resourceArmResourceGroupUpdate,
+		Update: resourceArmResourceGroupCreateUpdate,
 		Exists: resourceArmResourceGroupExists,
 		Delete: resourceArmResourceGroupDelete,
 		Importer: &schema.ResourceImporter{
@@ -22,12 +21,7 @@ func resourceArmResourceGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateArmResourceGroupName,
-			},
+			"name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
 
@@ -36,107 +30,51 @@ func resourceArmResourceGroup() *schema.Resource {
 	}
 }
 
-func validateArmResourceGroupName(v interface{}, k string) (ws []string, es []error) {
-	value := v.(string)
-
-	if len(value) > 80 {
-		es = append(es, fmt.Errorf("%q may not exceed 80 characters in length", k))
-	}
-
-	if strings.HasSuffix(value, ".") {
-		es = append(es, fmt.Errorf("%q may not end with a period", k))
-	}
-
-	if matched := regexp.MustCompile(`[\(\)\.a-zA-Z0-9_-]`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
-	}
-
-	return
-}
-
-func resourceArmResourceGroupUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
-
-	if !d.HasChange("tags") {
-		return nil
-	}
+func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).resourceGroupClient
 
 	name := d.Get("name").(string)
-	newTags := d.Get("tags").(map[string]interface{})
-
-	updateRequest := rivieraClient.NewRequestForURI(d.Id())
-	updateRequest.Command = &azure.UpdateResourceGroup{
-		Name: name,
-		Tags: *expandTags(newTags),
+	location := d.Get("location").(string)
+	tags := d.Get("tags").(map[string]interface{})
+	parameters := resources.Group{
+		Location: utils.String(location),
+		Tags:     expandTags(tags),
 	}
-
-	updateResponse, err := updateRequest.Execute()
+	_, err := client.CreateOrUpdate(name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating resource group: %s", err)
-	}
-	if !updateResponse.IsSuccessful() {
-		return fmt.Errorf("Error updating resource group: %s", updateResponse.Error)
+		return fmt.Errorf("Error creating resource group: %+v", err)
 	}
 
-	return resourceArmResourceGroupRead(d, meta)
-}
-
-func resourceArmResourceGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
-
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = &azure.CreateResourceGroup{
-		Name:     d.Get("name").(string),
-		Location: d.Get("location").(string),
-		Tags:     *expandTags(d.Get("tags").(map[string]interface{})),
-	}
-
-	createResponse, err := createRequest.Execute()
+	resp, err := client.Get(name)
 	if err != nil {
-		return fmt.Errorf("Error creating resource group: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating resource group: %s", createResponse.Error)
+		return fmt.Errorf("Error retrieving resource group: %+v", err)
 	}
 
-	resp := createResponse.Parsed.(*azure.CreateResourceGroupResponse)
 	d.SetId(*resp.ID)
-
-	// TODO(jen20): Decide whether we need this or not and migrate to use @stack72's work if so
-	// log.Printf("[DEBUG] Waiting for Resource Group (%s) to become available", name)
-	// stateConf := &resource.StateChangeConf{
-	// 	Pending: []string{"Accepted"},
-	// 	Target:  []string{"Succeeded"},
-	// 	Refresh: resourceGroupStateRefreshFunc(client, name),
-	// 	Timeout: 10 * time.Minute,
-	// }
-	// if _, err := stateConf.WaitForState(); err != nil {
-	// 	return fmt.Errorf("Error waiting for Resource Group (%s) to become available: %s", name, err)
-	// }
 
 	return resourceArmResourceGroupRead(d, meta)
 }
 
 func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).resourceGroupClient
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &azure.GetResourceGroup{}
-
-	readResponse, err := readRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error reading resource group: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
-		d.SetId("")
-		return fmt.Errorf("Error reading resource group: %s", readResponse.Error)
+		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}
 
-	resp := readResponse.Parsed.(*azure.GetResourceGroupResponse)
+	name := id.ResourceGroup
+
+	resp, err := client.Get(name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error reading resource group: %+v", err)
+	}
 
 	d.Set("name", resp.Name)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
@@ -146,38 +84,47 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).resourceGroupClient
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &azure.GetResourceGroup{}
-
-	readResponse, err := readRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return false, fmt.Errorf("Error reading resource group: %s", err)
-	}
-	if readResponse.IsSuccessful() {
-		return true, nil
+		return false, fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}
 
-	return false, nil
+	name := id.ResourceGroup
+
+	resp, err := client.Get(name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return false, nil
+		}
+
+		return false, fmt.Errorf("Error reading resource group: %+v", err)
+	}
+
+	return true, nil
 }
 
 func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).resourceGroupClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &azure.DeleteResourceGroup{}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting resource group: %s", err)
+		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting resource group: %s", deleteResponse.Error)
+
+	name := id.ResourceGroup
+
+	deleteResp, deleteErr := client.Delete(name, make(chan struct{}))
+	resp := <-deleteResp
+	err = <-deleteErr
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting resource group: %+v", err)
 	}
 
 	return nil
-
 }

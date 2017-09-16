@@ -27,7 +27,7 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName),
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -43,6 +43,7 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := acctest.RandInt()
 	probeName := fmt.Sprintf("probe-%d", ri)
+	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -50,14 +51,14 @@ func TestAccAzureRMLoadBalancerProbe_removal(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName),
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerProbe_removal(ri),
+				Config: testAccAzureRMLoadBalancerProbe_removal(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeNotExists(probeName, &lb),
@@ -79,7 +80,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_multipleProbes(ri, probeName, probe2Name),
+				Config: testAccAzureRMLoadBalancerProbe_multipleProbes(ri, probeName, probe2Name, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -88,7 +89,7 @@ func TestAccAzureRMLoadBalancerProbe_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(ri, probeName, probe2Name),
+				Config: testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(ri, probeName, probe2Name, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -111,7 +112,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_updateProtocolBefore(ri, probeName),
+				Config: testAccAzureRMLoadBalancerProbe_updateProtocolBefore(ri, probeName, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -119,7 +120,7 @@ func TestAccAzureRMLoadBalancerProbe_updateProtocol(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMLoadBalancerProbe_updateProtocolAfter(ri, probeName),
+				Config: testAccAzureRMLoadBalancerProbe_updateProtocolAfter(ri, probeName, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -145,7 +146,7 @@ func TestAccAzureRMLoadBalancerProbe_reapply(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName),
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -154,7 +155,7 @@ func TestAccAzureRMLoadBalancerProbe_reapply(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName),
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -175,7 +176,7 @@ func TestAccAzureRMLoadBalancerProbe_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName),
+				Config: testAccAzureRMLoadBalancerProbe_basic(ri, probeName, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerProbeExists(probeName, &lb),
@@ -238,223 +239,224 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 	}
 }
 
-func testAccAzureRMLoadBalancerProbe_basic(rInt int, probeName string) string {
+func testAccAzureRMLoadBalancerProbe_basic(rInt int, probeName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
-    location = "West US"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "test-ip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    frontend_ip_configuration {
-      name = "one-%d"
-      public_ip_address_id = "${azurerm_public_ip.test.id}"
-    }
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
 }
 
 resource "azurerm_lb_probe" "test" {
-  location = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  port = 22
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  port                = 22
 }
-`, rInt, rInt, rInt, rInt, probeName)
+`, rInt, location, rInt, rInt, rInt, probeName)
 }
 
-func testAccAzureRMLoadBalancerProbe_removal(rInt int) string {
+func testAccAzureRMLoadBalancerProbe_removal(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
-    location = "West US"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "test-ip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    frontend_ip_configuration {
-      name = "one-%d"
-      public_ip_address_id = "${azurerm_public_ip.test.id}"
-    }
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
 }
-`, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
 
-func testAccAzureRMLoadBalancerProbe_multipleProbes(rInt int, probeName, probe2Name string) string {
+func testAccAzureRMLoadBalancerProbe_multipleProbes(rInt int, probeName, probe2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
-    location = "West US"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "test-ip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    frontend_ip_configuration {
-      name = "one-%d"
-      public_ip_address_id = "${azurerm_public_ip.test.id}"
-    }
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
 }
 
 resource "azurerm_lb_probe" "test" {
-  location = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  port = 22
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  port                = 22
 }
 
 resource "azurerm_lb_probe" "test2" {
-  location = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  port = 80
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  port                = 80
 }
-`, rInt, rInt, rInt, rInt, probeName, probe2Name)
+`, rInt, location, rInt, rInt, rInt, probeName, probe2Name)
 }
 
-func testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(rInt int, probeName, probe2Name string) string {
+func testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(rInt int, probeName, probe2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
-    location = "West US"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "test-ip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    frontend_ip_configuration {
-      name = "one-%d"
-      public_ip_address_id = "${azurerm_public_ip.test.id}"
-    }
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
 }
 
 resource "azurerm_lb_probe" "test" {
-  location = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  port = 22
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  port                = 22
 }
 
 resource "azurerm_lb_probe" "test2" {
-  location = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  port = 8080
-}
-`, rInt, rInt, rInt, rInt, probeName, probe2Name)
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  port                = 8080
 }
 
-func testAccAzureRMLoadBalancerProbe_updateProtocolBefore(rInt int, probeName string) string {
+`, rInt, location, rInt, rInt, rInt, probeName, probe2Name)
+}
+
+func testAccAzureRMLoadBalancerProbe_updateProtocolBefore(rInt int, probeName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
-    location = "West US"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "test-ip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    frontend_ip_configuration {
-      name = "one-%d"
-      public_ip_address_id = "${azurerm_public_ip.test.id}"
-    }
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
 }
 
 resource "azurerm_lb_probe" "test" {
-  location = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  protocol = "Http"
-  request_path = "/"
-  port = 80
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  protocol            = "Http"
+  request_path        = "/"
+  port                = 80
 }
-`, rInt, rInt, rInt, rInt, probeName)
+`, rInt, location, rInt, rInt, rInt, probeName)
 }
 
-func testAccAzureRMLoadBalancerProbe_updateProtocolAfter(rInt int, probeName string) string {
+func testAccAzureRMLoadBalancerProbe_updateProtocolAfter(rInt int, probeName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
-    location = "West US"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-ip-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "static"
+  name                         = "test-ip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "static"
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    frontend_ip_configuration {
-      name = "one-%d"
-      public_ip_address_id = "${azurerm_public_ip.test.id}"
-    }
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
 }
 
 resource "azurerm_lb_probe" "test" {
-  location = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id = "${azurerm_lb.test.id}"
-  name = "%s"
-  protocol = "Tcp"
-  port = 80
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "%s"
+  protocol            = "Tcp"
+  port                = 80
 }
-`, rInt, rInt, rInt, rInt, probeName)
+`, rInt, location, rInt, rInt, rInt, probeName)
 }

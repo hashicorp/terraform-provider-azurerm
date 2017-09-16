@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusQueue_basic(ri)
+	config := testAccAzureRMServiceBusQueue_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -36,8 +36,9 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMServiceBusQueue_basic(ri)
-	postConfig := testAccAzureRMServiceBusQueue_update(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusQueue_update(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -67,8 +68,9 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMServiceBusQueue_basic(ri)
-	postConfig := testAccAzureRMServiceBusQueue_enablePartitioningStandard(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusQueue_enablePartitioningStandard(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -97,7 +99,7 @@ func TestAccAzureRMServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusQueue_Premium(ri)
+	config := testAccAzureRMServiceBusQueue_Premium(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -119,8 +121,9 @@ func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T
 func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMServiceBusQueue_basic(ri)
-	postConfig := testAccAzureRMServiceBusQueue_enableDuplicateDetection(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusQueue_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusQueue_enableDuplicateDetection(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -202,11 +205,11 @@ func testCheckAzureRMServiceBusQueueExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMServiceBusQueue_basic(rInt int) string {
+func testAccAzureRMServiceBusQueue_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -222,14 +225,14 @@ resource "azurerm_servicebus_queue" "test" {
     location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMServiceBusQueue_Premium(rInt int) string {
+func testAccAzureRMServiceBusQueue_Premium(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -247,14 +250,14 @@ resource "azurerm_servicebus_queue" "test" {
     enable_partitioning = true
     enable_express = false
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMServiceBusQueue_update(rInt int) string {
+func testAccAzureRMServiceBusQueue_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -273,14 +276,14 @@ resource "azurerm_servicebus_queue" "test" {
     enable_express = true
     max_size_in_megabytes = 2048
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMServiceBusQueue_enablePartitioningStandard(rInt int) string {
+func testAccAzureRMServiceBusQueue_enablePartitioningStandard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -298,14 +301,14 @@ resource "azurerm_servicebus_queue" "test" {
     enable_partitioning = true
     max_size_in_megabytes = 5120
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMServiceBusQueue_enableDuplicateDetection(rInt int) string {
+func testAccAzureRMServiceBusQueue_enableDuplicateDetection(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
@@ -322,5 +325,5 @@ resource "azurerm_servicebus_queue" "test" {
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     requires_duplicate_detection = true
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }

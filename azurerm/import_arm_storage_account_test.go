@@ -12,7 +12,7 @@ func TestAccAzureRMStorageAccount_importBasic(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMStorageAccount_basic(ri, rs)
+	config := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

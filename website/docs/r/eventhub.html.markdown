@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub"
 sidebar_current: "docs-azurerm-resource-eventhub"
 description: |-
-  Creates a new Event Hub as a nested resource within an Event Hub Namespace.
+  Creates a new Event Hubs as a nested resource within an Event Hubs namespace.
 ---
 
 # azurerm\_eventhub
 
-Creates a new Event Hub as a nested resource within a Event Hub Namespace.
+Creates a new Event Hubs as a nested resource within a Event Hubs namespace.
 
 ## Example Usage
 
@@ -22,8 +22,8 @@ resource "azurerm_eventhub_namespace" "test" {
   name                = "acceptanceTestEventHubNamespace"
   location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Basic"
-  capacity            = 2
+  sku                 = "Standard"
+  capacity            = 1
 
   tags {
     environment = "Production"
@@ -36,7 +36,7 @@ resource "azurerm_eventhub" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
-  message_retention   = 2
+  message_retention   = 1
 }
 ```
 

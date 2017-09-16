@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTemplateDeployment() *schema.Resource {
@@ -27,11 +28,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"template_body": {
 				Type:      schema.TypeString,
@@ -102,7 +99,7 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 	_, error := deployClient.CreateOrUpdate(resGroup, name, deployment, make(chan struct{}))
 	err := <-error
 	if err != nil {
-		return fmt.Errorf("Error creating deployment: %s", err)
+		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
 	read, err := deployClient.Get(resGroup, name)
@@ -123,7 +120,7 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		Timeout: 40 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Template Deployment (%s) to become available: %s", name, err)
+		return fmt.Errorf("Error waiting for Template Deployment (%s) to become available: %+v", name, err)
 	}
 
 	return resourceArmTemplateDeploymentRead(d, meta)
@@ -145,11 +142,11 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 
 	resp, err := deployClient.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %s: %+v", name, err)
 	}
 
 	var outputs map[string]string
@@ -228,7 +225,7 @@ func normalizeJson(jsonString interface{}) string {
 	var j interface{}
 	err := json.Unmarshal([]byte(jsonString.(string)), &j)
 	if err != nil {
-		return fmt.Sprintf("Error parsing JSON: %s", err)
+		return fmt.Sprintf("Error parsing JSON: %+v", err)
 	}
 	b, _ := json.Marshal(j)
 	return string(b[:])
@@ -238,7 +235,7 @@ func templateDeploymentStateRefreshFunc(client *ArmClient, resourceGroupName str
 	return func() (interface{}, string, error) {
 		res, err := client.deploymentsClient.Get(resourceGroupName, name)
 		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in templateDeploymentStateRefreshFunc to Azure ARM for Template Deployment '%s' (RG: '%s'): %s", name, resourceGroupName, err)
+			return nil, "", fmt.Errorf("Error issuing read request in templateDeploymentStateRefreshFunc to Azure ARM for Template Deployment '%s' (RG: '%s'): %+v", name, resourceGroupName, err)
 		}
 
 		return res, strings.ToLower(*res.Properties.ProvisioningState), nil

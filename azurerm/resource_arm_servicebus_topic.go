@@ -7,7 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmServiceBusTopic() *schema.Resource {
@@ -35,11 +35,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"status": {
 				Type:     schema.TypeString,
@@ -134,26 +130,26 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		Location: &location,
 		TopicProperties: &servicebus.TopicProperties{
 			Status:                            servicebus.EntityStatus(status),
-			EnableBatchedOperations:           azure.Bool(enableBatchedOps),
-			EnableExpress:                     azure.Bool(enableExpress),
-			FilteringMessagesBeforePublishing: azure.Bool(enableFiltering),
-			EnablePartitioning:                azure.Bool(enablePartitioning),
-			MaxSizeInMegabytes:                azure.Int64(maxSize),
-			RequiresDuplicateDetection:        azure.Bool(requiresDuplicateDetection),
-			SupportOrdering:                   azure.Bool(supportOrdering),
+			EnableBatchedOperations:           utils.Bool(enableBatchedOps),
+			EnableExpress:                     utils.Bool(enableExpress),
+			FilteringMessagesBeforePublishing: utils.Bool(enableFiltering),
+			EnablePartitioning:                utils.Bool(enablePartitioning),
+			MaxSizeInMegabytes:                utils.Int64(maxSize),
+			RequiresDuplicateDetection:        utils.Bool(requiresDuplicateDetection),
+			SupportOrdering:                   utils.Bool(supportOrdering),
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.TopicProperties.AutoDeleteOnIdle = azure.String(autoDeleteOnIdle)
+		parameters.TopicProperties.AutoDeleteOnIdle = utils.String(autoDeleteOnIdle)
 	}
 
 	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.TopicProperties.DefaultMessageTimeToLive = azure.String(defaultTTL)
+		parameters.TopicProperties.DefaultMessageTimeToLive = utils.String(defaultTTL)
 	}
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = azure.String(duplicateWindow)
+		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
 	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
@@ -187,7 +183,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(resGroup, namespaceName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

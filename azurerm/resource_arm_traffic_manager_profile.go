@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerProfile() *schema.Resource {
@@ -30,16 +31,24 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			},
 
 			"profile_status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Enabled", "Disabled"}, true),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Enabled",
+					"Disabled",
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"traffic_routing_method": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Performance", "Weighted", "Priority"}, false),
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Performance",
+					"Weighted",
+					"Priority",
+				}, false),
 			},
 
 			"dns_config": {
@@ -74,9 +83,12 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"http", "https"}, false),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"http",
+								"https",
+							}, false),
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -92,12 +104,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
 			},
 
-			"resource_group_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
-			},
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"tags": tagsSchema(),
 		},
@@ -152,11 +159,11 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %+v", name, err)
 	}
 
 	profile := *resp.ProfileProperties

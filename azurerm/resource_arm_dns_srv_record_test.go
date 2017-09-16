@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMDnsSrvRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsSrvRecord_basic(ri)
+	config := testAccAzureRMDnsSrvRecord_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,8 +34,9 @@ func TestAccAzureRMDnsSrvRecord_basic(t *testing.T) {
 func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsSrvRecord_basic(ri)
-	postConfig := testAccAzureRMDnsSrvRecord_updateRecords(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsSrvRecord_basic(ri, location)
+	postConfig := testAccAzureRMDnsSrvRecord_updateRecords(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,8 +64,9 @@ func TestAccAzureRMDnsSrvRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsSrvRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_srv_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsSrvRecord_withTags(ri)
-	postConfig := testAccAzureRMDnsSrvRecord_withTagsUpdate(ri)
+	location := testLocation()
+	preConfig := testAccAzureRMDnsSrvRecord_withTags(ri, location)
+	postConfig := testAccAzureRMDnsSrvRecord_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -107,7 +109,7 @@ func testCheckAzureRMDnsSrvRecordExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
 		resp, err := conn.Get(resourceGroup, zoneName, srvName, dns.SRV)
 		if err != nil {
-			return fmt.Errorf("Bad: Get SRV RecordSet: %v", err)
+			return fmt.Errorf("Bad: Get SRV RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -146,156 +148,158 @@ func testCheckAzureRMDnsSrvRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsSrvRecord_basic(rInt int) string {
+func testAccAzureRMDnsSrvRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
-}
-resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_dns_srv_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-
-    record {
-	priority = 1
-	weight = 5
-	port = 8080
-	target = "target1.contoso.com"
-    }
-
-    record {
-	priority = 2
-	weight = 25
-	port = 8080
-	target = "target2.contoso.com"
-    }
-}
-`, rInt, rInt, rInt)
-}
-
-func testAccAzureRMDnsSrvRecord_updateRecords(rInt int) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
-}
-resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_dns_srv_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
-
-    record {
-	priority = 1
-	weight = 5
-	port = 8080
-	target = "target1.contoso.com"
-    }
-
-    record {
-	priority = 2
-	weight = 25
-	port = 8080
-	target = "target2.contoso.com"
-    }
-
-    record {
-	priority = 3
-	weight = 100
-	port = 8080
-	target = "target3.contoso.com"
-    }
-}
-`, rInt, rInt, rInt)
-}
-
-func testAccAzureRMDnsSrvRecord_withTags(rInt int) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_srv_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
 
-    record {
-	priority = 1
-	weight = 5
-	port = 8080
-	target = "target1.contoso.com"
-    }
+  record {
+    priority = 1
+    weight   = 5
+    port     = 8080
+    target   = "target1.contoso.com"
+  }
 
-    record {
-	priority = 2
-	weight = 25
-	port = 8080
-	target = "target2.contoso.com"
-    }
-
-    tags {
-	environment = "Production"
-	cost_center = "MSFT"
-    }
+  record {
+    priority = 2
+    weight   = 25
+    port     = 8080
+    target   = "target2.contoso.com"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsSrvRecord_withTagsUpdate(rInt int) string {
+func testAccAzureRMDnsSrvRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "West US"
+  name     = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
-    name = "acctestzone%d.com"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dns_srv_record" "test" {
-    name = "myarecord%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    zone_name = "${azurerm_dns_zone.test.name}"
-    ttl = 300
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
 
-    record {
-	priority = 1
-	weight = 5
-	port = 8080
-	target = "target1.contoso.com"
-    }
+  record {
+    priority = 1
+    weight   = 5
+    port     = 8080
+    target   = "target1.contoso.com"
+  }
 
-    record {
-	priority = 2
-	weight = 25
-	port = 8080
-	target = "target2.contoso.com"
-    }
+  record {
+    priority = 2
+    weight   = 25
+    port     = 8080
+    target   = "target2.contoso.com"
+  }
 
-    tags {
-	environment = "staging"
-    }
+  record {
+    priority = 3
+    weight   = 100
+    port     = 8080
+    target   = "target3.contoso.com"
+  }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsSrvRecord_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG_%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_dns_srv_record" "test" {
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+
+  record {
+    priority = 1
+    weight   = 5
+    port     = 8080
+    target   = "target1.contoso.com"
+  }
+
+  record {
+    priority = 2
+    weight   = 25
+    port     = 8080
+    target   = "target2.contoso.com"
+  }
+
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDnsSrvRecord_withTagsUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG_%d"
+  location = "%s"
+}
+
+resource "azurerm_dns_zone" "test" {
+  name                = "acctestzone%d.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_dns_srv_record" "test" {
+  name                = "myarecord%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.test.name}"
+  ttl                 = 300
+
+  record {
+    priority = 1
+    weight   = 5
+    port     = 8080
+    target   = "target1.contoso.com"
+  }
+
+  record {
+    priority = 2
+    weight   = 25
+    port     = 8080
+    target   = "target2.contoso.com"
+  }
+
+  tags {
+    environment = "staging"
+  }
+}
+`, rInt, location, rInt, rInt)
 }

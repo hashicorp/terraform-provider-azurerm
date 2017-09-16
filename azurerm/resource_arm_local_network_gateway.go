@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLocalNetworkGateway() *schema.Resource {
@@ -28,11 +28,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"gateway_address": {
 				Type:     schema.TypeString,
@@ -105,7 +101,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := lnetClient.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -159,23 +155,4 @@ func resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId string) (st
 	resGroup := id.ResourceGroup
 
 	return resGroup, name, nil
-}
-
-func retrieveLocalNetworkGatewayById(localNetworkGatewayId string, meta interface{}) (*network.LocalNetworkGateway, bool, error) {
-	lnetClient := meta.(*ArmClient).localNetConnClient
-
-	resGroup, name, err := resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId)
-	if err != nil {
-		return nil, false, errwrap.Wrapf("Error Getting LocalNetworkGateway Name and Group: {{err}}", err)
-	}
-
-	resp, err := lnetClient.Get(resGroup, name)
-	if err != nil {
-		if responseWasNotFound(resp.Response) {
-			return nil, false, nil
-		}
-		return nil, false, fmt.Errorf("Error making Read request on Azure LocalNetworkGateway %s: %+v", name, err)
-	}
-
-	return &resp, true, nil
 }

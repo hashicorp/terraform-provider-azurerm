@@ -14,7 +14,7 @@ import (
 func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
 	resourceName := "azurerm_dns_txt_record.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMDnsTxtRecord_basic(ri)
+	config := testAccAzureRMDnsTxtRecord_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,8 +34,8 @@ func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
 func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
 	resourceName := "azurerm_dns_txt_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsTxtRecord_basic(ri)
-	postConfig := testAccAzureRMDnsTxtRecord_updateRecords(ri)
+	preConfig := testAccAzureRMDnsTxtRecord_basic(ri, testLocation())
+	postConfig := testAccAzureRMDnsTxtRecord_updateRecords(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,8 +63,8 @@ func TestAccAzureRMDnsTxtRecord_updateRecords(t *testing.T) {
 func TestAccAzureRMDnsTxtRecord_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_txt_record.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMDnsTxtRecord_withTags(ri)
-	postConfig := testAccAzureRMDnsTxtRecord_withTagsUpdate(ri)
+	preConfig := testAccAzureRMDnsTxtRecord_withTags(ri, testLocation())
+	postConfig := testAccAzureRMDnsTxtRecord_withTagsUpdate(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -107,7 +107,7 @@ func testCheckAzureRMDnsTxtRecordExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
 		resp, err := conn.Get(resourceGroup, zoneName, txtName, dns.TXT)
 		if err != nil {
-			return fmt.Errorf("Bad: Get TXT RecordSet: %v", err)
+			return fmt.Errorf("Bad: Get TXT RecordSet: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -146,11 +146,11 @@ func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDnsTxtRecord_basic(rInt int) string {
+func testAccAzureRMDnsTxtRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
@@ -172,14 +172,14 @@ resource "azurerm_dns_txt_record" "test" {
     	value = "Another test txt string"
     }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsTxtRecord_updateRecords(rInt int) string {
+func testAccAzureRMDnsTxtRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
@@ -205,14 +205,14 @@ resource "azurerm_dns_txt_record" "test" {
     	value = "A wild 3rd record appears"
     }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsTxtRecord_withTags(rInt int) string {
+func testAccAzureRMDnsTxtRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
@@ -239,14 +239,14 @@ resource "azurerm_dns_txt_record" "test" {
 	cost_center = "MSFT"
     }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMDnsTxtRecord_withTagsUpdate(rInt int) string {
+func testAccAzureRMDnsTxtRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_dns_zone" "test" {
@@ -271,5 +271,5 @@ resource "azurerm_dns_txt_record" "test" {
 	environment = "staging"
     }
 }
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }

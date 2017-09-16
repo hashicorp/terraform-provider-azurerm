@@ -11,9 +11,8 @@ import (
 )
 
 func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetwork_basic, ri, ri)
+	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +32,7 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualNetwork_basic, ri, ri)
+	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -55,15 +54,15 @@ func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualNetwork_withTags, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualNetwork_withTagsUpdated, ri, ri)
+	preConfig := testAccAzureRMVirtualNetwork_withTags(ri, testLocation())
+	postConfig := testAccAzureRMVirtualNetwork_withTagsUpdated(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists("azurerm_virtual_network.test"),
@@ -75,8 +74,7 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 						"azurerm_virtual_network.test", "tags.cost_center", "MSFT"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists("azurerm_virtual_network.test"),
@@ -172,16 +170,17 @@ func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMVirtualNetwork_basic = `
+func testAccAzureRMVirtualNetwork_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctestvirtnet%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     subnet {
@@ -189,42 +188,20 @@ resource "azurerm_virtual_network" "test" {
         address_prefix = "10.0.1.0/24"
     }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMVirtualNetwork_withTags = `
+func testAccAzureRMVirtualNetwork_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctestvirtnet%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-
-    subnet {
-        name = "subnet1"
-        address_prefix = "10.0.1.0/24"
-    }
-
-    tags {
-		environment = "Production"
-		cost_center = "MSFT"
-    }
-}
-`
-
-var testAccAzureRMVirtualNetwork_withTagsUpdated = `
-resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
-}
-
-resource "azurerm_virtual_network" "test" {
-    name = "acctestvirtnet%d"
-    address_space = ["10.0.0.0/16"]
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     subnet {
@@ -233,7 +210,34 @@ resource "azurerm_virtual_network" "test" {
     }
 
     tags {
-		environment = "staging"
+	environment = "Production"
+	cost_center = "MSFT"
     }
 }
-`
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMVirtualNetwork_withTagsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctestvirtnet%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    subnet {
+        name = "subnet1"
+        address_prefix = "10.0.1.0/24"
+    }
+
+    tags {
+	environment = "staging"
+    }
+}
+`, rInt, location, rInt)
+}

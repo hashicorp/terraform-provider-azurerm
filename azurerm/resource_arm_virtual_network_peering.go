@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // peerMutex is used to prevet multiple Peering resources being creaed, updated
@@ -30,11 +31,7 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"virtual_network_name": {
 				Type:     schema.TypeString,
@@ -124,7 +121,7 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 
 	resp, err := client.Get(resGroup, vnetName, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -19,11 +19,10 @@ func TestAccAzureRMLoadBalancerRule_importBasic(t *testing.T) {
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName),
+			{
+				Config: testAccAzureRMLoadBalancerRule_basic(ri, lbRuleName, testLocation()),
 			},
-
-			resource.TestStep{
+			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
