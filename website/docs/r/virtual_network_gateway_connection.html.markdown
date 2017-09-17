@@ -223,10 +223,9 @@ The following arguments are supported:
     in which the connection will be created. Changing the gateway forces a new
     resource to be created.
 
-* `authorization_key` - (Optional) The authorization key is required when
-    creating an ExpressRoute connection to an Express Route Circuit which is
-    contained in a different Azure subscription. This key is created by the owner
-    of the Express Route Circuit to connect to.
+* `authorization_key` - (Optional) The authorization key associated with the
+    Express Route Circuit. This field is required only if the type is an
+    ExpressRoute connection.
 
 * `express_route_circuit_id` - (Optional) The ID of the Express Route Circuit
     when creating an ExpressRoute connection (i.e. when `type` is `ExpressRoute`).
