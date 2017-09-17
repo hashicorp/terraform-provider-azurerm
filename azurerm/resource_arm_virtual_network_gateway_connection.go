@@ -202,10 +202,6 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 	d.Set("routing_weight", conn.RoutingWeight)
 	d.Set("shared_key", conn.SharedKey)
 
-	d.Set("connection_status", string(conn.ConnectionStatus))
-	d.Set("egress_bytes_transferred", conn.EgressBytesTransferred)
-	d.Set("ingress_bytes_transferred", conn.EgressBytesTransferred)
-
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	flattenAndSetTags(d, resp.Tags)
