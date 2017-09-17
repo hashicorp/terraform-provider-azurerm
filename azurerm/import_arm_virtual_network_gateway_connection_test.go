@@ -10,7 +10,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_importSiteToSite(t *testing.T
 	resourceName := "azurerm_virtual_network_gateway_connection.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri)
+	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

@@ -2,17 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualNetworkGateway_basic(ri)
+	config := testAccAzureRMVirtualNetworkGateway_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,7 +31,7 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri)
+	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -62,7 +62,7 @@ func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheck
 			return fmt.Errorf("Bad: Get on vnetGatewayClient: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Bad: Virtual Network Gateway %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
@@ -86,8 +86,8 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 		if err != nil {
 			return nil
 		}
-		// TODO check if this is correct
-		if resp.StatusCode != http.StatusNotFound {
+
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Virtual Network Gateway still exists:\n%#v", resp.VirtualNetworkGatewayPropertiesFormat)
 		}
 	}
@@ -95,16 +95,16 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMVirtualNetworkGateway_basic(rInt int) string {
+func testAccAzureRMVirtualNetworkGateway_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "test-%[1]d"
-    location = "West US"
+    name = "acctestRG-%[1]d"
+    location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
   name = "test-%[1]d"
-  location = "West US"
+  location = "%[2]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -118,14 +118,14 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
     name = "test-%[1]d"
-    location = "West US"
+    location = "%[2]s"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
   name = "test-%[1]d"
-  location = "West US"
+  location = "%[2]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -138,19 +138,19 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id = "${azurerm_subnet.test.id}"
   }
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMVirtualNetworkGateway_vpnGw1(rInt int) string {
+func testAccAzureRMVirtualNetworkGateway_vpnGw1(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "test-%[1]d"
-    location = "West US"
+    name = "acctestRG-%[1]d"
+    location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
   name = "test-%[1]d"
-  location = "West US"
+  location = "%[2]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -164,14 +164,14 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
     name = "test-%[1]d"
-    location = "West US"
+    location = "%[2]s"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
   name = "test-%[1]d"
-  location = "West US"
+  location = "%[2]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -184,5 +184,5 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id = "${azurerm_subnet.test.id}"
   }
 }
-`, rInt)
+`, rInt, location)
 }

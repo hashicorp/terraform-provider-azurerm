@@ -10,7 +10,7 @@ func TestAccAzureRMVirtualNetworkGateway_importBasic(t *testing.T) {
 	resourceName := "azurerm_virtual_network_gateway.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualNetworkGateway_basic(ri)
+	config := testAccAzureRMVirtualNetworkGateway_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

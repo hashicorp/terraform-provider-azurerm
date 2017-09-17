@@ -5,13 +5,13 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"net/http"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"testing"
 )
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri)
+	config := testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,7 +30,8 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri)
+	ri2 := acctest.RandInt()
+	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -40,8 +41,8 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.us_to_europe"),
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.europe_to_us"),
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.test_1"),
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.test_2"),
 				),
 			},
 		},
@@ -62,7 +63,7 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionExists(name string) resource
 			return fmt.Errorf("Bad: Get on vnetGatewayConnectionsClient: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Bad: Virtual Network Gateway Connection %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
@@ -87,7 +88,7 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionDestroy(s *terraform.State) 
 			return nil
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Virtual Network Gateway Connection still exists:\n%#v", resp.VirtualNetworkGatewayConnectionPropertiesFormat)
 		}
 	}
@@ -95,16 +96,16 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionDestroy(s *terraform.State) 
 	return nil
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(rInt int) string {
+func testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "test-%[1]d"
-    location = "West US"
+    name = "acctestRG-%[1]d"
+    location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
   name = "test-%[1]d"
-  location = "West US"
+  location = "%[2]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -118,14 +119,14 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
     name = "test-%[1]d"
-    location = "West US"
+    location = "%[2]s"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
   name = "test-%[1]d"
-  location = "West US"
+  location = "%[2]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -142,7 +143,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 resource "azurerm_local_network_gateway" "test" {
     name = "test-%[1]d"
-    location = "West US"
+    location = "%[2]s"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     gateway_address = "168.62.225.23"
@@ -151,7 +152,7 @@ resource "azurerm_local_network_gateway" "test" {
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
     name = "test-%[1]d"
-    location = "West US"
+    location = "%[2]s"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     type = "IPsec"
@@ -160,41 +161,41 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
     shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
-`, rInt)
+`, rInt, location)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(rInt int) string {
+func testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(rInt int, rInt2 int, location string, altLocation string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "us" {
-    name = "us-%[1]d"
-    location = "East US"
+resource "azurerm_resource_group" "test_1" {
+    name = "acctestRG-%[1]d"
+    location = "%[3]s"
 }
 
-resource "azurerm_virtual_network" "us" {
-  name = "us-%[1]d"
-  location = "East US"
-  resource_group_name = "${azurerm_resource_group.us.name}"
+resource "azurerm_virtual_network" "test_1" {
+  name = "acctest-%[1]d"
+  location = "%[3]s"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
   address_space = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "us_gateway" {
+resource "azurerm_subnet" "test_1" {
   name = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.us.name}"
-  virtual_network_name = "${azurerm_virtual_network.us.name}"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
+  virtual_network_name = "${azurerm_virtual_network.test_1.name}"
   address_prefix = "10.0.1.0/24"
 }
 
-resource "azurerm_public_ip" "us" {
-  name = "us-%[1]d"
-  location = "East US"
-  resource_group_name = "${azurerm_resource_group.us.name}"
+resource "azurerm_public_ip" "test_1" {
+  name = "acctest-%[1]d"
+  location = "%[3]s"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
-resource "azurerm_virtual_network_gateway" "us" {
-  name = "us-gateway-%[1]d"
-  location = "East US"
-  resource_group_name = "${azurerm_resource_group.us.name}"
+resource "azurerm_virtual_network_gateway" "test_1" {
+  name = "acctest-%[1]d"
+  location = "%[3]s"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
 
   type = "Vpn"
   vpn_type = "RouteBased"
@@ -202,54 +203,54 @@ resource "azurerm_virtual_network_gateway" "us" {
 
   ip_configuration {
     name = "vnetGatewayConfig"
-    public_ip_address_id = "${azurerm_public_ip.us.id}"
+    public_ip_address_id = "${azurerm_public_ip.test_1.id}"
     private_ip_address_allocation = "Dynamic"
-    subnet_id = "${azurerm_subnet.us_gateway.id}"
+    subnet_id = "${azurerm_subnet.test_1.id}"
   }
 }
 
-resource "azurerm_virtual_network_gateway_connection" "us_to_europe" {
-  name = "us-to-europe-%[1]d"
-  location = "East US"
-  resource_group_name = "${azurerm_resource_group.us.name}"
+resource "azurerm_virtual_network_gateway_connection" "test_1" {
+  name = "acctest-%[1]d"
+  location = "%[3]s"
+  resource_group_name = "${azurerm_resource_group.test_1.name}"
 
   type = "Vnet2Vnet"
-  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.us.id}"
-  peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.europe.id}"
+  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_1.id}"
+  peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_2.id}"
 
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 
-resource "azurerm_resource_group" "europe" {
-    name = "europe-%[1]d"
-    location = "West Europe"
+resource "azurerm_resource_group" "test_2" {
+    name = "acctestRG-%[2]d"
+    location = "%[4]s"
 }
 
-resource "azurerm_virtual_network" "europe" {
-  name = "europe-%[1]d"
-  location = "West Europe"
-  resource_group_name = "${azurerm_resource_group.europe.name}"
+resource "azurerm_virtual_network" "test_2" {
+  name = "acctest-%[2]d"
+  location = "%[4]s"
+  resource_group_name = "${azurerm_resource_group.test_2.name}"
   address_space = ["10.1.0.0/16"]
 }
 
-resource "azurerm_subnet" "europe_gateway" {
+resource "azurerm_subnet" "test_2" {
   name = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.europe.name}"
-  virtual_network_name = "${azurerm_virtual_network.europe.name}"
+  resource_group_name = "${azurerm_resource_group.test_2.name}"
+  virtual_network_name = "${azurerm_virtual_network.test_2.name}"
   address_prefix = "10.1.1.0/24"
 }
 
-resource "azurerm_public_ip" "europe" {
-  name = "europe-%[1]d"
-  location = "West Europe"
-  resource_group_name = "${azurerm_resource_group.europe.name}"
+resource "azurerm_public_ip" "test_2" {
+  name = "acctest-%[2]d"
+  location = "%[4]s"
+  resource_group_name = "${azurerm_resource_group.test_2.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
-resource "azurerm_virtual_network_gateway" "europe" {
-  name = "europe-gateway-%[1]d"
-  location = "West Europe"
-  resource_group_name = "${azurerm_resource_group.europe.name}"
+resource "azurerm_virtual_network_gateway" "test_2" {
+  name = "acctest-%[2]d"
+  location = "%[4]s"
+  resource_group_name = "${azurerm_resource_group.test_2.name}"
 
   type = "Vpn"
   vpn_type = "RouteBased"
@@ -257,22 +258,22 @@ resource "azurerm_virtual_network_gateway" "europe" {
 
   ip_configuration {
     name = "vnetGatewayConfig"
-    public_ip_address_id = "${azurerm_public_ip.europe.id}"
+    public_ip_address_id = "${azurerm_public_ip.test_2.id}"
     private_ip_address_allocation = "Dynamic"
-    subnet_id = "${azurerm_subnet.europe_gateway.id}"
+    subnet_id = "${azurerm_subnet.test_2.id}"
   }
 }
 
-resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
-  name = "europe-to-us-%[1]d"
-  location = "West Europe"
-  resource_group_name = "${azurerm_resource_group.europe.name}"
+resource "azurerm_virtual_network_gateway_connection" "test_2" {
+  name = "acctest-%[2]d"
+  location = "%[4]s"
+  resource_group_name = "${azurerm_resource_group.test_2.name}"
 
   type = "Vnet2Vnet"
-  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.europe.id}"
-  peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.us.id}"
+  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_2.id}"
+  peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_1.id}"
 
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
-`, rInt)
+`, rInt, rInt2, location, altLocation)
 }
