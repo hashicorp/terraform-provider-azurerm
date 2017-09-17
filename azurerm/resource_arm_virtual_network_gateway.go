@@ -349,19 +349,10 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error waiting for AzureRM Virtual Network Gateway %s to be removed: %+v", name, err)
 	}
 
-	// Gateways are not fully cleaned up when the API indicates the delete operation
-	// has finished, this workaround was suggested by Azure support to avoid conflicts
-	// when modifying/deleting the related subnet or network. Although the API indicated
-	// that the Virtual Network Gateway does not exist anymore, there is still a link
-	// to the Gateway Subnet it has been associated with. This causes an error when
-	// trying to delete the Gateway Subnet immediately after the Virtual Network Gateway
-	// has been deleted.
-
 	d.SetId("")
 	return nil
 }
 
-// TODO check if this is necessary?
 func virtualNetworkGatewayStateRefreshFunc(client *ArmClient, resourceGroupName string, virtualNetworkGateway string, withNotFound bool) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.vnetGatewayClient.Get(resourceGroupName, virtualNetworkGateway)
