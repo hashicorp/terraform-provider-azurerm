@@ -464,7 +464,7 @@ func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "Jetty", "9.3")
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -476,7 +476,7 @@ func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "Jetty"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
 				),
 			},
@@ -487,7 +487,7 @@ func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "Jetty", "9.3")
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -499,7 +499,7 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "Jetty"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
 				),
 			},
