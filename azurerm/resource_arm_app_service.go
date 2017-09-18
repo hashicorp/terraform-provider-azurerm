@@ -95,30 +95,6 @@ func resourceArmAppService() *schema.Resource {
 							Optional: true,
 						},
 
-						"linux_app_framework_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							// TODO: should this be ForceNew?
-							ValidateFunc: validation.StringInSlice([]string{
-								"dotnetcore|1.0",
-								"dotnetcore|1.1",
-								"node|4.4",
-								"node|4.5",
-								"node|6.2",
-								"node|6.6",
-								"node|6.9",
-								"node|6.10",
-								"node|6.11",
-								"node|8.0",
-								"node|8.1",
-								"php|5.6",
-								"php|7.0",
-								"ruby|2.3",
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-						},
-
 						"local_mysql_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -500,10 +476,6 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.JavaContainerVersion = utils.String(v.(string))
 	}
 
-	if v, ok := config["linux_app_framework_version"]; ok {
-		siteConfig.LinuxFxVersion = utils.String(v.(string))
-	}
-
 	if v, ok := config["local_mysql_enabled"]; ok {
 		siteConfig.LocalMySQLEnabled = utils.Bool(v.(bool))
 	}
@@ -575,10 +547,6 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.JavaContainerVersion != nil {
 		result["java_container_version"] = *input.JavaContainerVersion
-	}
-
-	if input.LinuxFxVersion != nil {
-		result["linux_app_framework_version"] = *input.LinuxFxVersion
 	}
 
 	if input.LocalMySQLEnabled != nil {

@@ -163,7 +163,7 @@ func TestAccAzureRMAppService_defaultDocuments(t *testing.T) {
 func TestAccAzureRMAppService_enabled(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_linuxEnabled(ri, testLocation())
+	config := testAccAzureRMAppService_enabled(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -175,90 +175,6 @@ func TestAccAzureRMAppService_enabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppService_linuxDotNetCore(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_linuxDotNetCore(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_app_framework_version", "dotnetcore|1.1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppService_linuxNode(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_linuxNode(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_app_framework_version", "node|8.1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppService_linuxPHP(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_linuxPHP(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_app_framework_version", "php|7.0"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppService_linuxRuby(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_linuxRuby(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_app_framework_version", "ruby|2.3"),
 				),
 			},
 		},
@@ -333,35 +249,6 @@ func TestAccAzureRMAppService_tagsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Terraform", "AcceptanceTests"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppService_linuxUpdate(t *testing.T) {
-	resourceName := "azurerm_app_service.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_linuxDotNetCore(ri, testLocation())
-	updatedConfig := testAccAzureRMAppService_linuxRuby(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_app_framework_version", "dotnetcore|1.1"),
-				),
-			},
-			{
-				Config: updatedConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_app_framework_version", "ruby|2.3"),
 				),
 			},
 		},
@@ -886,7 +773,7 @@ resource "azurerm_app_service" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMAppService_linuxDotNetCore(rInt int, location string) string {
+func testAccAzureRMAppService_enabled(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
@@ -897,7 +784,6 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Linux"
 
   sku {
     tier = "Standard"
@@ -910,135 +796,7 @@ resource "azurerm_app_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-  	linux_app_framework_version = "dotnetcore|1.1"
-  }
-}
-`, rInt, location, rInt, rInt)
-}
-
-func testAccAzureRMAppService_linuxNode(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Linux"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-  	linux_app_framework_version = "node|8.1"
-  }
-}
-`, rInt, location, rInt, rInt)
-}
-
-func testAccAzureRMAppService_linuxPHP(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Linux"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-  	linux_app_framework_version = "php|7.0"
-  }
-}
-`, rInt, location, rInt, rInt)
-}
-
-func testAccAzureRMAppService_linuxRuby(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Linux"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-  	linux_app_framework_version = "ruby|2.3"
-  }
-}
-`, rInt, location, rInt, rInt)
-}
-
-func testAccAzureRMAppService_linuxEnabled(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Linux"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  enabled             = false
+  enabled = false
 }
 `, rInt, location, rInt, rInt)
 }
