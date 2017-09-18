@@ -165,6 +165,7 @@ func resourceArmAppService() *schema.Resource {
 						"remote_debugging_version": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"VS2012",
 								"VS2013",
