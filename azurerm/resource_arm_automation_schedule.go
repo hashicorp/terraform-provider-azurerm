@@ -54,9 +54,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			},
 
 			"expiry_time": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				DiffSuppressFunc: compareDataAsUTCSuppressFunc,
+				Optional:         true,
+				Computed:         true,
 			},
 
 			"frequency": {
