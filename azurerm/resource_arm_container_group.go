@@ -106,6 +106,7 @@ func resourceArmContainerGroup() *schema.Resource {
 								"tcp",
 								"udp",
 							}, true),
+							Default: "TCP",
 						},
 
 						"environment_variables": {
@@ -118,6 +119,52 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+						},
+
+						"volume": {
+							Type:     schema.TypeList,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+
+									"mount_path": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+
+									"read_only": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										ForceNew: true,
+										Default:  false,
+									},
+
+									"share_name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+
+									"storage_account_name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+
+									"storage_account_key": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -138,7 +185,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	containers, containerGroupPorts := expandContainerGroupContainers(d)
+	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
@@ -150,7 +197,8 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 				Type:  &IPAddressType,
 				Ports: containerGroupPorts,
 			},
-			OsType: containerinstance.OperatingSystemTypes(OSType),
+			OsType:  containerinstance.OperatingSystemTypes(OSType),
+			Volumes: containerGroupVolumes,
 		},
 	}
 
@@ -206,7 +254,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_address", address.IP)
 	}
 
-	containerConfigs := flattenContainerGroupContainers(resp.Containers)
+	containerConfigs := flattenContainerGroupContainers(resp.Containers, resp.ContainerGroupProperties.IPAddress.Ports, resp.ContainerGroupProperties.Volumes)
 	err = d.Set("container", containerConfigs)
 	if err != nil {
 		return fmt.Errorf("Error setting `container`: %+v", err)
@@ -240,7 +288,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func flattenContainerGroupContainers(containers *[]containerinstance.Container) []interface{} {
+func flattenContainerGroupContainers(containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 
 	containerConfigs := make([]interface{}, 0, len(*containers))
 	for _, container := range *containers {
@@ -256,9 +304,19 @@ func flattenContainerGroupContainers(containers *[]containerinstance.Container) 
 		}
 
 		if len(*container.Ports) > 0 {
-			containerConfig["port"] = *(*container.Ports)[0].Port
+			containerPort := *(*container.Ports)[0].Port
+			containerConfig["port"] = containerPort
+			// protocol isn't returned in container config, have to search in container group ports
+			protocol := ""
+			for _, cgPort := range *containerGroupPorts {
+				if *cgPort.Port == containerPort {
+					protocol = string(cgPort.Protocol)
+				}
+			}
+			if protocol != "" {
+				containerConfig["protocol"] = protocol
+			}
 		}
-		// protocol isn't returned in container config
 
 		if container.EnvironmentVariables != nil {
 			if len(*container.EnvironmentVariables) > 0 {
@@ -268,6 +326,10 @@ func flattenContainerGroupContainers(containers *[]containerinstance.Container) 
 
 		if command := container.Command; command != nil {
 			containerConfig["command"] = strings.Join(*command, " ")
+		}
+
+		if containerGroupVolumes != nil && container.VolumeMounts != nil {
+			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes)
 		}
 
 		containerConfigs = append(containerConfigs, containerConfig)
@@ -289,10 +351,38 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 	return output
 }
 
-func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port) {
+func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+	volumeConfigs := make([]interface{}, 0)
+
+	for _, vm := range *volumeMounts {
+		volumeConfig := make(map[string]interface{})
+		volumeConfig["name"] = *vm.Name
+		volumeConfig["mount_path"] = *vm.MountPath
+		if vm.ReadOnly != nil {
+			volumeConfig["read_only"] = *vm.ReadOnly
+		}
+
+		// find corresponding volume in container group volumes
+		// and use the data
+		for _, cgv := range *containerGroupVolumes {
+			if strings.Compare(*cgv.Name, *vm.Name) == 0 {
+				volumeConfig["share_name"] = *(*cgv.AzureFile).ShareName
+				volumeConfig["storage_account_name"] = *(*cgv.AzureFile).StorageAccountName
+				// skip storage_account_key, is always nil
+			}
+		}
+
+		volumeConfigs = append(volumeConfigs, volumeConfig)
+	}
+
+	return volumeConfigs
+}
+
+func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0, len(containersConfig))
 	containerGroupPorts := make([]containerinstance.Port, 0, len(containersConfig))
+	containerGroupVolumes := make([]containerinstance.Volume, 0)
 
 	for _, containerConfig := range containersConfig {
 		data := containerConfig.(map[string]interface{})
@@ -348,10 +438,15 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			container.Command = &command
 		}
 
+		if v, ok := data["volume"]; ok {
+			volumeMounts := expandContainerVolumes(v, &containerGroupVolumes)
+			container.VolumeMounts = volumeMounts
+		}
+
 		containers = append(containers, container)
 	}
 
-	return &containers, &containerGroupPorts
+	return &containers, &containerGroupPorts, &containerGroupVolumes
 }
 
 func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance.EnvironmentVariable {
@@ -367,4 +462,47 @@ func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance
 	}
 
 	return &output
+}
+
+func expandContainerVolumes(input interface{}, containerGroupVolumes *[]containerinstance.Volume) *[]containerinstance.VolumeMount {
+	volumesRaw := input.([]interface{})
+
+	if len(volumesRaw) == 0 {
+		return nil
+	}
+
+	volumeMounts := make([]containerinstance.VolumeMount, 0, len(volumesRaw))
+
+	for _, volumeRaw := range volumesRaw {
+		volumeConfig := volumeRaw.(map[string]interface{})
+
+		name := volumeConfig["name"].(string)
+		mountPath := volumeConfig["mount_path"].(string)
+		readOnly := volumeConfig["read_only"].(bool)
+		shareName := volumeConfig["share_name"].(string)
+		storageAccountName := volumeConfig["storage_account_name"].(string)
+		storageAccountKey := volumeConfig["storage_account_key"].(string)
+
+		vm := containerinstance.VolumeMount{
+			Name:      &name,
+			MountPath: &mountPath,
+			ReadOnly:  &readOnly,
+		}
+
+		volumeMounts = append(volumeMounts, vm)
+
+		cv := containerinstance.Volume{
+			Name: &name,
+			AzureFile: &containerinstance.AzureFileVolume{
+				ShareName:          &shareName,
+				ReadOnly:           &readOnly,
+				StorageAccountName: &storageAccountName,
+				StorageAccountKey:  &storageAccountKey,
+			},
+		}
+
+		*containerGroupVolumes = append(*containerGroupVolumes, cv)
+	}
+
+	return &volumeMounts
 }
