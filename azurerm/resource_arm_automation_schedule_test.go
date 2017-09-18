@@ -26,7 +26,6 @@ func TestAccAzureRMAutomationSchedule_oneTime(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationScheduleExistsAndFrequencyType("azurerm_automation_schedule.test", automation.OneTime),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
