@@ -509,7 +509,7 @@ func TestAccAzureRMAppService_windowsJava8Jetty(t *testing.T) {
 func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "TomCat", "9.0")
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -521,7 +521,7 @@ func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TomCat"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
@@ -532,7 +532,7 @@ func TestAccAzureRMAppService_windowsJava7Tomcat(t *testing.T) {
 func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "TomCat", "9.0")
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -544,7 +544,7 @@ func TestAccAzureRMAppService_windowsJava8Tomcat(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TomCat"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
 				),
 			},
