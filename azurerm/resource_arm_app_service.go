@@ -57,7 +57,6 @@ func resourceArmAppService() *schema.Resource {
 						"default_documents": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 
@@ -155,6 +154,24 @@ func resourceArmAppService() *schema.Resource {
 								"2.7",
 								"3.4",
 							}, false),
+						},
+
+						"remote_debugging_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"remote_debugging_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"VS2012",
+								"VS2013",
+								"VS2015",
+								"VS2017",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"use_32_bit_worker_process": {
@@ -302,7 +319,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*read.ID)
 
-	return resourceArmAppServiceRead(d, meta)
+	return resourceArmAppServiceUpdate(d, meta)
 }
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -375,22 +392,22 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM App Service %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", name, err)
 	}
 
 	configResp, err := client.GetConfiguration(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %q: %+v", name, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettings(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", name, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStrings(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", name, err)
 	}
 
 	d.Set("name", name)
@@ -502,6 +519,14 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.PythonVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["remote_debugging_enabled"]; ok {
+		siteConfig.RemoteDebuggingEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["remote_debugging_version"]; ok {
+		siteConfig.RemoteDebuggingVersion = utils.String(v.(string))
+	}
+
 	if v, ok := config["use_32_bit_worker_process"]; ok {
 		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
 	}
@@ -567,6 +592,14 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.PythonVersion != nil {
 		result["python_version"] = *input.PythonVersion
+	}
+
+	if input.RemoteDebuggingEnabled != nil {
+		result["remote_debugging_enabled"] = *input.RemoteDebuggingEnabled
+	}
+
+	if input.RemoteDebuggingVersion != nil {
+		result["remote_debugging_version"] = *input.RemoteDebuggingVersion
 	}
 
 	if input.Use32BitWorkerProcess != nil {
