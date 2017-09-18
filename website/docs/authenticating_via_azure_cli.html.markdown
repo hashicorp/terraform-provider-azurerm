@@ -13,6 +13,8 @@ Terraform supports authenticating to Azure through a couple of different means -
 
 We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and authenticating via the Azure CLI when you're running Terraform locally.
 
+When authenticating via the Azure CLI, Terraform will automatically connect to the Default Subscription - this can be changed by using the Azure CLI - and is documented below.
+
 ## Configuring the Azure CLI
 
 ~> **Note:** There are multiple versions of the Azure CLI's - the latest version is known as [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) and [the older Azure CLI (Node.JS)](https://github.com/Azure/azure-xplat-cli). Whilst Terraform currently supports both - we highly recommend users upgrade to the Azure CLI 2.0 (Python) if possible.
@@ -45,7 +47,7 @@ Once logged in - it's possible to list the Subscriptions associated with the acc
 $ az account list
 ```
 
-The output (similar to below) will display one or more Subscriptions - with the `ID` field being the `subscription_id` field referenced above.
+The output (similar to below) will display one or more Subscriptions - with the `ID` field being the Subscription ID.
 
 ```json
 [

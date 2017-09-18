@@ -142,4 +142,4 @@ Secondly, search for and select the name of the Application created in Azure Act
 
 ## Creating a Service Principal through the Legacy CLI's
 
-It's also possible to create credentials via [the legacy cross-platform CLI](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal-cli/) and the [legacy PowerShell Commandlets](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/) - however we would highly recommend using the Azure CLI above.
+It's also possible to create credentials via [the legacy cross-platform CLI](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal-cli/) and the [legacy PowerShell Cmdlets](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/) - however we would highly recommend using the Azure CLI above.
