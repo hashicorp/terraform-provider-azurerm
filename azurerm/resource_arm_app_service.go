@@ -397,8 +397,12 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled", props.Enabled)
 	}
 
-	d.Set("app_settings", appSettingsResp.Properties)
-	d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties))
+	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {
+		return err
+	}
+	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
+		return err
+	}
 
 	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
@@ -621,9 +625,18 @@ func flattenAppServiceConnectionStrings(input *map[string]*web.ConnStringValueTy
 		result := make(map[string]interface{}, 0)
 		result["name"] = k
 		result["type"] = string(v.Type)
-		result["value"] = v.Value
+		result["value"] = *v.Value
 		results = append(results, result)
 	}
 
 	return results
+}
+
+func flattenAppServiceAppSettings(input *map[string]*string) map[string]string {
+	output := make(map[string]string, 0)
+	for k, v := range *input {
+		output[k] = *v
+	}
+
+	return output
 }
