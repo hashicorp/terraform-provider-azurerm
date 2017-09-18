@@ -9,13 +9,12 @@ description: |-
 
 # Authenticating to Azure Resource Manager using the Azure CLI
 
-Terraform supports authenticating to Azure through a couple of different means - via a Service Principal and using the Azure CLI.
-
+Terraform supports authenticating to Azure through two different means; a Service Principal or the Azure CLI.
 We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and authenticating via the Azure CLI when you're running Terraform locally.
 
 ## Configuring the Azure CLI
 
-~> **Note:** There are multiple versions of the Azure CLI's - the latest version is known as [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) and [the older Azure CLI (Node.JS)](https://github.com/Azure/azure-xplat-cli). Whilst Terraform currently supports both - we highly recommend users upgrade to the Azure CLI 2.0 (Python) if possible.
+~> **Note:** There are multiple versions of the Azure CLI's - the latest version is known as [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) and [the older Azure CLI (Node.JS)](https://github.com/Azure/azure-xplat-cli). While Terraform currently supports both - we highly recommend users upgrade to the Azure CLI 2.0 (Python) if possible.
 
 This guide assumes that you have [the Azure CLI 2.0 (Python)](https://github.com/Azure/azure-cli) installed.
 
