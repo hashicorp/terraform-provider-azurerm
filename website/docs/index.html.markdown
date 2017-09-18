@@ -16,7 +16,7 @@ Use the navigation to the left to read about the available resources.
 
 # Creating Credentials
 
-Terraform supports authenticating to Azure through two different means; a Service Principal or the Azure CLI.
+Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
 We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
 
