@@ -113,7 +113,7 @@ $ az account list-locations
 
 ### Creating a Service Principal in the Azure Portal
 
-We need to do two more steps to create a Service Principal via [the Azure Portal](https://portal.azure.com):
+There are two tasks needed to create a Service Principal via [the Azure Portal](https://portal.azure.com):
 
  1. Create an Application in Azure Active Directory (which acts as a Service Principal)
  2. Grant the Application access to manage resources in your Azure Subscription
