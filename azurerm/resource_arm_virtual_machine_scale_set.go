@@ -173,7 +173,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							},
 						},
 						"additional_unattend_config": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -656,7 +656,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	if properties.VirtualMachineProfile.OsProfile.LinuxConfiguration != nil {
 		if err := d.Set("os_profile_linux_config", flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(properties.VirtualMachineProfile.OsProfile.LinuxConfiguration)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Windows config error: %#v", err)
+			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Linux config error: %#v", err)
 		}
 	}
 
@@ -772,7 +772,10 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(config *compute.
 			c["pass"] = i.PassName
 			c["component"] = i.ComponentName
 			c["setting_name"] = i.SettingName
-			c["content"] = *i.Content
+
+			if i.Content != nil {
+				c["content"] = *i.Content
+			}
 
 			content = append(content, c)
 		}
@@ -1438,7 +1441,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.Resourc
 		}
 	}
 	if v := osProfileConfig["additional_unattend_config"]; v != nil {
-		additionalConfig := v.(*schema.Set).List()
+		additionalConfig := v.([]interface{})
 		if len(additionalConfig) > 0 {
 			additionalConfigContent := make([]compute.AdditionalUnattendContent, 0, len(additionalConfig))
 			for _, addConfig := range additionalConfig {
