@@ -10,6 +10,7 @@ description: |-
 # Authenticating to Azure Resource Manager using the Azure CLI
 
 Terraform supports authenticating to Azure through two different means; a Service Principal or the Azure CLI.
+
 We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and authenticating via the Azure CLI when you're running Terraform locally.
 
 ## Configuring the Azure CLI
