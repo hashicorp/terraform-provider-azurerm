@@ -51,7 +51,7 @@ func resourceArmAppService() *schema.Resource {
 						"always_on": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
+							Default:  false,
 						},
 
 						"default_documents": {
@@ -75,7 +75,6 @@ func resourceArmAppService() *schema.Resource {
 						"java_version": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"1.7",
 								"1.8",
@@ -85,7 +84,6 @@ func resourceArmAppService() *schema.Resource {
 						"java_container": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"JETTY",
 								"TOMCAT",
@@ -96,7 +94,6 @@ func resourceArmAppService() *schema.Resource {
 						"java_container_version": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 
 						"linux_app_framework_version": {
@@ -143,7 +140,6 @@ func resourceArmAppService() *schema.Resource {
 						"php_version": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"5.5",
 								"5.6",
@@ -155,7 +151,6 @@ func resourceArmAppService() *schema.Resource {
 						"python_version": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"2.7",
 								"3.4",
@@ -546,6 +541,14 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.JavaVersion != nil {
 		result["java_version"] = *input.JavaVersion
+	}
+
+	if input.JavaContainer != nil {
+		result["java_container"] = *input.JavaContainer
+	}
+
+	if input.JavaContainerVersion != nil {
+		result["java_container_version"] = *input.JavaContainerVersion
 	}
 
 	if input.LinuxFxVersion != nil {
