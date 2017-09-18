@@ -97,6 +97,7 @@ func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq 
 
 func testAccAzureRMAutomationSchedule_oneTime(rInt int, location string) string {
 	startTime := time.Now().UTC().Add(time.Duration(7) * time.Minute)
+	startTime = startTime.Add(time.Duration(-1 * startTime.Second()) * time.Second)
 
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {

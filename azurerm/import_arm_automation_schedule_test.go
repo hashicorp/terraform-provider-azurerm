@@ -20,8 +20,6 @@ func TestAccAzureRMAutomationSchedule_importScheduleOneTime(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				// publish content link is not returned after the runbook is created
-				ExpectNonEmptyPlan: true,
 			},
 
 			{

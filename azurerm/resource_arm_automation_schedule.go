@@ -47,9 +47,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				ForceNew: true,
 			},
 			"start_time": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateStartTime,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: compareDataAsUTCSuppressFunc,
+				ValidateFunc:     validateStartTime,
 			},
 
 			"expiry_time": {
@@ -77,6 +78,16 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			},
 		},
 	}
+}
+
+func compareDataAsUTCSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	ot, oerr := time.Parse(time.RFC3339, old)
+	nt, nerr := time.Parse(time.RFC3339, new)
+	if oerr != nil || nerr != nil {
+		return false
+	}
+
+	return nt.Equal(ot)
 }
 
 func validateStartTime(v interface{}, k string) (ws []string, errors []error) {
