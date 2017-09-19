@@ -1,16 +1,41 @@
-## 0.1.7 (Unreleased)
+## 0.2.1 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_postgresql_configuration` [GH-210]
-* **New Resource:** `azurerm_postgresql_database` [GH-210]
-* **New Resource:** `azurerm_postgresql_firewall_rule` [GH-210]
-* **New Resource:** `azurerm_postgresql_server` [GH-210]
+* **New Resource:** `azurerm_app_service` [GH-344]
+
+BUG FIXES:
+
+* `azurerm_virtual_machine_scale_set` - fix panic with `additional_unattend_config` block [GH-266]
+
+## 0.2.0 (September 15, 2017)
+
+FEATURES:
+
+* **Support for authenticating using the Azure CLI** ([#316](https://github.com/terraform-providers/terraform-provider-azurerm/issues/316))
+* **New Resource:** `azurerm_container_group` ([#333](https://github.com/terraform-providers/terraform-provider-azurerm/issues/333)] [[#311](https://github.com/terraform-providers/terraform-provider-azurerm/issues/311)] [[#338](https://github.com/terraform-providers/terraform-provider-azurerm/issues/338))
 
 IMPROVEMENTS:
 
-* `azurerm_cdn_endpoint` - defaulting the `http_port` and `https_port` [GH-301]
-* `azurerm_cosmos_db_account`: allow setting the Kind to MongoDB/GlobalDocumentDB [GH-299]
+* `azurerm_app_service_plan` - support for Linux App Service Plans ([#332](https://github.com/terraform-providers/terraform-provider-azurerm/issues/332))
+* `azurerm_postgresql_server` - supporting additional storage sizes ([#239](https://github.com/terraform-providers/terraform-provider-azurerm/issues/239))
+* `azurerm_public_ip` - verifying the ID is valid before importing ([#320](https://github.com/terraform-providers/terraform-provider-azurerm/issues/320))
+* `azurerm_sql_server` - verifying the name is valid before creating ([#323](https://github.com/terraform-providers/terraform-provider-azurerm/issues/323))
+* `resource_group_name` - validation has been added to all resources that use this attribute ([#330](https://github.com/terraform-providers/terraform-provider-azurerm/issues/330))
+
+## 0.1.7 (September 11, 2017)
+
+FEATURES:
+
+* **New Resource:** `azurerm_postgresql_configuration` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
+* **New Resource:** `azurerm_postgresql_database` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
+* **New Resource:** `azurerm_postgresql_firewall_rule` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
+* **New Resource:** `azurerm_postgresql_server` ([#210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/210))
+
+IMPROVEMENTS:
+
+* `azurerm_cdn_endpoint` - defaulting the `http_port` and `https_port` ([#301](https://github.com/terraform-providers/terraform-provider-azurerm/issues/301))
+* `azurerm_cosmos_db_account`: allow setting the Kind to MongoDB/GlobalDocumentDB ([#299](https://github.com/terraform-providers/terraform-provider-azurerm/issues/299))
 
 ## 0.1.6 (August 31, 2017)
 

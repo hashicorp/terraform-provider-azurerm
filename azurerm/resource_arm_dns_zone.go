@@ -25,12 +25,7 @@ func resourceArmDnsZone() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
-			},
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"number_of_record_sets": {
 				Type:     schema.TypeString,

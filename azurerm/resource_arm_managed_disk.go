@@ -30,11 +30,7 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,

@@ -25,11 +25,7 @@ func resourceArmPostgreSQLFirewallRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"server_name": {
 				Type:     schema.TypeString,

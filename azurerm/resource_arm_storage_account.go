@@ -38,12 +38,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validateArmStorageAccountName,
 			},
 
-			"resource_group_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
-			},
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"location": locationSchema(),
 

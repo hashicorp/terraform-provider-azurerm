@@ -57,7 +57,17 @@ The following arguments are supported:
 
 * `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `9.5` and `9.6`. Changing this forces a new resource to be created.
 
-* `storage_mb` - (Required) Specifies the amount of storage for the PostgreSQL Server in Megabytes. Possible values are `51200` and `102400`. Changing this forces a new resource to be created.
+* `storage_mb` - (Required) Specifies the amount of storage for the PostgreSQL Server in Megabytes. Possible values are shown below. Changing this forces a new resource to be created.
+
+Possible values for `storage_mb` are:
+- `51200` (50GB)
+- `179200` (175GB)
+- `307200` (300GB)
+- `435200` (425GB)
+- `563200` (550GB)
+- `691200` (675GB)
+- `819200` (800GB)
+- `947200` (925GB)
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enforced` and `Disabled`.
 

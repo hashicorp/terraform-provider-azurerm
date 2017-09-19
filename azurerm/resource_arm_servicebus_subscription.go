@@ -40,11 +40,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"auto_delete_on_idle": {
 				Type:     schema.TypeString,

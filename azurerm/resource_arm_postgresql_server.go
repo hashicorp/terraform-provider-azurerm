@@ -30,11 +30,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
 				Type:     schema.TypeSet,
@@ -102,7 +98,13 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validateIntInSlice([]int{
 					51200,
-					102400,
+					179200,
+					307200,
+					435200,
+					563200,
+					691200,
+					819200,
+					947200,
 				}),
 			},
 
