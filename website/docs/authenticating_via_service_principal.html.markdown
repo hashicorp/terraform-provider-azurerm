@@ -9,7 +9,7 @@ description: |-
 
 # Authenticating to Azure Resource Manager using a Service Principal
 
-Terraform supports authenticating to Azure through a couple of different means - via a Service Principal and using the Azure CLI.
+Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
 We recommend using a Service Principal when running in a Shared Environment (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
 
@@ -67,7 +67,7 @@ Should you have more than one Subscription, you can specify the Subscription to 
 $ az account set --subscription="SUBSCRIPTION_ID"
 ```
 
-We can now create the Service Principal, which will have permissions to manage resources in the specified Subscription using the following command:
+We can now create the Service Principal which will have permissions to manage resources in the specified Subscription using the following command:
 
 ```shell
 $ az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/SUBSCRIPTION_ID"
@@ -113,14 +113,14 @@ $ az account list-locations
 
 ### Creating a Service Principal in the Azure Portal
 
-There's a couple of phases to create a Service Principal via [the Azure Portal](https://portal.azure.com):
+There are two tasks needed to create a Service Principal via [the Azure Portal](https://portal.azure.com):
 
- 1. Creating an Application in Azure Active Directory (which acts as a Service Principal)
- 2. Granting the Application access to manage resources in your Azure Subscription
+ 1. Create an Application in Azure Active Directory (which acts as a Service Principal)
+ 2. Grant the Application access to manage resources in your Azure Subscription
 
 ### 1. Creating an Application in Azure Active Directory
 
-Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and finally click **Endpoints** at the top of the **App Registration** blade. This will display a list of URIs, the URI for **OAUTH 2.0 AUTHORIZATION ENDPOINT** contains a GUID - which is your Tenant ID / the `tenant_id` field mentioned above.
+Firstly navigate to [the **Azure Active Directory** overview](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/Overview) within the Azure Portal - [then select the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) and click **Endpoints** at the top of the **App Registration** blade. A list of URIs will be displayed and you need to located the URI for **OAUTH 2.0 AUTHORIZATION ENDPOINT** which contains a GUID. This is your Tenant ID / the `tenant_id` field mentioned above.
 
 Next, navigate back to [the **App Registration** blade](https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredApps/RegisteredApps/Overview) - from here we'll create the Application in Azure Active Directory. To do this click **Add** at the top to add a new Application within Azure Active Directory. On this page, set the following values then press **Create**:
 
