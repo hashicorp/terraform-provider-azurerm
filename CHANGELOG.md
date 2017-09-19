@@ -1,5 +1,9 @@
 ## 0.2.1 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_app_service` [GH-344]
+
 BUG FIXES:
 
 * `azurerm_virtual_machine_scale_set` - fix panic with `additional_unattend_config` block [GH-266]
