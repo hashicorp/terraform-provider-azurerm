@@ -240,7 +240,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := expandAppServiceSiteConfig(d)
-	appSettings := expandAppServiceAppSettings(d)
 
 	siteEnvelope := web.Site{
 		Location: &location,
@@ -266,24 +265,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	err := <-createErr
 	if err != nil {
 		return err
-	}
-
-	settings := web.StringDictionary{
-		Properties: appSettings,
-	}
-	_, err = client.UpdateApplicationSettings(resGroup, name, settings)
-	if err != nil {
-		return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", name, err)
-	}
-
-	connectionStrings := expandAppServiceConnectionStrings(d)
-	properties := web.ConnectionStringDictionary{
-		Properties: connectionStrings,
-	}
-
-	_, err = client.UpdateConnectionStrings(resGroup, name, properties)
-	if err != nil {
-		return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
 	}
 
 	read, err := client.Get(resGroup, name)
@@ -365,7 +346,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			// TODO: debug logging
+			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", name, resGroup)
 			d.SetId("")
 			return nil
 		}
