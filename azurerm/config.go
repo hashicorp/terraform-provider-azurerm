@@ -667,32 +667,26 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aadb := automation.NewAccountClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&aadb.Client)
 	aadb.Authorizer = auth
-	aadb.Sender = autorest.CreateSender(withRequestLogging())
+	aadb.Sender = sender
 	client.automationAccountClient = aadb
 
 	arc := automation.NewRunbookClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&arc.Client)
 	arc.Authorizer = auth
-	arc.Sender = autorest.CreateSender(withRequestLogging())
+	arc.Sender = sender
 	client.automationRunbookClient = arc
 
 	acc := automation.NewCredentialClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&acc.Client)
 	acc.Authorizer = auth
-	acc.Sender = autorest.CreateSender(withRequestLogging())
+	acc.Sender = sender
 	client.automationCredentialClient = acc
 
 	aschc := automation.NewScheduleClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&aschc.Client)
 	aschc.Authorizer = auth
-	aschc.Sender = autorest.CreateSender(withRequestLogging())
+	aschc.Sender = sender
 	client.automationScheduleClient = aschc
-
-	ac := web.NewAppsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ac.Client)
-	ac.Authorizer = auth
-	ac.Sender = autorest.CreateSender(withRequestLogging())
-	client.appsClient = ac
 
 	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&kvc.Client)
