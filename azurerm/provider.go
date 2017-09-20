@@ -73,6 +73,10 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_application_insights":        resourceArmApplicationInsights(),
 			"azurerm_app_service":                 resourceArmAppService(),
 			"azurerm_app_service_plan":            resourceArmAppServicePlan(),
+			"azurerm_automation_account":          resourceArmAutomationAccount(),
+			"azurerm_automation_runbook":          resourceArmAutomationRunbook(),
+			"azurerm_automation_credential":       resourceArmAutomationCredential(),
+			"azurerm_automation_schedule":         resourceArmAutomationSchedule(),
 			"azurerm_availability_set":            resourceArmAvailabilitySet(),
 			"azurerm_cdn_endpoint":                resourceArmCdnEndpoint(),
 			"azurerm_cdn_profile":                 resourceArmCdnProfile(),
@@ -377,6 +381,7 @@ var providerRegistrationOnce sync.Once
 
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
+		"Microsoft.Automation":        {},
 		"Microsoft.Cache":             {},
 		"Microsoft.Cdn":               {},
 		"Microsoft.Compute":           {},

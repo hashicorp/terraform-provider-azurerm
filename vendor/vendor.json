@@ -11,6 +11,14 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
+			"checksumSHA1": "kDu+bApbVn1n9OGBoBJT8p6YZGc=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/automation",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z",
+			"version": "=v10.3.0-beta",
+			"versionExact": "v10.3.0-beta"
+		},
+		{
 			"checksumSHA1": "1K/j9mahBUFLBfRPhEHxQ5Pjx/M=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/cdn",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
