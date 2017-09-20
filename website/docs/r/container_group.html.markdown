@@ -10,7 +10,7 @@ description: |-
 
 Create as an Azure Container Group instance.
 
-## Example Usage (Linux)
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "aci-rg" {
@@ -19,30 +19,32 @@ resource "azurerm_resource_group" "aci-rg" {
 }
 
 resource "azurerm_container_group" "aci-helloworld" {
-  
-  name = "aci-hw"
-  location = "${azurerm_resource_group.aci-rg.location}"
+  name                = "aci-hw"
+  location            = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  ip_address_type="public"
-  os_type = "linux"
+  ip_address_type     = "public"
+  os_type             = "linux"
 
   container {
-        name = "hw"
-        image = "microsoft/aci-helloworld:latest"
-        cpu ="0.5"
-        memory =  "1.5"
-        port = "80"
-        environment_variables {
-            "NODE_ENV"="Staging"
-        }
-        command = "/bin/bash -c '/path to/myscript.sh'"
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "1.5"
+    port   = "80"
+
+    environment_variables {
+      "NODE_ENV" = "Staging"
     }
-    container {
-        name = "sidecar"
-        image = "microsoft/aci-tutorial-sidecar"
-        cpu="0.5"
-        memory="1.5"
-    }
+
+    command = "/bin/bash -c '/path to/myscript.sh'"
+  }
+
+  container {
+    name   = "sidecar"
+    image  = "microsoft/aci-tutorial-sidecar"
+    cpu    = "0.5"
+    memory = "1.5"
+  }
 
   tags {
     environment = "testing"
@@ -62,7 +64,7 @@ The following arguments are supported:
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
-* `os_type` - (Required) The OS for the container group. Allowed values are `linux` and `windows` Changing this forces a new resource to be created.
+* `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows` Changing this forces a new resource to be created.
 
 * `container` - (Required) The definition of a container that is part of the group. Changing this forces a new resource to be created.
 
