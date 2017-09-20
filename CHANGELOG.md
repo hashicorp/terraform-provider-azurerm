@@ -2,6 +2,10 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_automation_account` [GH-257]
+* **New Resource:** `azurerm_automation_credential` [GH-257]
+* **New Resource:** `azurerm_automation_runbook` [GH-257]
+* **New Resource:** `azurerm_automation_schedule` [GH-257]
 * **New Resource:** `azurerm_app_service` [GH-344]
 
 BUG FIXES:
