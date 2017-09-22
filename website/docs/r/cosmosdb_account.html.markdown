@@ -12,14 +12,14 @@ Creates a new CosmosDB (formally DocumentDB) Account.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
     name = "resourceGroup1"
     location = "West Europe"
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "cosmosDBAccount1"
+  name                = "cosmos-db-account1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   offer_type          = "Standard"
@@ -54,6 +54,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to `Standard`.
+
+* `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
 
 * `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
 

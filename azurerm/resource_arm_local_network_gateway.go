@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLocalNetworkGateway() *schema.Resource {
@@ -27,11 +28,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"gateway_address": {
 				Type:     schema.TypeString,
@@ -109,7 +106,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := lnetClient.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

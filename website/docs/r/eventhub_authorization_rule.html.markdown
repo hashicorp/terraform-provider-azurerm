@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_authorization_rule"
 sidebar_current: "docs-azurerm-resource-eventhub-authorization-rule"
 description: |-
-  Creates a new Event Hub Authorization Rule within an Event Hub.
+  Creates a new Event Hubs authorization Rule within an Event Hub.
 ---
 
 # azurerm\_eventhub\_authorization\_rule
 
-Creates a new Event Hub Authorization Rule within an Event Hub.
+Creates a new Event Hubs authorization Rule within an Event Hub.
 
 ## Example Usage
 
@@ -79,13 +79,13 @@ The following attributes are exported:
 
 * `id` - The EventHub ID.
 
-* `primary_key` - The Primary Key for the Event Hub Authorization Rule.
+* `primary_key` - The Primary Key for the Event Hubs authorization Rule.
 
-* `primary_connection_string` - The Primary Connection String for the Event Hub Authorization Rule.
+* `primary_connection_string` - The Primary Connection String for the Event Hubs authorization Rule.
 
-* `secondary_key` - The Secondary Key for the Event Hub Authorization Rule.
+* `secondary_key` - The Secondary Key for the Event Hubs authorization Rule.
 
-* `secondary_connection_string` - The Secondary Connection String for the Event Hub Authorization Rule.
+* `secondary_connection_string` - The Secondary Connection String for the Event Hubs authorization Rule.
 
 ## Import
 

@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmNetworkInterface() *schema.Resource {
@@ -29,11 +30,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"network_security_group_id": {
 				Type:     schema.TypeString,
@@ -265,7 +262,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(resGroup, name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

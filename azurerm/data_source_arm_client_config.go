@@ -1,9 +1,8 @@
 package azurerm
 
 import (
-	"time"
-
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )

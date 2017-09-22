@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmCosmosDBAccount() *schema.Resource {
@@ -28,7 +28,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRmCosmosDBAccountName,
+				ValidateFunc: validateDBAccountName,
 			},
 
 			"location": {
@@ -38,11 +38,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				StateFunc: azureRMNormalizeLocation,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"offer_type": {
 				Type:     schema.TypeString,
@@ -50,6 +46,18 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(cosmosdb.Standard),
 				}, true),
+			},
+
+			"kind": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(cosmosdb.GlobalDocumentDB),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cosmosdb.GlobalDocumentDB),
+					string(cosmosdb.MongoDB),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"ip_range_filter": {
@@ -151,6 +159,7 @@ func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 
@@ -162,12 +171,13 @@ func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interfa
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := cosmosdb.DatabaseAccountCreateUpdateParameters{
-		Location: &location,
+		Location: utils.String(location),
+		Kind:     cosmosdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &cosmosdb.DatabaseAccountCreateUpdateProperties{
 			ConsistencyPolicy:        &consistencyPolicy,
-			DatabaseAccountOfferType: &offerType,
 			Locations:                &failoverPolicies,
-			IPRangeFilter:            &ipRangeFilter,
+			DatabaseAccountOfferType: utils.String(offerType),
+			IPRangeFilter:            utils.String(ipRangeFilter),
 		},
 		Tags: expandTags(tags),
 	}
@@ -203,7 +213,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -214,6 +224,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.Name)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	d.Set("kind", string(resp.Kind))
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
 	d.Set("ip_range_filter", resp.IPRangeFilter)
 	flattenAndSetAzureRmCosmosDBAccountConsistencyPolicy(d, resp.ConsistencyPolicy)
@@ -393,20 +404,4 @@ func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
 
 	return hashcode.String(buf.String())
-}
-
-func validateAzureRmCosmosDBAccountName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	r, _ := regexp.Compile("[a-z0-9-]")
-	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("CosmosDB Account Name can only contain lower-case characters, numbers and the `-` character."))
-	}
-
-	length := len(value)
-	if length > 50 || 3 > length {
-		errors = append(errors, fmt.Errorf("CosmosDB Account Name can only be between 3 and 50 seconds."))
-	}
-
-	return
 }

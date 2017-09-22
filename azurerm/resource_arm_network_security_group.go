@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
@@ -33,11 +34,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"security_rule": {
 				Type:     schema.TypeSet,
@@ -193,7 +190,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 
 	resp, err := secGroupClient.Get(resGroup, name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

@@ -14,12 +14,12 @@ Create an Azure Storage Blob.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestrg-d"
   location = "westus"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "acctestacc%s"
+  name                = "acctestaccs"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "westus"
   account_type        = "Standard_LRS"

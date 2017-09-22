@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
-sidebar_current: "docs-azurerm-resource-key-vault"
+sidebar_current: "docs-azurerm-resource-key-vault-x"
 description: |-
   Create a Key Vault.
 ---
@@ -113,3 +113,11 @@ The following attributes are exported:
 
 * `id` - The Vault ID.
 * `vault_uri` - The URI of the vault for performing operations on keys and secrets.
+
+## Import
+
+Key Vault's can be imported using the `resource id`, e.g.
+
+```
+terraform import azurerm_key_vault.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/vault1
+```

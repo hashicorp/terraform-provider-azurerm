@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
@@ -90,12 +91,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Optional: true,
 			},
 
-			"resource_group_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
-			},
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 		},
 	}
 }
@@ -159,7 +155,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 
 	resp, err := client.Get(resGroup, profileName, endpointType, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

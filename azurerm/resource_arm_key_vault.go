@@ -3,11 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // As can be seen in the API definition, the Sku Family only supports the value
@@ -27,18 +29,15 @@ func resourceArmKeyVault() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateKeyVaultName,
 			},
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
 				Type:     schema.TypeSet,
@@ -203,11 +202,11 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -321,4 +320,13 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 	}
 
 	return result
+}
+
+func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
+	}
+
+	return
 }

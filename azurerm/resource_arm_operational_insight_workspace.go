@@ -8,6 +8,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/hashicorp/terraform/helper/schema"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
@@ -126,7 +128,7 @@ func resourceArmOperationalInsightWorkspaceRead(d *schema.ResourceData, meta int
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

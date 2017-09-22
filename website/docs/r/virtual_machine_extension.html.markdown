@@ -144,6 +144,11 @@ The following arguments are supported:
 * `type` - (Required) The type of extension, available types for a publisher can
     be found using the Azure CLI.
 
+~> **Note:** The `Publisher` and `Type` of Virtual Machine Extensions can be found using the Azure CLI, via:
+```
+$ az vm extension image list --location westus -o table
+```
+
 * `type_handler_version` - (Required) Specifies the version of the extension to
     use, available versions can be found using the Azure CLI.
 
