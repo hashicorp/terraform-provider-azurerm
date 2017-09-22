@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMOperationalInsightWorkspace_importrequiredOnly(t *testing.T) {
+func TestAccAzureRMOperationalInsightWorkspace_importRequiredOnly(t *testing.T) {
 	resourceName := "azurerm_operational_insight_workspace.test"
 
 	ri := acctest.RandInt()
@@ -31,7 +31,7 @@ func TestAccAzureRMOperationalInsightWorkspace_importrequiredOnly(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMOperationalInsightWorkspace_importoptional(t *testing.T) {
+func TestAccAzureRMOperationalInsightWorkspace_importOptional(t *testing.T) {
 	resourceName := "azurerm_operational_insight_workspace.test"
 
 	ri := acctest.RandInt()
