@@ -7,16 +7,16 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
+func TestAccAzureRMMySQLServer_importBasicFiveSix(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, testLocation())
+	config := testAccAzureRMMySQLServer_basicFiveSix(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -33,16 +33,16 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
+func TestAccAzureRMMySQLServer_importBasicFiveSeven(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, testLocation())
+	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -59,16 +59,16 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_importStandard(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
+func TestAccAzureRMMySQLServer_importStandard(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_standard(ri, testLocation())
+	config := testAccAzureRMMySQLServer_standard(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
