@@ -149,7 +149,7 @@ func resourceArmOperationalInsightWorkspaceRead(d *schema.ResourceData, meta int
 
 	sharedKeys, err := client.GetSharedKeys(resGroup, name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List Shared keys for Operatinal Insight workspaces %s: %s", name, err)
+		log.Printf("[ERROR] Unable to List Shared keys for Operatinal Insight workspaces %s: %+v", name, err)
 	} else {
 		d.Set("primary_shared_key", sharedKeys.PrimarySharedKey)
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
