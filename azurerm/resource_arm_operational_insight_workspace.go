@@ -121,7 +121,7 @@ func resourceArmOperationalInsightWorkspaceCreateUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmOperationalInsightWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	// I don't understand why we can get the meta data. How the framework set it.
+
 	client := meta.(*ArmClient).workspacesClient
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
