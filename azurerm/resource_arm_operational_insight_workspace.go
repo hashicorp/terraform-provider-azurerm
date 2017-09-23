@@ -29,12 +29,8 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateAzureRmOperationalInsightWorkspaceName,
 			},
-			"location": locationSchema(),
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"location":            locationSchema(),
+			"resource_group_name": resourceGroupNameSchema(),
 			"workspace_id": { // a.k.a. customer_id
 				Type:     schema.TypeString,
 				Computed: true,
