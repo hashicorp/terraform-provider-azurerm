@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,6 +44,15 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(operationalinsights.Free),
+					string(operationalinsights.PerNode),
+					string(operationalinsights.Premium),
+					string(operationalinsights.Standalone),
+					string(operationalinsights.Standard),
+					string(operationalinsights.Unlimited),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 			"retention_in_days": {
 				Type:     schema.TypeInt,
