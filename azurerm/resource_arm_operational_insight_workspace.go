@@ -31,7 +31,7 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 			},
 			"location":            locationSchema(),
 			"resource_group_name": resourceGroupNameSchema(),
-			"workspace_id": { // a.k.a. customer_id
+			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
