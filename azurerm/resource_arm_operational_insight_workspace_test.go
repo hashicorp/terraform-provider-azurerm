@@ -69,9 +69,9 @@ func TestAccAzureRMOperationalInsightWorkspace_requiredOnly(t *testing.T) {
 		},
 	})
 }
-func TestAccAzureRMOperationalInsightWorkspace_optional(t *testing.T) {
+func TestAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMOperationalInsightWorkspace_optional(ri, testLocation())
+	config := testAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -158,7 +158,7 @@ resource "azurerm_operational_insight_workspace" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMOperationalInsightWorkspace_optional(rInt int, location string) string {
+func testAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

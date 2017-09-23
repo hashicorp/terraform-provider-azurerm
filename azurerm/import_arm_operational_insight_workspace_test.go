@@ -31,11 +31,11 @@ func TestAccAzureRMOperationalInsightWorkspace_importRequiredOnly(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMOperationalInsightWorkspace_importOptional(t *testing.T) {
+func TestAccAzureRMOperationalInsightWorkspace_importRetentionInDaysComplete(t *testing.T) {
 	resourceName := "azurerm_operational_insight_workspace.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMOperationalInsightWorkspace_optional(ri, testLocation())
+	config := testAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
