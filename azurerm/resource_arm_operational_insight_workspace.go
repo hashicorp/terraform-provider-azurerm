@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
@@ -172,7 +171,7 @@ func resourceArmOperationalInsightWorkspaceDelete(d *schema.ResourceData, meta i
 	resp, err := client.Delete(resGroup, name)
 
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
