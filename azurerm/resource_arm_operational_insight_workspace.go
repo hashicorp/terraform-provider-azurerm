@@ -186,7 +186,13 @@ func validateAzureRmOperationalInsightWorkspaceName(v interface{}, k string) (ws
 
 	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
 	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("Workspace Name can only contain alphabet, number, and '-' charactor. You can not use '-' as the start and end of the name."))
+		errors = append(errors, fmt.Errorf("Workspace Name can only contain alphabet, number, and '-' charactor. You can not use '-' as the start and end of the name"))
 	}
+
+	length := len(value)
+	if length > 63 || 4 > length {
+		errors = append(errors, fmt.Errorf("Workspace Name can only be between 4 and 63 letters"))
+	}
+
 	return
 }

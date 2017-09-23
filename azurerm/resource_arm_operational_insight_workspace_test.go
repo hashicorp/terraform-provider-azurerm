@@ -11,12 +11,13 @@ import (
 )
 
 func TestAccAzureRmOperationalInsightWorkspaceName_validation(t *testing.T) {
+	str := acctest.RandString(63)
 	cases := []struct {
 		Value    string
 		ErrCount int
 	}{
 		{
-			Value:    "ab",
+			Value:    "abc",
 			ErrCount: 1,
 		},
 		{
@@ -24,11 +25,19 @@ func TestAccAzureRmOperationalInsightWorkspaceName_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    "-ab",
+			Value:    "-abc",
 			ErrCount: 1,
 		},
 		{
-			Value:    "ab-",
+			Value:    "abc-",
+			ErrCount: 1,
+		},
+		{
+			Value:    str,
+			ErrCount: 0,
+		},
+		{
+			Value:    str + "a",
 			ErrCount: 1,
 		},
 	}
