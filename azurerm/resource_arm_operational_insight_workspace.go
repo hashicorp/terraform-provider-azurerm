@@ -99,23 +99,22 @@ func resourceArmOperationalInsightWorkspaceCreateUpdate(d *schema.ResourceData, 
 		},
 	}
 
-	cancel := make(chan struct{})
-	workspaceChannel, error := client.CreateOrUpdate(resGroup, name, parameters, cancel)
-	workspace := <-workspaceChannel
+	_, error := client.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
 	err := <-error
 	if err != nil {
 		return err
 	}
-	// The cosmos DB read rest api again for getting id. Try remove it.
-	// read, err := client.Get(resGroup, name)
-	// if err != nil {
-	//	return err
-	//}
 
-	//if read.ID == nil {
-	//	return fmt.Errorf("Cannot read Operational Inight Workspace '%s' (resource group %s) ID", name, resGroup)
-	//}
-	d.SetId(*workspace.ID)
+	read, err := client.Get(resGroup, name)
+	if err != nil {
+		return err
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Operational Inight Workspace '%s' (resource group %s) ID", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceArmOperationalInsightWorkspaceRead(d, meta)
 
