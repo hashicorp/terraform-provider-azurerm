@@ -80,10 +80,9 @@ func resourceArmOperationalInsightWorkspaceCreateUpdate(d *schema.ResourceData, 
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	skuName := d.Get("sku")
-	sku, err := getSku(skuName)
-	if err != nil {
-		return err
+	skuName := d.Get("sku").(string)
+	sku := &operationalinsights.Sku{
+		Name: operationalinsights.SkuNameEnum(skuName),
 	}
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
@@ -103,7 +102,7 @@ func resourceArmOperationalInsightWorkspaceCreateUpdate(d *schema.ResourceData, 
 	cancel := make(chan struct{})
 	workspaceChannel, error := client.CreateOrUpdate(resGroup, name, parameters, cancel)
 	workspace := <-workspaceChannel
-	err = <-error
+	err := <-error
 	if err != nil {
 		return err
 	}
@@ -182,38 +181,6 @@ func resourceArmOperationalInsightWorkspaceDelete(d *schema.ResourceData, meta i
 	}
 
 	return nil
-}
-
-func getSku(skuName interface{}) (*operationalinsights.Sku, error) {
-	if skuName == nil {
-		return nil, nil
-	}
-	skuEnum, err := getSkuNameEnum(skuName.(string))
-	if err != nil {
-		return nil, err
-	}
-	return &operationalinsights.Sku{
-		Name: skuEnum,
-	}, nil
-}
-
-func getSkuNameEnum(skuName string) (operationalinsights.SkuNameEnum, error) {
-	switch skuName {
-	case "Free":
-		return operationalinsights.Free, nil
-	case "PerNode":
-		return operationalinsights.PerNode, nil
-	case "Premium":
-		return operationalinsights.Premium, nil
-	case "Standalone":
-		return operationalinsights.Standalone, nil
-	case "Standard":
-		return operationalinsights.Standard, nil
-	case "Unlimited":
-		return operationalinsights.Unlimited, nil
-	default:
-		return operationalinsights.Free, fmt.Errorf("Sku name not found")
-	}
 }
 
 func validateAzureRmOperationalInsightWorkspaceName(v interface{}, k string) (ws []string, errors []error) {
