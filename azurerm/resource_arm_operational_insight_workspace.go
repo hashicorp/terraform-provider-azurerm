@@ -136,7 +136,7 @@ func resourceArmOperationalInsightWorkspaceRead(d *schema.ResourceData, meta int
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Operational Insight workspaces '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Operational Insight workspaces '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
