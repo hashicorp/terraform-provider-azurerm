@@ -78,7 +78,7 @@ func TestAccAzureRmOperationalInsightWorkspaceRetentionInDays_validation(t *test
 		_, errors := validateAzureRmOperationalInsightWorkspaceRetentionInDays(tc.Value, "azurerm_log_analytics")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AzureRM Operational Insight Workspace Name to trigger a validation error for '%d'", tc.Value)
+			t.Fatalf("Expected the AzureRM Operational Insight Workspace Retention In Days to trigger a validation error for '%d'", tc.Value)
 		}
 	}
 }
