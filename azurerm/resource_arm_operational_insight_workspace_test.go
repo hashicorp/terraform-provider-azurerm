@@ -43,7 +43,39 @@ func TestAccAzureRmOperationalInsightWorkspaceName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureRmOperationalInsightWorkspaceName(tc.Value, "azurerm_operational_insight_workspace")
+		_, errors := validateAzureRmOperationalInsightWorkspaceName(tc.Value, "azurerm_log_analytics")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the AzureRM Operational Insight Workspace Name to trigger a validation error for '%s'", tc.Value)
+		}
+	}
+}
+
+func TestAccAzureRmOperationalInsightWorkspaceRetentionInDays_validation(t *testing.T) {
+	cases := []struct {
+		Value    int
+		ErrCount int
+	}{
+		{
+			Value:    29,
+			ErrCount: 1,
+		},
+		{
+			Value:    30,
+			ErrCount: 0,
+		},
+		{
+			Value:    730,
+			ErrCount: 0,
+		},
+		{
+			Value:    731,
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateAzureRmOperationalInsightWorkspaceRetentionInDays(tc.Value, "azurerm_log_analytics")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AzureRM Operational Insight Workspace Name to trigger a validation error for '%s'", tc.Value)
@@ -63,7 +95,7 @@ func TestAccAzureRMOperationalInsightWorkspace_requiredOnly(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOperationalInsightWorkspaceExists("azurerm_operational_insight_workspace.test"),
+					testCheckAzureRMOperationalInsightWorkspaceExists("azurerm_log_analytics.test"),
 				),
 			},
 		},
@@ -81,7 +113,7 @@ func TestAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(t *testin
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOperationalInsightWorkspaceExists("azurerm_operational_insight_workspace.test"),
+					testCheckAzureRMOperationalInsightWorkspaceExists("azurerm_log_analytics.test"),
 				),
 			},
 		},
@@ -92,7 +124,7 @@ func testCheckAzureRMOperationalInsightWorkspaceDestroy(s *terraform.State) erro
 	conn := testAccProvider.Meta().(*ArmClient).workspacesClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_operational_insight_workspace" {
+		if rs.Type != "azurerm_log_analytics" {
 			continue
 		}
 
@@ -149,7 +181,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_operational_insight_workspace" "test" {
+resource "azurerm_log_analytics" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -165,12 +197,12 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_operational_insight_workspace" "test" {
+resource "azurerm_log_analytics" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
-  retention_in_days   = 5
+  retention_in_days   = 30
 }
 `, rInt, location, rInt)
 }

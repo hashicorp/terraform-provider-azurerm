@@ -54,9 +54,10 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 			"retention_in_days": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateAzureRmOperationalInsightWorkspaceRetentionInDays,
 			},
 			"primary_shared_key": {
 				Type:     schema.TypeString,
@@ -194,5 +195,13 @@ func validateAzureRmOperationalInsightWorkspaceName(v interface{}, k string) (ws
 		errors = append(errors, fmt.Errorf("Workspace Name can only be between 4 and 63 letters"))
 	}
 
+	return
+}
+
+func validateAzureRmOperationalInsightWorkspaceRetentionInDays(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(int)
+	if value < 30 || value > 730 {
+		errors = append(errors, fmt.Errorf("The `retention_in_days` can only be between 30 and 730"))
+	}
 	return
 }

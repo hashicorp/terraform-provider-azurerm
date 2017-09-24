@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccAzureRMOperationalInsightWorkspace_importRequiredOnly(t *testing.T) {
-	resourceName := "azurerm_operational_insight_workspace.test"
+	resourceName := "azurerm_log_analytics.test"
 
 	ri := acctest.RandInt()
 	config := testAccAzureRMOperationalInsightWorkspace_requiredOnly(ri, testLocation())
@@ -32,7 +32,7 @@ func TestAccAzureRMOperationalInsightWorkspace_importRequiredOnly(t *testing.T) 
 }
 
 func TestAccAzureRMOperationalInsightWorkspace_importRetentionInDaysComplete(t *testing.T) {
-	resourceName := "azurerm_operational_insight_workspace.test"
+	resourceName := "azurerm_log_analytics.test"
 
 	ri := acctest.RandInt()
 	config := testAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(ri, testLocation())
