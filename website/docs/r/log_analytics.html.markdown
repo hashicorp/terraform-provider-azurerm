@@ -1,0 +1,64 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_log_analytics"
+sidebar_current: "docs-azurerm-resource-log-analytics"
+description: |-
+  Creates a new Log Analytics (formally Operational Insights Workspaces) Workspace.
+---
+
+# azurerm\_log\_analytics
+
+Creates a new Log Analytics (formally Operational Insights Workspaces) Workspace.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-01"
+  location = "East US"
+}
+
+resource "azurerm_log_analytics" "test" {
+  name                = "acctest-01"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  retention_in_days   = 30
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) Specifies the name of the Workspace. Changing this forces a new resource to be created. Workspace name should include 4-63 letters, digits or '-'. The '-' shouldn't be the first or the last symbol.
+
+* `resource_group_name` - (Required) The name of the resource group in which the Log Analytics workspace is created. Changing this forces a new resource to be created.
+
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `sku` - (Required) A `sku` block as defined below.
+
+* `retention_in_days` - (Optional) The workspace data retention in days. Possible values range between 30 and 730.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+* `sku` supports the following:
+  * Free
+  * Standard
+  * PerNode
+  * Standalone
+  * Premium
+  * Unlimited
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The Log Analytics Workspace ID.
+
+* `primary_shared_key` - The Primary shared key for the Log Analytics Workspace.
+
+* `secondary_shared_key` - The Secondary shared key for the Analytics Workspace..
