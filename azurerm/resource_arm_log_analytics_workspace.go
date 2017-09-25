@@ -144,7 +144,9 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	d.Set("resource_group_name", resGroup)
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", resp.PortalURL)
-	d.Set("sku", resp.Sku.Name)
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", resp.Sku.Name)
+	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 
 	sharedKeys, err := client.GetSharedKeys(resGroup, name)
