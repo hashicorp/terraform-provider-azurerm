@@ -100,6 +100,11 @@ The following arguments are supported:
     group in the Azure Active Directory tenant for the vault. The object ID must
     be unique for the list of access policies.
 
+* `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
+
+* `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from
+    the following: `All`, `Create`, `Delete`, `Deleteissuers`, `Get`, `Getissuers`, `Import`, `List`, `Listissuers`, `Managecontacts`, `Manageissuers`, `Setissuers` and `Update`.
+
 * `key_permissions` - (Required) List of key permissions, must be one or more from
     the following: `all`, `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`,
     `import`, `list`, `restore`, `sign`, `unwrapKey`, `update`, `verify`, `wrapKey`.

@@ -84,6 +84,34 @@ func resourceArmKeyVault() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validateUUID,
 						},
+						"application_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateUUID,
+						},
+						"certificate_permissions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(keyvault.All),
+									string(keyvault.Create),
+									string(keyvault.Delete),
+									string(keyvault.Deleteissuers),
+									string(keyvault.Get),
+									string(keyvault.Getissuers),
+									string(keyvault.Import),
+									string(keyvault.List),
+									string(keyvault.Listissuers),
+									string(keyvault.Managecontacts),
+									string(keyvault.Manageissuers),
+									string(keyvault.Setissuers),
+									string(keyvault.Update),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							},
+						},
 						"key_permissions": {
 							Type:     schema.TypeList,
 							Required: true,
@@ -105,7 +133,8 @@ func resourceArmKeyVault() *schema.Resource {
 									string(keyvault.KeyPermissionsUpdate),
 									string(keyvault.KeyPermissionsVerify),
 									string(keyvault.KeyPermissionsWrapKey),
-								}, false),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							},
 						},
 						"secret_permissions": {
@@ -119,7 +148,8 @@ func resourceArmKeyVault() *schema.Resource {
 									string(keyvault.SecretPermissionsGet),
 									string(keyvault.SecretPermissionsList),
 									string(keyvault.SecretPermissionsSet),
-								}, false),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							},
 						},
 					},
@@ -257,6 +287,12 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 	for _, policySet := range policies {
 		policyRaw := policySet.(map[string]interface{})
 
+		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]interface{})
+		certificatePermissions := []keyvault.CertificatePermissions{}
+		for _, permission := range certificatePermissionsRaw {
+			certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
+		}
+
 		keyPermissionsRaw := policyRaw["key_permissions"].([]interface{})
 		keyPermissions := []keyvault.KeyPermissions{}
 		for _, permission := range keyPermissionsRaw {
@@ -271,8 +307,9 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 
 		policy := keyvault.AccessPolicyEntry{
 			Permissions: &keyvault.Permissions{
-				Keys:    &keyPermissions,
-				Secrets: &secretPermissions,
+				Certificates: &certificatePermissions,
+				Keys:         &keyPermissions,
+				Secrets:      &secretPermissions,
 			},
 		}
 
@@ -280,6 +317,11 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 		policy.TenantID = &tenantUUID
 		objectUUID := policyRaw["object_id"].(string)
 		policy.ObjectID = &objectUUID
+
+		if v := policyRaw["application_id"]; v != "" {
+			applicationUUID := uuid.FromStringOrNil(v.(string))
+			policy.ApplicationID = &applicationUUID
+		}
 
 		result = append(result, policy)
 	}
@@ -301,6 +343,11 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 	for _, policy := range *policies {
 		policyRaw := make(map[string]interface{})
 
+		certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
+		for _, certificatePermission := range *policy.Permissions.Certificates {
+			certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+		}
+
 		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
 		for _, keyPermission := range *policy.Permissions.Keys {
 			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
@@ -313,6 +360,10 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 
 		policyRaw["tenant_id"] = policy.TenantID.String()
 		policyRaw["object_id"] = *policy.ObjectID
+		if policy.ApplicationID != nil {
+			policyRaw["application_id"] = policy.ApplicationID.String()
+		}
+		policyRaw["certificate_permissions"] = certificatePermissionsRaw
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
 
