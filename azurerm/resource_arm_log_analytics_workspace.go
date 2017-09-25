@@ -74,7 +74,7 @@ func resourceArmLogAnalyticsWorkspaceService() *schema.Resource {
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).workspacesClient
-	log.Printf("[INFO] preparing arguments for AzureRM Operational Insight workspace creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics workspace creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -111,7 +111,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Operational Inight Workspace '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Log Analytics Workspace '%s' (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -136,7 +136,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Operational Insight workspaces '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -151,7 +151,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 
 	sharedKeys, err := client.GetSharedKeys(resGroup, name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List Shared keys for Operatinal Insight workspaces %s: %+v", name, err)
+		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", name, err)
 	} else {
 		d.Set("primary_shared_key", sharedKeys.PrimarySharedKey)
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
@@ -178,7 +178,7 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Operational Insight Workspaces '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", name, err)
 	}
 
 	return nil
@@ -189,7 +189,7 @@ func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (ws []str
 
 	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
 	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("Workspace Name can only contain alphabet, number, and '-' charactor. You can not use '-' as the start and end of the name"))
+		errors = append(errors, fmt.Errorf("Workspace Name can only contain alphabet, number, and '-' character. You can not use '-' as the start and end of the name"))
 	}
 
 	length := len(value)
