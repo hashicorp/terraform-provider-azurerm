@@ -51,38 +51,6 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRmLogAnalyticsWorkspaceRetentionInDays_validation(t *testing.T) {
-	cases := []struct {
-		Value    int
-		ErrCount int
-	}{
-		{
-			Value:    29,
-			ErrCount: 1,
-		},
-		{
-			Value:    30,
-			ErrCount: 0,
-		},
-		{
-			Value:    730,
-			ErrCount: 0,
-		},
-		{
-			Value:    731,
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateAzureRmLogAnalyticsWorkspaceRetentionInDays(tc.Value, "azurerm_log_analytics")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AzureRM Operational Insight Workspace Retention In Days to trigger a validation error for '%d'", tc.Value)
-		}
-	}
-}
-
 func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, testLocation())

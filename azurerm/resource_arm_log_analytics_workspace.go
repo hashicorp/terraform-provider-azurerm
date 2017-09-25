@@ -57,7 +57,7 @@ func resourceArmLogAnalyticsWorkspaceService() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceRetentionInDays,
+				ValidateFunc: validation.IntBetween(30, 730),
 			},
 			"primary_shared_key": {
 				Type:     schema.TypeString,
@@ -195,13 +195,5 @@ func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (ws []str
 		errors = append(errors, fmt.Errorf("Workspace Name can only be between 4 and 63 letters"))
 	}
 
-	return
-}
-
-func validateAzureRmLogAnalyticsWorkspaceRetentionInDays(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-	if value < 30 || value > 730 {
-		errors = append(errors, fmt.Errorf("The `retention_in_days` can only be between 30 and 730"))
-	}
 	return
 }
