@@ -1,9 +1,8 @@
 package azurerm
 
 import (
-	"time"
-
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -22,6 +21,10 @@ func dataSourceArmClientConfig() *schema.Resource {
 				Computed: true,
 			},
 			"subscription_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"service_principal_application_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -55,6 +58,7 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("client_id", client.clientId)
 	d.Set("tenant_id", client.tenantId)
 	d.Set("subscription_id", client.subscriptionId)
+	d.Set("service_principal_application_id", *servicePrincipal.AppID)
 	d.Set("service_principal_object_id", *servicePrincipal.ObjectID)
 
 	return nil

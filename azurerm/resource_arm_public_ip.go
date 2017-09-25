@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmPublicIp() *schema.Resource {
@@ -17,7 +18,17 @@ func resourceArmPublicIp() *schema.Resource {
 		Update: resourceArmPublicIpCreate,
 		Delete: resourceArmPublicIpDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				id, err := parseAzureResourceID(d.Id())
+				if err != nil {
+					return nil, err
+				}
+				name := id.Path["publicIPAddresses"]
+				if name == "" {
+					return nil, fmt.Errorf("Error parsing supplied resource id. Please check it and rerun:\n %s", d.Id())
+				}
+				return []*schema.ResourceData{d}, nil
+			},
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -29,11 +40,7 @@ func resourceArmPublicIp() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"public_ip_address_allocation": {
 				Type:             schema.TypeString,
@@ -160,7 +167,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := publicIPClient.Get(resGroup, name, "")
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}

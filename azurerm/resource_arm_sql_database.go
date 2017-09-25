@@ -3,18 +3,25 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
-	"github.com/jen20/riviera/sql"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/satori/uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSqlDatabase() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlDatabaseCreate,
+		Create: resourceArmSqlDatabaseCreateUpdate,
 		Read:   resourceArmSqlDatabaseRead,
-		Update: resourceArmSqlDatabaseCreate,
+		Update: resourceArmSqlDatabaseCreateUpdate,
 		Delete: resourceArmSqlDatabaseDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -25,11 +32,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"server_name": {
 				Type:     schema.TypeString,
@@ -40,7 +43,18 @@ func resourceArmSqlDatabase() *schema.Resource {
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "Default",
+				Default:  string(sql.Default),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.Copy),
+					string(sql.Default),
+					string(sql.NonReadableSecondary),
+					string(sql.OnlineSecondary),
+					string(sql.PointInTimeRestore),
+					string(sql.Recovery),
+					string(sql.Restore),
+					string(sql.RestoreLongTermRetentionBackup),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"source_database_id": {
@@ -50,16 +64,23 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"restore_point_in_time": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"edition": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateArmSqlDatabaseEdition,
+				ValidateFunc: validateRFC3339Date,
+			},
+
+			"edition": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.Basic),
+					string(sql.Standard),
+					string(sql.Premium),
+					string(sql.DataWarehouse),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"collation": {
@@ -75,21 +96,26 @@ func resourceArmSqlDatabase() *schema.Resource {
 			},
 
 			"requested_service_objective_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateUUID,
 			},
 
 			"requested_service_objective_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				// TODO: add validation once the Enum's complete
+				// https://github.com/Azure/azure-rest-api-specs/issues/1609
 			},
 
 			"source_database_deletion_date": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateRFC3339Date,
 			},
 
 			"elastic_pool_name": {
@@ -118,113 +144,161 @@ func resourceArmSqlDatabase() *schema.Resource {
 	}
 }
 
-func resourceArmSqlDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).sqlDatabasesClient
 
+	name := d.Get("name").(string)
+	serverName := d.Get("server_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	location := d.Get("location").(string)
+	createMode := d.Get("create_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
 
-	command := &sql.CreateOrUpdateDatabase{
-		Name:              d.Get("name").(string),
-		Location:          d.Get("location").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ServerName:        d.Get("server_name").(string),
-		Tags:              *expandedTags,
-		CreateMode:        azure.String(d.Get("create_mode").(string)),
+	properties := sql.Database{
+		Location: utils.String(location),
+		DatabaseProperties: &sql.DatabaseProperties{
+			CreateMode: sql.CreateMode(createMode),
+		},
+		Tags: expandTags(tags),
 	}
 
 	if v, ok := d.GetOk("source_database_id"); ok {
-		command.SourceDatabaseID = azure.String(v.(string))
+		sourceDatabaseID := v.(string)
+		properties.DatabaseProperties.SourceDatabaseID = utils.String(sourceDatabaseID)
 	}
 
 	if v, ok := d.GetOk("edition"); ok {
-		command.Edition = azure.String(v.(string))
+		edition := v.(string)
+		properties.DatabaseProperties.Edition = sql.DatabaseEdition(edition)
 	}
 
 	if v, ok := d.GetOk("collation"); ok {
-		command.Collation = azure.String(v.(string))
+		collation := v.(string)
+		properties.DatabaseProperties.Collation = utils.String(collation)
 	}
 
 	if v, ok := d.GetOk("max_size_bytes"); ok {
-		command.MaxSizeBytes = azure.String(v.(string))
+		maxSizeBytes := v.(string)
+		properties.DatabaseProperties.MaxSizeBytes = utils.String(maxSizeBytes)
 	}
 
 	if v, ok := d.GetOk("source_database_deletion_date"); ok {
-		command.SourceDatabaseDeletionDate = azure.String(v.(string))
+		sourceDatabaseDeletionString := v.(string)
+		sourceDatabaseDeletionDate, err := date.ParseTime(time.RFC3339, sourceDatabaseDeletionString)
+		if err != nil {
+			return fmt.Errorf("`source_database_deletion_date` wasn't a valid RFC3339 date %q: %+v", sourceDatabaseDeletionString, err)
+		}
+
+		properties.DatabaseProperties.SourceDatabaseDeletionDate = &date.Time{
+			Time: sourceDatabaseDeletionDate,
+		}
 	}
 
 	if v, ok := d.GetOk("requested_service_objective_id"); ok {
-		command.RequestedServiceObjectiveID = azure.String(v.(string))
+		requestedServiceObjectiveID := v.(string)
+		id, err := uuid.FromString(requestedServiceObjectiveID)
+		if err != nil {
+			return fmt.Errorf("`requested_service_objective_id` wasn't a valid UUID %q: %+v", requestedServiceObjectiveID, err)
+		}
+		properties.DatabaseProperties.RequestedServiceObjectiveID = &id
 	}
 
 	if v, ok := d.GetOk("elastic_pool_name"); ok {
-		command.ElasticPoolName = azure.String(v.(string))
+		elasticPoolName := v.(string)
+		properties.DatabaseProperties.ElasticPoolName = utils.String(elasticPoolName)
 	}
 
 	if v, ok := d.GetOk("requested_service_objective_name"); ok {
-		command.RequestedServiceObjectiveName = azure.String(v.(string))
+		requestedServiceObjectiveName := v.(string)
+		properties.DatabaseProperties.RequestedServiceObjectiveName = sql.ServiceObjectiveName(requestedServiceObjectiveName)
 	}
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
-		command.RestorePointInTime = azure.String(v.(string))
+		restorePointInTime := v.(string)
+		restorePointInTimeDate, err := date.ParseTime(time.RFC3339, restorePointInTime)
+		if err != nil {
+			return fmt.Errorf("`restore_point_in_time` wasn't a valid RFC3339 date %q: %+v", restorePointInTime, err)
+		}
+
+		properties.DatabaseProperties.RestorePointInTime = &date.Time{
+			Time: restorePointInTimeDate,
+		}
 	}
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = command
-
-	createResponse, err := createRequest.Execute()
+	_, createErr := client.CreateOrUpdate(resourceGroup, serverName, name, properties, make(chan struct{}))
+	err := <-createErr
 	if err != nil {
-		return fmt.Errorf("Error creating SQL Database: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating SQL Database: %s", createResponse.Error)
+		return err
 	}
 
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = &sql.GetDatabase{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		ServerName:        d.Get("server_name").(string),
-	}
-
-	readResponse, err := readRequest.Execute()
+	resp, err := client.Get(resourceGroup, serverName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Database: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading SQL Database: %s", readResponse.Error)
+		return err
 	}
 
-	resp := readResponse.Parsed.(*sql.GetDatabaseResponse)
 	d.SetId(*resp.ID)
 
 	return resourceArmSqlDatabaseRead(d, meta)
 }
 
 func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).sqlDatabasesClient
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &sql.GetDatabase{}
-
-	readResponse, err := readRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error reading SQL Database: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
-		d.SetId("")
-		return fmt.Errorf("Error reading SQL Database: %s", readResponse.Error)
+		return err
 	}
 
-	resp := readResponse.Parsed.(*sql.GetDatabaseResponse)
+	resourceGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+	name := id.Path["databases"]
+
+	resp, err := client.Get(resourceGroup, serverName, name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
+	}
 
 	d.Set("name", resp.Name)
-	d.Set("creation_date", resp.CreationDate)
-	d.Set("default_secondary_location", resp.DefaultSecondaryLocation)
-	d.Set("elastic_pool_name", resp.ElasticPoolName)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("server_name", serverName)
+
+	if props := resp.DatabaseProperties; props != nil {
+		// TODO: set `create_mode` & `source_database_id` once this issue is fixed:
+		// https://github.com/Azure/azure-rest-api-specs/issues/1604
+
+		d.Set("collation", props.Collation)
+		d.Set("default_secondary_location", props.DefaultSecondaryLocation)
+		d.Set("edition", string(props.Edition))
+		d.Set("elastic_pool_name", props.ElasticPoolName)
+		d.Set("max_size_bytes", props.MaxSizeBytes)
+		d.Set("requested_service_objective_name", string(props.RequestedServiceObjectiveName))
+
+		if cd := props.CreationDate; cd != nil {
+			d.Set("creation_date", cd.String())
+		}
+
+		if rsoid := props.RequestedServiceObjectiveID; rsoid != nil {
+			d.Set("requested_service_objective_id", rsoid.String())
+		}
+
+		if rpit := props.RestorePointInTime; rpit != nil {
+			d.Set("restore_point_in_time", rpit.String())
+		}
+
+		if sddd := props.SourceDatabaseDeletionDate; sddd != nil {
+			d.Set("source_database_deletion_date", sddd.String())
+		}
+
+		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -232,32 +306,42 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).sqlDatabasesClient
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &sql.DeleteDatabase{}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Database: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting SQL Database: %s", deleteResponse.Error)
+
+	resourceGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+	name := id.Path["databases"]
+
+	resp, err := client.Delete(resourceGroup, serverName, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("Error deleting SQL Database: %+v", err)
 	}
 
 	return nil
 }
 
-func validateArmSqlDatabaseEdition(v interface{}, k string) (ws []string, errors []error) {
-	editions := map[string]bool{
-		"Basic":         true,
-		"Standard":      true,
-		"Premium":       true,
-		"DataWarehouse": true,
+func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string {
+	if encryption != nil {
+		encrypted := *encryption
+		if len(encrypted) > 0 {
+			if props := encrypted[0].TransparentDataEncryptionProperties; props != nil {
+				return string(props.Status)
+			}
+		}
 	}
-	if !editions[v.(string)] {
-		errors = append(errors, fmt.Errorf("SQL Database Edition can only be Basic, Standard, Premium or DataWarehouse"))
-	}
-	return
+
+	return ""
 }

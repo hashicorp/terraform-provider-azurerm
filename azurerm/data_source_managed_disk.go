@@ -17,10 +17,7 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancer() *schema.Resource {
@@ -31,11 +31,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"frontend_ip_configuration": {
 				Type:     schema.TypeList,
@@ -121,8 +117,8 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	loadbalancer := network.LoadBalancer{
-		Name:     azure.String(name),
-		Location: azure.String(location),
+		Name:     utils.String(name),
+		Location: utils.String(location),
 		Tags:     expandedTags,
 		LoadBalancerPropertiesFormat: &properties,
 	}

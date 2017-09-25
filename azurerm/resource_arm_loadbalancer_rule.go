@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerRule() *schema.Resource {
@@ -33,11 +33,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 
 			"location": deprecatedLocationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
 				Type:     schema.TypeString,
@@ -301,13 +297,13 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 
 	properties := network.LoadBalancingRulePropertiesFormat{
 		Protocol:         network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort:     azure.Int32(int32(d.Get("frontend_port").(int))),
-		BackendPort:      azure.Int32(int32(d.Get("backend_port").(int))),
-		EnableFloatingIP: azure.Bool(d.Get("enable_floating_ip").(bool)),
+		FrontendPort:     utils.Int32(int32(d.Get("frontend_port").(int))),
+		BackendPort:      utils.Int32(int32(d.Get("backend_port").(int))),
+		EnableFloatingIP: utils.Bool(d.Get("enable_floating_ip").(bool)),
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		properties.IdleTimeoutInMinutes = azure.Int32(int32(v.(int)))
+		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
 	}
 
 	if v := d.Get("load_distribution").(string); v != "" {
@@ -344,7 +340,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}
 
 	lbRule := network.LoadBalancingRule{
-		Name: azure.String(d.Get("name").(string)),
+		Name: utils.String(d.Get("name").(string)),
 		LoadBalancingRulePropertiesFormat: &properties,
 	}
 

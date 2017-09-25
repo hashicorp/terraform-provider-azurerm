@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDnsARecord() *schema.Resource {
@@ -25,11 +26,7 @@ func resourceArmDnsARecord() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"zone_name": {
 				Type:     schema.TypeString,
@@ -106,7 +103,7 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := dnsClient.Get(resGroup, zoneName, name, dns.A)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
