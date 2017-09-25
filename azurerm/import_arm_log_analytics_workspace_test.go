@@ -7,16 +7,16 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMOperationalInsightWorkspace_importRequiredOnly(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_importRequiredOnly(t *testing.T) {
 	resourceName := "azurerm_log_analytics.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMOperationalInsightWorkspace_requiredOnly(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMOperationalInsightWorkspaceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -31,16 +31,16 @@ func TestAccAzureRMOperationalInsightWorkspace_importRequiredOnly(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMOperationalInsightWorkspace_importRetentionInDaysComplete(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_importRetentionInDaysComplete(t *testing.T) {
 	resourceName := "azurerm_log_analytics.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMOperationalInsightWorkspaceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

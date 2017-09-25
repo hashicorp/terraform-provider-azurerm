@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRmOperationalInsightWorkspaceName_validation(t *testing.T) {
+func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 	str := acctest.RandString(63)
 	cases := []struct {
 		Value    string
@@ -43,7 +43,7 @@ func TestAccAzureRmOperationalInsightWorkspaceName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureRmOperationalInsightWorkspaceName(tc.Value, "azurerm_log_analytics")
+		_, errors := validateAzureRmLogAnalyticsWorkspaceName(tc.Value, "azurerm_log_analytics")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AzureRM Operational Insight Workspace Name to trigger a validation error for '%s'", tc.Value)
@@ -51,7 +51,7 @@ func TestAccAzureRmOperationalInsightWorkspaceName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRmOperationalInsightWorkspaceRetentionInDays_validation(t *testing.T) {
+func TestAccAzureRmLogAnalyticsWorkspaceRetentionInDays_validation(t *testing.T) {
 	cases := []struct {
 		Value    int
 		ErrCount int
@@ -75,7 +75,7 @@ func TestAccAzureRmOperationalInsightWorkspaceRetentionInDays_validation(t *test
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureRmOperationalInsightWorkspaceRetentionInDays(tc.Value, "azurerm_log_analytics")
+		_, errors := validateAzureRmLogAnalyticsWorkspaceRetentionInDays(tc.Value, "azurerm_log_analytics")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the AzureRM Operational Insight Workspace Retention In Days to trigger a validation error for '%d'", tc.Value)
@@ -83,44 +83,44 @@ func TestAccAzureRmOperationalInsightWorkspaceRetentionInDays_validation(t *test
 	}
 }
 
-func TestAccAzureRMOperationalInsightWorkspace_requiredOnly(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMOperationalInsightWorkspace_requiredOnly(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnly(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMOperationalInsightWorkspaceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOperationalInsightWorkspaceExists("azurerm_log_analytics.test"),
+					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics.test"),
 				),
 			},
 		},
 	})
 }
-func TestAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(t *testing.T) {
+func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMOperationalInsightWorkspaceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOperationalInsightWorkspaceExists("azurerm_log_analytics.test"),
+					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics.test"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMOperationalInsightWorkspaceDestroy(s *terraform.State) error {
+func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).workspacesClient
 
 	for _, rs := range s.RootModule().Resources {
@@ -138,14 +138,14 @@ func testCheckAzureRMOperationalInsightWorkspaceDestroy(s *terraform.State) erro
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("OperationalInsight Workspace still exists:\n%#v", resp)
+			return fmt.Errorf("LogAnalytics Workspace still exists:\n%#v", resp)
 		}
 	}
 
 	return nil
 }
 
-func testCheckAzureRMOperationalInsightWorkspaceExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -156,25 +156,25 @@ func testCheckAzureRMOperationalInsightWorkspaceExists(name string) resource.Tes
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for OperationalInsight Workspace: '%s'", name)
+			return fmt.Errorf("Bad: no resource group found in state for LogAnalytics Workspace: '%s'", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).workspacesClient
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on OperationalInsight Workspace Client: %+v", err)
+			return fmt.Errorf("Bad: Get on LogAnalytics Workspace Client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: OperationalInsight Workspace '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: LogAnalytics Workspace '%s' (resource group: '%s') does not exist", name, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMOperationalInsightWorkspace_requiredOnly(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -190,7 +190,7 @@ resource "azurerm_log_analytics" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMOperationalInsightWorkspace_retentionInDaysComplete(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

@@ -12,12 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
+func resourceArmLogAnalyticsWorkspaceService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmOperationalInsightWorkspaceCreateUpdate,
-		Read:   resourceArmOperationalInsightWorkspaceRead,
-		Update: resourceArmOperationalInsightWorkspaceCreateUpdate,
-		Delete: resourceArmOperationalInsightWorkspaceDelete,
+		Create: resourceArmLogAnalyticsWorkspaceCreateUpdate,
+		Read:   resourceArmLogAnalyticsWorkspaceRead,
+		Update: resourceArmLogAnalyticsWorkspaceCreateUpdate,
+		Delete: resourceArmLogAnalyticsWorkspaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -27,7 +27,7 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRmOperationalInsightWorkspaceName,
+				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceName,
 			},
 			"location":            locationSchema(),
 			"resource_group_name": resourceGroupNameSchema(),
@@ -57,7 +57,7 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateAzureRmOperationalInsightWorkspaceRetentionInDays,
+				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceRetentionInDays,
 			},
 			"primary_shared_key": {
 				Type:     schema.TypeString,
@@ -72,7 +72,7 @@ func resourceArmOperationalInsightWorkspaceService() *schema.Resource {
 	}
 }
 
-func resourceArmOperationalInsightWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).workspacesClient
 	log.Printf("[INFO] preparing arguments for AzureRM Operational Insight workspace creation.")
 
@@ -116,11 +116,11 @@ func resourceArmOperationalInsightWorkspaceCreateUpdate(d *schema.ResourceData, 
 
 	d.SetId(*read.ID)
 
-	return resourceArmOperationalInsightWorkspaceRead(d, meta)
+	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
 
 }
 
-func resourceArmOperationalInsightWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*ArmClient).workspacesClient
 	id, err := parseAzureResourceID(d.Id())
@@ -159,7 +159,7 @@ func resourceArmOperationalInsightWorkspaceRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceArmOperationalInsightWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).workspacesClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -182,7 +182,7 @@ func resourceArmOperationalInsightWorkspaceDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func validateAzureRmOperationalInsightWorkspaceName(v interface{}, k string) (ws []string, errors []error) {
+func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
 	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
@@ -198,7 +198,7 @@ func validateAzureRmOperationalInsightWorkspaceName(v interface{}, k string) (ws
 	return
 }
 
-func validateAzureRmOperationalInsightWorkspaceRetentionInDays(v interface{}, k string) (ws []string, errors []error) {
+func validateAzureRmLogAnalyticsWorkspaceRetentionInDays(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(int)
 	if value < 30 || value > 730 {
 		errors = append(errors, fmt.Errorf("The `retention_in_days` can only be between 30 and 730"))
