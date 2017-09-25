@@ -1,3 +1,4 @@
+## 0.2.2 (Unreleased)
 ## 0.2.1 (September 25, 2017)
 
 FEATURES:
