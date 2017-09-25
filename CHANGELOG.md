@@ -8,6 +8,11 @@ FEATURES:
 * **New Resource:** `azurerm_automation_schedule` [GH-257]
 * **New Resource:** `azurerm_app_service` [GH-344]
 
+IMPROVEMENTS:
+
+* `azurerm_client_config` - adding `service_principal_application_id` [GH-348]
+* `azurerm_key_vault` - adding `application_id` and `certificate_permissions` [GH-348]
+
 BUG FIXES:
 
 * `azurerm_virtual_machine_scale_set` - fix panic with `additional_unattend_config` block [GH-266]
