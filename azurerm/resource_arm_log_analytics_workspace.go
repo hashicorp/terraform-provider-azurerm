@@ -145,7 +145,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", resp.PortalURL)
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", resp.Sku.Name)
+		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 

@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics"
-sidebar_current: "docs-azurerm-resource-log-analytics"
+sidebar_current: "docs-azurerm-resource-oms-log-analytics"
 description: |-
   Creates a new Log Analytics (formally Operational Insights Workspaces) Workspace.
 ---
@@ -31,7 +31,7 @@ resource "azurerm_log_analytics" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Workspace. Changing this forces a new resource to be created. Workspace name should include 4-63 letters, digits or '-'. The '-' shouldn't be the first or the last symbol.
+* `name` - (Required) Specifies the name of the Workspace. Workspace name should include 4-63 letters, digits or '-'. The '-' shouldn't be the first or the last symbol. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the Log Analytics workspace is created. Changing this forces a new resource to be created.
 
@@ -46,12 +46,12 @@ The following arguments are supported:
 ---
 
 * `sku` supports the following:
-  * Free
-  * Standard
-  * PerNode
-  * Standalone
-  * Premium
-  * Unlimited
+  * `Free`
+  * `Standard`
+  * `PerNode`
+  * `Standalone`
+  * `Premium`
+  * `Unlimited`
 
 ## Attributes Reference
 
