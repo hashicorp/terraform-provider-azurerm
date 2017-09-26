@@ -1,4 +1,9 @@
 ## 0.2.2 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_log_analytics_workspace` [GH-331]
+
 ## 0.2.1 (September 25, 2017)
 
 FEATURES:
