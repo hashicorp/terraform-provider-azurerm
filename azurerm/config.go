@@ -102,11 +102,6 @@ type ArmClient struct {
 
 	workspacesClient operationalinsights.WorkspacesClient
 
-	postgresqlConfigurationsClient postgresql.ConfigurationsClient
-	postgresqlDatabasesClient      postgresql.DatabasesClient
-	postgresqlFirewallRulesClient  postgresql.FirewallRulesClient
-	postgresqlServersClient        postgresql.ServersClient
-
 	providers           resources.ProvidersClient
 	resourceGroupClient resources.GroupsClient
 	tagsClient          resources.TagsClient
