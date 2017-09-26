@@ -46,7 +46,7 @@ func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
 		_, errors := validateAzureRmLogAnalyticsWorkspaceName(tc.Value, "azurerm_log_analytics")
 
 		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the AzureRM Operational Insight Workspace Name to trigger a validation error for '%s'", tc.Value)
+			t.Fatalf("Expected the AzureRM Log Analytics Workspace Name to trigger a validation error for '%s'", tc.Value)
 		}
 	}
 }
@@ -63,7 +63,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics.test"),
+					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics_workspace.test"),
 				),
 			},
 		},
@@ -81,7 +81,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics.test"),
+					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics_workspace.test"),
 				),
 			},
 		},
@@ -92,7 +92,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).workspacesClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_log_analytics" {
+		if rs.Type != "azurerm_log_analytics_workspace" {
 			continue
 		}
 
@@ -106,7 +106,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("LogAnalytics Workspace still exists:\n%#v", resp)
+			return fmt.Errorf("Log Analytics Workspace still exists:\n%#v", resp)
 		}
 	}
 
@@ -124,18 +124,18 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheck
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for LogAnalytics Workspace: '%s'", name)
+			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: '%s'", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).workspacesClient
 
 		resp, err := conn.Get(resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on LogAnalytics Workspace Client: %+v", err)
+			return fmt.Errorf("Bad: Get on Log Analytics Workspace Client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: LogAnalytics Workspace '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Log Analytics Workspace '%s' (resource group: '%s') does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -149,7 +149,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_log_analytics" "test" {
+resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -165,7 +165,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_log_analytics" "test" {
+resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"

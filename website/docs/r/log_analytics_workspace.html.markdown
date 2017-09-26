@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_log_analytics"
-sidebar_current: "docs-azurerm-resource-oms-log-analytics"
+page_title: "Azure Resource Manager: azurerm_log_analytics_workspace"
+sidebar_current: "docs-azurerm-resource-oms-log-analytics-workspace"
 description: |-
   Creates a new Log Analytics (formally Operational Insights) Workspace.
 ---
 
-# azurerm_log_analytics
+# azurerm_log_analytics_workspace
 
 Creates a new Log Analytics (formally Operational Insights) Workspace.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "test" {
   location = "East US"
 }
 
-resource "azurerm_log_analytics" "test" {
+resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-01"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -31,7 +31,7 @@ resource "azurerm_log_analytics" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Workspace. Workspace name should include 4-63 letters, digits or '-'. The '-' shouldn't be the first or the last symbol. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Log Analytics Workspace. Workspace name should include 4-63 letters, digits or '-'. The '-' shouldn't be the first or the last symbol. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the Log Analytics workspace is created. Changing this forces a new resource to be created.
 
@@ -51,4 +51,8 @@ The following attributes are exported:
 
 * `primary_shared_key` - The Primary shared key for the Log Analytics Workspace.
 
-* `secondary_shared_key` - The Secondary shared key for the Analytics Workspace.
+* `secondary_shared_key` - The Secondary shared key for the Log Analytics Workspace.
+
+* `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
+
+* `portal_url` - The Portal URL for the Log Analytics Workspace.

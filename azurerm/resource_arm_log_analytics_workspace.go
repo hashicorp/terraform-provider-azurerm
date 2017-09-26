@@ -8,11 +8,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogAnalyticsWorkspaceService() *schema.Resource {
+func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLogAnalyticsWorkspaceCreateUpdate,
 		Read:   resourceArmLogAnalyticsWorkspaceRead,
@@ -29,16 +28,11 @@ func resourceArmLogAnalyticsWorkspaceService() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceName,
 			},
-			"location":            locationSchema(),
+
+			"location": locationSchema(),
+
 			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
-			"workspace_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"portal_url": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+
 			"sku": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -53,20 +47,34 @@ func resourceArmLogAnalyticsWorkspaceService() *schema.Resource {
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
+
 			"retention_in_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(30, 730),
 			},
+
+			"workspace_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"portal_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_shared_key": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"secondary_shared_key": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"tags": tagsSchema(),
 		},
 	}
