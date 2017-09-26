@@ -30,7 +30,7 @@ func resourceArmLogAnalyticsWorkspaceService() *schema.Resource {
 				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceName,
 			},
 			"location":            locationSchema(),
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 			"workspace_id": {
 				Type:     schema.TypeString,
 				Computed: true,
