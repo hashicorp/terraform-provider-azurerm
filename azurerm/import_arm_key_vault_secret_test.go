@@ -8,7 +8,7 @@ import (
 )
 
 func TestAccAzureRMKeyVaultSecret_importBasic(t *testing.T) {
-	resourceName := "azurerm_key_vault.test"
+	resourceName := "azurerm_key_vault_secret.test"
 
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultSecret_basic(rs, testLocation())
@@ -31,7 +31,7 @@ func TestAccAzureRMKeyVaultSecret_importBasic(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultSecret_importComplete(t *testing.T) {
-	resourceName := "azurerm_key_vault.test"
+	resourceName := "azurerm_key_vault_secret.test"
 
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultSecret_complete(rs, testLocation())
