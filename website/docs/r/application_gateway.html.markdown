@@ -69,17 +69,17 @@ resource "azurerm_application_gateway" "network" {
   }
  
   frontend_port {
-      name         = "my-frontend-port"
+      name         = "${azurerm_virtual_network.vnet.name}-feport"
       port         = 80
   }
  
   frontend_ip_configuration {
-      name         = "my-frontend-ip-configuration"  
+      name         = "${azurerm_virtual_network.vnet.name}-feip"  
       public_ip_address_id = "${azurerm_public_ip.pip.id}"
   }
 
   backend_address_pool {
-      name = "my-backend-address-pool"
+      name = "${azurerm_virtual_network.vnet.name}-beap"
   }
  
   backend_http_settings {
@@ -97,13 +97,13 @@ resource "azurerm_application_gateway" "network" {
         protocol                              = "Http"
   }
  
-request_routing_rule {
-        name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
-        rule_type                  = "Basic"
-        http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
-        backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
-        backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
-}
+  request_routing_rule {
+          name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
+          rule_type                  = "Basic"
+          http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
+          backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
+          backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
+  }
 }
 ```
 
