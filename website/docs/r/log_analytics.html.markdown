@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics"
 sidebar_current: "docs-azurerm-resource-oms-log-analytics"
 description: |-
-  Creates a new Log Analytics (formally Operational Insights Workspaces) Workspace.
+  Creates a new Log Analytics (formally Operational Insights) Workspace.
 ---
 
-# azurerm\_log\_analytics
+# azurerm_log_analytics
 
-Creates a new Log Analytics (formally Operational Insights Workspaces) Workspace.
+Creates a new Log Analytics (formally Operational Insights) Workspace.
 
 ## Example Usage
 
@@ -37,21 +37,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku` - (Required) Specifies the Sku of the Log Analytics Workspace. Possible values are `Free`, `PerNode`, `Premium`, `Standard`, `Standalone` and `Unlimited.`
 
 * `retention_in_days` - (Optional) The workspace data retention in days. Possible values range between 30 and 730.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-* `sku` supports the following:
-  * `Free`
-  * `Standard`
-  * `PerNode`
-  * `Standalone`
-  * `Premium`
-  * `Unlimited`
 
 ## Attributes Reference
 
@@ -61,4 +51,4 @@ The following attributes are exported:
 
 * `primary_shared_key` - The Primary shared key for the Log Analytics Workspace.
 
-* `secondary_shared_key` - The Secondary shared key for the Analytics Workspace..
+* `secondary_shared_key` - The Secondary shared key for the Analytics Workspace.
