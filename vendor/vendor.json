@@ -123,6 +123,14 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
+			"checksumSHA1": "/TBRYaTTjpsuKRCKH6nvQfSlLOw=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/operationalinsights",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z",
+			"version": "=v10.3.0-beta",
+			"versionExact": "v10.3.0-beta"
+		},
+		{
 			"checksumSHA1": "aJQ7rml6haLjCsNhe5OOPOgqozM=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/postgresql",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",

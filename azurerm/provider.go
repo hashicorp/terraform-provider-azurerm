@@ -109,6 +109,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_lb_probe":                    resourceArmLoadBalancerProbe(),
 			"azurerm_lb_rule":                     resourceArmLoadBalancerRule(),
 			"azurerm_local_network_gateway":       resourceArmLocalNetworkGateway(),
+			"azurerm_log_analytics_workspace":     resourceArmLogAnalyticsWorkspace(),
 			"azurerm_managed_disk":                resourceArmManagedDisk(),
 			"azurerm_network_interface":           resourceArmNetworkInterface(),
 			"azurerm_network_security_group":      resourceArmNetworkSecurityGroup(),
@@ -381,25 +382,26 @@ var providerRegistrationOnce sync.Once
 
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
-		"Microsoft.Automation":        {},
-		"Microsoft.Cache":             {},
-		"Microsoft.Cdn":               {},
-		"Microsoft.Compute":           {},
-		"Microsoft.ContainerInstance": {},
-		"Microsoft.ContainerRegistry": {},
-		"Microsoft.ContainerService":  {},
-		"Microsoft.DBforPostgreSQL":   {},
-		"Microsoft.DocumentDB":        {},
-		"Microsoft.EventGrid":         {},
-		"Microsoft.EventHub":          {},
-		"Microsoft.KeyVault":          {},
-		"microsoft.insights":          {},
-		"Microsoft.Network":           {},
-		"Microsoft.Resources":         {},
-		"Microsoft.Search":            {},
-		"Microsoft.ServiceBus":        {},
-		"Microsoft.Sql":               {},
-		"Microsoft.Storage":           {},
+		"Microsoft.Automation":          {},
+		"Microsoft.Cache":               {},
+		"Microsoft.Cdn":                 {},
+		"Microsoft.Compute":             {},
+		"Microsoft.ContainerInstance":   {},
+		"Microsoft.ContainerRegistry":   {},
+		"Microsoft.ContainerService":    {},
+		"Microsoft.DBforPostgreSQL":     {},
+		"Microsoft.DocumentDB":          {},
+		"Microsoft.EventGrid":           {},
+		"Microsoft.EventHub":            {},
+		"Microsoft.KeyVault":            {},
+		"microsoft.insights":            {},
+		"Microsoft.Network":             {},
+		"Microsoft.OperationalInsights": {},
+		"Microsoft.Resources":           {},
+		"Microsoft.Search":              {},
+		"Microsoft.ServiceBus":          {},
+		"Microsoft.Sql":                 {},
+		"Microsoft.Storage":             {},
 	}
 
 	// filter out any providers already registered
@@ -424,6 +426,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
 	var err error
 	providerRegistrationOnce.Do(func() {
+
 		providers := determineAzureResourceProvidersToRegister(providerList)
 
 		var wg sync.WaitGroup
