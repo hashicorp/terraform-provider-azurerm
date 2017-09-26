@@ -11,6 +11,14 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
+			"checksumSHA1": "kDu+bApbVn1n9OGBoBJT8p6YZGc=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/automation",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z",
+			"version": "=v10.3.0-beta",
+			"versionExact": "v10.3.0-beta"
+		},
+		{
 			"checksumSHA1": "1K/j9mahBUFLBfRPhEHxQ5Pjx/M=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/cdn",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
@@ -24,6 +32,14 @@
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
 			"revisionTime": "2017-08-18T20:19:01Z",
 			"version": "=v10.3.0-beta",
+			"versionExact": "v10.3.0-beta"
+		},
+		{
+			"checksumSHA1": "MqsrM6ecN0KvCc15+F0asFR34/I=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/containerinstance",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z",
+			"version": "v10.3.0-beta",
 			"versionExact": "v10.3.0-beta"
 		},
 		{
@@ -212,57 +228,66 @@
 		},
 		{
 			"checksumSHA1": "+4d+Y67AMKKuyR1EO33Zdt+RVx0=",
-			"comment": "v8.3.0",
+			"comment": "v8.4.0",
 			"path": "github.com/Azure/go-autorest/autorest",
-			"revision": "77a52603f06947221c672f10275abc9bf2c7d557",
-			"revisionTime": "2017-08-16T16:57:29Z",
-			"version": "v8.3.0",
-			"versionExact": "v8.3.0"
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T23:19:17Z",
+			"version": "v8.4.0",
+			"versionExact": "v8.4.0"
 		},
 		{
-			"checksumSHA1": "KOETWLsF6QW+lrPVPsMNHDZP+xA=",
-			"comment": "v8.3.0",
+			"checksumSHA1": "7G4HgRaIT25bgz/hPtXG6Kv8Fho=",
+			"comment": "v8.4.0",
 			"path": "github.com/Azure/go-autorest/autorest/adal",
-			"revision": "77a52603f06947221c672f10275abc9bf2c7d557",
-			"revisionTime": "2017-08-16T16:57:29Z",
-			"version": "v8.3.0",
-			"versionExact": "v8.3.0"
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T23:19:17Z",
+			"version": "v8.4.0",
+			"versionExact": "v8.4.0"
 		},
 		{
 			"checksumSHA1": "2KdBFgT4qY+fMOkBTa5vA9V0AiM=",
-			"comment": "v8.3.0",
+			"comment": "v8.4.0",
 			"path": "github.com/Azure/go-autorest/autorest/azure",
-			"revision": "77a52603f06947221c672f10275abc9bf2c7d557",
-			"revisionTime": "2017-08-16T16:57:29Z",
-			"version": "v8.3.0",
-			"versionExact": "v8.3.0"
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T23:19:17Z",
+			"version": "v8.4.0",
+			"versionExact": "v8.4.0"
+		},
+		{
+			"checksumSHA1": "apxw17Dm1naEXMbVDCRnEDkQDQ8=",
+			"comment": "v8.4.0",
+			"path": "github.com/Azure/go-autorest/autorest/azure/cli",
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T23:19:17Z",
+			"version": "v8.4.0",
+			"versionExact": "v8.4.0"
 		},
 		{
 			"checksumSHA1": "LSF/pNrjhIxl6jiS6bKooBFCOxI=",
-			"comment": "v8.3.0",
+			"comment": "v8.4.0",
 			"path": "github.com/Azure/go-autorest/autorest/date",
-			"revision": "77a52603f06947221c672f10275abc9bf2c7d557",
-			"revisionTime": "2017-08-16T16:57:29Z",
-			"version": "v8.3.0",
-			"versionExact": "v8.3.0"
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T23:19:17Z",
+			"version": "v8.4.0",
+			"versionExact": "v8.4.0"
 		},
 		{
 			"checksumSHA1": "Ev8qCsbFjDlMlX0N2tYAhYQFpUc=",
-			"comment": "v8.3.0",
+			"comment": "v8.4.0",
 			"path": "github.com/Azure/go-autorest/autorest/to",
-			"revision": "77a52603f06947221c672f10275abc9bf2c7d557",
-			"revisionTime": "2017-08-16T16:57:29Z",
-			"version": "v8.3.0",
-			"versionExact": "v8.3.0"
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T23:19:17Z",
+			"version": "v8.4.0",
+			"versionExact": "v8.4.0"
 		},
 		{
 			"checksumSHA1": "rGkTfIycpeix5TAbZS74ceGAPHI=",
-			"comment": "v8.3.0",
+			"comment": "v8.4.0",
 			"path": "github.com/Azure/go-autorest/autorest/validation",
-			"revision": "77a52603f06947221c672f10275abc9bf2c7d557",
-			"revisionTime": "2017-08-16T16:57:29Z",
-			"version": "v8.3.0",
-			"versionExact": "v8.3.0"
+			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
+			"revisionTime": "2017-09-13T23:19:17Z",
+			"version": "v8.4.0",
+			"versionExact": "v8.4.0"
 		},
 		{
 			"checksumSHA1": "FIL83loX9V9APvGQIjJpbxq53F0=",
@@ -500,6 +525,12 @@
 			"path": "github.com/dgrijalva/jwt-go",
 			"revision": "f0777076321ab64f6efc15a82d9d23b98539b943",
 			"revisionTime": "2016-06-17T17:01:58Z"
+		},
+		{
+			"checksumSHA1": "vI06gXltt7k8zik7bOZvG2PmfYo=",
+			"path": "github.com/dimchansky/utfbom",
+			"revision": "6c6132ff69f0f6c088739067407b5d32c52e1d0f",
+			"revisionTime": "2017-03-28T06:13:12Z"
 		},
 		{
 			"checksumSHA1": "BCv50o5pDkoSG3vYKOSai1Z8p3w=",
