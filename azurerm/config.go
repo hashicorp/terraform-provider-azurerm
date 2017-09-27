@@ -321,11 +321,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	agc := network.NewApplicationGatewaysClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&agc.Client)
 	agc.Authorizer = auth
-<<<<<<< HEAD
 	agc.Sender = sender
-=======
-	agc.Sender = autorest.CreateSender(withRequestLogging())
->>>>>>> made sure files are added
 	client.applicationGatewayClient = agc
 
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, c.SubscriptionID)

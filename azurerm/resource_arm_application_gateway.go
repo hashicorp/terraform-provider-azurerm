@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmApplicationGateway() *schema.Resource {
@@ -712,8 +712,8 @@ func resourceArmApplicationGatewayCreate(d *schema.ResourceData, meta interface{
 	}
 
 	gateway := network.ApplicationGateway{
-		Name:     azure.String(name),
-		Location: azure.String(location),
+		Name:     utils.String(name),
+		Location: utils.String(location),
 		Tags:     expandTags(tags),
 		ApplicationGatewayPropertiesFormat: &properties,
 	}
@@ -843,7 +843,7 @@ func retrieveApplicationGatewayById(ApplicationGatewayID string, meta interface{
 
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
-		if responseWasNotFound(resp.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, false, nil
 		}
 		return nil, false, fmt.Errorf("Error making Read request on Azure ApplicationGateway %s: %+v", name, err)
@@ -886,8 +886,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 
 	enabled := waf["enabled"].(bool)
 	mode := waf["firewall_mode"].(string)
-<<<<<<< HEAD
-<<<<<<< HEAD
 	rulesettype := waf["rule_set_type"].(string)
 	rulesetversion := waf["rule_set_version"].(string)
 
@@ -896,22 +894,6 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		FirewallMode:   network.ApplicationGatewayFirewallMode(mode),
 		RuleSetType:    &rulesettype,
 		RuleSetVersion: &rulesetversion,
-=======
-
-	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:      &enabled,
-		FirewallMode: network.ApplicationGatewayFirewallMode(mode),
->>>>>>> made sure files are added
-=======
-	rulesettype := waf["rule_set_type"].(string)
-	rulesetversion := waf["rule_set_version"].(string)
-
-	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
-		Enabled:        &enabled,
-		FirewallMode:   network.ApplicationGatewayFirewallMode(mode),
-		RuleSetType:    &rulesettype,
-		RuleSetVersion: &rulesetversion,
->>>>>>> changes based on reviewer feedback
 	}
 }
 
@@ -1368,16 +1350,8 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 
 	result["enabled"] = *waf.Enabled
 	result["firewall_mode"] = string(waf.FirewallMode)
-<<<<<<< HEAD
-<<<<<<< HEAD
 	result["rule_set_type"] = waf.RuleSetType
 	result["rule_set_version"] = waf.RuleSetVersion
-=======
->>>>>>> made sure files are added
-=======
-	result["rule_set_type"] = waf.RuleSetType
-	result["rule_set_version"] = waf.RuleSetVersion
->>>>>>> changes based on reviewer feedback
 
 	return []interface{}{result}
 }
