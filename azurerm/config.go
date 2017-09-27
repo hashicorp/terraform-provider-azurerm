@@ -654,17 +654,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
 
-	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&kvc.Client)
-	kvc.Authorizer = auth
-	kvc.Sender = sender
-	client.keyVaultClient = kvc
-
-	kvmc := keyVault.New()
-	setUserAgent(&kvmc.Client)
-	kvmc.Authorizer = keyVaultAuth
-	kvmc.Sender = sender
-	client.keyVaultManagementClient = kvmc
+	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 
@@ -746,6 +736,20 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlSrvClient.Authorizer = auth
 	sqlSrvClient.Sender = sender
 	c.sqlServersClient = sqlSrvClient
+}
+
+func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
+	keyVaultClient := keyvault.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&keyVaultClient.Client)
+	keyVaultClient.Authorizer = auth
+	keyVaultClient.Sender = sender
+	c.keyVaultClient = keyVaultClient
+
+	keyVaultManagementClient := keyVault.New()
+	setUserAgent(&keyVaultManagementClient.Client)
+	keyVaultManagementClient.Authorizer = keyVaultAuth
+	keyVaultManagementClient.Sender = sender
+	c.keyVaultManagementClient = keyVaultManagementClient
 }
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
