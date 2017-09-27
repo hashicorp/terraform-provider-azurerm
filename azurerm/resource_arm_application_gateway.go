@@ -179,7 +179,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			"frontend_ip_configuration": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -304,7 +304,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"request_timeout": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Optional: true,
 						},
 
 						"authentication_certificate": {
@@ -1591,6 +1591,11 @@ func flattenApplicationGatewayRequestRoutingRules(rules *[]network.ApplicationGa
 		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings != nil {
 			listener["backend_http_settings_name"] = id.Path["backendHttpSettingsName"]
 			listener["backend_http_settings_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings.ID
+		}
+
+		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap != nil {
+			listener["url_path_map_name"] = id.Path["urlPathMap"]
+			listener["url_path_map_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap.ID
 		}
 
 		result = append(result, listener)
