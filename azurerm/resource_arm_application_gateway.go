@@ -118,6 +118,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 								string(network.Prevention),
 							}, true),
 						},
+<<<<<<< HEAD
 
 						"rule_set_type": {
 							Type:             schema.TypeString,
@@ -132,6 +133,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc:     validation.StringInSlice([]string{"2.2.9", "3.0"}, true),
 						},
+=======
+>>>>>>> made sure files are added
 					},
 				},
 				Set: hashApplicationGatewayWafConfig,
@@ -884,6 +887,7 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 
 	enabled := waf["enabled"].(bool)
 	mode := waf["firewall_mode"].(string)
+<<<<<<< HEAD
 	rulesettype := waf["rule_set_type"].(string)
 	rulesetversion := waf["rule_set_version"].(string)
 
@@ -892,6 +896,12 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		FirewallMode:   network.ApplicationGatewayFirewallMode(mode),
 		RuleSetType:    &rulesettype,
 		RuleSetVersion: &rulesetversion,
+=======
+
+	return &network.ApplicationGatewayWebApplicationFirewallConfiguration{
+		Enabled:      &enabled,
+		FirewallMode: network.ApplicationGatewayFirewallMode(mode),
+>>>>>>> made sure files are added
 	}
 }
 
@@ -1348,8 +1358,11 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 
 	result["enabled"] = *waf.Enabled
 	result["firewall_mode"] = string(waf.FirewallMode)
+<<<<<<< HEAD
 	result["rule_set_type"] = waf.RuleSetType
 	result["rule_set_version"] = waf.RuleSetVersion
+=======
+>>>>>>> made sure files are added
 
 	return []interface{}{result}
 }

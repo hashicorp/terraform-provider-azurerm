@@ -11,7 +11,11 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+<<<<<<< HEAD
 func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
+=======
+func TestAccAzureRMApplicationGateway_basic(t *testing.T) {
+>>>>>>> made sure files are added
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -25,7 +29,11 @@ func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
+<<<<<<< HEAD
 				Config: testAccAzureRMApplicationGateway_basic(ri),
+=======
+				Config: TestAccAzureRMApplicationGateway_basic(ri),
+>>>>>>> made sure files are added
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
@@ -50,7 +58,11 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
+<<<<<<< HEAD
 				Config: testAccAzureRMApplicationGateway_basic(ri),
+=======
+				Config: TestAccAzureRMApplicationGateway_basic(ri),
+>>>>>>> made sure files are added
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
@@ -59,7 +71,11 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 				Destroy: false,
 			},
 			{
+<<<<<<< HEAD
 				Config: testAccAzureRMApplicationGateway_basic_changeSslCert(ri),
+=======
+				Config: TestAccAzureRMApplicationGateway_basic_changeSslCert(ri),
+>>>>>>> made sure files are added
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-2"),
@@ -84,7 +100,11 @@ func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
+<<<<<<< HEAD
 				Config: testAccAzureRMApplicationGateway_basic_authCert(ri),
+=======
+				Config: TestAccAzureRMApplicationGateway_basic_authCert(ri),
+>>>>>>> made sure files are added
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
@@ -110,7 +130,11 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
+<<<<<<< HEAD
 				Config: testAccAzureRMApplicationGateway_basic_authCert(ri),
+=======
+				Config: TestAccAzureRMApplicationGateway_basic_authCert(ri),
+>>>>>>> made sure files are added
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
@@ -120,7 +144,11 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 				Destroy: false,
 			},
 			{
+<<<<<<< HEAD
 				Config: testAccAzureRMApplicationGateway_basic_changeAuthCert(ri),
+=======
+				Config: TestAccAzureRMApplicationGateway_basic_changeAuthCert(ri),
+>>>>>>> made sure files are added
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
@@ -146,7 +174,11 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
+<<<<<<< HEAD
 				Config: testAccAzureRMApplicationGateway_waf(ri),
+=======
+				Config: TestAccAzureRMApplicationGateway_waf(ri),
+>>>>>>> made sure files are added
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
 					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
@@ -170,7 +202,11 @@ func testCheckAzureRMApplicationGatewayExists(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %s", ApplicationGatewayName)
 		}
 
+<<<<<<< HEAD
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+=======
+		conn := testAccProvider.Meta().(*ArmClient).ApplicationGatewayClient
+>>>>>>> made sure files are added
 
 		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
 		if err != nil {
@@ -198,7 +234,11 @@ func testCheckAzureRMApplicationGatewaySslCertificateAssigned(name string, certN
 			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %s", ApplicationGatewayName)
 		}
 
+<<<<<<< HEAD
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+=======
+		conn := testAccProvider.Meta().(*ArmClient).ApplicationGatewayClient
+>>>>>>> made sure files are added
 
 		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
 		if err != nil {
@@ -244,7 +284,11 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %s", ApplicationGatewayName)
 		}
 
+<<<<<<< HEAD
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+=======
+		conn := testAccProvider.Meta().(*ArmClient).ApplicationGatewayClient
+>>>>>>> made sure files are added
 
 		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
 		if err != nil {
@@ -282,7 +326,11 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 }
 
 func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
+<<<<<<< HEAD
 	conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+=======
+	conn := testAccProvider.Meta().(*ArmClient).ApplicationGatewayClient
+>>>>>>> made sure files are added
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_gateway" {
@@ -306,7 +354,11 @@ func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 	return nil
 }
 
+<<<<<<< HEAD
 func testAccAzureRMApplicationGateway_basic(rInt int) string {
+=======
+func TestAccAzureRMApplicationGateway_basic(rInt int) string {
+>>>>>>> made sure files are added
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -478,7 +530,11 @@ resource "azurerm_application_gateway" "test" {
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
+<<<<<<< HEAD
     data     = "${file("resource_arm_application_gateway_test.pfx")}"
+=======
+    data     = "${file("resource_arm_app_gateway_test.pfx")}"
+>>>>>>> made sure files are added
     password = "terraform"
   }
 
@@ -489,7 +545,11 @@ resource "azurerm_application_gateway" "test" {
 `, rInt, rInt)
 }
 
+<<<<<<< HEAD
 func testAccAzureRMApplicationGateway_basic_changeSslCert(rInt int) string {
+=======
+func TestAccAzureRMApplicationGateway_basic_changeSslCert(rInt int) string {
+>>>>>>> made sure files are added
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -661,7 +721,11 @@ resource "azurerm_application_gateway" "test" {
   ssl_certificate {
     # id = computed
     name     = "ssl-2"
+<<<<<<< HEAD
     data     = "${file("resource_arm_application_gateway_test.pfx")}"
+=======
+    data     = "${file("resource_arm_app_gateway_test.pfx")}"
+>>>>>>> made sure files are added
     password = "terraform"
   }
 
@@ -672,7 +736,11 @@ resource "azurerm_application_gateway" "test" {
 `, rInt, rInt)
 }
 
+<<<<<<< HEAD
 func testAccAzureRMApplicationGateway_basic_authCert(rInt int) string {
+=======
+func TestAccAzureRMApplicationGateway_basic_authCert(rInt int) string {
+>>>>>>> made sure files are added
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -856,13 +924,21 @@ resource "azurerm_application_gateway" "test" {
 
   authentication_certificate {
     name = "auth-1"
+<<<<<<< HEAD
     data = "${file("resource_arm_application_gateway_test.cer")}"
+=======
+    data = "${file("resource_arm_app_gateway_test.cer")}"
+>>>>>>> made sure files are added
   }
 
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
+<<<<<<< HEAD
     data     = "${file("resource_arm_application_gateway_test.pfx")}"
+=======
+    data     = "${file("resource_arm_app_gateway_test.pfx")}"
+>>>>>>> made sure files are added
     password = "terraform"
   }
 
@@ -873,7 +949,11 @@ resource "azurerm_application_gateway" "test" {
 `, rInt, rInt)
 }
 
+<<<<<<< HEAD
 func testAccAzureRMApplicationGateway_basic_changeAuthCert(rInt int) string {
+=======
+func TestAccAzureRMApplicationGateway_basic_changeAuthCert(rInt int) string {
+>>>>>>> made sure files are added
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -1057,13 +1137,21 @@ resource "azurerm_application_gateway" "test" {
 
   authentication_certificate {
     name = "auth-2"
+<<<<<<< HEAD
     data = "${file("resource_arm_application_gateway_test.cer")}"
+=======
+    data = "${file("resource_arm_app_gateway_test.cer")}"
+>>>>>>> made sure files are added
   }
 
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
+<<<<<<< HEAD
     data     = "${file("resource_arm_application_gateway_test.pfx")}"
+=======
+    data     = "${file("resource_arm_app_gateway_test.pfx")}"
+>>>>>>> made sure files are added
     password = "terraform"
   }
 
@@ -1074,7 +1162,11 @@ resource "azurerm_application_gateway" "test" {
 `, rInt, rInt)
 }
 
+<<<<<<< HEAD
 func testAccAzureRMApplicationGateway_waf(rInt int) string {
+=======
+func TestAccAzureRMApplicationGateway_waf(rInt int) string {
+>>>>>>> made sure files are added
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -1120,8 +1212,11 @@ resource "azurerm_application_gateway" "test" {
   waf_configuration {
     enabled = "true"
     firewall_mode = "Detection"
+<<<<<<< HEAD
     rule_set_type = "OWASP"
     rule_set_version = "3.0"
+=======
+>>>>>>> made sure files are added
   }
 
   gateway_ip_configuration {
@@ -1253,7 +1348,11 @@ resource "azurerm_application_gateway" "test" {
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
+<<<<<<< HEAD
     data     = "${file("resource_arm_application_gateway_test.pfx")}"
+=======
+    data     = "${file("resource_arm_app_gateway_test.pfx")}"
+>>>>>>> made sure files are added
     password = "terraform"
   }
 
