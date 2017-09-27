@@ -71,7 +71,7 @@ resource "azurerm_application_gateway" "network" {
   }
  
   frontend_ip_configuration {
-      name         = "m${azurerm_virtual_network.vnet.name}-feip"  
+      name         = "${azurerm_virtual_network.vnet.name}-feip"  
       public_ip_address_id = "${azurerm_public_ip.pip.id}"
   }
 
@@ -94,13 +94,13 @@ resource "azurerm_application_gateway" "network" {
         protocol                              = "Http"
   }
  
-request_routing_rule {
-        name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
-        rule_type                  = "Basic"
-        http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
-        backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
-        backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
-}
+  request_routing_rule {
+          name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
+          rule_type                  = "Basic"
+          http_listener_name         = "${azurerm_virtual_network.vnet.name}-httplstn"
+          backend_address_pool_name  = "${azurerm_virtual_network.vnet.name}-beap"
+          backend_http_settings_name = "${azurerm_virtual_network.vnet.name}-be-htst"
+  }
 }
 ```
 
