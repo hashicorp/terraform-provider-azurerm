@@ -3,6 +3,10 @@
 FEATURES:
 
 * **New Resource:** `azurerm_log_analytics_workspace` [GH-331]
+* **New Resource:** `azurerm_mysql_configuration` [GH-352]
+* **New Resource:** `azurerm_mysql_database` [GH-352]
+* **New Resource:** `azurerm_mysql_firewall_rule` [GH-352]
+* **New Resource:** `azurerm_mysql_server` [GH-352]
 
 ## 0.2.1 (September 25, 2017)
 
