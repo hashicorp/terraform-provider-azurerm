@@ -10,9 +10,6 @@ description: |-
 
 Creates a new application gateway based on a previously created virtual network with configured subnets.
 
-~> **NOTE on Application Gateways:** TODO - Investigate routing rules and url path maps.
-Sample reference format: [Subnet resource](subnet.html) TODO - other reference needed.
-
 ## Example Usage
 
 ```hcl
@@ -126,7 +123,7 @@ The following arguments are supported:
 
 * `frontend_port` - (Required) Front-end port for the application gateway.  The `frontend_port` block supports fields documented below.
 
-* `frontend_ip_configuration` - (Optional) Specifies lists of frontend IP configurations. Currently only one Public and/or one Private IP address can be specified. Also one frontendIpConfiguration element can specify either Public or Private IP address, not both.  The `frontend_ip_configuration` block supports fields documented below.
+* `frontend_ip_configuration` - (Required) Specifies lists of frontend IP configurations. Currently only one Public and/or one Private IP address can be specified. Also one frontendIpConfiguration element can specify either Public or Private IP address, not both.  The `frontend_ip_configuration` block supports fields documented below.
 
 * `backend_address_pool` - (Required) Backend pools can be composed of NICs, virtual machine scale sets, public IPs, internal IPs, fully qualified domain names (FQDN), and multi-tenant back-ends like Azure Web Apps. Application Gateway backend pool members are not tied to an availability set. Members of backend pools can be across clusters, data centers, or outside of Azure as long as they have IP connectivity.  The `backend_address_pool` block supports fields documented below.
 
@@ -147,8 +144,6 @@ The following arguments are supported:
 * `waf_configuration` - (Optional) Web Application Firewall configuration settings. The `waf_configuration` block supports fields documented below.
 
 * `disabled_ssl_protocols` - TODO - based on "sslPolicy": {"disabledSslProtocols": []}
-
-TODO - what makes block fields optional/required?
 
 The `sku` block supports:
 
@@ -182,7 +177,6 @@ The `frontend_ip_configuration` block supports:
 * `name` - (Required) User defined name for a frontend IP configuration.
 
 * `subnet_id` - (Optional) Reference to a Subnet. 
-TODO - where is this in Azure?
 
 * `private_ip_address` - (Optional) Private IP Address.
 
@@ -344,8 +338,7 @@ The following attributes are exported:
 application gateways can be imported using the `resource id`, e.g.
 
 ```
-TODO - correct this
-terraform import azurerm_virtual_network.testNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1
+ 
+terraform import azurerm_application_gateway.testApplicationGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
+ 
 ```
-
-TODO - Application Gateway attribute cross reference mechanism in HCL?
