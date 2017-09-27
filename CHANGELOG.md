@@ -8,6 +8,10 @@ FEATURES:
 * **New Resource:** `azurerm_mysql_firewall_rule` [GH-352]
 * **New Resource:** `azurerm_mysql_server` [GH-352]
 
+IMPROVEMENTS:
+
+* Updating the provider initialization & adding a `skip_credentials_validation` field to the provider for some advanced scenarios [GH-322]
+
 ## 0.2.1 (September 25, 2017)
 
 FEATURES:
