@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_key_vault_key` [GH-356]
 * **New Resource:** `azurerm_log_analytics_workspace` [GH-331]
 * **New Resource:** `azurerm_mysql_configuration` [GH-352]
 * **New Resource:** `azurerm_mysql_database` [GH-352]
