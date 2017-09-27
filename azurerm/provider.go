@@ -54,6 +54,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
 			},
 
+			"skip_credentials_validation": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_CREDENTIALS_VALIDATION", false),
+			},
+
 			"skip_provider_registration": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -165,11 +171,12 @@ type Config struct {
 	ManagementURL string
 
 	// Core
-	ClientID                 string
-	SubscriptionID           string
-	TenantID                 string
-	Environment              string
-	SkipProviderRegistration bool
+	ClientID                  string
+	SubscriptionID            string
+	TenantID                  string
+	Environment               string
+	SkipCredentialsValidation bool
+	SkipProviderRegistration  bool
 
 	// Service Principal Auth
 	ClientSecret string
@@ -177,8 +184,6 @@ type Config struct {
 	// Bearer Auth
 	AccessToken  *adal.Token
 	IsCloudShell bool
-
-	validateCredentialsOnce sync.Once
 }
 
 func (c *Config) validateServicePrincipal() error {
@@ -316,12 +321,13 @@ func normalizeEnvironmentName(input string) string {
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
 		config := &Config{
-			SubscriptionID:           d.Get("subscription_id").(string),
-			ClientID:                 d.Get("client_id").(string),
-			ClientSecret:             d.Get("client_secret").(string),
-			TenantID:                 d.Get("tenant_id").(string),
-			Environment:              d.Get("environment").(string),
-			SkipProviderRegistration: d.Get("skip_provider_registration").(bool),
+			SubscriptionID:            d.Get("subscription_id").(string),
+			ClientID:                  d.Get("client_id").(string),
+			ClientSecret:              d.Get("client_secret").(string),
+			TenantID:                  d.Get("tenant_id").(string),
+			Environment:               d.Get("environment").(string),
+			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
+			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
 		}
 
 		if config.ClientSecret != "" {
@@ -353,19 +359,21 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil
 		}
 
-		// List all the available providers and their registration state to avoid unnecessary
-		// requests. This also lets us check if the provider credentials are correct.
-		providerList, err := client.providers.List(nil, "")
-		if err != nil {
-			return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
-				"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-				"error: %s", err)
-		}
-
-		if !config.SkipProviderRegistration {
-			err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client.providers)
+		if !config.SkipCredentialsValidation {
+			// List all the available providers and their registration state to avoid unnecessary
+			// requests. This also lets us check if the provider credentials are correct.
+			providerList, err := client.providers.List(nil, "")
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
+					"error: %s", err)
+			}
+
+			if !config.SkipProviderRegistration {
+				err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client.providers)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 
@@ -381,8 +389,6 @@ func registerProviderWithSubscription(providerName string, client resources.Prov
 
 	return nil
 }
-
-var providerRegistrationOnce sync.Once
 
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
@@ -428,24 +434,23 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
 func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
+	providers := determineAzureResourceProvidersToRegister(providerList)
+
 	var err error
-	providerRegistrationOnce.Do(func() {
+	var wg sync.WaitGroup
+	wg.Add(len(providers))
 
-		providers := determineAzureResourceProvidersToRegister(providerList)
+	for providerName := range providers {
+		go func(p string) {
+			defer wg.Done()
+			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
+			if innerErr := registerProviderWithSubscription(p, client); err != nil {
+				err = innerErr
+			}
+		}(providerName)
+	}
 
-		var wg sync.WaitGroup
-		wg.Add(len(providers))
-		for providerName := range providers {
-			go func(p string) {
-				defer wg.Done()
-				log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-				if innerErr := registerProviderWithSubscription(p, client); err != nil {
-					err = innerErr
-				}
-			}(providerName)
-		}
-		wg.Wait()
-	})
+	wg.Wait()
 
 	return err
 }
