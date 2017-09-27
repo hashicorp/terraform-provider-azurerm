@@ -88,6 +88,9 @@ The following attributes are exported:
 
 * `id` - The Key Vault Key ID.
 * `version` - The current version of the Key Vault Key.
+* `n` - The RSA modulus of this Key Vault Key.
+* `e` - The RSA public exponent of this Key Vault Key.
+
 
 ## Import
 
