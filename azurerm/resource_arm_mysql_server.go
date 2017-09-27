@@ -5,18 +5,18 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
+	"github.com/Azure/azure-sdk-for-go/arm/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPostgreSQLServer() *schema.Resource {
+func resourceArmMySqlServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPostgreSQLServerCreate,
-		Read:   resourceArmPostgreSQLServerRead,
-		Update: resourceArmPostgreSQLServerUpdate,
-		Delete: resourceArmPostgreSQLServerDelete,
+		Create: resourceArmMySqlServerCreate,
+		Read:   resourceArmMySqlServerRead,
+		Update: resourceArmMySqlServerUpdate,
+		Delete: resourceArmMySqlServerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -42,12 +42,12 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"PGSQLB50",
-								"PGSQLB100",
-								"PGSQLS100",
-								"PGSQLS200",
-								"PGSQLS400",
-								"PGSQLS800",
+								"MYSQLB50",
+								"MYSQLB100",
+								"MYSQLS100",
+								"MYSQLS200",
+								"MYSQLS400",
+								"MYSQLS800",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -68,8 +68,8 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(postgresql.Basic),
-								string(postgresql.Standard),
+								string(mysql.Basic),
+								string(mysql.Standard),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -93,8 +93,8 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresql.NineFullStopFive),
-					string(postgresql.NineFullStopSix),
+					string(mysql.FiveFullStopSix),
+					string(mysql.FiveFullStopSeven),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ForceNew:         true,
@@ -131,8 +131,8 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(postgresql.SslEnforcementEnumDisabled),
-					string(postgresql.SslEnforcementEnumEnabled),
+					string(mysql.SslEnforcementEnumDisabled),
+					string(mysql.SslEnforcementEnumEnabled),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -147,10 +147,10 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 	}
 }
 
-func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
+func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).mysqlServersClient
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -164,18 +164,17 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 
 	tags := d.Get("tags").(map[string]interface{})
 
-	sku := expandAzureRmPostgreSQLServerSku(d, storageMB)
+	sku := expandMySQLServerSku(d, storageMB)
 
-	properties := postgresql.ServerForCreate{
+	properties := mysql.ServerForCreate{
 		Location: &location,
 		Sku:      sku,
-		Properties: &postgresql.ServerPropertiesForDefaultCreate{
-			Version:                    postgresql.ServerVersion(version),
+		Properties: &mysql.ServerPropertiesForDefaultCreate{
+			Version:                    mysql.ServerVersion(version),
 			StorageMB:                  utils.Int64(int64(storageMB)),
-			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
+			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 			AdministratorLogin:         utils.String(adminLogin),
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			CreateMode:                 postgresql.CreateModeDefault,
 		},
 		Tags: expandTags(tags),
 	}
@@ -191,18 +190,18 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read MySQL Server %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmPostgreSQLServerRead(d, meta)
+	return resourceArmMySqlServerRead(d, meta)
 }
 
-func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
+func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).mysqlServersClient
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
+	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -211,23 +210,23 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	storageMB := d.Get("storage_mb").(int)
-	sku := expandAzureRmPostgreSQLServerSku(d, storageMB)
+	sku := expandMySQLServerSku(d, storageMB)
 
 	tags := d.Get("tags").(map[string]interface{})
 
-	properties := postgresql.ServerUpdateParameters{
+	properties := mysql.ServerUpdateParameters{
 		Sku: sku,
-		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
+		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
+			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 			StorageMB:                  utils.Int64(int64(storageMB)),
-			Version:                    postgresql.ServerVersion(version),
+			Version:                    mysql.ServerVersion(version),
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
 		},
 		Tags: expandTags(tags),
 	}
 
-	_, error := client.Update(resGroup, name, properties, make(chan struct{}))
-	err := <-error
+	_, createErr := client.Update(resGroup, name, properties, make(chan struct{}))
+	err := <-createErr
 	if err != nil {
 		return err
 	}
@@ -237,16 +236,16 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read MySQL Server %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmPostgreSQLServerRead(d, meta)
+	return resourceArmMySqlServerRead(d, meta)
 }
 
-func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
+func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).mysqlServersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -258,12 +257,10 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Server '%s' was not found (resource group '%s')", name, resGroup)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("Error making Read request on Azure PostgreSQL Server %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure MySQL Server %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -274,7 +271,10 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("version", string(resp.Version))
 	d.Set("storage_mb", int(*resp.StorageMB))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
-	d.Set("sku", flattenPostgreSQLServerSku(resp.Sku))
+
+	if err := d.Set("sku", flattenMySQLServerSku(d, resp.Sku)); err != nil {
+		return err
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -284,8 +284,8 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
+func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).mysqlServersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -300,7 +300,7 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 	return err
 }
 
-func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData, storageMB int) *postgresql.Sku {
+func expandMySQLServerSku(d *schema.ResourceData, storageMB int) *mysql.Sku {
 	skus := d.Get("sku").(*schema.Set).List()
 	sku := skus[0].(map[string]interface{})
 
@@ -308,15 +308,15 @@ func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData, storageMB int) *po
 	capacity := sku["capacity"].(int)
 	tier := sku["tier"].(string)
 
-	return &postgresql.Sku{
+	return &mysql.Sku{
 		Name:     utils.String(name),
 		Capacity: utils.Int32(int32(capacity)),
-		Tier:     postgresql.SkuTier(tier),
+		Tier:     mysql.SkuTier(tier),
 		Size:     utils.String(strconv.Itoa(storageMB)),
 	}
 }
 
-func flattenPostgreSQLServerSku(resp *postgresql.Sku) []interface{} {
+func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{} {
 	values := map[string]interface{}{}
 
 	values["name"] = *resp.Name

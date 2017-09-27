@@ -115,6 +115,12 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
+			"checksumSHA1": "md3J29HhVMZt1cNLTn539Neo+ic=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/mysql",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z"
+		},
+		{
 			"checksumSHA1": "bPIdXF5KK0mkG+Rqsn/KNaXwbU0=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/network",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",

@@ -7,16 +7,16 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
+func TestAccAzureRMMySQLConfiguration_importCharacterSetServer(t *testing.T) {
+	resourceName := "azurerm_mysql_configuration.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointFive(ri, testLocation())
+	config := testAccAzureRMMySQLConfiguration_characterSetServer(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -25,24 +25,21 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
 			},
 		},
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
+func TestAccAzureRMPostgreSQLConfiguration_importInteractiveTimeout(t *testing.T) {
+	resourceName := "azurerm_mysql_configuration.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, testLocation())
+	config := testAccAzureRMMySQLConfiguration_interactiveTimeout(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -51,24 +48,21 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
 			},
 		},
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_importStandard(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
+func TestAccAzureRMPostgreSQLConfiguration_importLogSlowAdminStatements(t *testing.T) {
+	resourceName := "azurerm_mysql_configuration.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_standard(ri, testLocation())
+	config := testAccAzureRMMySQLConfiguration_logSlowAdminStatements(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		CheckDestroy: testCheckAzureRMMySQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -77,9 +71,6 @@ func TestAccAzureRMPostgreSQLServer_importStandard(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
 			},
 		},
 	})

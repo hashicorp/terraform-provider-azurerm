@@ -82,6 +82,26 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_standard(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPostgreSQLServer_standard(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
@@ -270,6 +290,33 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
   storage_mb                   = 947200
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_standard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "PGSQLS400"
+    capacity = 400
+    tier     = "Standard"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  storage_mb                   = 640000
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)

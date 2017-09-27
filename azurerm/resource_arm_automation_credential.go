@@ -25,11 +25,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 			"account_name": {
 				Type:     schema.TypeString,
 				Required: true,
