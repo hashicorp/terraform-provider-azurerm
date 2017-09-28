@@ -254,7 +254,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_address", address.IP)
 	}
 
-	containerConfigs := flattenContainerGroupContainers(resp.Containers, resp.ContainerGroupProperties.IPAddress.Ports, resp.ContainerGroupProperties.Volumes)
+	containerConfigs := flattenContainerGroupContainers(d, resp.Containers, resp.ContainerGroupProperties.IPAddress.Ports, resp.ContainerGroupProperties.Volumes)
 	err = d.Set("container", containerConfigs)
 	if err != nil {
 		return fmt.Errorf("Error setting `container`: %+v", err)
@@ -288,7 +288,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func flattenContainerGroupContainers(containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
 
 	containerConfigs := make([]interface{}, 0, len(*containers))
 	for _, container := range *containers {
@@ -329,7 +329,22 @@ func flattenContainerGroupContainers(containers *[]containerinstance.Container, 
 		}
 
 		if containerGroupVolumes != nil && container.VolumeMounts != nil {
-			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes)
+			// Also pass in the container volume config from schema
+			var containerVolumesRawPtr *[]interface{}
+			containersConfigRaw := d.Get("container").([]interface{})
+			for _, containerConfigRaw := range containersConfigRaw {
+				data := containerConfigRaw.(map[string]interface{})
+				nameRaw := data["name"].(string)
+				if nameRaw == *container.Name {
+					// found container config for current container
+					// extract volume mounts from config
+					if v, ok := data["volume"]; ok {
+						containerVolumesRaw := v.([]interface{})
+						containerVolumesRawPtr = &containerVolumesRaw
+					}
+				}
+			}
+			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesRawPtr)
 		}
 
 		containerConfigs = append(containerConfigs, containerConfig)
@@ -351,7 +366,7 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 	return output
 }
 
-func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
+func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume, containerVolumesRawPtr *[]interface{}) []interface{} {
 	volumeConfigs := make([]interface{}, 0)
 
 	for _, vm := range *volumeMounts {
@@ -369,6 +384,17 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 				volumeConfig["share_name"] = *(*cgv.AzureFile).ShareName
 				volumeConfig["storage_account_name"] = *(*cgv.AzureFile).StorageAccountName
 				// skip storage_account_key, is always nil
+			}
+		}
+
+		// find corresponding volume in config
+		// and use the data
+		for _, cvr := range *containerVolumesRawPtr {
+			cv := cvr.(map[string]interface{})
+			rawName := cv["name"].(string)
+			if *vm.Name == rawName {
+				storageAccountKey := cv["storage_account_key"].(string)
+				volumeConfig["storage_account_key"] = storageAccountKey
 			}
 		}
 
