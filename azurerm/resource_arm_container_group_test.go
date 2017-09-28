@@ -91,6 +91,32 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_linuxWithVolumes(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+
+	config := testAccAzureRMContainerGroup_linuxWithVolumes(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.mount_path", "/aci/logs"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.read_only", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
@@ -301,6 +327,61 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_linuxWithVolumes(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "accsa%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  account_type        = "Standard_LRS"
+}
+
+resource "azurerm_storage_share" "test" {
+  name = "acctestss-%d"
+
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  quota = 50
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "linux"
+
+  container {
+    name   = "hf"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    = "1"
+    memory = "1.5"
+		port   = "80"
+		protocol = "TCP"
+
+		volume {
+      name = "logs"
+      mount_path = "/aci/logs"
+      read_only = false
+      share_name = "${azurerm_storage_share.test.name}"
+      storage_account_name = "${azurerm_storage_account.test.name}"
+      storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+    }
+  }
+
+    tags {
+    environment = "testing"
+  }
+}
+`, ri, location, ri, ri, ri)
 }
 
 func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {

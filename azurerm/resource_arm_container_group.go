@@ -330,7 +330,7 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 		if containerGroupVolumes != nil && container.VolumeMounts != nil {
 			// Also pass in the container volume config from schema
-			var containerVolumesRawPtr *[]interface{}
+			var containerVolumesConfig *[]interface{}
 			containersConfigRaw := d.Get("container").([]interface{})
 			for _, containerConfigRaw := range containersConfigRaw {
 				data := containerConfigRaw.(map[string]interface{})
@@ -340,11 +340,11 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 					// extract volume mounts from config
 					if v, ok := data["volume"]; ok {
 						containerVolumesRaw := v.([]interface{})
-						containerVolumesRawPtr = &containerVolumesRaw
+						containerVolumesConfig = &containerVolumesRaw
 					}
 				}
 			}
-			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesRawPtr)
+			containerConfig["volume"] = flattenContainerVolumes(container.VolumeMounts, containerGroupVolumes, containerVolumesConfig)
 		}
 
 		containerConfigs = append(containerConfigs, containerConfig)
@@ -366,7 +366,7 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 	return output
 }
 
-func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume, containerVolumesRawPtr *[]interface{}) []interface{} {
+func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume, containerVolumesConfig *[]interface{}) []interface{} {
 	volumeConfigs := make([]interface{}, 0)
 
 	for _, vm := range *volumeMounts {
@@ -380,16 +380,18 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 		// find corresponding volume in container group volumes
 		// and use the data
 		for _, cgv := range *containerGroupVolumes {
-			if strings.Compare(*cgv.Name, *vm.Name) == 0 {
-				volumeConfig["share_name"] = *(*cgv.AzureFile).ShareName
-				volumeConfig["storage_account_name"] = *(*cgv.AzureFile).StorageAccountName
-				// skip storage_account_key, is always nil
+			if *cgv.Name == *vm.Name {
+				if cgv.AzureFile != nil {
+					volumeConfig["share_name"] = *(*cgv.AzureFile).ShareName
+					volumeConfig["storage_account_name"] = *(*cgv.AzureFile).StorageAccountName
+					// skip storage_account_key, is always nil
+				}
 			}
 		}
 
 		// find corresponding volume in config
 		// and use the data
-		for _, cvr := range *containerVolumesRawPtr {
+		for _, cvr := range *containerVolumesConfig {
 			cv := cvr.(map[string]interface{})
 			rawName := cv["name"].(string)
 			if *vm.Name == rawName {
