@@ -115,7 +115,19 @@
 			"versionExact": "v11.1.0-beta"
 		},
 		{
+<<<<<<< HEAD
 			"checksumSHA1": "ALyRCjT78W2bC4r8R/wexKF8ASQ=",
+||||||| merged common ancestors
+			"checksumSHA1": "FloEh78hgEozkpt0y4SPWK23/wI=",
+=======
+			"checksumSHA1": "wSLOrUgDpf9pmtZKl2KO3OavrZU=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/iothub",
+			"revision": "dedad7d55bef3a5fd61d3b682bcba0a93cf315e8",
+			"revisionTime": "2017-08-24T19:57:27Z"
+		},
+		{
+			"checksumSHA1": "FloEh78hgEozkpt0y4SPWK23/wI=",
+>>>>>>> added iothub dependency
 			"path": "github.com/Azure/azure-sdk-for-go/arm/keyvault",
 			"revision": "80f6cbcb1d6295ebb8fbeb5afab826a94aa67d11",
 			"revisionTime": "2017-10-06T17:43:09Z",
