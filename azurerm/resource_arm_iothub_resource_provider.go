@@ -28,20 +28,14 @@ func resourceArmIothub() *schema.Resource {
 				Computed: true,
 			},
 
-			"location": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"location": locationSchema(),
 
 			"subscription_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"resource_group": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"etag": {
 				Type:     schema.TypeString,
@@ -49,14 +43,17 @@ func resourceArmIothub() *schema.Resource {
 				Computed: true,
 			},
 
-			"skuinfo": {
+			"tags": tagsSchema(),
+
+			"sku": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(iothub.F1),
 								string(iothub.S1),
@@ -66,7 +63,8 @@ func resourceArmIothub() *schema.Resource {
 						},
 
 						"tier": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(iothub.Free),
 								string(iothub.Standard),
@@ -75,6 +73,7 @@ func resourceArmIothub() *schema.Resource {
 
 						"capacity": {
 							Type:         schema.TypeInt,
+							Required:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 					},
@@ -86,7 +85,47 @@ func resourceArmIothub() *schema.Resource {
 }
 func resourceArmIothubCreate(d *schema.ResourceData, meta interface{}) error {
 
-	return nil
+	armClient := meta.(*ArmClient)
+	iothubClient := armClient.iothubResourceClient
+
+	rg := d.Get("resource_group").(string)
+	name := d.Get("name").(string)
+	location := d.Get("location").(string)
+	subscriptionId := d.Get("subscription_id").(string)
+	skuInfo := expandAzureRmIotHubSku(d)
+
+	desc := iothub.Description{
+		Name:           &name,
+		Location:       &location,
+		Subscriptionid: &subscriptionId,
+		Sku:            &skuInfo,
+	}
+
+	cancel := make(chan struct{})
+
+	RespChan, errChan := iothubClient.CreateOrUpdate(rg, name, desc, cancel)
+	resp := <-RespChan
+	err := <-errChan
+
+	if err != nil {
+		return err
+	}
+
+	d.SetId(*resp.ID)
+	return resourceArmIothubRead(d, meta)
+
+}
+
+func expandAzureRmIotHubSku(d *schema.ResourceData) iothub.SkuInfo {
+	skuList := d.Get("sku").([]interface{})
+	skuMap := skuList[0].(map[string]interface{})
+	cap := int64(skuMap["capacity"].(int))
+
+	return iothub.SkuInfo{
+		Name:     iothub.Sku(skuMap["name"].(string)),
+		Tier:     iothub.SkuTier(skuMap["tier"].(string)),
+		Capacity: &cap,
+	}
 
 }
 
