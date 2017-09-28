@@ -14,26 +14,19 @@ func resourceArmIothub() *schema.Resource {
 		Delete: resourceArmIothubDelete,
 
 		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
+			// TODO: is this needed
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"location": locationSchema(),
-
-			"subscription_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
 
 			"resource_group_name": resourceGroupNameSchema(),
 
@@ -91,14 +84,20 @@ func resourceArmIothubCreate(d *schema.ResourceData, meta interface{}) error {
 	rg := d.Get("resource_group").(string)
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
-	subscriptionId := d.Get("subscription_id").(string)
+	subscriptionID := armClient.subscriptionId
 	skuInfo := expandAzureRmIotHubSku(d)
 
 	desc := iothub.Description{
+		Resourcegroup:  &rg,
 		Name:           &name,
 		Location:       &location,
-		Subscriptionid: &subscriptionId,
+		Subscriptionid: &subscriptionID,
 		Sku:            &skuInfo,
+	}
+
+	if etagI, ok := d.GetOk("etag"); ok {
+		etag := etagI.(string)
+		desc.Etag = &etag
 	}
 
 	cancel := make(chan struct{})
@@ -130,6 +129,22 @@ func expandAzureRmIotHubSku(d *schema.ResourceData) iothub.SkuInfo {
 }
 
 func resourceArmIothubRead(d *schema.ResourceData, meta interface{}) error {
+
+	id, err := parseAzureResourceID(d.Id())
+
+	if err != nil {
+		return err
+	}
+
+	armClient := meta.(*ArmClient)
+	iothubClient := armClient.iothubResourceClient
+	desc, err := iothubClient.Get(id.ResourceGroup, id.Path["IotHubs"])
+	if err != nil {
+		return err
+	}
+
+	d.Set("etag", *desc.Etag)
+	d.Set("type", *desc.Type)
 
 	return nil
 }
