@@ -1,17 +1,17 @@
-## 0.2.2 (Unreleased)
+## 0.2.2 (September 28, 2017)
 
 FEATURES:
 
-* **New Resource:** `azurerm_key_vault_key` [GH-356]
-* **New Resource:** `azurerm_log_analytics_workspace` [GH-331]
-* **New Resource:** `azurerm_mysql_configuration` [GH-352]
-* **New Resource:** `azurerm_mysql_database` [GH-352]
-* **New Resource:** `azurerm_mysql_firewall_rule` [GH-352]
-* **New Resource:** `azurerm_mysql_server` [GH-352]
+* **New Resource:** `azurerm_key_vault_key` ([#356](https://github.com/terraform-providers/terraform-provider-azurerm/issues/356))
+* **New Resource:** `azurerm_log_analytics_workspace` ([#331](https://github.com/terraform-providers/terraform-provider-azurerm/issues/331))
+* **New Resource:** `azurerm_mysql_configuration` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
+* **New Resource:** `azurerm_mysql_database` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
+* **New Resource:** `azurerm_mysql_firewall_rule` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
+* **New Resource:** `azurerm_mysql_server` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
 
 IMPROVEMENTS:
 
-* Updating the provider initialization & adding a `skip_credentials_validation` field to the provider for some advanced scenarios [GH-322]
+* Updating the provider initialization & adding a `skip_credentials_validation` field to the provider for some advanced scenarios ([#322](https://github.com/terraform-providers/terraform-provider-azurerm/issues/322))
 
 ## 0.2.1 (September 25, 2017)
 
