@@ -1,7 +1,9 @@
 package azurerm
 
 import (
+	"github.com/Azure/azure-sdk-for-go/arm/iothub"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmIothub() *schema.Resource {
@@ -13,31 +15,38 @@ func resourceArmIothub() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
-
 			"name": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"type": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"location": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
-			"subscriptionid": {
-				Type: schema.TypeString,
+			"subscription_id": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
-			"resourcegroup": {
-				Type: schema.TypeString,
+			"resource_group": {
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"etag": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 
 			"skuinfo": {
@@ -48,14 +57,25 @@ func resourceArmIothub() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type: schema.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(iothub.F1),
+								string(iothub.S1),
+								string(iothub.S2),
+								string(iothub.S3),
+							}, true),
 						},
 
 						"tier": {
 							Type: schema.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(iothub.Free),
+								string(iothub.Standard),
+							}, true),
 						},
 
 						"capacity": {
-							Type: schema.TypeInt,
+							Type:         schema.TypeInt,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 					},
 				},
@@ -65,11 +85,21 @@ func resourceArmIothub() *schema.Resource {
 
 }
 func resourceArmIothubCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	iotHubCreateClient := client.iothubResourceClient
-	resGroup := d.Get("resourceGroupName").(string)
-	resName := d.Get("resourceName").(string)
 
 	return nil
 
+}
+
+func resourceArmIothubRead(d *schema.ResourceData, meta interface{}) error {
+
+	return nil
+}
+
+func resourceArmIothubUpdate(d *schema.ResourceData, meta interface{}) error {
+
+	return nil
+}
+
+func resourceArmIothubDelete(d *schema.ResourceData, meta interface{}) error {
+	return nil
 }
