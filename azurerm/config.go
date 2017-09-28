@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 
+	"github.com/Azure/azure-sdk-for-go/arm/iothub"
+
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
@@ -151,6 +153,7 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+	iothubResourceClient           iothub.ResourceClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -653,6 +656,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Authorizer = auth
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
+
+	ihrc := iothub.NewResourceClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&ihrc.Client)
+	ihrc.Authorizer = auth
+	ihrc.Sender = sender
+	client.iothubResourceClient = ihrc
 
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
