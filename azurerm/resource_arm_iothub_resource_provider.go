@@ -1,27 +1,27 @@
 package azurerm
 
 import (
+	"errors"
+
 	"github.com/Azure/azure-sdk-for-go/arm/iothub"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-func resourceArmIothub() *schema.Resource {
+func resourceArmIotHub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIothubCreateAndUpdate,
-		Read:   resourceArmIothubRead,
-		Update: resourceArmIothubCreateAndUpdate,
-		Delete: resourceArmIothubDelete,
+		Create: resourceArmIotHubCreateAndUpdate,
+		Read:   resourceArmIotHubRead,
+		Update: resourceArmIotHubCreateAndUpdate,
+		Delete: resourceArmIotHubDelete,
 
 		Schema: map[string]*schema.Schema{
-			// TODO: use nameAvailabilityInfo for validation
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
-			// TODO: is this needed
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -77,13 +77,27 @@ func resourceArmIothub() *schema.Resource {
 	}
 
 }
-func resourceArmIothubCreateAndUpdate(d *schema.ResourceData, meta interface{}) error {
+
+func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
 
 	rg := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
+
+	res, err := iothubClient.CheckNameAvailability(iothub.OperationInputs{
+		Name: &name,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if !*res.NameAvailable {
+		return errors.New(string(res.Reason))
+	}
+
 	location := d.Get("location").(string)
 
 	subscriptionID := armClient.subscriptionId
@@ -110,7 +124,7 @@ func resourceArmIothubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	cancel := make(chan struct{})
 
 	_, errChan := iothubClient.CreateOrUpdate(rg, name, desc, cancel)
-	err := <-errChan
+	err = <-errChan
 
 	if err != nil {
 		return err
@@ -122,7 +136,7 @@ func resourceArmIothubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(*desc.ID)
-	return resourceArmIothubRead(d, meta)
+	return resourceArmIotHubRead(d, meta)
 
 }
 
@@ -139,7 +153,7 @@ func expandAzureRmIotHubSku(d *schema.ResourceData) iothub.SkuInfo {
 
 }
 
-func resourceArmIothubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 	id, err := parseAzureResourceID(d.Id())
 
@@ -161,7 +175,7 @@ func resourceArmIothubRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmIothubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id, err := parseAzureResourceID(d.Id())
 
