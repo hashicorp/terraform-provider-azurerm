@@ -156,6 +156,7 @@ func resourceArmIothubRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("etag", *desc.Etag)
 	d.Set("type", *desc.Type)
+	flattenAndSetTags(d, desc.Tags)
 
 	return nil
 }
