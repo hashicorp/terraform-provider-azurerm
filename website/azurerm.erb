@@ -9,6 +9,15 @@
 
             <li<%= sidebar_current("docs-azurerm-index") %>>
               <a href="/docs/providers/azurerm/index.html">Microsoft Azure Provider</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-index-authentication-azure-cli") %>>
+                    <a href="/docs/providers/azurerm/authenticating_via_azure_cli.html">Authenticating via the Azure CLI</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-index-authentication-service-principal") %>>
+                    <a href="/docs/providers/azurerm/authenticating_via_service_principal.html">Authenticating via a Service Principal (Shared Account)</a>
+                </li>
+              </ul>
             </li>
 
             <li<%= sidebar_current("docs-azurerm-datasource") %>>
@@ -50,8 +59,35 @@
               <a href="#">App Service (Web Apps) Resources</a>
               <ul class="nav nav-visible">
 
+                <li<%= sidebar_current("docs-azurerm-resource-app-service-x") %>>
+                  <a href="/docs/providers/azurerm/r/app_service.html">azurerm_app_service</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-resource-app-service-plan") %>>
                   <a href="/docs/providers/azurerm/r/app_service_plan.html">azurerm_app_service_plan</a>
+                </li>
+
+              </ul>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-resource-automation") %>>
+              <a href="#">Automation Resources</a>
+              <ul class="nav nav-visible">
+
+                <li<%= sidebar_current("docs-azurerm-resource-automation-account") %>>
+                  <a href="/docs/providers/azurerm/r/automation_account.html">azurerm_automation_account</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-automation-credential") %>>
+                  <a href="/docs/providers/azurerm/r/automation_credential.html">azurerm_automation_credential</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-automation-runbook") %>>
+                  <a href="/docs/providers/azurerm/r/automation_runbook.html">azurerm_automation_runbook</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-automation-schedule") %>>
+                  <a href="/docs/providers/azurerm/r/automation_schedule.html">azurerm_automation_schedule</a>
                 </li>
 
               </ul>
@@ -116,8 +152,24 @@
               <a href="#">Database Resources</a>
               <ul class="nav nav-visible">
 
-                <li<%= sidebar_current("docs-azurerm-resource-database-postgresql-configration") %>>
-                  <a href="/docs/providers/azurerm/r/postgresql_configration.html">azurerm_postgresql_configration</a>
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-configuration") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_configuration.html">azurerm_mysql_configuration</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-database") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_database.html">azurerm_mysql_database</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-firewall-rule") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_firewall_rule.html">azurerm_mysql_firewall_rule</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-server") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_server.html">azurerm_mysql_server</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-postgresql-configuration") %>>
+                  <a href="/docs/providers/azurerm/r/postgresql_configuration.html">azurerm_postgresql_configuration</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-database-postgresql-database") %>>
@@ -200,6 +252,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-key-vault-x") %>>
                   <a href="/docs/providers/azurerm/r/key_vault.html">azurerm_key_vault</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-key-vault-key") %>>
+                  <a href="/docs/providers/azurerm/r/key_vault_key.html">azurerm_key_vault_key</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-key-vault-secret") %>>
@@ -350,6 +406,15 @@
                 </li>
               </ul>
             </li>
+
+            <li<%= sidebar_current("docs-azurerm-oms") %>>
+            <a href="#">OMS Resources</a>
+            <ul class="nav nav-visible">
+              <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace") %>>
+                <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
+              </li>
+            </ul>
+          </li>
 
             <li<%= sidebar_current("docs-azurerm-redis-cache") %>>
               <a href="#">Redis Resources</a>

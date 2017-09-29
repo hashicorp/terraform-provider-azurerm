@@ -8,8 +8,11 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/go-autorest/autorest/adal"
+	"github.com/Azure/go-autorest/autorest/azure/cli"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -23,25 +26,25 @@ func Provider() terraform.ResourceProvider {
 		Schema: map[string]*schema.Schema{
 			"subscription_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", ""),
 			},
 
 			"client_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", ""),
 			},
 
 			"client_secret": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
 			},
 
 			"tenant_id": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", ""),
 			},
 
@@ -49,6 +52,12 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
+			},
+
+			"skip_credentials_validation": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_CREDENTIALS_VALIDATION", false),
 			},
 
 			"skip_provider_registration": {
@@ -68,7 +77,12 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"azurerm_application_insights":        resourceArmApplicationInsights(),
+			"azurerm_app_service":                 resourceArmAppService(),
 			"azurerm_app_service_plan":            resourceArmAppServicePlan(),
+			"azurerm_automation_account":          resourceArmAutomationAccount(),
+			"azurerm_automation_credential":       resourceArmAutomationCredential(),
+			"azurerm_automation_runbook":          resourceArmAutomationRunbook(),
+			"azurerm_automation_schedule":         resourceArmAutomationSchedule(),
 			"azurerm_availability_set":            resourceArmAvailabilitySet(),
 			"azurerm_cdn_endpoint":                resourceArmCdnEndpoint(),
 			"azurerm_cdn_profile":                 resourceArmCdnProfile(),
@@ -93,6 +107,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_express_route_circuit":       resourceArmExpressRouteCircuit(),
 			"azurerm_image":                       resourceArmImage(),
 			"azurerm_key_vault":                   resourceArmKeyVault(),
+			"azurerm_key_vault_key":               resourceArmKeyVaultKey(),
 			"azurerm_key_vault_secret":            resourceArmKeyVaultSecret(),
 			"azurerm_lb":                          resourceArmLoadBalancer(),
 			"azurerm_lb_backend_address_pool":     resourceArmLoadBalancerBackendAddressPool(),
@@ -101,7 +116,12 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_lb_probe":                    resourceArmLoadBalancerProbe(),
 			"azurerm_lb_rule":                     resourceArmLoadBalancerRule(),
 			"azurerm_local_network_gateway":       resourceArmLocalNetworkGateway(),
+			"azurerm_log_analytics_workspace":     resourceArmLogAnalyticsWorkspace(),
 			"azurerm_managed_disk":                resourceArmManagedDisk(),
+			"azurerm_mysql_configuration":         resourceArmMySQLConfiguration(),
+			"azurerm_mysql_database":              resourceArmMySqlDatabase(),
+			"azurerm_mysql_firewall_rule":         resourceArmMySqlFirewallRule(),
+			"azurerm_mysql_server":                resourceArmMySqlServer(),
 			"azurerm_network_interface":           resourceArmNetworkInterface(),
 			"azurerm_network_security_group":      resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":       resourceArmNetworkSecurityRule(),
@@ -151,17 +171,23 @@ func Provider() terraform.ResourceProvider {
 type Config struct {
 	ManagementURL string
 
-	SubscriptionID           string
-	ClientID                 string
-	ClientSecret             string
-	TenantID                 string
-	Environment              string
-	SkipProviderRegistration bool
+	// Core
+	ClientID                  string
+	SubscriptionID            string
+	TenantID                  string
+	Environment               string
+	SkipCredentialsValidation bool
+	SkipProviderRegistration  bool
 
-	validateCredentialsOnce sync.Once
+	// Service Principal Auth
+	ClientSecret string
+
+	// Bearer Auth
+	AccessToken  *adal.Token
+	IsCloudShell bool
 }
 
-func (c *Config) validate() error {
+func (c *Config) validateServicePrincipal() error {
 	var err *multierror.Error
 
 	if c.SubscriptionID == "" {
@@ -183,19 +209,142 @@ func (c *Config) validate() error {
 	return err.ErrorOrNil()
 }
 
+func (c *Config) validateBearerAuth() error {
+	var err *multierror.Error
+
+	if c.AccessToken == nil {
+		err = multierror.Append(err, fmt.Errorf("Access Token was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
+	}
+
+	if c.ClientID == "" {
+		err = multierror.Append(err, fmt.Errorf("Client ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
+	}
+
+	if c.SubscriptionID == "" {
+		err = multierror.Append(err, fmt.Errorf("Subscription ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
+	}
+
+	if c.TenantID == "" {
+		err = multierror.Append(err, fmt.Errorf("Tenant ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
+	}
+
+	return err.ErrorOrNil()
+}
+
+func (c *Config) LoadTokensFromAzureCLI() error {
+	profilePath, err := cli.ProfilePath()
+	if err != nil {
+		return fmt.Errorf("Error loading the Profile Path from the Azure CLI: %+v", err)
+	}
+
+	profile, err := cli.LoadProfile(profilePath)
+	if err != nil {
+		return fmt.Errorf("Azure CLI Authorization Profile was not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
+	}
+
+	// pull out the TenantID and Subscription ID from the Azure Profile
+	for _, subscription := range profile.Subscriptions {
+		if subscription.IsDefault {
+			c.SubscriptionID = subscription.ID
+			c.TenantID = subscription.TenantID
+			c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
+			break
+		}
+	}
+
+	foundToken := false
+	if c.TenantID != "" {
+		// pull out the ClientID and the AccessToken from the Azure Access Token
+		tokensPath, err := cli.AccessTokensPath()
+		if err != nil {
+			return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
+		}
+
+		tokens, err := cli.LoadTokens(tokensPath)
+		if err != nil {
+			return fmt.Errorf("Azure CLI Authorization Tokens were not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
+		}
+
+		for _, accessToken := range tokens {
+			token, err := accessToken.ToADALToken()
+			if err != nil {
+				return fmt.Errorf("[DEBUG] Error converting access token to token: %+v", err)
+			}
+
+			expirationDate, err := cli.ParseExpirationDate(accessToken.ExpiresOn)
+			if err != nil {
+				return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
+			}
+
+			if expirationDate.UTC().Before(time.Now().UTC()) {
+				log.Printf("[DEBUG] Token '%s' has expired", token.AccessToken)
+				continue
+			}
+
+			if !strings.Contains(accessToken.Resource, "management") {
+				log.Printf("[DEBUG] Resource '%s' isn't a management domain", accessToken.Resource)
+				continue
+			}
+
+			if !strings.HasSuffix(accessToken.Authority, c.TenantID) {
+				log.Printf("[DEBUG] Resource '%s' isn't for the correct Tenant", accessToken.Resource)
+				continue
+			}
+
+			c.ClientID = accessToken.ClientID
+			c.AccessToken = &token
+			c.IsCloudShell = accessToken.RefreshToken == ""
+			foundToken = true
+			break
+		}
+	}
+
+	if !foundToken {
+		return fmt.Errorf("No valid (unexpired) Azure CLI Auth Tokens found. Please run `az login`.")
+	}
+
+	return nil
+}
+
+func normalizeEnvironmentName(input string) string {
+	// Environment is stored as `Azure{Environment}Cloud`
+	output := strings.ToLower(input)
+	output = strings.TrimPrefix(output, "azure")
+	output = strings.TrimSuffix(output, "cloud")
+
+	// however Azure Public is `AzureCloud` in the CLI Profile and not `AzurePublicCloud`.
+	if output == "" {
+		return "public"
+	}
+	return output
+}
+
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
 		config := &Config{
-			SubscriptionID:           d.Get("subscription_id").(string),
-			ClientID:                 d.Get("client_id").(string),
-			ClientSecret:             d.Get("client_secret").(string),
-			TenantID:                 d.Get("tenant_id").(string),
-			Environment:              d.Get("environment").(string),
-			SkipProviderRegistration: d.Get("skip_provider_registration").(bool),
+			SubscriptionID:            d.Get("subscription_id").(string),
+			ClientID:                  d.Get("client_id").(string),
+			ClientSecret:              d.Get("client_secret").(string),
+			TenantID:                  d.Get("tenant_id").(string),
+			Environment:               d.Get("environment").(string),
+			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
+			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
 		}
 
-		if err := config.validate(); err != nil {
-			return nil, err
+		if config.ClientSecret != "" {
+			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
+			if err := config.validateServicePrincipal(); err != nil {
+				return nil, err
+			}
+		} else {
+			log.Printf("[DEBUG] No Client Secret specified - loading credentials from Azure CLI")
+			if err := config.LoadTokensFromAzureCLI(); err != nil {
+				return nil, err
+			}
+
+			if err := config.validateBearerAuth(); err != nil {
+				return nil, fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
+			}
 		}
 
 		client, err := config.getArmClient()
@@ -211,19 +360,21 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil
 		}
 
-		// List all the available providers and their registration state to avoid unnecessary
-		// requests. This also lets us check if the provider credentials are correct.
-		providerList, err := client.providers.List(nil, "")
-		if err != nil {
-			return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
-				"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-				"error: %s", err)
-		}
-
-		if !config.SkipProviderRegistration {
-			err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client.providers)
+		if !config.SkipCredentialsValidation {
+			// List all the available providers and their registration state to avoid unnecessary
+			// requests. This also lets us check if the provider credentials are correct.
+			providerList, err := client.providers.List(nil, "")
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
+					"error: %s", err)
+			}
+
+			if !config.SkipProviderRegistration {
+				err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client.providers)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 
@@ -240,28 +391,28 @@ func registerProviderWithSubscription(providerName string, client resources.Prov
 	return nil
 }
 
-var providerRegistrationOnce sync.Once
-
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
-		"Microsoft.Cache":             {},
-		"Microsoft.Cdn":               {},
-		"Microsoft.Compute":           {},
-		"Microsoft.ContainerInstance": {},
-		"Microsoft.ContainerRegistry": {},
-		"Microsoft.ContainerService":  {},
-		"Microsoft.DBforPostgreSQL":   {},
-		"Microsoft.DocumentDB":        {},
-		"Microsoft.EventGrid":         {},
-		"Microsoft.EventHub":          {},
-		"Microsoft.KeyVault":          {},
-		"microsoft.insights":          {},
-		"Microsoft.Network":           {},
-		"Microsoft.Resources":         {},
-		"Microsoft.Search":            {},
-		"Microsoft.ServiceBus":        {},
-		"Microsoft.Sql":               {},
-		"Microsoft.Storage":           {},
+		"Microsoft.Automation":          {},
+		"Microsoft.Cache":               {},
+		"Microsoft.Cdn":                 {},
+		"Microsoft.Compute":             {},
+		"Microsoft.ContainerInstance":   {},
+		"Microsoft.ContainerRegistry":   {},
+		"Microsoft.ContainerService":    {},
+		"Microsoft.DBforPostgreSQL":     {},
+		"Microsoft.DocumentDB":          {},
+		"Microsoft.EventGrid":           {},
+		"Microsoft.EventHub":            {},
+		"Microsoft.KeyVault":            {},
+		"microsoft.insights":            {},
+		"Microsoft.Network":             {},
+		"Microsoft.OperationalInsights": {},
+		"Microsoft.Resources":           {},
+		"Microsoft.Search":              {},
+		"Microsoft.ServiceBus":          {},
+		"Microsoft.Sql":                 {},
+		"Microsoft.Storage":             {},
 	}
 
 	// filter out any providers already registered
@@ -284,23 +435,23 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
 func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
-	var err error
-	providerRegistrationOnce.Do(func() {
-		providers := determineAzureResourceProvidersToRegister(providerList)
+	providers := determineAzureResourceProvidersToRegister(providerList)
 
-		var wg sync.WaitGroup
-		wg.Add(len(providers))
-		for providerName := range providers {
-			go func(p string) {
-				defer wg.Done()
-				log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-				if innerErr := registerProviderWithSubscription(p, client); err != nil {
-					err = innerErr
-				}
-			}(providerName)
-		}
-		wg.Wait()
-	})
+	var err error
+	var wg sync.WaitGroup
+	wg.Add(len(providers))
+
+	for providerName := range providers {
+		go func(p string) {
+			defer wg.Done()
+			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
+			if innerErr := registerProviderWithSubscription(p, client); err != nil {
+				err = innerErr
+			}
+		}(providerName)
+	}
+
+	wg.Wait()
 
 	return err
 }

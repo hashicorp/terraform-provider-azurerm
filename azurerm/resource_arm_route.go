@@ -26,11 +26,7 @@ func resourceArmRoute() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"route_table_name": {
 				Type:     schema.TypeString,

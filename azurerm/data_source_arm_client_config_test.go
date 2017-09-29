@@ -25,6 +25,7 @@ func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
 					testAzureRMClientConfigAttr(dataSourceName, "client_id", clientId),
 					testAzureRMClientConfigAttr(dataSourceName, "tenant_id", tenantId),
 					testAzureRMClientConfigAttr(dataSourceName, "subscription_id", subscriptionId),
+					testAzureRMClientConfigGUIDAttr(dataSourceName, "service_principal_application_id"),
 					testAzureRMClientConfigGUIDAttr(dataSourceName, "service_principal_object_id"),
 				),
 			},

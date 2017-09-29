@@ -10,7 +10,7 @@ description: |-
 
 Create as an Azure Container Group instance.
 
-## Example Usage (Linux)
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "aci-rg" {
@@ -18,50 +18,57 @@ resource "azurerm_resource_group" "aci-rg" {
   location = "west us"
 }
 
-resource "azurerm_container_group" "nginx" {
-  
-  name = "mynginx"
-  location = "west us"
+resource "azurerm_storage_account" "aci-sa" {
+  name                = "acistorageacct"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  ip_address_type="public"
-  os_type = "linux"
+  location            = "${azurerm_resource_group.aci-rg.location}"
+  account_type        = "Standard_LRS"
+}
+
+resource "azurerm_storage_share" "aci-share" {
+  name = "aci-test-share"
+
+  resource_group_name  = "${azurerm_resource_group.aci-rg.name}"
+  storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+
+  quota = 50
+}
+
+resource "azurerm_container_group" "aci-helloworld" {
+  name                = "aci-hw"
+  location            = "${azurerm_resource_group.aci-rg.location}"
+  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
+  ip_address_type     = "public"
+  os_type             = "linux"
 
   container {
-    name = "nginx1"
-    image = "nginx:latest"
-    cpu ="1"
+    name = "hw"
+    image = "seanmckenna/aci-hellofiles"
+    cpu ="0.5"
+    memory =  "1.5"
+    port = "80"
+    
+    environment_variables {
+        "NODE_ENV"="testing"
+    }
+
+    command = "/bin/bash -c '/path to/myscript.sh'"
+    
+    volume {
+      name = "logs"
+      mount_path = "/aci/logs"
+      read_only = false
+      share_name = "${azurerm_storage_share.aci-share.name}"
+      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key = "${azurerm_storage_account.aci-sa.primary_access_key}"
+    }
+  }
+  
+  container {
+    name   = "sidecar"
+    image  = "microsoft/aci-tutorial-sidecar"
+    cpu    = "0.5"
     memory = "1.5"
-    port = "80"
-  }
-
-  tags {
-    environment = "testing"
-  }
-}
-```
-
-## Example Usage (Windows)
-
-```hcl
-resource "azurerm_resource_group" "aci-rg" {
-  name     = "aci-test"
-  location = "west us"
-}
-
-resource "azurerm_container_group" "nginx" {
-  
-  name = "mywinapp"
-  location = "west us"
-  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  ip_address_type="public"
-  os_type = "windows"
-
-  container {
-    name = "winapp1"
-    image = "winappimage:latest"
-	cpu ="2.0"
-    memory = "3.5"
-    port = "80"
   }
 
   tags {
@@ -78,13 +85,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Container Group. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Required) Specifies the ip address type of the container. `public` is the only acceptable value at this time. Changing this forces a new resource to be created.
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
-* `os_type` - (Required) The OS for the container group. Allowed values are `linux` and `windows` Changing this forces a new resource to be created.
+* `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows` Changing this forces a new resource to be created.
 
-* `container` - (Required) The definition of a container that is part of the group. Currently, only single containers are supported. Changing this forces a new resource to be created.
+* `container` - (Required) The definition of a container that is part of the group. Changing this forces a new resource to be created.
+
+~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
 
 The `container` block supports:
 
@@ -98,8 +107,30 @@ The `container` block supports:
 
 * `port` - (Optional) A public port for the container. Changing this forces a new resource to be created.
 
+* `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
+
+* `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
+
+* `volume` - (Optional) The definition of a volume mount for this container. Changing this forces a new resource to be created.
+
+The `volume` block supports:
+
+* `name` - (Required) The name of the volume mount. Changing this forces a new resource to be created.
+
+* `mount_path` - (Required) The path on which this volume is to be mounted. Changing this forces a new resource to be created.
+
+* `read_only` - (Optional) Specify if the volume is to be mounted as read only or not. The default value is `false`. Changing this forces a new resource to be created.
+
+* `storage_account_name` - (Required) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
+
+* `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
+
+* `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
+
 ## Attributes Reference
 
 The following attributes are exported:
+
+* `id` - The container group ID.
 
 * `ip_address` - The IP address allocated to the container group.
