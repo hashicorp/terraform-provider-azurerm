@@ -661,7 +661,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	ihrc := iothub.NewResourceClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ihrc.Client)
 	ihrc.Authorizer = auth
-	ihrc.Sender = sender
+	ihrc.Sender = autorest.CreateSender(withRequestLogging())
 	client.iothubResourceClient = ihrc
 
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)

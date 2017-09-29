@@ -81,7 +81,7 @@ func resourceArmIothubCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
 
-	rg := d.Get("resource_group").(string)
+	rg := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	subscriptionID := armClient.subscriptionId
@@ -102,15 +102,19 @@ func resourceArmIothubCreate(d *schema.ResourceData, meta interface{}) error {
 
 	cancel := make(chan struct{})
 
-	RespChan, errChan := iothubClient.CreateOrUpdate(rg, name, desc, cancel)
-	resp := <-RespChan
+	_, errChan := iothubClient.CreateOrUpdate(rg, name, desc, cancel)
 	err := <-errChan
 
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*resp.ID)
+	desc, err = iothubClient.Get(rg, name)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(*desc.ID)
 	return resourceArmIothubRead(d, meta)
 
 }
