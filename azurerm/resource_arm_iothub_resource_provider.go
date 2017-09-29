@@ -85,6 +85,7 @@ func resourceArmIothubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	rg := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
+
 	subscriptionID := armClient.subscriptionId
 	skuInfo := expandAzureRmIotHubSku(d)
 
@@ -94,6 +95,11 @@ func resourceArmIothubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 		Location:       &location,
 		Subscriptionid: &subscriptionID,
 		Sku:            &skuInfo,
+	}
+
+	if tagsI, ok := d.GetOk("tags"); ok {
+		tags := tagsI.(map[string]interface{})
+		desc.Tags = expandTags(tags)
 	}
 
 	if etagI, ok := d.GetOk("etag"); ok {
