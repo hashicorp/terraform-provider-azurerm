@@ -106,7 +106,6 @@ func resourceArmContainerGroup() *schema.Resource {
 								"tcp",
 								"udp",
 							}, true),
-							Default: "TCP",
 						},
 
 						"environment_variables": {
