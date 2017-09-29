@@ -8,12 +8,13 @@ import (
 
 func resourceArmIothub() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIothubCreate,
+		Create: resourceArmIothubCreateAndUpdate,
 		Read:   resourceArmIothubRead,
-		Update: resourceArmIothubUpdate,
+		Update: resourceArmIothubCreateAndUpdate,
 		Delete: resourceArmIothubDelete,
 
 		Schema: map[string]*schema.Schema{
+			// TODO: use nameAvailabilityInfo for validation
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -76,7 +77,7 @@ func resourceArmIothub() *schema.Resource {
 	}
 
 }
-func resourceArmIothubCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIothubCreateAndUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
@@ -153,11 +154,18 @@ func resourceArmIothubRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmIothubUpdate(d *schema.ResourceData, meta interface{}) error {
-
-	return nil
-}
-
 func resourceArmIothubDelete(d *schema.ResourceData, meta interface{}) error {
-	return nil
+
+	id, err := parseAzureResourceID(d.Id())
+
+	if err != nil {
+		return err
+	}
+
+	armClient := meta.(*ArmClient)
+	iothubClient := armClient.iothubResourceClient
+
+	_, errChan := iothubClient.Delete(id.ResourceGroup, id.Path["IotHubs"], make(chan struct{}))
+	err = <-errChan
+	return err
 }
