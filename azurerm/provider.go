@@ -69,9 +69,10 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"azurerm_client_config":  dataSourceArmClientConfig(),
-			"azurerm_resource_group": dataSourceArmResourceGroup(),
-			"azurerm_public_ip":      dataSourceArmPublicIP(),
 			"azurerm_managed_disk":   dataSourceArmManagedDisk(),
+			"azurerm_platform_image": dataSourceArmPlatformImage(),
+			"azurerm_public_ip":      dataSourceArmPublicIP(),
+			"azurerm_resource_group": dataSourceArmResourceGroup(),
 			"azurerm_subscription":   dataSourceArmSubscription(),
 		},
 
