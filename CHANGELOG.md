@@ -1,4 +1,9 @@
 ## 0.2.3 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_platform_image` [GH-375]
+
 ## 0.2.2 (September 28, 2017)
 
 FEATURES:
