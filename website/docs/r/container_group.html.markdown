@@ -35,41 +35,41 @@ resource "azurerm_storage_share" "aci-share" {
 }
 
 resource "azurerm_container_group" "aci-helloworld" {
-  
-  name = "aci-hw"
-  location = "${azurerm_resource_group.aci-rg.location}"
+  name                = "aci-hw"
+  location            = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
-  ip_address_type="public"
-  os_type = "linux"
+  ip_address_type     = "public"
+  os_type             = "linux"
 
   container {
-        name = "hw"
-        image = "seanmckenna/aci-hellofiles"
-        cpu ="0.5"
-        memory =  "1.5"
-        port = "80"
-        
-        environment_variables {
-            "NODE_ENV"="testing"
-        }
+    name = "hw"
+    image = "seanmckenna/aci-hellofiles"
+    cpu ="0.5"
+    memory =  "1.5"
+    port = "80"
+    
+    environment_variables {
+        "NODE_ENV"="testing"
+    }
 
-        command = "/bin/bash -c '/path to/myscript.sh'"
-        
-        volume {
-          name = "logs"
-          mount_path = "/aci/logs"
-          read_only = false
-          share_name = "${azurerm_storage_share.aci-share.name}"
-          storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-          storage_account_key = "${azurerm_storage_account.aci-sa.primary_access_key}"
-        }
+    command = "/bin/bash -c '/path to/myscript.sh'"
+    
+    volume {
+      name = "logs"
+      mount_path = "/aci/logs"
+      read_only = false
+      share_name = "${azurerm_storage_share.aci-share.name}"
+      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
-    container {
-        name = "sidecar"
-        image = "microsoft/aci-tutorial-sidecar"
-        cpu="0.5"
-        memory="1.5"
-    }
+  }
+  
+  container {
+    name   = "sidecar"
+    image  = "microsoft/aci-tutorial-sidecar"
+    cpu    = "0.5"
+    memory = "1.5"
+  }
 
   tags {
     environment = "testing"
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
-* `os_type` - (Required) The OS for the container group. Allowed values are `linux` and `windows` Changing this forces a new resource to be created.
+* `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows` Changing this forces a new resource to be created.
 
 * `container` - (Required) The definition of a container that is part of the group. Changing this forces a new resource to be created.
 

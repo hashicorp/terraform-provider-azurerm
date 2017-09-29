@@ -27,7 +27,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKeyVaultSecretName,
+				ValidateFunc: validateKeyVaultChildName,
 			},
 
 			"vault_uri": {
@@ -229,7 +229,7 @@ type SecretID struct {
 	Version         string
 }
 
-func validateKeyVaultSecretName(v interface{}, k string) (ws []string, es []error) {
+func validateKeyVaultChildName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
