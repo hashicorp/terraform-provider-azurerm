@@ -29,6 +29,8 @@ func resourceArmStorageAccount() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		MigrateState:  resourceStorageAccountMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -55,8 +57,33 @@ func resourceArmStorageAccount() *schema.Resource {
 
 			"account_type": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
+				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
 				ValidateFunc:     validateArmStorageAccountType,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"account_tier": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Standard",
+					"Premium",
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"account_replication_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"LRS",
+					"ZRS",
+					"GRS",
+					"RAGRS",
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
@@ -71,7 +98,32 @@ func resourceArmStorageAccount() *schema.Resource {
 				}, true),
 			},
 
+			"custom_domain": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"use_subdomain": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"enable_blob_encryption": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"enable_file_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -150,6 +202,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 	}
+
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
@@ -159,33 +212,43 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("name").(string)
 	accountKind := d.Get("account_kind").(string)
-	accountType := d.Get("account_type").(string)
 
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 
-	sku := storage.Sku{
-		Name: storage.SkuName(accountType),
-	}
+	accountTier := d.Get("account_tier").(string)
+	replicationType := d.Get("account_replication_type").(string)
+	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 
-	opts := storage.AccountCreateParameters{
+	parameters := storage.AccountCreateParameters{
 		Location: &location,
-		Sku:      &sku,
-		Tags:     expandTags(tags),
-		Kind:     storage.Kind(accountKind),
+		Sku: &storage.Sku{
+			Name: storage.SkuName(storageType),
+		},
+		Tags: expandTags(tags),
+		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			Encryption: &storage.Encryption{
 				Services: &storage.EncryptionServices{
 					Blob: &storage.EncryptionService{
-						Enabled: &enableBlobEncryption,
-					},
-				},
+						Enabled: utils.Bool(enableBlobEncryption),
+					}},
 				KeySource: &storageAccountEncryptionSource,
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 		},
+	}
+
+	if v, ok := d.GetOk("enable_file_encryption"); ok {
+		parameters.Encryption.Services.File = &storage.EncryptionService{
+			Enabled: utils.Bool(v.(bool)),
+		}
+	}
+
+	if _, ok := d.GetOk("custom_domain"); ok {
+		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
 
 	// AccessTier is only valid for BlobStorage accounts
@@ -196,11 +259,11 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			accessTier = blobStorageAccountDefaultAccessTier
 		}
 
-		opts.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
+		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
 	}
 
 	// Create
-	_, createError := storageClient.Create(resourceGroupName, storageAccountName, opts, make(chan struct{}))
+	_, createError := storageClient.Create(resourceGroupName, storageAccountName, parameters, make(chan struct{}))
 	createErr := <-createError
 
 	// The only way to get the ID back apparently is to read the resource again
@@ -216,7 +279,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	// We do this later here so that we can grab the ID above is possible.
 	if createErr != nil {
 		return fmt.Errorf(
-			"Error creating Azure Storage Account '%s': %s",
+			"Error creating Azure Storage Account %q: %+v",
 			storageAccountName, createErr)
 	}
 
@@ -227,7 +290,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 
 	// If we got no ID then the resource group doesn't yet exist
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Storage Account %s (resource group %s) ID",
+		return fmt.Errorf("Cannot read Storage Account %q (resource group %q) ID",
 			storageAccountName, resourceGroupName)
 	}
 
@@ -260,11 +323,13 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.Partial(true)
 
-	if d.HasChange("account_type") {
-		accountType := d.Get("account_type").(string)
+	if d.HasChange("account_replication_type") {
+		accountTier := d.Get("account_tier").(string)
+		replicationType := d.Get("account_replication_type").(string)
+		storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 
 		sku := storage.Sku{
-			Name: storage.SkuName(accountType),
+			Name: storage.SkuName(storageType),
 		}
 
 		opts := storage.AccountUpdateParameters{
@@ -272,10 +337,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		_, err := client.Update(resourceGroupName, storageAccountName, opts)
 		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account type %q: %s", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account type %q: %+v", storageAccountName, err)
 		}
 
-		d.SetPartial("account_type")
+		d.SetPartial("account_replication_type")
 	}
 
 	if d.HasChange("access_tier") {
@@ -288,7 +353,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		_, err := client.Update(resourceGroupName, storageAccountName, opts)
 		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %s", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
 		}
 
 		d.SetPartial("access_tier")
@@ -302,33 +367,58 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		_, err := client.Update(resourceGroupName, storageAccountName, opts)
 		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account tags %q: %s", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account tags %q: %+v", storageAccountName, err)
 		}
 
 		d.SetPartial("tags")
 	}
 
-	if d.HasChange("enable_blob_encryption") {
-		enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
+	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				Encryption: &storage.Encryption{
-					Services: &storage.EncryptionServices{
-						Blob: &storage.EncryptionService{
-							Enabled: &enableBlobEncryption,
-						},
-					},
+					Services:  &storage.EncryptionServices{},
 					KeySource: &storageAccountEncryptionSource,
 				},
 			},
 		}
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
-		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account enable_blob_encryption %q: %s", storageAccountName, err)
+
+		if d.HasChange("enable_blob_encryption") {
+			enableEncryption := d.Get("enable_blob_encryption").(bool)
+			opts.Encryption.Services.Blob = &storage.EncryptionService{
+				Enabled: utils.Bool(enableEncryption),
+			}
+
+			d.SetPartial("enable_blob_encryption")
 		}
 
-		d.SetPartial("enable_blob_encryption")
+		if d.HasChange("enable_file_encryption") {
+			enableEncryption := d.Get("enable_file_encryption").(bool)
+			opts.Encryption.Services.File = &storage.EncryptionService{
+				Enabled: utils.Bool(enableEncryption),
+			}
+			d.SetPartial("enable_file_encryption")
+		}
+
+		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
+		}
+	}
+
+	if d.HasChange("custom_domain") {
+		customDomain := expandStorageAccountCustomDomain(d)
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				CustomDomain: customDomain,
+			},
+		}
+
+		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account Custom Domain %q: %+v", storageAccountName, err)
+		}
 	}
 
 	if d.HasChange("enable_https_traffic_only") {
@@ -341,7 +431,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 		_, err := client.Update(resourceGroupName, storageAccountName, opts)
 		if err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %s", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %+v", storageAccountName, err)
 		}
 
 		d.SetPartial("enable_https_traffic_only")
@@ -367,7 +457,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %s", name, err)
+		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	keys, err := client.ListKeys(resGroup, name)
@@ -376,60 +466,80 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	accessKeys := *keys.Keys
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("primary_access_key", accessKeys[0].Value)
-	d.Set("secondary_access_key", accessKeys[1].Value)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("account_kind", resp.Kind)
-	d.Set("account_type", resp.Sku.Name)
-	d.Set("primary_location", resp.AccountProperties.PrimaryLocation)
-	d.Set("secondary_location", resp.AccountProperties.SecondaryLocation)
-	d.Set("enable_https_traffic_only", resp.AccountProperties.EnableHTTPSTrafficOnly)
 
-	if resp.AccountProperties.AccessTier != "" {
-		d.Set("access_tier", resp.AccountProperties.AccessTier)
+	if sku := resp.Sku; sku != nil {
+		d.Set("account_type", sku.Name)
+		d.Set("account_tier", sku.Tier)
+		d.Set("account_replication_type", strings.Split(fmt.Sprintf("%v", sku.Name), "_")[1])
 	}
 
-	if resp.AccountProperties.PrimaryEndpoints != nil {
-		d.Set("primary_blob_endpoint", resp.AccountProperties.PrimaryEndpoints.Blob)
-		d.Set("primary_queue_endpoint", resp.AccountProperties.PrimaryEndpoints.Queue)
-		d.Set("primary_table_endpoint", resp.AccountProperties.PrimaryEndpoints.Table)
-		d.Set("primary_file_endpoint", resp.AccountProperties.PrimaryEndpoints.File)
+	if props := resp.AccountProperties; props != nil {
+		d.Set("access_tier", props.AccessTier)
+		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 
-		pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-			*resp.AccountProperties.PrimaryEndpoints.Blob, *resp.Name, *accessKeys[0].Value)
-		d.Set("primary_blob_connection_string", pscs)
+		if customDomain := props.CustomDomain; customDomain != nil {
+			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
+				return fmt.Errorf("Error flattening `custom_domain`: %+v", err)
+			}
+		}
+
+		if encryption := props.Encryption; encryption != nil {
+			if services := encryption.Services; services != nil {
+				if blob := services.Blob; blob != nil {
+					d.Set("enable_blob_encryption", blob.Enabled)
+				}
+				if file := services.File; file != nil {
+					d.Set("enable_file_encryption", file.Enabled)
+				}
+			}
+		}
+
+		// Computed
+		d.Set("primary_location", props.PrimaryLocation)
+		d.Set("secondary_location", props.SecondaryLocation)
+
+		if endpoints := props.PrimaryEndpoints; endpoints != nil {
+			d.Set("primary_blob_endpoint", endpoints.Blob)
+			d.Set("primary_queue_endpoint", endpoints.Queue)
+			d.Set("primary_table_endpoint", endpoints.Table)
+			d.Set("primary_file_endpoint", endpoints.File)
+
+			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
+				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
+			d.Set("primary_blob_connection_string", pscs)
+		}
+
+		if endpoints := props.SecondaryEndpoints; endpoints != nil {
+			if blob := endpoints.Blob; blob != nil {
+				d.Set("secondary_blob_endpoint", blob)
+				sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
+					*blob, *resp.Name, *accessKeys[1].Value)
+				d.Set("secondary_blob_connection_string", sscs)
+			} else {
+				d.Set("secondary_blob_endpoint", "")
+				d.Set("secondary_blob_connection_string", "")
+			}
+
+			if endpoints.Queue != nil {
+				d.Set("secondary_queue_endpoint", endpoints.Queue)
+			} else {
+				d.Set("secondary_queue_endpoint", "")
+			}
+
+			if endpoints.Table != nil {
+				d.Set("secondary_table_endpoint", endpoints.Table)
+			} else {
+				d.Set("secondary_table_endpoint", "")
+			}
+		}
 	}
 
-	if resp.AccountProperties.SecondaryEndpoints != nil {
-		if resp.AccountProperties.SecondaryEndpoints.Blob != nil {
-			d.Set("secondary_blob_endpoint", resp.AccountProperties.SecondaryEndpoints.Blob)
-			sscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
-				*resp.AccountProperties.SecondaryEndpoints.Blob, *resp.Name, *accessKeys[1].Value)
-			d.Set("secondary_blob_connection_string", sscs)
-		} else {
-			d.Set("secondary_blob_endpoint", "")
-			d.Set("secondary_blob_connection_string", "")
-		}
-		if resp.AccountProperties.SecondaryEndpoints.Queue != nil {
-			d.Set("secondary_queue_endpoint", resp.AccountProperties.SecondaryEndpoints.Queue)
-		} else {
-			d.Set("secondary_queue_endpoint", "")
-		}
-		if resp.AccountProperties.SecondaryEndpoints.Table != nil {
-			d.Set("secondary_table_endpoint", resp.AccountProperties.SecondaryEndpoints.Table)
-		} else {
-			d.Set("secondary_table_endpoint", "")
-		}
-	}
-
-	if resp.AccountProperties.Encryption != nil {
-		if resp.AccountProperties.Encryption.Services.Blob != nil {
-			d.Set("enable_blob_encryption", resp.AccountProperties.Encryption.Services.Blob.Enabled)
-		}
-	}
-
-	d.Set("name", resp.Name)
+	d.Set("primary_access_key", accessKeys[0].Value)
+	d.Set("secondary_access_key", accessKeys[1].Value)
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -448,10 +558,30 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 
 	_, err = client.Delete(resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing AzureRM delete request for storage account %q: %s", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for storage account %q: %+v", name, err)
 	}
 
 	return nil
+}
+
+func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDomain {
+	domains := d.Get("custom_domain").([]interface{})
+	domain := domains[0].(map[string]interface{})
+	name := domain["name"].(string)
+	useSubDomain := domain["use_subdomain"].(bool)
+	return &storage.CustomDomain{
+		Name:         utils.String(name),
+		UseSubDomain: utils.Bool(useSubDomain),
+	}
+}
+
+func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{} {
+	domain := make(map[string]interface{}, 0)
+
+	domain["name"] = *input.Name
+	// use_subdomain isn't returned
+
+	return []interface{}{domain}
 }
 
 func validateArmStorageAccountName(v interface{}, k string) (ws []string, es []error) {
