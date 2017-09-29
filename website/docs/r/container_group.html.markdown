@@ -10,12 +10,28 @@ description: |-
 
 Create as an Azure Container Group instance.
 
-## Example Usage (Linux)
+## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "aci-rg" {
   name     = "aci-test"
   location = "west us"
+}
+
+resource "azurerm_storage_account" "aci-sa" {
+  name                = "acistorageacct"
+  resource_group_name = "${azurerm_resource_group.aci-rg.name}"
+  location            = "${azurerm_resource_group.aci-rg.location}"
+  account_type        = "Standard_LRS"
+}
+
+resource "azurerm_storage_share" "aci-share" {
+  name = "aci-test-share"
+
+  resource_group_name  = "${azurerm_resource_group.aci-rg.name}"
+  storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+
+  quota = 50
 }
 
 resource "azurerm_container_group" "aci-helloworld" {
@@ -28,14 +44,25 @@ resource "azurerm_container_group" "aci-helloworld" {
 
   container {
         name = "hw"
-        image = "microsoft/aci-helloworld:latest"
+        image = "seanmckenna/aci-hellofiles"
         cpu ="0.5"
         memory =  "1.5"
         port = "80"
+        
         environment_variables {
-            "NODE_ENV"="Staging"
+            "NODE_ENV"="testing"
         }
+
         command = "/bin/bash -c '/path to/myscript.sh'"
+        
+        volume {
+          name = "logs"
+          mount_path = "/aci/logs"
+          read_only = false
+          share_name = "${azurerm_storage_share.aci-share.name}"
+          storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+          storage_account_key = "${azurerm_storage_account.aci-sa.primary_access_key}"
+        }
     }
     container {
         name = "sidecar"
@@ -83,6 +110,22 @@ The `container` block supports:
 * `environment_variables` - (Optional) A list of environment variables to be set on the container. Specified as a map of name/value pairs. Changing this forces a new resource to be created.
 
 * `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
+
+* `volume` - (Optional) The definition of a volume mount for this container. Changing this forces a new resource to be created.
+
+The `volume` block supports:
+
+* `name` - (Required) The name of the volume mount. Changing this forces a new resource to be created.
+
+* `mount_path` - (Required) The path on which this volume is to be mounted. Changing this forces a new resource to be created.
+
+* `read_only` - (Optional) Specify if the volume is to be mounted as read only or not. The default value is `false`. Changing this forces a new resource to be created.
+
+* `storage_account_name` - (Required) The Azure storage account from which the volume is to be mounted. Changing this forces a new resource to be created.
+
+* `storage_account_key` - (Required) The access key for the Azure Storage account specified as above. Changing this forces a new resource to be created.
+
+* `share_name` - (Required) The Azure storage share that is to be mounted as a volume. This must be created on the storage account specified as above. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
