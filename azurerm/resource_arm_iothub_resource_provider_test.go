@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+// change this to use ephemeral dynamic resource groups
 const TestResourceGroup = "girishsandbox"
 
 func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
@@ -17,12 +18,12 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMIothubDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMIotHub_basicStandard(name, TestResourceGroup, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIothubExists("azurerm_iothub.test"),
+					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
 				),
 			},
 		},
@@ -30,7 +31,7 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 
 }
 
-func testCheckAzureRMIothubDestroy(s *terraform.State) error {
+func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 
 	conn := testAccProvider.Meta().(*ArmClient).expressRouteCircuitClient
 
@@ -49,12 +50,12 @@ func testCheckAzureRMIothubDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Iothub still exists:\n%#v", resp.ExpressRouteCircuitPropertiesFormat)
+			return fmt.Errorf("IotHub still exists:\n%#v", resp.ExpressRouteCircuitPropertiesFormat)
 		}
 	}
 	return nil
 }
-func testCheckAzureRMIothubExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
