@@ -1,8 +1,14 @@
-## 0.2.3 (Unreleased)
+## 0.3.0 (Unreleased)
 
 FEATURES:
 
 * **New Data Source:** `azurerm_platform_image` [GH-375]
+
+IMPROVEMENTS:
+
+* `azurerm_storage_account` - support for File Encryption [GH-363]
+* `azurerm_storage_account` - support for Custom Domain [GH-363]
+* `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
 
 ## 0.2.2 (September 28, 2017)
 
