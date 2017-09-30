@@ -121,7 +121,7 @@ func TestAccAzureRMVirtualMachineScaleSet_basicLinux_managedDisk(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(ri, testLocation())
+	config := testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(ri, testLocation(), "Standard_D1_v2")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -129,6 +129,31 @@ func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(t *testing.T)
 		Steps: []resource.TestStep{
 			{
 				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk_resize(t *testing.T) {
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(ri, testLocation(), "Standard_D1_v2")
+	postConfig := testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(ri, testLocation(), "Standard_D2_v2")
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+				),
+			},
+			{
+				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
 				),
@@ -1080,7 +1105,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(rInt int, location string) string {
+func testAccAzureRMVirtualMachineScaleSet_basicWindows_managedDisk(rInt int, location string, vmSize string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
@@ -1108,7 +1133,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   sku {
-    name = "Standard_D1_v2"
+    name = "%s"
     tier = "Standard"
     capacity = 2
   }
@@ -1161,7 +1186,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     version   = "latest"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, vmSize, rInt)
 }
 
 func testAccAzureRMVirtualMachineScaleSet_basicLinux_managedDiskNoName(rInt int, location string) string {
