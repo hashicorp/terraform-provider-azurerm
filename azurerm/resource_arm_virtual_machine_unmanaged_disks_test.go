@@ -180,7 +180,7 @@ func TestAccAzureRMVirtualMachine_basicWindowsMachine(t *testing.T) {
 func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation())
+	config := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation(), "Standard_D1_v2")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -188,6 +188,32 @@ func TestAccAzureRMVirtualMachine_windowsUnattendedConfig(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachine_windowsMachineResize(t *testing.T) {
+	var vm compute.VirtualMachine
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation(), "Standard_D1_v2")
+	postConfig := testAccAzureRMVirtualMachine_windowsUnattendedConfig(ri, testLocation(), "Standard_D2_v2")
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
+				),
+			},
+			{
+				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
 				),
@@ -1382,7 +1408,7 @@ resource "azurerm_virtual_machine" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMVirtualMachine_windowsUnattendedConfig(rInt int, location string) string {
+func testAccAzureRMVirtualMachine_windowsUnattendedConfig(rInt int, location string, vmSize string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
@@ -1438,7 +1464,7 @@ resource "azurerm_virtual_machine" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-    vm_size = "Standard_D1_v2"
+    vm_size = "%s"
 
     storage_image_reference {
 	publisher = "MicrosoftWindowsServer"
@@ -1471,7 +1497,7 @@ resource "azurerm_virtual_machine" "test" {
     }
 
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, vmSize)
 }
 
 func testAccAzureRMVirtualMachine_diagnosticsProfile(rInt int, location string) string {
