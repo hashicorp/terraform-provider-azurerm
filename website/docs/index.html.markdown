@@ -16,7 +16,7 @@ Use the navigation to the left to read about the available resources.
 
 # Creating Credentials
 
-Terraform supports authenticating to Azure through a couple of different means - via a Service Principal and using the Azure CLI.
+Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
 We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
 
@@ -83,6 +83,11 @@ The following arguments are supported:
   * `usgovernment`
   * `german`
   * `china`
+
+* `skip_credentials_validation` - (Optional) Prevents the provider from validating
+  the given credentials. When set to `true`, `skip_provider_registration` is assumed.
+  It can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` environment
+  variable, defaults to `false`.
 
 * `skip_provider_registration` - (Optional) Prevents the provider from registering
   the ARM provider namespaces, this can be used if you don't wish to give the Active
