@@ -10,6 +10,8 @@ IMPROVEMENTS:
 * `azurerm_storage_account` - support for File Encryption [GH-363]
 * `azurerm_storage_account` - support for Custom Domain [GH-363]
 * `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
+* `azurerm_virtual_machine` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
+* `azurerm_virtual_machine_scale_set` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
 
 ## 0.2.2 (September 28, 2017)
 
