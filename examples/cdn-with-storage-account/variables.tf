@@ -7,9 +7,14 @@ variable "location" {
   default     = "southcentralus"
 }
 
-variable "storage_account_type" {
-  description = "Specifies the type of the storage account"
-  default     = "Standard_LRS"
+variable "storage_account_tier" {
+  description = "Defines the Tier of storage account to be created. Valid options are Standard and Premium."
+  default     = "Standard"
+}
+
+variable "storage_replication_type" {
+  description = "Defines the Replication Type to use for this storage account. Valid options include LRS, GRS etc."
+  default     = "LRS"
 }
 
 variable "host_name" {
