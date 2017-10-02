@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
 * `azurerm_storage_account` - support for File Encryption [GH-363]
 * `azurerm_storage_account` - support for Custom Domain [GH-363]
 * `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
