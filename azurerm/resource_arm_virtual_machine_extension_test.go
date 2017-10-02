@@ -171,10 +171,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -196,10 +197,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_A0"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -210,9 +211,9 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hostname%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hostname%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
@@ -276,10 +277,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -301,10 +303,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_A0"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -315,9 +317,9 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hostname%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hostname%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
@@ -382,10 +384,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -499,10 +502,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"

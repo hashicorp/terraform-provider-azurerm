@@ -563,10 +563,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -588,10 +589,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -603,13 +604,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     tags {
@@ -654,10 +655,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -679,10 +681,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -694,13 +696,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = true
-	ssh_keys {
+		disable_password_authentication = true
+		ssh_keys {
             path = "/home/testadmin/.ssh/authorized_keys"
             key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQCfGyt5W1eJVpDIxlyvAWO594j/azEGohmlxYe7mgSfmUCWjuzILI6nHuHbxhpBDIZJhQ+JAeduXpii61dmThbI89ghGMhzea0OlT3p12e093zqa4goB9g40jdNKmJArER3pMVqs6hmv8y3GlUNkMDSmuoyI8AYzX4n26cUKZbwXQ== mk@mk3"
         }
@@ -748,10 +750,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -774,10 +777,10 @@ resource "azurerm_virtual_machine" "test" {
     delete_os_disk_on_termination = true
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -788,13 +791,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     tags {
@@ -844,10 +847,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test-sa.name}"
-    location = "${azurerm_resource_group.test-sa.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test-sa.name}"
+	location                 = "${azurerm_resource_group.test-sa.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -869,10 +873,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -895,13 +899,13 @@ resource "azurerm_virtual_machine" "test" {
     delete_data_disks_on_termination = true
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     tags {
@@ -951,10 +955,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test-sa.name}"
-    location = "${azurerm_resource_group.test-sa.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test-sa.name}"
+	location                 = "${azurerm_resource_group.test-sa.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1004,10 +1009,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1057,10 +1063,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1082,10 +1089,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -1105,13 +1112,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     tags {
@@ -1156,10 +1163,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1181,10 +1189,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -1195,13 +1203,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
-    }
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+	}
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     tags {
@@ -1245,10 +1253,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1270,10 +1279,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D2_v2"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -1284,13 +1293,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
@@ -1330,10 +1339,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1355,10 +1365,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "MicrosoftWindowsServer"
-	offer = "WindowsServer"
-	sku = "2012-Datacenter"
-	version = "latest"
+		publisher = "MicrosoftWindowsServer"
+		offer = "WindowsServer"
+		sku = "2012-Datacenter"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -1369,14 +1379,14 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "winhost01"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "winhost01"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_windows_config {
-	enable_automatic_upgrades = false
-	provision_vm_agent = true
+		enable_automatic_upgrades = false
+		provision_vm_agent = true
     }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
@@ -1416,10 +1426,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1441,10 +1452,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "MicrosoftWindowsServer"
-	offer = "WindowsServer"
-	sku = "2012-Datacenter"
-	version = "latest"
+		publisher = "MicrosoftWindowsServer"
+		offer = "WindowsServer"
+		sku = "2012-Datacenter"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -1455,9 +1466,9 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "winhost01"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "winhost01"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_windows_config {
@@ -1508,10 +1519,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1533,10 +1545,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "MicrosoftWindowsServer"
-	offer = "WindowsServer"
-	sku = "2012-Datacenter"
-	version = "latest"
+		publisher = "MicrosoftWindowsServer"
+		offer = "WindowsServer"
+		sku = "2012-Datacenter"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -1547,9 +1559,9 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "winhost01"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "winhost01"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     boot_diagnostics {
@@ -1559,7 +1571,7 @@ resource "azurerm_virtual_machine" "test" {
 
     os_profile_windows_config {
         winrm {
-	  protocol = "http"
+	  		protocol = "http"
         }
     }
 }
@@ -1600,10 +1612,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1625,10 +1638,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_D1_v2"
 
     storage_image_reference {
-	publisher = "MicrosoftWindowsServer"
-	offer = "WindowsServer"
-	sku = "2012-Datacenter"
-	version = "latest"
+		publisher = "MicrosoftWindowsServer"
+		offer = "WindowsServer"
+		sku = "2012-Datacenter"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -1639,14 +1652,14 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "winhost01"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "winhost01"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_windows_config {
         winrm {
-	  protocol = "http"
+	  		protocol = "http"
         }
     }
 }
@@ -1687,10 +1700,11 @@ resource "azurerm_resource_group" "test" {
  }
 
  resource "azurerm_storage_account" "test" {
-     name = "accsa%d"
-     resource_group_name = "${azurerm_resource_group.test.name}"
-     location = "${azurerm_resource_group.test.location}"
-     account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
      tags {
          environment = "staging"
@@ -1711,37 +1725,37 @@ resource "azurerm_resource_group" "test" {
  }
 
  resource "azurerm_virtual_machine" "test" {
-     name = "acctvm-%d"
-     location = "${azurerm_resource_group.test.location}"
-     resource_group_name = "${azurerm_resource_group.test.name}"
-     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-     vm_size = "Standard_D1_v2"
-     availability_set_id = "${azurerm_availability_set.test.id}"
-     delete_os_disk_on_termination = true
+	name = "acctvm-%d"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	network_interface_ids = ["${azurerm_network_interface.test.id}"]
+	vm_size = "Standard_D1_v2"
+	availability_set_id = "${azurerm_availability_set.test.id}"
+	delete_os_disk_on_termination = true
 
-     storage_image_reference {
- 	publisher = "Canonical"
- 	offer = "UbuntuServer"
- 	sku = "16.04-LTS"
- 	version = "latest"
-     }
+	storage_image_reference {
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
+	}
 
-     storage_os_disk {
-         name = "myosdisk1"
-         vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-         caching = "ReadWrite"
-         create_option = "FromImage"
-     }
+	storage_os_disk {
+		name = "myosdisk1"
+		vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+		caching = "ReadWrite"
+		create_option = "FromImage"
+	}
 
-     os_profile {
- 	computer_name = "hn%d"
- 	admin_username = "testadmin"
- 	admin_password = "Password1234!"
-     }
+	os_profile {
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+	}
 
-     os_profile_linux_config {
- 	disable_password_authentication = false
-     }
+	os_profile_linux_config {
+		disable_password_authentication = false
+	}
  }
  `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
@@ -1780,14 +1794,15 @@ func testAccAzureRMVirtualMachine_updateAvailabilitySet(rInt int, location strin
  }
 
  resource "azurerm_storage_account" "test" {
-     name = "accsa%d"
-     resource_group_name = "${azurerm_resource_group.test.name}"
-     location = "${azurerm_resource_group.test.location}"
-     account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
-     tags {
-         environment = "staging"
-     }
+	tags {
+		environment = "staging"
+	}
  }
 
  resource "azurerm_availability_set" "test" {
@@ -1804,37 +1819,37 @@ func testAccAzureRMVirtualMachine_updateAvailabilitySet(rInt int, location strin
  }
 
  resource "azurerm_virtual_machine" "test" {
-     name = "acctvm-%d"
-     location = "${azurerm_resource_group.test.location}"
-     resource_group_name = "${azurerm_resource_group.test.name}"
-     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-     vm_size = "Standard_D1_v2"
-     availability_set_id = "${azurerm_availability_set.test.id}"
-     delete_os_disk_on_termination = true
+	name = "acctvm-%d"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	network_interface_ids = ["${azurerm_network_interface.test.id}"]
+	vm_size = "Standard_D1_v2"
+	availability_set_id = "${azurerm_availability_set.test.id}"
+	delete_os_disk_on_termination = true
 
-     storage_image_reference {
- 	publisher = "Canonical"
- 	offer = "UbuntuServer"
- 	sku = "16.04-LTS"
- 	version = "latest"
-     }
+	storage_image_reference {
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
+	}
 
-     storage_os_disk {
-         name = "myosdisk1"
-         vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-         caching = "ReadWrite"
-         create_option = "FromImage"
-     }
+	storage_os_disk {
+		name = "myosdisk1"
+		vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+		caching = "ReadWrite"
+		create_option = "FromImage"
+	}
 
-     os_profile {
- 	computer_name = "hn%d"
- 	admin_username = "testadmin"
- 	admin_password = "Password1234!"
-     }
+	os_profile {
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+	}
 
-     os_profile_linux_config {
- 	disable_password_authentication = false
-     }
+	os_profile_linux_config {
+		disable_password_authentication = false
+	}
  }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
@@ -1873,54 +1888,55 @@ func testAccAzureRMVirtualMachine_updateMachineName(rInt int, location string) s
  }
 
  resource "azurerm_storage_account" "test" {
-     name = "accsa%d"
-     resource_group_name = "${azurerm_resource_group.test.name}"
-     location = "${azurerm_resource_group.test.location}"
-     account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
-     tags {
-         environment = "staging"
-     }
+	tags {
+		environment = "staging"
+	}
  }
 
  resource "azurerm_storage_container" "test" {
-     name = "vhds"
-     resource_group_name = "${azurerm_resource_group.test.name}"
-     storage_account_name = "${azurerm_storage_account.test.name}"
-     container_access_type = "private"
+	name = "vhds"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	storage_account_name = "${azurerm_storage_account.test.name}"
+	container_access_type = "private"
  }
 
  resource "azurerm_virtual_machine" "test" {
-     name = "acctvm-%d"
-     location = "${azurerm_resource_group.test.location}"
-     resource_group_name = "${azurerm_resource_group.test.name}"
-     network_interface_ids = ["${azurerm_network_interface.test.id}"]
-     vm_size = "Standard_D1_v2"
-      delete_os_disk_on_termination = true
+	name = "acctvm-%d"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	network_interface_ids = ["${azurerm_network_interface.test.id}"]
+	vm_size = "Standard_D1_v2"
+	delete_os_disk_on_termination = true
 
-     storage_image_reference {
- 	publisher = "Canonical"
- 	offer = "UbuntuServer"
- 	sku = "16.04-LTS"
- 	version = "latest"
-     }
+	storage_image_reference {
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
+	}
 
-     storage_os_disk {
-         name = "myosdisk1"
-         vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-         caching = "ReadWrite"
-         create_option = "FromImage"
-     }
+	storage_os_disk {
+		name = "myosdisk1"
+		vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+		caching = "ReadWrite"
+		create_option = "FromImage"
+	}
 
-     os_profile {
- 	computer_name = "newhostname%d"
- 	admin_username = "testadmin"
- 	admin_password = "Password1234!"
-     }
+	os_profile {
+		computer_name = "newhostname%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+	}
 
-     os_profile_linux_config {
- 	disable_password_authentication = false
-     }
+	os_profile_linux_config {
+		disable_password_authentication = false
+	}
  }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
@@ -1959,10 +1975,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -1985,10 +2002,10 @@ resource "azurerm_virtual_machine" "test" {
     delete_os_disk_on_termination = true
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -2000,13 +2017,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     tags {
@@ -2051,10 +2068,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -2077,10 +2095,10 @@ resource "azurerm_virtual_machine" "test" {
     delete_os_disk_on_termination = true
 
     storage_image_reference {
-	publisher = "CoreOS"
-	offer = "CoreOS"
-	sku = "Stable"
-	version = "latest"
+		publisher = "CoreOS"
+		offer = "CoreOS"
+		sku = "Stable"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -2092,13 +2110,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     tags {
@@ -2144,10 +2162,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -2235,10 +2254,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -2261,10 +2281,10 @@ resource "azurerm_virtual_machine" "test" {
     license_type = "Windows_Server"
 
     storage_image_reference {
-	publisher = "MicrosoftWindowsServer"
-	offer = "WindowsServer-HUB"
-	sku = "2008-R2-SP1-HUB"
-	version = "latest"
+		publisher = "MicrosoftWindowsServer"
+		offer = "WindowsServer-HUB"
+		sku = "2008-R2-SP1-HUB"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -2275,14 +2295,14 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "winhost01"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "winhost01"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_windows_config {
-	enable_automatic_upgrades = false
-	provision_vm_agent = true
+		enable_automatic_upgrades = false
+		provision_vm_agent = true
     }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
@@ -2322,10 +2342,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -2347,10 +2368,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_DS1_v2"
 
     storage_image_reference {
-	publisher = "kemptech"
-	offer = "vlm-azure"
-	sku = "freeloadmaster"
-	version = "latest"
+		publisher = "kemptech"
+		offer = "vlm-azure"
+		sku = "freeloadmaster"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -2362,13 +2383,13 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hn%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-	disable_password_authentication = false
+		disable_password_authentication = false
     }
 
     plan {
@@ -2419,10 +2440,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%s"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
@@ -2505,10 +2527,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%s"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
@@ -2599,10 +2622,11 @@ resource "azurerm_network_interface" "test2" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -2625,10 +2649,10 @@ resource "azurerm_virtual_machine" "test" {
     vm_size = "Standard_A3"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "16.04-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -2640,9 +2664,9 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hostname"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hostname"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
@@ -2691,10 +2715,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -2744,10 +2769,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"

@@ -62,10 +62,11 @@ resource "azurerm_lb_nat_pool" "np" {
 }
 
 resource "azurerm_storage_account" "stor" {
-  name                = "${var.resource_group}stor"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  account_type        = "${var.storage_account_type}"
+  name                     = "${var.resource_group}stor"
+  location                 = "${azurerm_resource_group.rg.location}"
+  resource_group_name      = "${azurerm_resource_group.rg.name}"
+  account_tier             = "${var.storage_account_tier}"
+  account_replication_type = "${var.storage_replication_type}"
 }
 
 resource "azurerm_storage_container" "vhds" {
