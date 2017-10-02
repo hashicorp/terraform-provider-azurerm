@@ -343,11 +343,6 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 	for _, policy := range *policies {
 		policyRaw := make(map[string]interface{})
 
-		certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
-		for _, certificatePermission := range *policy.Permissions.Certificates {
-			certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
-		}
-
 		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
 		for _, keyPermission := range *policy.Permissions.Keys {
 			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
@@ -363,9 +358,16 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 		if policy.ApplicationID != nil {
 			policyRaw["application_id"] = policy.ApplicationID.String()
 		}
-		policyRaw["certificate_permissions"] = certificatePermissionsRaw
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
+
+		if policy.Permissions.Certificates != nil {
+			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
+			for _, certificatePermission := range *policy.Permissions.Certificates {
+				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+			}
+			policyRaw["certificate_permissions"] = certificatePermissionsRaw
+		}
 
 		result = append(result, policyRaw)
 	}
