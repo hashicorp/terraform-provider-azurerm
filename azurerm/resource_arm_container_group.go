@@ -281,7 +281,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_address", address.IP)
 	}
 
-	imageRegistryCredentials := flattenContainerGroupImageRegistryCredentials(resp.ImageRegistryCredentials)
+	imageRegistryCredentials := flattenContainerGroupImageRegistryCredentials(d, resp.ImageRegistryCredentials)
 	err = d.Set("image_registry_credential", imageRegistryCredentials)
 	if err != nil {
 		return fmt.Errorf("Error setting `image_registry_credential`: %+v", err)
@@ -321,14 +321,22 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func flattenContainerGroupImageRegistryCredentials(credentials *[]containerinstance.ImageRegistryCredential) *[]interface{} {
+func flattenContainerGroupImageRegistryCredentials(d *schema.ResourceData, credentials *[]containerinstance.ImageRegistryCredential) *[]interface{} {
 	ircConfigs := make([]interface{}, 0, len(*credentials))
+	ircConfigsOld := d.Get("image_registry_credential").([]interface{})
 
 	for _, irc := range *credentials {
 		ircConfig := make(map[string]interface{})
 		ircConfig["server"] = *irc.Server
 		ircConfig["username"] = *irc.Username
-		// ignore password, always null
+		// search for password in the old configs
+		for _, oldIrcConfig := range ircConfigsOld {
+			data := oldIrcConfig.(map[string]interface{})
+			oldServer := data["server"].(string)
+			if *irc.Server == oldServer {
+				ircConfig["password"] = data["password"].(string)
+			}
+		}
 
 		ircConfigs = append(ircConfigs, ircConfig)
 	}
