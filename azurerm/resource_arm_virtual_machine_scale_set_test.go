@@ -379,8 +379,8 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 
 		conn := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
 
-		_, error := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-error
+		_, deleteErr := conn.Delete(resourceGroup, name, make(chan struct{}))
+		err := <-deleteErr
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
 		}
@@ -553,10 +553,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -648,10 +649,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -752,10 +754,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%[1]d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+  name                     = "accsa%[1]d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -833,10 +836,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.1.0/24"
 }
 resource "azurerm_storage_account" "test" {
-  name                = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc-%d"
@@ -932,10 +936,11 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "10.0.1.0/24"
 }
 resource "azurerm_storage_account" "test" {
-  name                = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc-%d"
@@ -1250,10 +1255,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
@@ -1363,10 +1369,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
@@ -1445,10 +1452,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
@@ -1547,10 +1555,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
@@ -1844,10 +1853,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
   tags {
     environment = "staging"
