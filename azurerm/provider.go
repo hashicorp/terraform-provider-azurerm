@@ -68,13 +68,14 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"azurerm_client_config":  dataSourceArmClientConfig(),
-			"azurerm_image":          dataSourceArmImage(),
-			"azurerm_managed_disk":   dataSourceArmManagedDisk(),
-			"azurerm_platform_image": dataSourceArmPlatformImage(),
-			"azurerm_public_ip":      dataSourceArmPublicIP(),
-			"azurerm_resource_group": dataSourceArmResourceGroup(),
-			"azurerm_subscription":   dataSourceArmSubscription(),
+			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
+			"azurerm_client_config":           dataSourceArmClientConfig(),
+			"azurerm_image":                   dataSourceArmImage(),
+			"azurerm_managed_disk":            dataSourceArmManagedDisk(),
+			"azurerm_platform_image":          dataSourceArmPlatformImage(),
+			"azurerm_public_ip":               dataSourceArmPublicIP(),
+			"azurerm_resource_group":          dataSourceArmResourceGroup(),
+			"azurerm_subscription":            dataSourceArmSubscription(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -395,6 +396,7 @@ func registerProviderWithSubscription(providerName string, client resources.Prov
 
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
+		"Microsoft.Authorization":       {},
 		"Microsoft.Automation":          {},
 		"Microsoft.Cache":               {},
 		"Microsoft.Cdn":                 {},
