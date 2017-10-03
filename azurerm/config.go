@@ -8,7 +8,6 @@ import (
 	"net/http/httputil"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
-	"github.com/Azure/azure-sdk-for-go/arm/authorization"
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
@@ -138,8 +137,6 @@ type ArmClient struct {
 	appInsightsClient appinsights.ComponentsClient
 
 	// Authentication
-	roleAssignmentsClient   authorization.RoleAssignmentsClient
-	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// Databases
@@ -652,26 +649,14 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
 
-	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
+	client.registerAuthentication(graphEndpoint, c.TenantID, graphAuth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
 	return &client, nil
 }
 
-func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
-	rac := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&rac.Client)
-	rac.Authorizer = auth
-	rac.Sender = sender
-	c.roleAssignmentsClient = rac
-
-	rdc := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&rdc.Client)
-	rdc.Authorizer = auth
-	rdc.Sender = sender
-	c.roleDefinitionsClient = rdc
-
+func (c *ArmClient) registerAuthentication(graphEndpoint, tenantId string, graphAuth autorest.Authorizer, sender autorest.Sender) {
 	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
 	setUserAgent(&spc.Client)
 	spc.Authorizer = graphAuth
