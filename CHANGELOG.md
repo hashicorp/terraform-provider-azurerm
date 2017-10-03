@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_image` [GH-382]
 * **New Data Source:** `azurerm_platform_image` [GH-375]
 
 IMPROVEMENTS:
