@@ -66,10 +66,70 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMContainerRegistry_basic(t *testing.T) {
+func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation())
+	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Classic")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_basicManagedBasic(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Managed_Basic")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_basicManagedStandard(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Managed_Standard")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_basicManagedPremium(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Managed_Premium")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -188,7 +248,7 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testAccAzureRMContainerRegistry_basic(rInt int, rStr string, location string) string {
+func testAccAzureRMContainerRegistry_basic(rInt int, rStr string, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"
@@ -207,14 +267,14 @@ resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Basic"
+  sku                 = "%s"
 
   storage_account {
     name       = "${azurerm_storage_account.test.name}"
     access_key = "${azurerm_storage_account.test.primary_access_key}"
   }
 }
-`, rInt, location, rStr, rInt)
+`, rInt, location, rStr, rInt, sku)
 }
 
 func testAccAzureRMContainerRegistry_complete(rInt int, rStr string, location string) string {
@@ -237,7 +297,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = false
-  sku                 = "Basic"
+  sku                 = "Classic"
 
   storage_account {
     name       = "${azurerm_storage_account.test.name}"
@@ -271,7 +331,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
-  sku                 = "Basic"
+  sku                 = "Classic"
 
   storage_account {
     name       = "${azurerm_storage_account.test.name}"

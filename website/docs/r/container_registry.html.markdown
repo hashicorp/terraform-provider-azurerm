@@ -34,7 +34,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
-  sku                 = "Basic"
+  sku                 = "Classic"
 
   storage_account {
     name       = "${azurerm_storage_account.test.name}"
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `storage_account` - (Required) A Storage Account block as documented below - which must be located in the same data center as the Container Registry.
 
-* `sku` - (Optional) The SKU name of the the container registry. `Basic` is the only acceptable value at this time.
+* `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Managed_Basic`, `Managed_Standard` and `Managed_Premium`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
