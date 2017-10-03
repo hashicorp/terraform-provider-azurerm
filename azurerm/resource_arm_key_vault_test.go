@@ -221,11 +221,11 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.client_id}"
 
     key_permissions = [
-      "all",
+      "create",
     ]
 
     secret_permissions = [
-      "all",
+      "set",
     ]
   }
 
