@@ -107,7 +107,7 @@ func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("ServiceBus Subscription still exists:\n%+v", resp.SubscriptionProperties)
+			return fmt.Errorf("ServiceBus Subscription still exists:\n%+v", resp.SBSubscriptionProperties)
 		}
 	}
 
