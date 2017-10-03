@@ -34,6 +34,7 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 	roleDefinitionId := roleDefinitionIds[name]
 
 	// TODO: when the API's fixed - pull out additional information from the API
+	// https://github.com/Azure/azure-rest-api-specs/issues/1785
 
 	d.SetId(roleDefinitionId)
 
