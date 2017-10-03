@@ -17,20 +17,15 @@ func dataSourceArmResourceGroup() *schema.Resource {
 }
 
 func dataSourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
+	client := meta.(*ArmClient).resourceGroupClient
 
-	resourceGroupName := d.Get("name").(string)
-	resourceId := &ResourceID{
-		SubscriptionID: armClient.subscriptionId,
-		ResourceGroup:  resourceGroupName,
-	}
-	resourceIdString, err := composeAzureResourceID(resourceId)
-
+	name := d.Get("name").(string)
+	resp, err := client.Get(name)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(resourceIdString)
+	d.SetId(*resp.ID)
 
 	if err := resourceArmResourceGroupRead(d, meta); err != nil {
 		return err

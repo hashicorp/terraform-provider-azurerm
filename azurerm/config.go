@@ -136,6 +136,7 @@ type ArmClient struct {
 
 	appInsightsClient appinsights.ComponentsClient
 
+	// Authentication
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// Databases
@@ -624,12 +625,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	ai.Sender = sender
 	client.appInsightsClient = ai
 
-	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, c.TenantID)
-	setUserAgent(&spc.Client)
-	spc.Authorizer = graphAuth
-	spc.Sender = sender
-	client.servicePrincipalsClient = spc
-
 	aadb := automation.NewAccountClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&aadb.Client)
 	aadb.Authorizer = auth
@@ -654,11 +649,19 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
 
+	client.registerAuthentication(graphEndpoint, c.TenantID, graphAuth, sender)
+	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
-	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-
 	return &client, nil
+}
+
+func (c *ArmClient) registerAuthentication(graphEndpoint, tenantId string, graphAuth autorest.Authorizer, sender autorest.Sender) {
+	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
+	setUserAgent(&spc.Client)
+	spc.Authorizer = graphAuth
+	spc.Sender = sender
+	c.servicePrincipalsClient = spc
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
