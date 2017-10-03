@@ -32,7 +32,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": deprecatedLocationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
 
@@ -52,12 +52,6 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-			},
-
-			"enable_batched_operations": {
-				Type:     schema.TypeBool,
-				Default:  false,
-				Optional: true,
 			},
 
 			"enable_express": {
@@ -86,10 +80,18 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: remove these in the next major release
+			"enable_batched_operations": {
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Default:    false,
+				Deprecated: "This field has been removed by Azure.",
+			},
 			"support_ordering": {
-				Type:     schema.TypeBool,
-				Default:  false,
-				Optional: true,
+				Type:       schema.TypeBool,
+				Default:    false,
+				Optional:   true,
+				Deprecated: "This field has been removed by Azure.",
 			},
 		},
 	}
@@ -101,39 +103,33 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
-	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	enableBatchedOps := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int64(d.Get("max_size_in_megabytes").(int))
+	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
-	supportOrdering := d.Get("support_ordering").(bool)
 
-	parameters := servicebus.QueueCreateOrUpdateParameters{
-		Name:     &name,
-		Location: &location,
-		QueueProperties: &servicebus.QueueProperties{
-			EnableBatchedOperations:    &enableBatchedOps,
+	parameters := servicebus.SBQueue{
+		Name: &name,
+		SBQueueProperties: &servicebus.SBQueueProperties{
 			EnableExpress:              &enableExpress,
 			EnablePartitioning:         &enablePartitioning,
 			MaxSizeInMegabytes:         &maxSize,
 			RequiresDuplicateDetection: &requiresDuplicateDetection,
-			SupportOrdering:            &supportOrdering,
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.QueueProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
+		parameters.SBQueueProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
 	}
 
 	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.QueueProperties.DefaultMessageTimeToLive = &defaultTTL
+		parameters.SBQueueProperties.DefaultMessageTimeToLive = &defaultTTL
 	}
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.QueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
+		parameters.SBQueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
 	}
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
@@ -196,22 +192,19 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("namespace_name", namespaceName)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	if resp.QueueProperties == nil {
+	if resp.SBQueueProperties == nil {
 		return fmt.Errorf("Missing QueueProperties in response for Azure ServiceBus Queue %s: %s", name, err)
 	}
 
-	props := resp.QueueProperties
+	props := resp.SBQueueProperties
 	d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
 	d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 	d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
 
-	d.Set("enable_batched_operations", props.EnableBatchedOperations)
 	d.Set("enable_express", props.EnableExpress)
 	d.Set("enable_partitioning", props.EnablePartitioning)
 	d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
-	d.Set("support_ordering", props.SupportOrdering)
 
 	maxSize := int(*props.MaxSizeInMegabytes)
 
