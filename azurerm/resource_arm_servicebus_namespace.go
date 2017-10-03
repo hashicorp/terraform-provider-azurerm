@@ -94,9 +94,9 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 	capacity := int32(d.Get("capacity").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
-	parameters := servicebus.NamespaceCreateOrUpdateParameters{
+	parameters := servicebus.SBNamespace{
 		Location: &location,
-		Sku: &servicebus.Sku{
+		Sku: &servicebus.SBSku{
 			Name:     servicebus.SkuName(sku),
 			Tier:     servicebus.SkuTier(sku),
 			Capacity: &capacity,
