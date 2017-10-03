@@ -14,10 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// The KeySource of storage.Encryption appears to require this value
-// for Encryption services to work
-var storageAccountEncryptionSource = "Microsoft.Storage"
-
 const blobStorageAccountDefaultAccessTier = "Hot"
 
 func resourceArmStorageAccount() *schema.Resource {
@@ -96,6 +92,17 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.Cool),
 					string(storage.Hot),
 				}, true),
+			},
+
+			"account_encryption_source": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(storage.MicrosoftStorage),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.MicrosoftKeyvault),
+					string(storage.MicrosoftStorage),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"custom_domain": {
@@ -221,6 +228,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -235,7 +243,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 					Blob: &storage.EncryptionService{
 						Enabled: utils.Bool(enableBlobEncryption),
 					}},
-				KeySource: &storageAccountEncryptionSource,
+				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 		},
@@ -374,12 +382,13 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
+		encryptionSource := d.Get("account_encryption_source").(string)
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				Encryption: &storage.Encryption{
 					Services:  &storage.EncryptionServices{},
-					KeySource: &storageAccountEncryptionSource,
+					KeySource: storage.KeySource(encryptionSource),
 				},
 			},
 		}
