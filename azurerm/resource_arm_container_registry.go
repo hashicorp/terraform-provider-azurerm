@@ -21,7 +21,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		MigrateState:  resourceAzureRMContainerRegistryMigrateState,
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -36,10 +36,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"location": locationSchema(),
 
 			"sku": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				// TODO: a state migration to handle this
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
 				Default:          string(containerregistry.Classic),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -56,14 +55,13 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Default:  false,
 			},
 
-			// TODO: add a State Migration to move over to this
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
 			"storage_account": {
-				Type:       schema.TypeSet,
+				Type:       schema.TypeList,
 				Optional:   true,
 				Deprecated: "`storage_account` has been replaced by `storage_account_id`.",
 				MaxItems:   1,
