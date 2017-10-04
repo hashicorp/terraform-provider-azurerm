@@ -89,11 +89,21 @@ The following arguments are supported:
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
-* `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows` Changing this forces a new resource to be created.
+* `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+
+* `image_registry_credential` - (Optional) Credentials for accessing private docker container image registries. Changing this forces a new resource to be created.
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
+
+The `image_registry_credential` block supports:
+
+* `server` - (Required) The URL of the docker registry.
+
+* `username` - (Required) The username for the specified server.
+
+* `password` - (Required) The password for the specified username on the server.
 
 The `container` block supports:
 
