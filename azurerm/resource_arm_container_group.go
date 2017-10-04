@@ -469,8 +469,11 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, ok := data["volume"]; ok {
-			volumeMounts := expandContainerVolumes(v, &containerGroupVolumes)
+			volumeMounts, containerGroupVolumesPartial := expandContainerVolumes(v)
 			container.VolumeMounts = volumeMounts
+			if containerGroupVolumesPartial != nil {
+				containerGroupVolumes = append(containerGroupVolumes, *containerGroupVolumesPartial...)
+			}
 		}
 
 		containers = append(containers, container)
@@ -494,14 +497,15 @@ func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance
 	return &output
 }
 
-func expandContainerVolumes(input interface{}, containerGroupVolumes *[]containerinstance.Volume) *[]containerinstance.VolumeMount {
+func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume) {
 	volumesRaw := input.([]interface{})
 
 	if len(volumesRaw) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	volumeMounts := make([]containerinstance.VolumeMount, 0, len(volumesRaw))
+	containerGroupVolumes := make([]containerinstance.Volume, 0, len(volumesRaw))
 
 	for _, volumeRaw := range volumesRaw {
 		volumeConfig := volumeRaw.(map[string]interface{})
@@ -531,8 +535,8 @@ func expandContainerVolumes(input interface{}, containerGroupVolumes *[]containe
 			},
 		}
 
-		*containerGroupVolumes = append(*containerGroupVolumes, cv)
+		containerGroupVolumes = append(containerGroupVolumes, cv)
 	}
 
-	return &volumeMounts
+	return &volumeMounts, &containerGroupVolumes
 }
