@@ -443,7 +443,6 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 			containerPort := containerinstance.ContainerPort{
 				Port: &port,
 			}
-
 			container.Ports = &[]containerinstance.ContainerPort{containerPort}
 
 			// container group port (port number + protocol)
