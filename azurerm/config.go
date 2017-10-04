@@ -46,10 +46,11 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
-	clientId       string
-	tenantId       string
-	subscriptionId string
-	environment    azure.Environment
+	clientId              string
+	tenantId              string
+	subscriptionId        string
+	usingServicePrincipal bool
+	environment           azure.Environment
 
 	StopContext context.Context
 
@@ -233,10 +234,11 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// client declarations:
 	client := ArmClient{
-		clientId:       c.ClientID,
-		tenantId:       c.TenantID,
-		subscriptionId: c.SubscriptionID,
-		environment:    env,
+		clientId:              c.ClientID,
+		tenantId:              c.TenantID,
+		subscriptionId:        c.SubscriptionID,
+		environment:           env,
+		usingServicePrincipal: c.ClientSecret != "",
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
