@@ -168,7 +168,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
@@ -204,7 +204,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
@@ -233,7 +233,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
@@ -267,7 +267,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
@@ -329,7 +329,7 @@ func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string 
 			}
 			
 			tags {
-				environment = "testing"
+				environment = "Testing"
 			}
 	}
 `, ri, location, ri, ri, ri)
