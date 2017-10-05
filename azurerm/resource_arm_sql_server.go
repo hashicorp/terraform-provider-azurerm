@@ -100,8 +100,9 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot create SQL Server %s (resource group %s) ID", name, resGroup)
+	resp, err = client.Get(resGroup, name)
+	if err != nil {
+		return err
 	}
 
 	d.SetId(*resp.ID)
