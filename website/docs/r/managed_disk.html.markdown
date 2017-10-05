@@ -74,22 +74,34 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the managed disk. Changing this forces a
     new resource to be created.
+
 * `resource_group_name` - (Required) The name of the resource group in which to create
     the managed disk.
+
 * `location` - (Required) Specified the supported Azure location where the resource exists.
     Changing this forces a new resource to be created.
+
 * `storage_account_type` - (Required) The type of storage to use for the managed disk.
     Allowable values are `Standard_LRS` or `Premium_LRS`.
-* `create_option` - (Required) The method to use when creating the managed disk.
+
+* `create_option` - (Required) The method to use when creating the managed disk. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
  * `Empty` - Create an empty managed disk.
  * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
+ * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
+
 * `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
+
 * `source_resource_id` - (Optional) ID of an existing managed disk to copy when `create_option` is `Copy`.
+
+* `image_reference_id` - (Optional) ID of an existing platform disk image to copy when `create_option` is `FromImage`.
+
 * `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy`
     operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`
-* `disk_size_gb` - (Required) Specifies the size of the managed disk to create in gigabytes.
-    If `create_option` is `Copy`, then the value must be equal to or greater than the source's size.
+
+* `disk_size_gb` - (Optional, Required for a new managed disk) Specifies the size of the managed disk to create in gigabytes.
+    If `create_option` is `Copy` or `FromImage`, then the value must be equal to or greater than the source's size.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 For more information on managed disks, such as sizing options and pricing, please check out the
