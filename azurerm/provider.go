@@ -404,6 +404,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ContainerInstance":   {},
 		"Microsoft.ContainerRegistry":   {},
 		"Microsoft.ContainerService":    {},
+		"Microsoft.DBforMySQL":          {},
 		"Microsoft.DBforPostgreSQL":     {},
 		"Microsoft.DocumentDB":          {},
 		"Microsoft.EventGrid":           {},
