@@ -8,6 +8,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_container_group` - add support for volume mounts [GH-366]
 * `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
 * `azurerm_storage_account` - support for File Encryption [GH-363]
 * `azurerm_storage_account` - support for Custom Domain [GH-363]
