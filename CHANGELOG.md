@@ -10,6 +10,7 @@ IMPROVEMENTS:
 
 * `azurerm_container_group` - add support for volume mounts [GH-366]
 * `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
+* `azurerm_mysql_*` - Ensuring we register the MySQL Resource Provider [GH-397]
 * `azurerm_storage_account` - support for File Encryption [GH-363]
 * `azurerm_storage_account` - support for Custom Domain [GH-363]
 * `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
