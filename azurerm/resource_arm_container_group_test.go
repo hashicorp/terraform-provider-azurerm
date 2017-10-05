@@ -84,6 +84,10 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.mount_path", "/aci/logs"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.read_only", "false"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
 				),
 			},
@@ -164,7 +168,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
@@ -200,41 +204,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
-  }
-}
-`, ri, location, ri)
-}
-
-func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_group" "test" {
-  name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
-  os_type             = "linux"
-
-  container {
-    name   = "hw"
-    image  = "microsoft/aci-helloworld:latest"
-    cpu    = "0.5"
-    memory = "0.5"
-	port   = "80"
-	environment_variables {
-		"foo" = "bar"
-		"foo1" = "bar1"
-	}
-	command = "/bin/bash -c ls"
-  }
-
-  tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
@@ -263,7 +233,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
@@ -297,10 +267,72 @@ resource "azurerm_container_group" "test" {
   }
 
   tags {
-    environment = "testing"
+    environment = "Testing"
   }
 }
 `, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
+	return fmt.Sprintf(`
+		resource "azurerm_resource_group" "test" {
+			name     = "acctestRG-%d"
+			location = "%s"
+	}
+	
+	resource "azurerm_storage_account" "test" {
+			name                = "accsa%d"
+			resource_group_name = "${azurerm_resource_group.test.name}"
+			location            = "${azurerm_resource_group.test.location}"
+			account_type        = "Standard_LRS"
+	}
+	
+	resource "azurerm_storage_share" "test" {
+			name = "acctestss-%d"
+	
+			resource_group_name  = "${azurerm_resource_group.test.name}"
+			storage_account_name = "${azurerm_storage_account.test.name}"
+	
+			quota = 50
+	}
+	
+	resource "azurerm_container_group" "test" {
+			name                = "acctestcontainergroup-%d"
+			location            = "${azurerm_resource_group.test.location}"
+			resource_group_name = "${azurerm_resource_group.test.name}"
+			ip_address_type     = "public"
+			os_type             = "linux"
+	
+			container {
+					name   = "hf"
+					image  = "seanmckenna/aci-hellofiles"
+					cpu    = "1"
+					memory = "1.5"
+					port   = "80"
+					protocol = "TCP"
+	
+			volume {
+							name = "logs"
+							mount_path = "/aci/logs"
+							read_only = false
+							share_name = "${azurerm_storage_share.test.name}"
+							storage_account_name = "${azurerm_storage_account.test.name}"
+							storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
+			}
+			
+			environment_variables {
+				"foo" = "bar"
+				"foo1" = "bar1"
+			}
+	
+			command = "/bin/bash -c ls"
+			}
+			
+			tags {
+				environment = "Testing"
+			}
+	}
+`, ri, location, ri, ri, ri)
 }
 
 func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
