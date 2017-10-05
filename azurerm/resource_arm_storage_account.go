@@ -505,6 +505,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 					d.Set("enable_file_encryption", file.Enabled)
 				}
 			}
+			d.Set("account_encryption_source", string(encryption.KeySource))
 		}
 
 		// Computed
