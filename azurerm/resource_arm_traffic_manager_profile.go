@@ -264,7 +264,7 @@ func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig)
 func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.MonitorConfig) []interface{} {
 	result := make(map[string]interface{})
 
-	result["protocol"] = trafficmanager.MonitorProtocol(cfg.Protocol)
+	result["protocol"] = string(cfg.Protocol)
 	result["port"] = int(*cfg.Port)
 	result["path"] = *cfg.Path
 
