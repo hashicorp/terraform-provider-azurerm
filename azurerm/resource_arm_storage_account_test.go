@@ -67,7 +67,8 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_type", "Standard_LRS"),
+					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
@@ -77,9 +78,36 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_type", "Standard_GRS"),
+					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "GRS"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_premium(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_premium(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "account_tier", "Premium"),
+					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
 			},
 		},
@@ -101,7 +129,8 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "account_type", "Standard_LRS"),
+					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 					testCheckAzureRMStorageAccountDisappears(resourceName),
@@ -158,6 +187,37 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
 					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_blob_encryption", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_fileEncryption(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_fileEncryptionDisabled(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_file_encryption", "true"),
+				),
+			},
+
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "enable_file_encryption", "false"),
 				),
 			},
 		},
@@ -230,7 +290,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	preConfig := testAccAzureRMStorageAccountNonStandardCasing(ri, rs, testLocation())
+	preConfig := testAccAzureRMStorageAccount_nonStandardCasing(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -339,12 +399,36 @@ resource "azurerm_storage_account" "testsa" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 
     location = "${azurerm_resource_group.testrg.location}"
-    account_type = "Standard_LRS"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "production"
     }
-}`, rInt, location, rString)
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_premium(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Premium"
+    account_replication_type = "LRS"
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString)
 }
 
 func testAccAzureRMStorageAccount_update(rInt int, rString string, location string) string {
@@ -359,12 +443,14 @@ resource "azurerm_storage_account" "testsa" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 
     location = "${azurerm_resource_group.testrg.location}"
-    account_type = "Standard_GRS"
+    account_tier = "Standard"
+    account_replication_type = "GRS"
 
     tags {
         environment = "staging"
     }
-}`, rInt, location, rString)
+}
+`, rInt, location, rString)
 }
 
 func testAccAzureRMStorageAccount_blobEncryption(rInt int, rString string, location string) string {
@@ -379,13 +465,15 @@ resource "azurerm_storage_account" "testsa" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 
     location = "${azurerm_resource_group.testrg.location}"
-    account_type = "Standard_LRS"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
     enable_blob_encryption = true
 
     tags {
         environment = "production"
     }
-}`, rInt, location, rString)
+}
+`, rInt, location, rString)
 }
 
 func testAccAzureRMStorageAccount_blobEncryptionDisabled(rInt int, rString string, location string) string {
@@ -400,13 +488,61 @@ resource "azurerm_storage_account" "testsa" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 
     location = "${azurerm_resource_group.testrg.location}"
-    account_type = "Standard_LRS"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
     enable_blob_encryption = false
 
     tags {
         environment = "production"
     }
-}`, rInt, location, rString)
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileEncryption(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+    enable_file_encryption = true
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_fileEncryptionDisabled(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+    enable_file_encryption = false
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString)
 }
 
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnly(rInt int, rString string, location string) string {
@@ -421,13 +557,15 @@ resource "azurerm_storage_account" "testsa" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 
     location = "${azurerm_resource_group.testrg.location}"
-    account_type = "Standard_LRS"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
     enable_https_traffic_only = true
 
     tags {
         environment = "production"
     }
-}`, rInt, location, rString)
+}
+`, rInt, location, rString)
 }
 
 func testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(rInt int, rString string, location string) string {
@@ -442,13 +580,15 @@ resource "azurerm_storage_account" "testsa" {
     resource_group_name = "${azurerm_resource_group.testrg.name}"
 
     location = "${azurerm_resource_group.testrg.location}"
-    account_type = "Standard_LRS"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
     enable_https_traffic_only = false
 
     tags {
         environment = "production"
     }
-}`, rInt, location, rString)
+}
+`, rInt, location, rString)
 }
 
 func testAccAzureRMStorageAccount_blobStorage(rInt int, rString string, location string) string {
@@ -464,7 +604,8 @@ resource "azurerm_storage_account" "testsa" {
 
     location = "${azurerm_resource_group.testrg.location}"
     account_kind = "BlobStorage"
-    account_type = "Standard_LRS"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "production"
@@ -486,7 +627,8 @@ resource "azurerm_storage_account" "testsa" {
 
     location = "${azurerm_resource_group.testrg.location}"
     account_kind = "BlobStorage"
-    account_type = "Standard_LRS"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
     access_tier = "Cool"
 
     tags {
@@ -496,7 +638,7 @@ resource "azurerm_storage_account" "testsa" {
 `, rInt, location, rString)
 }
 
-func testAccAzureRMStorageAccountNonStandardCasing(rInt int, rString string, location string) string {
+func testAccAzureRMStorageAccount_nonStandardCasing(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
     name = "testAccAzureRMSA-%d"
@@ -506,9 +648,11 @@ resource "azurerm_storage_account" "testsa" {
     name = "unlikely23exst2acct%s"
     resource_group_name = "${azurerm_resource_group.testrg.name}"
     location = "${azurerm_resource_group.testrg.location}"
-    account_type = "standard_LRS"
+    account_tier = "standard"
+    account_replication_type = "lrs"
     tags {
         environment = "production"
     }
-}`, rInt, location, rString)
+}
+`, rInt, location, rString)
 }

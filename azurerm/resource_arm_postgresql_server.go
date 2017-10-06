@@ -44,6 +44,10 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"PGSQLB50",
 								"PGSQLB100",
+								"PGSQLS100",
+								"PGSQLS200",
+								"PGSQLS400",
+								"PGSQLS800",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -54,6 +58,9 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							ValidateFunc: validateIntInSlice([]int{
 								50,
 								100,
+								200,
+								400,
+								800,
 							}),
 						},
 
@@ -62,6 +69,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(postgresql.Basic),
+								string(postgresql.Standard),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -97,6 +105,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validateIntInSlice([]int{
+					// Basic SKU
 					51200,
 					179200,
 					307200,
@@ -105,6 +114,16 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					691200,
 					819200,
 					947200,
+
+					// Standard SKU
+					128000,
+					256000,
+					384000,
+					512000,
+					640000,
+					768000,
+					896000,
+					1024000,
 				}),
 			},
 

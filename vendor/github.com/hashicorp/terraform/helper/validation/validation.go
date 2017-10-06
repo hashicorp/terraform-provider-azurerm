@@ -3,6 +3,7 @@ package validation
 import (
 	"fmt"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -138,9 +139,34 @@ func CIDRNetwork(min, max int) schema.SchemaValidateFunc {
 	}
 }
 
+// ValidateJsonString is a SchemaValidateFunc which tests to make sure the
+// supplied string is valid JSON.
 func ValidateJsonString(v interface{}, k string) (ws []string, errors []error) {
 	if _, err := structure.NormalizeJsonString(v); err != nil {
 		errors = append(errors, fmt.Errorf("%q contains an invalid JSON: %s", k, err))
+	}
+	return
+}
+
+// ValidateListUniqueStrings is a ValidateFunc that ensures a list has no
+// duplicate items in it. It's useful for when a list is needed over a set
+// because order matters, yet the items still need to be unique.
+func ValidateListUniqueStrings(v interface{}, k string) (ws []string, errors []error) {
+	for n1, v1 := range v.([]interface{}) {
+		for n2, v2 := range v.([]interface{}) {
+			if v1.(string) == v2.(string) && n1 != n2 {
+				errors = append(errors, fmt.Errorf("%q: duplicate entry - %s", k, v1.(string)))
+			}
+		}
+	}
+	return
+}
+
+// ValidateRegexp returns a SchemaValidateFunc which tests to make sure the
+// supplied string is a valid regular expression.
+func ValidateRegexp(v interface{}, k string) (ws []string, errors []error) {
+	if _, err := regexp.Compile(v.(string)); err != nil {
+		errors = append(errors, fmt.Errorf("%q: %s", k, err))
 	}
 	return
 }

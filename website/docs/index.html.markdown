@@ -84,6 +84,11 @@ The following arguments are supported:
   * `german`
   * `china`
 
+* `skip_credentials_validation` - (Optional) Prevents the provider from validating
+  the given credentials. When set to `true`, `skip_provider_registration` is assumed.
+  It can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` environment
+  variable, defaults to `false`.
+
 * `skip_provider_registration` - (Optional) Prevents the provider from registering
   the ARM provider namespaces, this can be used if you don't wish to give the Active
   Directory Application permission to register resource providers. It can also be

@@ -21,7 +21,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
+	"github.com/Azure/azure-sdk-for-go/arm/mysql"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
@@ -44,10 +46,11 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
-	clientId       string
-	tenantId       string
-	subscriptionId string
-	environment    azure.Environment
+	clientId              string
+	tenantId              string
+	subscriptionId        string
+	usingServicePrincipal bool
+	environment           azure.Environment
 
 	StopContext context.Context
 
@@ -98,10 +101,7 @@ type ArmClient struct {
 	eventHubConsumerGroupClient eventhub.ConsumerGroupsClient
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
-	postgresqlConfigurationsClient postgresql.ConfigurationsClient
-	postgresqlDatabasesClient      postgresql.DatabasesClient
-	postgresqlFirewallRulesClient  postgresql.FirewallRulesClient
-	postgresqlServersClient        postgresql.ServersClient
+	workspacesClient operationalinsights.WorkspacesClient
 
 	providers           resources.ProvidersClient
 	resourceGroupClient resources.GroupsClient
@@ -132,17 +132,27 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
-	sqlDatabasesClient     sql.DatabasesClient
-	sqlElasticPoolsClient  sql.ElasticPoolsClient
-	sqlFirewallRulesClient sql.FirewallRulesClient
-	sqlServersClient       sql.ServersClient
-
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
 
 	appInsightsClient appinsights.ComponentsClient
 
+	// Authentication
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
+
+	// Databases
+	mysqlConfigurationsClient      mysql.ConfigurationsClient
+	mysqlDatabasesClient           mysql.DatabasesClient
+	mysqlFirewallRulesClient       mysql.FirewallRulesClient
+	mysqlServersClient             mysql.ServersClient
+	postgresqlConfigurationsClient postgresql.ConfigurationsClient
+	postgresqlDatabasesClient      postgresql.DatabasesClient
+	postgresqlFirewallRulesClient  postgresql.FirewallRulesClient
+	postgresqlServersClient        postgresql.ServersClient
+	sqlDatabasesClient             sql.DatabasesClient
+	sqlElasticPoolsClient          sql.ElasticPoolsClient
+	sqlFirewallRulesClient         sql.FirewallRulesClient
+	sqlServersClient               sql.ServersClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -224,10 +234,11 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// client declarations:
 	client := ArmClient{
-		clientId:       c.ClientID,
-		tenantId:       c.TenantID,
-		subscriptionId: c.SubscriptionID,
-		environment:    env,
+		clientId:              c.ClientID,
+		tenantId:              c.TenantID,
+		subscriptionId:        c.SubscriptionID,
+		environment:           env,
+		usingServicePrincipal: c.ClientSecret != "",
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
@@ -400,6 +411,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	lgc.Sender = sender
 	client.localNetConnClient = lgc
 
+	opwc := operationalinsights.NewWorkspacesClient(c.SubscriptionID)
+	setUserAgent(&opwc.Client)
+	opwc.Authorizer = auth
+	opwc.Sender = autorest.CreateSender(withRequestLogging())
+	client.workspacesClient = opwc
+
 	pipc := network.NewPublicIPAddressesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&pipc.Client)
 	pipc.Authorizer = auth
@@ -447,30 +464,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	vnpc.Authorizer = auth
 	vnpc.Sender = sender
 	client.vnetPeeringsClient = vnpc
-
-	pcc := postgresql.NewConfigurationsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&pcc.Client)
-	pcc.Authorizer = auth
-	pcc.Sender = autorest.CreateSender(withRequestLogging())
-	client.postgresqlConfigurationsClient = pcc
-
-	pdbc := postgresql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&pdbc.Client)
-	pdbc.Authorizer = auth
-	pdbc.Sender = autorest.CreateSender(withRequestLogging())
-	client.postgresqlDatabasesClient = pdbc
-
-	pfwc := postgresql.NewFirewallRulesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&pfwc.Client)
-	pfwc.Authorizer = auth
-	pfwc.Sender = autorest.CreateSender(withRequestLogging())
-	client.postgresqlFirewallRulesClient = pfwc
-
-	psc := postgresql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&psc.Client)
-	psc.Authorizer = auth
-	psc.Sender = autorest.CreateSender(withRequestLogging())
-	client.postgresqlServersClient = psc
 
 	rtc := network.NewRouteTablesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&rtc.Client)
@@ -616,30 +609,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sbsc.Sender = sender
 	client.serviceBusSubscriptionsClient = sbsc
 
-	sqldc := sql.NewDatabasesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sqldc.Client)
-	sqldc.Authorizer = auth
-	sqldc.Sender = sender
-	client.sqlDatabasesClient = sqldc
-
-	sqlfrc := sql.NewFirewallRulesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sqlfrc.Client)
-	sqlfrc.Authorizer = auth
-	sqlfrc.Sender = sender
-	client.sqlFirewallRulesClient = sqlfrc
-
-	sqlepc := sql.NewElasticPoolsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sqlepc.Client)
-	sqlepc.Authorizer = auth
-	sqlepc.Sender = sender
-	client.sqlElasticPoolsClient = sqlepc
-
-	sqlsrv := sql.NewServersClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sqlsrv.Client)
-	sqlsrv.Authorizer = auth
-	sqlsrv.Sender = sender
-	client.sqlServersClient = sqlsrv
-
 	aspc := web.NewAppServicePlansClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&aspc.Client)
 	aspc.Authorizer = auth
@@ -657,12 +626,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	ai.Authorizer = auth
 	ai.Sender = sender
 	client.appInsightsClient = ai
-
-	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, c.TenantID)
-	setUserAgent(&spc.Client)
-	spc.Authorizer = graphAuth
-	spc.Sender = sender
-	client.servicePrincipalsClient = spc
 
 	aadb := automation.NewAccountClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&aadb.Client)
@@ -688,19 +651,110 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
 
-	kvc := keyvault.NewVaultsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&kvc.Client)
-	kvc.Authorizer = auth
-	kvc.Sender = sender
-	client.keyVaultClient = kvc
-
-	kvmc := keyVault.New()
-	setUserAgent(&kvmc.Client)
-	kvmc.Authorizer = keyVaultAuth
-	kvmc.Sender = sender
-	client.keyVaultManagementClient = kvmc
+	client.registerAuthentication(graphEndpoint, c.TenantID, graphAuth, sender)
+	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
+	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerAuthentication(graphEndpoint, tenantId string, graphAuth autorest.Authorizer, sender autorest.Sender) {
+	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
+	setUserAgent(&spc.Client)
+	spc.Authorizer = graphAuth
+	spc.Sender = sender
+	c.servicePrincipalsClient = spc
+}
+
+func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	// MySQL
+	mysqlConfigClient := mysql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&mysqlConfigClient.Client)
+	mysqlConfigClient.Authorizer = auth
+	mysqlConfigClient.Sender = sender
+	c.mysqlConfigurationsClient = mysqlConfigClient
+
+	mysqlDBClient := mysql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&mysqlDBClient.Client)
+	mysqlDBClient.Authorizer = auth
+	mysqlDBClient.Sender = sender
+	c.mysqlDatabasesClient = mysqlDBClient
+
+	mysqlFWClient := mysql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&mysqlFWClient.Client)
+	mysqlFWClient.Authorizer = auth
+	mysqlFWClient.Sender = sender
+	c.mysqlFirewallRulesClient = mysqlFWClient
+
+	mysqlServersClient := mysql.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&mysqlServersClient.Client)
+	mysqlServersClient.Authorizer = auth
+	mysqlServersClient.Sender = sender
+	c.mysqlServersClient = mysqlServersClient
+
+	// PostgreSQL
+	postgresqlConfigClient := postgresql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&postgresqlConfigClient.Client)
+	postgresqlConfigClient.Authorizer = auth
+	postgresqlConfigClient.Sender = autorest.CreateSender(withRequestLogging())
+	c.postgresqlConfigurationsClient = postgresqlConfigClient
+
+	postgresqlDBClient := postgresql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&postgresqlDBClient.Client)
+	postgresqlDBClient.Authorizer = auth
+	postgresqlDBClient.Sender = autorest.CreateSender(withRequestLogging())
+	c.postgresqlDatabasesClient = postgresqlDBClient
+
+	postgresqlFWClient := postgresql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&postgresqlFWClient.Client)
+	postgresqlFWClient.Authorizer = auth
+	postgresqlFWClient.Sender = autorest.CreateSender(withRequestLogging())
+	c.postgresqlFirewallRulesClient = postgresqlFWClient
+
+	postgresqlSrvClient := postgresql.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&postgresqlSrvClient.Client)
+	postgresqlSrvClient.Authorizer = auth
+	postgresqlSrvClient.Sender = autorest.CreateSender(withRequestLogging())
+	c.postgresqlServersClient = postgresqlSrvClient
+
+	// SQL Azure
+	sqlDBClient := sql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sqlDBClient.Client)
+	sqlDBClient.Authorizer = auth
+	sqlDBClient.Sender = sender
+	c.sqlDatabasesClient = sqlDBClient
+
+	sqlFWClient := sql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sqlFWClient.Client)
+	sqlFWClient.Authorizer = auth
+	sqlFWClient.Sender = sender
+	c.sqlFirewallRulesClient = sqlFWClient
+
+	sqlEPClient := sql.NewElasticPoolsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sqlEPClient.Client)
+	sqlEPClient.Authorizer = auth
+	sqlEPClient.Sender = sender
+	c.sqlElasticPoolsClient = sqlEPClient
+
+	sqlSrvClient := sql.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sqlSrvClient.Client)
+	sqlSrvClient.Authorizer = auth
+	sqlSrvClient.Sender = sender
+	c.sqlServersClient = sqlSrvClient
+}
+
+func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
+	keyVaultClient := keyvault.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&keyVaultClient.Client)
+	keyVaultClient.Authorizer = auth
+	keyVaultClient.Sender = sender
+	c.keyVaultClient = keyVaultClient
+
+	keyVaultManagementClient := keyVault.New()
+	setUserAgent(&keyVaultManagementClient.Client)
+	keyVaultManagementClient.Authorizer = keyVaultAuth
+	keyVaultManagementClient.Sender = sender
+	c.keyVaultManagementClient = keyVaultManagementClient
 }
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {

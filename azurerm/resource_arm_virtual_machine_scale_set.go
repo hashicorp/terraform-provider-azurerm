@@ -1455,7 +1455,10 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.Resourc
 					PassName:      compute.PassNames(pass),
 					ComponentName: compute.ComponentNames(component),
 					SettingName:   compute.SettingNames(settingName),
-					Content:       &content,
+				}
+
+				if content != "" {
+					addContent.Content = &content
 				}
 
 				additionalConfigContent = append(additionalConfigContent, addContent)

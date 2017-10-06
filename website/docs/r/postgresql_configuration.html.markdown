@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_configuration"
-sidebar_current: "docs-azurerm-resource-postgresql-configuration"
+sidebar_current: "docs-azurerm-resource-database-postgresql-configuration"
 description: |-
   Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 ---

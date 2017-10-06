@@ -47,9 +47,10 @@ func resourceArmManagedDisk() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(disk.Import),
-					string(disk.Empty),
 					string(disk.Copy),
+					string(disk.Empty),
+					string(disk.FromImage),
+					string(disk.Import),
 				}, true),
 			},
 
@@ -66,6 +67,12 @@ func resourceArmManagedDisk() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"image_reference_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"os_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -77,9 +84,11 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"disk_size_gb": {
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validateDiskSizeGB,
 			},
+
+			"encryption_settings": encryptionSettingsSchema(),
 
 			"tags": tagsSchema(),
 		},
@@ -125,27 +134,39 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 		diskSize := int32(v.(int))
 		createDisk.Properties.DiskSizeGB = &diskSize
 	}
-	createOption := d.Get("create_option").(string)
 
-	creationData := &disk.CreationData{
+	createOption := d.Get("create_option").(string)
+	createDisk.CreationData = &disk.CreationData{
 		CreateOption: disk.CreateOption(createOption),
 	}
 
 	if strings.EqualFold(createOption, string(disk.Import)) {
 		if sourceUri := d.Get("source_uri").(string); sourceUri != "" {
-			creationData.SourceURI = &sourceUri
+			createDisk.CreationData.SourceURI = &sourceUri
 		} else {
 			return fmt.Errorf("[ERROR] source_uri must be specified when create_option is `%s`", disk.Import)
 		}
 	} else if strings.EqualFold(createOption, string(disk.Copy)) {
 		if sourceResourceId := d.Get("source_resource_id").(string); sourceResourceId != "" {
-			creationData.SourceResourceID = &sourceResourceId
+			createDisk.CreationData.SourceResourceID = &sourceResourceId
 		} else {
 			return fmt.Errorf("[ERROR] source_resource_id must be specified when create_option is `%s`", disk.Copy)
 		}
+	} else if strings.EqualFold(createOption, string(disk.FromImage)) {
+		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
+			createDisk.CreationData.ImageReference = &disk.ImageDiskReference{
+				ID: utils.String(imageReferenceId),
+			}
+		} else {
+			return fmt.Errorf("[ERROR] image_reference_id must be specified when create_option is `%s`", disk.FromImage)
+		}
 	}
 
-	createDisk.CreationData = creationData
+	if v, ok := d.GetOk("encryption_settings"); ok {
+		encryptionSettings := v.([]interface{})
+		settings := encryptionSettings[0].(map[string]interface{})
+		createDisk.EncryptionSettings = expandManagedDiskEncryptionSettings(settings)
+	}
 
 	_, diskErr := diskClient.CreateOrUpdate(resGroup, name, createDisk, make(chan struct{}))
 	err := <-diskErr
@@ -197,6 +218,13 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
 	}
 
+	if settings := resp.EncryptionSettings; settings != nil {
+		flattened := flattenManagedDiskEncryptionSettings(settings)
+		if err := d.Set("encryption_settings", flattened); err != nil {
+			return fmt.Errorf("Error flattening encryption settings: %+v", err)
+		}
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -212,10 +240,13 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["disks"]
 
-	_, error := diskClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	deleteResp, deleteErr := diskClient.Delete(resGroup, name, make(chan struct{}))
+	resp := <-deleteResp
+	err = <-deleteErr
 	if err != nil {
-		return err
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return err
+		}
 	}
 
 	return nil
@@ -233,6 +264,12 @@ func flattenAzureRmManagedDiskProperties(d *schema.ResourceData, properties *dis
 
 func flattenAzureRmManagedDiskCreationData(d *schema.ResourceData, creationData *disk.CreationData) {
 	d.Set("create_option", string(creationData.CreateOption))
+	if ref := creationData.ImageReference; ref != nil {
+		d.Set("image_reference_id", *ref.ID)
+	}
+	if id := creationData.SourceResourceID; id != nil {
+		d.Set("source_resource_id", *id)
+	}
 	if creationData.SourceURI != nil {
 		d.Set("source_uri", *creationData.SourceURI)
 	}

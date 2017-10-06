@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKeyVaultSecret_validateName(t *testing.T) {
+func TestAccAzureRMKeyVaultChild_validateName(t *testing.T) {
 	cases := []struct {
 		Input       string
 		ExpectError bool
@@ -50,12 +50,12 @@ func TestAccAzureRMKeyVaultSecret_validateName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateKeyVaultSecretName(tc.Input, "")
+		_, errors := validateKeyVaultChildName(tc.Input, "")
 
 		hasError := len(errors) > 0
 
 		if tc.ExpectError && !hasError {
-			t.Fatalf("Expected the Key Vault Secret Name to trigger a validation error for '%s'", tc.Input)
+			t.Fatalf("Expected the Key Vault Child Name to trigger a validation error for '%s'", tc.Input)
 		}
 	}
 }
@@ -197,7 +197,7 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_key_vault_Secret" {
+		if rs.Type != "azurerm_key_vault_secret" {
 			continue
 		}
 
