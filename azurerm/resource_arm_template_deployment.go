@@ -43,6 +43,11 @@ func resourceArmTemplateDeployment() *schema.Resource {
 				Optional: true,
 			},
 
+			"parameters_body": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"outputs": {
 				Type:     schema.TypeMap,
 				Computed: true,
@@ -83,6 +88,15 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		}
 
 		properties.Parameters = &newParams
+	}
+
+	if v, ok := d.GetOk("parameters_body"); ok {
+		params, err := expandParametersBody(v.(string))
+		if err != nil {
+			return err
+		}
+
+		properties.Parameters = &params
 	}
 
 	if v, ok := d.GetOk("template_body"); ok {
@@ -209,6 +223,15 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 }
 
 // TODO: move this out into the new `helpers` structure
+func expandParametersBody(body string) (map[string]interface{}, error) {
+	var parametersBody map[string]interface{}
+	err := json.Unmarshal([]byte(body), &parametersBody)
+	if err != nil {
+		return nil, fmt.Errorf("Error Expanding the parameters_body for Azure RM Template Deployment")
+	}
+	return parametersBody, nil
+}
+
 func expandTemplateBody(template string) (map[string]interface{}, error) {
 	var templateBody map[string]interface{}
 	err := json.Unmarshal([]byte(template), &templateBody)
