@@ -13,6 +13,8 @@ IMPROVEMENTS:
 * `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
 * `azurerm_key_vault` - waiting for the DNS to propagate [GH-401]
 * `azurerm_mysql_*` - Ensuring we register the MySQL Resource Provider [GH-397]
+* `azurerm_route_table` - refactoring `route` from a Set to a List [GH-402]
+* `azurerm_route` - refactoring `route` from a Set to a List [GH-402]
 * `azurerm_storage_account` - support for File Encryption [GH-363]
 * `azurerm_storage_account` - support for Custom Domain [GH-363]
 * `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
