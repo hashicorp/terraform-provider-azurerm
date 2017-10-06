@@ -5,7 +5,13 @@ import (
 	"log"
 	"regexp"
 
+	"time"
+
+	"net"
+
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
+	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/satori/uuid"
@@ -217,6 +223,17 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*read.ID)
 
+	if d.IsNewResource() {
+		if props := read.Properties; props != nil {
+			if vault := props.VaultURI; vault != nil {
+				err := resource.Retry(30*time.Second, checkKeyVaultDNSIsAvailable(*vault))
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return resourceArmKeyVaultRead(d, meta)
 }
 
@@ -382,4 +399,21 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 	}
 
 	return
+}
+
+func checkKeyVaultDNSIsAvailable(vaultUri string) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		uri, err := url.Parse(vaultUri)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", uri.Host))
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+
+		_ = conn.Close()
+		return nil
+	}
 }
