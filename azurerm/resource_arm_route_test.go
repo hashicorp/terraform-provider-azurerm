@@ -8,10 +8,10 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRoute_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
@@ -31,7 +31,6 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_disappears(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMRoute_basic(ri, testLocation())
 
@@ -53,7 +52,6 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
-
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMRoute_basic(ri, location)
@@ -86,25 +84,24 @@ func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %q", name)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		rtName := rs.Primary.Attributes["route_table_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).routesClient
 
 		resp, err := conn.Get(resourceGroup, rtName, name)
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Route %q (resource group: %q) does not exist", name, resourceGroup)
+			}
 			return fmt.Errorf("Bad: Get on routesClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Route %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
