@@ -75,7 +75,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_platform_image":          dataSourceArmPlatformImage(),
 			"azurerm_public_ip":               dataSourceArmPublicIP(),
 			"azurerm_resource_group":          dataSourceArmResourceGroup(),
-      "azurerm_scheduled_time":          dataSourceArmScheduledTime(),
+			"azurerm_scheduled_time":          dataSourceArmScheduledTime(),
 			"azurerm_subscription":            dataSourceArmSubscription(),
 		},
 
