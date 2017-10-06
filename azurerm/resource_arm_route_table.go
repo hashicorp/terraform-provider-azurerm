@@ -36,7 +36,6 @@ func resourceArmRouteTable() *schema.Resource {
 			"route": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -93,27 +92,22 @@ func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	routes, err := expandRouteTableRoutes(d)
+	if err != nil {
+		return fmt.Errorf("Error Expanding list of Route Table Routes: %+v", err)
+	}
+
 	routeSet := network.RouteTable{
 		Name:     &name,
 		Location: &location,
-		Tags:     expandTags(tags),
-	}
-
-	if _, ok := d.GetOk("route"); ok {
-		routes, routeErr := expandRouteTableRoutes(d)
-		if routeErr != nil {
-			return fmt.Errorf("Error Expanding list of Route Table Routes: %+v", routeErr)
-		}
-
-		if len(routes) > 0 {
-			routeSet.RouteTablePropertiesFormat = &network.RouteTablePropertiesFormat{
-				Routes: &routes,
-			}
-		}
+		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
+			Routes: &routes,
+		},
+		Tags: expandTags(tags),
 	}
 
 	_, createErr := client.CreateOrUpdate(resGroup, name, routeSet, make(chan struct{}))
-	err := <-createErr
+	err = <-createErr
 	if err != nil {
 		return err
 	}

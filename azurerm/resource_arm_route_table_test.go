@@ -48,6 +48,35 @@ func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
+	updatedConfig := testAccAzureRMRouteTable_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
