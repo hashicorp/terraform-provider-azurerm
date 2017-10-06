@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_route"
+page_title: "Azure Resource Manager: azurerm_route-x"
 sidebar_current: "docs-azurerm-resource-network-route"
 description: |-
-  Creates a new Route Resource
+  Creates and Managed a Route within a Route Table.
 ---
 
-# azurerm\_route
+# azurerm_route
 
-Creates a new Route Resource
+Creates and Managed a Route within a Route Table.
 
 ## Example Usage
 
