@@ -88,6 +88,8 @@ func resourceArmManagedDisk() *schema.Resource {
 				ValidateFunc: validateDiskSizeGB,
 			},
 
+			"encryption_settings": encryptionSettingsSchema(),
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -160,6 +162,12 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if v, ok := d.GetOk("encryption_settings"); ok {
+		encryptionSettings := v.([]interface{})
+		settings := encryptionSettings[0].(map[string]interface{})
+		createDisk.EncryptionSettings = expandManagedDiskEncryptionSettings(settings)
+	}
+
 	_, diskErr := diskClient.CreateOrUpdate(resGroup, name, createDisk, make(chan struct{}))
 	err := <-diskErr
 	if err != nil {
@@ -208,6 +216,13 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 
 	if resp.CreationData != nil {
 		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
+	}
+
+	if settings := resp.EncryptionSettings; settings != nil {
+		flattened := flattenManagedDiskEncryptionSettings(settings)
+		if err := d.Set("encryption_settings", flattened); err != nil {
+			return fmt.Errorf("Error flattening encryption settings: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
