@@ -1,5 +1,9 @@
 ## 0.3.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_route_table` - `route` is no longer computed
+
 FEATURES:
 
 * **New Data Source:** `azurerm_builtin_role_definition` [GH-384]
@@ -15,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_managed_disk` - support for creating Managed Disks from Platform Images by supporting "FromImage" [GH-399]
 * `azurerm_managed_disk` - support for creating Encrypted Managed Disks [GH-399]
 * `azurerm_mysql_*` - Ensuring we register the MySQL Resource Provider [GH-397]
+* `azurerm_route_table` - removing routes when none are specified [GH-403]
 * `azurerm_route_table` - refactoring `route` from a Set to a List [GH-402]
 * `azurerm_route` - refactoring `route` from a Set to a List [GH-402]
 * `azurerm_storage_account` - support for File Encryption [GH-363]
