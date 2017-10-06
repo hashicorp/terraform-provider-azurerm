@@ -12,6 +12,8 @@ IMPROVEMENTS:
 * `azurerm_container_group` - add support for volume mounts [GH-366]
 * `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
 * `azurerm_key_vault` - waiting for the DNS to propagate [GH-401]
+* `azurerm_managed_disk` - support for creating Managed Disks from Platform Images by supporting "FromImage" [GH-399]
+* `azurerm_managed_disk` - support for creating Encrypted Managed Disks [GH-399]
 * `azurerm_mysql_*` - Ensuring we register the MySQL Resource Provider [GH-397]
 * `azurerm_route_table` - refactoring `route` from a Set to a List [GH-402]
 * `azurerm_route` - refactoring `route` from a Set to a List [GH-402]
