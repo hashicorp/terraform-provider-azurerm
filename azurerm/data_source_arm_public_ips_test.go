@@ -10,7 +10,8 @@ import (
 )
 
 func TestAccDataSourceAzureRMPublicIPs_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_public_ips.test"
+	dataSourceNameUsed := "data.azurerm_public_ips.test_used"
+	dataSourceNameUnused := "data.azurerm_public_ips.test_unused"
 	name, resourceGroupName := randNames()
 
 	config := testAccDataSourceAzureRMPublicIPsBasic(name, resourceGroupName, testLocation(), 10, 0)
@@ -23,8 +24,10 @@ func TestAccDataSourceAzureRMPublicIPs_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr(dataSourceName, "ids.#", "10"),
+					resource.TestCheckResourceAttr(dataSourceNameUsed, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceNameUsed, "public_ips.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceNameUnused, "public_ips.#", "10"),
+					resource.TestCheckResourceAttr(dataSourceNameUnused, "public_ips.0.name", fmt.Sprintf("%s-0", name)),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -33,7 +36,8 @@ func TestAccDataSourceAzureRMPublicIPs_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMPublicIPs_mixed(t *testing.T) {
-	dataSourceName := "data.azurerm_public_ips.test"
+	dataSourceNameUsed := "data.azurerm_public_ips.test_used"
+	dataSourceNameUnused := "data.azurerm_public_ips.test_unused"
 	name, resourceGroupName := randNames()
 
 	config := testAccDataSourceAzureRMPublicIPsBasic(name, resourceGroupName, testLocation(), 10, 6)
@@ -46,8 +50,11 @@ func TestAccDataSourceAzureRMPublicIPs_mixed(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr(dataSourceName, "ids.#", "4"),
+					resource.TestCheckResourceAttr(dataSourceNameUsed, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceNameUsed, "public_ips.#", "6"),
+					resource.TestCheckResourceAttr(dataSourceNameUsed, "public_ips.0.name", fmt.Sprintf("%s-0", name)),
+					resource.TestCheckResourceAttr(dataSourceNameUnused, "public_ips.#", "4"),
+					resource.TestCheckResourceAttr(dataSourceNameUnused, "public_ips.0.name", fmt.Sprintf("%s-6", name)),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -56,7 +63,7 @@ func TestAccDataSourceAzureRMPublicIPs_mixed(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMPublicIPs_count(t *testing.T) {
-	dataSourceName := "data.azurerm_public_ips.test"
+	dataSourceNameUnused := "data.azurerm_public_ips.test_unused"
 	name, resourceGroupName := randNames()
 
 	config := testAccDataSourceAzureRMPublicIPsCount(name, resourceGroupName, testLocation(), 10, 5)
@@ -69,8 +76,8 @@ func TestAccDataSourceAzureRMPublicIPs_count(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
-					resource.TestCheckResourceAttr(dataSourceName, "ids.#", "10"),
+					resource.TestCheckResourceAttr(dataSourceNameUnused, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceNameUnused, "public_ips.#", "10"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -98,7 +105,7 @@ func TestAccDataSourceAzureRMPublicIPs_tooFew(t *testing.T) {
 
 func randNames() (string, string) {
 	ri := acctest.RandInt()
-	name := fmt.Sprintf("acctestpublicipids-%d", ri)
+	name := fmt.Sprintf("acctestpublicippublic_ips-%d", ri)
 	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 	return name, resourceGroupName
 }
@@ -135,8 +142,14 @@ resource "azurerm_lb" "test" {
   }
 }
 
-data "azurerm_public_ips" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+data "azurerm_public_ips" "test_unused" {
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	attached            = false
+  depends_on          = ["azurerm_lb.test", "azurerm_public_ip.test"]
+}
+data "azurerm_public_ips" "test_used" {
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	attached            = true
   depends_on          = ["azurerm_lb.test", "azurerm_public_ip.test"]
 }
 `, resourceGroupName, location, pipCount, name, lbCount)
@@ -162,8 +175,9 @@ resource "azurerm_public_ip" "test" {
   }
 }
 
-data "azurerm_public_ips" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
+data "azurerm_public_ips" "test_unused" {
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	attached            = false
   minimum_count       = %d
   depends_on          = ["azurerm_public_ip.test"]
 }
