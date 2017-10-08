@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMPublicIPIds_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_public_ip_ids.test"
+func TestAccDataSourceAzureRMPublicIPs_basic(t *testing.T) {
+	dataSourceName := "data.azurerm_public_ips.test"
 	name, resourceGroupName := randNames()
 
-	config := testAccDataSourceAzureRMPublicIPIdsBasic(name, resourceGroupName, testLocation(), 10, 0)
+	config := testAccDataSourceAzureRMPublicIPsBasic(name, resourceGroupName, testLocation(), 10, 0)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -32,11 +32,11 @@ func TestAccDataSourceAzureRMPublicIPIds_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMPublicIPIds_mixed(t *testing.T) {
-	dataSourceName := "data.azurerm_public_ip_ids.test"
+func TestAccDataSourceAzureRMPublicIPs_mixed(t *testing.T) {
+	dataSourceName := "data.azurerm_public_ips.test"
 	name, resourceGroupName := randNames()
 
-	config := testAccDataSourceAzureRMPublicIPIdsBasic(name, resourceGroupName, testLocation(), 10, 6)
+	config := testAccDataSourceAzureRMPublicIPsBasic(name, resourceGroupName, testLocation(), 10, 6)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -55,11 +55,11 @@ func TestAccDataSourceAzureRMPublicIPIds_mixed(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMPublicIPIds_count(t *testing.T) {
-	dataSourceName := "data.azurerm_public_ip_ids.test"
+func TestAccDataSourceAzureRMPublicIPs_count(t *testing.T) {
+	dataSourceName := "data.azurerm_public_ips.test"
 	name, resourceGroupName := randNames()
 
-	config := testAccDataSourceAzureRMPublicIPIdsCount(name, resourceGroupName, testLocation(), 10, 5)
+	config := testAccDataSourceAzureRMPublicIPsCount(name, resourceGroupName, testLocation(), 10, 5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -78,10 +78,10 @@ func TestAccDataSourceAzureRMPublicIPIds_count(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMPublicIPIds_tooFew(t *testing.T) {
+func TestAccDataSourceAzureRMPublicIPs_tooFew(t *testing.T) {
 	name, resourceGroupName := randNames()
 
-	config := testAccDataSourceAzureRMPublicIPIdsCount(name, resourceGroupName, testLocation(), 10, 15)
+	config := testAccDataSourceAzureRMPublicIPsCount(name, resourceGroupName, testLocation(), 10, 15)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -103,7 +103,7 @@ func randNames() (string, string) {
 	return name, resourceGroupName
 }
 
-func testAccDataSourceAzureRMPublicIPIdsBasic(name string, resourceGroupName string, location string, pipCount int, lbCount int) string {
+func testAccDataSourceAzureRMPublicIPsBasic(name string, resourceGroupName string, location string, pipCount int, lbCount int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"
@@ -135,14 +135,14 @@ resource "azurerm_lb" "test" {
   }
 }
 
-data "azurerm_public_ip_ids" "test" {
+data "azurerm_public_ips" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   depends_on          = ["azurerm_lb.test", "azurerm_public_ip.test"]
 }
 `, resourceGroupName, location, pipCount, name, lbCount)
 }
 
-func testAccDataSourceAzureRMPublicIPIdsCount(name string, resourceGroupName string, location string, pipCount int, minCount int) string {
+func testAccDataSourceAzureRMPublicIPsCount(name string, resourceGroupName string, location string, pipCount int, minCount int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"
@@ -162,7 +162,7 @@ resource "azurerm_public_ip" "test" {
   }
 }
 
-data "azurerm_public_ip_ids" "test" {
+data "azurerm_public_ips" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   minimum_count       = %d
   depends_on          = ["azurerm_public_ip.test"]

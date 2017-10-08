@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_public_ip_ids"
+page_title: "Azure Resource Manager: azurerm_public_ips"
 sidebar_current: "docs-azurerm-datasource-public-ip-ids"
 description: |-
   Provides a list of unassociated public IP address IDs.
@@ -14,7 +14,7 @@ in a resource group, optionally specifying a minimum required number.
 ## Example Usage
 
 ```hcl
-data "azurerm_public_ip_ids" "datasourceips" {
+data "azurerm_public_ips" "datasourceips" {
   resource_group_name = "pipRG"
   minimum_count       = 2
 }
@@ -27,7 +27,7 @@ resource "azurerm_lb" "load_balancer" {
 
   frontend_ip_configuration {
     name                 = "frontend"
-    public_ip_address_id = "${data.azurerm_public_ip_ids.datasourceips.ids[count.index]}"
+    public_ip_address_id = "${data.azurerm_public_ips.datasourceips.ids[count.index]}"
   }
 }
 ```
