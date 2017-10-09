@@ -1,13 +1,11 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -38,7 +36,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"security_rule": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -108,7 +106,6 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmNetworkSecurityGroupRuleHash,
 			},
 
 			"tags": tagsSchema(),
@@ -117,8 +114,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 }
 
 func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	secClient := client.secGroupClient
+	client := meta.(*ArmClient).secGroupClient
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -127,7 +123,7 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 
 	sgRules, sgErr := expandAzureRmSecurityRules(d)
 	if sgErr != nil {
-		return fmt.Errorf("Error Building list of Network Security Group Rules: %s", sgErr)
+		return fmt.Errorf("Error Building list of Network Security Group Rules: %+v", sgErr)
 	}
 
 	azureRMLockByName(name, networkSecurityGroupResourceName)
@@ -142,21 +138,21 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 		Tags: expandTags(tags),
 	}
 
-	_, error := secClient.CreateOrUpdate(resGroup, name, sg, make(chan struct{}))
-	err := <-error
+	_, createErr := client.CreateOrUpdate(resGroup, name, sg, make(chan struct{}))
+	err := <-createErr
 	if err != nil {
 		return err
 	}
 
-	read, err := secClient.Get(resGroup, name, "")
+	read, err := client.Get(resGroup, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Network %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Virtual Network %q (resource group %q) ID", name, resGroup)
 	}
 
-	log.Printf("[DEBUG] Waiting for NSG (%s) to become available", d.Get("name"))
+	log.Printf("[DEBUG] Waiting for NSG (%q) to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
@@ -165,7 +161,7 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for NSG (%s) to become available: %s", d.Get("name"), err)
+		return fmt.Errorf("Error waiting for NSG (%q) to become available: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -174,7 +170,7 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	secGroupClient := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).secGroupClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -183,29 +179,30 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	resGroup := id.ResourceGroup
 	name := id.Path["networkSecurityGroups"]
 
-	resp, err := secGroupClient.Get(resGroup, name, "")
+	resp, err := client.Get(resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Security Group %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Network Security Group %q: %+v", name, err)
 	}
 
-	if resp.SecurityGroupPropertiesFormat.SecurityRules != nil {
-		d.Set("security_rule", flattenNetworkSecurityRules(resp.SecurityGroupPropertiesFormat.SecurityRules))
-	}
-
-	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	if props := resp.SecurityGroupPropertiesFormat; props != nil {
+		d.Set("security_rule", flattenNetworkSecurityRules(props.SecurityRules))
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
 
 func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	secGroupClient := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).secGroupClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -214,62 +211,58 @@ func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interfac
 	resGroup := id.ResourceGroup
 	name := id.Path["networkSecurityGroups"]
 
-	_, error := secGroupClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
+	err = <-deleteErr
 
 	return err
 }
 
-func resourceArmNetworkSecurityGroupRuleHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["source_port_range"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["destination_port_range"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["source_address_prefix"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["destination_address_prefix"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["access"].(string)))
-	buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-	buf.WriteString(fmt.Sprintf("%s-", m["direction"].(string)))
+func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []interface{} {
+	result := make([]interface{}, 0)
 
-	return hashcode.String(buf.String())
-}
+	if rules != nil {
+		for _, rule := range *rules {
+			sgRule := make(map[string]interface{})
+			sgRule["name"] = *rule.Name
 
-func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(*rules))
-	for _, rule := range *rules {
-		sgRule := make(map[string]interface{})
-		sgRule["name"] = *rule.Name
-		sgRule["destination_address_prefix"] = *rule.SecurityRulePropertiesFormat.DestinationAddressPrefix
-		sgRule["destination_port_range"] = *rule.SecurityRulePropertiesFormat.DestinationPortRange
-		sgRule["source_address_prefix"] = *rule.SecurityRulePropertiesFormat.SourceAddressPrefix
-		sgRule["source_port_range"] = *rule.SecurityRulePropertiesFormat.SourcePortRange
-		sgRule["priority"] = int(*rule.SecurityRulePropertiesFormat.Priority)
-		sgRule["access"] = rule.SecurityRulePropertiesFormat.Access
-		sgRule["direction"] = rule.SecurityRulePropertiesFormat.Direction
-		sgRule["protocol"] = rule.SecurityRulePropertiesFormat.Protocol
+			if props := rule.SecurityRulePropertiesFormat; props != nil {
+				sgRule["destination_address_prefix"] = *props.DestinationAddressPrefix
+				sgRule["destination_port_range"] = *props.DestinationPortRange
+				sgRule["source_address_prefix"] = *props.SourceAddressPrefix
+				sgRule["source_port_range"] = *props.SourcePortRange
+				sgRule["priority"] = int(*props.Priority)
+				sgRule["access"] = string(props.Access)
+				sgRule["direction"] = string(props.Direction)
+				sgRule["protocol"] = string(props.Protocol)
 
-		if rule.SecurityRulePropertiesFormat.Description != nil {
-			sgRule["description"] = *rule.SecurityRulePropertiesFormat.Description
+				if props.Description != nil {
+					sgRule["description"] = *props.Description
+				}
+			}
+
+			result = append(result, sgRule)
 		}
-
-		result = append(result, sgRule)
 	}
+
 	return result
 }
 
 func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule, error) {
-	sgRules := d.Get("security_rule").(*schema.Set).List()
-	rules := make([]network.SecurityRule, 0, len(sgRules))
+	sgRules := d.Get("security_rule").([]interface{})
+	rules := make([]network.SecurityRule, 0)
 
 	for _, sgRaw := range sgRules {
 		data := sgRaw.(map[string]interface{})
 
+		name := data["name"].(string)
 		source_port_range := data["source_port_range"].(string)
 		destination_port_range := data["destination_port_range"].(string)
 		source_address_prefix := data["source_address_prefix"].(string)
 		destination_address_prefix := data["destination_address_prefix"].(string)
 		priority := int32(data["priority"].(int))
+		access := data["access"].(string)
+		direction := data["direction"].(string)
+		protocol := data["protocol"].(string)
 
 		properties := network.SecurityRulePropertiesFormat{
 			SourcePortRange:          &source_port_range,
@@ -277,16 +270,15 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			SourceAddressPrefix:      &source_address_prefix,
 			DestinationAddressPrefix: &destination_address_prefix,
 			Priority:                 &priority,
-			Access:                   network.SecurityRuleAccess(data["access"].(string)),
-			Direction:                network.SecurityRuleDirection(data["direction"].(string)),
-			Protocol:                 network.SecurityRuleProtocol(data["protocol"].(string)),
+			Access:                   network.SecurityRuleAccess(access),
+			Direction:                network.SecurityRuleDirection(direction),
+			Protocol:                 network.SecurityRuleProtocol(protocol),
 		}
 
 		if v := data["description"].(string); v != "" {
 			properties.Description = &v
 		}
 
-		name := data["name"].(string)
 		rule := network.SecurityRule{
 			Name: &name,
 			SecurityRulePropertiesFormat: &properties,
@@ -298,11 +290,11 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 	return rules, nil
 }
 
-func networkSecurityGroupStateRefreshFunc(client *ArmClient, resourceGroupName string, sgName string) resource.StateRefreshFunc {
+func networkSecurityGroupStateRefreshFunc(client network.SecurityGroupsClient, resourceGroupName string, sgName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.secGroupClient.Get(resourceGroupName, sgName, "")
+		res, err := client.Get(resourceGroupName, sgName, "")
 		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in networkSecurityGroupStateRefreshFunc to Azure ARM for NSG '%s' (RG: '%s'): %s", sgName, resourceGroupName, err)
+			return nil, "", fmt.Errorf("Error issuing read request in networkSecurityGroupStateRefreshFunc for NSG '%s' (RG: '%s'): %+v", sgName, resourceGroupName, err)
 		}
 
 		return res, *res.SecurityGroupPropertiesFormat.ProvisioningState, nil
