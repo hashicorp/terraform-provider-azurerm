@@ -37,32 +37,26 @@ func dataSourceArmScheduledTime() *schema.Resource {
 			"second": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  -1,
 			},
 			"minute": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  -1,
 			},
 			"hour": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  -1,
 			},
 			"day_of_week": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  -1,
 			},
 			"day_of_month": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  -1,
 			},
 			"minimum_delay_from_now_in_minutes": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  -1,
 			},
 			"timezone": {
 				Type:     schema.TypeString,
@@ -81,7 +75,7 @@ func dataSourceArmScheduledTimeRead(d *schema.ResourceData, meta interface{}) er
 	var shiftTime int
 	var location *time.Location
 
-	if v, ok := d.GetOk("minimum_delay_from_now_in_minutes"); ok {
+	if v, exists := d.GetOkExists("minimum_delay_from_now_in_minutes"); exists {
 		shiftTime = v.(int)
 	} else {
 		shiftTime = 0
@@ -100,32 +94,31 @@ func dataSourceArmScheduledTimeRead(d *schema.ResourceData, meta interface{}) er
 
 	var firstRunSec, firstRunMinute, firstRunHour, firstRunDayOfWeek, firstRunDayOfMonth int
 
-	//TODO: GetOk is not suitable here because it returns ok=false if the second value is 0. The GetOkExists looks good but it hasn't merged yet
-	if v := d.Get("second"); v.(int) > -1 {
+	if v, exists := d.GetOkExists("second"); exists {
 		firstRunSec = v.(int)
 	} else {
 		firstRunSec = closestValidStartTime.Second()
 	}
 
-	if v := d.Get("minute"); v.(int) > -1 {
+	if v, exists := d.GetOkExists("minute"); exists {
 		firstRunMinute = v.(int)
 	} else {
 		firstRunMinute = closestValidStartTime.Minute()
 	}
 
-	if v := d.Get("hour"); v.(int) > -1 {
+	if v, exists := d.GetOkExists("hour"); exists {
 		firstRunHour = v.(int)
 	} else {
 		firstRunHour = closestValidStartTime.Hour()
 	}
 
-	if v := d.Get("day_of_week"); v.(int) > -1 {
+	if v, exists := d.GetOkExists("day_of_week"); exists {
 		firstRunDayOfWeek = v.(int)
 	} else {
 		firstRunDayOfWeek = int(closestValidStartTime.Weekday())
 	}
 
-	if v := d.Get("day_of_month"); v.(int) > -1 {
+	if v, exists := d.GetOkExists("day_of_month"); exists {
 		firstRunDayOfMonth = v.(int)
 	} else {
 		firstRunDayOfMonth = closestValidStartTime.Day()
