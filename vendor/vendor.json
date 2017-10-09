@@ -107,10 +107,10 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
-			"checksumSHA1": "wSLOrUgDpf9pmtZKl2KO3OavrZU=",
+			"checksumSHA1": "NCPG/4kLZlxz92cQE4NMyORU94k=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/iothub",
-			"revision": "dedad7d55bef3a5fd61d3b682bcba0a93cf315e8",
-			"revisionTime": "2017-08-24T19:57:27Z"
+			"revision": "9f366792afa3e0ddaecdc860e793ba9d75e76c27",
+			"revisionTime": "2017-10-06T23:46:41Z"
 		},
 		{
 			"checksumSHA1": "FloEh78hgEozkpt0y4SPWK23/wI=",
