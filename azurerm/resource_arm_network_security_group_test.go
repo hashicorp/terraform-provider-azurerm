@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
+	resourceName := "azurerm_network_security_group.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,7 +21,7 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
 				),
 			},
 		},
@@ -28,6 +29,7 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
+	resourceName := "azurerm_network_security_group.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,8 +39,8 @@ func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
-					testCheckAzureRMNetworkSecurityGroupDisappears("azurerm_network_security_group.test"),
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+					testCheckAzureRMNetworkSecurityGroupDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -47,6 +49,7 @@ func TestAccAzureRMNetworkSecurityGroup_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
+	resourceName := "azurerm_network_security_group.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -56,24 +59,19 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_withTags(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_security_group.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_security_group.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_security_group.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
 
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_withTagsUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_security_group.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_security_group.test", "tags.environment", "staging"),
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -81,6 +79,7 @@ func TestAccAzureRMNetworkSecurityGroup_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
+	resourceName := "azurerm_network_security_group.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -90,18 +89,16 @@ func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_security_group.test", "security_rule.#", "1"),
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
 				),
 			},
 
 			{
 				Config: testAccAzureRMNetworkSecurityGroup_anotherRule(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityGroupExists("azurerm_network_security_group.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_network_security_group.test", "security_rule.#", "2"),
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "2"),
 				),
 			},
 		},

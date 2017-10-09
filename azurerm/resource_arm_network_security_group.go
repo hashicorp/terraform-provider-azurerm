@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,16 +49,9 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 						},
 
 						"description": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(string)
-								if len(value) > 140 {
-									errors = append(errors, fmt.Errorf(
-										"The network security rule description can be no longer than 140 chars"))
-								}
-								return
-							},
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateStringLength(140),
 						},
 
 						"protocol": {
@@ -88,28 +82,29 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 						},
 
 						"access": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNetworkSecurityRuleAccess,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.SecurityRuleAccessAllow),
+								string(network.SecurityRuleAccessDeny),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"priority": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-								value := v.(int)
-								if value < 100 || value > 4096 {
-									errors = append(errors, fmt.Errorf(
-										"The `priority` can only be between 100 and 4096"))
-								}
-								return
-							},
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(100, 4096),
 						},
 
 						"direction": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNetworkSecurityRuleDirection,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.SecurityRuleDirectionInbound),
+								string(network.SecurityRuleDirectionOutbound),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 					},
 				},
