@@ -11,6 +11,7 @@ import (
 
 func resourceArmKeyVaultCertificate() *schema.Resource {
 	return &schema.Resource{
+		// TODO: support Updating once we have more information about what can be updated
 		Create: resourceArmKeyVaultCertificateCreate,
 		Read:   resourceArmKeyVaultCertificateRead,
 		Delete: resourceArmKeyVaultCertificateDelete,
