@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -259,18 +258,17 @@ func testCheckAzureRMNetworkInterfaceExists(name string) resource.TestCheckFunc 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ifaceClient
-
-		resp, err := conn.Get(resourceGroup, name, "")
+		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		resp, err := client.Get(resourceGroup, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on ifaceClient: %+v", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Network Interface %q (resource group: %q) does not exist", name, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Network Interface %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Get on ifaceClient: %+v", err)
 		}
 
 		return nil
@@ -288,7 +286,7 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).ifaceClient
@@ -304,7 +302,7 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 }
 
 func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).ifaceClient
+	client := testAccProvider.Meta().(*ArmClient).ifaceClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_interface" {
@@ -314,8 +312,7 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
-
+		resp, err := client.Get(resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
