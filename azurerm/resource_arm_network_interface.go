@@ -151,6 +151,13 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 			},
 
+			"private_ip_addresses": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -159,7 +166,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Network Interface creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -231,8 +238,8 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		Tags: expandTags(tags),
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, name, iface, make(chan struct{}))
-	err := <-error
+	_, createErr := client.CreateOrUpdate(resGroup, name, iface, make(chan struct{}))
+	err := <-createErr
 	if err != nil {
 		return err
 	}
@@ -242,7 +249,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read NIC %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read NIC %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -278,15 +285,19 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
-		var privateIPAddress *string
-		///TODO: Change this to a loop when https://github.com/Azure/azure-sdk-for-go/issues/259 is fixed
-		if (*iface.IPConfigurations)[0].InterfaceIPConfigurationPropertiesFormat != nil {
-			privateIPAddress = (*iface.IPConfigurations)[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
-		}
+		configs := *iface.IPConfigurations
 
-		if *privateIPAddress != "" {
+		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
+			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
 			d.Set("private_ip_address", *privateIPAddress)
 		}
+
+		addresses := make([]string, 0)
+		for _, config := range configs {
+			addresses = append(addresses, *config.PrivateIPAddress)
+		}
+
+		d.Set("private_ip_addresses", addresses)
 	}
 
 	if iface.IPConfigurations != nil {
