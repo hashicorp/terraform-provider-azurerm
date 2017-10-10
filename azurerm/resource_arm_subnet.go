@@ -151,7 +151,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Subnet %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure Subnet %q: %+v", name, err)
 	}
 
 	d.Set("name", name)
@@ -169,13 +169,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("route_table_id", props.RouteTable.ID)
 		}
 
-		ips := make([]string, 0)
-		if props.IPConfigurations != nil {
-			for _, ip := range *props.IPConfigurations {
-				ips = append(ips, *ip.ID)
-			}
-		}
-
+		ips := flattenSubnetIPConfigurations(props.IPConfigurations)
 		if err := d.Set("ip_configurations", ips); err != nil {
 			return err
 		}
@@ -227,4 +221,16 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	err = <-deleteErr
 
 	return err
+}
+
+func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) []string {
+	ips := make([]string, 0)
+
+	if ipConfigurations != nil {
+		for _, ip := range *ipConfigurations {
+			ips = append(ips, *ip.ID)
+		}
+	}
+
+	return ips
 }
