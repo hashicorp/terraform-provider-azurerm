@@ -30,6 +30,48 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
+	resourceName := "azurerm_key_vault_certificate.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicGenerate(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
+	resourceName := "azurerm_key_vault_certificate.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMKeyVaultCertificate_basicGenerateTags(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultCertificateDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
 
@@ -144,5 +186,180 @@ resource "azurerm_key_vault_certificate" "test" {
     }
   }
 }
+`, rString, location, rString, rString)
+}
+
+func testAccAzureRMKeyVaultCertificate_basicGenerate(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkeyvault%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "standard"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    certificate_permissions = [
+      "all",
+    ]
+
+    key_permissions = [
+      "all",
+    ]
+
+    secret_permissions = [
+      "all",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name      = "acctestcert%s"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+`, rString, location, rString, rString)
+}
+func testAccAzureRMKeyVaultCertificate_basicGenerateTags(rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%s"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkeyvault%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "standard"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    certificate_permissions = [
+      "all",
+    ]
+
+    key_permissions = [
+      "all",
+    ]
+
+    secret_permissions = [
+      "all",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name      = "acctestcert%s"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+
+  tags {
+    "hello" = "world"
+  }
+}
+
 `, rString, location, rString, rString)
 }

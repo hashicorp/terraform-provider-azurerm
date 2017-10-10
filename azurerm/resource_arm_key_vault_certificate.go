@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -90,6 +91,10 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Type:     schema.TypeInt,
 										Required: true,
 										ForceNew: true,
+										ValidateFunc: validateIntInSlice([]int{
+											2048,
+											4096,
+										}),
 									},
 									"key_type": {
 										Type:     schema.TypeString,
@@ -105,8 +110,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 							},
 						},
 						"lifetime_action": {
-							Type: schema.TypeList,
-							// in the case of Import
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -120,6 +124,10 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 													Type:     schema.TypeString,
 													Required: true,
 													ForceNew: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(keyvault.AutoRenew),
+														string(keyvault.EmailContacts),
+													}, false),
 												},
 											},
 										},
@@ -160,6 +168,45 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"content_type": {
 										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+								},
+							},
+						},
+
+						"x509_certificate_properties": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key_usage": {
+										Type:     schema.TypeList,
+										Required: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(keyvault.CRLSign),
+												string(keyvault.DataEncipherment),
+												string(keyvault.DecipherOnly),
+												string(keyvault.DigitalSignature),
+												string(keyvault.EncipherOnly),
+												string(keyvault.KeyAgreement),
+												string(keyvault.KeyCertSign),
+												string(keyvault.KeyEncipherment),
+												string(keyvault.NonRepudiation),
+											}, false),
+										},
+									},
+									"subject": {
+										Type:     schema.TypeString,
+										Required: true,
+										ForceNew: true,
+									},
+									"validity_in_months": {
+										Type:     schema.TypeInt,
 										Required: true,
 										ForceNew: true,
 									},
@@ -245,7 +292,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.Name)
-	d.Set("vault_url", id.KeyVaultBaseUrl)
+	d.Set("vault_uri", id.KeyVaultBaseUrl)
 
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
@@ -339,13 +386,22 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 		ContentType: utils.String(secret["content_type"].(string)),
 	}
 
-	/*
-		TODO: is this needed?
-		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
-			ValidityInMonths: utils.Int32(12),
-			Subject:          utils.String(""),
+	certificateProperties := policyRaw["x509_certificate_properties"].([]interface{})
+	for _, v := range certificateProperties {
+		cert := v.(map[string]interface{})
+
+		keyUsage := make([]keyvault.KeyUsageType, 0)
+		keys := cert["key_usage"].([]interface{})
+		for _, key := range keys {
+			keyUsage = append(keyUsage, keyvault.KeyUsageType(key.(string)))
 		}
-	*/
+
+		policy.X509CertificateProperties = &keyvault.X509CertificateProperties{
+			ValidityInMonths: utils.Int32(int32(cert["validity_in_months"].(int))),
+			Subject:          utils.String(cert["subject"].(string)),
+			KeyUsage:         &keyUsage,
+		}
+	}
 
 	return policy
 }
@@ -395,6 +451,7 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 				}
 			}
 			lifetimeAction["trigger"] = []interface{}{triggerOutput}
+			lifetimeActions = append(lifetimeActions, lifetimeAction)
 		}
 	}
 	policy["lifetime_action"] = lifetimeActions
@@ -405,6 +462,22 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		keyProps["content_type"] = *props.ContentType
 
 		policy["secret_properties"] = []interface{}{keyProps}
+	}
+
+	// x509 Certificate Properties
+	if props := input.X509CertificateProperties; props != nil {
+		certProps := make(map[string]interface{}, 0)
+
+		usages := make([]string, 0)
+		for _, usage := range *props.KeyUsage {
+			usages = append(usages, string(usage))
+		}
+
+		certProps["key_usage"] = usages
+		certProps["subject"] = *props.Subject
+		certProps["validity_in_months"] = int(*props.ValidityInMonths)
+
+		policy["x509_certificate_properties"] = []interface{}{certProps}
 	}
 
 	return []interface{}{policy}
