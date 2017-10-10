@@ -3,8 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/url"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -139,7 +137,7 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*ArmClient).keyVaultManagementClient
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key update.")
-	id, err := parseKeyVaultKeyID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,7 +164,7 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
 
-	id, err := parseKeyVaultKeyID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,7 +199,7 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
 
-	id, err := parseKeyVaultKeyID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -209,45 +207,6 @@ func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) erro
 	_, err = client.DeleteKey(id.KeyVaultBaseUrl, id.Name)
 
 	return err
-}
-
-func parseKeyVaultKeyID(id string) (*KeyVaultKey, error) {
-	// example: https://tharvey-keyvault.vault.azure.net/keys/bird/fdf067c93bbb4b22bff4d8b7a9a56217
-	idURL, err := url.ParseRequestURI(id)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Key Id: %q", err)
-	}
-
-	path := idURL.Path
-
-	path = strings.TrimSpace(path)
-	if strings.HasPrefix(path, "/") {
-		path = path[1:]
-	}
-
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
-
-	components := strings.Split(path, "/")
-
-	if len(components) != 3 {
-		return nil, fmt.Errorf("Azure KeyVault Key Id should have 3 segments, got %d: %q", len(components), path)
-	}
-
-	key := KeyVaultKey{
-		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
-		Name:            components[1],
-		Version:         components[2],
-	}
-
-	return &key, nil
-}
-
-type KeyVaultKey struct {
-	KeyVaultBaseUrl string
-	Name            string
-	Version         string
 }
 
 func expandKeyVaultKeyOptions(d *schema.ResourceData) *[]keyvault.JSONWebKeyOperation {

@@ -2,8 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -275,7 +273,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
 
-	id, err := parseKeyVaultCertificateID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -309,7 +307,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
 
-	id, err := parseKeyVaultCertificateID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -412,8 +410,6 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	if params := input.IssuerParameters; params != nil {
 		issuerParams := make(map[string]interface{}, 0)
 		issuerParams["name"] = *params.Name
-		// TODO: add this field
-		//issuerParams["certificate_type"] = params.CertificateType
 		policy["issuer_parameters"] = []interface{}{issuerParams}
 	}
 
@@ -496,43 +492,4 @@ func expandKeyVaultCertificate(v interface{}) KeyVaultCertificateImportParameter
 		CertificateData:     cert["contents"].(string),
 		CertificatePassword: cert["password"].(string),
 	}
-}
-
-func parseKeyVaultCertificateID(id string) (*KeyVaultCertificate, error) {
-	// example: https://tharvey-keyvault.vault.azure.net/certificates/bird/fdf067c93bbb4b22bff4d8b7a9a56217
-	idURL, err := url.ParseRequestURI(id)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Certificate Id: %q", err)
-	}
-
-	path := idURL.Path
-
-	path = strings.TrimSpace(path)
-	if strings.HasPrefix(path, "/") {
-		path = path[1:]
-	}
-
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
-
-	components := strings.Split(path, "/")
-
-	if len(components) != 3 {
-		return nil, fmt.Errorf("Azure KeyVault Certificate Id should have 3 segments, got %d: %q", len(components), path)
-	}
-
-	key := KeyVaultCertificate{
-		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
-		Name:            components[1],
-		Version:         components[2],
-	}
-
-	return &key, nil
-}
-
-type KeyVaultCertificate struct {
-	KeyVaultBaseUrl string
-	Name            string
-	Version         string
 }
