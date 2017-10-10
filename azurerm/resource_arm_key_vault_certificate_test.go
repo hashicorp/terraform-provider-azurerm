@@ -165,7 +165,7 @@ resource "azurerm_key_vault_certificate" "test" {
   vault_uri = "${azurerm_key_vault.test.vault_uri}"
 
   certificate {
-    contents = "${base64encode(file("testdata/keyvaultcert-import.pfx"))}"
+    contents = "${base64encode(file("testdata/keyvaultcert.pfx"))}"
     password = ""
   }
 
