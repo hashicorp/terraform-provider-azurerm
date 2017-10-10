@@ -9,6 +9,7 @@ FEATURES:
 * **New Data Source:** `azurerm_builtin_role_definition` [GH-384]
 * **New Data Source:** `azurerm_image` [GH-382]
 * **New Data Source:** `azurerm_platform_image` [GH-375]
+* **New Data Source:** `azurerm_subnet` [GH-411]
 * **New Resource:** `azurerm_key_vault_certificate` [GH-408]
 
 IMPROVEMENTS:
@@ -27,6 +28,7 @@ IMPROVEMENTS:
 * `azurerm_storage_account` - support for File Encryption [GH-363]
 * `azurerm_storage_account` - support for Custom Domain [GH-363]
 * `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
+* `azurerm_subnet` - making it possible to remove Network Security Groups / Route Tables [GH-411]
 * `azurerm_virtual_machine` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
 * `azurerm_virtual_machine_scale_set` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
 
