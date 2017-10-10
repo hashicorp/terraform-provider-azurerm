@@ -23,12 +23,23 @@
             <li<%= sidebar_current("docs-azurerm-datasource") %>>
               <a href="#">Data Sources</a>
               <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-datasource-builtin_role_definition") %>>
+                    <a href="/docs/providers/azurerm/d/builtin_role_definition.html">azurerm_builtin_role_definition</a>
+                </li>
                 <li<%= sidebar_current("docs-azurerm-datasource-client-config") %>>
                     <a href="/docs/providers/azurerm/d/client_config.html">azurerm_client_config</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-datasource-image") %>>
+                    <a href="/docs/providers/azurerm/d/image.html">azurerm_image</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-datasource-managed-disk") %>>
                     <a href="/docs/providers/azurerm/d/managed_disk.html">azurerm_managed_disk</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-platform-image") %>>
+                    <a href="/docs/providers/azurerm/d/platform_image.html">azurerm_platform_image</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-public-ip") %>>
@@ -152,6 +163,22 @@
               <a href="#">Database Resources</a>
               <ul class="nav nav-visible">
 
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-configuration") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_configuration.html">azurerm_mysql_configuration</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-database") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_database.html">azurerm_mysql_database</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-firewall-rule") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_firewall_rule.html">azurerm_mysql_firewall_rule</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-database-mysql-server") %>>
+                  <a href="/docs/providers/azurerm/r/mysql_server.html">azurerm_mysql_server</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-resource-database-postgresql-configuration") %>>
                   <a href="/docs/providers/azurerm/r/postgresql_configuration.html">azurerm_postgresql_configuration</a>
                 </li>
@@ -236,6 +263,14 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-key-vault-x") %>>
                   <a href="/docs/providers/azurerm/r/key_vault.html">azurerm_key_vault</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-key-vault-certificate") %>>
+                  <a href="/docs/providers/azurerm/r/key_vault_certificate.html">azurerm_key_vault_certificate</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-key-vault-key") %>>
+                  <a href="/docs/providers/azurerm/r/key_vault_key.html">azurerm_key_vault_key</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-key-vault-secret") %>>
@@ -357,7 +392,7 @@
                   <a href="/docs/providers/azurerm/r/public_ip.html">azurerm_public_ip</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-network-route") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-network-route-x") %>>
                   <a href="/docs/providers/azurerm/r/route.html">azurerm_route</a>
                 </li>
 
@@ -386,6 +421,15 @@
                 </li>
               </ul>
             </li>
+
+            <li<%= sidebar_current("docs-azurerm-oms") %>>
+            <a href="#">OMS Resources</a>
+            <ul class="nav nav-visible">
+              <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace") %>>
+                <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
+              </li>
+            </ul>
+          </li>
 
             <li<%= sidebar_current("docs-azurerm-redis-cache") %>>
               <a href="#">Redis Resources</a>

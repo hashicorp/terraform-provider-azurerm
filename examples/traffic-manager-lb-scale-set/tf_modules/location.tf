@@ -88,10 +88,11 @@ resource "azurerm_lb_rule" "webservers_lb_http" {
 
 # Create storage account
 resource "azurerm_storage_account" "webservers_sa" {
-  name                =  "${var.resource_prefix}storage"
-  resource_group_name = "${azurerm_resource_group.webservers_rg.name}"
-  location            = "${var.location}"
-  account_type        = "Standard_LRS"
+  name                     = "${var.resource_prefix}storage"
+  resource_group_name      = "${azurerm_resource_group.webservers_rg.name}"
+  location                 = "${var.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 # Create container

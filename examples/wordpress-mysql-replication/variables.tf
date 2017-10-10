@@ -102,9 +102,14 @@ variable "vm_size" {
   default     = "Standard_D2"
 }
 
-variable "storage_account_type" {
-  description = "Storage account type for the cluster"
-  default     = "Standard_LRS"
+variable "storage_account_tier" {
+  description = "Storage account Tier for the cluster (e.g. Standard or Premium)"
+  default     = "Standard"
+}
+
+variable "storage_replication_type" {
+  description = "Storage account replication type for the cluster (e.g. LRS, GRS etc)"
+  default     = "LRS"
 }
 
 variable "virtual_network_name" {

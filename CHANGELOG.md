@@ -1,4 +1,52 @@
-## 0.2.2 (Unreleased)
+## 0.3.0 (Unreleased)
+
+UPGRADE NOTES:
+
+* `azurerm_route_table` - `route` is no longer computed
+
+FEATURES:
+
+* **New Data Source:** `azurerm_builtin_role_definition` [GH-384]
+* **New Data Source:** `azurerm_image` [GH-382]
+* **New Data Source:** `azurerm_platform_image` [GH-375]
+* **New Data Source:** `azurerm_subnet` [GH-411]
+* **New Resource:** `azurerm_key_vault_certificate` [GH-408]
+
+IMPROVEMENTS:
+
+* `azurerm_client_config` - updating the data source to work when using AzureCLI auth [GH-393]
+* `azurerm_container_group` - add support for volume mounts [GH-366]
+* `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
+* `azurerm_key_vault` - waiting for the DNS to propagate [GH-401]
+* `azurerm_managed_disk` - support for creating Managed Disks from Platform Images by supporting "FromImage" [GH-399]
+* `azurerm_managed_disk` - support for creating Encrypted Managed Disks [GH-399]
+* `azurerm_mysql_*` - Ensuring we register the MySQL Resource Provider [GH-397]
+* `azurerm_network_security_group` / `azurerm_network_security_rule` - refactoring [GH-405]
+* `azurerm_route_table` - removing routes when none are specified [GH-403]
+* `azurerm_route_table` - refactoring `route` from a Set to a List [GH-402]
+* `azurerm_route` - refactoring `route` from a Set to a List [GH-402]
+* `azurerm_storage_account` - support for File Encryption [GH-363]
+* `azurerm_storage_account` - support for Custom Domain [GH-363]
+* `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
+* `azurerm_subnet` - making it possible to remove Network Security Groups / Route Tables [GH-411]
+* `azurerm_virtual_machine` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
+* `azurerm_virtual_machine_scale_set` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
+
+## 0.2.2 (September 28, 2017)
+
+FEATURES:
+
+* **New Resource:** `azurerm_key_vault_key` ([#356](https://github.com/terraform-providers/terraform-provider-azurerm/issues/356))
+* **New Resource:** `azurerm_log_analytics_workspace` ([#331](https://github.com/terraform-providers/terraform-provider-azurerm/issues/331))
+* **New Resource:** `azurerm_mysql_configuration` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
+* **New Resource:** `azurerm_mysql_database` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
+* **New Resource:** `azurerm_mysql_firewall_rule` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
+* **New Resource:** `azurerm_mysql_server` ([#352](https://github.com/terraform-providers/terraform-provider-azurerm/issues/352))
+
+IMPROVEMENTS:
+
+* Updating the provider initialization & adding a `skip_credentials_validation` field to the provider for some advanced scenarios ([#322](https://github.com/terraform-providers/terraform-provider-azurerm/issues/322))
+
 ## 0.2.1 (September 25, 2017)
 
 FEATURES:

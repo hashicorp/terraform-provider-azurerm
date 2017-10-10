@@ -91,10 +91,11 @@ resource "azurerm_resource_group" "test" {
     location = "West US"
 }
 resource "azurerm_storage_account" "test" {
-  name                = "redissa"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_GRS"
+  name                     = "redissa"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 }
 resource "azurerm_redis_cache" "test" {
     name                = "example-redis"

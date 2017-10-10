@@ -3,9 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/url"
-	"regexp"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -27,7 +24,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateKeyVaultSecretName,
+				ValidateFunc: validateKeyVaultChildName,
 			},
 
 			"vault_uri": {
@@ -97,7 +94,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).keyVaultManagementClient
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
-	id, err := parseKeyVaultSecretID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -121,7 +118,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 
 		// "" indicates the latest version
 		read, err := client.GetSecret(id.KeyVaultBaseUrl, id.Name, "")
-		id, err = parseKeyVaultSecretID(*read.ID)
+		id, err = parseKeyVaultChildID(*read.ID)
 		if err != nil {
 			return err
 		}
@@ -146,7 +143,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
 
-	id, err := parseKeyVaultSecretID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -162,7 +159,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// the version may have changed, so parse the updated id
-	respID, err := parseKeyVaultSecretID(*resp.ID)
+	respID, err := parseKeyVaultChildID(*resp.ID)
 	if err != nil {
 		return err
 	}
@@ -180,7 +177,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
 
-	id, err := parseKeyVaultSecretID(d.Id())
+	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -188,53 +185,4 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 	_, err = client.DeleteSecret(id.KeyVaultBaseUrl, id.Name)
 
 	return err
-}
-
-func parseKeyVaultSecretID(id string) (*SecretID, error) {
-	// example: https://tharvey-keyvault.vault.azure.net/secrets/bird/fdf067c93bbb4b22bff4d8b7a9a56217
-	idURL, err := url.ParseRequestURI(id)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Secret Id: %s", err)
-	}
-
-	path := idURL.Path
-
-	path = strings.TrimSpace(path)
-	if strings.HasPrefix(path, "/") {
-		path = path[1:]
-	}
-
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
-
-	components := strings.Split(path, "/")
-
-	if len(components) != 3 {
-		return nil, fmt.Errorf("Azure KeyVault Secret Id should have 3 segments, got %d: '%s'", len(components), path)
-	}
-
-	secretID := SecretID{
-		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
-		Name:            components[1],
-		Version:         components[2],
-	}
-
-	return &secretID, nil
-}
-
-type SecretID struct {
-	KeyVaultBaseUrl string
-	Name            string
-	Version         string
-}
-
-func validateKeyVaultSecretName(v interface{}, k string) (ws []string, es []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
-	}
-
-	return
 }

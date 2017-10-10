@@ -11,19 +11,34 @@ variable "unique_prefix" {
   description = "This prefix is used for names which need to be globally unique."
 }
 
-variable "storage_master_type" {
-  description = "Storage type that is used for master Spark node.  This storage account is used to store VM disks. Allowed values: Standard_LRS, Standard_ZRS, Standard_GRS, Standard_RAGRS, Premium_LRS"
-  default     = "Standard_LRS"
+variable "storage_master_account_tier" {
+  description = "Storage Tier that is used for master Spark node. This storage account is used to store VM disks. Allowed values are Standard and Premium."
+  default     = "Standard"
 }
 
-variable "storage_slave_type" {
-  description = "Storage type that is used for each of the slave Spark node.  This storage account is used to store VM disks. Allowed values : Standard_LRS, Standard_ZRS, Standard_GRS, Standard_RAGRS, Premium_LRS"
-  default     = "Standard_LRS"
+variable "storage_master_replication_type" {
+  description = "Storage Tier that is used for master Spark node. This storage account is used to store VM disks. Possible values include LRS and GRS."
+  default     = "LRS"
 }
 
-variable "storage_cassandra_type" {
-  description = "Storage type that is used for Cassandra.  This storage account is used to store VM disks. Allowed values: Standard_LRS, Standard_ZRS, Standard_GRS, Standard_RAGRS, Premium_LRS"
-  default     = "Standard_LRS"
+variable "storage_slave_account_tier" {
+  description = "Storage type that is used for each of the slave Spark node. This storage account is used to store VM disks. Allowed values are Standard and Premium."
+  default     = "Standard"
+}
+
+variable "storage_slave_replication_type" {
+  description = "Storage type that is used for each of the slave Spark node. This storage account is used to store VM disks. Possible values include LRS and GRS."
+  default     = "LRS"
+}
+
+variable "storage_cassandra_account_tier" {
+  description = "Storage type that is used for Cassandra. This storage account is used to store VM disks. Allowed values are Standard and Premium."
+  default     = "Standard"
+}
+
+variable "storage_cassandra_replication_type" {
+  description = "Storage type that is used for Cassandra. This storage account is used to store VM disks. Possible values include LRS and GRS."
+  default     = "LRS"
 }
 
 variable "vm_master_vm_size" {

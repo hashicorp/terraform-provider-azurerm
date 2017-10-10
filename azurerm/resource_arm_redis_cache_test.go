@@ -453,6 +453,7 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
 }
+
 resource "azurerm_redis_cache" "test" {
     name                = "acctestRedis-%d"
     location            = "${azurerm_resource_group.test.location}"
@@ -475,17 +476,19 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
 }
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
 
-  location     = "${azurerm_resource_group.test.location}"
-  account_type = "Standard_GRS"
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 
   tags {
     environment = "staging"
   }
 }
+
 resource "azurerm_redis_cache" "test" {
     name                = "acctestRedis-%d"
     location            = "${azurerm_resource_group.test.location}"
