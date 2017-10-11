@@ -11,6 +11,14 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
+			"checksumSHA1": "PpYX1v4K2Zbr0dvqTY4rEKTUdeQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/authorization",
+			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
+			"revisionTime": "2017-08-18T20:19:01Z",
+			"version": "=v10.3.0-beta",
+			"versionExact": "v10.3.0-beta"
+		},
+		{
 			"checksumSHA1": "kDu+bApbVn1n9OGBoBJT8p6YZGc=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/automation",
 			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
@@ -601,6 +609,12 @@
 			"path": "github.com/golang/protobuf/ptypes/timestamp",
 			"revision": "130e6b02ab059e7b717a096f397c5b60111cae74",
 			"revisionTime": "2017-09-20T22:06:47Z"
+		},
+		{
+			"checksumSHA1": "Y80EASFjCaCxHdfPxmN4Wc2n1BM=",
+			"path": "github.com/google/uuid",
+			"revision": "7e072fc3a7be179aee6d3359e46015aa8c995314",
+			"revisionTime": "2017-08-14T14:36:39Z"
 		},
 		{
 			"checksumSHA1": "cdOCt0Yb+hdErz8NAQqayxPmRsY=",
