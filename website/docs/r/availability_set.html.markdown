@@ -3,12 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
 sidebar_current: "docs-azurerm-resource-virtualmachine-availability-set"
 description: |-
-  Create an availability set for virtual machines.
+  Manages an availability set for virtual machines.
+
 ---
 
-# azurerm\_availability\_set
+# azurerm_availability_set
 
-Create an availability set for virtual machines.
+Manages an availability set for virtual machines.
 
 ## Example Usage
 
@@ -20,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_availability_set" "test" {
   name                = "acceptanceTestAvailabilitySet1"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   tags {
@@ -33,11 +34,9 @@ resource "azurerm_availability_set" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the availability set. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the availability set. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the availability set.
+* `resource_group_name` - (Required) The name of the resource group in which to create the availability set. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -53,7 +52,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The virtual AvailabilitySet ID.
+* `id` - The virtual Availability Set ID.
 
 
 ## Import
