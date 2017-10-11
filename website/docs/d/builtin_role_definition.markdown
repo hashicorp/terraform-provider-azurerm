@@ -30,3 +30,11 @@ output "contributor_role_definition_id" {
 ## Attributes Reference
 
 * `id` - the ID of the built-in Role Definition.
+* `description` - the Description of the built-in Role.
+* `type` - the Type of the Role.
+* `permissions` - a `permissions` block as documented below.
+
+A `permissions` block contains:
+
+* `actions` - a list of actions supported by this role
+* `not_actions` - a list of actions which are denied by this role
