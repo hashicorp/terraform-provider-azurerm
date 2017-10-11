@@ -26,6 +26,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
