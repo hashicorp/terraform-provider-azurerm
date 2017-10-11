@@ -70,7 +70,7 @@ type ArmClient struct {
 	automationCredentialClient automation.CredentialClient
 	automationScheduleClient   automation.ScheduleClient
 
-	appGatewayClient             network.ApplicationGatewaysClient
+	applicationGatewayClient     network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
 	expressRouteCircuitClient    network.ExpressRouteCircuitsClient
 	loadBalancerClient           network.LoadBalancersClient
@@ -325,7 +325,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	setUserAgent(&agc.Client)
 	agc.Authorizer = auth
 	agc.Sender = sender
-	client.appGatewayClient = agc
+	client.applicationGatewayClient = agc
 
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&crc.Client)

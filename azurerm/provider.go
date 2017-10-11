@@ -80,6 +80,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"azurerm_application_gateway":         resourceArmApplicationGateway(),
 			"azurerm_application_insights":        resourceArmApplicationInsights(),
 			"azurerm_app_service":                 resourceArmAppService(),
 			"azurerm_app_service_plan":            resourceArmAppServicePlan(),
