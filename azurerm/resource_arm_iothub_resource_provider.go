@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"errors"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/iothub"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -204,9 +205,9 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	var keys []map[string]interface{}
 	for _, key := range *keysResp.Value {
 		keyMap := make(map[string]interface{})
-		keyMap["key_name"] = key.KeyName
-		keyMap["primary_key"] = key.PrimaryKey
-		keyMap["secondary_key"] = key.SecondaryKey
+		keyMap["key_name"] = *key.KeyName
+		keyMap["primary_key"] = *key.PrimaryKey
+		keyMap["secondary_key"] = *key.SecondaryKey
 		keyMap["permissions"] = string(key.Rights)
 		keys = append(keys, keyMap)
 	}
@@ -214,6 +215,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
+	log.Println("[GIRISH]", keys)
 
 	d.Set("shared_access_policy", keys)
 	d.Set("hostname", *properties.HostName)
