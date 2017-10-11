@@ -152,10 +152,11 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"private_ip_addresses": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"tags": tagsSchema(),
@@ -292,12 +293,16 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("private_ip_address", *privateIPAddress)
 		}
 
-		addresses := make([]string, 0)
+		addresses := make([]interface{}, 0)
 		for _, config := range configs {
-			addresses = append(addresses, *config.PrivateIPAddress)
+			if config.InterfaceIPConfigurationPropertiesFormat != nil {
+				addresses = append(addresses, *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+			}
 		}
 
-		d.Set("private_ip_addresses", addresses)
+		if err := d.Set("private_ip_addresses", addresses); err != nil {
+			return err
+		}
 	}
 
 	if iface.IPConfigurations != nil {
