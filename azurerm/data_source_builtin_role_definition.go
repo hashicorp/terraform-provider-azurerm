@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/authorization"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -88,32 +87,4 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
-}
-
-func flattenRoleDefinitionPermissions(input *[]authorization.Permission) []interface{} {
-	permissions := make([]interface{}, 0)
-
-	for _, permission := range *input {
-		output := make(map[string]interface{}, 0)
-
-		actions := make([]string, 0)
-		if permission.Actions != nil {
-			for _, action := range *permission.Actions {
-				actions = append(actions, action)
-			}
-		}
-		output["actions"] = actions
-
-		notActions := make([]string, 0)
-		if permission.NotActions != nil {
-			for _, action := range *permission.NotActions {
-				notActions = append(notActions, action)
-			}
-		}
-		output["not_actions"] = notActions
-
-		permissions = append(permissions, output)
-	}
-
-	return permissions
 }

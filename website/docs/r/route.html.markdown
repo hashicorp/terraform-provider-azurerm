@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_route-x"
-sidebar_current: "docs-azurerm-resource-network-route"
+page_title: "Azure Resource Manager: azurerm_route"
+sidebar_current: "docs-azurerm-resource-network-route-x"
 description: |-
   Manages a Route within a Route Table.
 ---

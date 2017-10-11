@@ -137,6 +137,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_public_ip":                   resourceArmPublicIp(),
 			"azurerm_redis_cache":                 resourceArmRedisCache(),
 			"azurerm_resource_group":              resourceArmResourceGroup(),
+			"azurerm_role_definition":             resourceArmRoleDefinition(),
 			"azurerm_route":                       resourceArmRoute(),
 			"azurerm_route_table":                 resourceArmRouteTable(),
 			"azurerm_search_service":              resourceArmSearchService(),
