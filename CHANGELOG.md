@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_managed_disk` - support for creating Managed Disks from Platform Images by supporting "FromImage" [GH-399]
 * `azurerm_managed_disk` - support for creating Encrypted Managed Disks [GH-399]
 * `azurerm_mysql_*` - Ensuring we register the MySQL Resource Provider [GH-397]
+* `azurerm_network_interface` - exposing all of the Private IP Addresses assigned to the NIC [GH-409]
 * `azurerm_network_security_group` / `azurerm_network_security_rule` - refactoring [GH-405]
 * `azurerm_route_table` - removing routes when none are specified [GH-403]
 * `azurerm_route_table` - refactoring `route` from a Set to a List [GH-402]
