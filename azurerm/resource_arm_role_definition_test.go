@@ -102,7 +102,7 @@ func testCheckAzureRMRoleDefinitionExists(name string) resource.TestCheckFunc {
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Route %q (Scope: %q) does not exist", name, scope)
+				return fmt.Errorf("Bad: Role Definition %q (Scope: %q) does not exist", name, scope)
 			}
 			return fmt.Errorf("Bad: Get on roleDefinitionsClient: %+v", err)
 		}
@@ -113,7 +113,7 @@ func testCheckAzureRMRoleDefinitionExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_route" {
+		if rs.Type != "azurerm_role_definition" {
 			continue
 		}
 

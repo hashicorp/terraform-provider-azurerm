@@ -139,6 +139,7 @@ type ArmClient struct {
 	appInsightsClient appinsights.ComponentsClient
 
 	// Authentication
+	roleAssignmentsClient   authorization.RoleAssignmentsClient
 	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
@@ -666,6 +667,12 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	spc.Authorizer = graphAuth
 	spc.Sender = sender
 	c.servicePrincipalsClient = spc
+
+	rac := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&rac.Client)
+	rac.Authorizer = auth
+	rac.Sender = sender
+	c.roleAssignmentsClient = rac
 
 	rdc := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&rdc.Client)
