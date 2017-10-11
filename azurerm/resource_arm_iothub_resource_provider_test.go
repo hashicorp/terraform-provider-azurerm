@@ -70,7 +70,6 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 		conn := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 
 		resp, err := conn.Get(resourceGroup, iothubName)
-
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return fmt.Errorf("Bad: IotHub %q (resource group: %q) does not exist", iothubName, resourceGroup)

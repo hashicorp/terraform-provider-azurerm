@@ -21,24 +21,10 @@ func resourceArmIotHub() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
+			"tags":     tagsSchema(),
 			"location": locationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
-
-			"etag": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"tags": tagsSchema(),
-
 			"sku": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -69,6 +55,47 @@ func resourceArmIotHub() *schema.Resource {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(1),
+						},
+					},
+				},
+			},
+
+			"type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"etag": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"shared_access_policy": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"primary_key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"secondary_key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"permissions": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -163,11 +190,33 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
-	desc, err := iothubClient.Get(id.ResourceGroup, id.Path["IotHubs"])
+	iothubName := id.Path["IotHubs"]
+	desc, err := iothubClient.Get(id.ResourceGroup, iothubName)
+
 	if err != nil {
 		return err
 	}
 
+	properties := desc.Properties
+
+	keysResp, err := iothubClient.ListKeys(id.ResourceGroup, iothubName)
+
+	var keys []map[string]interface{}
+	for _, key := range *keysResp.Value {
+		keyMap := make(map[string]interface{})
+		keyMap["key_name"] = key.KeyName
+		keyMap["primary_key"] = key.PrimaryKey
+		keyMap["secondary_key"] = key.SecondaryKey
+		keyMap["permissions"] = string(key.Rights)
+		keys = append(keys, keyMap)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	d.Set("shared_access_policy", keys)
+	d.Set("hostname", *properties.HostName)
 	d.Set("etag", *desc.Etag)
 	d.Set("type", *desc.Type)
 	flattenAndSetTags(d, desc.Tags)
