@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_mysql_server
 
-Manages a PostgreSQL Server.
+Manages a MySQL Server.
 
 ## Example Usage
 
