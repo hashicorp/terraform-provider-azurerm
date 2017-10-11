@@ -11,7 +11,6 @@ FEATURES:
 * **New Data Source:** `azurerm_platform_image` [GH-375]
 * **New Data Source:** `azurerm_role_definition` [GH-414]
 * **New Data Source:** `azurerm_subnet` [GH-411]
-
 * **New Resource:** `azurerm_key_vault_certificate` [GH-408]
 * **New Resource:** `azurerm_role_assignment` [GH-414]
 * **New Resource:** `azurerm_role_definition` [GH-414]
