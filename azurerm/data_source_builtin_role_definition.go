@@ -53,6 +53,13 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 					},
 				},
 			},
+			"assignable_scopes": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -82,6 +89,11 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 
 		permissions := flattenRoleDefinitionPermissions(props.Permissions)
 		if err := d.Set("permissions", permissions); err != nil {
+			return err
+		}
+
+		assignableScopes := flattenRoleDefinitionAssignableScopes(props.AssignableScopes)
+		if err := d.Set("assignable_scopes", assignableScopes); err != nil {
 			return err
 		}
 	}
