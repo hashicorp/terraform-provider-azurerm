@@ -17,7 +17,7 @@ provider.
 data "azurerm_client_config" "current" {}
 
 output "account_id" {
-  value = "${data.azurerm_client_config.current.account_id}"
+  value = "${data.azurerm_client_config.current.service_principal_application_id}"
 }
 ```
 
@@ -30,6 +30,11 @@ There are no arguments available for this data source.
 * `client_id` is set to the Azure Client ID (Application Object ID).
 * `tenant_id` is set to the Azure Tenant ID.
 * `subscription_id` is set to the Azure Subscription ID.
+
+---
+
+~> **Note:** the following fields are only available when authenticating via a Service Principal (as opposed to using the Azure CLI):
+
 * `service_principal_application_id` is the Service Principal Application ID.
 * `service_principal_object_id` is the Service Principal Object ID.
 

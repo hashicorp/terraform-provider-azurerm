@@ -68,12 +68,16 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"azurerm_client_config":  dataSourceArmClientConfig(),
-			"azurerm_managed_disk":   dataSourceArmManagedDisk(),
-			"azurerm_platform_image": dataSourceArmPlatformImage(),
-			"azurerm_public_ip":      dataSourceArmPublicIP(),
-			"azurerm_resource_group": dataSourceArmResourceGroup(),
-			"azurerm_subscription":   dataSourceArmSubscription(),
+			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
+			"azurerm_client_config":           dataSourceArmClientConfig(),
+			"azurerm_image":                   dataSourceArmImage(),
+			"azurerm_managed_disk":            dataSourceArmManagedDisk(),
+			"azurerm_platform_image":          dataSourceArmPlatformImage(),
+			"azurerm_public_ip":               dataSourceArmPublicIP(),
+			"azurerm_resource_group":          dataSourceArmResourceGroup(),
+			"azurerm_role_definition":         dataSourceArmRoleDefinition(),
+			"azurerm_subnet":                  dataSourceArmSubnet(),
+			"azurerm_subscription":            dataSourceArmSubscription(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -108,6 +112,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_express_route_circuit":       resourceArmExpressRouteCircuit(),
 			"azurerm_image":                       resourceArmImage(),
 			"azurerm_key_vault":                   resourceArmKeyVault(),
+			"azurerm_key_vault_certificate":       resourceArmKeyVaultCertificate(),
 			"azurerm_key_vault_key":               resourceArmKeyVaultKey(),
 			"azurerm_key_vault_secret":            resourceArmKeyVaultSecret(),
 			"azurerm_lb":                          resourceArmLoadBalancer(),
@@ -133,6 +138,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_public_ip":                   resourceArmPublicIp(),
 			"azurerm_redis_cache":                 resourceArmRedisCache(),
 			"azurerm_resource_group":              resourceArmResourceGroup(),
+			"azurerm_role_assignment":             resourceArmRoleAssignment(),
+			"azurerm_role_definition":             resourceArmRoleDefinition(),
 			"azurerm_route":                       resourceArmRoute(),
 			"azurerm_route_table":                 resourceArmRouteTable(),
 			"azurerm_search_service":              resourceArmSearchService(),
@@ -394,6 +401,7 @@ func registerProviderWithSubscription(providerName string, client resources.Prov
 
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
+		"Microsoft.Authorization":       {},
 		"Microsoft.Automation":          {},
 		"Microsoft.Cache":               {},
 		"Microsoft.Cdn":                 {},
@@ -401,6 +409,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ContainerInstance":   {},
 		"Microsoft.ContainerRegistry":   {},
 		"Microsoft.ContainerService":    {},
+		"Microsoft.DBforMySQL":          {},
 		"Microsoft.DBforPostgreSQL":     {},
 		"Microsoft.DocumentDB":          {},
 		"Microsoft.EventGrid":           {},

@@ -8,6 +8,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
+	"github.com/Azure/azure-sdk-for-go/arm/authorization"
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
@@ -46,10 +47,11 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
-	clientId       string
-	tenantId       string
-	subscriptionId string
-	environment    azure.Environment
+	clientId              string
+	tenantId              string
+	subscriptionId        string
+	usingServicePrincipal bool
+	environment           azure.Environment
 
 	StopContext context.Context
 
@@ -136,6 +138,9 @@ type ArmClient struct {
 
 	appInsightsClient appinsights.ComponentsClient
 
+	// Authentication
+	roleAssignmentsClient   authorization.RoleAssignmentsClient
+	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// Databases
@@ -232,10 +237,11 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// client declarations:
 	client := ArmClient{
-		clientId:       c.ClientID,
-		tenantId:       c.TenantID,
-		subscriptionId: c.SubscriptionID,
-		environment:    env,
+		clientId:              c.ClientID,
+		tenantId:              c.TenantID,
+		subscriptionId:        c.SubscriptionID,
+		environment:           env,
+		usingServicePrincipal: c.ClientSecret != "",
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
@@ -624,12 +630,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	ai.Sender = sender
 	client.appInsightsClient = ai
 
-	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, c.TenantID)
-	setUserAgent(&spc.Client)
-	spc.Authorizer = graphAuth
-	spc.Sender = sender
-	client.servicePrincipalsClient = spc
-
 	aadb := automation.NewAccountClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&aadb.Client)
 	aadb.Authorizer = auth
@@ -654,11 +654,31 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
 
+	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
+	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
-	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-
 	return &client, nil
+}
+
+func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
+	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
+	setUserAgent(&spc.Client)
+	spc.Authorizer = graphAuth
+	spc.Sender = sender
+	c.servicePrincipalsClient = spc
+
+	rac := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&rac.Client)
+	rac.Authorizer = auth
+	rac.Sender = sender
+	c.roleAssignmentsClient = rac
+
+	rdc := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&rdc.Client)
+	rdc.Authorizer = auth
+	rdc.Sender = sender
+	c.roleDefinitionsClient = rdc
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
