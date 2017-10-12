@@ -219,7 +219,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
 }
 `, rInt, location, rInt, rInt)
@@ -242,7 +241,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     enable_partitioning = true
     enable_express = false
@@ -267,7 +265,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     enable_express = true
     max_size_in_megabytes = 2048
@@ -292,7 +289,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     enable_partitioning = true
     max_size_in_megabytes = 5120
@@ -317,7 +313,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     requires_duplicate_detection = true
 }

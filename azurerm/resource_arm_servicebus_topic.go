@@ -33,7 +33,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": deprecatedLocationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
 

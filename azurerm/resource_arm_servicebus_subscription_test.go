@@ -161,14 +161,12 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
     name = "acctestservicebussubscription-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     topic_name = "${azurerm_servicebus_topic.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -193,14 +191,12 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
     name = "acctestservicebussubscription-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     topic_name = "${azurerm_servicebus_topic.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
@@ -226,14 +222,12 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_subscription" "test" {
     name = "acctestservicebussubscription-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     topic_name = "${azurerm_servicebus_topic.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
