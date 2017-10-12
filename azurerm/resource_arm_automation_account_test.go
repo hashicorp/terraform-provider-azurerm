@@ -46,7 +46,7 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
-					resource.TestCheckResourceAttr(resourceName, "tags.0.hello", "world"),
+					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
 			},
 		},
