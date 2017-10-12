@@ -43,9 +43,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerregistry.Classic),
-					string(containerregistry.ManagedBasic),
-					string(containerregistry.ManagedStandard),
-					string(containerregistry.ManagedPremium),
+					string(containerregistry.Basic),
+					string(containerregistry.Standard),
+					string(containerregistry.Premium),
 				}, true),
 			},
 
