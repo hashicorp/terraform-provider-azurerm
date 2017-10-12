@@ -11,13 +11,15 @@
 			"versionExact": "v11.1.0-beta"
 		},
 		{
+			"checksumSHA1": "gTsLuhrt6QYOBQfwZg5o3qqmpD4=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/authorization",
-			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
-			"revisionTime": "2017-08-18T20:19:01Z",
-			"version": "=v10.3.0-beta",
-			"versionExact": "v10.3.0-beta"
+			"revision": "80f6cbcb1d6295ebb8fbeb5afab826a94aa67d11",
+			"revisionTime": "2017-10-06T17:43:09Z",
+			"version": "v11.1.0-beta",
+			"versionExact": "v11.1.0-beta"
 		},
 		{
+			"checksumSHA1": "BAuGN+QtZ0+4CHiQk1X/YUiQQCU=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/automation",
 			"revision": "80f6cbcb1d6295ebb8fbeb5afab826a94aa67d11",
 			"revisionTime": "2017-10-06T17:43:09Z",
