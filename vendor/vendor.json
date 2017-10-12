@@ -115,12 +115,12 @@
 			"versionExact": "v10.3.0-beta"
 		},
 		{
-			"checksumSHA1": "FloEh78hgEozkpt0y4SPWK23/wI=",
+			"checksumSHA1": "ALyRCjT78W2bC4r8R/wexKF8ASQ=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/keyvault",
-			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
-			"revisionTime": "2017-08-18T20:19:01Z",
-			"version": "=v10.3.0-beta",
-			"versionExact": "v10.3.0-beta"
+			"revision": "80f6cbcb1d6295ebb8fbeb5afab826a94aa67d11",
+			"revisionTime": "2017-10-06T17:43:09Z",
+			"version": "v11.1.0-beta",
+			"versionExact": "v11.1.0-beta"
 		},
 		{
 			"checksumSHA1": "md3J29HhVMZt1cNLTn539Neo+ic=",
