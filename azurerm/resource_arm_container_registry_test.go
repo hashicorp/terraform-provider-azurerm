@@ -69,7 +69,7 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Classic")
+	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -88,8 +88,7 @@ func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Basic")
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -109,7 +108,7 @@ func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Standard")
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -128,8 +127,7 @@ func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Premium")
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -248,7 +246,24 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testAccAzureRMContainerRegistry_basic(rInt int, rStr string, location string, sku string) string {
+func testAccAzureRMContainerRegistry_basicManaged(rInt int, location string, sku string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "%s"
+  storage_account_id = "${azurerm_storage_account.test.id}"
+}
+`, rInt, location, rInt, sku)
+}
+
+func testAccAzureRMContainerRegistry_basicUnmanaged(rInt int, rStr string, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"

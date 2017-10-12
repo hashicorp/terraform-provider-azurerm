@@ -12,7 +12,7 @@ func TestAccAzureRMContainerRegistry_importBasicClassic(t *testing.T) {
 
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Classic")
+	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -37,8 +37,7 @@ func TestAccAzureRMContainerRegistry_importBasicBasic(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
 
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Basic")
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,8 +62,7 @@ func TestAccAzureRMContainerRegistry_importBasicManagedStandard(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
 
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Standard")
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -89,8 +87,7 @@ func TestAccAzureRMContainerRegistry_importBasicManagedPremium(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
 
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation(), "Premium")
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
