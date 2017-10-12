@@ -5,6 +5,8 @@ import (
 	"log"
 	"regexp"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -57,7 +59,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 
 			"storage_account_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 
 			"storage_account": {
@@ -109,7 +111,6 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	sku := d.Get("sku").(string)
-	storageAccountId := d.Get("storage_account_id").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -121,11 +122,22 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		},
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
-			StorageAccount: &containerregistry.StorageAccountProperties{
-				ID: utils.String(storageAccountId),
-			},
 		},
 		Tags: expandTags(tags),
+	}
+
+	if v, ok := d.GetOk("storage_account_id"); ok {
+		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
+			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
+		}
+
+		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
+			ID: utils.String(v.(string)),
+		}
+	} else {
+		if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
+			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
+		}
 	}
 
 	_, createErr := client.Create(resourceGroup, name, parameters, make(<-chan struct{}))
@@ -155,18 +167,29 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	storageAccountId := d.Get("storage_account_id").(string)
+	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
-			StorageAccount: &containerregistry.StorageAccountProperties{
-				ID: utils.String(storageAccountId),
-			},
 		},
 		Tags: expandTags(tags),
+	}
+
+	if v, ok := d.GetOk("storage_account_id"); ok {
+		if strings.ToLower(sku) != strings.ToLower(string(containerregistry.Classic)) {
+			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
+		}
+
+		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
+			ID: utils.String(v.(string)),
+		}
+	} else {
+		if strings.ToLower(sku) == strings.ToLower(string(containerregistry.Classic)) {
+			return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
+		}
 	}
 
 	_, updateErr := client.Update(resourceGroup, name, parameters, make(chan struct{}))
