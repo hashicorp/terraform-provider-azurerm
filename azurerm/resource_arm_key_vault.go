@@ -46,7 +46,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -288,7 +288,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
-	skuSets := d.Get("sku").(*schema.Set).List()
+	skuSets := d.Get("sku").([]interface{})
 	sku := skuSets[0].(map[string]interface{})
 
 	return &keyvault.Sku{
