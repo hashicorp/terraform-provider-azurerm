@@ -282,11 +282,9 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 	err = <-deleteErr
 
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
 		}
-
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
 	}
 
 	return nil

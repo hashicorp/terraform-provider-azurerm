@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
@@ -203,14 +204,13 @@ func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := conn.Get(resourceGroup, name)
-
 		if err != nil {
-			return nil
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Container Registry still exists:\n%#v", resp)
-		}
+		return nil
 	}
 
 	return nil
@@ -257,7 +257,6 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   sku                 = "%s"
-  storage_account_id = "${azurerm_storage_account.test.id}"
 }
 `, rInt, location, rInt, sku)
 }
