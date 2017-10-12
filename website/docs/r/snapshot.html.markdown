@@ -14,7 +14,27 @@ Manages a Disk Snapshot.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "snapshot-rg"
+  location = "West Europe"
+}
 
+resource "azurerm_managed_disk" "test" {
+  name                 = "managed-disk"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "10"
+}
+
+resource "azurerm_snapshot" "test" {
+  name                = "snapshot"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  create_option       = "Copy"
+  source_uri          = "${azurerm_managed_disk.test.id}"
+}
 ```
 
 ## Argument Reference
@@ -37,14 +57,14 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) Specifies the ID of an storage account. Used with `source_uri` to allow authorization during import of unmanaged blobs from a different subscription. Changing this forces a new resource to be created.
 
-* `disk_size_gb` - (Optional)
+* `disk_size_gb` - (Optional) The size of the Snapshotted Disk in GB.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Snapshot ID.
-* `disk_size_gb` - The Size of the Snapshotted Disk in GB
+* `disk_size_gb` - The Size of the Snapshotted Disk in GB.
 
 ## Import
 

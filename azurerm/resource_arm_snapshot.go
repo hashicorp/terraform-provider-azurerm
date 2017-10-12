@@ -21,8 +21,6 @@ func resourceArmSnapshot() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		// TODO: this wants an associated Data Source
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
