@@ -25,6 +25,8 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		MigrateState:  resourceAzureRMServiceBusNamespaceMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -53,7 +55,6 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
-				Default:      1,
 				ValidateFunc: validateServiceBusNamespaceCapacity,
 			},
 
@@ -91,17 +92,26 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
-	capacity := int32(d.Get("capacity").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := servicebus.SBNamespace{
 		Location: &location,
 		Sku: &servicebus.SBSku{
-			Name:     servicebus.SkuName(sku),
-			Tier:     servicebus.SkuTier(sku),
-			Capacity: &capacity,
+			Name: servicebus.SkuName(sku),
+			Tier: servicebus.SkuTier(sku),
 		},
 		Tags: expandTags(tags),
+	}
+
+	capacity := d.Get("capacity").(int)
+	if capacity > 0 {
+		skuName := strings.ToLower(string(parameters.Sku.Name))
+		premiumSku := strings.ToLower(string(servicebus.Premium))
+		if skuName != premiumSku {
+			return fmt.Errorf("`capacity` can only be set for a Premium SKU")
+		}
+
+		parameters.Sku.Capacity = utils.Int32(int32(capacity))
 	}
 
 	_, error := namespaceClient.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))

@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
 
-* `capacity` - (Optional) Specifies the capacity of a premium namespace. Can be 1, 2 or 4
+* `capacity` - (Optional) Specifies the capacity of a Premium namespace. Can be 1, 2 or 4.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
