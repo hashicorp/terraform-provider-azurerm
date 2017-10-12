@@ -256,6 +256,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
+      "update",
     ]
 
     secret_permissions = [
@@ -437,6 +438,7 @@ resource "azurerm_key_vault" "test" {
       "create",
       "delete",
       "get",
+      "update",
     ]
 
     secret_permissions = [
