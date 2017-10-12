@@ -325,13 +325,20 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
+	accountTier := d.Get("account_tier").(string)
+	replicationType := d.Get("account_replication_type").(string)
+	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+	accountKind := d.Get("account_kind").(string)
+
+	if accountKind == string(storage.BlobStorage) {
+		if storageType == string(storage.StandardZRS) {
+			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+		}
+	}
+
 	d.Partial(true)
 
 	if d.HasChange("account_replication_type") {
-		accountTier := d.Get("account_tier").(string)
-		replicationType := d.Get("account_replication_type").(string)
-		storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-
 		sku := storage.Sku{
 			Name: storage.SkuName(storageType),
 		}
@@ -355,6 +362,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 				AccessTier: storage.AccessTier(accessTier),
 			},
 		}
+
 		_, err := client.Update(resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
