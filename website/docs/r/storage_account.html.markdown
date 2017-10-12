@@ -65,7 +65,7 @@ The following arguments are supported:
     Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
     for more information.
 
-* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here] (https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
+* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
