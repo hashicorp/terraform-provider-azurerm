@@ -253,6 +253,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 
 	// AccessTier is only valid for BlobStorage accounts
 	if accountKind == string(storage.BlobStorage) {
+		if string(parameters.Sku.Name) == string(storage.StandardZRS) {
+			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+		}
+
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
