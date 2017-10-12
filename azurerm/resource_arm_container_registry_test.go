@@ -107,7 +107,6 @@ func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
 
 func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
 	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
 	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
 
 	resource.Test(t, resource.TestCase{
