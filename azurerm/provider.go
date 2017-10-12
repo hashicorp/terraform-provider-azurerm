@@ -147,6 +147,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_queue":            resourceArmServiceBusQueue(),
 			"azurerm_servicebus_subscription":     resourceArmServiceBusSubscription(),
 			"azurerm_servicebus_topic":            resourceArmServiceBusTopic(),
+			"azurerm_snapshot":                    resourceArmSnapshot(),
 			"azurerm_sql_database":                resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":             resourceArmSqlElasticPool(),
 			"azurerm_sql_firewall_rule":           resourceArmSqlFirewallRule(),
