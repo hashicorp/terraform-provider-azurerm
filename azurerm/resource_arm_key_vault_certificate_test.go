@@ -303,15 +303,18 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     certificate_permissions = [
-      "all",
+      "create",
+      "delete",
+      "get",
+      "update"
     ]
 
     key_permissions = [
-      "all",
+      "create",
     ]
 
     secret_permissions = [
-      "all",
+      "set",
     ]
   }
 }
