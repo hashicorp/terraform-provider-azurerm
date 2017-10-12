@@ -22,11 +22,11 @@ func TestAccAzureRMStorageAccount_importBasic(t *testing.T) {
 			{
 				Config: config,
 			},
-
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"account_encryption_source"},
 			},
 		},
 	})
@@ -49,9 +49,10 @@ func TestAccAzureRMStorageAccount_importPremium(t *testing.T) {
 			},
 
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"account_encryption_source"},
 			},
 		},
 	})
@@ -74,9 +75,10 @@ func TestAccAzureRMStorageAccount_importNonStandardCasing(t *testing.T) {
 			},
 
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"account_encryption_source"},
 			},
 		},
 	})
@@ -99,9 +101,10 @@ func TestAccAzureRMStorageAccount_importBlobEncryption(t *testing.T) {
 			},
 
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"account_encryption_source"},
 			},
 		},
 	})
@@ -124,9 +127,10 @@ func TestAccAzureRMStorageAccount_importFileEncryption(t *testing.T) {
 			},
 
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"account_encryption_source"},
 			},
 		},
 	})
@@ -149,9 +153,10 @@ func TestAccAzureRMStorageAccount_importEnableHttpsTrafficOnly(t *testing.T) {
 			},
 
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"account_encryption_source"},
 			},
 		},
 	})
