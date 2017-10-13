@@ -6,8 +6,11 @@ import (
 	"net/url"
 	"strings"
 
+	"bytes"
+
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -333,7 +336,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"os_profile": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -353,10 +356,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:      schema.TypeString,
 							Optional:  true,
 							Sensitive: true,
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								// TODO: remove this if there's an acceptable workaround
-								return old == ""
-							},
 						},
 
 						"custom_data": {
@@ -368,6 +367,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
+				Set: resourceArmVirtualMachineStorageOsProfileHash,
 			},
 
 			"os_profile_windows_config": {
@@ -671,7 +671,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if resp.VirtualMachineProperties.OsProfile != nil {
-		if err := d.Set("os_profile", flattenAzureRmVirtualMachineOsProfile(resp.VirtualMachineProperties.OsProfile)); err != nil {
+		if err := d.Set("os_profile", schema.NewSet(resourceArmVirtualMachineStorageOsProfileHash, flattenAzureRmVirtualMachineOsProfile(resp.VirtualMachineProperties.OsProfile))); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Profile: %#v", err)
 		}
 
@@ -947,12 +947,12 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk) interface{}
 	return result
 }
 
-func flattenAzureRmVirtualMachineOsProfile(osProfile *compute.OSProfile) []interface{} {
+func flattenAzureRmVirtualMachineOsProfile(input *compute.OSProfile) []interface{} {
 	result := make(map[string]interface{})
-	result["computer_name"] = *osProfile.ComputerName
-	result["admin_username"] = *osProfile.AdminUsername
-	if osProfile.CustomData != nil {
-		result["custom_data"] = *osProfile.CustomData
+	result["computer_name"] = *input.ComputerName
+	result["admin_username"] = *input.AdminUsername
+	if input.CustomData != nil {
+		result["custom_data"] = *input.CustomData
 	}
 
 	return []interface{}{result}
@@ -1066,7 +1066,7 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, err
 }
 
 func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {
-	osProfiles := d.Get("os_profile").([]interface{})
+	osProfiles := d.Get("os_profile").(*schema.Set).List()
 
 	osProfile := osProfiles[0].(map[string]interface{})
 
@@ -1497,4 +1497,12 @@ func findStorageAccountResourceGroup(meta interface{}, storageAccountName string
 	}
 
 	return id.ResourceGroup, nil
+}
+
+func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+	return hashcode.String(buf.String())
 }
