@@ -87,7 +87,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"storage_image_reference": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -126,7 +126,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageImageReferenceHash,
 			},
 
 			"storage_os_disk": {
@@ -643,7 +642,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("vm_size", resp.VirtualMachineProperties.HardwareProfile.VMSize)
 
 	if resp.VirtualMachineProperties.StorageProfile.ImageReference != nil {
-		if err := d.Set("storage_image_reference", schema.NewSet(resourceArmVirtualMachineStorageImageReferenceHash, flattenAzureRmVirtualMachineImageReference(resp.VirtualMachineProperties.StorageProfile.ImageReference))); err != nil {
+		if err := d.Set("storage_image_reference", flattenAzureRmVirtualMachineImageReference(resp.VirtualMachineProperties.StorageProfile.ImageReference)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Image Reference error: %#v", err)
 		}
 	}
@@ -832,24 +831,6 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 	}
 
 	return nil
-}
-
-func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if m["publisher"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	}
-	if m["offer"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
-	}
-	if m["sku"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
-	}
-	if m["id"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
-	}
-	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
@@ -1393,7 +1374,7 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *schema.ResourceData) *comp
 }
 
 func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute.ImageReference, error) {
-	storageImageRefs := d.Get("storage_image_reference").(*schema.Set).List()
+	storageImageRefs := d.Get("storage_image_reference").([]interface{})
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
 	imageID := storageImageRef["id"].(string)
