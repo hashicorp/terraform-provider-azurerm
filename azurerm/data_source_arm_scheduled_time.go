@@ -47,12 +47,14 @@ func dataSourceArmScheduledTime() *schema.Resource {
 				Optional: true,
 			},
 			"day_of_week": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:          schema.TypeInt,
+				Optional:      true,
+				ConflictsWith: []string{"day_of_month"},
 			},
 			"day_of_month": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:          schema.TypeInt,
+				Optional:      true,
+				ConflictsWith: []string{"day_of_week"},
 			},
 			"minimum_delay_from_now_in_minutes": {
 				Type:     schema.TypeInt,
@@ -61,6 +63,7 @@ func dataSourceArmScheduledTime() *schema.Resource {
 			"timezone": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"next_run_time": {
 				Type:     schema.TypeString,
