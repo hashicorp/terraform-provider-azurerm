@@ -236,6 +236,7 @@ resource "azurerm_servicebus_namespace" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     location = "${azurerm_resource_group.test.location}"
     sku = "premium"
+    capacity = 1
 }
 
 resource "azurerm_servicebus_queue" "test" {
