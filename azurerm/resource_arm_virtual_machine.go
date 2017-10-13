@@ -37,7 +37,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"plan": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -58,7 +58,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachinePlanHash,
 			},
 
 			"availability_set_id": {
@@ -632,7 +631,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if resp.Plan != nil {
-		if err := d.Set("plan", schema.NewSet(resourceArmVirtualMachinePlanHash, flattenAzureRmVirtualMachinePlan(resp.Plan))); err != nil {
+		if err := d.Set("plan", flattenAzureRmVirtualMachinePlan(resp.Plan)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Plan error: %#v", err)
 		}
 	}
@@ -833,16 +832,6 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 	}
 
 	return nil
-}
-
-func resourceArmVirtualMachinePlanHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["product"].(string)))
-
-	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
@@ -1109,7 +1098,7 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk) []interface{} {
 }
 
 func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, error) {
-	planConfigs := d.Get("plan").(*schema.Set).List()
+	planConfigs := d.Get("plan").([]interface{})
 
 	planConfig := planConfigs[0].(map[string]interface{})
 
