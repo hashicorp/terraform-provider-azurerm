@@ -373,7 +373,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"os_profile_windows_config": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -430,7 +430,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageOsProfileWindowsConfigHash,
 			},
 
 			"os_profile_linux_config": {
@@ -859,22 +858,6 @@ func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if v != nil {
-		m := v.(map[string]interface{})
-		if m["provision_vm_agent"] != nil {
-			buf.WriteString(fmt.Sprintf("%t-", m["provision_vm_agent"].(bool)))
-		}
-		if m["enable_automatic_upgrades"] != nil {
-			buf.WriteString(fmt.Sprintf("%t-", m["enable_automatic_upgrades"].(bool)))
-		}
-	}
-
-	return hashcode.String(buf.String())
-}
-
 func flattenAzureRmVirtualMachinePlan(plan *compute.Plan) []interface{} {
 	result := make(map[string]interface{})
 	result["name"] = *plan.Name
@@ -1225,7 +1208,7 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 }
 
 func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (*compute.WindowsConfiguration, error) {
-	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*schema.Set).List()
+	osProfilesWindowsConfig := d.Get("os_profile_windows_config").([]interface{})
 
 	osProfileConfig := osProfilesWindowsConfig[0].(map[string]interface{})
 	config := &compute.WindowsConfiguration{}
