@@ -461,7 +461,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"os_profile_secrets": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -895,8 +895,8 @@ func flattenAzureRmVirtualMachineNetworkInterfaces(profile *compute.NetworkProfi
 	return result
 }
 
-func flattenAzureRmVirtualMachineOsProfileSecrets(secrets *[]compute.VaultSecretGroup) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(*secrets))
+func flattenAzureRmVirtualMachineOsProfileSecrets(secrets *[]compute.VaultSecretGroup) []interface{} {
+	result := make([]interface{}, 0)
 	for _, secret := range *secrets {
 		s := map[string]interface{}{
 			"source_vault_id": *secret.SourceVault.ID,
@@ -1119,7 +1119,7 @@ func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSPr
 }
 
 func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]compute.VaultSecretGroup {
-	secretsConfig := d.Get("os_profile_secrets").(*schema.Set).List()
+	secretsConfig := d.Get("os_profile_secrets").([]interface{})
 	secrets := make([]compute.VaultSecretGroup, 0, len(secretsConfig))
 
 	for _, secretConfig := range secretsConfig {
@@ -1376,7 +1376,7 @@ func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute
 }
 
 func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.NetworkProfile {
-	nicIds := d.Get("network_interface_ids").(*schema.Set).List()
+	nicIds := d.Get("network_interface_ids").([]interface{})
 	primaryNicId := d.Get("primary_network_interface_id").(string)
 	network_interfaces := make([]compute.NetworkInterfaceReference, 0, len(nicIds))
 
