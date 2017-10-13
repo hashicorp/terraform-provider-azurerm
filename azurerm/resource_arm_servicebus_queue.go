@@ -84,12 +84,10 @@ func resourceArmServiceBusQueue() *schema.Resource {
 			"enable_batched_operations": {
 				Type:       schema.TypeBool,
 				Optional:   true,
-				Default:    false,
 				Deprecated: "This field has been removed by Azure.",
 			},
 			"support_ordering": {
 				Type:       schema.TypeBool,
-				Default:    false,
 				Optional:   true,
 				Deprecated: "This field has been removed by Azure.",
 			},
