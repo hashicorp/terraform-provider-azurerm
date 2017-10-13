@@ -129,7 +129,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"storage_os_disk": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -137,6 +137,12 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"os_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(compute.Linux),
+								string(compute.Windows),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"name": {
@@ -148,6 +154,10 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
+							ConflictsWith: []string{
+								"storage_os_disk.0.managed_disk_id",
+								"storage_os_disk.0.managed_disk_type",
+							},
 						},
 
 						"managed_disk_id": {
@@ -155,14 +165,14 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional:      true,
 							ForceNew:      true,
 							Computed:      true,
-							ConflictsWith: []string{"storage_os_disk.vhd_uri"},
+							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 						},
 
 						"managed_disk_type": {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
-							ConflictsWith: []string{"storage_os_disk.vhd_uri"},
+							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.PremiumLRS),
 								string(compute.StandardLRS),
@@ -189,11 +199,11 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"disk_size_gb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validateDiskSizeGB,
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageOsDiskHash,
 			},
 
 			"delete_os_disk_on_termination": {
@@ -647,7 +657,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if err := d.Set("storage_os_disk", schema.NewSet(resourceArmVirtualMachineStorageOsDiskHash, flattenAzureRmVirtualMachineOsDisk(resp.VirtualMachineProperties.StorageProfile.OsDisk))); err != nil {
+	if err := d.Set("storage_os_disk", flattenAzureRmVirtualMachineOsDisk(resp.VirtualMachineProperties.StorageProfile.OsDisk)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Disk error: %#v", err)
 	}
 
@@ -838,16 +848,6 @@ func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
-	return hashcode.String(buf.String())
-}
-
-func resourceArmVirtualMachineStorageOsDiskHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	if m["vhd_uri"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["vhd_uri"].(string)))
-	}
 	return hashcode.String(buf.String())
 }
 
@@ -1430,7 +1430,7 @@ func expandAzureRmVirtualMachineNetworkProfile(d *schema.ResourceData) compute.N
 }
 
 func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk, error) {
-	disks := d.Get("storage_os_disk").(*schema.Set).List()
+	disks := d.Get("storage_os_disk").([]interface{})
 
 	config := disks[0].(map[string]interface{})
 
