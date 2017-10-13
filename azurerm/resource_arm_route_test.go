@@ -25,6 +25,7 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists("azurerm_route.test"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -67,6 +68,7 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists("azurerm_route.test"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 
 			{
@@ -74,6 +76,7 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteExists("azurerm_route.test1"),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
