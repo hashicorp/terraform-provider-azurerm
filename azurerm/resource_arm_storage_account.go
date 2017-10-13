@@ -26,7 +26,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		MigrateState:  resourceStorageAccountMigrateState,
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
