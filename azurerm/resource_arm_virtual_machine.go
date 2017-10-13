@@ -284,12 +284,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Default:  false,
 			},
 
+			// TODO: remove this in the next major version
 			"diagnostics_profile": {
 				Type:          schema.TypeSet,
 				Optional:      true,
 				MaxItems:      1,
 				ConflictsWith: []string{"boot_diagnostics"},
-				Deprecated:    "Use field boot_diagnostics instead",
+				Removed:       "Use field boot_diagnostics instead",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"boot_diagnostics": {
@@ -334,7 +335,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"os_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -354,6 +355,10 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:      schema.TypeString,
 							Optional:  true,
 							Sensitive: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								// TODO: remove this if there's an acceptable workaround
+								return old == ""
+							},
 						},
 
 						"custom_data": {
@@ -365,7 +370,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageOsProfileHash,
 			},
 
 			"os_profile_windows_config": {
@@ -672,7 +676,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if resp.VirtualMachineProperties.OsProfile != nil {
-		if err := d.Set("os_profile", schema.NewSet(resourceArmVirtualMachineStorageOsProfileHash, flattenAzureRmVirtualMachineOsProfile(resp.VirtualMachineProperties.OsProfile))); err != nil {
+		if err := d.Set("os_profile", flattenAzureRmVirtualMachineOsProfile(resp.VirtualMachineProperties.OsProfile)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Profile: %#v", err)
 		}
 
@@ -845,14 +849,6 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 	}
 
 	return nil
-}
-
-func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
-	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
@@ -1099,7 +1095,7 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, err
 }
 
 func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {
-	osProfiles := d.Get("os_profile").(*schema.Set).List()
+	osProfiles := d.Get("os_profile").([]interface{})
 
 	osProfile := osProfiles[0].(map[string]interface{})
 
