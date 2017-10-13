@@ -95,6 +95,35 @@ func TestAccDataSourceAzureRMScheduledTime_Hourly_CurrentHour(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMScheduledTime_Hourly_CurrentHour_WithSeconds(t *testing.T) {
+	dataSourceName := "data.azurerm_scheduled_time.test"
+
+	now := time.Now().UTC()
+	scheduletime := now.Add(time.Duration(1) * time.Minute)
+
+	config := testAccDataSourceAzureRMScheduledTime_Hourly_With_Seconds(scheduletime)
+
+	expectedTime := time.Date(scheduletime.Year(), scheduletime.Month(), scheduletime.Day(), scheduletime.Hour(), scheduletime.Minute(), 24, 0, time.UTC)
+	formattedExpectedTime := expectedTime.Format(time.RFC3339)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "hour", strconv.Itoa(scheduletime.Hour())),
+					resource.TestCheckResourceAttr(dataSourceName, "minute", strconv.Itoa(scheduletime.Minute())),
+					resource.TestCheckResourceAttr(dataSourceName, "second", "24"),
+					resource.TestCheckResourceAttr(dataSourceName, "frequency", "Hour"),
+					resource.TestCheckResourceAttr(dataSourceName, "next_run_time", formattedExpectedTime),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMScheduledTime_Hourly_NextHour(t *testing.T) {
 	dataSourceName := "data.azurerm_scheduled_time.test"
 
@@ -141,6 +170,17 @@ data "azurerm_scheduled_time" "test" {
         "hour" = "%d"
         "minute" = "%d"
         "second" = "0"
+        "frequency" = "Hour"
+}
+`, scheduletime.Hour(), scheduletime.Minute())
+}
+
+func testAccDataSourceAzureRMScheduledTime_Hourly_With_Seconds(scheduletime time.Time) string {
+	return fmt.Sprintf(`
+data "azurerm_scheduled_time" "test" {
+        "hour" = "%d"
+        "minute" = "%d"
+        "second" = "24"
         "frequency" = "Hour"
 }
 `, scheduletime.Hour(), scheduletime.Minute())
