@@ -2,7 +2,15 @@
 
 UPGRADE NOTES:
 
-* `azurerm_route_table` - `route` is no longer computed
+  - `azurerm_automation_account` - the SKU `Free` has been replaced with `Basic`.
+  - `azurerm_container_registry` - Azure has updated the SKU from `Basic` to `Classic`, with new `Basic`, `Standard` and `Premium` SKU's introduced.
+  - `azurerm_container_registry` - the `storage_account` block is now `storage_account_id` and is only required for `Classic` SKU's
+  - `azurerm_key_vault` - `certificate_permissions`, `key_permissions` and `secret_permissions` have all had the `All` option removed by Azure. Each permission now needs to be specified manually.
+  * `azurerm_route_table` - `route` is no longer computed
+  - `azurerm_servicebus_namespace` - The `capacity` field can only be set for `Premium` SKU's
+  - `azurerm_servicebus_queue` - The `enable_batched_operations` and `support_ordering` fields have been deprecated by Azure.
+  - `azurerm_servicebus_subscription` - The `dead_lettering_on_filter_evaluation_exceptions` has been removed by Azure.
+  - `azurerm_servicebus_topic` - The `enable_filtering_messages_before_publishing` field has been removed by Azure.
 
 FEATURES:
 
@@ -19,6 +27,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Upgrading to v11 of the Azure SDK for Go [GH-367]
 * `azurerm_client_config` - updating the data source to work when using AzureCLI auth [GH-393]
 * `azurerm_container_group` - add support for volume mounts [GH-366]
 * `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
