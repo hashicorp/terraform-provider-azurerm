@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/url"
@@ -9,7 +8,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -433,7 +431,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"os_profile_linux_config": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -460,7 +458,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageOsProfileLinuxConfigHash,
 			},
 
 			"os_profile_secrets": {
@@ -494,12 +491,11 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Set: schema.HashString,
 			},
 
 			"primary_network_interface_id": {
@@ -850,14 +846,6 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 	return nil
 }
 
-func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
-
-	return hashcode.String(buf.String())
-}
-
 func flattenAzureRmVirtualMachinePlan(plan *compute.Plan) []interface{} {
 	result := make(map[string]interface{})
 	result["name"] = *plan.Name
@@ -899,8 +887,8 @@ func flattenAzureRmVirtualMachineDiagnosticsProfile(profile *compute.BootDiagnos
 	return []interface{}{result}
 }
 
-func flattenAzureRmVirtualMachineNetworkInterfaces(profile *compute.NetworkProfile) []string {
-	result := make([]string, 0, len(*profile.NetworkInterfaces))
+func flattenAzureRmVirtualMachineNetworkInterfaces(profile *compute.NetworkProfile) []interface{} {
+	result := make([]interface{}, 0)
 	for _, nic := range *profile.NetworkInterfaces {
 		result = append(result, *nic.ID)
 	}
@@ -1170,7 +1158,7 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 }
 
 func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*compute.LinuxConfiguration, error) {
-	osProfilesLinuxConfig := d.Get("os_profile_linux_config").(*schema.Set).List()
+	osProfilesLinuxConfig := d.Get("os_profile_linux_config").([]interface{})
 
 	linuxConfig := osProfilesLinuxConfig[0].(map[string]interface{})
 	disablePasswordAuth := linuxConfig["disable_password_authentication"].(bool)
