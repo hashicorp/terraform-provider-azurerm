@@ -39,16 +39,17 @@ func resourceArmAutomationAccount() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
+							Default:          string(automation.Basic),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(automation.Free),
 								string(automation.Basic),
 							}, true),
 						},
 					},
 				},
 			},
+
 			"tags": tagsSchema(),
 		},
 	}

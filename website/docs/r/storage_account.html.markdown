@@ -68,6 +68,8 @@ The following arguments are supported:
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
 
+* `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
+
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
