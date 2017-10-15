@@ -51,6 +51,54 @@ func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_ddosProtection(t *testing.T) {
+
+	ri := acctest.RandInt()
+	resourceName := "azurerm_virtual_network.test"
+	config := testAccAzureRMVirtualNetwork_ddosProtection(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "enable_ddos_protection", "true"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualNetwork_vmProtection(t *testing.T) {
+
+	ri := acctest.RandInt()
+	resourceName := "azurerm_virtual_network.test"
+	config := testAccAzureRMVirtualNetwork_vmProtection(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "enable_vm_protection", "true"),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 
 	ri := acctest.RandInt()
@@ -187,6 +235,50 @@ resource "azurerm_virtual_network" "test" {
         name = "subnet1"
         address_prefix = "10.0.1.0/24"
     }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMVirtualNetwork_ddosProtection(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctestvirtnet%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    subnet {
+        name = "subnet1"
+        address_prefix = "10.0.1.0/24"
+    }
+		enable_ddos_protection = true
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMVirtualNetwork_vmProtection(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctestvirtnet%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    subnet {
+        name = "subnet1"
+        address_prefix = "10.0.1.0/24"
+    }
+		enable_vm_protection = true
 }
 `, rInt, location, rInt)
 }

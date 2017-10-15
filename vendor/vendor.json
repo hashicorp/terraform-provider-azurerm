@@ -129,12 +129,12 @@
 			"revisionTime": "2017-08-18T20:19:01Z"
 		},
 		{
-			"checksumSHA1": "bPIdXF5KK0mkG+Rqsn/KNaXwbU0=",
+			"checksumSHA1": "8r4urZglONMsALA3N9JjjKXEMao=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/network",
-			"revision": "57db66900881e9fd21fd041a9d013514700ecab3",
-			"revisionTime": "2017-08-18T20:19:01Z",
-			"version": "=v10.3.0-beta",
-			"versionExact": "v10.3.0-beta"
+			"revision": "80f6cbcb1d6295ebb8fbeb5afab826a94aa67d11",
+			"revisionTime": "2017-10-06T17:43:09Z",
+			"version": "v11.1.0-beta",
+			"versionExact": "v11.1.0-beta"
 		},
 		{
 			"checksumSHA1": "/TBRYaTTjpsuKRCKH6nvQfSlLOw=",

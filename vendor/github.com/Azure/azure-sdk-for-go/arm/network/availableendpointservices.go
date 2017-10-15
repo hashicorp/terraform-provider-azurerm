@@ -23,47 +23,50 @@ import (
 	"net/http"
 )
 
-// BgpServiceCommunitiesClient is the network Client
-type BgpServiceCommunitiesClient struct {
+// AvailableEndpointServicesClient is the network Client
+type AvailableEndpointServicesClient struct {
 	ManagementClient
 }
 
-// NewBgpServiceCommunitiesClient creates an instance of the BgpServiceCommunitiesClient client.
-func NewBgpServiceCommunitiesClient(subscriptionID string) BgpServiceCommunitiesClient {
-	return NewBgpServiceCommunitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewAvailableEndpointServicesClient creates an instance of the AvailableEndpointServicesClient client.
+func NewAvailableEndpointServicesClient(subscriptionID string) AvailableEndpointServicesClient {
+	return NewAvailableEndpointServicesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBgpServiceCommunitiesClientWithBaseURI creates an instance of the BgpServiceCommunitiesClient client.
-func NewBgpServiceCommunitiesClientWithBaseURI(baseURI string, subscriptionID string) BgpServiceCommunitiesClient {
-	return BgpServiceCommunitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewAvailableEndpointServicesClientWithBaseURI creates an instance of the AvailableEndpointServicesClient client.
+func NewAvailableEndpointServicesClientWithBaseURI(baseURI string, subscriptionID string) AvailableEndpointServicesClient {
+	return AvailableEndpointServicesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List gets all the available bgp service communities.
-func (client BgpServiceCommunitiesClient) List() (result BgpServiceCommunityListResult, err error) {
-	req, err := client.ListPreparer()
+// List list what values of endpoint services are available for use.
+//
+// location is the location to check available endpoint services.
+func (client AvailableEndpointServicesClient) List(location string) (result EndpointServicesListResult, err error) {
+	req, err := client.ListPreparer(location)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "network.AvailableEndpointServicesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "network.AvailableEndpointServicesClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "network.AvailableEndpointServicesClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client BgpServiceCommunitiesClient) ListPreparer() (*http.Request, error) {
+func (client AvailableEndpointServicesClient) ListPreparer(location string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -75,20 +78,20 @@ func (client BgpServiceCommunitiesClient) ListPreparer() (*http.Request, error) 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Network/bgpServiceCommunities", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Network/locations/{location}/virtualNetworkAvailableEndpointServices", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare(&http.Request{})
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client BgpServiceCommunitiesClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client AvailableEndpointServicesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req)
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client BgpServiceCommunitiesClient) ListResponder(resp *http.Response) (result BgpServiceCommunityListResult, err error) {
+func (client AvailableEndpointServicesClient) ListResponder(resp *http.Response) (result EndpointServicesListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -100,10 +103,10 @@ func (client BgpServiceCommunitiesClient) ListResponder(resp *http.Response) (re
 }
 
 // ListNextResults retrieves the next set of results, if any.
-func (client BgpServiceCommunitiesClient) ListNextResults(lastResults BgpServiceCommunityListResult) (result BgpServiceCommunityListResult, err error) {
-	req, err := lastResults.BgpServiceCommunityListResultPreparer()
+func (client AvailableEndpointServicesClient) ListNextResults(lastResults EndpointServicesListResult) (result EndpointServicesListResult, err error) {
+	req, err := lastResults.EndpointServicesListResultPreparer()
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "network.AvailableEndpointServicesClient", "List", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -112,27 +115,27 @@ func (client BgpServiceCommunitiesClient) ListNextResults(lastResults BgpService
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "network.AvailableEndpointServicesClient", "List", resp, "Failure sending next results request")
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "network.BgpServiceCommunitiesClient", "List", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "network.AvailableEndpointServicesClient", "List", resp, "Failure responding to next results request")
 	}
 
 	return
 }
 
 // ListComplete gets all elements from the list without paging.
-func (client BgpServiceCommunitiesClient) ListComplete(cancel <-chan struct{}) (<-chan BgpServiceCommunity, <-chan error) {
-	resultChan := make(chan BgpServiceCommunity)
+func (client AvailableEndpointServicesClient) ListComplete(location string, cancel <-chan struct{}) (<-chan EndpointServiceResult, <-chan error) {
+	resultChan := make(chan EndpointServiceResult)
 	errChan := make(chan error, 1)
 	go func() {
 		defer func() {
 			close(resultChan)
 			close(errChan)
 		}()
-		list, err := client.List()
+		list, err := client.List(location)
 		if err != nil {
 			errChan <- err
 			return
