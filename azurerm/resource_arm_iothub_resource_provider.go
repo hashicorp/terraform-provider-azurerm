@@ -15,6 +15,9 @@ func resourceArmIotHub() *schema.Resource {
 		Read:   resourceArmIotHubRead,
 		Update: resourceArmIotHubCreateAndUpdate,
 		Delete: resourceArmIotHubDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
