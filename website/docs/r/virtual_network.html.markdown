@@ -69,6 +69,10 @@ The following arguments are supported:
 * `subnet` - (Optional) Can be specified multiple times to define multiple
     subnets. Each `subnet` block supports fields documented below.
 
+* `enable_ddos_protection` - (Optional) Defaults to false.
+
+* `enable_vm_protection` - (Optional) Defaults to false.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The `subnet` block supports:
