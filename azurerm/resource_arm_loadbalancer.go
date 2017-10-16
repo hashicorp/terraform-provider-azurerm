@@ -193,6 +193,7 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient)
 	loadBalancerClient := meta.(*ArmClient).loadBalancerClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -201,6 +202,42 @@ func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["loadBalancers"]
+	location := d.Get("location").(string)
+
+	// We need to remove front end ip addresses before deleting the load balancer.
+	if _, ok := d.GetOk("frontend_ip_configuration"); ok {
+		loadbalancer := network.LoadBalancer{
+			Name:     utils.String(name),
+			Location: utils.String(location),
+		}
+		_, error := loadBalancerClient.CreateOrUpdate(resGroup, name, loadbalancer, make(chan struct{}))
+		err := <-error
+		if err != nil {
+			return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		}
+
+		read, err := loadBalancerClient.Get(resGroup, name, "")
+		if err != nil {
+			return errwrap.Wrapf("Error Getting LoadBalancer {{err}", err)
+		}
+		if read.ID == nil {
+			return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", name, resGroup)
+		}
+
+		d.SetId(*read.ID)
+
+		log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", name)
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"Accepted", "Updating"},
+			Target:  []string{"Succeeded"},
+			Refresh: loadbalancerStateRefreshFunc(client, resGroup, name),
+			Timeout: 10 * time.Minute,
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for LoadBalancer (%s) to become available: %s", name, err)
+		}
+
+	}
 
 	_, error := loadBalancerClient.Delete(resGroup, name, make(chan struct{}))
 	err = <-error
