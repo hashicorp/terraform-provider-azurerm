@@ -1501,9 +1501,13 @@ func findStorageAccountResourceGroup(meta interface{}, storageAccountName string
 
 func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+
+	if v != nil {
+		m := v.(map[string]interface{})
+		buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+	}
+
 	return hashcode.String(buf.String())
 }
 
