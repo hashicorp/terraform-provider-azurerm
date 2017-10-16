@@ -422,6 +422,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
+				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
 			"os_profile_linux_config": {
@@ -452,7 +453,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineStorageOsProfileLinuxConfigHash,
+				Set:           resourceArmVirtualMachineStorageOsProfileLinuxConfigHash,
+				ConflictsWith: []string{"os_profile_windows_config"},
 			},
 
 			"os_profile_secrets": {
