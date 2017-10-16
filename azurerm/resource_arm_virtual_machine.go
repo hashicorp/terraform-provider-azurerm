@@ -365,7 +365,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"os_profile_windows_config": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -422,6 +422,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
+				Set:           resourceArmVirtualMachineStorageOsProfileWindowsConfigHash,
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
@@ -673,7 +674,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if resp.VirtualMachineProperties.OsProfile.WindowsConfiguration != nil {
-			if err := d.Set("os_profile_windows_config", flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(resp.VirtualMachineProperties.OsProfile.WindowsConfiguration)); err != nil {
+			if err := d.Set("os_profile_windows_config", schema.NewSet(resourceArmVirtualMachineStorageOsProfileWindowsConfigHash, flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(resp.VirtualMachineProperties.OsProfile.WindowsConfiguration))); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Profile Windows Configuration: %#v", err)
 			}
 		}
@@ -1197,7 +1198,7 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 }
 
 func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (*compute.WindowsConfiguration, error) {
-	osProfilesWindowsConfig := d.Get("os_profile_windows_config").([]interface{})
+	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*schema.Set).List()
 
 	osProfileConfig := osProfilesWindowsConfig[0].(map[string]interface{})
 	config := &compute.WindowsConfiguration{}
@@ -1505,6 +1506,22 @@ func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+	return hashcode.String(buf.String())
+}
+
+func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if v != nil {
+		m := v.(map[string]interface{})
+		if m["provision_vm_agent"] != nil {
+			buf.WriteString(fmt.Sprintf("%t-", m["provision_vm_agent"].(bool)))
+		}
+		if m["enable_automatic_upgrades"] != nil {
+			buf.WriteString(fmt.Sprintf("%t-", m["enable_automatic_upgrades"].(bool)))
+		}
+	}
+
 	return hashcode.String(buf.String())
 }
 
