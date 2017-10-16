@@ -85,6 +85,13 @@ func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAzureRMLoadBalancer_frontEndConfigRemovalWithIP(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
+					resource.TestCheckResourceAttr(resourceName, "frontend_ip_configuration.#", "1"),
+				),
+			},
+			{
 				Config: testAccAzureRMLoadBalancer_frontEndConfigRemoval(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
@@ -258,6 +265,39 @@ resource "azurerm_lb" "test" {
       public_ip_address_id = "${azurerm_public_ip.test1.id}"
     }
 }`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMLoadBalancer_frontEndConfigRemovalWithIP(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestrg-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name = "test-ip-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+}
+
+resource "azurerm_public_ip" "test1" {
+    name = "another-test-ip-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+}
+
+resource "azurerm_lb" "test" {
+    name = "arm-test-loadbalancer-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    frontend_ip_configuration {
+      name = "one-%d"
+      public_ip_address_id = "${azurerm_public_ip.test.id}"
+    }
+}`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMLoadBalancer_frontEndConfigRemoval(rInt int, location string) string {
