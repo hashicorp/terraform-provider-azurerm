@@ -226,25 +226,19 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"vhd_uri": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ConflictsWith: []string{
-								"storage_data_disk.0.managed_disk_id",
-								"storage_data_disk.0.managed_disk_type",
-							},
 						},
 
 						"managed_disk_id": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							ForceNew:      true,
-							Computed:      true,
-							ConflictsWith: []string{"storage_data_disk.0.vhd_uri"},
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
 						},
 
 						"managed_disk_type": {
-							Type:          schema.TypeString,
-							Optional:      true,
-							Computed:      true,
-							ConflictsWith: []string{"storage_data_disk.0.vhd_uri"},
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.PremiumLRS),
 								string(compute.StandardLRS),
