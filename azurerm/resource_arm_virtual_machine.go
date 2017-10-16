@@ -88,7 +88,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"storage_image_reference": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
@@ -127,6 +127,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
+				Set: resourceArmVirtualMachineStorageImageReferenceHash,
 			},
 
 			"storage_os_disk": {
@@ -653,7 +654,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("vm_size", resp.VirtualMachineProperties.HardwareProfile.VMSize)
 
 	if resp.VirtualMachineProperties.StorageProfile.ImageReference != nil {
-		if err := d.Set("storage_image_reference", flattenAzureRmVirtualMachineImageReference(resp.VirtualMachineProperties.StorageProfile.ImageReference)); err != nil {
+		if err := d.Set("storage_image_reference", schema.NewSet(resourceArmVirtualMachineStorageImageReferenceHash, flattenAzureRmVirtualMachineImageReference(resp.VirtualMachineProperties.StorageProfile.ImageReference))); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Image Reference error: %#v", err)
 		}
 	}
@@ -1043,6 +1044,7 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk) []interface{} {
 	if disk.DiskSizeGB != nil {
 		result["disk_size_gb"] = *disk.DiskSizeGB
 	}
+	result["os_type"] = string(disk.OsType)
 
 	return []interface{}{result}
 }
@@ -1347,7 +1349,7 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *schema.ResourceData) *comp
 }
 
 func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute.ImageReference, error) {
-	storageImageRefs := d.Get("storage_image_reference").([]interface{})
+	storageImageRefs := d.Get("storage_image_reference").(*schema.Set).List()
 
 	storageImageRef := storageImageRefs[0].(map[string]interface{})
 	imageID := storageImageRef["id"].(string)
@@ -1456,13 +1458,7 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 	}
 
 	if v := config["os_type"].(string); v != "" {
-		if v == "linux" {
-			osDisk.OsType = compute.Linux
-		} else if v == "windows" {
-			osDisk.OsType = compute.Windows
-		} else {
-			return nil, fmt.Errorf("[ERROR] os_type must be 'linux' or 'windows'")
-		}
+		osDisk.OsType = compute.OperatingSystemTypes(v)
 	}
 
 	if v := config["caching"].(string); v != "" {
@@ -1530,5 +1526,23 @@ func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
 
+	return hashcode.String(buf.String())
+}
+
+func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	if m["publisher"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+	}
+	if m["offer"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
+	}
+	if m["sku"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
+	}
+	if m["id"] != nil {
+		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
+	}
 	return hashcode.String(buf.String())
 }
