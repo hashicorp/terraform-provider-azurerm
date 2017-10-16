@@ -187,7 +187,7 @@ func TestAccAzureRMVirtualMachine_osDiskTypeConflict(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      config,
-				ExpectError: regexp.MustCompile("Conflict between `vhd_uri`"),
+				ExpectError: regexp.MustCompile("conflicts with storage_os_disk.0.managed_disk_type"),
 			},
 		},
 	})
