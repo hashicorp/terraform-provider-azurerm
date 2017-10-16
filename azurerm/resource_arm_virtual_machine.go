@@ -1037,7 +1037,9 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk) []interface{} {
 	}
 	if disk.ManagedDisk != nil {
 		result["managed_disk_type"] = string(disk.ManagedDisk.StorageAccountType)
-		result["managed_disk_id"] = *disk.ManagedDisk.ID
+		if disk.ManagedDisk.ID != nil {
+			result["managed_disk_id"] = *disk.ManagedDisk.ID
+		}
 	}
 	result["create_option"] = disk.CreateOption
 	result["caching"] = disk.Caching
