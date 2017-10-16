@@ -1100,6 +1100,10 @@ func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSPr
 		}
 	}
 
+	if profile.LinuxConfiguration == nil && profile.WindowsConfiguration == nil {
+		return nil, fmt.Errorf("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified.")
+	}
+
 	if _, ok := d.GetOk("os_profile_secrets"); ok {
 		secrets := expandAzureRmVirtualMachineOsProfileSecrets(d)
 		if secrets != nil {
