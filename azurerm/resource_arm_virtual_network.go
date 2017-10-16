@@ -70,6 +70,18 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				Set: resourceAzureSubnetHash,
 			},
 
+			"enable_ddos_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"enable_vm_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"location": locationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -161,6 +173,8 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("address_space", vnet.AddressSpace.AddressPrefixes)
+	d.Set("enable_vm_protection", vnet.EnableVMProtection)
+	d.Set("enable_ddos_protection", vnet.EnableDdosProtection)
 
 	subnets := &schema.Set{
 		F: resourceAzureSubnetHash,
@@ -270,6 +284,9 @@ func getVirtualNetworkProperties(d *schema.ResourceData, meta interface{}) (*net
 		}
 	}
 
+	ddosProtection := d.Get("enable_ddos_protection").(bool)
+	vmProtection := d.Get("enable_vm_protection").(bool)
+
 	properties := &network.VirtualNetworkPropertiesFormat{
 		AddressSpace: &network.AddressSpace{
 			AddressPrefixes: &prefixes,
@@ -277,7 +294,9 @@ func getVirtualNetworkProperties(d *schema.ResourceData, meta interface{}) (*net
 		DhcpOptions: &network.DhcpOptions{
 			DNSServers: &dnses,
 		},
-		Subnets: &subnets,
+		Subnets:              &subnets,
+		EnableDdosProtection: &ddosProtection,
+		EnableVMProtection:   &vmProtection,
 	}
 	// finally; return the struct:
 	return properties, nil
