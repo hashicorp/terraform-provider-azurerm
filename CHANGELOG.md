@@ -16,6 +16,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_builtin_role_definition` [GH-384]
 * **New Data Source:** `azurerm_image` [GH-382]
+* **New Data Source:** `azurerm_key_vault_access_policy` [GH-423]
 * **New Data Source:** `azurerm_platform_image` [GH-375]
 * **New Data Source:** `azurerm_role_definition` [GH-414]
 * **New Data Source:** `azurerm_snapshot` [GH-420]
