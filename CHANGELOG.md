@@ -48,6 +48,7 @@ IMPROVEMENTS:
 * `azurerm_subnet` - making it possible to remove Network Security Groups / Route Tables [GH-411]
 * `azurerm_virtual_machine` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
 * `azurerm_virtual_machine_scale_set` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
+* `azurerm_virtual_machine_scale_set` - support for multiple network profiles [GH-378]
 
 ## 0.2.2 (September 28, 2017)
 
