@@ -425,7 +425,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"os_profile_linux_config": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -452,6 +452,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 					},
 				},
+				Set: resourceArmVirtualMachineStorageOsProfileLinuxConfigHash,
 			},
 
 			"os_profile_secrets": {
@@ -676,7 +677,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if resp.VirtualMachineProperties.OsProfile.LinuxConfiguration != nil {
-			if err := d.Set("os_profile_linux_config", flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(resp.VirtualMachineProperties.OsProfile.LinuxConfiguration)); err != nil {
+			if err := d.Set("os_profile_linux_config", schema.NewSet(resourceArmVirtualMachineStorageOsProfileLinuxConfigHash, flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(resp.VirtualMachineProperties.OsProfile.LinuxConfiguration))); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Profile Linux Configuration: %#v", err)
 			}
 		}
@@ -1152,7 +1153,7 @@ func expandAzureRmVirtualMachineOsProfileSecrets(d *schema.ResourceData) *[]comp
 }
 
 func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*compute.LinuxConfiguration, error) {
-	osProfilesLinuxConfig := d.Get("os_profile_linux_config").([]interface{})
+	osProfilesLinuxConfig := d.Get("os_profile_linux_config").(*schema.Set).List()
 
 	linuxConfig := osProfilesLinuxConfig[0].(map[string]interface{})
 	disablePasswordAuth := linuxConfig["disable_password_authentication"].(bool)
@@ -1498,5 +1499,13 @@ func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
+	return hashcode.String(buf.String())
+}
+
+func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+
 	return hashcode.String(buf.String())
 }
