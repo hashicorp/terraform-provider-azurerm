@@ -65,6 +65,7 @@ type ArmClient struct {
 	imageClient            compute.ImagesClient
 
 	diskClient                 disk.DisksClient
+	snapshotsClient            disk.SnapshotsClient
 	cosmosDBClient             cosmosdb.DatabaseAccountsClient
 	automationAccountClient    automation.AccountClient
 	automationRunbookClient    automation.RunbookClient
@@ -353,12 +354,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	cdb.Authorizer = auth
 	cdb.Sender = sender
 	client.cosmosDBClient = cdb
-
-	dkc := disk.NewDisksClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&dkc.Client)
-	dkc.Authorizer = auth
-	dkc.Sender = sender
-	client.diskClient = dkc
 
 	img := compute.NewImagesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&img.Client)
@@ -656,6 +651,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
 	return &client, nil
@@ -756,6 +752,20 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlSrvClient.Authorizer = auth
 	sqlSrvClient.Sender = sender
 	c.sqlServersClient = sqlSrvClient
+}
+
+func (c *ArmClient) registerDisks(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	diskClient := disk.NewDisksClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&diskClient.Client)
+	diskClient.Authorizer = auth
+	diskClient.Sender = sender
+	c.diskClient = diskClient
+
+	snapshotsClient := disk.NewSnapshotsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&snapshotsClient.Client)
+	snapshotsClient.Authorizer = auth
+	snapshotsClient.Sender = sender
+	c.snapshotsClient = snapshotsClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {

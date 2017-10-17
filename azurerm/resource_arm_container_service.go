@@ -208,7 +208,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 			MasterProfile: &masterProfile,
 			LinuxProfile:  &linuxProfile,
 			OrchestratorProfile: &containerservice.OrchestratorProfile{
-				OrchestratorType: containerservice.OchestratorTypes(orchestrationPlatform),
+				OrchestratorType: containerservice.OrchestratorTypes(orchestrationPlatform),
 			},
 			AgentPoolProfiles:  &agentProfiles,
 			DiagnosticsProfile: &diagnosticsProfile,

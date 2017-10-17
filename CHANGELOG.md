@@ -2,21 +2,33 @@
 
 UPGRADE NOTES:
 
-* `azurerm_route_table` - `route` is no longer computed
+  - `azurerm_automation_account` - the SKU `Free` has been replaced with `Basic`.
+  - `azurerm_container_registry` - Azure has updated the SKU from `Basic` to `Classic`, with new `Basic`, `Standard` and `Premium` SKU's introduced.
+  - `azurerm_container_registry` - the `storage_account` block is now `storage_account_id` and is only required for `Classic` SKU's
+  - `azurerm_key_vault` - `certificate_permissions`, `key_permissions` and `secret_permissions` have all had the `All` option removed by Azure. Each permission now needs to be specified manually.
+  * `azurerm_route_table` - `route` is no longer computed
+  - `azurerm_servicebus_namespace` - The `capacity` field can only be set for `Premium` SKU's
+  - `azurerm_servicebus_queue` - The `enable_batched_operations` and `support_ordering` fields have been deprecated by Azure.
+  - `azurerm_servicebus_subscription` - The `dead_lettering_on_filter_evaluation_exceptions` has been removed by Azure.
+  - `azurerm_servicebus_topic` - The `enable_filtering_messages_before_publishing` field has been removed by Azure.
 
 FEATURES:
 
 * **New Data Source:** `azurerm_builtin_role_definition` [GH-384]
 * **New Data Source:** `azurerm_image` [GH-382]
+* **New Data Source:** `azurerm_key_vault_access_policy` [GH-423]
 * **New Data Source:** `azurerm_platform_image` [GH-375]
 * **New Data Source:** `azurerm_role_definition` [GH-414]
+* **New Data Source:** `azurerm_snapshot` [GH-420]
 * **New Data Source:** `azurerm_subnet` [GH-411]
 * **New Resource:** `azurerm_key_vault_certificate` [GH-408]
 * **New Resource:** `azurerm_role_assignment` [GH-414]
 * **New Resource:** `azurerm_role_definition` [GH-414]
+* **New Resource:** `azurerm_snapshot` [GH-420]
 
 IMPROVEMENTS:
 
+* Upgrading to v11 of the Azure SDK for Go [GH-367]
 * `azurerm_client_config` - updating the data source to work when using AzureCLI auth [GH-393]
 * `azurerm_container_group` - add support for volume mounts [GH-366]
 * `azurerm_key_vault` - fix a crash when no certificate_permissions are defined [GH-374]
@@ -32,9 +44,11 @@ IMPROVEMENTS:
 * `azurerm_storage_account` - support for File Encryption [GH-363]
 * `azurerm_storage_account` - support for Custom Domain [GH-363]
 * `azurerm_storage_account` - splitting the storage account Tier and Replication out into separate fields [GH-363]
+- `azurerm_storage_account` - returning a user friendly error when trying to provision a Blob Storage Account with ZRS redundancy [GH-421]
 * `azurerm_subnet` - making it possible to remove Network Security Groups / Route Tables [GH-411]
 * `azurerm_virtual_machine` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
 * `azurerm_virtual_machine_scale_set` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
+* `azurerm_virtual_machine_scale_set` - support for multiple network profiles [GH-378]
 
 ## 0.2.2 (September 28, 2017)
 

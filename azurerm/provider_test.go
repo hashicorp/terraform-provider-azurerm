@@ -84,15 +84,13 @@ func testArmEnvironment() (*azure.Environment, error) {
 	return &env, nil
 }
 
-func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
-	environment := testArmEnvironmentName()
-
+func testGetAzureConfig(t *testing.T) *Config {
 	if os.Getenv(resource.TestEnvVar) == "" {
-		t.Skip(fmt.Sprintf(
-			"Integration test skipped unless env '%s' set",
-			resource.TestEnvVar))
-		return
+		t.Skip(fmt.Sprintf("Integration test skipped unless env '%s' set", resource.TestEnvVar))
+		return nil
 	}
+
+	environment := testArmEnvironmentName()
 
 	// we deliberately don't use the main config - since we care about
 	config := Config{
@@ -102,6 +100,14 @@ func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
 		ClientSecret:             os.Getenv("ARM_CLIENT_SECRET"),
 		Environment:              environment,
 		SkipProviderRegistration: false,
+	}
+	return &config
+}
+
+func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
+	config := testGetAzureConfig(t)
+	if config == nil {
+		return
 	}
 
 	armClient, err := config.getArmClient()

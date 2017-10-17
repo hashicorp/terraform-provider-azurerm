@@ -66,9 +66,6 @@ The following arguments are supported:
 * `duplicate_detection_history_time_window` - (Optional) The duration during which
     duplicates can be detected. Default value is 10 minutes. Provided in the [TimeSpan](#timespan-format) format.
 
-* `enable_batched_operations` - (Optional) Boolean flag which controls if server-side
-    batched operations are enabled. Defaults to `false`.
-
 * `enable_express` - (Optional) Boolean flag which controls whether Express Entities
     are enabled. An express queue holds a message in memory temporarily before writing
     it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST
@@ -90,9 +87,6 @@ The following arguments are supported:
 * `requires_duplicate_detection` - (Optional) Boolean flag which controls whether
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
-
-* `support_ordering` - (Optional) Boolean flag which controls whether the Queue
-    supports ordering. Defaults to `false`.
 
 ### TimeSpan Format
 

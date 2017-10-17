@@ -7,12 +7,87 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMContainerRegistry_importBasic(t *testing.T) {
+func TestAccAzureRMContainerRegistry_importBasicClassic(t *testing.T) {
 	resourceName := "azurerm_container_registry.test"
 
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs, testLocation())
+	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_account"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_importBasicBasic(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_account"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_importBasicManagedStandard(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_account"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_importBasicManagedPremium(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

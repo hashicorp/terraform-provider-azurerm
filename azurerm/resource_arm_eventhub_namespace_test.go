@@ -2,13 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMEventHubNamespaceCapacity_validation(t *testing.T) {
@@ -182,11 +182,9 @@ func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventHub Namespace still exists:\n%#v", resp.NamespaceProperties)
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
 		}
 	}
 
@@ -211,11 +209,11 @@ func testCheckAzureRMEventHubNamespaceExists(name string) resource.TestCheckFunc
 
 		resp, err := conn.Get(resourceGroup, namespaceName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on eventHubNamespacesClient: %+v", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Event Hub Namespace %q (resource group: %q) does not exist", namespaceName, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Event Hub Namespace %q (resource group: %q) does not exist", namespaceName, resourceGroup)
+			return fmt.Errorf("Bad: Get on eventHubNamespacesClient: %+v", err)
 		}
 
 		return nil
