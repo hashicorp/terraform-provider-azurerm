@@ -1,3 +1,4 @@
+## 0.3.1 (Unreleased)
 ## 0.3.0 (October 17, 2017)
 
 UPGRADE NOTES:
