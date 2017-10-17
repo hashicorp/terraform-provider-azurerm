@@ -47,6 +47,7 @@ IMPROVEMENTS:
 - `azurerm_storage_account` - returning a user friendly error when trying to provision a Blob Storage Account with ZRS redundancy [GH-421]
 * `azurerm_subnet` - making it possible to remove Network Security Groups / Route Tables [GH-411]
 * `azurerm_virtual_machine` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
+* `azurerm_virtual_machine` - switching to use Lists instead of Sets [GH-426]
 * `azurerm_virtual_machine_scale_set` - fixing a bug where `additional_unattend_config.content` was being updated unintentionally [GH-377]
 * `azurerm_virtual_machine_scale_set` - support for multiple network profiles [GH-378]
 
