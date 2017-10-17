@@ -22,7 +22,6 @@ func TestAccAzureRMStorageAccount_importBasic(t *testing.T) {
 			{
 				Config: config,
 			},
-
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,

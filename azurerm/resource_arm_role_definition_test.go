@@ -124,14 +124,12 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		resp, err := client.Get(scope, roleDefinitionId)
 
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
 			}
-
-			return err
 		}
 
-		return fmt.Errorf("Role Definition still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil

@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMAutomationAccount_importAccountWithFreeSku(t *testing.T) {
+func TestAccAzureRMAutomationAccount_importBasic(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationAccount_skuFree(ri, testLocation())
+	config := testAccAzureRMAutomationAccount_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,11 +31,11 @@ func TestAccAzureRMAutomationAccount_importAccountWithFreeSku(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationAccount_importAccountWithBasicSku(t *testing.T) {
+func TestAccAzureRMAutomationAccount_importComplete(t *testing.T) {
 	resourceName := "azurerm_automation_account.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationAccount_skuBasic(ri, testLocation())
+	config := testAccAzureRMAutomationAccount_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

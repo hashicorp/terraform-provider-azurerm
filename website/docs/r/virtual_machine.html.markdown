@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine"
-sidebar_current: "docs-azurerm-resource-virtual-machine"
+sidebar_current: "docs-azurerm-resource-compute-virtual-machine"
 description: |-
   Create a Virtual Machine.
 ---
@@ -325,8 +325,8 @@ resource "azurerm_virtual_machine" "test" {
 
 `os_profile_windows_config` supports the following:
 
-* `provision_vm_agent` - (Optional)
-* `enable_automatic_upgrades` - (Optional)
+* `provision_vm_agent` - (Optional) This value defaults to false.
+* `enable_automatic_upgrades` - (Optional) This value defaults to false.
 * `winrm` - (Optional) A collection of WinRM configuration blocks as documented below.
 * `additional_unattend_config` - (Optional) An Additional Unattended Config block as documented below.
 

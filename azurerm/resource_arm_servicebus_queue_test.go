@@ -24,7 +24,6 @@ func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enable_batched_operations", "false"),
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
 					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "false"),
 				),
@@ -49,14 +48,12 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enable_batched_operations", "false"),
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "enable_batched_operations", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "true"),
 					resource.TestCheckResourceAttr(resourceName, "max_size_in_megabytes", "2048"),
 				),
@@ -168,7 +165,7 @@ func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("ServiceBus Queue still exists:\n%#v", resp.QueueProperties)
+			return fmt.Errorf("ServiceBus Queue still exists:\n%#v", resp.SBQueueProperties)
 		}
 	}
 
@@ -222,7 +219,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
 }
 `, rInt, location, rInt, rInt)
@@ -240,12 +236,12 @@ resource "azurerm_servicebus_namespace" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     location = "${azurerm_resource_group.test.location}"
     sku = "premium"
+    capacity = 1
 }
 
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     enable_partitioning = true
     enable_express = false
@@ -270,9 +266,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    enable_batched_operations = true
     enable_express = true
     max_size_in_megabytes = 2048
 }
@@ -296,7 +290,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     enable_partitioning = true
     max_size_in_megabytes = 5120
@@ -321,7 +314,6 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     requires_duplicate_detection = true
 }
