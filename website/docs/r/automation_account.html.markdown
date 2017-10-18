@@ -22,13 +22,14 @@ resource "azurerm_automation_account" "example" {
   name                = "automationAccount1"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
-        name = "Free"
+    name = "Basic"
   }
+
   tags {
     environment = "development"
   }
-
 }
 ```
 
@@ -48,7 +49,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `name` - (Required) The SKU name of the account: - can be either `Free` or `Basic`.
+* `name` - (Optional) The SKU name of the account - only `Basic` is supported at this time. Defaults to `Basic`.
 
 ## Attributes Reference
 

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"os"
+
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -187,7 +189,7 @@ func TestAccAzureRMVirtualMachine_osDiskTypeConflict(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      config,
-				ExpectError: regexp.MustCompile("Conflict between `vhd_uri`"),
+				ExpectError: regexp.MustCompile("conflicts with storage_os_disk.0.managed_disk_type"),
 			},
 		},
 	})
@@ -250,6 +252,65 @@ func TestAccAzureRMVirtualMachine_changeStorageDataDiskCreationOption(t *testing
 					testCheckAzureRMVirtualMachineExists(resourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(t, &afterCreate, &afterUpdate),
 					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.create_option", "Attach"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachine_linuxNoConfig(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachine_linuxNoConfig(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachine_windowsNoConfig(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachine_windowsNoConfig(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("Error: either a `os_profile_linux_config` or a `os_profile_windows_config` must be specified."),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachine_multipleNICs(t *testing.T) {
+	resourceName := "azurerm_virtual_machine.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(5)
+	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
+	prefix := fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/networkInterfaces", subscriptionId, ri)
+	firstNicName := fmt.Sprintf("%s/acctni1-%d", prefix, ri)
+	secondNicName := fmt.Sprintf("%s/acctni2-%d", prefix, ri)
+
+	config := testAccAzureRMVirtualMachine_multipleNICs(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "network_interface_ids.0", firstNicName),
+					resource.TestCheckResourceAttr(resourceName, "network_interface_ids.1", secondNicName),
 				),
 			},
 		},
@@ -1206,4 +1267,208 @@ func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*disk.Model
 	}
 
 	return &d, nil
+}
+
+func testAccAzureRMVirtualMachine_linuxNoConfig(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctvn-%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+    name = "acctsub-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+    name = "acctni-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    ip_configuration {
+    	name = "testconfiguration1"
+    	subnet_id = "${azurerm_subnet.test.id}"
+    	private_ip_address_allocation = "dynamic"
+    }
+}
+
+resource "azurerm_virtual_machine" "test" {
+    name = "acctvm%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    network_interface_ids = ["${azurerm_network_interface.test.id}"]
+    vm_size = "Standard_F1"
+
+    storage_image_reference {
+		publisher = "Canonical"
+		offer     = "UbuntuServer"
+		sku       = "16.04-LTS"
+		version   = "latest"
+    }
+
+    storage_os_disk {
+		name              = "myosdisk1"
+		caching           = "ReadWrite"
+		create_option     = "FromImage"
+		managed_disk_type = "Standard_LRS"
+    }
+
+    os_profile {
+		computer_name = "acctvm%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+    }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachine_windowsNoConfig(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctvn-%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+    name = "acctsub-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+    name = "acctni-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    ip_configuration {
+    	name = "testconfiguration1"
+    	subnet_id = "${azurerm_subnet.test.id}"
+    	private_ip_address_allocation = "dynamic"
+    }
+}
+
+resource "azurerm_virtual_machine" "test" {
+    name = "acctvm%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    network_interface_ids = ["${azurerm_network_interface.test.id}"]
+    vm_size = "Standard_F1"
+
+    storage_image_reference {
+		publisher = "MicrosoftWindowsServer"
+		offer     = "WindowsServer"
+		sku       = "2012-Datacenter"
+		version   = "latest"
+    }
+
+    storage_os_disk {
+		name              = "myosdisk1"
+		caching           = "ReadWrite"
+		create_option     = "FromImage"
+		managed_disk_type = "Standard_LRS"
+    }
+
+    os_profile {
+		computer_name = "acctvm%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+    }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachine_multipleNICs(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+	name = "acctvn-%d"
+	address_space = ["10.0.0.0/16"]
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+	name = "acctsub-%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "first" {
+	name = "acctni1-%d"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+
+	ip_configuration {
+		name = "testconfiguration1"
+		subnet_id = "${azurerm_subnet.test.id}"
+		private_ip_address_allocation = "dynamic"
+	}
+}
+
+resource "azurerm_network_interface" "second" {
+	name = "acctni2-%d"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+
+	ip_configuration {
+		name = "testconfiguration1"
+		subnet_id = "${azurerm_subnet.test.id}"
+		private_ip_address_allocation = "dynamic"
+	}
+}
+
+resource "azurerm_virtual_machine" "test" {
+	name = "acctvm%s"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	network_interface_ids = ["${azurerm_network_interface.first.id}", "${azurerm_network_interface.second.id}"]
+	primary_network_interface_id = "${azurerm_network_interface.first.id}"
+	vm_size = "Standard_F1"
+
+	storage_image_reference {
+		publisher = "MicrosoftWindowsServer"
+		offer     = "WindowsServer"
+		sku       = "2012-Datacenter"
+		version   = "latest"
+	}
+
+	storage_os_disk {
+		name              = "myosdisk1"
+		caching           = "ReadWrite"
+		create_option     = "FromImage"
+		managed_disk_type = "Standard_LRS"
+	}
+
+	os_profile {
+		computer_name = "acctvm%s"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+	}
+
+	os_profile_windows_config {}
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rString, rString)
 }

@@ -30,13 +30,15 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+
 			"profile_status": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Enabled",
-					"Disabled",
+					string(trafficmanager.ProfileStatusEnabled),
+					string(trafficmanager.ProfileStatusDisabled),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -45,9 +47,9 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Performance",
-					"Weighted",
-					"Priority",
+					string(trafficmanager.Performance),
+					string(trafficmanager.Weighted),
+					string(trafficmanager.Priority),
 				}, false),
 			},
 
@@ -103,8 +105,6 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				},
 				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
 			},
-
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 
 			"tags": tagsSchema(),
 		},
@@ -198,22 +198,27 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	_, err = client.Delete(resGroup, name)
+	resp, err := client.Delete(resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return err
+		}
+	}
 
-	return err
+	return nil
 }
 
 func getArmTrafficManagerProfileProperties(d *schema.ResourceData) *trafficmanager.ProfileProperties {
 	routingMethod := d.Get("traffic_routing_method").(string)
 	props := &trafficmanager.ProfileProperties{
-		TrafficRoutingMethod: &routingMethod,
+		TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(routingMethod),
 		DNSConfig:            expandArmTrafficManagerDNSConfig(d),
 		MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
 		s := status.(string)
-		props.ProfileStatus = &s
+		props.ProfileStatus = trafficmanager.ProfileStatus(s)
 	}
 
 	return props
@@ -228,7 +233,7 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 	path := monitor["path"].(string)
 
 	return &trafficmanager.MonitorConfig{
-		Protocol: &proto,
+		Protocol: trafficmanager.MonitorProtocol(proto),
 		Port:     &port,
 		Path:     &path,
 	}
@@ -259,7 +264,7 @@ func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig)
 func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.MonitorConfig) []interface{} {
 	result := make(map[string]interface{})
 
-	result["protocol"] = *cfg.Protocol
+	result["protocol"] = string(cfg.Protocol)
 	result["port"] = int(*cfg.Port)
 	result["path"] = *cfg.Path
 

@@ -180,7 +180,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, name, properties, make(chan struct{}))
+	_, error := client.Create(resGroup, name, properties, make(chan struct{}))
 	err := <-error
 	if err != nil {
 		return err

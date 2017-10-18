@@ -9,7 +9,7 @@ description: |-
 
 # azurerm_mysql_server
 
-Manages a PostgreSQL Server.
+Manages a MySQL Server.
 
 ## Example Usage
 
@@ -32,7 +32,7 @@ resource "azurerm_mysql_server" "test" {
 
   administrator_login = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "9.5"
+  version = "5.7"
   storage_mb = "51200"
   ssl_enforcement = "Enabled"
 }
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MySQL Server.
 
-* `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `5.6` and `5.7`. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.6` and `5.7`. Changing this forces a new resource to be created.
 
 * `storage_mb` - (Required) Specifies the amount of storage for the MySQL Server in Megabytes. Possible values are shown below. Changing this forces a new resource to be created.
 

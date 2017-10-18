@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
@@ -146,15 +146,14 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).availSetClient
-
-		resp, err := conn.Get(resourceGroup, availSetName)
+		client := testAccProvider.Meta().(*ArmClient).availSetClient
+		resp, err := client.Get(resourceGroup, availSetName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on availSetClient: %+v", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", name, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Get on availSetClient: %+v", err)
 		}
 
 		return nil
@@ -175,11 +174,12 @@ func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).availSetClient
-
-		_, err := conn.Delete(resourceGroup, availSetName)
+		client := testAccProvider.Meta().(*ArmClient).availSetClient
+		resp, err := client.Delete(resourceGroup, availSetName)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on availSetClient: %+v", err)
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Delete on availSetClient: %+v", err)
+			}
 		}
 
 		return nil
@@ -187,8 +187,6 @@ func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFu
 }
 
 func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).availSetClient
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_availability_set" {
 			continue
@@ -197,15 +195,17 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		client := testAccProvider.Meta().(*ArmClient).availSetClient
+		resp, err := client.Get(resourceGroup, name)
 
 		if err != nil {
-			return nil
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Availability Set still exists:\n%#v", resp.AvailabilitySetProperties)
-		}
+		return fmt.Errorf("Availability Set still exists:\n%#v", resp.AvailabilitySetProperties)
 	}
 
 	return nil

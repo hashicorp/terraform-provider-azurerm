@@ -109,16 +109,16 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-        name = "Free"
+	name = "Basic"
   }
 }
 
 resource "azurerm_automation_schedule" "test" {
-  name	 	      = "OneTimer-%d"
+  name	 	          = "OneTimer-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_automation_account.test.name}"
-  frequency	      = "OneTime"
-  timezone	      = "Central Europe Standard Time"
+  frequency	          = "OneTime"
+  timezone	          = "Central Europe Standard Time"
   start_time	      = "%s"
   description	      = "This is a test runbook for terraform acceptance test"
 }

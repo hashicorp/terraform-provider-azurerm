@@ -127,7 +127,7 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-        name = "Free"
+	name = "Basic"
   }
 }
 
@@ -153,12 +153,12 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-        name = "Free"
+	name = "Basic"
   }
 }
 
 resource "azurerm_automation_credential" "test" {
-  name     	      = "acctest-%d"
+  name     	          = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_automation_account.test.name}"
   username            = "test_user"

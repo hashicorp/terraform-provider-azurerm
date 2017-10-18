@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine"
-sidebar_current: "docs-azurerm-resource-virtual-machine"
+sidebar_current: "docs-azurerm-resource-compute-virtual-machine"
 description: |-
   Create a Virtual Machine.
 ---
@@ -238,9 +238,9 @@ The following arguments are supported:
 * `delete_data_disks_on_termination` - (Optional) Flag to enable deletion of storage data disk VHD blobs or managed disks when the VM is deleted, defaults to `false`
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 
-* `license_type` - (Optional, when a windows machine) Specifies the Windows OS license type. The only allowable value, if supplied, is `Windows_Server`.
-* `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
-* `os_profile_linux_config` - (Required, when a linux machine) A Linux config block as documented below.
+* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. The only allowable value, if supplied, is `Windows_Server`.
+* `os_profile_windows_config` - (Required, when a Windows machine) A Windows config block as documented below.
+* `os_profile_linux_config` - (Required, when a Linux machine) A Linux config block as documented below.
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 * `network_interface_ids` - (Required) Specifies the list of resource IDs for the network interfaces associated with the virtual machine.
 * `primary_network_interface_id` - (Optional) Specifies the resource ID for the primary network interface associated with the virtual machine.
@@ -325,8 +325,8 @@ resource "azurerm_virtual_machine" "test" {
 
 `os_profile_windows_config` supports the following:
 
-* `provision_vm_agent` - (Optional)
-* `enable_automatic_upgrades` - (Optional)
+* `provision_vm_agent` - (Optional) This value defaults to false.
+* `enable_automatic_upgrades` - (Optional) This value defaults to false.
 * `winrm` - (Optional) A collection of WinRM configuration blocks as documented below.
 * `additional_unattend_config` - (Optional) An Additional Unattended Config block as documented below.
 

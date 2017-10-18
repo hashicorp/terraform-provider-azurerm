@@ -30,7 +30,7 @@ func testSweepServiceBusNamespace(region string) error {
 	client := (*armClient).serviceBusNamespacesClient
 
 	log.Printf("Retrieving the Servicebus Namespaces..")
-	results, err := client.ListBySubscription()
+	results, err := client.List()
 	if err != nil {
 		return fmt.Errorf("Error Listing on Servicebus Namespaces: %+v", err)
 	}

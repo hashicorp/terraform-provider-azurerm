@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMEventHubAuthorizationRule_listen(t *testing.T) {
@@ -101,11 +101,9 @@ func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error 
 
 		resp, err := conn.GetAuthorizationRule(resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventHub Authorization Rule still exists:\n%#v", resp)
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
 		}
 	}
 
@@ -131,11 +129,11 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(name string) resource.TestC
 		conn := testAccProvider.Meta().(*ArmClient).eventHubClient
 		resp, err := conn.GetAuthorizationRule(resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on eventHubClient: %s", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Event Hub Authorization Rule %q (eventhub %s, namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Event Hub Authorization Rule %q (eventhub %s, namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, resourceGroup)
+			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)
 		}
 
 		return nil
@@ -160,7 +158,6 @@ resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   partition_count     = 2
   message_retention   = 7
 }
@@ -170,7 +167,6 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   listen              = true
   send                = false
   manage              = false
@@ -196,7 +192,6 @@ resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   partition_count     = 2
   message_retention   = 7
 }
@@ -206,7 +201,6 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   listen              = false
   send                = true
   manage              = false
@@ -232,7 +226,6 @@ resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   partition_count     = 2
   message_retention   = 7
 }
@@ -242,7 +235,6 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   listen              = true
   send                = true
   manage              = false
@@ -268,7 +260,6 @@ resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   partition_count     = 2
   message_retention   = 7
 }
@@ -278,7 +269,6 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   listen              = true
   send                = true
   manage              = true

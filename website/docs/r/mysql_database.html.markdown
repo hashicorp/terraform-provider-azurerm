@@ -31,7 +31,7 @@ resource "azurerm_mysql_server" "test" {
 
   administrator_login = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "9.5"
+  version = "5.7"
   storage_mb = "51200"
   ssl_enforcement = "Enabled"
 }

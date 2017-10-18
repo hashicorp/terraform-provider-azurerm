@@ -80,10 +80,6 @@ The following arguments are supported:
 * `lock_duration` - (Optional) The lock duration for the subscription, maximum
     supported value is 5 minutes. Defaults to 1 minute.
 
-* `dead_lettering_on_filter_evaluation_exceptions` - (Optional) Boolean flag which
-    controls whether the Subscription has dead letter support on Filter evaluation
-    exceptions. Defaults to false.
-
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls
     whether the Subscription has dead letter support when a message expires. Defaults
     to false.

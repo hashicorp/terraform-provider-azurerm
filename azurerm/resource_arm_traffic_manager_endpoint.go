@@ -61,6 +61,11 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(trafficmanager.EndpointStatusDisabled),
+					string(trafficmanager.EndpointStatusEnabled),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"weight": {
@@ -168,7 +173,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	d.Set("name", resp.Name)
 	d.Set("type", endpointType)
 	d.Set("profile_name", profileName)
-	d.Set("endpoint_status", endpoint.EndpointStatus)
+	d.Set("endpoint_status", string(endpoint.EndpointStatus))
 	d.Set("target_resource_id", endpoint.TargetResourceID)
 	d.Set("target", endpoint.Target)
 	d.Set("weight", endpoint.Weight)
@@ -211,7 +216,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	}
 
 	if status := d.Get("endpoint_status").(string); status != "" {
-		endpointProps.EndpointStatus = &status
+		endpointProps.EndpointStatus = trafficmanager.EndpointStatus(status)
 	}
 
 	if weight := d.Get("weight").(int); weight != 0 {

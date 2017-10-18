@@ -81,9 +81,9 @@ func resourceArmImage() *schema.Resource {
 							Optional: true,
 							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.None),
-								string(compute.ReadOnly),
-								string(compute.ReadWrite),
+								string(compute.CachingTypesNone),
+								string(compute.CachingTypesReadOnly),
+								string(compute.CachingTypesReadWrite),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -125,9 +125,9 @@ func resourceArmImage() *schema.Resource {
 							Optional: true,
 							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.None),
-								string(compute.ReadOnly),
-								string(compute.ReadWrite),
+								string(compute.CachingTypesNone),
+								string(compute.CachingTypesReadOnly),
+								string(compute.CachingTypesReadWrite),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -246,7 +246,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	//either source VM or storage profile can be specified, but not both
 	if resp.SourceVirtualMachine != nil {
