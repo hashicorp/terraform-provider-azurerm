@@ -33,7 +33,6 @@ resource "azurerm_eventhub_namespace" "test" {
 resource "azurerm_eventhub" "test" {
   name                = "acceptanceTestEventHub"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   partition_count     = 2
   message_retention   = 2
@@ -44,7 +43,6 @@ resource "azurerm_eventhub_consumer_group" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
   user_metadata       = "some-meta-data"
 }
 ```
@@ -60,8 +58,6 @@ The following arguments are supported:
 * `eventhub_name` - (Required) Specifies the name of the EventHub. Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which the EventHub Consumer Group's grandparent Namespace exists. Changing this forces a new resource to be created.
-
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `user_metadata` - (Optional) Specifies the user metadata.
 

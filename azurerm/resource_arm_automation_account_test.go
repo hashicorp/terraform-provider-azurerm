@@ -10,10 +10,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAutomationAccount_skuBasic(t *testing.T) {
+func TestAccAzureRMAutomationAccount_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_automation_account.test"
-	config := testAccAzureRMAutomationAccount_skuBasic(ri, testLocation())
+	config := testAccAzureRMAutomationAccount_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,10 +31,10 @@ func TestAccAzureRMAutomationAccount_skuBasic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAutomationAccount_skuFree(t *testing.T) {
+func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_automation_account.test"
-	config := testAccAzureRMAutomationAccount_skuFree(ri, testLocation())
+	config := testAccAzureRMAutomationAccount_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,7 +45,8 @@ func TestAccAzureRMAutomationAccount_skuFree(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
+					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
 			},
 		},
@@ -110,7 +111,7 @@ func testCheckAzureRMAutomationAccountExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testAccAzureRMAutomationAccount_skuBasic(rInt int, location string) string {
+func testAccAzureRMAutomationAccount_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name = "acctestRG-%d"
@@ -122,13 +123,13 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-        name = "Basic"
+	name = "Basic"
   }
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMAutomationAccount_skuFree(rInt int, location string) string {
+func testAccAzureRMAutomationAccount_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name = "acctestRG-%d"
@@ -140,7 +141,11 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-        name = "Free"
+	name = "Basic"
+  }
+
+  tags {
+  	"hello" = "world"
   }
 }
 `, rInt, location, rInt)

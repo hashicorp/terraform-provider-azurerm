@@ -14,10 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// The KeySource of storage.Encryption appears to require this value
-// for Encryption services to work
-var storageAccountEncryptionSource = "Microsoft.Storage"
-
 const blobStorageAccountDefaultAccessTier = "Hot"
 
 func resourceArmStorageAccount() *schema.Resource {
@@ -30,7 +26,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		MigrateState:  resourceStorageAccountMigrateState,
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -98,6 +94,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				}, true),
 			},
 
+			"account_encryption_source": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(storage.MicrosoftStorage),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.MicrosoftKeyvault),
+					string(storage.MicrosoftStorage),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"custom_domain": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -121,11 +128,13 @@ func resourceArmStorageAccount() *schema.Resource {
 			"enable_blob_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 
 			"enable_file_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 
 			"enable_https_traffic_only": {
@@ -221,6 +230,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -235,7 +245,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 					Blob: &storage.EncryptionService{
 						Enabled: utils.Bool(enableBlobEncryption),
 					}},
-				KeySource: &storageAccountEncryptionSource,
+				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 		},
@@ -253,6 +263,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 
 	// AccessTier is only valid for BlobStorage accounts
 	if accountKind == string(storage.BlobStorage) {
+		if string(parameters.Sku.Name) == string(storage.StandardZRS) {
+			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+		}
+
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
@@ -321,13 +335,20 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
+	accountTier := d.Get("account_tier").(string)
+	replicationType := d.Get("account_replication_type").(string)
+	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+	accountKind := d.Get("account_kind").(string)
+
+	if accountKind == string(storage.BlobStorage) {
+		if storageType == string(storage.StandardZRS) {
+			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
+		}
+	}
+
 	d.Partial(true)
 
 	if d.HasChange("account_replication_type") {
-		accountTier := d.Get("account_tier").(string)
-		replicationType := d.Get("account_replication_type").(string)
-		storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-
 		sku := storage.Sku{
 			Name: storage.SkuName(storageType),
 		}
@@ -351,6 +372,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 				AccessTier: storage.AccessTier(accessTier),
 			},
 		}
+
 		_, err := client.Update(resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
@@ -374,12 +396,13 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
+		encryptionSource := d.Get("account_encryption_source").(string)
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 				Encryption: &storage.Encryption{
 					Services:  &storage.EncryptionServices{},
-					KeySource: &storageAccountEncryptionSource,
+					KeySource: storage.KeySource(encryptionSource),
 				},
 			},
 		}
@@ -496,6 +519,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 					d.Set("enable_file_encryption", file.Enabled)
 				}
 			}
+			d.Set("account_encryption_source", string(encryption.KeySource))
 		}
 
 		// Computed

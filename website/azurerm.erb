@@ -26,12 +26,17 @@
                 <li<%= sidebar_current("docs-azurerm-datasource-builtin_role_definition") %>>
                     <a href="/docs/providers/azurerm/d/builtin_role_definition.html">azurerm_builtin_role_definition</a>
                 </li>
+
                 <li<%= sidebar_current("docs-azurerm-datasource-client-config") %>>
                     <a href="/docs/providers/azurerm/d/client_config.html">azurerm_client_config</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-image") %>>
                     <a href="/docs/providers/azurerm/d/image.html">azurerm_image</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-key-vault-access-policy") %>>
+                    <a href="/docs/providers/azurerm/d/key_vault_access_policy.html">azurerm_key_vault_access_policy</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-managed-disk") %>>
@@ -48,6 +53,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-datasource-resource-group") %>>
                     <a href="/docs/providers/azurerm/d/resource_group.html">azurerm_resource_group</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-role_definition") %>>
+                    <a href="/docs/providers/azurerm/d/role_definition.html">azurerm_role_definition</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-subscription") %>>
@@ -76,6 +85,21 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-app-service-plan") %>>
                   <a href="/docs/providers/azurerm/r/app_service_plan.html">azurerm_app_service_plan</a>
+                </li>
+
+              </ul>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-resource-app-service") %>>
+              <a href="#">Authorization Resources</a>
+              <ul class="nav nav-visible">
+
+                <li<%= sidebar_current("docs-azurerm-resource-authorization-role-assignment") %>>
+                  <a href="/docs/providers/azurerm/r/role_assignment.html">azurerm_role_assignment</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-authorization-role-definition") %>>
+                  <a href="/docs/providers/azurerm/r/role_definition.html">azurerm_role_definition</a>
                 </li>
 
               </ul>
@@ -125,6 +149,41 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-cdn-endpoint") %>>
                   <a href="/docs/providers/azurerm/r/cdn_endpoint.html">azurerm_cdn_endpoint</a>
+                </li>
+
+              </ul>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-resource-compute") %>>
+              <a href="#">Compute Resources</a>
+              <ul class="nav nav-visible">
+
+                <li<%= sidebar_current("docs-azurerm-resource-compute-availability-set") %>>
+                  <a href="/docs/providers/azurerm/r/availability_set.html">azurerm_availability_set</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-compute-managed-disk") %>>
+                  <a href="/docs/providers/azurerm/r/managed_disk.html">azurerm_managed_disk</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-compute-snapshot") %>>
+                  <a href="/docs/providers/azurerm/r/snapshot.html">azurerm_snapshot</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-compute-image") %>>
+                  <a href="/docs/providers/azurerm/r/image.html">azurerm_image</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-compute-virtual-machine") %>>
+                  <a href="/docs/providers/azurerm/r/virtual_machine.html">azurerm_virtual_machine</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-compute-virtualmachine-extension") %>>
+                  <a href="/docs/providers/azurerm/r/virtual_machine_extension.html">azurerm_virtual_machine_extension</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-compute-virtualmachine-scale-set") %>>
+                  <a href="/docs/providers/azurerm/r/virtual_machine_scale_set.html">azurerm_virtual_machine_scale_set</a>
                 </li>
 
               </ul>
@@ -311,18 +370,6 @@
               </ul>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-resource-managed-disk") %>>
-              <a href="#">Managed Disk Resources</a>
-              <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-resource-managed-disk") %>>
-                  <a href="/docs/providers/azurerm/r/managed_disk.html">azurerm_managed_disk</a>
-                </li>
-                <li<%= sidebar_current("docs-azurerm-resource-image") %>>
-                  <a href="/docs/providers/azurerm/r/image.html">azurerm_image</a>
-                </li>
-              </ul>
-            </li>
-
             <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
               <a href="#">Messaging Resources</a>
               <ul class="nav nav-visible">
@@ -486,29 +533,6 @@
                 <li<%= sidebar_current("docs-azurerm-resource-template-deployment") %>>
                   <a href="/docs/providers/azurerm/r/template_deployment.html">azurerm_template_deployment</a>
                 </li>
-              </ul>
-            </li>
-
-            <li<%= sidebar_current("docs-azurerm-resource-virtual") %>>
-              <a href="#">Virtual Machine Resources</a>
-              <ul class="nav nav-visible">
-
-                <li<%= sidebar_current("docs-azurerm-resource-virtualmachine-availability-set") %>>
-                  <a href="/docs/providers/azurerm/r/availability_set.html">azurerm_availability_set</a>
-                </li>
-
-                <li<%= sidebar_current("docs-azurerm-resource-virtual-machine") %>>
-                  <a href="/docs/providers/azurerm/r/virtual_machine.html">azurerm_virtual_machine</a>
-                </li>
-
-                <li<%= sidebar_current("docs-azurerm-resource-virtualmachine-extension") %>>
-                  <a href="/docs/providers/azurerm/r/virtual_machine_extension.html">azurerm_virtual_machine_extension</a>
-                </li>
-
-                <li<%= sidebar_current("docs-azurerm-resource-virtualmachine-scale-set") %>>
-                  <a href="/docs/providers/azurerm/r/virtual_machine_scale_set.html">azurerm_virtual_machine_scale_set</a>
-                </li>
-
               </ul>
             </li>
 

@@ -469,11 +469,15 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     key_permissions = [
-      "all",
+      "create",
+      "delete",
+      "get",
     ]
 
     secret_permissions = [
-      "all",
+      "delete",
+      "get",
+      "set",
     ]
   }
 

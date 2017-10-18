@@ -34,7 +34,7 @@ resource "azurerm_key_vault" "test" {
     object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
 
     key_permissions = [
-      "all",
+      "get",
     ]
 
     secret_permissions = [
@@ -103,14 +103,13 @@ The following arguments are supported:
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
 
 * `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from
-    the following: `All`, `Create`, `Delete`, `Deleteissuers`, `Get`, `Getissuers`, `Import`, `List`, `Listissuers`, `Managecontacts`, `Manageissuers`, `Setissuers` and `Update`.
+    the following: `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, `managecontacts`, `manageissuers`, `purge`, `recover`, `setissuers` and `update`.
 
 * `key_permissions` - (Required) List of key permissions, must be one or more from
-    the following: `all`, `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`,
-    `import`, `list`, `restore`, `sign`, `unwrapKey`, `update`, `verify`, `wrapKey`.
+    the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
 
 * `secret_permissions` - (Required) List of secret permissions, must be one or more
-    from the following: `all`, `delete`, `get`, `list`, `set`.
+    from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
 
 ## Attributes Reference
 

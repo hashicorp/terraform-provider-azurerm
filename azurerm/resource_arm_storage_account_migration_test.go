@@ -36,6 +36,14 @@ func TestAzureRMStorageAccountMigrateState(t *testing.T) {
 				"account_replication_type": "GRS",
 			},
 		},
+		"v1_2_empty": {
+			StateVersion:    1,
+			ID:              "some_id",
+			InputAttributes: map[string]string{},
+			ExpectedAttributes: map[string]string{
+				"account_encryption_source": "Microsoft.Storage",
+			},
+		},
 	}
 
 	for tn, tc := range cases {
