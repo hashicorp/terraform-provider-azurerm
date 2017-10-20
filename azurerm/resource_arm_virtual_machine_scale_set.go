@@ -628,14 +628,6 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
 	}
 
-	/* TODO remove this
-	networkConfigurations := scaleSetProps.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
-	for _, netConfig := range *networkConfigurations {
-		for _, ipConfig := range *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations {
-			return fmt.Errorf("Here: %+v", *ipConfig.VirtualMachineScaleSetIPConfigurationProperties.Primary)
-		}
-	}*/
-
 	scaleSetParams := compute.VirtualMachineScaleSet{
 		Name:     &name,
 		Location: &location,
