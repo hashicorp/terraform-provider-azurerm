@@ -253,7 +253,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"accelerated_networking": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 
 						"network_security_group_id": {
@@ -1307,10 +1306,9 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 			},
 		}
 
-		if v := config["network_security_group_id"]; v != nil {
-			id := v.(string)
+		if v := config["network_security_group_id"].(string); v != "" {
 			networkSecurityGroupId := compute.SubResource{
-				ID: &id,
+				ID: &v,
 			}
 			nProfile.VirtualMachineScaleSetNetworkConfigurationProperties.NetworkSecurityGroup = &networkSecurityGroupId
 		}
