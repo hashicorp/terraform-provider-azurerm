@@ -1,4 +1,9 @@
 ## 0.3.1 (Unreleased)
+
+IMPROVEMENTS:
+
+  - `azurerm_virtual_machine_scale_set` - Updating this resource with the v11 of the Azure SDK for Go [GH-448]
+
 ## 0.3.0 (October 17, 2017)
 
 UPGRADE NOTES:
