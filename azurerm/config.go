@@ -34,6 +34,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
+	"github.com/Azure/azure-sdk-for-go/arm/streamanalytics"
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
@@ -157,6 +158,11 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+	streamingJobClient             streamanalytics.StreamingJobsClient
+	inputsClient                   streamanalytics.InputsClient
+	outputsClient                  streamanalytics.OutputsClient
+	trasformationsClient           streamanalytics.TransformationsClient
+	functionClient                 streamanalytics.FunctionsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -675,6 +681,30 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	rdc.Authorizer = auth
 	rdc.Sender = sender
 	c.roleDefinitionsClient = rdc
+
+	sjc := streamanalytics.NewStreamingJobsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sjc.Client)
+	sjc.Authorizer = auth
+	sjc.Sender = autorest.CreateSender(withRequestLogging())
+	client.streamingJobClient = sjc
+
+	sic := streamanalytics.NewInputsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sic.Client)
+	sic.Authorizer = auth
+	sic.Sender = autorest.CreateSender(withRequestLogging())
+	client.inputsClient = sic
+
+	soc := streamanalytics.NewOutputsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&soc.Client)
+	soc.Authorizer = auth
+	soc.Sender = autorest.CreateSender(withRequestLogging())
+	client.outputsClient = soc
+
+	sfc := streamanalytics.NewFunctionsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&sfc.Client)
+	sfc.Authorizer = auth
+	sfc.Sender = autorest.CreateSender(withRequestLogging())
+	client.functionClient = sfc
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

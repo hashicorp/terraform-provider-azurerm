@@ -169,6 +169,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_machine_scale_set":   resourceArmVirtualMachineScaleSet(),
 			"azurerm_virtual_network":             resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_peering":     resourceArmVirtualNetworkPeering(),
+			"azurerm_stream_analytics_job":        resourceArmStreamAnalyticsJob(),
 		},
 	}
 
@@ -426,6 +427,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ServiceBus":          {},
 		"Microsoft.Sql":                 {},
 		"Microsoft.Storage":             {},
+		"Microsoft.StreamAnalytics":     {},
 	}
 
 	// filter out any providers already registered
