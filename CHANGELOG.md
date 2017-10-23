@@ -1,4 +1,15 @@
-## 0.3.1 (Unreleased)
+## 0.3.2 (Unreleased)
+
+FEATURES: 
+
+* **New Resource:** `azurerm_application_gateway` [GH-413]
+
+## 0.3.1 (October 21, 2017)
+
+IMPROVEMENTS:
+
+  - `azurerm_virtual_machine_scale_set` - Updating this resource with the v11 of the Azure SDK for Go ([#448](https://github.com/terraform-providers/terraform-provider-azurerm/issues/448))
+
 ## 0.3.0 (October 17, 2017)
 
 UPGRADE NOTES:

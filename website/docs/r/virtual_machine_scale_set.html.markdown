@@ -257,6 +257,7 @@ The following arguments are supported:
 * `storage_profile_data_disk` - (Optional) A storage profile data disk block as documented below
 * `storage_profile_image_reference` - (Optional) A storage profile image reference block as documented below.
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
+* `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
 * `plan` - (Optional) A plan block as documented below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -317,6 +318,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below
+* `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
 
 `ip_configuration` supports the following:
 
@@ -324,6 +326,17 @@ The following arguments are supported:
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
+* `primary` - (Optional) Specifies if this ip_configuration is the primary one.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
+false.
+* `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
+ PublicIPAddress configuration. The public_ip_address_configuration is documented below.
+
+`public_ip_address_configuration` supports the following:
+
+* `name` - (Required) The name of the public ip address configuration
+* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 32.
+* `domain_name_label` - (Required) The domain name label for the dns settings.
 
 `storage_profile_os_disk` supports the following:
 
@@ -353,6 +366,12 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 * `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
 * `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
+`boot_diagnostics` supports the following:
+
+* `enabled`: (Required) Whether to enable boot diagnostics for the virtual machine.
+* `storage_uri`: (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+
 
 `extension` supports the following:
 
