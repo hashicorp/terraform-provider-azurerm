@@ -148,6 +148,9 @@ func dataSourceArmScheduledTimeRead(d *schema.ResourceData, meta interface{}) er
 		if firstRunDayOfWeek <= int(closestValidStartTime.Weekday()) {
 			dayadd := 7 - (int(closestValidStartTime.Weekday()) - firstRunDayOfWeek)
 			validStartTime = validStartTime.AddDate(0, 0, dayadd)
+		} else {
+			dayadd := (firstRunDayOfWeek - int(closestValidStartTime.Weekday()))
+			validStartTime = validStartTime.AddDate(0, 0, dayadd)
 		}
 
 	case Month:
