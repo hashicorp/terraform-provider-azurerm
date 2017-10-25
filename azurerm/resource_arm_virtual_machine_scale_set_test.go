@@ -298,6 +298,41 @@ func TestAccAzureRMVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSet_customImage(ri, testLocation())
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+	location := testLocation()
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				//need to create a vm and then reference it in the image creation
+				Config:  preConfig,
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+				),
+			},
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(ri, testLocation())
@@ -2588,6 +2623,186 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineScaleSet_customImage(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_image" "test" {
+  name = "acctestImage-%d"
+  location = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  os_disk {
+    os_type = "Linux"
+    os_state = "Generalized"
+    blob_uri = "{blob_uri}"
+    size_gb = 30
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctvn-%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+    name = "acctsub-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                         = "acctpip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
+  domain_name_label            = "%s"
+}
+
+resource "azurerm_network_interface" "testsource" {
+  name                = "acctnicsource-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfigurationsource"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags {
+    environment = "Dev"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "blob"
+}
+
+resource "azurerm_virtual_machine" "testsource" {
+  name                  = "testsource"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
+  vm_size               = "Standard_D1_v2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+    disk_size_gb  = "30"
+  }
+
+  os_profile {
+    computer_name  = "mdimagetestsource"
+    admin_username = "%s"
+    admin_password = "%s"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+
+resource "azurerm_image" "test" {
+  name                = "accteste"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  os_disk {
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb  = 30
+    caching  = "None"
+  }
+
+  tags {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name = "acctvmss-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name = "Standard_D1_v2"
+    tier = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%d"
+    admin_username = "myadmin"
+    admin_password = "Passwword1234"
+  }
+
+  network_profile {
+      name = "TestNetworkProfile-%d"
+      primary = true
+      ip_configuration {
+        name = "TestIPConfiguration"
+        subnet_id = "${azurerm_subnet.test.id}"
+      }
+  }
+
+  plan {
+    name = "os"
+    product = "rancheros"
+    publisher = "rancher"
+  }
+
+  storage_profile_os_disk {
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "rancher"
+    offer     = "rancheros"
+    sku       = "os"
+    version   = "latest"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(rInt int, location string) string {
