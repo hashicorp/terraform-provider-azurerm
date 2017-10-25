@@ -247,6 +247,116 @@ func TestAccDataSourceAzureRMScheduledTime_Weekly_Next_Week(t *testing.T) {
 }
 
 
+func TestAccDataSourceAzureRMScheduledTime_Monthly_Tomorrow(t *testing.T) {
+        dataSourceName := "data.azurerm_scheduled_time.test"
+
+        now := time.Now().UTC()
+        scheduletime := now.Add(time.Duration(24) * time.Hour) //1 day
+        dayofmonth := scheduletime.Day()
+
+        config := testAccDataSourceAzureRMScheduledTime_Monthly(dayofmonth, scheduletime)
+
+        expectedTime := time.Date(scheduletime.Year(), scheduletime.Month(), scheduletime.Day(), scheduletime.Hour(), 0, 0, 0, time.UTC)
+        formattedExpectedTime := expectedTime.Format(time.RFC3339)
+
+        resource.Test(t, resource.TestCase{
+                PreCheck:  func() { testAccPreCheck(t) },
+                Providers: testAccProviders,
+                Steps: []resource.TestStep{
+                        {
+                                Config: config,
+                                Check: resource.ComposeTestCheckFunc(
+                                        resource.TestCheckResourceAttr(dataSourceName, "day_of_month", strconv.Itoa(dayofmonth)),
+                                        resource.TestCheckResourceAttr(dataSourceName, "hour", strconv.Itoa(now.Hour())),
+                                        resource.TestCheckResourceAttr(dataSourceName, "minute", "0"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "second", "0"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "frequency", "Month"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "next_run_time", formattedExpectedTime),
+                                ),
+                        },
+                },
+        })
+}
+
+func TestAccDataSourceAzureRMScheduledTime_Monthly_Next_Month(t *testing.T) {
+        dataSourceName := "data.azurerm_scheduled_time.test"
+
+        now := time.Now().UTC()
+        scheduletime := now.Add(25 * time.Duration(24) * time.Hour) //25 days
+        dayofmonth := scheduletime.Day()
+
+        config := testAccDataSourceAzureRMScheduledTime_Monthly(dayofmonth, scheduletime)
+
+        expectedTime := time.Date(scheduletime.Year(), scheduletime.Month(), scheduletime.Day(), scheduletime.Hour(), 0, 0, 0, time.UTC)
+        formattedExpectedTime := expectedTime.Format(time.RFC3339)
+
+        resource.Test(t, resource.TestCase{
+                PreCheck:  func() { testAccPreCheck(t) },
+                Providers: testAccProviders,
+                Steps: []resource.TestStep{
+                        {
+                                Config: config,
+                                Check: resource.ComposeTestCheckFunc(
+                                        resource.TestCheckResourceAttr(dataSourceName, "day_of_month", strconv.Itoa(dayofmonth)),
+                                        resource.TestCheckResourceAttr(dataSourceName, "hour", strconv.Itoa(now.Hour())),
+                                        resource.TestCheckResourceAttr(dataSourceName, "minute", "0"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "second", "0"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "frequency", "Month"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "next_run_time", formattedExpectedTime),
+                                ),
+                        },
+                },
+        })
+}
+
+func TestAccDataSourceAzureRMScheduledTime_Monthly_Last_Month(t *testing.T) {
+        dataSourceName := "data.azurerm_scheduled_time.test"
+
+        now := time.Now().UTC()
+        scheduletime := now.Add(-25 * time.Duration(24) * time.Hour) //25 days
+        dayofmonth := scheduletime.Day()
+
+        config := testAccDataSourceAzureRMScheduledTime_Monthly(dayofmonth, scheduletime)
+	var expectedTime time.Time
+
+	if now.Day() < 25 {
+		expectedTime = time.Date(scheduletime.Year(), now.Month() + 1, scheduletime.Day(), scheduletime.Hour(), 0, 0, 0, time.UTC)
+	} else {
+        	expectedTime = time.Date(scheduletime.Year(), now.Month(), scheduletime.Day(), scheduletime.Hour(), 0, 0, 0, time.UTC)
+	}
+        formattedExpectedTime := expectedTime.Format(time.RFC3339)
+
+        resource.Test(t, resource.TestCase{
+                PreCheck:  func() { testAccPreCheck(t) },
+                Providers: testAccProviders,
+                Steps: []resource.TestStep{
+                        {
+                                Config: config,
+                                Check: resource.ComposeTestCheckFunc(
+                                        resource.TestCheckResourceAttr(dataSourceName, "day_of_month", strconv.Itoa(dayofmonth)),
+                                        resource.TestCheckResourceAttr(dataSourceName, "hour", strconv.Itoa(now.Hour())),
+                                        resource.TestCheckResourceAttr(dataSourceName, "minute", "0"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "second", "0"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "frequency", "Month"),
+                                        resource.TestCheckResourceAttr(dataSourceName, "next_run_time", formattedExpectedTime),
+                                ),
+                        },
+                },
+        })
+}
+
+func testAccDataSourceAzureRMScheduledTime_Monthly(dayofmonth int, scheduletime time.Time) string {
+        return fmt.Sprintf(`
+data "azurerm_scheduled_time" "test" {
+        "day_of_month" = "%d"
+        "hour" = "%d"
+        "minute" = "0"
+        "second" = "0"
+        "frequency" = "Month"
+}
+`, dayofmonth, scheduletime.Hour())
+}
+
 func testAccDataSourceAzureRMScheduledTime_Weekly(dayofweek int, scheduletime time.Time) string {
 	return fmt.Sprintf(`
 data "azurerm_scheduled_time" "test" {
