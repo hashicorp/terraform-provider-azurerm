@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_application_gateway` [GH-413]
 
+IMPROVEMENTS: 
+
+  - `azurerm_key_vault` - Incread timeout on dns availability [GH-457]
+
 ## 0.3.1 (October 21, 2017)
 
 IMPROVEMENTS:
