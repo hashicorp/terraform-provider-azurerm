@@ -302,7 +302,7 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := fmt.Sprintf("testadmin%d", ri)
-	password := fmt.Sprintf("Password1234!", ri)
+	password := fmt.Sprintf("Password1234!%d", ri)
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
 	config := testAccAzureRMVirtualMachineScaleSet_customImage(ri, testLocation(), userName, password, hostName)
