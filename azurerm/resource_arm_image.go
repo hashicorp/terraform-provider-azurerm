@@ -296,13 +296,13 @@ func flattenAzureRmImageOSDisk(d *schema.ResourceData, osDisk *compute.ImageOSDi
 		if osDisk.BlobURI != nil {
 			result["blob_uri"] = *osDisk.BlobURI
 		}
-		result["caching"] = string(osDisk.Caching)
 		if osDisk.DiskSizeGB != nil {
 			result["size_gb"] = *osDisk.DiskSizeGB
 		}
 		if osDisk.ManagedDisk != nil {
 			result["managed_disk_id"] = *osDisk.ManagedDisk.ID
 		}
+		result["caching"] = string(osDisk.Caching)
 		result["os_type"] = osDisk.OsType
 		result["os_state"] = osDisk.OsState
 	}
