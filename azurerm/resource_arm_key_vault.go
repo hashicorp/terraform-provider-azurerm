@@ -231,7 +231,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if d.IsNewResource() {
 		if props := read.Properties; props != nil {
 			if vault := props.VaultURI; vault != nil {
-				err := resource.Retry(30*time.Second, checkKeyVaultDNSIsAvailable(*vault))
+				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
 				if err != nil {
 					return err
 				}
