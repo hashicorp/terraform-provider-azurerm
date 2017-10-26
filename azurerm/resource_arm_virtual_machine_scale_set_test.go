@@ -300,14 +300,13 @@ func TestAccAzureRMVirtualMachineScaleSet_planManagedDisk(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineScaleSet_customImage(ri, testLocation())
 	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
 	sshPort := "22"
-	location := testLocation()
-	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location)
+	config := testAccAzureRMVirtualMachineScaleSet_customImage(ri, testLocation(), userName, password, hostName)
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -320,13 +319,14 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 				Destroy: false,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
-					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
 				),
 			},
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
 			},
 		},
@@ -2625,24 +2625,11 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMVirtualMachineScaleSet_customImage(rInt int, location string) string {
+func testAccAzureRMVirtualMachineScaleSet_customImage(rInt int, location string, userName string, password string, hostName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
-}
-
-resource "azurerm_image" "test" {
-  name = "acctestImage-%d"
-  location = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  os_disk {
-    os_type = "Linux"
-    os_state = "Generalized"
-    blob_uri = "{blob_uri}"
-    size_gb = 30
-  }
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -2738,7 +2725,7 @@ resource "azurerm_virtual_machine" "testsource" {
 }
 
 resource "azurerm_image" "test" {
-  name                = "accteste"
+  name                = "accteste-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -2756,11 +2743,21 @@ resource "azurerm_image" "test" {
   }
 }
 
+
+ data "azurerm_image" "test" {
+  name = "${azurerm_image.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
 resource "azurerm_virtual_machine_scale_set" "test" {
   name = "acctvmss-%d"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   upgrade_policy_mode = "Manual"
+
+	storage_profile_image_reference {
+   id = "${data.azurerm_image.test.id}"
+	}
 
   sku {
     name = "Standard_D1_v2"
@@ -2783,26 +2780,13 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       }
   }
 
-  plan {
-    name = "os"
-    product = "rancheros"
-    publisher = "rancher"
-  }
-
   storage_profile_os_disk {
     caching       = "ReadWrite"
     create_option = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
-
-  storage_profile_image_reference {
-    publisher = "rancher"
-    offer     = "rancheros"
-    sku       = "os"
-    version   = "latest"
-  }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, userName, password, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachineScaleSet_multipleNetworkProfiles(rInt int, location string) string {
