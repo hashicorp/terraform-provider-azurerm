@@ -1699,8 +1699,8 @@ func hashApplicationGatewayWafConfig(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%t-", m["enabled"].(bool)))
 	buf.WriteString(fmt.Sprintf("%s-", m["firewall_mode"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["rule_set_type"].(*string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["rule_set_version"].(*string)))
+	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_type"].(*string)))
+	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_version"].(*string)))
 
 	return hashcode.String(buf.String())
 }
