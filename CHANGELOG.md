@@ -6,7 +6,11 @@ FEATURES:
 
 IMPROVEMENTS: 
 
-  - `azurerm_key_vault` - Incread timeout on dns availability [GH-457]
+  - `azurerm_virtual_machine_scale_set` - Add nil check to os disk [GH-436]
+
+  - `azurerm_key_vault` - Increased timeout on dns availability [GH-457]
+  
+  - `azurerm_route_table` - Fix issue when routes are computed [GH-450]
 
 ## 0.3.1 (October 21, 2017)
 
