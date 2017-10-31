@@ -1,16 +1,21 @@
 ## 0.3.3 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_virtual_machine` - fix issue where `vhd_uri` would not be picked up in validation ([#62](https://github.com/terraform-providers/terraform-provider-azurerm/issues/62))
+
 ## 0.3.2 (October 30, 2017)
 
-FEATURES: 
+FEATURES:
 
 * **New Resource:** `azurerm_application_gateway` ([#413](https://github.com/terraform-providers/terraform-provider-azurerm/issues/413))
 
-IMPROVEMENTS: 
+IMPROVEMENTS:
 
   - `azurerm_virtual_machine_scale_set` - Add nil check to os disk ([#436](https://github.com/terraform-providers/terraform-provider-azurerm/issues/436))
 
   - `azurerm_key_vault` - Increased timeout on dns availability ([#457](https://github.com/terraform-providers/terraform-provider-azurerm/issues/457))
-  
+
   - `azurerm_route_table` - Fix issue when routes are computed ([#450](https://github.com/terraform-providers/terraform-provider-azurerm/issues/450))
 
 ## 0.3.1 (October 21, 2017)
