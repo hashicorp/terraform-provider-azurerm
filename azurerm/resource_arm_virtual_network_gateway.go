@@ -114,9 +114,10 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							Default: string(network.Dynamic),
 						},
 						"subnet_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateArmVirtualNetworkGatewaySubnetId,
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateFunc:     validateArmVirtualNetworkGatewaySubnetId,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"public_ip_address_id": {
 							Type:     schema.TypeString,
