@@ -420,6 +420,6 @@ The following attributes are exported:
 
 Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_machine_scale_set.scaleset1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```

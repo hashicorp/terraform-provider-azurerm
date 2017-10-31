@@ -12,7 +12,7 @@ Create and manage a ServiceBus Queue.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
   name     = "resourceGroup1"
   location = "West US"
@@ -103,6 +103,6 @@ The following attributes are exported:
 
 Service Bus Queue can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_queue.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/queues/snqueue1
 ```

@@ -10,7 +10,7 @@ description: |-
 
 Create a LoadBalancer NAT Rule.
 
-~> **NOTE When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -71,6 +71,6 @@ The following attributes are exported:
 
 Load Balancer NAT Rules can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_lb_nat_rule.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/inboundNatRules/rule1
 ```

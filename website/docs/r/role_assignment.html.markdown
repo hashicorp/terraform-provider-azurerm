@@ -32,7 +32,7 @@ resource "azurerm_role_assignment" "test" {
 
 ## Example Usage (Custom Role & Service Principal)
 
-```
+```hcl
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -62,7 +62,7 @@ resource "azurerm_role_assignment" "test" {
 
 ## Example Usage (Custom Role & User)
 
-```
+```hcl
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -113,6 +113,6 @@ The following attributes are exported:
 
 Role Assignments can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_role_assignment.test /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
 ```

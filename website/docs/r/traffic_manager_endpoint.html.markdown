@@ -106,6 +106,6 @@ The following attributes are exported:
 
 Traffic Manager Endpoints can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_traffic_manager_endpoint.testEndpoints /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1/azureEndpoints/mytrafficmanagerendpoint
 ```

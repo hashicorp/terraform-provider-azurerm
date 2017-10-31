@@ -71,6 +71,6 @@ The following attributes are exported only if there is an authorization rule nam
 
 Service Bus Namespace can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_namespace.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1
 ```

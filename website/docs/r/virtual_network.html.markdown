@@ -99,6 +99,6 @@ The following attributes are exported:
 
 Virtual Networks can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_network.testNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1
 ```
