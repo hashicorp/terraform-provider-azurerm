@@ -125,7 +125,7 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-        name = "Free"
+	name = "Basic"
   }
 }
 
@@ -158,7 +158,7 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku {
-        name = "Free"
+	name = "Basic"
   }
 }
 
@@ -173,7 +173,7 @@ resource "azurerm_automation_runbook" "test" {
   description         = "This is a test runbook for terraform acceptance test"
   runbook_type        = "PowerShellWorkflow"
   publish_content_link {
-        uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+	uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
 	version = "1.0.0.0"
 	hash {
 		algorithm = "SHA256"

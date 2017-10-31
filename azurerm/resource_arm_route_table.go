@@ -1,14 +1,12 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +34,7 @@ func resourceArmRouteTable() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"route": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -52,9 +50,16 @@ func resourceArmRouteTable() *schema.Resource {
 						},
 
 						"next_hop_type": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateRouteTableNextHopType,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.RouteNextHopTypeVirtualNetworkGateway),
+								string(network.RouteNextHopTypeVnetLocal),
+								string(network.RouteNextHopTypeInternet),
+								string(network.RouteNextHopTypeVirtualAppliance),
+								string(network.RouteNextHopTypeNone),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"next_hop_in_ip_address": {
@@ -64,7 +69,6 @@ func resourceArmRouteTable() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmRouteTableRouteHash,
 			},
 
 			"subnets": {
@@ -80,47 +84,41 @@ func resourceArmRouteTable() *schema.Resource {
 }
 
 func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	routeTablesClient := client.routeTablesClient
+	client := meta.(*ArmClient).routeTablesClient
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Route Table creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
+	routes, err := expandRouteTableRoutes(d)
+	if err != nil {
+		return fmt.Errorf("Error Expanding list of Route Table Routes: %+v", err)
+	}
+
 	routeSet := network.RouteTable{
 		Name:     &name,
 		Location: &location,
-		Tags:     expandTags(tags),
+		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
+			Routes: &routes,
+		},
+		Tags: expandTags(tags),
 	}
 
-	if _, ok := d.GetOk("route"); ok {
-		routes, routeErr := expandAzureRmRouteTableRoutes(d)
-		if routeErr != nil {
-			return fmt.Errorf("Error Building list of Route Table Routes: %s", routeErr)
-		}
-
-		if len(routes) > 0 {
-			routeSet.RouteTablePropertiesFormat = &network.RouteTablePropertiesFormat{
-				Routes: &routes,
-			}
-		}
-	}
-
-	_, error := routeTablesClient.CreateOrUpdate(resGroup, name, routeSet, make(chan struct{}))
-	err := <-error
+	_, createErr := client.CreateOrUpdate(resGroup, name, routeSet, make(chan struct{}))
+	err = <-createErr
 	if err != nil {
 		return err
 	}
 
-	read, err := routeTablesClient.Get(resGroup, name, "")
+	read, err := client.Get(resGroup, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Route Table %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Route Table %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -129,7 +127,7 @@ func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	routeTablesClient := meta.(*ArmClient).routeTablesClient
+	client := meta.(*ArmClient).routeTablesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -138,31 +136,28 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["routeTables"]
 
-	resp, err := routeTablesClient.Get(resGroup, name, "")
+	resp, err := client.Get(resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Route Table %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure Route Table %q: %+v", name, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	if resp.RouteTablePropertiesFormat.Routes != nil {
-		d.Set("route", schema.NewSet(resourceArmRouteTableRouteHash, flattenAzureRmRouteTableRoutes(resp.RouteTablePropertiesFormat.Routes)))
-	}
+	if props := resp.RouteTablePropertiesFormat; props != nil {
+		if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
+			return err
+		}
 
-	subnets := []string{}
-	if resp.RouteTablePropertiesFormat.Subnets != nil {
-		for _, subnet := range *resp.RouteTablePropertiesFormat.Subnets {
-			id := subnet.ID
-			subnets = append(subnets, *id)
+		if err := d.Set("subnets", flattenRouteTableSubnets(props.Subnets)); err != nil {
+			return err
 		}
 	}
-	d.Set("subnets", subnets)
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -179,25 +174,32 @@ func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["routeTables"]
 
-	_, error := routeTablesClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	deleteResp, deleteErr := routeTablesClient.Delete(resGroup, name, make(chan struct{}))
+	resp := <-deleteResp
+	err = <-deleteErr
 
-	return err
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func expandAzureRmRouteTableRoutes(d *schema.ResourceData) ([]network.Route, error) {
-	configs := d.Get("route").(*schema.Set).List()
+func expandRouteTableRoutes(d *schema.ResourceData) ([]network.Route, error) {
+	configs := d.Get("route").([]interface{})
 	routes := make([]network.Route, 0, len(configs))
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
-		address_prefix := data["address_prefix"].(string)
-		next_hop_type := data["next_hop_type"].(string)
+		addressPrefix := data["address_prefix"].(string)
+		nextHopType := data["next_hop_type"].(string)
 
 		properties := network.RoutePropertiesFormat{
-			AddressPrefix: &address_prefix,
-			NextHopType:   network.RouteNextHopType(next_hop_type),
+			AddressPrefix: &addressPrefix,
+			NextHopType:   network.RouteNextHopType(nextHopType),
 		}
 
 		if v := data["next_hop_in_ip_address"].(string); v != "" {
@@ -216,45 +218,38 @@ func expandAzureRmRouteTableRoutes(d *schema.ResourceData) ([]network.Route, err
 	return routes, nil
 }
 
-func flattenAzureRmRouteTableRoutes(routes *[]network.Route) []interface{} {
-	results := make([]interface{}, 0, len(*routes))
+func flattenRouteTableRoutes(input *[]network.Route) []interface{} {
+	results := make([]interface{}, 0)
 
-	for _, route := range *routes {
-		r := make(map[string]interface{})
-		r["name"] = *route.Name
-		r["address_prefix"] = *route.RoutePropertiesFormat.AddressPrefix
-		r["next_hop_type"] = string(route.RoutePropertiesFormat.NextHopType)
-		if route.RoutePropertiesFormat.NextHopIPAddress != nil {
-			r["next_hop_in_ip_address"] = *route.RoutePropertiesFormat.NextHopIPAddress
+	if routes := input; routes != nil {
+		for _, route := range *routes {
+			r := make(map[string]interface{})
+
+			r["name"] = *route.Name
+
+			if props := route.RoutePropertiesFormat; props != nil {
+				r["address_prefix"] = *props.AddressPrefix
+				r["next_hop_type"] = string(props.NextHopType)
+				if ip := props.NextHopIPAddress; ip != nil {
+					r["next_hop_in_ip_address"] = *ip
+				}
+			}
+
+			results = append(results, r)
 		}
-		results = append(results, r)
 	}
 
 	return results
 }
 
-func resourceArmRouteTableRouteHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["address_prefix"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["next_hop_type"].(string))))
+func flattenRouteTableSubnets(input *[]network.Subnet) []string {
+	output := []string{}
 
-	return hashcode.String(buf.String())
-}
-
-func validateRouteTableNextHopType(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	hopTypes := map[string]bool{
-		"virtualnetworkgateway": true,
-		"vnetlocal":             true,
-		"internet":              true,
-		"virtualappliance":      true,
-		"none":                  true,
+	if subnets := input; subnets != nil {
+		for _, subnet := range *subnets {
+			output = append(output, *subnet.ID)
+		}
 	}
 
-	if !hopTypes[value] {
-		errors = append(errors, fmt.Errorf("Route Table NextHopType Protocol can only be VirtualNetworkGateway, VnetLocal, Internet or VirtualAppliance"))
-	}
-	return
+	return output
 }

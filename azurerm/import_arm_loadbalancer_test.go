@@ -28,3 +28,28 @@ func TestAccAzureRMLoadBalancer_importBasic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMLoadBalancer_importFrontEnd(t *testing.T) {
+	resourceName := "azurerm_lb.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMLoadBalancer_frontEndConfig(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "frontend_ip_configuration.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

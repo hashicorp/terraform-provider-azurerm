@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm\_network\_interface
+# azurerm_network_interface
 
 Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
 
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acceptanceTestVirtualNetwork1"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -35,7 +35,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acceptanceTestNetworkInterface1"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
@@ -54,17 +54,13 @@ resource "azurerm_network_interface" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network interface. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the network interface. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the network interface.
+* `resource_group_name` - (Required) The name of the resource group in which to create the network interface. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the network interface is
-    created. Changing this forces a new resource to be created.
+* `location` - (Required) The location/region where the network interface is created. Changing this forces a new resource to be created.
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with
-                                               the network interface.
+* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the network interface.
 
 * `internal_dns_name_label` - (Optional) Relative DNS name for this NIC used for internal communications between VMs in the same VNet
 

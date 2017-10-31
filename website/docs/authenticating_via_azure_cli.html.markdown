@@ -71,3 +71,5 @@ The output (similar to below) will display one or more Subscriptions - with the 
 ```shell
 $ az account set --subscription="SUBSCRIPTION_ID"
 ```
+
+Also, if you have been authenticating with a service principal and you switch to Azure CLI, you must null out the ARM_* environment variables. Failure to do so causes errors to be thrown.

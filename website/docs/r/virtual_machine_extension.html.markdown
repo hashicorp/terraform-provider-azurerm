@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_machine_extension"
-sidebar_current: "docs-azurerm-resource-virtualmachine-extension"
+sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
     Creates a new Virtual Machine Extension to provide post deployment
     configuration and run automated tasks.
@@ -47,10 +47,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "accsa"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "westus"
-  account_type        = "Standard_LRS"
+  name                     = "accsa"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "westus"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
   tags {
     environment = "staging"

@@ -1,0 +1,108 @@
+package azurerm
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
+)
+
+func TestAccDataSourceAzureRMBuiltInRoleDefinition_contributor(t *testing.T) {
+	dataSourceName := "data.azurerm_builtin_role_definition.test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceBuiltInRoleDefinition("Contributor"),
+				Check: resource.ComposeTestCheckFunc(
+					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.0", "*"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "3"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.0", "Microsoft.Authorization/*/Delete"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.1", "Microsoft.Authorization/*/Write"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.2", "Microsoft.Authorization/elevateAccess/Action"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMBuiltInRoleDefinition_owner(t *testing.T) {
+	dataSourceName := "data.azurerm_builtin_role_definition.test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceBuiltInRoleDefinition("Owner"),
+				Check: resource.ComposeTestCheckFunc(
+					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.0", "*"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMBuiltInRoleDefinition_reader(t *testing.T) {
+	dataSourceName := "data.azurerm_builtin_role_definition.test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceBuiltInRoleDefinition("Reader"),
+				Check: resource.ComposeTestCheckFunc(
+					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.0", "*/read"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMBuiltInRoleDefinition_virtualMachineContributor(t *testing.T) {
+	dataSourceName := "data.azurerm_builtin_role_definition.test"
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceBuiltInRoleDefinition("VirtualMachineContributor"),
+				Check: resource.ComposeTestCheckFunc(
+					testAzureRMClientConfigAttr(dataSourceName, "id", "/providers/Microsoft.Authorization/roleDefinitions/d73bb868-a0df-4d4d-bd69-98a00b01fccb"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "description"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "type"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "17"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.0", "Microsoft.Authorization/*/read"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.15", "Microsoft.Resources/subscriptions/resourceGroups/read"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func testAccDataSourceBuiltInRoleDefinition(name string) string {
+	return fmt.Sprintf(`
+data "azurerm_builtin_role_definition" "test" {
+  name = "%s"
+}
+`, name)
+}

@@ -8,6 +8,7 @@ import (
 	"net/http/httputil"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
+	"github.com/Azure/azure-sdk-for-go/arm/authorization"
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
@@ -46,10 +47,11 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
-	clientId       string
-	tenantId       string
-	subscriptionId string
-	environment    azure.Environment
+	clientId              string
+	tenantId              string
+	subscriptionId        string
+	usingServicePrincipal bool
+	environment           azure.Environment
 
 	StopContext context.Context
 
@@ -63,13 +65,14 @@ type ArmClient struct {
 	imageClient            compute.ImagesClient
 
 	diskClient                 disk.DisksClient
+	snapshotsClient            disk.SnapshotsClient
 	cosmosDBClient             cosmosdb.DatabaseAccountsClient
 	automationAccountClient    automation.AccountClient
 	automationRunbookClient    automation.RunbookClient
 	automationCredentialClient automation.CredentialClient
 	automationScheduleClient   automation.ScheduleClient
 
-	appGatewayClient             network.ApplicationGatewaysClient
+	applicationGatewayClient     network.ApplicationGatewaysClient
 	ifaceClient                  network.InterfacesClient
 	expressRouteCircuitClient    network.ExpressRouteCircuitsClient
 	loadBalancerClient           network.LoadBalancersClient
@@ -136,6 +139,9 @@ type ArmClient struct {
 
 	appInsightsClient appinsights.ComponentsClient
 
+	// Authentication
+	roleAssignmentsClient   authorization.RoleAssignmentsClient
+	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// Databases
@@ -232,10 +238,11 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// client declarations:
 	client := ArmClient{
-		clientId:       c.ClientID,
-		tenantId:       c.TenantID,
-		subscriptionId: c.SubscriptionID,
-		environment:    env,
+		clientId:              c.ClientID,
+		tenantId:              c.TenantID,
+		subscriptionId:        c.SubscriptionID,
+		environment:           env,
+		usingServicePrincipal: c.ClientSecret != "",
 	}
 
 	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
@@ -322,7 +329,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	setUserAgent(&agc.Client)
 	agc.Authorizer = auth
 	agc.Sender = sender
-	client.appGatewayClient = agc
+	client.applicationGatewayClient = agc
 
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&crc.Client)
@@ -347,12 +354,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	cdb.Authorizer = auth
 	cdb.Sender = sender
 	client.cosmosDBClient = cdb
-
-	dkc := disk.NewDisksClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&dkc.Client)
-	dkc.Authorizer = auth
-	dkc.Sender = sender
-	client.diskClient = dkc
 
 	img := compute.NewImagesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&img.Client)
@@ -624,12 +625,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	ai.Sender = sender
 	client.appInsightsClient = ai
 
-	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, c.TenantID)
-	setUserAgent(&spc.Client)
-	spc.Authorizer = graphAuth
-	spc.Sender = sender
-	client.servicePrincipalsClient = spc
-
 	aadb := automation.NewAccountClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&aadb.Client)
 	aadb.Authorizer = auth
@@ -654,11 +649,32 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
 
+	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
+	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 
-	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-
 	return &client, nil
+}
+
+func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
+	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
+	setUserAgent(&spc.Client)
+	spc.Authorizer = graphAuth
+	spc.Sender = sender
+	c.servicePrincipalsClient = spc
+
+	rac := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&rac.Client)
+	rac.Authorizer = auth
+	rac.Sender = sender
+	c.roleAssignmentsClient = rac
+
+	rdc := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&rdc.Client)
+	rdc.Authorizer = auth
+	rdc.Sender = sender
+	c.roleDefinitionsClient = rdc
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -736,6 +752,20 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlSrvClient.Authorizer = auth
 	sqlSrvClient.Sender = sender
 	c.sqlServersClient = sqlSrvClient
+}
+
+func (c *ArmClient) registerDisks(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	diskClient := disk.NewDisksClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&diskClient.Client)
+	diskClient.Authorizer = auth
+	diskClient.Sender = sender
+	c.diskClient = diskClient
+
+	snapshotsClient := disk.NewSnapshotsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&snapshotsClient.Client)
+	snapshotsClient.Authorizer = auth
+	snapshotsClient.Sender = sender
+	c.snapshotsClient = snapshotsClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
