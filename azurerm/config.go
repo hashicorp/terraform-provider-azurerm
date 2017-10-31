@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
+	"github.com/Azure/azure-sdk-for-go/arm/monitor"
 	"github.com/Azure/azure-sdk-for-go/arm/mysql"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
@@ -157,6 +158,8 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+
+	monitorAlertRulesClient monitor.AlertRulesClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -653,6 +656,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
+	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
 }
@@ -780,6 +784,14 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	keyVaultManagementClient.Authorizer = keyVaultAuth
 	keyVaultManagementClient.Sender = sender
 	c.keyVaultManagementClient = keyVaultManagementClient
+}
+
+func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	arc := monitor.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&arc.Client)
+	arc.Authorizer = auth
+	arc.Sender = autorest.CreateSender(withRequestLogging())
+	c.monitorAlertRulesClient = arc
 }
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
