@@ -71,6 +71,25 @@ func resourceArmVirtualMachine() *schema.Resource {
 				},
 			},
 
+			"identity": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"license_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -589,6 +608,16 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: expandedTags,
 	}
 
+	if v, ok := d.GetOk("identity"); ok {
+		identities := v.(*schema.Set).List()
+		identity := identities[0].(map[string]interface{})
+		identityType := identity["type"].(string)
+		vmIdentity := compute.VirtualMachineIdentity{
+			Type: compute.ResourceIdentityType(identityType),
+		}
+		vm.Identity = &vmIdentity
+	}
+
 	if _, ok := d.GetOk("plan"); ok {
 		plan, err := expandAzureRmVirtualMachinePlan(d)
 		if err != nil {
@@ -645,6 +674,10 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		if err := d.Set("plan", flattenAzureRmVirtualMachinePlan(resp.Plan)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Plan error: %#v", err)
 		}
+	}
+
+	if resp.Identity != nil {
+		d.Set("identity", flattenAzureRmVirtualMachineIdentity(resp.Identity))
 	}
 
 	if resp.VirtualMachineProperties.AvailabilitySet != nil {
@@ -870,6 +903,16 @@ func flattenAzureRmVirtualMachineImageReference(image *compute.ImageReference) [
 	}
 	if image.ID != nil {
 		result["id"] = *image.ID
+	}
+
+	return []interface{}{result}
+}
+
+func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdentity) []interface{} {
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
 	}
 
 	return []interface{}{result}
