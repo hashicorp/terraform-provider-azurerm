@@ -43,6 +43,17 @@ func dataSourceArmVnet() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"vnet_peerings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeList,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+			},
 		},
 	}
 }
@@ -58,7 +69,7 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
 		}
-		return fmt.Errorf("Error making Read request on Azure public ip %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure virtual network %s: %s", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -74,12 +85,16 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		subnets := flattenVnetSubnetsAddressSpace(props.Subnets)
+		subnets := flattenVnetSubnetsNames(props.Subnets)
 		if err := d.Set("subnets", subnets); err != nil {
 			return err
 		}
-	}
 
+		vnet_peerings := flattenVnetPeerings(props.VirtualNetworkPeerings)
+		if err := d.Set("vnet_peerings", vnet_peerings); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -89,16 +104,23 @@ func flattenVnetAddressPrefixes(input *[]string) []interface{} {
 	for _, prefix := range *input {
 		prefixes = append(prefixes, prefix)
 	}
-
 	return prefixes
 }
 
-func flattenVnetSubnetsAddressSpace(input *[]network.Subnet) []interface{} {
+func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
 	subnets := make([]interface{}, 0)
 
 	for _, subnet := range *input {
 		subnets = append(subnets, *subnet.Name)
 	}
-
 	return subnets
+}
+
+func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) []interface{} {
+	vnetpeerings := make([]interface{}, 0)
+
+	for _, vnetpeering := range *input {
+		vnetpeerings = append(vnetpeerings, []string{*vnetpeering.Name, *vnetpeering.RemoteVirtualNetwork.ID})
+	}
+	return vnetpeerings
 }
