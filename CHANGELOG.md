@@ -1,4 +1,9 @@
 ## 0.3.3 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_virtual_machine_scale_set`: fixing a crash where accelerated networking isn't returned by the API [GH-480]
+
 ## 0.3.2 (October 30, 2017)
 
 FEATURES: 
