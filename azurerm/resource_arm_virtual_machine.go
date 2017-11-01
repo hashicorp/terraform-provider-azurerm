@@ -72,7 +72,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"identity": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
@@ -80,7 +80,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -608,14 +608,9 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: expandedTags,
 	}
 
-	if v, ok := d.GetOk("identity"); ok {
-		identities := v.(*schema.Set).List()
-		identity := identities[0].(map[string]interface{})
-		identityType := identity["type"].(string)
-		vmIdentity := compute.VirtualMachineIdentity{
-			Type: compute.ResourceIdentityType(identityType),
-		}
-		vm.Identity = &vmIdentity
+	if _, ok := d.GetOk("identity"); ok {
+		vmIdentity := expandAzureRmVirtualMachineIdentity(d)
+		vm.Identity = vmIdentity
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
@@ -1108,6 +1103,16 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, err
 		Name:      &name,
 		Product:   &product,
 	}, nil
+}
+
+func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.VirtualMachineIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &compute.VirtualMachineIdentity{
+		Type: compute.ResourceIdentityType(identityType),
+	}
 }
 
 func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {
