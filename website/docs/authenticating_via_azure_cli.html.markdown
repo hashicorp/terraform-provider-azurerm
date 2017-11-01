@@ -23,7 +23,7 @@ This guide assumes that you have [the Azure CLI 2.0 (Python)](https://github.com
 
 ~> **Note:** if you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
-```
+```shell
 $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 ```
 

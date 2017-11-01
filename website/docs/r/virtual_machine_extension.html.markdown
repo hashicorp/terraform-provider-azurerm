@@ -146,7 +146,7 @@ The following arguments are supported:
     be found using the Azure CLI.
 
 ~> **Note:** The `Publisher` and `Type` of Virtual Machine Extensions can be found using the Azure CLI, via:
-```
+```shell
 $ az vm extension image list --location westus -o table
 ```
 
@@ -172,6 +172,6 @@ The following attributes are exported:
 
 Virtual Machine Extensions can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_machine_extension.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/myVM/extensions/hostname
 ```

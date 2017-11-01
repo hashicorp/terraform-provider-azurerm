@@ -87,6 +87,6 @@ The following attributes are exported:
 
 Key Vault Secrets which are Enabled can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_key_vault_secret.test https://example-keyvault.vault.azure.net/secrets/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

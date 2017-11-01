@@ -10,7 +10,7 @@ description: |-
 
 Create a LoadBalancer Backend Address Pool.
 
-~> **NOTE When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE:** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -63,6 +63,6 @@ The following attributes are exported:
 
 Load Balancer Backend Address Pools can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_lb_backend_address_pool.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1
 ```

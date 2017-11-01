@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_application_gateway"
 sidebar_current: "docs-azurerm-resource-application-gateway"
 description: |-
-  Creates a new application gateway based on a previously created virtual network with configured subnets. 
+  Creates a new application gateway based on a previously created virtual network with configured subnets.
 ---
 
 # azurerm\_application\_gateway
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "rg" {
   name     = "my-rg-application-gateway-12345"
   location = "West US"
 }
- 
+
 # Create a application gateway in the web_servers resource group
 resource "azurerm_virtual_network" "vnet" {
   name                = "my-vnet-12345"
@@ -53,23 +53,23 @@ resource "azurerm_application_gateway" "network" {
   name                = "my-application-gateway-12345"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "West US"
- 
+
   sku {
     name           = "Standard_Small"
     tier           = "Standard"
     capacity       = 2
   }
- 
+
   gateway_ip_configuration {
       name         = "my-gateway-ip-configuration"
       subnet_id    = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
   }
- 
+
   frontend_port {
       name         = "${azurerm_virtual_network.vnet.name}-feport"
       port         = 80
   }
- 
+
   frontend_ip_configuration {
       name         = "${azurerm_virtual_network.vnet.name}-feip"  
       public_ip_address_id = "${azurerm_public_ip.pip.id}"
@@ -78,7 +78,7 @@ resource "azurerm_application_gateway" "network" {
   backend_address_pool {
       name = "${azurerm_virtual_network.vnet.name}-beap"
   }
- 
+
   backend_http_settings {
       name                  = "${azurerm_virtual_network.vnet.name}-be-htst"
       cookie_based_affinity = "Disabled"
@@ -86,14 +86,14 @@ resource "azurerm_application_gateway" "network" {
       protocol              = "Http"
      request_timeout        = 1
   }
- 
+
   http_listener {
         name                                  = "${azurerm_virtual_network.vnet.name}-httplstn"
         frontend_ip_configuration_name        = "${azurerm_virtual_network.vnet.name}-feip"
         frontend_port_name                    = "${azurerm_virtual_network.vnet.name}-feport"
         protocol                              = "Http"
   }
- 
+
   request_routing_rule {
           name                       = "${azurerm_virtual_network.vnet.name}-rqrt"
           rule_type                  = "Basic"
@@ -176,7 +176,7 @@ The `frontend_ip_configuration` block supports:
 
 * `name` - (Required) User defined name for a frontend IP configuration.
 
-* `subnet_id` - (Optional) Reference to a Subnet. 
+* `subnet_id` - (Optional) Reference to a Subnet.
 
 * `private_ip_address` - (Optional) Private IP Address.
 
@@ -220,7 +220,7 @@ The `http_listener` block supports:
 
 * `frontend_ip_configuration_name` - (Required) Reference to frontend Ip configuration.
 
-* `frontend_port_name` - (Required) Reference to frontend port. 
+* `frontend_port_name` - (Required) Reference to frontend port.
 
 * `protocol` - (Required) Valid values are:
   * `Http`
@@ -230,7 +230,7 @@ The `http_listener` block supports:
 
 * `ssl_certificate_name` - (Optional) Reference to ssl certificate. Valid only if protocol is https.
 
-* `require_sni` - (Optional) Applicable only if protocol is https. Enables SNI for multi-hosting. 
+* `require_sni` - (Optional) Applicable only if protocol is https. Enables SNI for multi-hosting.
 Valid values are:
 * true
 * false
@@ -286,7 +286,7 @@ The `path_rule` block supports:
 
 * `paths` - (Required) The list of path patterns to match. Each must start with / and the only place a * is allowed is at the end following a /. The string fed to the path matcher does not include any text after the first ? or #, and those chars are not allowed here.
 
-* `backend_address_pool_name` - (Required) Reference to `backend_address_pool_name`. 
+* `backend_address_pool_name` - (Required) Reference to `backend_address_pool_name`.
 
 * `backend_http_settings_name` - (Required) Reference to `backend_http_settings`.
 
@@ -311,10 +311,10 @@ The `waf_configuration` block supports:
 * `firewall_mode` - (Required) Firewall mode.  Valid values are:
   * `Detection`
   * `Prevention`
-  
+
 * `rule_set_type` - (Required) Rule set type.  Must be set to `OWASP`
 
-* `rule_set_version` - (Required) Ruleset version. Supported values: 
+* `rule_set_version` - (Required) Ruleset version. Supported values:
   * `2.2.9`
   * `3.0`
 
@@ -337,8 +337,7 @@ The following attributes are exported:
 
 application gateways can be imported using the `resource id`, e.g.
 
-```
- 
+```shell 
 terraform import azurerm_application_gateway.testApplicationGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
- 
+
 ```

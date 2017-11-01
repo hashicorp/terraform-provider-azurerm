@@ -66,6 +66,6 @@ The following attributes are exported:
 
 MySQL Configurations can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_mysql_configuration.interactive_timeout /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforMySQL/servers/server1/configurations/interactive_timeout
 ```

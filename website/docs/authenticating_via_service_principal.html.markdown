@@ -23,7 +23,7 @@ It's possible to complete this task in either the [Azure CLI](#creating-a-servic
 
 ~> **Note**: if you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
-```
+```shell
 $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 ```
 
@@ -107,7 +107,7 @@ $ az vm list-sizes --location westus
 
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
 
-```
+```shell
 $ az account list-locations
 ```
 

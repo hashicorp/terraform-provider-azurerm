@@ -251,6 +251,6 @@ The following attributes are exported:
 
 Key Vault Certificates can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_key_vault_certificate.test https://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```
