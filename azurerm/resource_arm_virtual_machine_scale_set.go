@@ -898,9 +898,12 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 	result := make([]map[string]interface{}, 0, len(*networkConfigurations))
 	for _, netConfig := range *networkConfigurations {
 		s := map[string]interface{}{
-			"name":                   *netConfig.Name,
-			"primary":                *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.Primary,
-			"accelerated_networking": *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.EnableAcceleratedNetworking,
+			"name":    *netConfig.Name,
+			"primary": *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.Primary,
+		}
+
+		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.EnableAcceleratedNetworking; v != nil {
+			s["accelerated_networking"] = *v
 		}
 
 		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.NetworkSecurityGroup; v != nil {
