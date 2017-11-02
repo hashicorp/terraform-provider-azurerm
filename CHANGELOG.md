@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_public_ip` - Clarify the error message for the validation of domain name label [GH-485]
 * `azurerm_virtual_machine` - ensuring `vhd_uri` is validated [GH-470]
 * `azurerm_virtual_machine_scale_set`: fixing a crash where accelerated networking isn't returned by the API [GH-480]
 
