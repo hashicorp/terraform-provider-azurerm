@@ -31,11 +31,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"frontend_ip_configuration": {
 				Type:     schema.TypeList,

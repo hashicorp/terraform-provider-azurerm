@@ -28,11 +28,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"gateway_address": {
 				Type:     schema.TypeString,

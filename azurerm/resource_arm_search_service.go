@@ -28,11 +28,7 @@ func resourceArmSearchService() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -95,7 +91,8 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 		properties.ServiceProperties.PartitionCount = utils.Int32(partition_count)
 	}
 
-	_, err := client.CreateOrUpdate(resourceGroupName, name, properties, nil)
+	_, createErr := client.CreateOrUpdate(resourceGroupName, name, properties, nil, make(chan struct{}))
+	err := <-createErr
 	if err != nil {
 		return err
 	}

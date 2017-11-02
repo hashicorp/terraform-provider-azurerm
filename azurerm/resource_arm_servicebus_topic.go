@@ -33,21 +33,17 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": deprecatedLocationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"status": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(servicebus.EntityStatusActive),
+				Default:  string(servicebus.Active),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(servicebus.EntityStatusActive),
-					string(servicebus.EntityStatusDisabled),
+					string(servicebus.Active),
+					string(servicebus.Disabled),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -80,11 +76,6 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Optional: true,
 			},
 
-			"enable_filtering_messages_before_publishing": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
 			"enable_partitioning": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -107,6 +98,13 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+
+			// TODO: remove in the next major version
+			"enable_filtering_messages_before_publishing": {
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Deprecated: "This field has been removed by Azure",
+			},
 		},
 	}
 }
@@ -117,43 +115,39 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
-	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	status := d.Get("status").(string)
 
 	enableBatchedOps := d.Get("enable_batched_operations").(bool)
 	enableExpress := d.Get("enable_express").(bool)
-	enableFiltering := d.Get("enable_filtering_messages_before_publishing").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int64(d.Get("max_size_in_megabytes").(int))
+	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
 
-	parameters := servicebus.TopicCreateOrUpdateParameters{
-		Name:     &name,
-		Location: &location,
-		TopicProperties: &servicebus.TopicProperties{
-			Status:                            servicebus.EntityStatus(status),
-			EnableBatchedOperations:           utils.Bool(enableBatchedOps),
-			EnableExpress:                     utils.Bool(enableExpress),
-			FilteringMessagesBeforePublishing: utils.Bool(enableFiltering),
-			EnablePartitioning:                utils.Bool(enablePartitioning),
-			MaxSizeInMegabytes:                utils.Int64(maxSize),
-			RequiresDuplicateDetection:        utils.Bool(requiresDuplicateDetection),
-			SupportOrdering:                   utils.Bool(supportOrdering),
+	parameters := servicebus.SBTopic{
+		Name: &name,
+		SBTopicProperties: &servicebus.SBTopicProperties{
+			Status:                     servicebus.EntityStatus(status),
+			EnableBatchedOperations:    utils.Bool(enableBatchedOps),
+			EnableExpress:              utils.Bool(enableExpress),
+			EnablePartitioning:         utils.Bool(enablePartitioning),
+			MaxSizeInMegabytes:         utils.Int32(maxSize),
+			RequiresDuplicateDetection: utils.Bool(requiresDuplicateDetection),
+			SupportOrdering:            utils.Bool(supportOrdering),
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.TopicProperties.AutoDeleteOnIdle = utils.String(autoDeleteOnIdle)
+		parameters.SBTopicProperties.AutoDeleteOnIdle = utils.String(autoDeleteOnIdle)
 	}
 
 	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.TopicProperties.DefaultMessageTimeToLive = utils.String(defaultTTL)
+		parameters.SBTopicProperties.DefaultMessageTimeToLive = utils.String(defaultTTL)
 	}
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.TopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
+		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
 	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
@@ -197,41 +191,40 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("namespace_name", namespaceName)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	props := resp.TopicProperties
-	d.Set("status", string(props.Status))
-	d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
-	d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
+	if props := resp.SBTopicProperties; props != nil {
+		d.Set("status", string(props.Status))
+		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
+		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 
-	if props.DuplicateDetectionHistoryTimeWindow != nil && *props.DuplicateDetectionHistoryTimeWindow != "" {
-		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-	}
-
-	d.Set("enable_batched_operations", props.EnableBatchedOperations)
-	d.Set("enable_express", props.EnableExpress)
-	d.Set("enable_filtering_messages_before_publishing", props.FilteringMessagesBeforePublishing)
-	d.Set("enable_partitioning", props.EnablePartitioning)
-	d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
-	d.Set("support_ordering", props.SupportOrdering)
-
-	maxSize := int(*props.MaxSizeInMegabytes)
-
-	// if the topic is in a premium namespace and partitioning is enabled then the
-	// max size returned by the API will be 16 times greater than the value set
-	if *props.EnablePartitioning {
-		namespace, err := meta.(*ArmClient).serviceBusNamespacesClient.Get(resGroup, namespaceName)
-		if err != nil {
-			return err
+		if props.DuplicateDetectionHistoryTimeWindow != nil && *props.DuplicateDetectionHistoryTimeWindow != "" {
+			d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
 		}
 
-		if namespace.Sku.Name != servicebus.Premium {
-			const partitionCount = 16
-			maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
-		}
-	}
+		d.Set("enable_batched_operations", props.EnableBatchedOperations)
+		d.Set("enable_express", props.EnableExpress)
+		d.Set("enable_partitioning", props.EnablePartitioning)
+		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
+		d.Set("support_ordering", props.SupportOrdering)
 
-	d.Set("max_size_in_megabytes", maxSize)
+		maxSize := int(*props.MaxSizeInMegabytes)
+
+		// if the topic is in a premium namespace and partitioning is enabled then the
+		// max size returned by the API will be 16 times greater than the value set
+		if *props.EnablePartitioning {
+			namespace, err := meta.(*ArmClient).serviceBusNamespacesClient.Get(resGroup, namespaceName)
+			if err != nil {
+				return err
+			}
+
+			if namespace.Sku.Name != servicebus.Premium {
+				const partitionCount = 16
+				maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+			}
+		}
+
+		d.Set("max_size_in_megabytes", maxSize)
+	}
 
 	return nil
 }
@@ -247,7 +240,12 @@ func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) 
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["topics"]
 
-	_, err = client.Delete(resGroup, namespaceName, name)
+	resp, err := client.Delete(resGroup, namespaceName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return err
+		}
+	}
 
-	return err
+	return nil
 }

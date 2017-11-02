@@ -84,6 +84,6 @@ The following attributes are exported:
 
 ExpressRoute circuits can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_express_route_circuit.myExpressRoute /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/expressRouteCircuits/myExpressRoute
 ```

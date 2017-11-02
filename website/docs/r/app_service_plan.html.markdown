@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
-sidebar_current: "docs-azurerm-resource-app_service_plan"
+sidebar_current: "docs-azurerm-resource-app-service-plan"
 description: |-
   Create an App Service Plan component.
 ---
@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` and `Linux`. Defaults to `Windows`. Changing this forces a new resource to be created.
+
 * `sku` - (Required) A `sku` block as documented below.
 
 * `properties` - (Optional) A `properties` block as documented below.
@@ -73,6 +75,6 @@ The following attributes are exported:
 
 App Service Plan instances can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_app_service_plan.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/instance1
 ```

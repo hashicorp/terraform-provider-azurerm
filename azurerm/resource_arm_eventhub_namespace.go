@@ -35,11 +35,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
 				Type:             schema.TypeString,
@@ -92,7 +88,7 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 	capacity := int32(d.Get("capacity").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
-	parameters := eventhub.NamespaceCreateOrUpdateParameters{
+	parameters := eventhub.EHNamespace{
 		Location: &location,
 		Sku: &eventhub.Sku{
 			Name:     eventhub.SkuName(sku),

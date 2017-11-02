@@ -18,9 +18,8 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	config := testAccDataSourceAzureRMManagedDiskBasic(name, resourceGroupName, testLocation())
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

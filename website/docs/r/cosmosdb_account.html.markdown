@@ -12,7 +12,7 @@ Creates a new CosmosDB (formally DocumentDB) Account.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
     name = "resourceGroup1"
     location = "West Europe"
@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account - currently this can only be set to `Standard`.
 
+* `kind` - (Optional) Specifies the Kind of CosmosDB to create - possible values are `GlobalDocumentDB` and `MongoDB`. Defaults to `GlobalDocumentDB`. Changing this forces a new resource to be created.
+
 * `consistency_policy` - (Required) Specifies a `consistency_policy` resource, used to define the consistency policy for this CosmosDB account.
 
 * `failover_policy` - (Required) Specifies a `failover_policy` resource, used to define where data should be replicated.
@@ -95,6 +97,6 @@ The following attributes are exported:
 
 CosmosDB Accounts can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_cosmosdb_account.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1
 ```

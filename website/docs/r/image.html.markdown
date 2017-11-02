@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
-sidebar_current: "docs-azurerm-resource-image"
+sidebar_current: "docs-azurerm-resource-compute-image"
 description: |-
   Create a custom virtual machine image that can be used to create virtual machines.
 ---
@@ -89,6 +89,6 @@ The following attributes are exported:
 
 Image can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_image.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1
 ```

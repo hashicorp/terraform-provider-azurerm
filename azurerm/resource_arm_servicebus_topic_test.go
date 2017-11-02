@@ -221,7 +221,7 @@ func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("ServiceBus Topic still exists:\n%+v", resp.TopicProperties)
+			return fmt.Errorf("ServiceBus Topic still exists:\n%+v", resp.SBTopicProperties)
 		}
 	}
 
@@ -274,7 +274,6 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -297,7 +296,6 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     status = "disabled"
@@ -321,7 +319,6 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     enable_batched_operations = true
@@ -346,7 +343,6 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     enable_partitioning = true
@@ -371,7 +367,6 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     enable_partitioning = true
@@ -396,7 +391,6 @@ resource "azurerm_servicebus_namespace" "test" {
 
 resource "azurerm_servicebus_topic" "test" {
     name = "acctestservicebustopic-%d"
-    location = "${azurerm_resource_group.test.location}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     requires_duplicate_detection = true

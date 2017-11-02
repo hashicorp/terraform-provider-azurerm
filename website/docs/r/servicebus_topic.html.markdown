@@ -77,10 +77,6 @@ The following arguments are supported:
     are enabled. An express topic holds a message in memory temporarily before writing
     it to persistent storage. Defaults to false.
 
-* `enable_filtering_messages_before_publishing` - (Optional) Boolean flag which
-    controls whether messages should be filtered before publishing. Defaults to
-    false.
-
 * `enable_partitioning` - (Optional) Boolean flag which controls whether to enable
     the topic to be partitioned across multiple message brokers. Defaults to false.
     Changing this forces a new resource to be created.
@@ -111,6 +107,6 @@ The following attributes are exported:
 
 Service Bus Topics can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_topic.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1
 ```

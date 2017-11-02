@@ -22,10 +22,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "storageAccount1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_GRS"
+  name                     = "storageAccount1"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 }
 
 resource "azurerm_container_registry" "test" {
@@ -33,7 +34,7 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
-  sku                 = "Basic"
+  sku                 = "Classic"
 
   storage_account {
     name       = "${azurerm_storage_account.test.name}"
@@ -56,16 +57,11 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `storage_account` - (Required) A Storage Account block as documented below - which must be located in the same data center as the Container Registry.
+* `storage_account_id` - (Required for `Classic` Sku - Optional otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
 
-* `sku` - (Optional) The SKU name of the the container registry. `Basic` is the only acceptable value at this time.
+* `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
-`storage_account` supports the following:
-
-* `name` - (Required) The name of the storage account, which must be in the same physical location as the Container Registry.
-* `access_key` - (Required) The access key to the storage account.
 
 ## Attributes Reference
 
@@ -83,6 +79,6 @@ The following attributes are exported:
 
 Container Registries can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_container_registry.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```

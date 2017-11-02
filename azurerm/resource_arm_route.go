@@ -2,18 +2,18 @@ package azurerm
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmRoute() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRouteCreate,
+		Create: resourceArmRouteCreateUpdate,
 		Read:   resourceArmRouteRead,
-		Update: resourceArmRouteCreate,
+		Update: resourceArmRouteCreateUpdate,
 		Delete: resourceArmRouteDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -26,11 +26,7 @@ func resourceArmRoute() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"route_table_name": {
 				Type:     schema.TypeString,
@@ -44,12 +40,16 @@ func resourceArmRoute() *schema.Resource {
 			},
 
 			"next_hop_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateRouteTableNextHopType,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return strings.ToLower(old) == strings.ToLower(new)
-				},
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.RouteNextHopTypeVirtualNetworkGateway),
+					string(network.RouteNextHopTypeVnetLocal),
+					string(network.RouteNextHopTypeInternet),
+					string(network.RouteNextHopTypeVirtualAppliance),
+					string(network.RouteNextHopTypeNone),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"next_hop_in_ip_address": {
@@ -61,9 +61,8 @@ func resourceArmRoute() *schema.Resource {
 	}
 }
 
-func resourceArmRouteCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	routesClient := client.routesClient
+func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).routesClient
 
 	name := d.Get("name").(string)
 	rtName := d.Get("route_table_name").(string)
@@ -90,18 +89,18 @@ func resourceArmRouteCreate(d *schema.ResourceData, meta interface{}) error {
 		RoutePropertiesFormat: &properties,
 	}
 
-	_, error := routesClient.CreateOrUpdate(resGroup, rtName, name, route, make(chan struct{}))
-	err := <-error
+	_, createErr := client.CreateOrUpdate(resGroup, rtName, name, route, make(chan struct{}))
+	err := <-createErr
 	if err != nil {
 		return err
 	}
 
-	read, err := routesClient.Get(resGroup, rtName, name)
+	read, err := client.Get(resGroup, rtName, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Route %s/%s (resource group %s) ID", rtName, name, resGroup)
+		return fmt.Errorf("Cannot read Route %q/%q (resource group %q) ID", rtName, name, resGroup)
 	}
 	d.SetId(*read.ID)
 
@@ -109,7 +108,7 @@ func resourceArmRouteCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
-	routesClient := meta.(*ArmClient).routesClient
+	client := meta.(*ArmClient).routesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -119,31 +118,33 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	rtName := id.Path["routeTables"]
 	routeName := id.Path["routes"]
 
-	resp, err := routesClient.Get(resGroup, rtName, routeName)
+	resp, err := client.Get(resGroup, rtName, routeName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Route %s: %s", routeName, err)
+		return fmt.Errorf("Error making Read request on Azure Route %q: %+v", routeName, err)
 	}
 
 	d.Set("name", routeName)
 	d.Set("resource_group_name", resGroup)
 	d.Set("route_table_name", rtName)
-	d.Set("address_prefix", resp.RoutePropertiesFormat.AddressPrefix)
-	d.Set("next_hop_type", string(resp.RoutePropertiesFormat.NextHopType))
 
-	if resp.RoutePropertiesFormat.NextHopIPAddress != nil {
-		d.Set("next_hop_in_ip_address", resp.RoutePropertiesFormat.NextHopIPAddress)
+	if props := resp.RoutePropertiesFormat; props != nil {
+		d.Set("address_prefix", props.AddressPrefix)
+		d.Set("next_hop_type", string(props.NextHopType))
+
+		if ip := props.NextHopIPAddress; ip != nil {
+			d.Set("next_hop_in_ip_address", props.NextHopIPAddress)
+		}
 	}
 
 	return nil
 }
 
 func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	routesClient := client.routesClient
+	client := meta.(*ArmClient).routesClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -156,8 +157,8 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	azureRMLockByName(rtName, routeTableResourceName)
 	defer azureRMUnlockByName(rtName, routeTableResourceName)
 
-	_, error := routesClient.Delete(resGroup, rtName, routeName, make(chan struct{}))
-	err = <-error
+	_, deleteErr := client.Delete(resGroup, rtName, routeName, make(chan struct{}))
+	err = <-deleteErr
 
 	return err
 }

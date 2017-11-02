@@ -82,6 +82,25 @@ func TestAccAzureRMManagedDisk_copy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
+	var d disk.Model
+	ri := acctest.RandInt()
+	config := testAccAzureRMManagedDisk_platformImage(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMManagedDisk_update(t *testing.T) {
 	var d disk.Model
 
@@ -113,6 +132,36 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
 					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(disk.PremiumLRS)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
+	var d disk.Model
+
+	resourceName := "azurerm_managed_disk.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	preConfig := testAccAzureRMManagedDisk_encryption(ri, rs, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
+					resource.TestCheckResourceAttr(resourceName, "encryption_settings.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_settings.0.disk_encryption_key.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.disk_encryption_key.0.secret_url"),
+					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.disk_encryption_key.0.source_vault_id"),
+					resource.TestCheckResourceAttr(resourceName, "encryption_settings.0.key_encryption_key.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.key_encryption_key.0.key_url"),
+					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.key_encryption_key.0.source_vault_id"),
 				),
 			},
 		},
@@ -257,10 +306,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -368,4 +418,118 @@ resource "azurerm_managed_disk" "test" {
         cost-center = "ops"
     }
 }`, rInt, location, rInt)
+}
+
+func testAccAzureRMManagedDisk_platformImage(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_platform_image" "test" {
+  location  = "%s"
+  publisher = "Canonical"
+  offer     = "UbuntuServer"
+  sku       = "16.04-LTS"
+}
+
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_managed_disk" "test" {
+  name = "acctestd-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  os_type = "Linux"
+  create_option = "FromImage"
+  image_reference_id = "${data.azurerm_platform_image.test.id}"
+  storage_account_type = "Standard_LRS"
+}
+`, location, rInt, location, rInt)
+}
+
+func testAccAzureRMManagedDisk_encryption(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+
+    key_permissions = [
+      "create",
+      "delete",
+      "get",
+    ]
+
+    secret_permissions = [
+      "delete",
+      "get",
+      "set",
+    ]
+  }
+
+  enabled_for_disk_encryption = true
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name      = "secret-%s"
+  value     = "szechuan"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name      = "key-%s"
+  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  key_type  = "EC"
+  key_size  = 2048
+
+  key_opts = [
+    "sign",
+    "verify",
+  ]
+}
+
+resource "azurerm_managed_disk" "test" {
+    name = "acctestd-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    storage_account_type = "Standard_LRS"
+    create_option = "Empty"
+    disk_size_gb = "1"
+
+    encryption_settings {
+      enabled = true
+      disk_encryption_key {
+	    secret_url      = "${azurerm_key_vault_secret.test.id}"
+	    source_vault_id = "${azurerm_key_vault.test.id}"
+      }
+      key_encryption_key {
+        key_url         = "${azurerm_key_vault_key.test.id}"
+        source_vault_id = "${azurerm_key_vault.test.id}"
+      }
+    }
+
+    tags {
+        environment = "acctest"
+        cost-center = "ops"
+    }
+}
+`, rInt, location, rString, rString, rString, rInt)
 }

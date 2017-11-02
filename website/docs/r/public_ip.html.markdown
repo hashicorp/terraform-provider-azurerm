@@ -44,6 +44,8 @@ The following arguments are supported:
 
 * `public_ip_address_allocation` - (Required) Defines whether the IP address is stable or dynamic. Options are Static or Dynamic.
 
+~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).
+
 * `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the TCP idle connection. The value can be set between 4 and 30 minutes.
 
 * `domain_name_label` - (Optional) Label for the Domain Name. Will be used to make up the FQDN.  If a domain name label is specified, an A DNS record is created for the public IP in the Microsoft Azure DNS system.
@@ -58,6 +60,9 @@ The following attributes are exported:
 
 * `id` - The Public IP ID.
 * `ip_address` - The IP address value that was allocated.
+
+~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're attached to a device (e.g. a Virtual Machine/Load Balancer). Instead you can obtain the IP Address once the the Public IP has been assigned via the [`azurerm_public_ip` Data Source](../d/public_ip.html).
+
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. This is the concatenation of the domainNameLabel and the regionalized DNS zone
 
 
@@ -65,6 +70,6 @@ The following attributes are exported:
 
 Public IPs can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_public_ip.myPublicIp /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/myPublicIpAddress1
 ```

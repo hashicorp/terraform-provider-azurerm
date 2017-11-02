@@ -31,11 +31,7 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 
 			"location": deprecatedLocationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
 				Type:     schema.TypeString,

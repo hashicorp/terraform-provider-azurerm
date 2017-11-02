@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_machine_extension"
-sidebar_current: "docs-azurerm-resource-virtualmachine-extension"
+sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
     Creates a new Virtual Machine Extension to provide post deployment
     configuration and run automated tasks.
@@ -47,10 +47,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "accsa"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "westus"
-  account_type        = "Standard_LRS"
+  name                     = "accsa"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "westus"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
   tags {
     environment = "staging"
@@ -144,6 +145,11 @@ The following arguments are supported:
 * `type` - (Required) The type of extension, available types for a publisher can
     be found using the Azure CLI.
 
+~> **Note:** The `Publisher` and `Type` of Virtual Machine Extensions can be found using the Azure CLI, via:
+```shell
+$ az vm extension image list --location westus -o table
+```
+
 * `type_handler_version` - (Required) Specifies the version of the extension to
     use, available versions can be found using the Azure CLI.
 
@@ -166,6 +172,6 @@ The following attributes are exported:
 
 Virtual Machine Extensions can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_machine_extension.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/myVM/extensions/hostname
 ```

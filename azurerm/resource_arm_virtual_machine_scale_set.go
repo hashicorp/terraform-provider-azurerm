@@ -33,11 +33,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
 				Type:     schema.TypeSet,
@@ -177,7 +173,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							},
 						},
 						"additional_unattend_config": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -254,6 +250,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Required: true,
 						},
 
+						"accelerated_networking": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+
+						"network_security_group_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
 						"ip_configuration": {
 							Type:     schema.TypeList,
 							Required: true,
@@ -283,12 +289,61 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
 									},
+
+									"primary": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"public_ip_address_configuration": {
+										Type:     schema.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"name": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+
+												"idle_timeout": {
+													Type:         schema.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(4, 32),
+												},
+
+												"domain_name_label": {
+													Type:     schema.TypeString,
+													Required: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
 					},
 				},
 				Set: resourceArmVirtualMachineScaleSetNetworkConfigurationHash,
+			},
+
+			"boot_diagnostics": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"storage_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
 			},
 
 			"storage_profile_os_disk": {
@@ -567,6 +622,11 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		SinglePlacementGroup: &singlePlacementGroup,
 	}
 
+	if _, ok := d.GetOk("boot_diagnostics"); ok {
+		diagnosticProfile := expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d)
+		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
+	}
+
 	scaleSetParams := compute.VirtualMachineScaleSet{
 		Name:     &name,
 		Location: &location,
@@ -652,6 +712,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	if properties.VirtualMachineProfile.DiagnosticsProfile != nil {
+		if err := d.Set("boot_diagnostics", flattenAzureRmVirtualMachineScaleSetBootDiagnostics(properties.VirtualMachineProfile.DiagnosticsProfile.BootDiagnostics)); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting Virutal Machine Scale Set Boot Diagnostics: %#v", err)
+		}
+	}
+
 	if properties.VirtualMachineProfile.OsProfile.WindowsConfiguration != nil {
 		if err := d.Set("os_profile_windows_config", flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(properties.VirtualMachineProfile.OsProfile.WindowsConfiguration)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Windows config error: %#v", err)
@@ -660,7 +726,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	if properties.VirtualMachineProfile.OsProfile.LinuxConfiguration != nil {
 		if err := d.Set("os_profile_linux_config", flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(properties.VirtualMachineProfile.OsProfile.LinuxConfiguration)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Windows config error: %#v", err)
+			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Linux config error: %#v", err)
 		}
 	}
 
@@ -776,7 +842,10 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(config *compute.
 			c["pass"] = i.PassName
 			c["component"] = i.ComponentName
 			c["setting_name"] = i.SettingName
-			c["content"] = *i.Content
+
+			if i.Content != nil {
+				c["content"] = *i.Content
+			}
 
 			content = append(content, c)
 		}
@@ -815,6 +884,15 @@ func flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets *[]compute.Vau
 	return result
 }
 
+func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute.BootDiagnostics) []interface{} {
+	b := map[string]interface{}{
+		"enabled":     *bootDiagnostic.Enabled,
+		"storage_uri": *bootDiagnostic.StorageURI,
+	}
+
+	return []interface{}{b}
+}
+
 func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.VirtualMachineScaleSetNetworkProfile) []map[string]interface{} {
 	networkConfigurations := profile.NetworkInterfaceConfigurations
 	result := make([]map[string]interface{}, 0, len(*networkConfigurations))
@@ -822,6 +900,14 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 		s := map[string]interface{}{
 			"name":    *netConfig.Name,
 			"primary": *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.Primary,
+		}
+
+		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.EnableAcceleratedNetworking; v != nil {
+			s["accelerated_networking"] = *v
+		}
+
+		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.NetworkSecurityGroup; v != nil {
+			s["network_security_group_id"] = *v.ID
 		}
 
 		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations != nil {
@@ -850,6 +936,20 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 						inboundNatPools = append(inboundNatPools, *rule.ID)
 					}
 					config["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, inboundNatPools)
+				}
+
+				if properties.Primary != nil {
+					config["primary"] = *properties.Primary
+				}
+
+				if properties.PublicIPAddressConfiguration != nil {
+					publicIpInfo := properties.PublicIPAddressConfiguration
+					publicIpConfigs := make([]map[string]interface{}, 0, 1)
+					publicIpConfig := make(map[string]interface{})
+					publicIpConfig["name"] = *publicIpInfo.Name
+					publicIpConfig["domain_name_label"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.DNSSettings
+					publicIpConfig["idle_timeout"] = *publicIpInfo.VirtualMachineScaleSetPublicIPAddressConfigurationProperties.IdleTimeoutInMinutes
+					config["public_ip_address_configuration"] = publicIpConfigs
 				}
 
 				ipConfigs = append(ipConfigs, config)
@@ -1125,6 +1225,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 
 		name := config["name"].(string)
 		primary := config["primary"].(bool)
+		acceleratedNetworking := config["accelerated_networking"].(bool)
 
 		ipConfigurationConfigs := config["ip_configuration"].([]interface{})
 		ipConfigurations := make([]compute.VirtualMachineScaleSetIPConfiguration, 0, len(ipConfigurationConfigs))
@@ -1166,15 +1267,53 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 				ipConfiguration.LoadBalancerInboundNatPools = &rulesResources
 			}
 
+			if v := ipconfig["primary"]; v != nil {
+				primary := v.(bool)
+				ipConfiguration.Primary = &primary
+			}
+
+			if v := ipconfig["public_ip_address_configuration"]; v != nil {
+				publicIpConfigs := v.([]interface{})
+				for _, publicIpConfigConfig := range publicIpConfigs {
+					publicIpConfig := publicIpConfigConfig.(map[string]interface{})
+
+					domainNameLabel := publicIpConfig["domain_name_label"].(string)
+					dnsSettings := compute.VirtualMachineScaleSetPublicIPAddressConfigurationDNSSettings{
+						DomainNameLabel: &domainNameLabel,
+					}
+
+					idleTimeout := int32(publicIpConfig["idle_timeout"].(int))
+					prop := compute.VirtualMachineScaleSetPublicIPAddressConfigurationProperties{
+						DNSSettings:          &dnsSettings,
+						IdleTimeoutInMinutes: &idleTimeout,
+					}
+
+					publicIPConfigName := publicIpConfig["name"].(string)
+					config := compute.VirtualMachineScaleSetPublicIPAddressConfiguration{
+						Name: &publicIPConfigName,
+						VirtualMachineScaleSetPublicIPAddressConfigurationProperties: &prop,
+					}
+					ipConfiguration.PublicIPAddressConfiguration = &config
+				}
+			}
+
 			ipConfigurations = append(ipConfigurations, ipConfiguration)
 		}
 
 		nProfile := compute.VirtualMachineScaleSetNetworkConfiguration{
 			Name: &name,
 			VirtualMachineScaleSetNetworkConfigurationProperties: &compute.VirtualMachineScaleSetNetworkConfigurationProperties{
-				Primary:          &primary,
-				IPConfigurations: &ipConfigurations,
+				Primary:                     &primary,
+				IPConfigurations:            &ipConfigurations,
+				EnableAcceleratedNetworking: &acceleratedNetworking,
 			},
+		}
+
+		if v := config["network_security_group_id"].(string); v != "" {
+			networkSecurityGroupId := compute.SubResource{
+				ID: &v,
+			}
+			nProfile.VirtualMachineScaleSetNetworkConfigurationProperties.NetworkSecurityGroup = &networkSecurityGroupId
 		}
 
 		networkProfileConfig = append(networkProfileConfig, nProfile)
@@ -1234,6 +1373,25 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *schema.ResourceData) (*com
 	}
 
 	return osProfile, nil
+}
+
+func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceData) compute.DiagnosticsProfile {
+	bootDiagnosticConfigs := d.Get("boot_diagnostics").([]interface{})
+	bootDiagnosticConfig := bootDiagnosticConfigs[0].(map[string]interface{})
+
+	enabled := bootDiagnosticConfig["enabled"].(bool)
+	storageURI := bootDiagnosticConfig["storage_uri"].(string)
+
+	bootDiagnostic := &compute.BootDiagnostics{
+		Enabled:    &enabled,
+		StorageURI: &storageURI,
+	}
+
+	diagnosticsProfile := compute.DiagnosticsProfile{
+		BootDiagnostics: bootDiagnostic,
+	}
+
+	return diagnosticsProfile
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {
@@ -1442,7 +1600,7 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.Resourc
 		}
 	}
 	if v := osProfileConfig["additional_unattend_config"]; v != nil {
-		additionalConfig := v.(*schema.Set).List()
+		additionalConfig := v.([]interface{})
 		if len(additionalConfig) > 0 {
 			additionalConfigContent := make([]compute.AdditionalUnattendContent, 0, len(additionalConfig))
 			for _, addConfig := range additionalConfig {
@@ -1456,7 +1614,10 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *schema.Resourc
 					PassName:      compute.PassNames(pass),
 					ComponentName: compute.ComponentNames(component),
 					SettingName:   compute.SettingNames(settingName),
-					Content:       &content,
+				}
+
+				if content != "" {
+					addContent.Content = &content
 				}
 
 				additionalConfigContent = append(additionalConfigContent, addContent)

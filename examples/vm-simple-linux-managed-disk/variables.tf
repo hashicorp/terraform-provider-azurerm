@@ -35,9 +35,14 @@ variable "subnet_prefix" {
   default     = "10.0.10.0/24"
 }
 
-variable "storage_account_type" {
-  description = "Defines the type of storage account to be created. Valid options are Standard_LRS, Standard_ZRS, Standard_GRS, Standard_RAGRS, Premium_LRS. Changing this is sometimes valid - see the Azure documentation for more information on which types of accounts can be converted into other types."
-  default     = "Standard_LRS"
+variable "storage_account_tier" {
+  description = "Defines the Tier of storage account to be created. Valid options are Standard and Premium."
+  default     = "Standard"
+}
+
+variable "storage_replication_type" {
+  description = "Defines the Replication Type to use for this storage account. Valid options include LRS, GRS etc."
+  default     = "LRS"
 }
 
 variable "vm_size" {

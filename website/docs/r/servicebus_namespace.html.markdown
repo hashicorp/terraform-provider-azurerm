@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
 
-* `capacity` - (Optional) Specifies the capacity of a premium namespace. Can be 1, 2 or 4
+* `capacity` - (Optional) Specifies the capacity of a Premium namespace. Can be 1, 2 or 4.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -71,6 +71,6 @@ The following attributes are exported only if there is an authorization rule nam
 
 Service Bus Namespace can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_namespace.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1
 ```

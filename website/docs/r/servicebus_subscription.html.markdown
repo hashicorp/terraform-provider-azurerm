@@ -80,10 +80,6 @@ The following arguments are supported:
 * `lock_duration` - (Optional) The lock duration for the subscription, maximum
     supported value is 5 minutes. Defaults to 1 minute.
 
-* `dead_lettering_on_filter_evaluation_exceptions` - (Optional) Boolean flag which
-    controls whether the Subscription has dead letter support on Filter evaluation
-    exceptions. Defaults to false.
-
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls
     whether the Subscription has dead letter support when a message expires. Defaults
     to false.
@@ -110,6 +106,6 @@ The following attributes are exported:
 
 Service Bus Subscriptions can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_subscription.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
 ```

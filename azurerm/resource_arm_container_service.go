@@ -33,11 +33,7 @@ func resourceArmContainerService() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"orchestration_platform": {
 				Type:         schema.TypeString,
@@ -212,7 +208,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 			MasterProfile: &masterProfile,
 			LinuxProfile:  &linuxProfile,
 			OrchestratorProfile: &containerservice.OrchestratorProfile{
-				OrchestratorType: containerservice.OchestratorTypes(orchestrationPlatform),
+				OrchestratorType: containerservice.OrchestratorTypes(orchestrationPlatform),
 			},
 			AgentPoolProfiles:  &agentProfiles,
 			DiagnosticsProfile: &diagnosticsProfile,

@@ -39,13 +39,9 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
-			"location": locationSchema(),
+			"location": deprecatedLocationSchema(),
 
 			"listen": {
 				Type:     schema.TypeBool,
@@ -93,7 +89,6 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Authorization Rule creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -103,10 +98,9 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 		return err
 	}
 
-	parameters := eventhub.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
-		Name:     &name,
-		Location: &location,
-		SharedAccessAuthorizationRuleProperties: &eventhub.SharedAccessAuthorizationRuleProperties{
+	parameters := eventhub.AuthorizationRule{
+		Name: &name,
+		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
 			Rights: rights,
 		},
 	}
@@ -157,7 +151,6 @@ func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta inter
 	}
 
 	d.Set("name", name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("eventhub_name", eventHubName)
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
@@ -221,7 +214,7 @@ func expandEventHubAuthorizationRuleAccessRights(d *schema.ResourceData) (*[]eve
 	return &rights, nil
 }
 
-func flattenEventHubAuthorizationRuleAccessRights(d *schema.ResourceData, resp eventhub.SharedAccessAuthorizationRuleResource) {
+func flattenEventHubAuthorizationRuleAccessRights(d *schema.ResourceData, resp eventhub.AuthorizationRule) {
 
 	var canListen = false
 	var canSend = false

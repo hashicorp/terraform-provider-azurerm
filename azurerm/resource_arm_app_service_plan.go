@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,13 +27,21 @@ func resourceArmAppServicePlan() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
+
+			"kind": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "Windows",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Linux",
+					"Windows",
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -96,6 +105,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
+	kind := d.Get("kind").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
@@ -104,6 +114,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
 		AppServicePlanProperties: properties,
+		Kind: &kind,
 		Tags: expandTags(tags),
 		Sku:  &sku,
 	}
@@ -153,6 +164,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	d.Set("kind", resp.Kind)
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		d.Set("properties", flattenAppServiceProperties(props))

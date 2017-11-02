@@ -29,11 +29,7 @@ func resourceArmImage() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"source_virtual_machine_id": {
 				Type:     schema.TypeString,
@@ -47,7 +43,6 @@ func resourceArmImage() *schema.Resource {
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-
 						"os_type": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -86,9 +81,9 @@ func resourceArmImage() *schema.Resource {
 							Optional: true,
 							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.None),
-								string(compute.ReadOnly),
-								string(compute.ReadWrite),
+								string(compute.CachingTypesNone),
+								string(compute.CachingTypesReadOnly),
+								string(compute.CachingTypesReadWrite),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -108,7 +103,7 @@ func resourceArmImage() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 
-						"lun": &schema.Schema{
+						"lun": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
@@ -130,9 +125,9 @@ func resourceArmImage() *schema.Resource {
 							Optional: true,
 							Default:  string(compute.None),
 							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.None),
-								string(compute.ReadOnly),
-								string(compute.ReadWrite),
+								string(compute.CachingTypesNone),
+								string(compute.CachingTypesReadOnly),
+								string(compute.CachingTypesReadWrite),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -246,24 +241,26 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on AzureRM Image %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on AzureRM Image %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", resp.Location)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	//either source VM or storage profile can be specified, but not both
 	if resp.SourceVirtualMachine != nil {
 		d.Set("source_virtual_machine_id", resp.SourceVirtualMachine.ID)
 	} else if resp.StorageProfile != nil {
-		if err := d.Set("os_disk", flattenAzureRmStorageProfileOsDisk(d, resp.StorageProfile)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %#v", err)
+		if disk := resp.StorageProfile.OsDisk; disk != nil {
+			if err := d.Set("os_disk", flattenAzureRmImageOSDisk(d, disk)); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %+v", err)
+			}
 		}
 
-		if resp.StorageProfile.DataDisks != nil {
-			if err := d.Set("data_disk", flattenAzureRmStorageProfileDataDisks(d, resp.StorageProfile)); err != nil {
-				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %#v", err)
+		if disks := resp.StorageProfile.DataDisks; disks != nil {
+			if err := d.Set("data_disk", flattenAzureRmImageDataDisks(d, disks)); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}
 	}
@@ -292,42 +289,49 @@ func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func flattenAzureRmStorageProfileOsDisk(d *schema.ResourceData, storageProfile *compute.ImageStorageProfile) []interface{} {
+func flattenAzureRmImageOSDisk(d *schema.ResourceData, osDisk *compute.ImageOSDisk) []interface{} {
 	result := make(map[string]interface{})
-	if storageProfile.OsDisk != nil {
-		osDisk := *storageProfile.OsDisk
-		result["os_type"] = osDisk.OsType
-		result["os_state"] = osDisk.OsState
-		if osDisk.ManagedDisk != nil {
-			result["managed_disk_id"] = *osDisk.ManagedDisk.ID
+
+	if disk := osDisk; disk != nil {
+		if osDisk.BlobURI != nil {
+			result["blob_uri"] = *osDisk.BlobURI
 		}
-		result["blob_uri"] = *osDisk.BlobURI
-		result["caching"] = string(osDisk.Caching)
 		if osDisk.DiskSizeGB != nil {
 			result["size_gb"] = *osDisk.DiskSizeGB
 		}
+		if osDisk.ManagedDisk != nil {
+			result["managed_disk_id"] = *osDisk.ManagedDisk.ID
+		}
+		result["caching"] = string(osDisk.Caching)
+		result["os_type"] = osDisk.OsType
+		result["os_state"] = osDisk.OsState
 	}
 
 	return []interface{}{result}
 }
 
-func flattenAzureRmStorageProfileDataDisks(d *schema.ResourceData, storageProfile *compute.ImageStorageProfile) []interface{} {
-	disks := storageProfile.DataDisks
-	result := make([]interface{}, len(*disks))
-	for i, disk := range *disks {
-		l := make(map[string]interface{})
-		if disk.ManagedDisk != nil {
-			l["managed_disk_id"] = *disk.ManagedDisk.ID
-		}
-		l["blob_uri"] = disk.BlobURI
-		l["caching"] = string(disk.Caching)
-		if disk.DiskSizeGB != nil {
-			l["size_gb"] = *disk.DiskSizeGB
-		}
-		l["lun"] = *disk.Lun
+func flattenAzureRmImageDataDisks(d *schema.ResourceData, diskImages *[]compute.ImageDataDisk) []interface{} {
+	result := make([]interface{}, 0)
 
-		result[i] = l
+	if images := diskImages; images != nil {
+		for i, disk := range *images {
+			l := make(map[string]interface{})
+			if disk.BlobURI != nil {
+				l["blob_uri"] = *disk.BlobURI
+			}
+			l["caching"] = string(disk.Caching)
+			if disk.DiskSizeGB != nil {
+				l["size_gb"] = *disk.DiskSizeGB
+			}
+			l["lun"] = *disk.Lun
+			if disk.ManagedDisk != nil {
+				l["managed_disk_id"] = *disk.ManagedDisk.ID
+			}
+
+			result[i] = l
+		}
 	}
+
 	return result
 }
 

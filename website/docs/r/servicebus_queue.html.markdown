@@ -12,7 +12,7 @@ Create and manage a ServiceBus Queue.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
   name     = "resourceGroup1"
   location = "West US"
@@ -66,9 +66,6 @@ The following arguments are supported:
 * `duplicate_detection_history_time_window` - (Optional) The duration during which
     duplicates can be detected. Default value is 10 minutes. Provided in the [TimeSpan](#timespan-format) format.
 
-* `enable_batched_operations` - (Optional) Boolean flag which controls if server-side
-    batched operations are enabled. Defaults to `false`.
-
 * `enable_express` - (Optional) Boolean flag which controls whether Express Entities
     are enabled. An express queue holds a message in memory temporarily before writing
     it to persistent storage. Defaults to `false` for Basic and Standard. For Premium, it MUST
@@ -91,9 +88,6 @@ The following arguments are supported:
     the Queue requires duplicate detection. Changing this forces
     a new resource to be created. Defaults to `false`.
 
-* `support_ordering` - (Optional) Boolean flag which controls whether the Queue
-    supports ordering. Defaults to `false`.
-
 ### TimeSpan Format
 
 Some arguments for this resource are required in the TimeSpan format which is
@@ -109,6 +103,6 @@ The following attributes are exported:
 
 Service Bus Queue can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_queue.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/queues/snqueue1
 ```

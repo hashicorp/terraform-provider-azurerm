@@ -32,11 +32,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"profile_name": {
 				Type:     schema.TypeString,
@@ -81,13 +77,13 @@ func resourceArmCdnEndpoint() *schema.Resource {
 						"http_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  80,
 						},
 
 						"https_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  443,
 						},
 					},
 				},

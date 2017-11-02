@@ -19,11 +19,11 @@ resource "azurerm_resource_group" "testrg" {
 }
 
 resource "azurerm_storage_account" "testsa" {
-  name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
-
-  location     = "westus"
-  account_type = "Standard_GRS"
+  name                     = "storageaccountname"
+  resource_group_name      = "${azurerm_resource_group.testrg.name}"
+  location                 = "westus"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
 
   tags {
     environment = "staging"
@@ -49,11 +49,9 @@ The following arguments are supported:
     and `BlobStorage`. Changing this forces a new resource to be created. Defaults
     to `Storage`.
 
-* `account_type` - (Required) Defines the type of storage account to be
-    created. Valid options are `Standard_LRS`, `Standard_ZRS`, `Standard_GRS`,
-    `Standard_RAGRS`, `Premium_LRS`. Changing this is sometimes valid - see the Azure
-    documentation for more information on which types of accounts can be converted
-    into other types.
+* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
+
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS` and `ZRS`.
 
 * `access_tier` - (Required for `BlobStorage` accounts) Defines the access tier
     for `BlobStorage` accounts. Valid options are `Hot` and `Cold`, defaults to
@@ -63,13 +61,27 @@ The following arguments are supported:
     Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
     for more information.
 
-* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here] (https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
+* `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption
+    Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
     for more information.
+
+* `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
+    for more information.
+
+* `account_encryption_source` - (Optional) The Encryption Source for this Storage Account. Possible values are `Microsoft.Keyvault` and `Microsoft.Storage`. Defaults to `Microsoft.Storage`.
+
+* `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-Note that although the Azure API supports setting custom domain names for
-storage accounts, this is not currently supported.
+---
+
+* `custom_domain` supports the following:
+
+* `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
+* `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
+
+~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
 ## Attributes Reference
 
@@ -94,6 +106,6 @@ The following attributes are exported in addition to the arguments listed above:
 
 Storage Accounts can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_storage_account.storageAcc1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
 ```

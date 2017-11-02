@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_database"
-sidebar_current: "docs-azurerm-resource-sql-database"
+sidebar_current: "docs-azurerm-resource-database-sql-database"
 description: |-
   Create a SQL Database.
 ---
@@ -75,7 +75,6 @@ The following attributes are exported:
 
 SQL Databases can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_sql_database.database1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/databases/database1
 ```
-

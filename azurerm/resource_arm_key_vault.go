@@ -5,10 +5,16 @@ import (
 	"log"
 	"regexp"
 
+	"time"
+
+	"net"
+
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
+	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/satori/uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +32,8 @@ func resourceArmKeyVault() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		MigrateState:  resourceAzureRMKeyVaultMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -37,14 +45,10 @@ func resourceArmKeyVault() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -88,13 +92,39 @@ func resourceArmKeyVault() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validateUUID,
 						},
+						"application_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateUUID,
+						},
+						"certificate_permissions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(keyvault.Create),
+									string(keyvault.Delete),
+									string(keyvault.Deleteissuers),
+									string(keyvault.Get),
+									string(keyvault.Getissuers),
+									string(keyvault.Import),
+									string(keyvault.List),
+									string(keyvault.Listissuers),
+									string(keyvault.Managecontacts),
+									string(keyvault.Manageissuers),
+									string(keyvault.Setissuers),
+									string(keyvault.Update),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							},
+						},
 						"key_permissions": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.KeyPermissionsAll),
 									string(keyvault.KeyPermissionsBackup),
 									string(keyvault.KeyPermissionsCreate),
 									string(keyvault.KeyPermissionsDecrypt),
@@ -103,13 +133,16 @@ func resourceArmKeyVault() *schema.Resource {
 									string(keyvault.KeyPermissionsGet),
 									string(keyvault.KeyPermissionsImport),
 									string(keyvault.KeyPermissionsList),
+									string(keyvault.KeyPermissionsPurge),
+									string(keyvault.KeyPermissionsRecover),
 									string(keyvault.KeyPermissionsRestore),
 									string(keyvault.KeyPermissionsSign),
 									string(keyvault.KeyPermissionsUnwrapKey),
 									string(keyvault.KeyPermissionsUpdate),
 									string(keyvault.KeyPermissionsVerify),
 									string(keyvault.KeyPermissionsWrapKey),
-								}, false),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							},
 						},
 						"secret_permissions": {
@@ -118,12 +151,16 @@ func resourceArmKeyVault() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.SecretPermissionsAll),
+									string(keyvault.SecretPermissionsBackup),
 									string(keyvault.SecretPermissionsDelete),
 									string(keyvault.SecretPermissionsGet),
 									string(keyvault.SecretPermissionsList),
+									string(keyvault.SecretPermissionsPurge),
+									string(keyvault.SecretPermissionsRecover),
+									string(keyvault.SecretPermissionsRestore),
 									string(keyvault.SecretPermissionsSet),
-								}, false),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							},
 						},
 					},
@@ -191,6 +228,17 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*read.ID)
 
+	if d.IsNewResource() {
+		if props := read.Properties; props != nil {
+			if vault := props.VaultURI; vault != nil {
+				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return resourceArmKeyVaultRead(d, meta)
 }
 
@@ -245,7 +293,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
-	skuSets := d.Get("sku").(*schema.Set).List()
+	skuSets := d.Get("sku").([]interface{})
 	sku := skuSets[0].(map[string]interface{})
 
 	return &keyvault.Sku{
@@ -261,6 +309,12 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 	for _, policySet := range policies {
 		policyRaw := policySet.(map[string]interface{})
 
+		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]interface{})
+		certificatePermissions := []keyvault.CertificatePermissions{}
+		for _, permission := range certificatePermissionsRaw {
+			certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
+		}
+
 		keyPermissionsRaw := policyRaw["key_permissions"].([]interface{})
 		keyPermissions := []keyvault.KeyPermissions{}
 		for _, permission := range keyPermissionsRaw {
@@ -275,8 +329,9 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 
 		policy := keyvault.AccessPolicyEntry{
 			Permissions: &keyvault.Permissions{
-				Keys:    &keyPermissions,
-				Secrets: &secretPermissions,
+				Certificates: &certificatePermissions,
+				Keys:         &keyPermissions,
+				Secrets:      &secretPermissions,
 			},
 		}
 
@@ -284,6 +339,11 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 		policy.TenantID = &tenantUUID
 		objectUUID := policyRaw["object_id"].(string)
 		policy.ObjectID = &objectUUID
+
+		if v := policyRaw["application_id"]; v != "" {
+			applicationUUID := uuid.FromStringOrNil(v.(string))
+			policy.ApplicationID = &applicationUUID
+		}
 
 		result = append(result, policy)
 	}
@@ -317,8 +377,19 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 
 		policyRaw["tenant_id"] = policy.TenantID.String()
 		policyRaw["object_id"] = *policy.ObjectID
+		if policy.ApplicationID != nil {
+			policyRaw["application_id"] = policy.ApplicationID.String()
+		}
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
+
+		if policy.Permissions.Certificates != nil {
+			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
+			for _, certificatePermission := range *policy.Permissions.Certificates {
+				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+			}
+			policyRaw["certificate_permissions"] = certificatePermissionsRaw
+		}
 
 		result = append(result, policyRaw)
 	}
@@ -333,4 +404,21 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 	}
 
 	return
+}
+
+func checkKeyVaultDNSIsAvailable(vaultUri string) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		uri, err := url.Parse(vaultUri)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", uri.Host))
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+
+		_ = conn.Close()
+		return nil
+	}
 }
