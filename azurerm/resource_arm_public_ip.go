@@ -225,7 +225,7 @@ func validatePublicIpDomainNameLabel(v interface{}, k string) (ws []string, erro
 	value := v.(string)
 	if !regexp.MustCompile(`^[a-z0-9-]+$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"only alphanumeric characters and hyphens allowed in %q: %q",
+			"only lowercase alphanumeric characters and hyphens allowed in %q: %q",
 			k, value))
 	}
 
