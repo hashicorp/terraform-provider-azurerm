@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
@@ -191,12 +190,10 @@ func withRequestLogging() autorest.SendDecorator {
 
 func setUserAgent(client *autorest.Client) {
 	version := terraform.VersionString()
-	azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT")
 	client.UserAgent = fmt.Sprintf("HashiCorp-Terraform-v%s", version)
 
-	if azureAgent != "" {
-		s := []string{client.UserAgent, azureAgent}
-		client.UserAgent = strings.Join(s, ";")
+	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
 	}
 
 	log.Printf("[DEBUG] User Agent: %s", client.UserAgent)
