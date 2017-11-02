@@ -2,16 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -20,10 +21,10 @@ func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_basic(ri),
+				Config: testAccAzureRMApplicationGateway_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
-					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
 				),
 			},
 		},
@@ -31,6 +32,7 @@ func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -39,18 +41,18 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_basic(ri),
+				Config: testAccAzureRMApplicationGateway_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
-					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
 				),
 				Destroy: false,
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_basic_changeSslCert(ri),
+				Config: testAccAzureRMApplicationGateway_basic_changeSslCert(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
-					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-2"),
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-2"),
 				),
 			},
 		},
@@ -58,6 +60,7 @@ func TestAccAzureRMApplicationGateway_basic_changeSslCert(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -66,11 +69,11 @@ func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_basic_authCert(ri),
+				Config: testAccAzureRMApplicationGateway_basic_authCert(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
-					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
-					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned("azurerm_application_gateway.test", "auth-1"),
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
+					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(resourceName, "auth-1"),
 				),
 			},
 		},
@@ -78,6 +81,7 @@ func TestAccAzureRMApplicationGateway_basic_authCert(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -86,20 +90,20 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_basic_authCert(ri),
+				Config: testAccAzureRMApplicationGateway_basic_authCert(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
-					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
-					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned("azurerm_application_gateway.test", "auth-1"),
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
+					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(resourceName, "auth-1"),
 				),
 				Destroy: false,
 			},
 			{
-				Config: testAccAzureRMApplicationGateway_basic_changeAuthCert(ri),
+				Config: testAccAzureRMApplicationGateway_basic_changeAuthCert(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
-					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
-					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned("azurerm_application_gateway.test", "auth-2"),
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
+					testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(resourceName, "auth-2"),
 				),
 			},
 		},
@@ -107,6 +111,7 @@ func TestAccAzureRMApplicationGateway_basic_changeAuthCert(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
+	resourceName := "azurerm_application_gateway.test"
 	ri := acctest.RandInt()
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -120,11 +125,11 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_waf(ri),
+				Config: testAccAzureRMApplicationGateway_waf(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationGatewayExists("azurerm_application_gateway.test"),
-					testCheckAzureRMApplicationGatewaySslCertificateAssigned("azurerm_application_gateway.test", "ssl-1"),
-					resource.TestCheckResourceAttr("azurerm_application_gateway.test", "id", gwID),
+					testCheckAzureRMApplicationGatewayExists(resourceName),
+					testCheckAzureRMApplicationGatewaySslCertificateAssigned(resourceName, "ssl-1"),
+					resource.TestCheckResourceAttr(resourceName, "id", gwID),
 				),
 			},
 		},
@@ -135,20 +140,20 @@ func testCheckAzureRMApplicationGatewayExists(name string) resource.TestCheckFun
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %q", name)
 		}
 
 		ApplicationGatewayName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %s", ApplicationGatewayName)
+			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %q", ApplicationGatewayName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
 
 		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
 			}
 
@@ -169,14 +174,14 @@ func testCheckAzureRMApplicationGatewaySslCertificateAssigned(name string, certN
 		ApplicationGatewayName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %s", ApplicationGatewayName)
+			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %q", ApplicationGatewayName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
 
 		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
 			}
 
@@ -192,7 +197,7 @@ func testCheckAzureRMApplicationGatewaySslCertificateAssigned(name string, certN
 		}
 
 		if certId == nil {
-			return fmt.Errorf("Bad: SSL certificate not found: %s", certName)
+			return fmt.Errorf("Bad: SSL certificate not found: %q", certName)
 		}
 
 		for _, listener := range *resp.HTTPListeners {
@@ -215,14 +220,14 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 		ApplicationGatewayName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %s", ApplicationGatewayName)
+			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %q", ApplicationGatewayName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
 
 		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
 			}
 
@@ -238,7 +243,7 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 		}
 
 		if certId == nil {
-			return fmt.Errorf("Bad: Authentication certificate not found: %s", certName)
+			return fmt.Errorf("Bad: Authentication certificate not found: %q", certName)
 		}
 
 		for _, backendHttpSettings := range *resp.BackendHTTPSettingsCollection {
@@ -251,7 +256,7 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 			}
 		}
 
-		return fmt.Errorf("Bad: Authentication certificate not assigned: %s", certName)
+		return fmt.Errorf("Bad: Authentication certificate not assigned: %q", certName)
 	}
 }
 
@@ -269,22 +274,22 @@ func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
-			return nil
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("App Gateway still exists:\n%#v", resp.ApplicationGatewayPropertiesFormat)
-		}
+		return fmt.Errorf("App Gateway still exists:\n%#v", resp.ApplicationGatewayPropertiesFormat)
 	}
 
 	return nil
 }
 
-func testAccAzureRMApplicationGateway_basic(rInt int) string {
+func testAccAzureRMApplicationGateway_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
-  location = "West US 2"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -460,14 +465,14 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMApplicationGateway_basic_changeSslCert(rInt int) string {
+func testAccAzureRMApplicationGateway_basic_changeSslCert(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
-  location = "West US 2"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -643,14 +648,14 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMApplicationGateway_basic_authCert(rInt int) string {
+func testAccAzureRMApplicationGateway_basic_authCert(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
-  location = "West US 2"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -844,14 +849,14 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMApplicationGateway_basic_changeAuthCert(rInt int) string {
+func testAccAzureRMApplicationGateway_basic_changeAuthCert(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
-  location = "West US 2"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -1045,14 +1050,14 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMApplicationGateway_waf(rInt int) string {
+func testAccAzureRMApplicationGateway_waf(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
-  location = "West US 2"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -1235,5 +1240,5 @@ resource "azurerm_application_gateway" "test" {
     environment = "tf01"
   }
 }
-`, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
