@@ -18,7 +18,10 @@ func dataSourceArmVnet() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
 
 			"address_spaces": {
 				Type:     schema.TypeList,
@@ -45,14 +48,8 @@ func dataSourceArmVnet() *schema.Resource {
 			},
 
 			"vnet_peerings": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeMap,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeList,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
-				},
 			},
 		},
 	}
@@ -116,11 +113,15 @@ func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
 	return subnets
 }
 
-func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) []interface{} {
-	vnetpeerings := make([]interface{}, 0)
+func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]interface{} {
+	output := make(map[string]interface{}, 0)
 
 	for _, vnetpeering := range *input {
-		vnetpeerings = append(vnetpeerings, []string{*vnetpeering.Name, *vnetpeering.RemoteVirtualNetwork.ID})
+		key := *vnetpeering.Name
+		value := *vnetpeering.RemoteVirtualNetwork.ID
+
+		output[key] = value
+
 	}
-	return vnetpeerings
+	return output
 }

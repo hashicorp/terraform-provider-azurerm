@@ -33,11 +33,10 @@ func TestAccDataSourceAzureRMVnet_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMVnet_peering(t *testing.T) {
-	firstDataSourceName := "data.azurerm_vnet.test"
+	dataSourceName := "data.azurerm_vnet.test"
 	ri := acctest.RandInt()
 
 	name_vnet_1 := fmt.Sprintf("acctestvnet-1-%d", ri)
-	//name_peer := fmt.Sprintf("acctestpeer-1-%d", ri)
 	config := testAccDataSourceAzureRMVnet_peering(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -47,10 +46,9 @@ func TestAccDataSourceAzureRMVnet_peering(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(firstDataSourceName, "name", name_vnet_1),
-					resource.TestCheckResourceAttr(firstDataSourceName, "address_spaces.0", "10.0.1.0/24"),
-					resource.TestCheckResourceAttr(firstDataSourceName, "vnet_peerings.#", "1"),
-					//resource.TestCheckResourceAttr(firstDataSourceName, "vnet_peerings.0.0", "peer-1to2"),
+					resource.TestCheckResourceAttr(dataSourceName, "name", name_vnet_1),
+					resource.TestCheckResourceAttr(dataSourceName, "address_spaces.0", "10.0.1.0/24"),
+					resource.TestCheckResourceAttr(dataSourceName, "vnet_peerings.%", "1"),
 				),
 			},
 		},
