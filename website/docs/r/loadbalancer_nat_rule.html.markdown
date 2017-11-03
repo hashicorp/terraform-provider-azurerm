@@ -41,7 +41,7 @@ resource "azurerm_lb" "test" {
 resource "azurerm_lb_nat_rule" "test" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "RDP Access"
+  name                           = "RDPAccess"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
