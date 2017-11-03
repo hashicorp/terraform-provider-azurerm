@@ -14,6 +14,14 @@ Manages an App Service (within an App Service Plan).
 ## Example Usage (.net 4.x)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "some-resource-group"
   location = "West Europe"
@@ -31,7 +39,7 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_app_service" "test" {
-  name                = "my-app-service"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
@@ -55,6 +63,14 @@ resource "azurerm_app_service" "test" {
 ## Example Usage (Java 1.8)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "some-resource-group"
   location = "West Europe"
@@ -72,7 +88,7 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_app_service" "test" {
-  name                = "my-app-service"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
