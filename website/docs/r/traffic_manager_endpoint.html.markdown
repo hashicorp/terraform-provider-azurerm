@@ -13,10 +13,15 @@ Creates a Traffic Manager Endpoint.
 ## Example Usage
 
 ```hcl
+
+resource "azurerm_resource_group" "test" {
+  name     = "trafficmanagerendpointTest"
+  location = "West US"
+}
+
 resource "azurerm_traffic_manager_profile" "test" {
   name                = "profile1"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "West US"
 
   traffic_routing_method = "Weighted"
 
