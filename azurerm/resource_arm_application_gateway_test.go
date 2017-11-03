@@ -457,7 +457,7 @@ resource "azurerm_application_gateway" "test" {
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
-    data     = "${file("resource_arm_application_gateway_test.pfx")}"
+    data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
   }
 
@@ -640,7 +640,7 @@ resource "azurerm_application_gateway" "test" {
   ssl_certificate {
     # id = computed
     name     = "ssl-2"
-    data     = "${file("resource_arm_application_gateway_test.pfx")}"
+    data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
   }
 
@@ -835,13 +835,13 @@ resource "azurerm_application_gateway" "test" {
 
   authentication_certificate {
     name = "auth-1"
-    data = "${file("resource_arm_application_gateway_test.cer")}"
+    data = "${file("testdata/application_gateway_test.cer")}"
   }
 
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
-    data     = "${file("resource_arm_application_gateway_test.pfx")}"
+    data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
   }
 
@@ -1036,13 +1036,13 @@ resource "azurerm_application_gateway" "test" {
 
   authentication_certificate {
     name = "auth-2"
-    data = "${file("resource_arm_application_gateway_test.cer")}"
+    data = "${file("testdata/application_gateway_test.cer")}"
   }
 
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
-    data     = "${file("resource_arm_application_gateway_test.pfx")}"
+    data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
   }
 
@@ -1232,7 +1232,7 @@ resource "azurerm_application_gateway" "test" {
   ssl_certificate {
     # id = computed
     name     = "ssl-1"
-    data     = "${file("resource_arm_application_gateway_test.pfx")}"
+    data     = "${file("testdata/application_gateway_test.pfx")}"
     password = "terraform"
   }
 
