@@ -14,15 +14,23 @@ Create an Application Insights component.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
+  name     = "tf-test"
   location = "West Europe"
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "api-appinsights-pro"
+  name                = "tf-test-appinsights"
   location            = "West Europe"
   resource_group_name = "${azurerm_resource_group.test.name}"
   application_type    = "Web"
+}
+
+output "instrumentation_key" {
+  value = "${azurerm_application_insights.test.instrumentation_key}"
+}
+
+output "app_id" {
+  value = "${azurerm_application_insights.test.app_id}"
 }
 ```
 
