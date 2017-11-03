@@ -226,10 +226,18 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []interface{} {
 			sgRule["name"] = *rule.Name
 
 			if props := rule.SecurityRulePropertiesFormat; props != nil {
-				sgRule["destination_address_prefix"] = *props.DestinationAddressPrefix
-				sgRule["destination_port_range"] = *props.DestinationPortRange
-				sgRule["source_address_prefix"] = *props.SourceAddressPrefix
-				sgRule["source_port_range"] = *props.SourcePortRange
+				if props.DestinationAddressPrefix != nil {
+					sgRule["destination_address_prefix"] = *props.DestinationAddressPrefix
+				}
+				if props.DestinationPortRange != nil {
+					sgRule["destination_port_range"] = *props.DestinationPortRange
+				}
+				if props.SourceAddressPrefix != nil {
+					sgRule["source_address_prefix"] = *props.SourceAddressPrefix
+				}
+				if props.SourcePortRange != nil {
+					sgRule["source_port_range"] = *props.SourcePortRange
+				}
 				sgRule["priority"] = int(*props.Priority)
 				sgRule["access"] = string(props.Access)
 				sgRule["direction"] = string(props.Direction)
