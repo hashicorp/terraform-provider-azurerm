@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_profile" "test" {
-  name                = "acceptanceTestCdnProfile1"
+  name                = "exampleCdnProfile"
   location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Verizon"
