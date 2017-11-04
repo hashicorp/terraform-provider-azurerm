@@ -13,13 +13,21 @@ Creates a new Redis Cache Resource
 ## Example Usage (Basic)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "test"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 0
@@ -36,13 +44,21 @@ resource "azurerm_redis_cache" "test" {
 ## Example Usage (Standard)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "test"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 2
@@ -59,13 +75,21 @@ resource "azurerm_redis_cache" "test" {
 ## Example Usage (Premium with Clustering)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "clustered-test"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 1
