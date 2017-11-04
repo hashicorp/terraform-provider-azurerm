@@ -21,8 +21,15 @@ resource "azurerm_resource_group" "test" {
   location = "West US"
 }
 
+resource "random_id" "server" {
+  keepers = {
+    ami_id = 1
+  }
+  byte_length = 8
+}
+
 resource "azurerm_key_vault" "test" {
-  name                = "my-key-vault"
+  name                = "${format("%s%s", "kv", random_id.server.hex)}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
@@ -41,8 +48,9 @@ resource "azurerm_key_vault" "test" {
     ]
 
     secret_permissions = [
-      "create",
       "set",
+      "get",
+      "delete",
     ]
   }
 
