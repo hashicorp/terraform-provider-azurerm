@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
@@ -190,6 +191,13 @@ func withRequestLogging() autorest.SendDecorator {
 func setUserAgent(client *autorest.Client) {
 	version := terraform.VersionString()
 	client.UserAgent = fmt.Sprintf("HashiCorp-Terraform-v%s", version)
+
+	// append the CloudShell version to the user agent
+	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
+	}
+
+	log.Printf("[DEBUG] User Agent: %s", client.UserAgent)
 }
 
 func (c *Config) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
