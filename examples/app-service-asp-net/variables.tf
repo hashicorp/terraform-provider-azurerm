@@ -1,4 +1,4 @@
-variable "groupName" {
+variable "resource_group_name" {
   type    = "string"
   default = "yourGroupName"
 }
@@ -8,27 +8,11 @@ variable "location" {
   default = "westeurope"
 }
 
-variable "webName" {
+variable "app_service_name" {
   type = "string"
 
   # will create -> mySite123456.azurewebsites.net  #should be unique
   # default = "mySite123456"  
-}
-
-variable "subscription_id" {
-  type = "string"
-}
-
-variable "client_id" {
-  type = "string"
-}
-
-variable "client_secret" {
-  type = "string"
-}
-
-variable "tenant_id" {
-  type = "string"
 }
 
 variable "deploy_user" {
