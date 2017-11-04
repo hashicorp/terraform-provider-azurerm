@@ -1,13 +1,14 @@
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  subscription_id = "${var.subscription_id}"
-  client_id       = "${var.client_id}"
-  client_secret   = "${var.client_secret}"
-  tenant_id       = "${var.tenant_id}"
+  # if you're using a Service Principal (shared account) then either set the environment variables, or fill these in:
+  # subscription_id = "..."
+  # client_id       = "..."
+  # client_secret   = "..."
+  # tenant_id       = "..."
 }
 
 resource "azurerm_resource_group" "g1" {
-  name     = "{$var.groupName}"
+  name     = "${var.resource_group_name}"
   location = "${var.location}"
 }
 
@@ -25,7 +26,7 @@ resource "azurerm_app_service_plan" "plan0" {
 # underscores not supported as app_service name -> if not: you will receive error 400
 
 resource "azurerm_app_service" "common_service" {
-  name                = "${var.webName}"
+  name                = "${var.app_service_name}"
   location            = "${var.location}"
   resource_group_name = "${azurerm_resource_group.g1.name}"
   app_service_plan_id = "${azurerm_app_service_plan.plan0.id}"
@@ -56,10 +57,10 @@ output "service" {
   value = "${azurerm_app_service.common_service.name}"
 }
 
-output "serviceUrl" {
+output "service_url" {
   value = "https://${azurerm_app_service.common_service.name}.azurewebsites.net"
 }
 
-output "adminUrl" {
+output "admin_url" {
   value = "https://${azurerm_app_service.common_service.name}.scm.azurewebsites.net"
 }
