@@ -192,6 +192,7 @@ func setUserAgent(client *autorest.Client) {
 	version := terraform.VersionString()
 	client.UserAgent = fmt.Sprintf("HashiCorp-Terraform-v%s", version)
 
+	// append the CloudShell version to the user agent
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
 		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
 	}
