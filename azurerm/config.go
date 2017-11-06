@@ -121,7 +121,8 @@ type ArmClient struct {
 
 	deploymentsClient resources.DeploymentsClient
 
-	redisClient redis.GroupClient
+	redisClient         redis.GroupClient
+	redisFirewallClient redis.FirewallRuleClient
 
 	trafficManagerProfilesClient  trafficmanager.ProfilesClient
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
@@ -579,12 +580,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	tmec.Sender = sender
 	client.trafficManagerEndpointsClient = tmec
 
-	rdc := redis.NewGroupClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&rdc.Client)
-	rdc.Authorizer = auth
-	rdc.Sender = sender
-	client.redisClient = rdc
-
 	sesc := search.NewServicesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sesc.Client)
 	sesc.Authorizer = auth
@@ -661,6 +656,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
+	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
 }
@@ -788,6 +784,20 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	keyVaultManagementClient.Authorizer = keyVaultAuth
 	keyVaultManagementClient.Sender = sender
 	c.keyVaultManagementClient = keyVaultManagementClient
+}
+
+func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	rdc := redis.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&rdc.Client)
+	rdc.Authorizer = auth
+	rdc.Sender = sender
+	c.redisClient = rdc
+
+	rdfc := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&rdfc.Client)
+	rdfc.Authorizer = auth
+	rdfc.Sender = sender
+	c.redisFirewallClient = rdfc
 }
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
