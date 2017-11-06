@@ -1,5 +1,9 @@
 ## 0.3.3 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_redis_firewall_rule` [GH-529]
+
 IMPROVEMENTS:
 
 * core: appending the CloudShell version to the user agent when running within CloudShell [GH-483]
