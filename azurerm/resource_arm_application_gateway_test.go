@@ -274,9 +274,11 @@ func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 		resp, err := conn.Get(resourceGroup, name)
 
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return err
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
 			}
+
+			return err
 		}
 
 		return fmt.Errorf("App Gateway still exists:\n%#v", resp.ApplicationGatewayPropertiesFormat)
