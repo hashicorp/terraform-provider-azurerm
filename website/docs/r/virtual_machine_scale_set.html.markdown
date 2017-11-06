@@ -402,7 +402,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 	name = "test"
   ...
 
-	storage_image_reference {
+	storage_profile_image_reference {
 		id = "${azurerm_image.test.id}"
 	}
 
