@@ -140,6 +140,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_postgresql_server":           resourceArmPostgreSQLServer(),
 			"azurerm_public_ip":                   resourceArmPublicIp(),
 			"azurerm_redis_cache":                 resourceArmRedisCache(),
+			"azurerm_redis_firewall_rule":         resourceArmRedisFirewallRule(),
 			"azurerm_resource_group":              resourceArmResourceGroup(),
 			"azurerm_role_assignment":             resourceArmRoleAssignment(),
 			"azurerm_role_definition":             resourceArmRoleDefinition(),
