@@ -11,7 +11,7 @@ func TestAzureRMApplicationGateway_importBasic(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMApplicationGateway_basic(ri)
+	config := testAccAzureRMApplicationGateway_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
