@@ -19,8 +19,8 @@ data "azurerm_public_ip" "datasourceip" {
     resource_group_name = "name_of_resource_group"
 }
 
-output "public_ip_address_id" {
-    domain_name_label = "${data.azurerm_public_ip.datasourceip.id}"
+output "domain_name_label" {
+  value = "${data.azurerm_public_ip.datasourceip.domain_name_label}"
 }
 
 output "public_ip_address" {
