@@ -123,6 +123,24 @@ func resourceArmRedisCache() *schema.Resource {
 				},
 			},
 
+			"patch_schedule": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day_of_week": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+						"start_hour_utc": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -170,6 +188,11 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
+	patchSchedule, err := expandRedisPatchSchedule(d)
+	if err != nil {
+		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
+	}
+
 	parameters := redis.CreateParameters{
 		Name:     &name,
 		Location: &location,
@@ -191,7 +214,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	_, error := client.Create(resGroup, name, parameters, make(chan struct{}))
-	err := <-error
+	err = <-error
 	if err != nil {
 		return err
 	}
@@ -217,6 +240,15 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(*read.ID)
+
+	// TODO: this _may_ need an `if premium` check
+	if schedule := patchSchedule; schedule != nil {
+		patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+		_, err = patchClient.CreateOrUpdate(resGroup, name, *schedule)
+		if err != nil {
+			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
+		}
+	}
 
 	return resourceArmRedisCacheRead(d, meta)
 }
@@ -288,6 +320,25 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*read.ID)
 
+	// TODO: this _may_ need an `if premium` check
+	patchSchedule, err := expandRedisPatchSchedule(d)
+	if err != nil {
+		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
+	}
+
+	patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
+		_, err = patchClient.Delete(resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error deleting Redis Patch Schedule: %+v", err)
+		}
+	} else {
+		_, err = patchClient.CreateOrUpdate(resGroup, name, *patchSchedule)
+		if err != nil {
+			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
+		}
+	}
+
 	return resourceArmRedisCacheRead(d, meta)
 }
 
@@ -318,6 +369,16 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making ListKeys request on Azure Redis Cache %s: %s", name, err)
 	}
 
+	patchSchedulesClient := meta.(*ArmClient).redisPatchSchedulesClient
+
+	schedule, err := patchSchedulesClient.Get(resGroup, name)
+	if err == nil {
+		patchSchedule := flattenRedisPatchSchedules(schedule)
+		if err := d.Set("patch_schedule", patchSchedule); err != nil {
+			return fmt.Errorf("Error setting `patch_schedule`: %+v", err)
+		}
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
@@ -325,9 +386,12 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("hostname", resp.HostName)
 	d.Set("port", resp.Port)
 	d.Set("enable_non_ssl_port", resp.EnableNonSslPort)
-	d.Set("capacity", resp.Sku.Capacity)
-	d.Set("family", resp.Sku.Family)
-	d.Set("sku_name", resp.Sku.Name)
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("capacity", sku.Capacity)
+		d.Set("family", sku.Family)
+		d.Set("sku_name", sku.Name)
+	}
 
 	if resp.ShardCount != nil {
 		d.Set("shard_count", resp.ShardCount)
@@ -426,6 +490,34 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 	return &output
 }
 
+func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, error) {
+	v, ok := d.GetOk("patch_schedule")
+	if !ok {
+		return nil, nil
+	}
+
+	scheduleValues := v.([]interface{})
+	entries := make([]redis.ScheduleEntry, 0)
+	for _, scheduleValue := range scheduleValues {
+		vals := scheduleValue.(map[string]interface{})
+		dayOfWeek := vals["day_of_week"].(string)
+		startHourUtc := vals["start_hour_utc"].(int)
+
+		entry := redis.ScheduleEntry{
+			DayOfWeek:    redis.DayOfWeek(dayOfWeek),
+			StartHourUtc: utils.Int32(int32(startHourUtc)),
+		}
+		entries = append(entries, entry)
+	}
+
+	schedule := redis.PatchSchedule{
+		ScheduleEntries: &redis.ScheduleEntries{
+			ScheduleEntries: &entries,
+		},
+	}
+	return &schedule, nil
+}
+
 func flattenRedisConfiguration(configuration *map[string]*string) map[string]*string {
 	redisConfiguration := make(map[string]*string, len(*configuration))
 	config := *configuration
@@ -441,6 +533,21 @@ func flattenRedisConfiguration(configuration *map[string]*string) map[string]*st
 	redisConfiguration["rdb_storage_connection_string"] = config["rdb-storage-connection-string"]
 
 	return redisConfiguration
+}
+
+func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {
+	outputs := make([]interface{}, 0)
+
+	for _, entry := range *schedule.ScheduleEntries.ScheduleEntries {
+		output := make(map[string]interface{}, 0)
+
+		output["day_of_week"] = string(entry.DayOfWeek)
+		output["start_hour_utc"] = int(*entry.StartHourUtc)
+
+		outputs = append(outputs, output)
+	}
+
+	return outputs
 }
 
 func validateRedisFamily(v interface{}, k string) (ws []string, errors []error) {
