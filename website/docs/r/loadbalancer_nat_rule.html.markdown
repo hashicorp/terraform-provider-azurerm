@@ -60,6 +60,7 @@ The following arguments are supported:
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp` or `Tcp`.
 * `frontend_port` - (Required) The port for the external endpoint. Port numbers for each Rule must be unique within the Load Balancer. Possible values range between 1 and 65534, inclusive.
 * `backend_port` - (Required) The port used for internal connections on the endpoint. Possible values range between 1 and 65535, inclusive.
+* `enable_floating_ip` - (Optional) Enables the Floating IP Capacity, required to configure a SQL AlwaysOn Availability Group.
 
 ## Attributes Reference
 
