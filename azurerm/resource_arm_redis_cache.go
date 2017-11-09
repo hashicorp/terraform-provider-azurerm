@@ -251,7 +251,6 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*read.ID)
 
-	// TODO: this _may_ need an `if premium` check
 	if schedule := patchSchedule; schedule != nil {
 		patchClient := meta.(*ArmClient).redisPatchSchedulesClient
 		_, err = patchClient.CreateOrUpdate(resGroup, name, *schedule)
@@ -330,7 +329,6 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	d.SetId(*read.ID)
 
-	// TODO: this _may_ need an `if premium` check
 	patchSchedule, err := expandRedisPatchSchedule(d)
 	if err != nil {
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
