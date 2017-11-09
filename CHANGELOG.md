@@ -11,6 +11,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` / `azurerm_app_service_plan` - adding validation for the `name` fields [GH-528]
 * `azurerm_public_ip` - Clarify the error message for the validation of domain name label [GH-485]
 * `azurerm_network_security_group` - fixing a crash when changes were made outside of Terraform [GH-492]
+* `azurerm_redis_cache`: support for Patch Schedules [GH-540]
 * `azurerm_virtual_machine` - ensuring `vhd_uri` is validated [GH-470]
 * `azurerm_virtual_machine_scale_set`: fixing a crash where accelerated networking isn't returned by the API [GH-480]
 
