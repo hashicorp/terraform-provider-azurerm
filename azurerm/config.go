@@ -121,8 +121,9 @@ type ArmClient struct {
 
 	deploymentsClient resources.DeploymentsClient
 
-	redisClient         redis.GroupClient
-	redisFirewallClient redis.FirewallRuleClient
+	redisClient               redis.GroupClient
+	redisFirewallClient       redis.FirewallRuleClient
+	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	trafficManagerProfilesClient  trafficmanager.ProfilesClient
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
@@ -787,17 +788,23 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	rdc := redis.NewGroupClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&rdc.Client)
-	rdc.Authorizer = auth
-	rdc.Sender = sender
-	c.redisClient = rdc
+	groupsClient := redis.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&groupsClient.Client)
+	groupsClient.Authorizer = auth
+	groupsClient.Sender = sender
+	c.redisClient = groupsClient
 
-	rdfc := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&rdfc.Client)
-	rdfc.Authorizer = auth
-	rdfc.Sender = sender
-	c.redisFirewallClient = rdfc
+	firewallRuleClient := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&firewallRuleClient.Client)
+	firewallRuleClient.Authorizer = auth
+	firewallRuleClient.Sender = sender
+	c.redisFirewallClient = firewallRuleClient
+
+	patchSchedulesClient := redis.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&patchSchedulesClient.Client)
+	patchSchedulesClient.Authorizer = auth
+	patchSchedulesClient.Sender = sender
+	c.redisPatchSchedulesClient = patchSchedulesClient
 }
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
