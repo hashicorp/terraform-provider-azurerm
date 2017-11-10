@@ -28,7 +28,7 @@ func testSweepResourceGroups(region string) error {
 	client := (*armClient).resourceGroupClient
 
 	log.Printf("Retrieving the Resource Groups..")
-	results, err := client.List("", nil)
+	results, err := client.List("", utils.Int32(int32(1000)))
 	if err != nil {
 		return fmt.Errorf("Error Listing on Resource Groups: %+v", err)
 	}
@@ -46,12 +46,12 @@ func testSweepResourceGroups(region string) error {
 		name := resourceId.ResourceGroup
 
 		log.Printf("Deleting Resource Group %q", name)
-		deleteResponse, error := client.Delete(name, make(chan struct{}))
-		err = <-error
+		deleteResponse, deleteErr := client.Delete(name, make(chan struct{}))
 		resp := <-deleteResponse
+		err = <-deleteErr
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
-				return nil
+				continue
 			}
 
 			return err
