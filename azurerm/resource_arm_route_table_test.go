@@ -52,7 +52,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
-	updatedConfig := testAccAzureRMRouteTable_basic(ri, testLocation())
+	updatedConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -283,6 +283,22 @@ resource "azurerm_route_table" "test" {
 		address_prefix = "10.1.0.0/16"
 		next_hop_type = "vnetlocal"
     }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_singleRouteRemoved(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+    name = "acctestrt%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+	route = []
 }
 `, rInt, location, rInt)
 }

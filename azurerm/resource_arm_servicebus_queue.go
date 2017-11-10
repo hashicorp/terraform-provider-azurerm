@@ -236,7 +236,12 @@ func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) 
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["queues"]
 
-	_, err = client.Delete(resGroup, namespaceName, name)
+	resp, err := client.Delete(resGroup, namespaceName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return err
+		}
+	}
 
-	return err
+	return nil
 }
