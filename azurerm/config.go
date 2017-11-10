@@ -198,8 +198,6 @@ func setUserAgent(client *autorest.Client) {
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
 		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
 	}
-
-	log.Printf("[DEBUG] User Agent: %s", client.UserAgent)
 }
 
 func (c *Config) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
