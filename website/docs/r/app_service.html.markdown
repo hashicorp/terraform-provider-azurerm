@@ -154,6 +154,9 @@ The following arguments are supported:
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
 * `use_32_bit_worker_process` - (Optional) Should the App Service run in 32 bit mode, rather than 64 bit mode?
+
+~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 ## Attributes Reference
