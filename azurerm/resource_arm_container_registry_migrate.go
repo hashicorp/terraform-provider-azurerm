@@ -75,8 +75,13 @@ func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{
 	}
 
 	inputAccounts := result.Value.([]interface{})
-	inputAccount := inputAccounts[0].(map[string]interface{})
-	name := inputAccount["name"].(string)
+	inputAccount := inputAccounts[0]
+	if inputAccount == nil {
+		return nil
+	}
+
+	account := inputAccount.(map[string]interface{})
+	name := account["name"].(string)
 	storageAccountId, err := findAzureStorageAccountIdFromName(name, meta)
 	if err != nil {
 		return err
