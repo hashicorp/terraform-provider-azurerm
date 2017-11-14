@@ -17,7 +17,7 @@ func TestAccAzureRMEventHubNamespaceCapacity_validation(t *testing.T) {
 		ErrCount int
 	}{
 		{
-			Value:    17,
+			Value:    21,
 			ErrCount: 1,
 		},
 		{
@@ -35,6 +35,10 @@ func TestAccAzureRMEventHubNamespaceCapacity_validation(t *testing.T) {
 		{
 			Value:    4,
 			ErrCount: 0,
+		},
+		{
+			Value:    0,
+			ErrCount: 1,
 		},
 	}
 
