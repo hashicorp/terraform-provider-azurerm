@@ -198,14 +198,10 @@ func validateEventHubNamespaceSku(v interface{}, k string) (ws []string, errors 
 
 func validateEventHubNamespaceCapacity(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(int)
-	capacities := map[int]bool{
-		1: true,
-		2: true,
-		4: true,
-	}
+	maxCapacity := 20
 
-	if !capacities[value] {
-		errors = append(errors, fmt.Errorf("EventHub Namespace Capacity can only be 1, 2 or 4"))
+	if value > maxCapacity || value < 1 {
+		errors = append(errors, fmt.Errorf("EventHub Namespace Capacity must be 20 or fewer Throughput Units for Basic or Standard SKU"))
 	}
 	return
 }
