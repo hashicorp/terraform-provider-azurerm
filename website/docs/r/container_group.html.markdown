@@ -22,7 +22,8 @@ resource "azurerm_storage_account" "aci-sa" {
   name                = "acistorageacct"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   location            = "${azurerm_resource_group.aci-rg.location}"
-  account_type        = "Standard_LRS"
+  account_tier        = "Standard"
+  account_replicatoin_type = "LRS"
 }
 
 resource "azurerm_storage_share" "aci-share" {
@@ -47,13 +48,13 @@ resource "azurerm_container_group" "aci-helloworld" {
     cpu ="0.5"
     memory =  "1.5"
     port = "80"
-    
+
     environment_variables {
         "NODE_ENV"="testing"
     }
 
     command = "/bin/bash -c '/path to/myscript.sh'"
-    
+
     volume {
       name = "logs"
       mount_path = "/aci/logs"
@@ -63,7 +64,7 @@ resource "azurerm_container_group" "aci-helloworld" {
       storage_account_key = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
   }
-  
+
   container {
     name   = "sidecar"
     image  = "microsoft/aci-tutorial-sidecar"
