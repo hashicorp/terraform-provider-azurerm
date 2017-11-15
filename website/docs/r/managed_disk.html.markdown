@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `source_resource_id` - (Optional) ID of an existing managed disk to copy when `create_option` is `Copy`.
 
-* `image_reference_id` - (Optional) ID of an existing platform disk image to copy when `create_option` is `FromImage`.
+* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
 
 * `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy`
     operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`
