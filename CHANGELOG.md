@@ -1,4 +1,9 @@
-## 0.3.4 (Unreleased)
+## 1.0.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_eventhub_namespace`: capacity can now be configured up to 20 [GH-556]
+
 ## 0.3.3 (November 14, 2017)
 
 FEATURES:
