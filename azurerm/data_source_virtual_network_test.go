@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceAzureRMVnet_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_vnet.test"
+func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
+	dataSourceName := "data.azurerm_virtual_network.test"
 	ri := acctest.RandInt()
 
 	name := fmt.Sprintf("acctestvnet-%d", ri)
-	config := testAccDataSourceAzureRMVnet_basic(ri, testLocation())
+	config := testAccDataSourceArmVirtualNetwork_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -32,12 +32,12 @@ func TestAccDataSourceAzureRMVnet_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMVnet_peering(t *testing.T) {
-	dataSourceName := "data.azurerm_vnet.test"
+func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
+	dataSourceName := "data.azurerm_virtual_network.test"
 	ri := acctest.RandInt()
 
 	name_vnet_1 := fmt.Sprintf("acctestvnet-1-%d", ri)
-	config := testAccDataSourceAzureRMVnet_peering(ri, testLocation())
+	config := testAccDataSourceArmVirtualNetwork_peering(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -55,7 +55,7 @@ func TestAccDataSourceAzureRMVnet_peering(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMVnet_basic(rInt int, location string) string {
+func testAccDataSourceArmVirtualNetwork_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "test" {
 			name     = "acctest%d-rg"
@@ -75,7 +75,7 @@ func testAccDataSourceAzureRMVnet_basic(rInt int, location string) string {
 			}
 		  }
 
-		  data "azurerm_vnet" "test" {
+		  data "azurerm_virtual_network" "test" {
 			  resource_group_name = "${azurerm_resource_group.test.name}"
 			  name = "${azurerm_virtual_network.test.name}"
 		  }
@@ -83,7 +83,7 @@ func testAccDataSourceAzureRMVnet_basic(rInt int, location string) string {
 	`, rInt, location, rInt)
 }
 
-func testAccDataSourceAzureRMVnet_peering(rInt int, location string) string {
+func testAccDataSourceArmVirtualNetwork_peering(rInt int, location string) string {
 	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "test" {
 			name     = "acctest%d-rg"
@@ -111,7 +111,7 @@ func testAccDataSourceAzureRMVnet_peering(rInt int, location string) string {
 			remote_virtual_network_id 	= "${azurerm_virtual_network.test2.id}"
 		  }
 
-		  data "azurerm_vnet" "test" {
+		  data "azurerm_virtual_network" "test" {
 			  resource_group_name = "${azurerm_resource_group.test.name}"
 			  name = "${azurerm_virtual_network.test1.name}"
 		  }

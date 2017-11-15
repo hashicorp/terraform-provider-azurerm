@@ -2,14 +2,13 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
-	//"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmVnet() *schema.Resource {
+func dataSourceArmVirtualNetwork() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmVnetRead,
 		Schema: map[string]*schema.Schema{
@@ -63,10 +62,10 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	resp, err := vnetClient.Get(resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error making Read request on Azure virtual network %s: %+v", name, err)
 		}
-		return fmt.Errorf("Error making Read request on Azure virtual network %s: %s", name, err)
+		return err
 	}
 
 	d.SetId(*resp.ID)
@@ -98,8 +97,10 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 func flattenVnetAddressPrefixes(input *[]string) []interface{} {
 	prefixes := make([]interface{}, 0)
 
-	for _, prefix := range *input {
-		prefixes = append(prefixes, prefix)
+	if myprefixes := input; myprefixes != nil {
+		for _, prefix := range *myprefixes {
+			prefixes = append(prefixes, prefix)
+		}
 	}
 	return prefixes
 }
@@ -107,8 +108,10 @@ func flattenVnetAddressPrefixes(input *[]string) []interface{} {
 func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
 	subnets := make([]interface{}, 0)
 
-	for _, subnet := range *input {
-		subnets = append(subnets, *subnet.Name)
+	if mysubnets := input; mysubnets != nil {
+		for _, subnet := range *mysubnets {
+			subnets = append(subnets, *subnet.Name)
+		}
 	}
 	return subnets
 }
@@ -116,12 +119,14 @@ func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
 func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]interface{} {
 	output := make(map[string]interface{}, 0)
 
-	for _, vnetpeering := range *input {
-		key := *vnetpeering.Name
-		value := *vnetpeering.RemoteVirtualNetwork.ID
+	if peerings := input; peerings != nil {
+		for _, vnetpeering := range *peerings {
+			key := *vnetpeering.Name
+			value := *vnetpeering.RemoteVirtualNetwork.ID
 
-		output[key] = value
+			output[key] = value
 
+		}
 	}
 	return output
 }
