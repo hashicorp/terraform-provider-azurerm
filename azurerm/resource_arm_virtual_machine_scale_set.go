@@ -80,7 +80,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"os_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -102,14 +102,13 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 
 						"custom_data": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							ForceNew:  true,
-							StateFunc: userDataStateFunc,
+							Type:             schema.TypeString,
+							Optional:         true,
+							StateFunc:        userDataStateFunc,
+							DiffSuppressFunc: userDataDiffSuppressFunc,
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetsOsProfileHash,
 			},
 
 			"os_profile_secrets": {
@@ -697,7 +696,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	d.Set("overprovision", properties.Overprovision)
 	d.Set("single_placement_group", properties.SinglePlacementGroup)
 
-	osProfile, err := flattenAzureRMVirtualMachineScaleSetOsProfile(properties.VirtualMachineProfile.OsProfile)
+	osProfile, err := flattenAzureRMVirtualMachineScaleSetOsProfile(d, properties.VirtualMachineProfile.OsProfile)
 	if err != nil {
 		return fmt.Errorf("[DEBUG] Error flattening Virtual Machine Scale Set OS Profile. Error: %#v", err)
 	}
@@ -964,14 +963,27 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 	return result
 }
 
-func flattenAzureRMVirtualMachineScaleSetOsProfile(profile *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
+func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
 	result := make(map[string]interface{})
 
 	result["computer_name_prefix"] = *profile.ComputerNamePrefix
 	result["admin_username"] = *profile.AdminUsername
 
+	// admin password isn't returned, so let's look it up
+	if v, ok := d.GetOk("os_profile.0.admin_password"); ok {
+		password := v.(string)
+		result["admin_password"] = password
+	}
+
 	if profile.CustomData != nil {
 		result["custom_data"] = *profile.CustomData
+	} else {
+		// look up the current custom data
+		value := d.Get("os_profile.0.custom_data").(string)
+		if !isBase64Encoded(value) {
+			value = base64Encode(value)
+		}
+		result["custom_data"] = value
 	}
 
 	return []interface{}{result}, nil
@@ -1146,21 +1158,6 @@ func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) in
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetsOsProfileHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["computer_name_prefix"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
-	if m["custom_data"] != nil {
-		customData := m["custom_data"].(string)
-		if !isBase64Encoded(customData) {
-			customData = base64Encode(customData)
-		}
-		buf.WriteString(fmt.Sprintf("%s-", customData))
-	}
-	return hashcode.String(buf.String())
-}
-
 func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
@@ -1325,7 +1322,7 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 }
 
 func expandAzureRMVirtualMachineScaleSetsOsProfile(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSProfile, error) {
-	osProfileConfigs := d.Get("os_profile").(*schema.Set).List()
+	osProfileConfigs := d.Get("os_profile").([]interface{})
 
 	osProfileConfig := osProfileConfigs[0].(map[string]interface{})
 	namePrefix := osProfileConfig["computer_name_prefix"].(string)
