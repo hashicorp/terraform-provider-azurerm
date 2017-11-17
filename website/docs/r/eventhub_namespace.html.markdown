@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acceptanceTestEventHubNamespace"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
   capacity            = 2
@@ -35,17 +35,19 @@ resource "azurerm_eventhub_namespace" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the EventHub Namespace resource . Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the EventHub Namespace resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Defines which tier to use. Options are Basic or Standard.
+* `sku` - (Required) Defines which tier to use. Valid options are `Basic` and `Standard`.
 
-* `capacity` - (Optional) Specifies the capacity of a Standard namespace. Can be 1, 2 or 4
+* `capacity` - (Optional) Specifies the Capacity / Throughput Units for a `Standard` SKU namespace. Valid values range from 1 - 20.
+
+* `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
+
+* `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from 1 - 20.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
