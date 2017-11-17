@@ -160,6 +160,9 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+
+	// Networking
+	watcherClient network.WatchersClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -655,9 +658,19 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
+	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	// TODO: move the other networking stuff in here, gradually
+	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&watchersClient.Client)
+	watchersClient.Authorizer = auth
+	watchersClient.Sender = sender
+	c.watcherClient = watchersClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
