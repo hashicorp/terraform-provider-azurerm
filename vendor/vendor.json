@@ -251,67 +251,67 @@
 			"versionExact": "v11.1.0-beta"
 		},
 		{
-			"checksumSHA1": "+4d+Y67AMKKuyR1EO33Zdt+RVx0=",
-			"comment": "v8.4.0",
+			"checksumSHA1": "tXSzwlsAPETo3wSlIX6o8GqGZLY=",
+			"comment": "v9.4.1",
 			"path": "github.com/Azure/go-autorest/autorest",
-			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
-			"revisionTime": "2017-09-13T23:19:17Z",
-			"version": "v8.4.0",
-			"versionExact": "v8.4.0"
+			"revision": "c67b24a8e30d876542a85022ebbdecf0e5a935e8",
+			"revisionTime": "2017-11-17T21:15:24Z",
+			"version": "v9.4.1",
+			"versionExact": "v9.4.1"
 		},
 		{
-			"checksumSHA1": "7G4HgRaIT25bgz/hPtXG6Kv8Fho=",
-			"comment": "v8.4.0",
+			"checksumSHA1": "Ktj3H1WpOqxnC9kdAA+F7Ol7/RQ=",
+			"comment": "v9.4.1",
 			"path": "github.com/Azure/go-autorest/autorest/adal",
-			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
-			"revisionTime": "2017-09-13T23:19:17Z",
-			"version": "v8.4.0",
-			"versionExact": "v8.4.0"
+			"revision": "c67b24a8e30d876542a85022ebbdecf0e5a935e8",
+			"revisionTime": "2017-11-17T21:15:24Z",
+			"version": "v9.4.1",
+			"versionExact": "v9.4.1"
 		},
 		{
-			"checksumSHA1": "2KdBFgT4qY+fMOkBTa5vA9V0AiM=",
-			"comment": "v8.4.0",
+			"checksumSHA1": "zXyLmDVpkYkIsL0yinNLoW82IZc=",
+			"comment": "v9.4.1",
 			"path": "github.com/Azure/go-autorest/autorest/azure",
-			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
-			"revisionTime": "2017-09-13T23:19:17Z",
-			"version": "v8.4.0",
-			"versionExact": "v8.4.0"
+			"revision": "c67b24a8e30d876542a85022ebbdecf0e5a935e8",
+			"revisionTime": "2017-11-17T21:15:24Z",
+			"version": "v9.4.1",
+			"versionExact": "v9.4.1"
 		},
 		{
-			"checksumSHA1": "apxw17Dm1naEXMbVDCRnEDkQDQ8=",
-			"comment": "v8.4.0",
+			"checksumSHA1": "+nXRwVB/JVEGe+oLsFhCmSkKPuI=",
+			"comment": "v9.4.1",
 			"path": "github.com/Azure/go-autorest/autorest/azure/cli",
-			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
-			"revisionTime": "2017-09-13T23:19:17Z",
-			"version": "v8.4.0",
-			"versionExact": "v8.4.0"
+			"revision": "c67b24a8e30d876542a85022ebbdecf0e5a935e8",
+			"revisionTime": "2017-11-17T21:15:24Z",
+			"version": "v9.4.1",
+			"versionExact": "v9.4.1"
 		},
 		{
-			"checksumSHA1": "LSF/pNrjhIxl6jiS6bKooBFCOxI=",
-			"comment": "v8.4.0",
+			"checksumSHA1": "9nXCi9qQsYjxCeajJKWttxgEt0I=",
+			"comment": "v9.4.1",
 			"path": "github.com/Azure/go-autorest/autorest/date",
-			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
-			"revisionTime": "2017-09-13T23:19:17Z",
-			"version": "v8.4.0",
-			"versionExact": "v8.4.0"
+			"revision": "c67b24a8e30d876542a85022ebbdecf0e5a935e8",
+			"revisionTime": "2017-11-17T21:15:24Z",
+			"version": "v9.4.1",
+			"versionExact": "v9.4.1"
 		},
 		{
-			"checksumSHA1": "Ev8qCsbFjDlMlX0N2tYAhYQFpUc=",
-			"comment": "v8.4.0",
+			"checksumSHA1": "SbBb2GcJNm5GjuPKGL2777QywR4=",
+			"comment": "v9.4.1",
 			"path": "github.com/Azure/go-autorest/autorest/to",
-			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
-			"revisionTime": "2017-09-13T23:19:17Z",
-			"version": "v8.4.0",
-			"versionExact": "v8.4.0"
+			"revision": "c67b24a8e30d876542a85022ebbdecf0e5a935e8",
+			"revisionTime": "2017-11-17T21:15:24Z",
+			"version": "v9.4.1",
+			"versionExact": "v9.4.1"
 		},
 		{
-			"checksumSHA1": "rGkTfIycpeix5TAbZS74ceGAPHI=",
-			"comment": "v8.4.0",
+			"checksumSHA1": "HfqZyKllcHQDvTwgCaYL1jUPmW0=",
+			"comment": "v9.4.1",
 			"path": "github.com/Azure/go-autorest/autorest/validation",
-			"revision": "f6be1abbb5abd0517522f850dd785990d373da7e",
-			"revisionTime": "2017-09-13T23:19:17Z",
-			"version": "v8.4.0",
-			"versionExact": "v8.4.0"
+			"revision": "c67b24a8e30d876542a85022ebbdecf0e5a935e8",
+			"revisionTime": "2017-11-17T21:15:24Z",
+			"version": "v9.4.1",
+			"versionExact": "v9.4.1"
 		},
 		{
 			"checksumSHA1": "FIL83loX9V9APvGQIjJpbxq53F0=",
