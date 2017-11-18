@@ -163,6 +163,14 @@
 			"versionExact": "v11.1.0-beta"
 		},
 		{
+			"checksumSHA1": "bhJG74moCO/VErpBcGNWg6P77ek=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/resources/locks",
+			"revision": "80f6cbcb1d6295ebb8fbeb5afab826a94aa67d11",
+			"revisionTime": "2017-10-06T17:43:09Z",
+			"version": "v11.1.0-beta",
+			"versionExact": "v11.1.0-beta"
+		},
+		{
 			"checksumSHA1": "v3sNtVRCd3dMI1nSb8E5+IFuKsg=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/resources/resources",
 			"revision": "80f6cbcb1d6295ebb8fbeb5afab826a94aa67d11",
