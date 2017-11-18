@@ -257,15 +257,19 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		return fmt.Errorf("Azure CLI Authorization Profile was not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
 	}
 
-	// pull out the TenantID and Subscription ID from the Azure Profile, if not set
-	if c.SubscriptionID == "" && c.TenantID == "" {
-		for _, subscription := range profile.Subscriptions {
-			if subscription.IsDefault {
+	// pull out the Subscription ID / Tenant ID / Environment from the Azure Profile, if not set
+	for _, subscription := range profile.Subscriptions {
+		if subscription.IsDefault {
+			if c.SubscriptionID == "" {
 				c.SubscriptionID = subscription.ID
-				c.TenantID = subscription.TenantID
-				c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
-				break
 			}
+			if c.TenantID == "" {
+				c.TenantID = subscription.TenantID
+			}
+			if c.Environment == "" {
+				c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
+			}
+			break
 		}
 	}
 
