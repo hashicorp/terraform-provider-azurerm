@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* New Resource: `azurerm_network_watcher` [GH-571]
+* **New Resource:** `azurerm_management_lock` [GH-575]
+* **New Resource:** `azurerm_network_watcher` [GH-571]
 
 IMPROVEMENTS:
 
