@@ -1,5 +1,9 @@
 ## 1.0.0 (Unreleased)
 
+FEATURES:
+
+* New Resource: `azurerm_network_watcher` [GH-571]
+
 IMPROVEMENTS:
 
 * authentication: add support for the latest Azure CLI configuration [GH-573]
