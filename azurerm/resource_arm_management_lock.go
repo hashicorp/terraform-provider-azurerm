@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"regexp"
+
 	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -22,12 +24,10 @@ func resourceArmManagementLock() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: validation
-				// The lock name can be a maximum of 260 characters.
-				// It cannot contain <, > %, &, :, \, ?, /, or any control characters.
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmManagementLockName,
 			},
 
 			"scope": {
@@ -145,6 +145,10 @@ type AzureManagementLockId struct {
 
 func parseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 	segments := strings.Split(id, "/providers/Microsoft.Authorization/locks/")
+	if len(segments) != 2 {
+		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.Authorization/locks/{name} - got %d segments", len(segments))
+	}
+
 	scope := segments[0]
 	name := segments[1]
 	lockId := AzureManagementLockId{
@@ -152,4 +156,14 @@ func parseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 		Name:  name,
 	}
 	return &lockId, nil
+}
+
+func validateArmManagementLockName(v interface{}, k string) (ws []string, es []error) {
+	input := v.(string)
+
+	if !regexp.MustCompile(`\A([A-Za-z0-9\-_]{1, 260})\z`).MatchString(input) {
+		es = append(es, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores - and must be a maxiumum of 260 characters", k))
+	}
+
+	return
 }
