@@ -28,6 +28,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
+	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
@@ -163,6 +164,9 @@ type ArmClient struct {
 
 	// Networking
 	watcherClient network.WatchersClient
+
+	// Resources
+	managementLocksClient locks.ManagementLocksClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -660,6 +664,7 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
 }
@@ -816,6 +821,14 @@ func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth a
 	patchSchedulesClient.Authorizer = auth
 	patchSchedulesClient.Sender = sender
 	c.redisPatchSchedulesClient = patchSchedulesClient
+}
+
+func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	locksClient := locks.NewManagementLocksClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&locksClient.Client)
+	locksClient.Authorizer = auth
+	locksClient.Sender = sender
+	c.managementLocksClient = locksClient
 }
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
