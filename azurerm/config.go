@@ -162,7 +162,7 @@ type ArmClient struct {
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
 
-  // Networking
+	// Networking
 	watcherClient network.WatchersClient
 
 	// Resources
