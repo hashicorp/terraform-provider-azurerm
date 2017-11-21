@@ -8,9 +8,9 @@ FEATURES:
 IMPROVEMENTS:
 
 * authentication: add support for the latest Azure CLI configuration [GH-573]
-* `azurerm_eventhub_namespace`: capacity can now be configured up to 20 [GH-556]
+* `azurerm_eventhub_namespace` - capacity can now be configured up to 20 [GH-556]
 * `azurerm_eventhub_namespace` - support for AutoInflating/MaximumThroughputCapacity [GH-569]
-* `azurerm_virtual_machine_scale_set`: Support for updating the customData field [GH-559]
+* `azurerm_virtual_machine_scale_set` - Support for updating the customData field [GH-559]
 
 ## 0.3.3 (November 14, 2017)
 
