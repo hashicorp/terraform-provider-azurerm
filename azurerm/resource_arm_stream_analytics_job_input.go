@@ -62,7 +62,7 @@ func streamAnalyticsInputSchema() *schema.Schema {
 								Type:     schema.TypeList,
 								MaxItems: 1,
 								Optional: true,
-								MinItems: 1,
+
 								ConflictsWith: []string{
 									"event_hub",
 									"iot_hub",
@@ -89,7 +89,27 @@ func streamAnalyticsInputSchema() *schema.Schema {
 											Type:     schema.TypeString,
 											Optional: true,
 										},
+										"time_format": &schema.Schema{
+											Type:     schema.TypeString,
+											Optional: true,
+										},
+										"source_partition_count": &schema.Schema{
+											Type:     schema.TypeInt,
+											Optional: true,
+										},
 									},
+								},
+							},
+							"event_hub": &schema.Schema{
+								Type:     schema.TypeList,
+								MaxItems: 1,
+								Optional: true,
+								ConflictsWith: []string{
+									"blob",
+									"iot_hub",
+								},
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{},
 								},
 							},
 						},
