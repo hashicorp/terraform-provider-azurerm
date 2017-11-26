@@ -57,6 +57,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Computed: true,
 			},
 			"inputs": streamAnalyticsInputSchema(),
+			"output": streamAnalyticsOutputSchema(),
 		},
 	}
 
