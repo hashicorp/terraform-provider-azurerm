@@ -70,7 +70,7 @@ func testAccDataSourceArmVirtualNetwork_basic(rInt int, location string) string 
 			dns_servers			= ["10.0.0.4"]
 
 			subnet {
-				name 			= "subnet1"
+				name            = "subnet1"
 				address_prefix	= "10.0.1.0/24"
 			}
 		  }
@@ -105,15 +105,15 @@ func testAccDataSourceArmVirtualNetwork_peering(rInt int, location string) strin
 		  }
 
 		  resource "azurerm_virtual_network_peering" "test1" {
-			name 						= "peer-1to2"
-			resource_group_name 		= "${azurerm_resource_group.test.name}"
-			virtual_network_name 		= "${azurerm_virtual_network.test1.name}"
-			remote_virtual_network_id 	= "${azurerm_virtual_network.test2.id}"
+			name                        = "peer-1to2"
+			resource_group_name         = "${azurerm_resource_group.test.name}"
+			virtual_network_name        = "${azurerm_virtual_network.test1.name}"
+			remote_virtual_network_id   = "${azurerm_virtual_network.test2.id}"
 		  }
 
 		  data "azurerm_virtual_network" "test" {
 			  resource_group_name = "${azurerm_resource_group.test.name}"
-			  name = "${azurerm_virtual_network.test1.name}"
+			  name                = "${azurerm_virtual_network.test1.name}"
 		  }
 	`, rInt, location, rInt, rInt)
 }
