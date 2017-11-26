@@ -109,7 +109,53 @@ func streamAnalyticsInputSchema() *schema.Schema {
 									"iot_hub",
 								},
 								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{},
+									Schema: map[string]*schema.Schema{
+										"namespace": &schema.Schema{
+											Type:     schema.TypeString,
+											Required: true,
+										},
+										"shared_access_policy_name": &schema.Schema{
+											Type:     schema.TypeString,
+											Required: true,
+										},
+										"shared_access_policy_key": &schema.Schema{
+											Type:     schema.TypeString,
+											Required: true,
+										},
+										"consumer_group_name": &schema.Schema{
+											Type:     schema.TypeString,
+											Optional: true,
+										},
+									},
+								},
+							},
+							"iot_hub": &schema.Schema{
+								Type:     schema.TypeList,
+								MaxItems: 1,
+								Optional: true,
+								ConflictsWith: []string{
+									"blob",
+									"event_hub",
+								},
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"namespace": &schema.Schema{
+											Type:     schema.TypeString,
+											Required: true,
+										},
+										"shared_access_policy_name": &schema.Schema{
+											Type:     schema.TypeString,
+											Required: true,
+										},
+										"shared_access_policy_key": &schema.Schema{
+											Type:     schema.TypeString,
+											Required: true,
+										},
+										"consumer_group_name": &schema.Schema{
+											Type:     schema.TypeString,
+											Optional: true,
+										},
+									},
 								},
 							},
 						},
