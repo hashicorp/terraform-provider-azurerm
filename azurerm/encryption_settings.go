@@ -68,9 +68,6 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *disk.
 	config := &disk.EncryptionSettings{
 		Enabled: utils.Bool(enabled),
 	}
-	if enabled == false {
-		return config
-	}
 
 	if v := settings["disk_encryption_key"].([]interface{}); len(v) > 0 {
 		dek := v[0].(map[string]interface{})

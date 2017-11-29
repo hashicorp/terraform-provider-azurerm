@@ -168,45 +168,6 @@ func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMManagedDisk_encryptionDisableEnable(t *testing.T) {
-	var d disk.Model
-
-	resourceName := "azurerm_managed_disk.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(4)
-	disabled := testAccAzureRMManagedDisk_encryptionDisabled(ri, rs, testLocation())
-	enabled := testAccAzureRMManagedDisk_encryption(ri, rs, testLocation())
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: disabled,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
-					resource.TestCheckResourceAttr(resourceName, "encryption_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "encryption_settings.0.enabled", "false"),
-				),
-			},
-			{
-				Config: enabled,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedDiskExists(resourceName, &d, true),
-					resource.TestCheckResourceAttr(resourceName, "encryption_settings.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "encryption_settings.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "encryption_settings.0.disk_encryption_key.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.disk_encryption_key.0.secret_url"),
-					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.disk_encryption_key.0.source_vault_id"),
-					resource.TestCheckResourceAttr(resourceName, "encryption_settings.0.key_encryption_key.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.key_encryption_key.0.key_url"),
-					resource.TestCheckResourceAttrSet(resourceName, "encryption_settings.0.key_encryption_key.0.source_vault_id"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 	var d disk.Model
 	ri := acctest.RandInt()
