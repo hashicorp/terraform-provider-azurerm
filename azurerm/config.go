@@ -198,9 +198,11 @@ func withRequestLogging() autorest.SendDecorator {
 }
 
 func setUserAgent(client *autorest.Client) {
-	// if the user agent already has a value append Terraform user agent string
-	if tfVersion := fmt.Sprintf("HashiCorp-Terraform-v%s", terraform.VersionString()); client.UserAgent != "" {
-		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, tfVersion)
+	tfVersion := fmt.Sprintf("HashiCorp-Terraform-v%s", terraform.VersionString())
+
+	// if the user agent already has a value append the Terraform user agent string
+	if curUserAgent := client.UserAgent; curUserAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s;%s", curUserAgent, tfVersion)
 	} else {
 		client.UserAgent = tfVersion
 	}
