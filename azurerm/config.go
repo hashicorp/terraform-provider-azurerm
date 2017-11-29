@@ -198,10 +198,14 @@ func withRequestLogging() autorest.SendDecorator {
 }
 
 func setUserAgent(client *autorest.Client) {
-	version := terraform.VersionString()
-	client.UserAgent = fmt.Sprintf("HashiCorp-Terraform-v%s", version)
+	// if the user agent already has a value append Terraform user agent string
+	if tfVersion := fmt.Sprintf("HashiCorp-Terraform-v%s", terraform.VersionString()); client.UserAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, tfVersion)
+	} else {
+		client.UserAgent = tfVersion
+	}
 
-	// append the CloudShell version to the user agent
+	// append the CloudShell version to the user agent if it exists
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
 		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
 	}
