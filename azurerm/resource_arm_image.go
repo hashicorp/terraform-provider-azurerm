@@ -314,7 +314,7 @@ func flattenAzureRmImageDataDisks(d *schema.ResourceData, diskImages *[]compute.
 	result := make([]interface{}, 0)
 
 	if images := diskImages; images != nil {
-		for i, disk := range *images {
+		for _, disk := range *images {
 			l := make(map[string]interface{})
 			if disk.BlobURI != nil {
 				l["blob_uri"] = *disk.BlobURI
@@ -328,7 +328,7 @@ func flattenAzureRmImageDataDisks(d *schema.ResourceData, diskImages *[]compute.
 				l["managed_disk_id"] = *disk.ManagedDisk.ID
 			}
 
-			result[i] = l
+			result = append(result, l)
 		}
 	}
 
