@@ -17,9 +17,14 @@ type AzTestT interface {
 	Parallel()
 }
 
-// Test is a helper to force the acceptance testing harness to run in the
-// normal unit test suite. This should only be used for resource that don't
-// have any external dependencies.
+// Test is a simple wrapper of Terraform's testing framework.
+//
+// It respects the all the use conventions defined by Terraform.
+//
+// If "TF_PARA" is set to some non-empty value, all the parallel test cases will
+// be run parallel.
+// example usage to run parallel acceptance tests with n threads:
+// TF_ACC=1 TF_PARA=1 go test [TEST] [TESTARGS] -v -parallel=n
 func Test(t AzTestT, c tftest.TestCase) {
 	if os.Getenv(ParaTestEnvVar) != "" {
 		t.Parallel()
