@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/utils/aztesting"
 )
 
 func TestValidateArmStorageAccountType(t *testing.T) {
@@ -58,7 +60,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, location)
 	postConfig := testAccAzureRMStorageAccount_update(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -95,7 +97,7 @@ func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 	location := testLocation()
 	preConfig := testAccAzureRMStorageAccount_premium(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -120,7 +122,7 @@ func TestAccAzureRMStorageAccount_disappears(t *testing.T) {
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -146,7 +148,7 @@ func TestAccAzureRMStorageAccount_blobConnectionString(t *testing.T) {
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -169,7 +171,7 @@ func TestAccAzureRMStorageAccount_blobEncryption(t *testing.T) {
 	preConfig := testAccAzureRMStorageAccount_blobEncryption(ri, rs, location)
 	postConfig := testAccAzureRMStorageAccount_blobEncryptionDisabled(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -200,7 +202,7 @@ func TestAccAzureRMStorageAccount_fileEncryption(t *testing.T) {
 	preConfig := testAccAzureRMStorageAccount_fileEncryption(ri, rs, location)
 	postConfig := testAccAzureRMStorageAccount_fileEncryptionDisabled(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -231,7 +233,7 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 	preConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnly(ri, rs, location)
 	postConfig := testAccAzureRMStorageAccount_enableHttpsTrafficOnlyDisabled(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -262,7 +264,7 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 	preConfig := testAccAzureRMStorageAccount_blobStorage(ri, rs, location)
 	postConfig := testAccAzureRMStorageAccount_blobStorageUpdate(ri, rs, location)
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -292,7 +294,7 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	rs := acctest.RandString(4)
 	preConfig := testAccAzureRMStorageAccount_nonStandardCasing(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
