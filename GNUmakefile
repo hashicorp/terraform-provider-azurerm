@@ -13,6 +13,8 @@ test: fmtcheck test-install
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
+# example usage:
+# TESTARGS="-run TestAccAzureRMStorage" make testacc
 testacc: fmtcheck test-install
 	echo $(TEST) | \
 	TF_ACC=1 TF_PARA=1 xargs -t -n1 go test -v $(TESTARGS) -timeout 300m -parallel=20 2>&1
