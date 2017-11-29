@@ -326,7 +326,7 @@ resource "azurerm_virtual_machine" "test" {
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type of the virtual machine. The only allowable value is `SystemAssigned`. To enable Managed Service Identity the ManagedIdentityExtension must also be added to the virtual machine. The Principal ID can be retrieved after the virtual machine has been created, e.g.
+* `type` - (Required) Specifies the identity type of the virtual machine. The only allowable value is `SystemAssigned`. To enable Managed Service Identity the virtual machine extension "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added to the virtual machine. The Principal ID can be retrieved after the virtual machine has been created, e.g.
 
 ```hcl
 resource "azurerm_virtual_machine" "test" {
