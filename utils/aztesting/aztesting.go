@@ -1,8 +1,9 @@
 package aztesting
 
 import (
-	tftest "github.com/hashicorp/terraform/helper/resource"
 	"os"
+
+	tftest "github.com/hashicorp/terraform/helper/resource"
 )
 
 // ParaTestEnvVar is used to enable parallelism in testing.
