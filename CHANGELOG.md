@@ -8,6 +8,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * authentication: add support for the latest Azure CLI configuration [GH-573]
+* core: appending additions to the User Agent, so we don't overwrite the Go SDK User Agent info [GH-587]
 * `azurerm_eventhub_namespace` - capacity can now be configured up to 20 [GH-556]
 * `azurerm_eventhub_namespace` - support for AutoInflating/MaximumThroughputCapacity [GH-569]
 * `azurerm_virtual_machine_scale_set` - Support for updating the customData field [GH-559]
