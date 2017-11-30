@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 func TestMain(m *testing.M) {
@@ -29,7 +30,7 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		return nil, fmt.Errorf("ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET and ARM_TENANT_ID must be set for acceptance tests")
 	}
 
-	config := &Config{
+	config := &authentication.Config{
 		SubscriptionID:           subscriptionID,
 		ClientID:                 clientID,
 		ClientSecret:             clientSecret,
@@ -38,7 +39,7 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		SkipProviderRegistration: false,
 	}
 
-	return config.getArmClient()
+	return getArmClient(config)
 }
 
 func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {

@@ -272,7 +272,7 @@ func TestAzurePopulateFromAccessToken_Exists(t *testing.T) {
 	}
 
 	if config.IsCloudShell != token.IsCloudShell {
-		t.Fatalf("Expected `IsCloudShell` to be %b, got %b", token.IsCloudShell, config.IsCloudShell)
+		t.Fatalf("Expected `IsCloudShell` to be %t, got %t", token.IsCloudShell, config.IsCloudShell)
 	}
 
 	if config.ClientID != token.ClientID {
