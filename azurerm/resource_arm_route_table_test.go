@@ -169,6 +169,36 @@ func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
+	ri := acctest.RandInt()
+	configSetup := testAccAzureRMRouteTable_withTagsSubnet(ri, testLocation())
+	configTest := testAccAzureRMRouteTable_withAddTagsSubnet(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configSetup,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					testCheckAzureRMSubnetExists("azurerm_subnet.subnet1"),
+					resource.TestCheckResourceAttrSet("azurerm_subnet.subnet1", "route_table_id"),
+				),
+			},
+			{
+				Config: configTest,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					testCheckAzureRMSubnetExists("azurerm_subnet.subnet1"),
+					resource.TestCheckResourceAttrSet("azurerm_subnet.subnet1", "route_table_id"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -379,4 +409,101 @@ resource "azurerm_route_table" "test" {
     }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_withTagsSubnet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name 		= "acctestRG-%d"
+	location 	= "%s"
+    tags {
+		environment = "staging"
+    }
+}
+
+resource "azurerm_virtual_network" "test" {
+    name 				= "acctestvirtnet%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    address_space 		= ["10.0.0.0/16"]
+ 
+	tags {
+		environment = "staging"
+    }
+}
+  
+resource "azurerm_subnet" "subnet1" {
+	name                 = "subnet1"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.1.0/24"
+	route_table_id       = "${azurerm_route_table.test.id}"
+}
+
+resource "azurerm_route_table" "test" {
+    name 				= "acctestrt%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    route {
+    	name = "route1"
+    	address_prefix = "10.1.0.0/16"
+    	next_hop_type = "vnetlocal"
+    }
+
+    tags {
+		environment = "staging"
+    }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRouteTable_withAddTagsSubnet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name 		= "acctestRG-%d"
+	location 	= "%s"
+    tags {
+		environment = "staging"
+		cloud = "Azure"
+    }
+}
+
+resource "azurerm_virtual_network" "test" {
+    name 				= "acctestvirtnet%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    address_space 		= ["10.0.0.0/16"]
+ 
+	tags {
+		environment = "staging"
+		cloud = "Azure"
+    }
+}
+  
+resource "azurerm_subnet" "subnet1" {
+	name                 = "subnet1"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.1.0/24"
+	route_table_id       = "${azurerm_route_table.test.id}"
+}
+
+resource "azurerm_route_table" "test" {
+    name 				= "acctestrt%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    route {
+    	name = "route1"
+    	address_prefix = "10.1.0.0/16"
+    	next_hop_type = "vnetlocal"
+    }
+
+    tags {
+		environment = "staging"
+		cloud = "Azure"
+    }
+}
+`, rInt, location, rInt, rInt)
 }
