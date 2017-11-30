@@ -8,15 +8,12 @@ import (
 	"log"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
-	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure/cli"
-	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -181,168 +178,9 @@ func Provider() terraform.ResourceProvider {
 	return p
 }
 
-// Config is the configuration structure used to instantiate a
-// new Azure management client.
-type Config struct {
-	ManagementURL string
-
-	// Core
-	ClientID                  string
-	SubscriptionID            string
-	TenantID                  string
-	Environment               string
-	SkipCredentialsValidation bool
-	SkipProviderRegistration  bool
-
-	// Service Principal Auth
-	ClientSecret string
-
-	// Bearer Auth
-	AccessToken  *adal.Token
-	IsCloudShell bool
-}
-
-func (c *Config) validateServicePrincipal() error {
-	var err *multierror.Error
-
-	if c.SubscriptionID == "" {
-		err = multierror.Append(err, fmt.Errorf("Subscription ID must be configured for the AzureRM provider"))
-	}
-	if c.ClientID == "" {
-		err = multierror.Append(err, fmt.Errorf("Client ID must be configured for the AzureRM provider"))
-	}
-	if c.ClientSecret == "" {
-		err = multierror.Append(err, fmt.Errorf("Client Secret must be configured for the AzureRM provider"))
-	}
-	if c.TenantID == "" {
-		err = multierror.Append(err, fmt.Errorf("Tenant ID must be configured for the AzureRM provider"))
-	}
-	if c.Environment == "" {
-		err = multierror.Append(err, fmt.Errorf("Environment must be configured for the AzureRM provider"))
-	}
-
-	return err.ErrorOrNil()
-}
-
-func (c *Config) validateBearerAuth() error {
-	var err *multierror.Error
-
-	if c.AccessToken == nil {
-		err = multierror.Append(err, fmt.Errorf("Access Token was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	if c.ClientID == "" {
-		err = multierror.Append(err, fmt.Errorf("Client ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	if c.SubscriptionID == "" {
-		err = multierror.Append(err, fmt.Errorf("Subscription ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	if c.TenantID == "" {
-		err = multierror.Append(err, fmt.Errorf("Tenant ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	return err.ErrorOrNil()
-}
-
-func (c *Config) LoadTokensFromAzureCLI() error {
-	profilePath, err := cli.ProfilePath()
-	if err != nil {
-		return fmt.Errorf("Error loading the Profile Path from the Azure CLI: %+v", err)
-	}
-
-	profile, err := cli.LoadProfile(profilePath)
-	if err != nil {
-		return fmt.Errorf("Azure CLI Authorization Profile was not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
-	}
-
-	// pull out the Subscription ID / Tenant ID / Environment from the Azure Profile, if not set
-	for _, subscription := range profile.Subscriptions {
-		if subscription.IsDefault {
-			if c.SubscriptionID == "" {
-				c.SubscriptionID = subscription.ID
-			}
-			if c.TenantID == "" {
-				c.TenantID = subscription.TenantID
-			}
-			if c.Environment == "" {
-				c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
-			}
-			break
-		}
-	}
-
-	foundToken := false
-	if c.TenantID != "" {
-		// pull out the ClientID and the AccessToken from the Azure Access Token
-		tokensPath, err := cli.AccessTokensPath()
-		if err != nil {
-			return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
-		}
-
-		tokens, err := cli.LoadTokens(tokensPath)
-		if err != nil {
-			return fmt.Errorf("Azure CLI Authorization Tokens were not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
-		}
-
-		for _, accessToken := range tokens {
-			token, err := accessToken.ToADALToken()
-			if err != nil {
-				return fmt.Errorf("[DEBUG] Error converting access token to token: %+v", err)
-			}
-
-			expirationDate, err := cli.ParseExpirationDate(accessToken.ExpiresOn)
-			if err != nil {
-				return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
-			}
-
-			if expirationDate.UTC().Before(time.Now().UTC()) {
-				log.Printf("[DEBUG] Token '%s' has expired", token.AccessToken)
-				continue
-			}
-
-			if !strings.Contains(accessToken.Resource, "management") {
-				log.Printf("[DEBUG] Resource '%s' isn't a management domain", accessToken.Resource)
-				continue
-			}
-
-			if !strings.HasSuffix(accessToken.Authority, c.TenantID) {
-				log.Printf("[DEBUG] Resource '%s' isn't for the correct Tenant", accessToken.Resource)
-				continue
-			}
-
-			c.ClientID = accessToken.ClientID
-			c.AccessToken = &token
-			c.IsCloudShell = accessToken.RefreshToken == ""
-			foundToken = true
-			break
-		}
-	}
-
-	if !foundToken {
-		return fmt.Errorf("No valid (unexpired) Azure CLI Auth Tokens found. Please run `az login`.")
-	}
-
-	return nil
-}
-
-func normalizeEnvironmentName(input string) string {
-	// Environment is stored as `Azure{Environment}Cloud`
-	output := strings.ToLower(input)
-	output = strings.TrimPrefix(output, "azure")
-	output = strings.TrimSuffix(output, "cloud")
-
-	// however Azure Public is `AzureCloud` in the CLI Profile and not `AzurePublicCloud`.
-	if output == "" {
-		return "public"
-	}
-	return output
-}
-
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-		config := &Config{
+		config := &authentication.Config{
 			SubscriptionID:            d.Get("subscription_id").(string),
 			ClientID:                  d.Get("client_id").(string),
 			ClientSecret:              d.Get("client_secret").(string),
@@ -354,7 +192,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		if config.ClientSecret != "" {
 			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
-			if err := config.validateServicePrincipal(); err != nil {
+			if err := config.ValidateServicePrincipal(); err != nil {
 				return nil, err
 			}
 		} else {
@@ -363,12 +201,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 				return nil, err
 			}
 
-			if err := config.validateBearerAuth(); err != nil {
+			if err := config.ValidateBearerAuth(); err != nil {
 				return nil, fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
 			}
 		}
 
-		client, err := config.getArmClient()
+		client, err := getArmClient(config)
 		if err != nil {
 			return nil, err
 		}

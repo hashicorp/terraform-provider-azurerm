@@ -44,6 +44,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -213,7 +214,7 @@ func setUserAgent(client *autorest.Client) {
 	}
 }
 
-func (c *Config) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
+func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
 	useServicePrincipal := c.ClientSecret != ""
 
 	if useServicePrincipal {
@@ -245,7 +246,7 @@ func (c *Config) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint s
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func (c *Config) getArmClient() (*ArmClient, error) {
+func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	// detect cloud from environment
 	env, envErr := azure.EnvironmentFromName(c.Environment)
 	if envErr != nil {
@@ -280,21 +281,21 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.getAuthorizationToken(oauthConfig, endpoint)
+	auth, err := getAuthorizationToken(c, oauthConfig, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := c.getAuthorizationToken(oauthConfig, graphEndpoint)
+	graphAuth, err := getAuthorizationToken(c, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key Vault Endpoints
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := c.getAuthorizationToken(oauthConfig, resource)
+		keyVaultSpt, err := getAuthorizationToken(c, oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
