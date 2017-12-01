@@ -280,37 +280,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Default:  false,
 			},
 
-			// TODO: remove this in the next major version
-			"diagnostics_profile": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"boot_diagnostics"},
-				Removed:       "Use field boot_diagnostics instead",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"boot_diagnostics": {
-							Type:     schema.TypeSet,
-							Required: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-
-									"storage_uri": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
 			"boot_diagnostics": {
 				Type:     schema.TypeList,
 				Optional: true,
