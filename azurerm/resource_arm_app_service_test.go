@@ -502,6 +502,27 @@ func TestAccAzureRMAppService_webSockets(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_azureFunctions(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMAppService_azureFunctions(ri, testLocation(), rs)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -1117,4 +1138,53 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_azureFunctions(rInt int, location string, rString string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+	name = "acctforfunctionapp%s"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	location = "${azurerm_resource_group.test.location}"
+	account_tire = "Standard"
+	account_replication_type = "LRS"
+
+	depends_on = ["azurerm_resource_group.test"]
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+	}
+
+	depends_on = ["azurerm_resource_group.test"]
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+	app_settings {
+    "AzureWebJobsDashboard" = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    "AzureWebJobsStorage" = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    "FUNCTIONS_EXTENSION_VERSION" = "~1"
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    "WEBSITE_CONTENTSHARE" = "acctestAS-%d"
+  }
+
+	depends_on = ["azurerm_storage_account.test","azurerm_app_service_plan.test" ]
+}
+`, rInt, location, rString, rInt, rInt, rInt)
 }

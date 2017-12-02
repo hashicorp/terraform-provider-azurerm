@@ -85,6 +85,53 @@ resource "azurerm_app_service" "test" {
 }
 ```
 
+## Example Usage (Azure Functions with consumption plan)
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "some-resource-group"
+  location = "Japan East"
+}
+
+resource "azurerm_storage_account" "test" {
+  name = "some-storage-account-name"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "Japan East"
+  account_tier = "Standard"
+  account_replication_type = "LRS"
+
+  depends_on = ["azurerm_resource_group.test"]
+}
+
+resource "azurerm_app_service" "test" {
+  name    = "function-app-name"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind = "functionapp"
+
+  app_settings {
+    "AzureWebJobsDashboard" = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    "AzureWebJobsStorage" = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    "FUNCTIONS_EXTENSION_VERSION" = "~1"
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    "WEBSITE_CONTENTSHARE" = "function-app-name4x03"
+  }
+  depends_on = ["azurerm_storage_account.test", "azurerm_app_service_plan.test"]
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name = "some-app-service-plan"
+  location = "Japan East"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+  depends_on = ["azurerm_resource_group.test"]
+}
+
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -96,6 +143,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this App Service. Changing this forces a new resource to be created.
+
+* `kind` - (Optional) A kind of Resrouce. If you want to provision FunctionApp (Azure Functions), you can set it to "functionapp". Otherwise, you don't need it.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
