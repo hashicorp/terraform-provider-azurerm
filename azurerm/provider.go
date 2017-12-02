@@ -83,6 +83,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"azurerm_application_gateway":         resourceArmApplicationGateway(),
 			"azurerm_application_insights":        resourceArmApplicationInsights(),
 			"azurerm_app_service":                 resourceArmAppService(),
 			"azurerm_app_service_plan":            resourceArmAppServicePlan(),
@@ -126,6 +127,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_local_network_gateway":       resourceArmLocalNetworkGateway(),
 			"azurerm_log_analytics_workspace":     resourceArmLogAnalyticsWorkspace(),
 			"azurerm_managed_disk":                resourceArmManagedDisk(),
+			"azurerm_management_lock":             resourceArmManagementLock(),
 			"azurerm_mysql_configuration":         resourceArmMySQLConfiguration(),
 			"azurerm_mysql_database":              resourceArmMySqlDatabase(),
 			"azurerm_mysql_firewall_rule":         resourceArmMySqlFirewallRule(),
@@ -133,12 +135,14 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_network_interface":           resourceArmNetworkInterface(),
 			"azurerm_network_security_group":      resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":       resourceArmNetworkSecurityRule(),
+			"azurerm_network_watcher":             resourceArmNetworkWatcher(),
 			"azurerm_postgresql_configuration":    resourceArmPostgreSQLConfiguration(),
 			"azurerm_postgresql_database":         resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":    resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":           resourceArmPostgreSQLServer(),
 			"azurerm_public_ip":                   resourceArmPublicIp(),
 			"azurerm_redis_cache":                 resourceArmRedisCache(),
+			"azurerm_redis_firewall_rule":         resourceArmRedisFirewallRule(),
 			"azurerm_resource_group":              resourceArmResourceGroup(),
 			"azurerm_role_assignment":             resourceArmRoleAssignment(),
 			"azurerm_role_definition":             resourceArmRoleDefinition(),
@@ -253,13 +257,15 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		return fmt.Errorf("Azure CLI Authorization Profile was not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
 	}
 
-	// pull out the TenantID and Subscription ID from the Azure Profile
-	for _, subscription := range profile.Subscriptions {
-		if subscription.IsDefault {
-			c.SubscriptionID = subscription.ID
-			c.TenantID = subscription.TenantID
-			c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
-			break
+	// pull out the TenantID and Subscription ID from the Azure Profile, if not set
+	if c.SubscriptionID == "" && c.TenantID == "" {
+		for _, subscription := range profile.Subscriptions {
+			if subscription.IsDefault {
+				c.SubscriptionID = subscription.ID
+				c.TenantID = subscription.TenantID
+				c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
+				break
+			}
 		}
 	}
 
@@ -488,6 +494,11 @@ func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool
 // supplied value to lower before saving to state for consistency.
 func ignoreCaseStateFunc(val interface{}) string {
 	return strings.ToLower(val.(string))
+}
+
+func userDataDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	oldValue := userDataStateFunc(old)
+	return oldValue == new
 }
 
 func userDataStateFunc(v interface{}) string {

@@ -13,25 +13,33 @@ Create a ServiceBus Subscription.
 ## Example Usage
 
 ```hcl
+variable "location" {
+  description = "Azure datacenter to deploy to."
+  default = "West US"
+}
+
+variable "servicebus_name" {
+  description = "Input your unique Azure service bus name"
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "terraform-servicebus"
+  location = "${var.location}"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acceptanceTestServiceBusNamespace"
-  location            = "West US"
+  name                = "${var.servicebus_name}"
+  location            = "${var.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard"
 
   tags {
-    environment = "Production"
+    source = "terraform"
   }
 }
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "testTopic"
-  location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
@@ -40,7 +48,6 @@ resource "azurerm_servicebus_topic" "test" {
 
 resource "azurerm_servicebus_subscription" "test" {
   name                = "testSubscription"
-  location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   topic_name          = "${azurerm_servicebus_topic.test.name}"
@@ -106,6 +113,6 @@ The following attributes are exported:
 
 Service Bus Subscriptions can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_subscription.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
 ```

@@ -30,9 +30,9 @@ resource "azurerm_role_assignment" "test" {
 }
 ```
 
-## Example Usage (Custom Role)
+## Example Usage (Custom Role & Service Principal)
 
-```
+```hcl
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -60,6 +60,36 @@ resource "azurerm_role_assignment" "test" {
 }
 ```
 
+## Example Usage (Custom Role & User)
+
+```hcl
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_role_definition" "test" {
+  role_definition_id = "00000000-0000-0000-0000-000000000000"
+  name               = "my-custom-role-definition"
+  scope              = "${data.azurerm_subscription.primary.id}"
+
+  permissions {
+    actions     = ["Microsoft.Resources/subscriptions/resourceGroups/read"]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    "${data.azurerm_subscription.primary.id}",
+  ]
+}
+
+resource "azurerm_role_assignment" "test" {
+  name               = "00000000-0000-0000-0000-000000000000"
+  scope              = "${data.azurerm_subscription.primary.id}"
+  role_definition_id = "${azurerm_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.client_id}"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -83,6 +113,6 @@ The following attributes are exported:
 
 Role Assignments can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_role_assignment.test /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000
 ```

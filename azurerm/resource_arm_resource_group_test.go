@@ -2,13 +2,64 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_resource_group", &resource.Sweeper{
+		Name: "azurerm_resource_group",
+		F:    testSweepResourceGroups,
+	})
+}
+
+func testSweepResourceGroups(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).resourceGroupClient
+
+	log.Printf("Retrieving the Resource Groups..")
+	results, err := client.List("", utils.Int32(int32(1000)))
+	if err != nil {
+		return fmt.Errorf("Error Listing on Resource Groups: %+v", err)
+	}
+
+	for _, profile := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+			continue
+		}
+
+		resourceId, err := parseAzureResourceID(*profile.ID)
+		if err != nil {
+			return err
+		}
+
+		name := resourceId.ResourceGroup
+
+		log.Printf("Deleting Resource Group %q", name)
+		deleteResponse, deleteErr := client.Delete(name, make(chan struct{}))
+		resp := <-deleteResponse
+		err = <-deleteErr
+		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				continue
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 	ri := acctest.RandInt()

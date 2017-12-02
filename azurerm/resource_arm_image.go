@@ -293,14 +293,16 @@ func flattenAzureRmImageOSDisk(d *schema.ResourceData, osDisk *compute.ImageOSDi
 	result := make(map[string]interface{})
 
 	if disk := osDisk; disk != nil {
-		result["blob_uri"] = *osDisk.BlobURI
-		result["caching"] = string(osDisk.Caching)
+		if osDisk.BlobURI != nil {
+			result["blob_uri"] = *osDisk.BlobURI
+		}
 		if osDisk.DiskSizeGB != nil {
 			result["size_gb"] = *osDisk.DiskSizeGB
 		}
 		if osDisk.ManagedDisk != nil {
 			result["managed_disk_id"] = *osDisk.ManagedDisk.ID
 		}
+		result["caching"] = string(osDisk.Caching)
 		result["os_type"] = osDisk.OsType
 		result["os_state"] = osDisk.OsState
 	}
@@ -312,9 +314,11 @@ func flattenAzureRmImageDataDisks(d *schema.ResourceData, diskImages *[]compute.
 	result := make([]interface{}, 0)
 
 	if images := diskImages; images != nil {
-		for i, disk := range *images {
+		for _, disk := range *images {
 			l := make(map[string]interface{})
-			l["blob_uri"] = disk.BlobURI
+			if disk.BlobURI != nil {
+				l["blob_uri"] = *disk.BlobURI
+			}
 			l["caching"] = string(disk.Caching)
 			if disk.DiskSizeGB != nil {
 				l["size_gb"] = *disk.DiskSizeGB
@@ -324,7 +328,7 @@ func flattenAzureRmImageDataDisks(d *schema.ResourceData, diskImages *[]compute.
 				l["managed_disk_id"] = *disk.ManagedDisk.ID
 			}
 
-			result[i] = l
+			result = append(result, l)
 		}
 	}
 

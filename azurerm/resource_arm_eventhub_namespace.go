@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,6 +52,19 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				ValidateFunc: validateEventHubNamespaceCapacity,
 			},
 
+			"auto_inflate_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"maximum_throughput_units": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 20),
+			},
+
 			"default_primary_connection_string": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -88,6 +102,8 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 	capacity := int32(d.Get("capacity").(int))
 	tags := d.Get("tags").(map[string]interface{})
 
+	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+
 	parameters := eventhub.EHNamespace{
 		Location: &location,
 		Sku: &eventhub.Sku{
@@ -95,7 +111,15 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 			Tier:     eventhub.SkuTier(sku),
 			Capacity: &capacity,
 		},
+		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
+			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+		},
 		Tags: expandTags(tags),
+	}
+
+	if v, ok := d.GetOk("maximum_throughput_units"); ok {
+		maximumThroughputUnits := v.(int)
+		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(int32(maximumThroughputUnits))
 	}
 
 	_, error := namespaceClient.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
@@ -153,6 +177,11 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("default_secondary_key", keys.SecondaryKey)
 	}
 
+	if props := resp.EHNamespaceProperties; props != nil {
+		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
+		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -198,14 +227,10 @@ func validateEventHubNamespaceSku(v interface{}, k string) (ws []string, errors 
 
 func validateEventHubNamespaceCapacity(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(int)
-	capacities := map[int]bool{
-		1: true,
-		2: true,
-		4: true,
-	}
+	maxCapacity := 20
 
-	if !capacities[value] {
-		errors = append(errors, fmt.Errorf("EventHub Namespace Capacity can only be 1, 2 or 4"))
+	if value > maxCapacity || value < 1 {
+		errors = append(errors, fmt.Errorf("EventHub Namespace Capacity must be 20 or fewer Throughput Units for Basic or Standard SKU"))
 	}
 	return
 }

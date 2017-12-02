@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
@@ -188,8 +187,10 @@ func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface
 	resp := <-deleteResp
 	err = <-error
 
-	if resp.StatusCode != http.StatusNotFound {
-		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace '%s': %+v", name, err)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace %q: %+v", name, err)
+		}
 	}
 
 	return nil

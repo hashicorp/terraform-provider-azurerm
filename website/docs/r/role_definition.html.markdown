@@ -65,6 +65,6 @@ The following attributes are exported:
 
 Role Definitions can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_role_definition.test /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000
 ```

@@ -90,7 +90,7 @@
               </ul>
             </li>
 
-            <li<%= sidebar_current("docs-azurerm-resource-app-service") %>>
+            <li<%= sidebar_current("docs-azurerm-resource-role") %>>
               <a href="#">Authorization Resources</a>
               <ul class="nav nav-visible">
 
@@ -370,6 +370,15 @@
               </ul>
             </li>
 
+            <li<%= sidebar_current("docs-azurerm-management") %>>
+              <a href="#">Management Resources</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-resource-management-lock") %>>
+                  <a href="/docs/providers/azurerm/r/management_lock.html">azurerm_management_lock</a>
+                </li>
+              </ul>
+            </li>
+
             <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
               <a href="#">Messaging Resources</a>
               <ul class="nav nav-visible">
@@ -415,6 +424,10 @@
               <a href="#">Network Resources</a>
               <ul class="nav nav-visible">
 
+                <li<%= sidebar_current("docs-azurerm-resource-network-application-gateway") %>>
+                  <a href="/docs/providers/azurerm/r/application_gateway.html">azurerm_application_gateway</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-resource-network-express-route-circuit") %>>
                   <a href="/docs/providers/azurerm/r/express_route_circuit.html">azurerm_express_route_circuit</a>
                 </li>
@@ -433,6 +446,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-network-security-rule") %>>
                   <a href="/docs/providers/azurerm/r/network_security_rule.html">azurerm_network_security_rule</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-network-watcher") %>>
+                  <a href="/docs/providers/azurerm/r/network_watcher.html">azurerm_network_watcher</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-network-public-ip") %>>
@@ -470,19 +487,22 @@
             </li>
 
             <li<%= sidebar_current("docs-azurerm-oms") %>>
-            <a href="#">OMS Resources</a>
-            <ul class="nav nav-visible">
-              <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace") %>>
-                <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
-              </li>
-            </ul>
-          </li>
+              <a href="#">OMS Resources</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace") %>>
+                  <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
+                </li>
+              </ul>
+            </li>
 
-            <li<%= sidebar_current("docs-azurerm-redis-cache") %>>
+            <li<%= sidebar_current("docs-azurerm-redis") %>>
               <a href="#">Redis Resources</a>
               <ul class="nav nav-visible">
                 <li<%= sidebar_current("docs-azurerm-redis-cache") %>>
                   <a href="/docs/providers/azurerm/r/redis_cache.html">azurerm_redis_cache</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-redis-firewall-rule") %>>
+                  <a href="/docs/providers/azurerm/r/redis_firewall_rule.html">azurerm_redis_firewall_rule</a>
                 </li>
               </ul>
             </li>
