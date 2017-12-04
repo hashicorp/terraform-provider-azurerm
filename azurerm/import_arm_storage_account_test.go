@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/utils/aztesting"
 )
 
 func TestAccAzureRMStorageAccount_importBasic(t *testing.T) {
@@ -14,7 +16,7 @@ func TestAccAzureRMStorageAccount_importBasic(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -38,7 +40,7 @@ func TestAccAzureRMStorageAccount_importPremium(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_premium(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -63,7 +65,7 @@ func TestAccAzureRMStorageAccount_importNonStandardCasing(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_nonStandardCasing(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -88,7 +90,7 @@ func TestAccAzureRMStorageAccount_importBlobEncryption(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_blobEncryption(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -113,7 +115,7 @@ func TestAccAzureRMStorageAccount_importFileEncryption(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_fileEncryption(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
@@ -138,7 +140,7 @@ func TestAccAzureRMStorageAccount_importEnableHttpsTrafficOnly(t *testing.T) {
 	rs := acctest.RandString(4)
 	config := testAccAzureRMStorageAccount_enableHttpsTrafficOnly(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,

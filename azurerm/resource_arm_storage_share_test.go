@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/utils/aztesting"
 )
 
 func TestAccAzureRMStorageShare_basic(t *testing.T) {
@@ -19,7 +21,7 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
@@ -41,7 +43,7 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageShare_basic(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	aztesting.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageShareDestroy,
