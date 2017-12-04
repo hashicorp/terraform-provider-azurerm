@@ -31,7 +31,7 @@ func TestValidateManagementLockName(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		_, es := validateArmStorageAccountName(test.input, "name")
+		_, es := validateArmManagementLockName(test.input, "name")
 
 		if test.shouldError && len(es) == 0 {
 			t.Fatalf("Expected validating name %q to fail", test.input)
