@@ -6,13 +6,18 @@ default: build
 build: fmtcheck
 	go install
 
-test: fmtcheck
+test-install:
 	go test -i $(TEST) || exit 1
+
+test: fmtcheck test-install
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
-testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 180m
+# example usage:
+# TESTARGS="-run TestAccAzureRMStorage" make testacc
+testacc: fmtcheck test-install
+	echo $(TEST) | \
+	TF_ACC=1 TF_PARA=1 xargs -t -n1 go test -v $(TESTARGS) -timeout 300m -parallel=20 2>&1
 
 vet:
 	@echo "go vet ."
