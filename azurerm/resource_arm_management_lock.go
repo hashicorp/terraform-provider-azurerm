@@ -161,8 +161,12 @@ func parseAzureRMLockId(id string) (*AzureManagementLockId, error) {
 func validateArmManagementLockName(v interface{}, k string) (ws []string, es []error) {
 	input := v.(string)
 
-	if !regexp.MustCompile(`\A([A-Za-z0-9\-_]{1, 260})\z`).MatchString(input) {
-		es = append(es, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores - and must be a maxiumum of 260 characters", k))
+	if !regexp.MustCompile(`[A-Za-z0-9-_]`).MatchString(input) {
+		es = append(es, fmt.Errorf("%s can only consist of alphanumeric characters, dashes and underscores", k))
+	}
+
+	if len(input) >= 260 {
+		es = append(es, fmt.Errorf("%s can only be a maximum of 260 characters", k))
 	}
 
 	return
