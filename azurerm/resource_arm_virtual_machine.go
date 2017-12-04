@@ -675,9 +675,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if resp.Identity != nil {
-		d.Set("identity", flattenAzureRmVirtualMachineIdentity(resp.Identity))
-	}
+	d.Set("identity", flattenAzureRmVirtualMachineIdentity(resp.Identity))
 
 	if resp.VirtualMachineProperties.AvailabilitySet != nil {
 		d.Set("availability_set_id", strings.ToLower(*resp.VirtualMachineProperties.AvailabilitySet.ID))
@@ -908,6 +906,10 @@ func flattenAzureRmVirtualMachineImageReference(image *compute.ImageReference) [
 }
 
 func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
 	result := make(map[string]interface{})
 	result["type"] = string(identity.Type)
 	if identity.PrincipalID != nil {
