@@ -14,10 +14,13 @@ test: fmtcheck test-install
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 # example usage:
-# TESTARGS="-run TestAccAzureRMStorage" make testacc
+#  1. Enable parallel run for all acceptance tests:
+#  TF_PARA=1 make testacc
+#  2. Enable parallel run for acceptance tests with matching pattern.
+#  TF_PARA=1 TESTARGS="-run TestAccAzureRMStorage" make testacc
 testacc: fmtcheck test-install
 	echo $(TEST) | \
-	TF_ACC=1 TF_PARA=1 xargs -t -n1 go test -v $(TESTARGS) -timeout 300m -parallel=20 2>&1
+	TF_ACC=1 xargs -t -n1 go test -v $(TESTARGS) -timeout 300m -parallel=20 2>&1
 
 vet:
 	@echo "go vet ."
