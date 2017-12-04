@@ -466,3 +466,27 @@ func TestAccAzureRMAppService_importWebSockets(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMAppService_importAzureFunctions(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMAppService_azureFunctions(ri, testLocation(), rs)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

@@ -33,10 +33,16 @@ func resourceArmAppService() *schema.Resource {
 
 			"location": locationSchema(),
 
+			"kind": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
+
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Optional: true,
+				Default:  "",
 			},
 
 			"site_config": {
@@ -241,6 +247,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	location := d.Get("location").(string)
+	kind := d.Get("kind").(string)
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
@@ -249,6 +256,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	siteEnvelope := web.Site{
 		Location: &location,
+		Kind:     &kind,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanId),
