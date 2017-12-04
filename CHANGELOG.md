@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * `azurerm_eventhub_namespace` - support for AutoInflating/MaximumThroughputCapacity [GH-569]
 * `azurerm_image` - fixing an out of index error when flattening image data disks [GH-589]
 * `azurerm_virtual_machine` - removing the deprecated `diagnostics_profile` field [GH-593]
+* `azurerm_virtual_machine` - support for managed service identity [GH-482]
 * `azurerm_virtual_machine_scale_set` - Support for updating the customData field [GH-559]
 
 ## 0.3.3 (November 14, 2017)
