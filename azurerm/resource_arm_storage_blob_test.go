@@ -13,8 +13,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/utils/aztesting"
 )
 
 func TestResourceAzureRMStorageBlobType_validation(t *testing.T) {
@@ -150,7 +148,7 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
-	aztesting.Test(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -170,7 +168,7 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
-	aztesting.Test(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -207,7 +205,7 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 
 	config := testAccAzureRMStorageBlobBlock_source(ri, rs1, sourceBlob.Name(), testLocation())
 
-	aztesting.Test(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -266,7 +264,7 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 
 	config := testAccAzureRMStorageBlobPage_source(ri, rs, sourceBlob.Name(), testLocation())
 
-	aztesting.Test(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
@@ -301,7 +299,7 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 
 	config := testAccAzureRMStorageBlob_source_uri(ri, rs, sourceBlob.Name(), testLocation())
 
-	aztesting.Test(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
