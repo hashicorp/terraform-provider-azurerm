@@ -1,8 +1,8 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 
-ifndef TF_PARA_NUM
-	TF_PARA_NUM=20
+ifndef TF_PARL_NUM
+	TF_PARL_NUM=20
 endif
 
 default: build
@@ -17,15 +17,15 @@ test: fmtcheck test-install
 	echo $(TEST) | \
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
-# example usage:
+# example usages:
 #  1. Enable parallel run for all acceptance tests with default number(20) of
 #  threads:
-#    TF_PARA=1 make testacc
+#    TF_PARL=1 make testacc
 #  2. Enable parallel run for acceptance tests with matching pattern.
-#    TF_PARA=1 TESTARGS="-run TestAccAzureRMStorage" make testacc
+#    TF_PARL=1 TESTARGS="-run TestAccAzureRMStorage" make testacc
 testacc: fmtcheck test-install
 	echo $(TEST) | \
-	TF_ACC=1 xargs -t -n1 go test -v $(TESTARGS) -timeout 300m -parallel=$(TF_PARA_NUM) 2>&1
+	TF_ACC=1 xargs -t -n1 go test -v $(TESTARGS) -timeout 300m -parallel=$(TF_PARL_NUM) 2>&1
 
 vet:
 	@echo "go vet ."

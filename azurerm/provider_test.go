@@ -13,7 +13,7 @@ import (
 )
 
 // ParaTestEnvVar is used to enable parallelism in testing.
-const ParaTestEnvVar = "TF_PARA"
+const ParaTestEnvVar = "TF_PARL"
 
 var testAccProviders map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
@@ -52,11 +52,11 @@ func testAccPreCheck(t *testing.T) {
 		}
 	}
 
-	// If "TF_PARA" is set to some non-empty value, all the parallel test cases
+	// If "TF_PARL" is set to some non-empty value, all the parallel test cases
 	// will be run in parallel. It requires that the test cases are all
 	// independent ones without any shared resource before turn it on.
 	// example usage:
-	//  TF_ACC=1 TF_PARA=1 go test [TEST] [TESTARGS] -v -parallel=n
+	//  TF_ACC=1 TF_PARL=1 go test [TEST] [TESTARGS] -v -parallel=n
 	// To run specified cases in parallel, please refer to below PR:
 	// 	https://github.com/hashicorp/terraform/pull/16807
 	if os.Getenv(ParaTestEnvVar) != "" {
