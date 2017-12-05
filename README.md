@@ -94,8 +94,9 @@ $ make test
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
 
-*Note:* Acceptance tests create real resources, and often cost money to run.
+*Note:* Acceptance tests create real resources, and often cost money to run. TF_PARA is used to run all tests in parallel, and TESTARGS is used to pass extra testing arguments like below.
+
 
 ```sh
-$ make testacc
+$ [TF_PARA=1] [TESTARGS="-run TestAccAzureRMStorage"] make testacc
 ```
