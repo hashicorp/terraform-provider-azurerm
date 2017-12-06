@@ -197,7 +197,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetOsProfileLWindowsConfigHash,
+				Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
 			"os_profile_linux_config": {
@@ -1166,7 +1166,7 @@ func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) in
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetOsProfileLWindowsConfigHash(v interface{}) int {
+func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 	if m["provision_vm_agent"] != nil {
@@ -1187,6 +1187,18 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
 	if m["auto_upgrade_minor_version"] != nil {
 		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
+	}
+
+	// we need to ensure the whitespace is consistent
+	settings := m["settings"].(string)
+	if settings != "" {
+		expandedSettings, err := structure.ExpandJsonFromString(settings)
+		if err == nil {
+			serialisedSettings, err := structure.FlattenJsonToString(expandedSettings)
+			if err == nil {
+				buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
+			}
+		}
 	}
 
 	return hashcode.String(buf.String())
