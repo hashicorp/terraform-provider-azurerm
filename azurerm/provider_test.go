@@ -35,7 +35,7 @@ func TestProvider_impl(t *testing.T) {
 	var _ terraform.ResourceProvider = Provider()
 }
 
-func testAccPreCheck(t *testing.T) {
+func testAccPreCheckWithParallelSwitch(t *testing.T, runInParallel bool) {
 	variables := []string{
 		"ARM_SUBSCRIPTION_ID",
 		"ARM_CLIENT_ID",
@@ -59,9 +59,13 @@ func testAccPreCheck(t *testing.T) {
 	//  TF_ACC=1 TF_PARL=1 go test [TEST] [TESTARGS] -v -parallel=n
 	// To run specified cases in parallel, please refer to below PR:
 	// 	https://github.com/hashicorp/terraform/pull/16807
-	if os.Getenv(ParaTestEnvVar) != "" {
+	if os.Getenv(ParaTestEnvVar) != "" && runInParallel {
 		t.Parallel()
 	}
+}
+
+func testAccPreCheck(t *testing.T) {
+	testAccPreCheckWithParallelSwitch(t, true)
 }
 
 func testLocation() string {

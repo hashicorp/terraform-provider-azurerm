@@ -14,7 +14,7 @@ func TestAccAzureRMNetworkWatcher_basic(t *testing.T) {
 	resourceGroup := "azurerm_network_watcher.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheckWithParallelSwitch(t, false) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
@@ -32,7 +32,7 @@ func TestAccAzureRMNetworkWatcher_complete(t *testing.T) {
 	resourceGroup := "azurerm_network_watcher.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheckWithParallelSwitch(t, false) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
@@ -50,7 +50,7 @@ func TestAccAzureRMNetworkWatcher_update(t *testing.T) {
 	resourceGroup := "azurerm_network_watcher.test"
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheckWithParallelSwitch(t, false) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
@@ -75,7 +75,7 @@ func TestAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheckWithParallelSwitch(t, false) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
