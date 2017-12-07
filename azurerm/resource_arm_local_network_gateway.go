@@ -45,7 +45,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 			"bgp_settings": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1, // TODO: confirm
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"asn": {
@@ -176,7 +176,7 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing Azure ARM delete request of local network gateway '%s': %s", name, err)
+		return fmt.Errorf("Error issuing delete request for local network gateway %q: %+v", name, err)
 	}
 
 	return nil
@@ -191,10 +191,11 @@ func expandLocalNetworkGatewayBGPSettings(d *schema.ResourceData) (*network.BgpS
 	settings := v.([]interface{})
 	setting := settings[0].(map[string]interface{})
 
-	bgpSettings := network.BgpSettings{}
-	bgpSettings.Asn = utils.Int64(int64(setting["asn"].(int)))
-	bgpSettings.BgpPeeringAddress = utils.String(setting["bgp_peering_address"].(string))
-	bgpSettings.PeerWeight = utils.Int32(int32(setting["peer_weight"].(int)))
+	bgpSettings := network.BgpSettings{
+		Asn:               utils.Int64(int64(setting["asn"].(int))),
+		BgpPeeringAddress: utils.String(setting["bgp_peering_address"].(string)),
+		PeerWeight:        utils.Int32(int32(setting["peer_weight"].(int))),
+	}
 
 	return &bgpSettings, nil
 }
