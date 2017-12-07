@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 // ParaTestEnvVar is used to enable parallelism in testing.
@@ -102,7 +103,7 @@ func testArmEnvironment() (*azure.Environment, error) {
 	return &env, nil
 }
 
-func testGetAzureConfig(t *testing.T) *Config {
+func testGetAzureConfig(t *testing.T) *authentication.Config {
 	if os.Getenv(resource.TestEnvVar) == "" {
 		t.Skip(fmt.Sprintf("Integration test skipped unless env '%s' set", resource.TestEnvVar))
 		return nil
@@ -111,7 +112,7 @@ func testGetAzureConfig(t *testing.T) *Config {
 	environment := testArmEnvironmentName()
 
 	// we deliberately don't use the main config - since we care about
-	config := Config{
+	config := authentication.Config{
 		SubscriptionID:           os.Getenv("ARM_SUBSCRIPTION_ID"),
 		ClientID:                 os.Getenv("ARM_CLIENT_ID"),
 		TenantID:                 os.Getenv("ARM_TENANT_ID"),
@@ -128,7 +129,7 @@ func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
 		return
 	}
 
-	armClient, err := config.getArmClient()
+	armClient, err := getArmClient(config)
 	if err != nil {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}
