@@ -47,6 +47,21 @@ The following arguments are supported:
 * `address_space` - (Required) The list of string CIDRs representing the
     address spaces the gateway exposes.
 
+* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
+    Local Network Gateway's BGP speaker settings.
+
+---
+
+`bgp_settings` supports the following:
+
+* `asn` - (Required) The BGP speaker's ASN.
+
+* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier
+    of this BGP speaker.
+
+* `peer_weight` - (Optional) The weight added to routes learned from this
+    BGP speaker.
+
 ## Attributes Reference
 
 The following attributes are exported:
