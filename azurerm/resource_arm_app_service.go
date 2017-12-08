@@ -229,6 +229,11 @@ func resourceArmAppService() *schema.Resource {
 			// TODO: (tombuildsstuff) support Update once the API is fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsForceNewSchema(),
+
+			"default_site_hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -382,6 +387,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
+		d.Set("default_site_hostname", props.DefaultHostName)
 	}
 
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {

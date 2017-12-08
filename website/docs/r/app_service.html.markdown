@@ -166,6 +166,8 @@ The following attributes are exported:
 
 * `id` - The ID of the App Service.
 
+* `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
+
 ## Import
 
 App Services can be imported using the `resource id`, e.g.
