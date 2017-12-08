@@ -36,7 +36,7 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 	dataSourceName := "data.azurerm_virtual_network.test"
 	ri := acctest.RandInt()
 
-	name_vnet_1 := fmt.Sprintf("acctestvnet-1-%d", ri)
+	virtualNetworkName := fmt.Sprintf("acctestvnet-1-%d", ri)
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -49,7 +49,7 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 			{
 				Config: testAccDataSourceArmVirtualNetwork_peeringWithDataSource(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "name", name_vnet_1),
+					resource.TestCheckResourceAttr(dataSourceName, "name", virtualNetworkName),
 					resource.TestCheckResourceAttr(dataSourceName, "address_spaces.0", "10.0.1.0/24"),
 					resource.TestCheckResourceAttr(dataSourceName, "vnet_peerings.%", "1"),
 				),

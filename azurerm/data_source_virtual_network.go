@@ -55,15 +55,15 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 }
 
 func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
-	vnetClient := meta.(*ArmClient).vnetClient
+	client := meta.(*ArmClient).vnetClient
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := vnetClient.Get(resGroup, name, "")
+	resp, err := client.Get(resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error making Read request on Azure virtual network %s: %+v", name, err)
+			return fmt.Errorf("Error making Read request on Azure virtual network %q (resource group %q): %+v", name, resGroup, err)
 		}
 		return err
 	}
@@ -71,13 +71,13 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*resp.ID)
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
-		address_spaces := flattenVnetAddressPrefixes(props.AddressSpace.AddressPrefixes)
-		if err := d.Set("address_spaces", address_spaces); err != nil {
+		addressSpaces := flattenVnetAddressPrefixes(props.AddressSpace.AddressPrefixes)
+		if err := d.Set("address_spaces", addressSpaces); err != nil {
 			return err
 		}
 
-		dns_servers := flattenVnetAddressPrefixes(props.DhcpOptions.DNSServers)
-		if err := d.Set("dns_servers", dns_servers); err != nil {
+		dnsServers := flattenVnetAddressPrefixes(props.DhcpOptions.DNSServers)
+		if err := d.Set("dns_servers", dnsServers); err != nil {
 			return err
 		}
 
@@ -86,8 +86,8 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		vnet_peerings := flattenVnetPeerings(props.VirtualNetworkPeerings)
-		if err := d.Set("vnet_peerings", vnet_peerings); err != nil {
+		vnetPeerings := flattenVnetPeerings(props.VirtualNetworkPeerings)
+		if err := d.Set("vnet_peerings", vnetPeerings); err != nil {
 			return err
 		}
 	}
