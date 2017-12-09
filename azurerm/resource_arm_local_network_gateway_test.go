@@ -2,12 +2,12 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
@@ -54,6 +54,123 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
+	name := "azurerm_local_network_gateway.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(name),
+					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
+					resource.TestCheckResourceAttr(name, "address_space.0", "127.0.0.0/8"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
+	name := "azurerm_local_network_gateway.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(name),
+					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
+					resource.TestCheckResourceAttr(name, "address_space.0", "127.0.0.0/8"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.#", "1"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.0.asn", "2468"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.0.bgp_peering_address", "10.104.1.1"),
+				),
+			},
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(name),
+					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
+					resource.TestCheckResourceAttr(name, "address_space.0", "127.0.0.0/8"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
+	name := "azurerm_local_network_gateway.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(name),
+					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
+					resource.TestCheckResourceAttr(name, "address_space.0", "127.0.0.0/8"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.#", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(name),
+					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
+					resource.TestCheckResourceAttr(name, "address_space.0", "127.0.0.0/8"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.#", "1"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.0.asn", "2468"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.0.bgp_peering_address", "10.104.1.1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
+	name := "azurerm_local_network_gateway.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettingsComplete(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(name),
+					resource.TestCheckResourceAttr(name, "gateway_address", "127.0.0.1"),
+					resource.TestCheckResourceAttr(name, "address_space.0", "127.0.0.0/8"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.#", "1"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.0.asn", "2468"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.0.bgp_peering_address", "10.104.1.1"),
+					resource.TestCheckResourceAttr(name, "bgp_settings.0.peer_weight", "15"),
+				),
+			},
+		},
+	})
+}
+
 // testCheckAzureRMLocalNetworkGatewayExists returns the resurce.TestCheckFunc
 // which checks whether or not the expected local network gateway exists both
 // in the schema, and on Azure.
@@ -74,14 +191,15 @@ func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFu
 		resGrp := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		lnetClient := testAccProvider.Meta().(*ArmClient).localNetConnClient
+		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
 
-		resp, err := lnetClient.Get(resGrp, localNetName)
+		resp, err := client.Get(resGrp, localNetName)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Local network gateway '%s' (resource group '%s') does not exist on Azure.", localNetName, resGrp)
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resGrp)
 			}
-			return fmt.Errorf("Error reading the state of local network gateway '%s': %+v", localNetName, err)
+
+			return fmt.Errorf("Error reading the state of local network gateway %q: %+v", localNetName, err)
 		}
 
 		return nil
@@ -105,16 +223,16 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(name string) resource.TestChe
 		resGrp := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		lnetClient := testAccProvider.Meta().(*ArmClient).localNetConnClient
+		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
 
-		deleteResp, error := lnetClient.Delete(resGrp, localNetName, make(chan struct{}))
+		deleteResp, error := client.Delete(resGrp, localNetName, make(chan struct{}))
 		resp := <-deleteResp
 		err = <-error
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Local network gateway '%s' (resource group '%s') does not exist on Azure.", localNetName, resGrp)
+			if utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resGrp)
 			}
-			return fmt.Errorf("Error deleting the state of local network gateway '%s': %+v", localNetName, err)
+			return fmt.Errorf("Error deleting the state of local network gateway %q: %+v", localNetName, err)
 		}
 
 		return nil
@@ -134,16 +252,18 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		localNetName := id.Path["localNetworkGateways"]
 		resGrp := id.ResourceGroup
 
-		lnetClient := testAccProvider.Meta().(*ArmClient).localNetConnClient
-		resp, err := lnetClient.Get(resGrp, localNetName)
+		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
+		resp, err := client.Get(resGrp, localNetName)
 
 		if err != nil {
-			return nil
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Local network gateway still exists:\n%#v", resp.LocalNetworkGatewayPropertiesFormat)
-		}
+		return fmt.Errorf("Local network gateway still exists:\n%#v", resp.LocalNetworkGatewayPropertiesFormat)
 	}
 
 	return nil
@@ -152,16 +272,64 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 func testAccAzureRMLocalNetworkGatewayConfig_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctest-%d"
-    location = "%s"
+  name     = "acctest-%d"
+  location = "%s"
 }
 
 resource "azurerm_local_network_gateway" "test" {
-	name = "acctestlng-%d"
-	location = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	gateway_address = "127.0.0.1"
-	address_space = ["127.0.0.0/8"]
+  name                = "acctestlng-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/8"]
 }
+
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_bgpSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/8"]
+
+  bgp_settings {
+    asn                 = 2468
+    bgp_peering_address = "10.104.1.1"
+  }
+}
+
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_bgpSettingsComplete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/8"]
+
+  bgp_settings {
+    asn                 = 2468
+    bgp_peering_address = "10.104.1.1"
+    peer_weight         = 15
+  }
+}
+
 `, rInt, location, rInt)
 }

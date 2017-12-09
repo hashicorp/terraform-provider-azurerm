@@ -28,3 +28,25 @@ func TestAccAzureRMLocalNetworkGateway_importBasic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMLocalNetworkGateway_importBGPSettingsComplete(t *testing.T) {
+	resourceName := "azurerm_local_network_gateway.test"
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_bgpSettingsComplete(rInt, testLocation()),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
