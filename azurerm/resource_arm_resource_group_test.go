@@ -33,18 +33,12 @@ func testSweepResourceGroups(region string) error {
 		return fmt.Errorf("Error Listing on Resource Groups: %+v", err)
 	}
 
-	for _, profile := range *results.Value {
-		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
+	for _, resourceGroup := range *results.Value {
+		if !shouldSweepAcceptanceTestResource(*resourceGroup.Name, *resourceGroup.Location, region) {
 			continue
 		}
 
-		resourceId, err := parseAzureResourceID(*profile.ID)
-		if err != nil {
-			return err
-		}
-
-		name := resourceId.ResourceGroup
-
+		name := *resourceGroup.Name
 		log.Printf("Deleting Resource Group %q", name)
 		deleteResponse, deleteErr := client.Delete(name, make(chan struct{}))
 		resp := <-deleteResponse
