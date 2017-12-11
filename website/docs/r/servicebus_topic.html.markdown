@@ -15,25 +15,29 @@ Create a ServiceBus Topic.
 ## Example Usage
 
 ```hcl
+variable "location" {
+  description = "Azure datacenter to deploy to."
+  default = "West US"
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "terraform-servicebus"
+  location = "${var.location}"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acceptanceTestServiceBusNamespace"
-  location            = "West US"
+  name                = "${var.servicebus_name}"
+  location            = "${var.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard"
 
   tags {
-    environment = "Production"
+    source = "terraform"
   }
 }
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "testTopic"
-  location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 

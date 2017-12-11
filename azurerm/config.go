@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
@@ -27,6 +28,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
+	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
@@ -42,6 +44,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -120,7 +123,9 @@ type ArmClient struct {
 
 	deploymentsClient resources.DeploymentsClient
 
-	redisClient redis.GroupClient
+	redisClient               redis.GroupClient
+	redisFirewallClient       redis.FirewallRuleClient
+	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	trafficManagerProfilesClient  trafficmanager.ProfilesClient
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
@@ -157,6 +162,12 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+
+	// Networking
+	watcherClient network.WatchersClient
+
+	// Resources
+	managementLocksClient locks.ManagementLocksClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -188,11 +199,22 @@ func withRequestLogging() autorest.SendDecorator {
 }
 
 func setUserAgent(client *autorest.Client) {
-	version := terraform.VersionString()
-	client.UserAgent = fmt.Sprintf("HashiCorp-Terraform-v%s", version)
+	tfVersion := fmt.Sprintf("HashiCorp-Terraform-v%s", terraform.VersionString())
+
+	// if the user agent already has a value append the Terraform user agent string
+	if curUserAgent := client.UserAgent; curUserAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s;%s", curUserAgent, tfVersion)
+	} else {
+		client.UserAgent = tfVersion
+	}
+
+	// append the CloudShell version to the user agent if it exists
+	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
+		client.UserAgent = fmt.Sprintf("%s;%s", client.UserAgent, azureAgent)
+	}
 }
 
-func (c *Config) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
+func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
 	useServicePrincipal := c.ClientSecret != ""
 
 	if useServicePrincipal {
@@ -224,7 +246,7 @@ func (c *Config) getAuthorizationToken(oauthConfig *adal.OAuthConfig, endpoint s
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func (c *Config) getArmClient() (*ArmClient, error) {
+func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	// detect cloud from environment
 	env, envErr := azure.EnvironmentFromName(c.Environment)
 	if envErr != nil {
@@ -259,21 +281,21 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.getAuthorizationToken(oauthConfig, endpoint)
+	auth, err := getAuthorizationToken(c, oauthConfig, endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := c.getAuthorizationToken(oauthConfig, graphEndpoint)
+	graphAuth, err := getAuthorizationToken(c, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key Vault Endpoints
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := c.getAuthorizationToken(oauthConfig, resource)
+		keyVaultSpt, err := getAuthorizationToken(c, oauthConfig, resource)
 		if err != nil {
 			return nil, err
 		}
@@ -571,12 +593,6 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	tmec.Sender = sender
 	client.trafficManagerEndpointsClient = tmec
 
-	rdc := redis.NewGroupClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&rdc.Client)
-	rdc.Authorizer = auth
-	rdc.Sender = sender
-	client.redisClient = rdc
-
 	sesc := search.NewServicesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sesc.Client)
 	sesc.Authorizer = auth
@@ -653,8 +669,20 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
+	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	// TODO: move the other networking stuff in here, gradually
+	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&watchersClient.Client)
+	watchersClient.Authorizer = auth
+	watchersClient.Sender = sender
+	c.watcherClient = watchersClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
@@ -780,6 +808,34 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	keyVaultManagementClient.Authorizer = keyVaultAuth
 	keyVaultManagementClient.Sender = sender
 	c.keyVaultManagementClient = keyVaultManagementClient
+}
+
+func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	groupsClient := redis.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&groupsClient.Client)
+	groupsClient.Authorizer = auth
+	groupsClient.Sender = sender
+	c.redisClient = groupsClient
+
+	firewallRuleClient := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&firewallRuleClient.Client)
+	firewallRuleClient.Authorizer = auth
+	firewallRuleClient.Sender = sender
+	c.redisFirewallClient = firewallRuleClient
+
+	patchSchedulesClient := redis.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&patchSchedulesClient.Client)
+	patchSchedulesClient.Authorizer = auth
+	patchSchedulesClient.Sender = sender
+	c.redisPatchSchedulesClient = patchSchedulesClient
+}
+
+func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	locksClient := locks.NewManagementLocksClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&locksClient.Client)
+	locksClient.Authorizer = auth
+	locksClient.Sender = sender
+	c.managementLocksClient = locksClient
 }
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {

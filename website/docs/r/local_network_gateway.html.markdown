@@ -13,6 +13,12 @@ Creates a new local network gateway connection over which specific connections c
 ## Example Usage
 
 ```hcl
+
+resource "azurerm_resource_group" "test" {
+  name     = "localNetworkGWTest"
+  location = "West US"
+}
+
 resource "azurerm_local_network_gateway" "home" {
   name                = "backHome"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -40,6 +46,21 @@ The following arguments are supported:
 
 * `address_space` - (Required) The list of string CIDRs representing the
     address spaces the gateway exposes.
+
+* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
+    Local Network Gateway's BGP speaker settings.
+
+---
+
+`bgp_settings` supports the following:
+
+* `asn` - (Required) The BGP speaker's ASN.
+
+* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier
+    of this BGP speaker.
+
+* `peer_weight` - (Optional) The weight added to routes learned from this
+    BGP speaker.
 
 ## Attributes Reference
 

@@ -370,6 +370,15 @@
               </ul>
             </li>
 
+            <li<%= sidebar_current("docs-azurerm-management") %>>
+              <a href="#">Management Resources</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-resource-management-lock") %>>
+                  <a href="/docs/providers/azurerm/r/management_lock.html">azurerm_management_lock</a>
+                </li>
+              </ul>
+            </li>
+
             <li<%= sidebar_current("docs-azurerm-resource-eventhub") %>>
               <a href="#">Messaging Resources</a>
               <ul class="nav nav-visible">
@@ -439,6 +448,10 @@
                   <a href="/docs/providers/azurerm/r/network_security_rule.html">azurerm_network_security_rule</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-resource-network-watcher") %>>
+                  <a href="/docs/providers/azurerm/r/network_watcher.html">azurerm_network_watcher</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-resource-network-public-ip") %>>
                   <a href="/docs/providers/azurerm/r/public_ip.html">azurerm_public_ip</a>
                 </li>
@@ -474,19 +487,22 @@
             </li>
 
             <li<%= sidebar_current("docs-azurerm-oms") %>>
-            <a href="#">OMS Resources</a>
-            <ul class="nav nav-visible">
-              <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace") %>>
-                <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
-              </li>
-            </ul>
-          </li>
+              <a href="#">OMS Resources</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace") %>>
+                  <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
+                </li>
+              </ul>
+            </li>
 
-            <li<%= sidebar_current("docs-azurerm-redis-cache") %>>
+            <li<%= sidebar_current("docs-azurerm-redis") %>>
               <a href="#">Redis Resources</a>
               <ul class="nav nav-visible">
                 <li<%= sidebar_current("docs-azurerm-redis-cache") %>>
                   <a href="/docs/providers/azurerm/r/redis_cache.html">azurerm_redis_cache</a>
+                </li>
+                <li<%= sidebar_current("docs-azurerm-redis-firewall-rule") %>>
+                  <a href="/docs/providers/azurerm/r/redis_firewall_rule.html">azurerm_redis_firewall_rule</a>
                 </li>
               </ul>
             </li>

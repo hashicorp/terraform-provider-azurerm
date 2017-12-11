@@ -12,14 +12,27 @@ Creates a Traffic Manager Profile to which multiple endpoints can be attached.
 
 ## Example Usage
 
+
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+  byte_length = 8
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "trafficmanagerProfile"
+  location = "West US"
+}
+
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "profile1"
+  name                   = "${random_id.server.hex}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "profile1"
+    relative_name = "${random_id.server.hex}"
     ttl           = 100
   }
 

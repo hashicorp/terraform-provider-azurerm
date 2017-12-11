@@ -7,7 +7,8 @@ resource "azurerm_storage_account" "aci-sa" {
   name                = "acistorageacct"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   location            = "${azurerm_resource_group.aci-rg.location}"
-  account_type        = "Standard_LRS"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "aci-share" {

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/arm/web"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -22,16 +23,13 @@ func resourceArmAppService() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAppServiceName,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
 
@@ -231,6 +229,11 @@ func resourceArmAppService() *schema.Resource {
 			// TODO: (tombuildsstuff) support Update once the API is fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsForceNewSchema(),
+
+			"default_site_hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -384,6 +387,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
+		d.Set("default_site_hostname", props.DefaultHostName)
 	}
 
 	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {
@@ -628,4 +632,14 @@ func flattenAppServiceAppSettings(input *map[string]*string) map[string]string {
 	}
 
 	return output
+}
+
+func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
+	value := v.(string)
+
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	}
+
+	return
 }

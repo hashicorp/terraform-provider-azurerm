@@ -271,6 +271,53 @@ func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisCache_PatchSchedule(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMRedisCachePatchSchedule(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_PatchScheduleUpdated(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMRedisCachePatchSchedule(ri, location)
+	updatedConfig := testAccAzureRMRedisCache_premium(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRedisCacheExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -506,4 +553,34 @@ resource "azurerm_redis_cache" "test" {
     }
 }
 `, rInt, location, rString, rInt)
+}
+
+func testAccAzureRMRedisCachePatchSchedule(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_redis_cache" "test" {
+    name                = "acctestRedis-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    capacity            = 1
+    family              = "P"
+    sku_name            = "Premium"
+    enable_non_ssl_port = false
+    redis_configuration {
+      maxclients         = 256,
+      maxmemory_reserved = 2,
+      maxmemory_delta    = 2
+      maxmemory_policy   = "allkeys-lru"
+    }
+
+    patch_schedule {
+      day_of_week    = "Tuesday"
+      start_hour_utc = 8
+    }
+}
+`, rInt, location, rInt)
 }

@@ -1,4 +1,46 @@
-## 0.3.3 (Unreleased)
+## 1.0.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_virtual_network` [GH-533]
+* **New Resource:** `azurerm_management_lock` [GH-575]
+* **New Resource:** `azurerm_network_watcher` [GH-571]
+
+IMPROVEMENTS:
+
+* authentication - add support for the latest Azure CLI configuration [GH-573]
+* authentication - conditional loading of the Subscription ID / Tenant ID / Environment [GH-574]
+* core - appending additions to the User Agent, so we don't overwrite the Go SDK User Agent info [GH-587]
+* core: Upgrading to v11.2.2-beta of the Azure SDK for Go [GH-594]
+* `azurerm_app_service` - exposing the Default Hostname as a Computed field [GH-612]
+* `azurerm_eventhub_namespace` - capacity can now be configured up to 20 [GH-556]
+* `azurerm_eventhub_namespace` - support for AutoInflating/MaximumThroughputCapacity [GH-569]
+* `azurerm_image` - fixing an out of index error when flattening image data disks [GH-589]
+* `azurerm_local_network_gateway` - support for BGP Settings [GH-611]
+* `azurerm_virtual_machine` - removing the deprecated `diagnostics_profile` field [GH-593]
+* `azurerm_virtual_machine` - support for managed service identity [GH-482]
+* `azurerm_virtual_machine_scale_set` - Support for updating the customData field [GH-559]
+* `azurerm_virtual_machine_scale_set` - ensuring changes to the `settings` object are detected [GH-609]
+
+## 0.3.3 (November 14, 2017)
+
+FEATURES:
+
+* **New Resource:** `azurerm_redis_firewall_rule` ([#529](https://github.com/terraform-providers/terraform-provider-azurerm/issues/529))
+
+IMPROVEMENTS:
+
+* authentication: allow using multiple subscriptions for Azure CLI auth ([#445](https://github.com/terraform-providers/terraform-provider-azurerm/issues/445))
+* core: appending the CloudShell version to the user agent when running within CloudShell ([#483](https://github.com/terraform-providers/terraform-provider-azurerm/issues/483))
+* `azurerm_app_service` / `azurerm_app_service_plan` - adding validation for the `name` fields ([#528](https://github.com/terraform-providers/terraform-provider-azurerm/issues/528))
+* `azurerm_container_registry` - Migration: Fixing a crash when the storage_account block is nil ([#551](https://github.com/terraform-providers/terraform-provider-azurerm/issues/551))
+* `azurerm_lb_nat_rule`: support for floating IP's ([#542](https://github.com/terraform-providers/terraform-provider-azurerm/issues/542))
+* `azurerm_public_ip` - Clarify the error message for the validation of domain name label ([#485](https://github.com/terraform-providers/terraform-provider-azurerm/issues/485))
+* `azurerm_network_security_group` - fixing a crash when changes were made outside of Terraform ([#492](https://github.com/terraform-providers/terraform-provider-azurerm/issues/492))
+* `azurerm_redis_cache`: support for Patch Schedules ([#540](https://github.com/terraform-providers/terraform-provider-azurerm/issues/540))
+* `azurerm_virtual_machine` - ensuring `vhd_uri` is validated ([#470](https://github.com/terraform-providers/terraform-provider-azurerm/issues/470))
+* `azurerm_virtual_machine_scale_set`: fixing a crash where accelerated networking isn't returned by the API ([#480](https://github.com/terraform-providers/terraform-provider-azurerm/issues/480))
+
 ## 0.3.2 (October 30, 2017)
 
 FEATURES: 

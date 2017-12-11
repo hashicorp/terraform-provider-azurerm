@@ -10,10 +10,90 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestAzureRMAppServiceName_validation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "ab",
+			ErrCount: 0,
+		},
+		{
+			Value:    "abc",
+			ErrCount: 0,
+		},
+		{
+			Value:    "webapp1",
+			ErrCount: 0,
+		},
+		{
+			Value:    "hello-world",
+			ErrCount: 0,
+		},
+		{
+			Value:    "hello_world",
+			ErrCount: 1,
+		},
+		{
+			Value:    "helloworld21!",
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateAppServiceName(tc.Value, "azurerm_app_service")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the App Service Name to trigger a validation error for '%s'", tc.Value)
+		}
+	}
+}
+
 func TestAccAzureRMAppService_basic(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_freeTier(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_freeTier(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_sharedTier(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_sharedTier(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -580,6 +660,66 @@ resource "azurerm_app_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_freeTier(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Free"
+    size = "F1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  site_config {
+	use_32_bit_worker_process = true
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_sharedTier(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Free"
+    size = "F1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  site_config {
+	use_32_bit_worker_process = true
+  }
 }
 `, rInt, location, rInt, rInt)
 }

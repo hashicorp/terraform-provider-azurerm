@@ -10,7 +10,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,9 +17,9 @@ import (
 
 func resourceArmApplicationGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationGatewayCreate,
+		Create: resourceArmApplicationGatewayCreateUpdate,
 		Read:   resourceArmApplicationGatewayRead,
-		Update: resourceArmApplicationGatewayCreate,
+		Update: resourceArmApplicationGatewayCreateUpdate,
 		Delete: resourceArmApplicationGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -680,7 +679,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	client := armClient.applicationGatewayClient
 
@@ -854,19 +853,6 @@ func retrieveApplicationGatewayById(ApplicationGatewayID string, meta interface{
 	}
 
 	return &resp, true, nil
-}
-
-func ApplicationGatewayStateRefreshFunc(client *ArmClient, resourceGroupName string, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.applicationGatewayClient.Get(resourceGroupName, name)
-		if err != nil {
-			return nil, "", fmt.Errorf(
-				"Error issuing read request in ApplicationGatewayStateRefreshFunc to Azure ARM for ApplicationGateway '%s' (RG: '%s'): %+v",
-				name, resourceGroupName, err)
-		}
-
-		return res, *res.ApplicationGatewayPropertiesFormat.ProvisioningState, nil
-	}
 }
 
 func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {

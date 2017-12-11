@@ -102,7 +102,9 @@ func (client ManagementClient) CheckDNSNameAvailabilityPreparer(location string,
 // CheckDNSNameAvailabilitySender sends the CheckDNSNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementClient) CheckDNSNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req)
+	return autorest.SendWithSender(client,
+		req,
+		azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckDNSNameAvailabilityResponder handles the response to the CheckDNSNameAvailability request. The method always

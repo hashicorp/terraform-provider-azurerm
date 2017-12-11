@@ -41,7 +41,7 @@ resource "azurerm_lb" "test" {
 resource "azurerm_lb_nat_pool" "test" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "SampleApplication Pool"
+  name                           = "SampleApplicationPool"
   protocol                       = "Tcp"
   frontend_port_start            = 80
   frontend_port_end              = 81

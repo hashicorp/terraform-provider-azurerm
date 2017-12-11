@@ -13,15 +13,26 @@ Creates a Traffic Manager Endpoint.
 ## Example Usage
 
 ```hcl
-resource "azurerm_traffic_manager_profile" "test" {
-  name                = "profile1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "West US"
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+  byte_length = 8
+}
 
+resource "azurerm_resource_group" "test" {
+  name     = "trafficmanagerendpointTest"
+  location = "West US"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                = "${random_id.server.hex}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+ 
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "profile1"
+    relative_name = "${random_id.server.hex}"
     ttl           = 100
   }
 
@@ -37,7 +48,7 @@ resource "azurerm_traffic_manager_profile" "test" {
 }
 
 resource "azurerm_traffic_manager_endpoint" "test" {
-  name                = "profile1"
+  name                = "${random_id.server.hex}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   profile_name        = "${azurerm_traffic_manager_profile.test.name}"
   target              = "terraform.io"

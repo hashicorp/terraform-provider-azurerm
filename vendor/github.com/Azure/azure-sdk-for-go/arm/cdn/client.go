@@ -107,7 +107,9 @@ func (client ManagementClient) CheckNameAvailabilityPreparer(checkNameAvailabili
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req)
+	return autorest.SendWithSender(client,
+		req,
+		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
@@ -180,7 +182,9 @@ func (client ManagementClient) ValidateProbePreparer(validateProbeInput Validate
 // ValidateProbeSender sends the ValidateProbe request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementClient) ValidateProbeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req)
+	return autorest.SendWithSender(client,
+		req,
+		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ValidateProbeResponder handles the response to the ValidateProbe request. The method always
