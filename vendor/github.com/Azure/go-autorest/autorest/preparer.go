@@ -112,6 +112,28 @@ func WithHeader(header string, value string) PrepareDecorator {
 	}
 }
 
+// WithHeaders returns a PrepareDecorator that sets the specified HTTP headers of the http.Request to
+// the passed value. It canonicalizes the passed headers name (via http.CanonicalHeaderKey) before
+// adding them.
+func WithHeaders(headers map[string]interface{}) PrepareDecorator {
+	h := ensureValueStrings(headers)
+	return func(p Preparer) Preparer {
+		return PreparerFunc(func(r *http.Request) (*http.Request, error) {
+			r, err := p.Prepare(r)
+			if err == nil {
+				if r.Header == nil {
+					r.Header = make(http.Header)
+				}
+
+				for name, value := range h {
+					r.Header.Set(http.CanonicalHeaderKey(name), value)
+				}
+			}
+			return r, err
+		})
+	}
+}
+
 // WithBearerAuthorization returns a PrepareDecorator that adds an HTTP Authorization header whose
 // value is "Bearer " followed by the supplied token.
 func WithBearerAuthorization(token string) PrepareDecorator {
