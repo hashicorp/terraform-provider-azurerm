@@ -24,7 +24,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	}
 
 	rs := acctest.RandString(4)
-	resourceGroupName := fmt.Sprintf("acctesrg%s", rs)
+	resourceGroupName := fmt.Sprintf("acctestrg%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)
 	location := azureRMNormalizeLocation(testLocation())
 
