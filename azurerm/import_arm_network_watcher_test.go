@@ -12,7 +12,7 @@ func TestAccAzureRMNetworkWatcher_importBasic(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheckWithParallelSwitch(t, false) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
@@ -33,7 +33,7 @@ func TestAccAzureRMNetworkWatcher_importComplete(t *testing.T) {
 	resourceName := "azurerm_network_watcher.test"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:     func() { testAccPreCheckWithParallelSwitch(t, false) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{

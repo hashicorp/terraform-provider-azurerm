@@ -13,6 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
+// ParaTestEnvVar is used to enable parallelism in testing.
+const ParaTestEnvVar = "TF_PARL"
+
 var testAccProviders map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
 
@@ -33,7 +36,12 @@ func TestProvider_impl(t *testing.T) {
 	var _ terraform.ResourceProvider = Provider()
 }
 
-func testAccPreCheck(t *testing.T) {
+// This function is designed to allow parallel run per test.
+// If you're adding new test case, please consider using this new function to enable parallelism.
+// *Notice*: before you make some resource test run in parallel, please check rate/usage limitation
+// from your azure subscription. Example: network watcher can only have single instance running due
+// to limitation from Azure.
+func testAccPreCheckWithParallelSwitch(t *testing.T, runInParallel bool) {
 	variables := []string{
 		"ARM_SUBSCRIPTION_ID",
 		"ARM_CLIENT_ID",
@@ -49,6 +57,23 @@ func testAccPreCheck(t *testing.T) {
 			t.Fatalf("`%s` must be set for acceptance tests!", variable)
 		}
 	}
+
+	if runInParallel {
+		t.Parallel()
+	}
+}
+
+func testAccPreCheck(t *testing.T) {
+	// If "TF_PARL" is set to any non-empty value, any acceptance test uses this function as pre-check
+	// step will trigger parallel running by default.
+	// *Notice* This environment variable is specially designed for 600+ legacy acceptance test
+	// cases to benefit from parallel run without changing code. N depends on the request limitation
+	// of used azure subscription account.
+	// Example usage:
+	//  TF_ACC=1 TF_PARL=1 go test [TEST] [TESTARGS] -v -parallel=N
+	var runInParallel = os.Getenv(ParaTestEnvVar) != ""
+
+	testAccPreCheckWithParallelSwitch(t, runInParallel)
 }
 
 func testLocation() string {

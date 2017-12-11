@@ -92,10 +92,25 @@ In order to test the provider, you can simply run `make test`.
 $ make test
 ```
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
+In order to run the full suite of Acceptance tests, we provide below usage pattern:
 
-*Note:* Acceptance tests create real resources, and often cost money to run.
+`[TF_PARL=1] [TF_PARL_NUM=20] [TESTARGS="-run TestCaseNamingPattern"] make testacc`
 
+*Note:* Acceptance tests create real resources, often cost money to run. If you really need to run
+it, suggest using TESTARGS to run the neccessary test cases. Please refer to GNUMakefile to get
+detailed information about `make testacc`.
+
+Example A: Run all acceptance tests sequentially.
 ```sh
 $ make testacc
+```
+
+Example B: Run all acceptance tests in parallel with 20(default) cases per time.
+```
+$ TF_PARL=1 make testacc
+```
+
+Example C: Run all azure storage acceptance tests in parallel with 20(default) cases per time.
+```
+$ TF_PARL=1 TESTARGS="-run TestCaseNamingPattern" make testacc
 ```
