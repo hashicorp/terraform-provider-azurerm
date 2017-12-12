@@ -232,7 +232,7 @@ func DoRetryForStatusCodes(attempts int, backoff time.Duration, codes ...int) Se
 				}
 				// don't count a 429 against the number of attempts
 				// so that we continue to retry until it succeeds
-				if resp.StatusCode != http.StatusTooManyRequests {
+				if resp == nil || resp.StatusCode != http.StatusTooManyRequests {
 					attempt++
 				}
 			}
