@@ -109,7 +109,9 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 				return err
 			}
 
-			networkSecurityGroupNames = append(networkSecurityGroupNames, nsgName)
+			if !sliceContainsValue(networkSecurityGroupNames, nsgName) {
+				networkSecurityGroupNames = append(networkSecurityGroupNames, nsgName)
+			}
 		}
 	}
 
@@ -349,7 +351,9 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *schema.Resou
 					return nil, err
 				}
 
-				nsgNames = append(nsgNames, nsgName)
+				if !sliceContainsValue(nsgNames, nsgName) {
+					nsgNames = append(nsgNames, nsgName)
+				}
 			}
 		}
 	}
