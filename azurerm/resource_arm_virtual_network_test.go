@@ -11,6 +11,7 @@ import (
 )
 
 func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
+	resourceName := "azurerm_virtual_network.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
@@ -22,7 +23,7 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkExists("azurerm_virtual_network.test"),
+					testCheckAzureRMVirtualNetworkExists(resourceName),
 				),
 			},
 		},
@@ -30,7 +31,7 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
-
+	resourceName := "azurerm_virtual_network.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
@@ -42,8 +43,8 @@ func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkExists("azurerm_virtual_network.test"),
-					testCheckAzureRMVirtualNetworkDisappears("azurerm_virtual_network.test"),
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+					testCheckAzureRMVirtualNetworkDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -52,10 +53,11 @@ func TestAccAzureRMVirtualNetwork_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
-
+	resourceName := "azurerm_virtual_network.test"
+	location := testLocation()
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMVirtualNetwork_withTags(ri, testLocation())
-	postConfig := testAccAzureRMVirtualNetwork_withTagsUpdated(ri, testLocation())
+	preConfig := testAccAzureRMVirtualNetwork_withTags(ri, location)
+	postConfig := testAccAzureRMVirtualNetwork_withTagsUpdated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -65,23 +67,42 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkExists("azurerm_virtual_network.test"),
+					testCheckAzureRMVirtualNetworkExists(resourceName),
 					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network.test", "tags.%", "2"),
+						resourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network.test", "tags.cost_center", "MSFT"),
+						resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkExists("azurerm_virtual_network.test"),
+					testCheckAzureRMVirtualNetworkExists(resourceName),
 					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network.test", "tags.%", "1"),
+						resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(
-						"azurerm_virtual_network.test", "tags.environment", "staging"),
+						resourceName, "tags.environment", "staging"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualNetwork_bug373(t *testing.T) {
+	resourceName := "azurerm_virtual_network.test"
+	rs := acctest.RandString(6)
+	config := testAccAzureRMVirtualNetwork_bug373(rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
 				),
 			},
 		},
@@ -240,4 +261,70 @@ resource "azurerm_virtual_network" "test" {
     }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMVirtualNetwork_bug373(rString string, location string) string {
+	return fmt.Sprintf(`
+variable "environment" {
+  default = "TestVirtualNetworkBug373"
+}
+
+variable "network_cidr" {
+  default = "10.0.0.0/16"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg%s"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "${azurerm_resource_group.test.name}-vnet"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["${var.network_cidr}"]
+  location            = "${azurerm_resource_group.test.location}"
+
+  tags {
+    environment = "${var.environment}"
+  }
+}
+
+resource "azurerm_subnet" "public" {
+  name                      = "${azurerm_resource_group.test.name}-subnet-public"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  address_prefix            = "10.0.1.0/24"
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+}
+
+resource "azurerm_subnet" "private" {
+  name                      = "${azurerm_resource_group.test.name}-subnet-private"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  virtual_network_name      = "${azurerm_virtual_network.test.name}"
+  address_prefix            = "10.0.2.0/24"
+  network_security_group_id = "${azurerm_network_security_group.test.id}"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "default-network-sg"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  security_rule {
+    name                       = "default-allow-all"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "${var.network_cidr}"
+    destination_address_prefix = "*"
+  }
+
+  tags {
+    environment = "${var.environment}"
+  }
+}
+`, rString, location)
 }
