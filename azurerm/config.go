@@ -607,20 +607,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	suc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.storageUsageClient = suc
 
-	cpc := cdn.NewProfilesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&cpc.Client)
-	cpc.Authorizer = auth
-	cpc.Sender = sender
-	cpc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.cdnProfilesClient = cpc
-
-	cec := cdn.NewEndpointsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&cec.Client)
-	cec.Authorizer = auth
-	cec.Sender = sender
-	cec.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.cdnEndpointsClient = cec
-
 	dc := resources.NewDeploymentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dc.Client)
 	dc.Authorizer = auth
@@ -700,6 +686,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
+	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
@@ -740,37 +727,43 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	c.automationScheduleClient = scheduleClient
 }
 
-func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	// TODO: move the other networking stuff in here, gradually
-	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&watchersClient.Client)
-	watchersClient.Authorizer = auth
-	watchersClient.Sender = sender
-	watchersClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.watcherClient = watchersClient
+func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
+	assignmentsClient := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&assignmentsClient.Client)
+	assignmentsClient.Authorizer = auth
+	assignmentsClient.Sender = sender
+	assignmentsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.roleAssignmentsClient = assignmentsClient
+
+	definitionsClient := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&definitionsClient.Client)
+	definitionsClient.Authorizer = auth
+	definitionsClient.Sender = sender
+	definitionsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.roleDefinitionsClient = definitionsClient
+
+	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
+	setUserAgent(&servicePrincipalsClient.Client)
+	servicePrincipalsClient.Authorizer = graphAuth
+	servicePrincipalsClient.Sender = sender
+	servicePrincipalsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.servicePrincipalsClient = servicePrincipalsClient
 }
 
-func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
-	spc := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
-	setUserAgent(&spc.Client)
-	spc.Authorizer = graphAuth
-	spc.Sender = sender
-	spc.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.servicePrincipalsClient = spc
+func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	endpointsClient := cdn.NewEndpointsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&endpointsClient.Client)
+	endpointsClient.Authorizer = auth
+	endpointsClient.Sender = sender
+	endpointsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.cdnEndpointsClient = endpointsClient
 
-	rac := authorization.NewRoleAssignmentsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&rac.Client)
-	rac.Authorizer = auth
-	rac.Sender = sender
-	rac.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.roleAssignmentsClient = rac
-
-	rdc := authorization.NewRoleDefinitionsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&rdc.Client)
-	rdc.Authorizer = auth
-	rdc.Sender = sender
-	rdc.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.roleDefinitionsClient = rdc
+	profilesClient := cdn.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&profilesClient.Client)
+	profilesClient.Authorizer = auth
+	profilesClient.Sender = sender
+	profilesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.cdnProfilesClient = profilesClient
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -892,6 +885,16 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	keyVaultManagementClient.Sender = sender
 	keyVaultManagementClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.keyVaultManagementClient = keyVaultManagementClient
+}
+
+func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	// TODO: move the other networking stuff in here, gradually
+	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&watchersClient.Client)
+	watchersClient.Authorizer = auth
+	watchersClient.Sender = sender
+	watchersClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.watcherClient = watchersClient
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
