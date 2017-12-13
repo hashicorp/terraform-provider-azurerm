@@ -88,9 +88,12 @@ func resourceArmLoadBalancer() *schema.Resource {
 				},
 			},
 
-			"private_ip_address": {
-				Type:     schema.TypeString,
+			"private_ip_addresses": {
+				Type:     schema.TypeList,
 				Computed: true,
+				Elem: &schema.Schema {
+					Type: schema.TypeString,
+				},
 			},
 
 			"tags": tagsSchema(),
@@ -177,14 +180,14 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		ipconfigs := loadBalancer.LoadBalancerPropertiesFormat.FrontendIPConfigurations
 		d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(ipconfigs))
 
+		privateIpAddresses := make([]string, 0, len(*ipconfigs))
 		for _, config := range *ipconfigs {
 			if config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress != nil {
-				d.Set("private_ip_address", config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress)
-
-				// set the private IP address at most once
-				break
+				append(privateIpAddresses, *config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress)
 			}
 		}
+
+		d.Set("private_ip_addresses", privateIpAddresses)
 	}
 
 	flattenAndSetTags(d, loadBalancer.Tags)
