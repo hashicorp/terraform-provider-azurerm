@@ -88,8 +88,6 @@ The following arguments are supported:
 
 ~> **NOTE:** Service Bus Premium namespaces are always partitioned, so `enable_partitioning` MUST be set to `true`.
 
-* `lock_duration` - (Optional) The duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. The maximum value is 5 minutes. Default value is 1 minute. Provided in the [TimeSpan](#timespan-format) format.
-
 * `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to 1 minute. (`PT1M`)
 
 * `max_size_in_megabytes` - (Optional) Integer value which controls the size of
