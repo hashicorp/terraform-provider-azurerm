@@ -45,20 +45,16 @@ func buildConfigForSweepers() (*ArmClient, error) {
 func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {
 	loweredName := strings.ToLower(name)
 
-	prefixesToIgnore := []string{"acctest"}
-
-	for _, prefix := range prefixesToIgnore {
-		if !strings.HasPrefix(loweredName, prefix) {
-			log.Printf("Ignoring Resource '%s' due to prefix '%s'", name, prefix)
-			return false
-		}
+	if !strings.HasPrefix(loweredName, "acctest") {
+		log.Printf("Ignoring Resource %q as it doesn't start with `acctest`", name)
+		return false
 	}
 
 	normalisedResourceLocation := azureRMNormalizeLocation(resourceLocation)
 	normalisedRegion := azureRMNormalizeLocation(region)
 
 	if normalisedResourceLocation != normalisedRegion {
-		log.Printf("Region '%s' isn't '%s' - skipping", normalisedResourceLocation, normalisedRegion)
+		log.Printf("Region %q isn't %q - skipping", normalisedResourceLocation, normalisedRegion)
 		return false
 	}
 
