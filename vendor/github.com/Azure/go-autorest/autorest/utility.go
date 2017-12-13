@@ -25,6 +25,8 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+
+	"github.com/Azure/go-autorest/autorest/adal"
 )
 
 // EncodedAs is a series of constants specifying various data encodings
@@ -138,13 +140,38 @@ func MapToValues(m map[string]interface{}) url.Values {
 	return v
 }
 
-// String method converts interface v to string. If interface is a list, it
-// joins list elements using separator.
-func String(v interface{}, sep ...string) string {
-	if len(sep) > 0 {
-		return ensureValueString(strings.Join(v.([]string), sep[0]))
+// AsStringSlice method converts interface{} to []string. This expects a
+//that the parameter passed to be a slice or array of a type that has the underlying
+//type a string.
+func AsStringSlice(s interface{}) ([]string, error) {
+	v := reflect.ValueOf(s)
+	if v.Kind() != reflect.Slice && v.Kind() != reflect.Array {
+		return nil, NewError("autorest", "AsStringSlice", "the value's type is not an array.")
 	}
-	return ensureValueString(v)
+	stringSlice := make([]string, 0, v.Len())
+
+	for i := 0; i < v.Len(); i++ {
+		stringSlice = append(stringSlice, v.Index(i).String())
+	}
+	return stringSlice, nil
+}
+
+// String method converts interface v to string. If interface is a list, it
+// joins list elements using the seperator. Note that only sep[0] will be used for
+// joining if any separator is specified.
+func String(v interface{}, sep ...string) string {
+	if len(sep) == 0 {
+		return ensureValueString(v)
+	}
+	stringSlice, ok := v.([]string)
+	if ok == false {
+		var err error
+		stringSlice, err = AsStringSlice(v)
+		if err != nil {
+			panic(fmt.Sprintf("autorest: Couldn't convert value to a string %s.", err))
+		}
+	}
+	return ensureValueString(strings.Join(stringSlice, sep[0]))
 }
 
 // Encode method encodes url path and query parameters.
@@ -201,4 +228,16 @@ func ChangeToGet(req *http.Request) *http.Request {
 	req.ContentLength = 0
 	req.Header.Del("Content-Length")
 	return req
+}
+
+// IsTokenRefreshError returns true if the specified error implements the TokenRefreshError
+// interface.  If err is a DetailedError it will walk the chain of Original errors.
+func IsTokenRefreshError(err error) bool {
+	if _, ok := err.(adal.TokenRefreshError); ok {
+		return true
+	}
+	if de, ok := err.(DetailedError); ok {
+		return IsTokenRefreshError(de.Original)
+	}
+	return false
 }
