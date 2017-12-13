@@ -698,34 +698,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	ai.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.appInsightsClient = ai
 
-	aadb := automation.NewAccountClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&aadb.Client)
-	aadb.Authorizer = auth
-	aadb.Sender = sender
-	aadb.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.automationAccountClient = aadb
-
-	arc := automation.NewRunbookClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&arc.Client)
-	arc.Authorizer = auth
-	arc.Sender = sender
-	arc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.automationRunbookClient = arc
-
-	acc := automation.NewCredentialClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&acc.Client)
-	acc.Authorizer = auth
-	acc.Sender = sender
-	acc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.automationCredentialClient = acc
-
-	aschc := automation.NewScheduleClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&aschc.Client)
-	aschc.Authorizer = auth
-	aschc.Sender = sender
-	aschc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.automationScheduleClient = aschc
-
+	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
@@ -735,6 +708,36 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&accountClient.Client)
+	accountClient.Authorizer = auth
+	accountClient.Sender = sender
+	accountClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationAccountClient = accountClient
+
+	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&credentialClient.Client)
+	credentialClient.Authorizer = auth
+	credentialClient.Sender = sender
+	credentialClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationCredentialClient = credentialClient
+
+	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&runbookClient.Client)
+	runbookClient.Authorizer = auth
+	runbookClient.Sender = sender
+	runbookClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationRunbookClient = runbookClient
+
+	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&scheduleClient.Client)
+	scheduleClient.Authorizer = auth
+	scheduleClient.Sender = sender
+	scheduleClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationScheduleClient = scheduleClient
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
