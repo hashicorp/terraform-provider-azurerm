@@ -91,7 +91,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 			"private_ip_addresses": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Schema {
+				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
 			},
