@@ -67,6 +67,12 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"lock_duration": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"max_size_in_megabytes": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -128,6 +134,10 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
 		parameters.SBQueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
+	}
+
+	if lockDuration := d.Get("lock_duration").(string); lockDuration != "" {
+		parameters.SBQueueProperties.LockDuration = &lockDuration
 	}
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
@@ -199,6 +209,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
 	d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 	d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
+	d.Set("lock_duration", props.LockDuration)
 
 	d.Set("enable_express", props.EnableExpress)
 	d.Set("enable_partitioning", props.EnablePartitioning)

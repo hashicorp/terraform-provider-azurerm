@@ -144,6 +144,37 @@ func TestAccAzureRMServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
+	resourceName := "azurerm_servicebus_queue.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+
+	config := testAccAzureRMServiceBusQueue_lockDuration(ri, location)
+	updatedConfig := testAccAzureRMServiceBusQueue_lockDurationUpdated(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "lock_duration", "PT40S"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "lock_duration", "PT2M"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
 
@@ -316,6 +347,52 @@ resource "azurerm_servicebus_queue" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     requires_duplicate_detection = true
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusQueue_lockDuration(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    sku = "standard"
+}
+
+resource "azurerm_servicebus_queue" "test" {
+    name = "acctestservicebusqueue-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    lock_duration = "PT40S"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusQueue_lockDurationUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    sku = "standard"
+}
+
+resource "azurerm_servicebus_queue" "test" {
+    name = "acctestservicebusqueue-%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    lock_duration = "PT2M"
 }
 `, rInt, location, rInt, rInt)
 }
