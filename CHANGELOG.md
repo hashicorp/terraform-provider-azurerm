@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_network_security_group` [GH-623]
 * **New Data Source:** `azurerm_virtual_network` [GH-533]
 * **New Resource:** `azurerm_management_lock` [GH-575]
 * **New Resource:** `azurerm_network_watcher` [GH-571]
