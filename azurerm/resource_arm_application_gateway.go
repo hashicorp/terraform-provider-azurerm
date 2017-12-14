@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	//	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/errwrap"
@@ -1485,6 +1484,7 @@ func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.App
 				settings["port"] = int(*props.Port)
 				settings["cookie_based_affinity"] = string(props.CookieBasedAffinity)
 				settings["request_timeout"] = int(*props.RequestTimeout)
+				settings["protocol"] = string(props.Protocol)
 
 				if certs := props.AuthenticationCertificates; certs != nil {
 					authCerts := make([]interface{}, 0)
@@ -1592,7 +1592,7 @@ func flattenApplicationGatewayProbes(probes *[]network.ApplicationGatewayProbe) 
 				settings["path"] = *props.Path
 				settings["host"] = *props.Host
 				settings["interval"] = int(*props.Interval)
-				settings["interval"] = int(*props.Timeout)
+				settings["timeout"] = int(*props.Timeout)
 				settings["unhealthy_threshold"] = int(*props.UnhealthyThreshold)
 			}
 
