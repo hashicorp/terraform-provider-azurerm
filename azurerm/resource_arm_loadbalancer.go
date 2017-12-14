@@ -183,7 +183,7 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		privateIpAddresses := make([]string, 0, len(*ipconfigs))
 		for _, config := range *ipconfigs {
 			if config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress != nil {
-				append(privateIpAddresses, *config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress)
+				privateIpAddresses = append(privateIpAddresses, *config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress)
 			}
 		}
 
