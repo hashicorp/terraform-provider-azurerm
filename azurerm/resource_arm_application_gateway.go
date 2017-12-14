@@ -1340,8 +1340,8 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 
 	result["enabled"] = *waf.Enabled
 	result["firewall_mode"] = string(waf.FirewallMode)
-	result["rule_set_type"] = waf.RuleSetType
-	result["rule_set_version"] = waf.RuleSetVersion
+	result["rule_set_type"] = *waf.RuleSetType
+	result["rule_set_version"] = *waf.RuleSetVersion
 
 	return []interface{}{result}
 }
@@ -1491,7 +1491,7 @@ func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.App
 
 					for _, config := range *certs {
 						id := *config.ID
-						//TODO: can we switch this to use the resource id parsing method?
+						// TODO: can we switch these out for the Resource ID Parsers?
 						authName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
 						authCert := map[string]interface{}{
 							"name": authName,
@@ -1537,6 +1537,7 @@ func flattenApplicationGatewayHTTPListeners(httpListeners *[]network.Application
 					"protocol": string(props.Protocol),
 				}
 
+				// TODO: can we switch these out for the Resource ID Parsers?
 				if port := props.FrontendPort; port != nil {
 					id := *port.ID
 					portName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
@@ -1615,6 +1616,7 @@ func flattenApplicationGatewayRequestRoutingRules(rules *[]network.ApplicationGa
 			if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
 				listener["rule_type"] = string(props.RuleType)
 
+				// TODO: can we switch these out for the Resource ID Parsers?
 				if httpListener := props.HTTPListener; httpListener != nil {
 					id := *httpListener.ID
 					httpListenerName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
@@ -1774,9 +1776,8 @@ func hashApplicationGatewayWafConfig(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%t-", m["enabled"].(bool)))
 	buf.WriteString(fmt.Sprintf("%s-", m["firewall_mode"].(string)))
-	// TODO: fix this
-	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_type"].(*string)))
-	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_version"].(*string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["rule_set_type"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["rule_set_version"].(string)))
 
 	return hashcode.String(buf.String())
 }
