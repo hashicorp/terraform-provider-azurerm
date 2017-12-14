@@ -1347,324 +1347,413 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 }
 
 func flattenApplicationGatewaySslPolicy(policy *network.ApplicationGatewaySslPolicy) []interface{} {
-	result := make([]interface{}, 0, len(*policy.DisabledSslProtocols))
+	result := make([]interface{}, 0)
 
-	for _, proto := range *policy.DisabledSslProtocols {
-		result = append(result, string(proto))
+	if policy.DisabledSslProtocols != nil {
+		for _, proto := range *policy.DisabledSslProtocols {
+			result = append(result, string(proto))
+		}
 	}
 
 	return result
 }
 
 func flattenApplicationGatewayIPConfigurations(ipConfigs *[]network.ApplicationGatewayIPConfiguration) []interface{} {
-	result := make([]interface{}, 0, len(*ipConfigs))
+	result := make([]interface{}, 0)
 
-	for _, config := range *ipConfigs {
-		ipConfig := map[string]interface{}{
-			"id":        *config.ID,
-			"name":      *config.Name,
-			"subnet_id": *config.ApplicationGatewayIPConfigurationPropertiesFormat.Subnet.ID,
+	if configs := ipConfigs; configs != nil {
+		for _, config := range *configs {
+			ipConfig := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
+			}
+
+			if props := config.ApplicationGatewayIPConfigurationPropertiesFormat; props != nil {
+				if subnet := props.Subnet; props != nil {
+					ipConfig["subnet_id"] = *subnet.ID
+				}
+			}
+
+			result = append(result, ipConfig)
 		}
-
-		result = append(result, ipConfig)
 	}
 
 	return result
 }
 
 func flattenApplicationGatewayFrontendPorts(portConfigs *[]network.ApplicationGatewayFrontendPort) []interface{} {
-	result := make([]interface{}, 0, len(*portConfigs))
+	result := make([]interface{}, 0)
 
-	for _, config := range *portConfigs {
-		port := map[string]interface{}{
-			"id":   *config.ID,
-			"name": *config.Name,
-			"port": int(*config.ApplicationGatewayFrontendPortPropertiesFormat.Port),
+	if configs := portConfigs; configs != nil {
+		for _, config := range *portConfigs {
+			port := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
+			}
+
+			if props := config.ApplicationGatewayFrontendPortPropertiesFormat; props != nil {
+				port["port"] = int(*props.Port)
+			}
+
+			result = append(result, port)
 		}
-
-		result = append(result, port)
 	}
 
 	return result
 }
 
 func flattenApplicationGatewayFrontendIPConfigurations(ipConfigs *[]network.ApplicationGatewayFrontendIPConfiguration) []interface{} {
-	result := make([]interface{}, 0, len(*ipConfigs))
-	for _, config := range *ipConfigs {
-		ipConfig := make(map[string]interface{})
-		ipConfig["id"] = *config.ID
-		ipConfig["name"] = *config.Name
+	result := make([]interface{}, 0)
 
-		if config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PrivateIPAllocationMethod != "" {
-			ipConfig["private_ip_address_allocation"] = config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PrivateIPAllocationMethod
+	if configs := ipConfigs; configs != nil {
+		for _, config := range *ipConfigs {
+			ipConfig := make(map[string]interface{})
+			ipConfig["id"] = *config.ID
+			ipConfig["name"] = *config.Name
+
+			if props := config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat; props != nil {
+				if props.PrivateIPAllocationMethod != "" {
+					ipConfig["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
+				}
+
+				if subnet := props.Subnet; subnet != nil {
+					ipConfig["subnet_id"] = *subnet.ID
+				}
+
+				if props.PrivateIPAddress != nil {
+					ipConfig["private_ip_address"] = *props.PrivateIPAddress
+				}
+
+				if pip := props.PublicIPAddress; pip != nil {
+					ipConfig["public_ip_address_id"] = *pip.ID
+				}
+			}
+
+			result = append(result, ipConfig)
 		}
-
-		if config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.Subnet != nil {
-			ipConfig["subnet_id"] = *config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.Subnet.ID
-		}
-
-		if config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PrivateIPAddress != nil {
-			ipConfig["private_ip_address"] = *config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PrivateIPAddress
-		}
-
-		if config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PublicIPAddress != nil {
-			ipConfig["public_ip_address_id"] = *config.ApplicationGatewayFrontendIPConfigurationPropertiesFormat.PublicIPAddress.ID
-		}
-
-		result = append(result, ipConfig)
 	}
+
 	return result
 }
 
 func flattenApplicationGatewayBackendAddressPools(poolConfigs *[]network.ApplicationGatewayBackendAddressPool) []interface{} {
-	result := make([]interface{}, 0, len(*poolConfigs))
+	result := make([]interface{}, 0)
 
-	for _, config := range *poolConfigs {
-		ipAddressList := []interface{}{}
-		fqdnList := []interface{}{}
-		for _, address := range *config.ApplicationGatewayBackendAddressPoolPropertiesFormat.BackendAddresses {
-			if address.IPAddress != nil {
-				ipAddressList = append(ipAddressList, *address.IPAddress)
-			} else if address.Fqdn != nil {
-				fqdnList = append(fqdnList, *address.Fqdn)
+	if configs := poolConfigs; configs != nil {
+		for _, config := range *poolConfigs {
+
+			var ipAddressList []interface{}
+			var fqdnList []interface{}
+
+			if props := config.ApplicationGatewayBackendAddressPoolPropertiesFormat; props != nil {
+				if backendAddresses := props.BackendAddresses; backendAddresses != nil {
+					for _, address := range *backendAddresses {
+						if address.IPAddress != nil {
+							ipAddressList = append(ipAddressList, *address.IPAddress)
+						} else if address.Fqdn != nil {
+							fqdnList = append(fqdnList, *address.Fqdn)
+						}
+					}
+				}
 			}
-		}
 
-		pool := map[string]interface{}{
-			"id":              *config.ID,
-			"name":            *config.Name,
-			"ip_address_list": ipAddressList,
-			"fqdn_list":       fqdnList,
-		}
+			pool := map[string]interface{}{
+				"id":              *config.ID,
+				"name":            *config.Name,
+				"ip_address_list": ipAddressList,
+				"fqdn_list":       fqdnList,
+			}
 
-		result = append(result, pool)
+			result = append(result, pool)
+		}
 	}
 
 	return result
 }
 
 func flattenApplicationGatewayBackendHTTPSettings(backendSettings *[]network.ApplicationGatewayBackendHTTPSettings) ([]interface{}, error) {
-	result := make([]interface{}, 0, len(*backendSettings))
+	result := make([]interface{}, 0)
 
-	for _, config := range *backendSettings {
-		settings := map[string]interface{}{
-			"id":                    *config.ID,
-			"name":                  *config.Name,
-			"port":                  int(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Port),
-			"protocol":              string(config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Protocol),
-			"cookie_based_affinity": string(config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.CookieBasedAffinity),
-			"request_timeout":       int(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.RequestTimeout),
-		}
+	if beSettings := backendSettings; beSettings != nil {
+		for _, config := range *beSettings {
+			settings := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
+			}
 
-		if config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates != nil {
-			authCerts := make([]interface{}, 0, len(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates))
+			if props := config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
+				settings["port"] = int(*props.Port)
+				settings["cookie_based_affinity"] = string(props.CookieBasedAffinity)
+				settings["request_timeout"] = int(*props.RequestTimeout)
 
-			for _, config := range *config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates {
-				authName := strings.Split(*config.ID, "/")[len(strings.Split(*config.ID, "/"))-1]
-				authCert := map[string]interface{}{
-					"name": authName,
-					"id":   *config.ID,
+				if certs := props.AuthenticationCertificates; certs != nil {
+					authCerts := make([]interface{}, 0)
+
+					for _, config := range *certs {
+						id := *config.ID
+						//TODO: can we switch this to use the resource id parsing method?
+						authName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+						authCert := map[string]interface{}{
+							"name": authName,
+							"id":   id,
+						}
+
+						authCerts = append(authCerts, authCert)
+					}
+
+					settings["authentication_certificate"] = authCerts
 				}
 
-				authCerts = append(authCerts, authCert)
+				if probe := props.Probe; probe != nil {
+					probeId := *probe.ID
+					id, err := parseAzureResourceID(probeId)
+					if err != nil {
+						return result, err
+					}
+
+					settings["probe_name"] = id.Path["probes"]
+					settings["probe_id"] = probeId
+				}
 			}
 
-			settings["authentication_certificate"] = authCerts
+			result = append(result, settings)
 		}
-
-		if config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe != nil {
-			id, err := parseAzureResourceID(*config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe.ID)
-			if err != nil {
-				return result, err
-			}
-
-			settings["probe_name"] = id.Path["probes"]
-			settings["probe_id"] = *config.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.Probe.ID
-		}
-
-		result = append(result, settings)
 	}
 
 	return result, nil
 }
 
 func flattenApplicationGatewayHTTPListeners(httpListeners *[]network.ApplicationGatewayHTTPListener) ([]interface{}, error) {
-	result := make([]interface{}, 0, len(*httpListeners))
+	result := make([]interface{}, 0)
 
-	for _, config := range *httpListeners {
-		portName := strings.Split(*config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendPort.ID, "/")[len(strings.Split(*config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendPort.ID, "/"))-1]
-		frontendName := strings.Split(*config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendIPConfiguration.ID, "/")[len(strings.Split(*config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendIPConfiguration.ID, "/"))-1]
-		listener := map[string]interface{}{
-			"id":   *config.ID,
-			"name": *config.Name,
-			"frontend_ip_configuration_id":   *config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendIPConfiguration.ID,
-			"frontend_ip_configuration_name": frontendName,
-			"frontend_port_name":             portName,
-			"frontend_port_id":               *config.ApplicationGatewayHTTPListenerPropertiesFormat.FrontendPort.ID,
-			"protocol":                       string(config.ApplicationGatewayHTTPListenerPropertiesFormat.Protocol),
+	if listeners := httpListeners; listeners != nil {
+		for _, config := range *httpListeners {
+
+			if props := config.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
+
+				listener := map[string]interface{}{
+					"id":       *config.ID,
+					"name":     *config.Name,
+					"protocol": string(props.Protocol),
+				}
+
+				if port := props.FrontendPort; port != nil {
+					id := *port.ID
+					portName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					listener["frontend_port_name"] = portName
+					listener["frontend_port_id"] = id
+				}
+
+				if feConfig := props.FrontendIPConfiguration; feConfig != nil {
+					id := *feConfig.ID
+					frontendName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					listener["frontend_ip_configuration_name"] = frontendName
+					listener["frontend_ip_configuration_id"] = id
+				}
+
+				if hostname := props.HostName; hostname != nil {
+					listener["host_name"] = *hostname
+				}
+
+				if ssl := props.SslCertificate; ssl != nil {
+					id := *ssl.ID
+					sslCertName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+
+					listener["ssl_certificate_name"] = sslCertName
+					listener["ssl_certificate_id"] = id
+				}
+
+				if sni := props.RequireServerNameIndication; sni != nil {
+					listener["require_sni"] = *sni
+				}
+
+				result = append(result, listener)
+			}
+
 		}
-
-		if config.ApplicationGatewayHTTPListenerPropertiesFormat.HostName != nil {
-			listener["host_name"] = *config.ApplicationGatewayHTTPListenerPropertiesFormat.HostName
-		}
-
-		if config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate != nil {
-			sslCertName := strings.Split(*config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate.ID, "/")[len(strings.Split(*config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate.ID, "/"))-1]
-
-			listener["ssl_certificate_name"] = sslCertName
-			listener["ssl_certificate_id"] = *config.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate.ID
-		}
-
-		if config.ApplicationGatewayHTTPListenerPropertiesFormat.RequireServerNameIndication != nil {
-			listener["require_sni"] = *config.ApplicationGatewayHTTPListenerPropertiesFormat.RequireServerNameIndication
-		}
-
-		result = append(result, listener)
 	}
 
 	return result, nil
 }
 
 func flattenApplicationGatewayProbes(probes *[]network.ApplicationGatewayProbe) []interface{} {
-	result := make([]interface{}, 0, len(*probes))
+	result := make([]interface{}, 0)
 
-	for _, config := range *probes {
-		settings := map[string]interface{}{
-			"id":                  *config.ID,
-			"name":                *config.Name,
-			"protocol":            string(config.ApplicationGatewayProbePropertiesFormat.Protocol),
-			"path":                *config.ApplicationGatewayProbePropertiesFormat.Path,
-			"host":                *config.ApplicationGatewayProbePropertiesFormat.Host,
-			"interval":            int(*config.ApplicationGatewayProbePropertiesFormat.Interval),
-			"timeout":             int(*config.ApplicationGatewayProbePropertiesFormat.Timeout),
-			"unhealthy_threshold": int(*config.ApplicationGatewayProbePropertiesFormat.UnhealthyThreshold),
+	if probes != nil {
+		for _, config := range *probes {
+			settings := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
+			}
+
+			if props := config.ApplicationGatewayProbePropertiesFormat; props != nil {
+				settings["protocol"] = string(props.Protocol)
+				settings["path"] = *props.Path
+				settings["host"] = *props.Host
+				settings["interval"] = int(*props.Interval)
+				settings["interval"] = int(*props.Timeout)
+				settings["unhealthy_threshold"] = int(*props.UnhealthyThreshold)
+			}
+
+			result = append(result, settings)
 		}
-
-		result = append(result, settings)
 	}
 
 	return result
 }
 
 func flattenApplicationGatewayRequestRoutingRules(rules *[]network.ApplicationGatewayRequestRoutingRule) ([]interface{}, error) {
-	result := make([]interface{}, 0, len(*rules))
+	result := make([]interface{}, 0)
 
-	for _, config := range *rules {
-		httpListenerName := strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.HTTPListener.ID, "/")[len(strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.HTTPListener.ID, "/"))-1]
-		listener := map[string]interface{}{
-			"id":                 *config.ID,
-			"name":               *config.Name,
-			"rule_type":          string(config.ApplicationGatewayRequestRoutingRulePropertiesFormat.RuleType),
-			"http_listener_id":   *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.HTTPListener.ID,
-			"http_listener_name": httpListenerName,
+	if rules != nil {
+		for _, config := range *rules {
+			listener := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
+			}
+
+			if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
+				listener["rule_type"] = string(props.RuleType)
+
+				if httpListener := props.HTTPListener; httpListener != nil {
+					id := *httpListener.ID
+					httpListenerName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					listener["http_listener_id"] = id
+					listener["http_listener_name"] = httpListenerName
+				}
+
+				if pool := props.BackendAddressPool; pool != nil {
+					id := *pool.ID
+					backendAddressPoolName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					listener["backend_address_pool_name"] = backendAddressPoolName
+					listener["backend_address_pool_id"] = id
+				}
+
+				if settings := props.BackendHTTPSettings; settings != nil {
+					id := *settings.ID
+					backendHTTPSettingsName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					listener["backend_http_settings_name"] = backendHTTPSettingsName
+					listener["backend_http_settings_id"] = id
+				}
+
+				if urlPathMap := props.URLPathMap; urlPathMap != nil {
+					id := *urlPathMap.ID
+					urlPathMapName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					listener["url_path_map_name"] = urlPathMapName
+					listener["url_path_map_id"] = id
+				}
+			}
+
+			result = append(result, listener)
 		}
-
-		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool != nil {
-			backendAddressPoolName := strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool.ID, "/")[len(strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool.ID, "/"))-1]
-			listener["backend_address_pool_name"] = backendAddressPoolName
-			listener["backend_address_pool_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendAddressPool.ID
-		}
-
-		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings != nil {
-			backenndHTTPSettingsName := strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings.ID, "/")[len(strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings.ID, "/"))-1]
-			listener["backend_http_settings_name"] = backenndHTTPSettingsName
-			listener["backend_http_settings_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.BackendHTTPSettings.ID
-		}
-
-		if config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap != nil {
-			urlPathMapName := strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap.ID, "/")[len(strings.Split(*config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap.ID, "/"))-1]
-			listener["url_path_map_name"] = urlPathMapName
-			listener["url_path_map_id"] = *config.ApplicationGatewayRequestRoutingRulePropertiesFormat.URLPathMap.ID
-		}
-
-		result = append(result, listener)
 	}
 
 	return result, nil
 }
 
 func flattenApplicationGatewayURLPathMaps(pathMaps *[]network.ApplicationGatewayURLPathMap) ([]interface{}, error) {
-	result := make([]interface{}, 0, len(*pathMaps))
+	result := make([]interface{}, 0)
 
-	for _, config := range *pathMaps {
-		pathMap := map[string]interface{}{
-			"id":   *config.ID,
-			"name": *config.Name,
-		}
-
-		if config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool != nil {
-			backendAddressPoolName := strings.Split(*config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool.ID, "/")[len(strings.Split(*config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool.ID, "/"))-1]
-			pathMap["default_backend_address_pool_name"] = backendAddressPoolName
-			pathMap["default_backend_address_pool_id"] = *config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendAddressPool.ID
-		}
-
-		if config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings != nil {
-			backendHTTPSettingsName := strings.Split(*config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings.ID, "/")[len(strings.Split(*config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings.ID, "/"))-1]
-			pathMap["default_backend_http_settings_name"] = backendHTTPSettingsName
-			pathMap["default_backend_http_settings_id"] = *config.ApplicationGatewayURLPathMapPropertiesFormat.DefaultBackendHTTPSettings.ID
-		}
-
-		pathRules := make([]interface{}, 0, len(*config.ApplicationGatewayURLPathMapPropertiesFormat.PathRules))
-		for _, pathRuleConfig := range *config.ApplicationGatewayURLPathMapPropertiesFormat.PathRules {
-			rule := map[string]interface{}{
-				"id":   *pathRuleConfig.ID,
-				"name": *pathRuleConfig.Name,
+	if pathMaps != nil {
+		for _, config := range *pathMaps {
+			pathMap := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
 			}
 
-			if pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool != nil {
-				backendAddressPoolName2 := strings.Split(*pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool.ID, "/")[len(strings.Split(*pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool.ID, "/"))-1]
-				rule["backend_address_pool_name"] = backendAddressPoolName2
-				rule["backend_address_pool_id"] = *pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendAddressPool.ID
+			if props := config.ApplicationGatewayURLPathMapPropertiesFormat; props != nil {
+				if pool := props.DefaultBackendAddressPool; pool != nil {
+					id := *pool.ID
+					backendAddressPoolName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					pathMap["default_backend_address_pool_name"] = backendAddressPoolName
+					pathMap["default_backend_address_pool_id"] = id
+				}
+
+				if settings := props.DefaultBackendHTTPSettings; settings != nil {
+					id := *settings.ID
+					backendHTTPSettingsName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+					pathMap["default_backend_http_settings_name"] = backendHTTPSettingsName
+					pathMap["default_backend_http_settings_id"] = id
+				}
+
+				pathRules := make([]interface{}, 0)
+				if rules := props.PathRules; rules != nil {
+					for _, pathRuleConfig := range *rules {
+						rule := map[string]interface{}{
+							"id":   *pathRuleConfig.ID,
+							"name": *pathRuleConfig.Name,
+						}
+
+						if pool := props.DefaultBackendAddressPool; pool != nil {
+							id := *pool.ID
+							backendAddressPoolName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+							rule["backend_address_pool_name"] = backendAddressPoolName
+							rule["backend_address_pool_id"] = id
+						}
+
+						if settings := props.DefaultBackendHTTPSettings; settings != nil {
+							id := *settings.ID
+							backendHTTPSettingsName := strings.Split(id, "/")[len(strings.Split(id, "/"))-1]
+							rule["backend_http_settings_name"] = backendHTTPSettingsName
+							rule["backend_http_settings_id"] = id
+						}
+
+						paths := make([]interface{}, 0)
+						if pathRules := props.PathRules; pathRules != nil {
+							for _, pathRule := range *pathRules {
+								paths = append(paths, pathRule)
+							}
+						}
+						rule["paths"] = paths
+
+						pathRules = append(pathRules, rule)
+					}
+				}
+
+				pathMap["path_rule"] = pathRules
+
 			}
 
-			if pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings != nil {
-				backendHTTPSettingsName2 := strings.Split(*pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings.ID, "/")[len(strings.Split(*pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings.ID, "/"))-1]
-				rule["backend_http_settings_name"] = backendHTTPSettingsName2
-				rule["backend_http_settings_id"] = *pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.BackendHTTPSettings.ID
-			}
-
-			paths := make([]interface{}, 0, len(*pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.Paths))
-			for _, rulePath := range *pathRuleConfig.ApplicationGatewayPathRulePropertiesFormat.Paths {
-				paths = append(paths, rulePath)
-			}
-			rule["paths"] = paths
-
-			pathRules = append(pathRules, rule)
+			result = append(result, pathMap)
 		}
-		pathMap["path_rule"] = pathRules
-
-		result = append(result, pathMap)
 	}
 
 	return result, nil
 }
 
 func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate) []interface{} {
-	result := make([]interface{}, 0, len(*certs))
+	result := make([]interface{}, 0)
 
-	for _, config := range *certs {
-		certConfig := map[string]interface{}{
-			"id":   *config.ID,
-			"name": *config.Name,
+	if certs != nil {
+		for _, config := range *certs {
+			certConfig := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
+			}
+
+			result = append(result, certConfig)
 		}
-
-		result = append(result, certConfig)
 	}
 
 	return result
 }
 
 func flattenApplicationGatewaySslCertificates(certs *[]network.ApplicationGatewaySslCertificate) []interface{} {
-	result := make([]interface{}, 0, len(*certs))
+	result := make([]interface{}, 0)
 
-	for _, config := range *certs {
-		certConfig := map[string]interface{}{
-			"id":               *config.ID,
-			"name":             *config.Name,
-			"public_cert_data": *config.ApplicationGatewaySslCertificatePropertiesFormat.PublicCertData,
+	if certs != nil {
+		for _, config := range *certs {
+			certConfig := map[string]interface{}{
+				"id":   *config.ID,
+				"name": *config.Name,
+			}
+
+			if props := config.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
+				certConfig["public_cert_data"] = *props.PublicCertData
+			}
+
+			result = append(result, certConfig)
 		}
-
-		result = append(result, certConfig)
 	}
 
 	return result
@@ -1685,6 +1774,7 @@ func hashApplicationGatewayWafConfig(v interface{}) int {
 	m := v.(map[string]interface{})
 	buf.WriteString(fmt.Sprintf("%t-", m["enabled"].(bool)))
 	buf.WriteString(fmt.Sprintf("%s-", m["firewall_mode"].(string)))
+	// TODO: fix this
 	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_type"].(*string)))
 	buf.WriteString(fmt.Sprintf("%s-", *m["rule_set_version"].(*string)))
 
