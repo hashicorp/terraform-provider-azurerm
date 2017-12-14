@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
@@ -838,23 +839,48 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.managementLocksClient = locksClient
 }
 
+type rgsaTuple struct {
+	resourceGroup, storageAccount string
+}
+
+var (
+	storageKeyCacheMu sync.RWMutex
+	storageKeyCache   = make(map[rgsaTuple]string)
+)
+
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
-	accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
-	if accountKeys.StatusCode == http.StatusNotFound {
-		return "", false, nil
-	}
-	if err != nil {
-		// We assume this is a transient error rather than a 404 (which is caught above),  so assume the
-		// account still exists.
-		return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
+	cacheIndex := rgsaTuple{resourceGroupName, storageAccountName}
+	storageKeyCacheMu.RLock()
+	key, ok := storageKeyCache[cacheIndex]
+	storageKeyCacheMu.RUnlock()
+
+	if ok {
+		return key, true, nil
 	}
 
-	if accountKeys.Keys == nil {
-		return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
+	storageKeyCacheMu.Lock()
+	defer storageKeyCacheMu.Unlock()
+	key, ok = storageKeyCache[cacheIndex]
+	if !ok {
+		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
+		if accountKeys.StatusCode == http.StatusNotFound {
+			return "", false, nil
+		}
+		if err != nil {
+			// We assume this is a transient error rather than a 404 (which is caught above),  so assume the
+			// account still exists.
+			return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
+		}
+
+		if accountKeys.Keys == nil {
+			return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
+		}
+
+		key = *(*accountKeys.Keys)[0].Value
+		storageKeyCache[cacheIndex] = key
 	}
 
-	keys := *accountKeys.Keys
-	return *keys[0].Value, true, nil
+	return key, true, nil
 }
 
 func (armClient *ArmClient) getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName string) (*mainStorage.BlobStorageClient, bool, error) {
