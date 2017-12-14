@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * core - appending additions to the User Agent, so we don't overwrite the Go SDK User Agent info [GH-587]
 * core - Upgrading `Azure/azure-sdk-for-go` to v11.2.2-beta [GH-594]
 * core - upgrading `Azure/go-autorest` to v9.5.2 [GH-617]
+* core - skipping Resource Provider Registration in AutoRest when opted-out [GH-630]
 * `azurerm_app_service` - exposing the Default Hostname as a Computed field [GH-612]
 * `azurerm_eventhub_namespace` - capacity can now be configured up to 20 [GH-556]
 * `azurerm_eventhub_namespace` - support for AutoInflating/MaximumThroughputCapacity [GH-569]
