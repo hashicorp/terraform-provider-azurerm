@@ -31,20 +31,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
-			},
+			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
+				// TODO: make this a Sku
 				Type:     schema.TypeSet,
 				Required: true,
 				MaxItems: 1,
@@ -97,6 +89,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"waf_configuration": {
+				// TODO: make this a List
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -307,6 +300,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"request_timeout": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Computed: true,
 						},
 
 						"authentication_certificate": {
@@ -444,17 +438,20 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"interval": {
-							Type:     schema.TypeInt,
+							Type: schema.TypeInt,
+							// TODO: should this be Optional + Computed?
 							Required: true,
 						},
 
 						"timeout": {
-							Type:     schema.TypeInt,
+							Type: schema.TypeInt,
+							// TODO: should this be Optional + Computed?
 							Required: true,
 						},
 
 						"unhealthy_threshold": {
-							Type:     schema.TypeInt,
+							Type: schema.TypeInt,
+							// TODO: should this be Optional + Computed?
 							Required: true,
 						},
 					},
