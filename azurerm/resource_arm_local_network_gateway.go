@@ -66,6 +66,8 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -85,6 +87,8 @@ func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 
+	tags := d.Get("tags").(map[string]interface{})
+
 	gateway := network.LocalNetworkGateway{
 		Name:     &name,
 		Location: &location,
@@ -95,6 +99,7 @@ func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface
 			GatewayIPAddress: &ipAddress,
 			BgpSettings:      bgpSettings,
 		},
+		Tags: expandTags(tags),
 	}
 
 	_, createError := client.CreateOrUpdate(resGroup, name, gateway, make(chan struct{}))
@@ -153,6 +158,8 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 			return err
 		}
 	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
