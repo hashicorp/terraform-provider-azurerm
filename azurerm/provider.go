@@ -62,6 +62,16 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
 			},
+			"use_msi": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
+			},
+			"msi_endpoint": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -190,9 +200,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			Environment:               d.Get("environment").(string),
 			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
 			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
+			UseMsi:      d.Get("use_msi").(bool),
+			MsiEndpoint: d.Get("msi_endpoint").(string),
 		}
 
-		if config.ClientSecret != "" {
+		if config.UseMsi {
+			log.Printf("[DEBUG] ARM_USE_MSI specified - using MSI Authentication")
+			if err := config.ValidateMsi(); err != nil {
+				return nil, err
+			}
+		} else if config.ClientSecret != "" {
 			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
 			if err := config.ValidateServicePrincipal(); err != nil {
 				return nil, err
