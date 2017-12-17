@@ -1,29 +1,32 @@
-## 1.0.0 (Unreleased)
+## 1.0.1 (Unreleased)
+## 1.0.0 (December 15, 2017)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_network_security_group` [GH-623]
-* **New Data Source:** `azurerm_virtual_network` [GH-533]
-* **New Resource:** `azurerm_management_lock` [GH-575]
-* **New Resource:** `azurerm_network_watcher` [GH-571]
+* **New Data Source:** `azurerm_network_security_group` ([#623](https://github.com/terraform-providers/terraform-provider-azurerm/issues/623))
+* **New Data Source:** `azurerm_virtual_network` ([#533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/533))
+* **New Resource:** `azurerm_management_lock` ([#575](https://github.com/terraform-providers/terraform-provider-azurerm/issues/575))
+* **New Resource:** `azurerm_network_watcher` ([#571](https://github.com/terraform-providers/terraform-provider-azurerm/issues/571))
 
 IMPROVEMENTS:
 
-* authentication - add support for the latest Azure CLI configuration [GH-573]
-* authentication - conditional loading of the Subscription ID / Tenant ID / Environment [GH-574]
-* core - appending additions to the User Agent, so we don't overwrite the Go SDK User Agent info [GH-587]
-* core: Upgrading `Azure/azure-sdk-for-go` to v11.2.2-beta [GH-594]
-* core: upgrading `Azure/go-autorest` to v9.5.2 [GH-617]
-* `azurerm_app_service` - exposing the Default Hostname as a Computed field [GH-612]
-* `azurerm_eventhub_namespace` - capacity can now be configured up to 20 [GH-556]
-* `azurerm_eventhub_namespace` - support for AutoInflating/MaximumThroughputCapacity [GH-569]
-* `azurerm_image` - fixing an out of index error when flattening image data disks [GH-589]
-* `azurerm_local_network_gateway` - support for BGP Settings [GH-611]
-* `azurerm_virtual_network` - fixes deadlock issue where multiple subnets shared the same Network Security Group [GH-620]
-* `azurerm_virtual_machine` - removing the deprecated `diagnostics_profile` field [GH-593]
-* `azurerm_virtual_machine` - support for managed service identity [GH-482]
-* `azurerm_virtual_machine_scale_set` - Support for updating the customData field [GH-559]
-* `azurerm_virtual_machine_scale_set` - ensuring changes to the `settings` object are detected [GH-609]
+* authentication - add support for the latest Azure CLI configuration ([#573](https://github.com/terraform-providers/terraform-provider-azurerm/issues/573))
+* authentication - conditional loading of the Subscription ID / Tenant ID / Environment ([#574](https://github.com/terraform-providers/terraform-provider-azurerm/issues/574))
+* core - appending additions to the User Agent, so we don't overwrite the Go SDK User Agent info ([#587](https://github.com/terraform-providers/terraform-provider-azurerm/issues/587))
+* core - Upgrading `Azure/azure-sdk-for-go` to v11.2.2-beta ([#594](https://github.com/terraform-providers/terraform-provider-azurerm/issues/594))
+* core - upgrading `Azure/go-autorest` to v9.5.2 ([#617](https://github.com/terraform-providers/terraform-provider-azurerm/issues/617))
+* core - skipping Resource Provider Registration in AutoRest when opted-out ([#630](https://github.com/terraform-providers/terraform-provider-azurerm/issues/630))
+* `azurerm_app_service` - exposing the Default Hostname as a Computed field ([#612](https://github.com/terraform-providers/terraform-provider-azurerm/issues/612))
+* `azurerm_eventhub_namespace` - capacity can now be configured up to 20 ([#556](https://github.com/terraform-providers/terraform-provider-azurerm/issues/556))
+* `azurerm_eventhub_namespace` - support for AutoInflating/MaximumThroughputCapacity ([#569](https://github.com/terraform-providers/terraform-provider-azurerm/issues/569))
+* `azurerm_image` - fixing an out of index error when flattening image data disks ([#589](https://github.com/terraform-providers/terraform-provider-azurerm/issues/589))
+* `azurerm_local_network_gateway` - support for BGP Settings ([#611](https://github.com/terraform-providers/terraform-provider-azurerm/issues/611))
+* `azurerm_servicebus_queue` - supporting Lock Duration ([#624](https://github.com/terraform-providers/terraform-provider-azurerm/issues/624))
+* `azurerm_virtual_network` - fixes deadlock issue where multiple subnets shared the same Network Security Group ([#620](https://github.com/terraform-providers/terraform-provider-azurerm/issues/620))
+* `azurerm_virtual_machine` - removing the deprecated `diagnostics_profile` field ([#593](https://github.com/terraform-providers/terraform-provider-azurerm/issues/593))
+* `azurerm_virtual_machine` - support for managed service identity ([#482](https://github.com/terraform-providers/terraform-provider-azurerm/issues/482))
+* `azurerm_virtual_machine_scale_set` - Support for updating the customData field ([#559](https://github.com/terraform-providers/terraform-provider-azurerm/issues/559))
+* `azurerm_virtual_machine_scale_set` - ensuring changes to the `settings` object are detected ([#609](https://github.com/terraform-providers/terraform-provider-azurerm/issues/609))
 
 ## 0.3.3 (November 14, 2017)
 
