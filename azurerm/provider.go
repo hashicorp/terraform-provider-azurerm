@@ -205,7 +205,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		if config.UseMsi {
-			log.Printf("[DEBUG] ARM_USE_MSI specified - using MSI Authentication")
+			log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
 			if err := config.ValidateMsi(); err != nil {
 				return nil, err
 			}

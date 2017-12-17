@@ -257,6 +257,7 @@ func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConf
 	if err != nil {
 		return nil, err
 	}
+
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
 }
