@@ -210,10 +210,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			if config.MsiEndpoint == "" {
 				msiEndpoint, err := adal.GetMSIVMEndpoint()
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
+						"Ensure the VM has MSI enabled, or try setting the msi_endpoint setting. Error: %s", err)
 				}
 				config.MsiEndpoint = msiEndpoint
 			}
+			log.Printf("[DEBUG] Using MSI endpoint %s", config.MsiEndpoint)
 			if err := config.ValidateMsi(); err != nil {
 				return nil, err
 			}
