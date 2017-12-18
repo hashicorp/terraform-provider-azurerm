@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_lb` - adding the computed field `public_ip_addresses` [GH-633]
+* `azurerm_local_network_gateway` - add support for `tags` [GH-638]
 
 ## 1.0.0 (December 15, 2017)
 
