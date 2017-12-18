@@ -60,7 +60,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The LoadBalancer ID.
-* `private_ip_address` - The private IP address assigned to the load balancer, if any.
+* `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
+* `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 
 ## Import
 
