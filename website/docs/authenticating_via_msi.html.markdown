@@ -17,7 +17,7 @@ We recommend using Managed Service Identity when running in a Shared Environment
 
 Managed Service Identity allows an Azure virtual machine to retrieve a token to access the Azure API without needing to pass in credentials. This works by creating a service principal in Azure Active Directory that is associated to a virtual machine. This service principal can then be granted permissions to Azure resources.
 There are various ways to configure managed service identity - see the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/active-directory/msi-overview) for details.
-You can then run Terraform from the MSI enable virtual machine by setting the use_msi provider option to true.
+You can then run Terraform from the MSI enabled virtual machine by setting the use_msi provider option to true.
 
 ### Configuring Managed Service Identity using Terraform
 

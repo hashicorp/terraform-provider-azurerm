@@ -199,10 +199,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			ClientSecret:              d.Get("client_secret").(string),
 			TenantID:                  d.Get("tenant_id").(string),
 			Environment:               d.Get("environment").(string),
+			UseMsi:                    d.Get("use_msi").(bool),
+			MsiEndpoint:               d.Get("msi_endpoint").(string),
 			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
 			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
-			UseMsi:      d.Get("use_msi").(bool),
-			MsiEndpoint: d.Get("msi_endpoint").(string),
 		}
 
 		if config.UseMsi {
@@ -211,7 +211,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 				msiEndpoint, err := adal.GetMSIVMEndpoint()
 				if err != nil {
 					return nil, fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
-						"Ensure the VM has MSI enabled, or try setting the msi_endpoint setting. Error: %s", err)
+						"Ensure the VM has MSI enabled, or try setting msi_endpoint. Error: %s", err)
 				}
 				config.MsiEndpoint = msiEndpoint
 			}
