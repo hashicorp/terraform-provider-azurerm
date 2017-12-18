@@ -77,6 +77,13 @@ The following arguments are supported:
 * `tenant_id` - (Optional) The tenant ID to use. It can also be sourced from the
   `ARM_TENANT_ID` environment variable.
 
+* `use_msi` - (Optional) Set to true to authenticate using managed service identity.
+  It can also be sourced from the `ARM_USE_MSI` environment variable.
+
+* `msi_endpoint` - (Optional) The REST endpoint to retrieve an MSI token from. Terraform
+  will attempt to discover this automatically but it can be specified manually here.
+  It can also be sourced from the `ARM_MSI_ENDPOINT` environment variable.
+
 * `environment` - (Optional) The cloud environment to use. It can also be sourced
   from the `ARM_ENVIRONMENT` environment variable. Supported values are:
   * `public` (default)
