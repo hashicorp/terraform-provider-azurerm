@@ -54,6 +54,27 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
+	resourceName := "azurerm_local_network_gateway.test"
+
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_tags(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 	name := "azurerm_local_network_gateway.test"
 	rInt := acctest.RandInt()
@@ -282,6 +303,28 @@ resource "azurerm_local_network_gateway" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
+}
+
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_tags(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/8"]
+
+  tags {
+    environment = "acctest"
+  }
 }
 
 `, rInt, location, rInt)
