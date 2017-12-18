@@ -62,6 +62,9 @@ func (c *Config) ValidateMsi() error {
 	if c.Environment == "" {
 		err = multierror.Append(err, fmt.Errorf("Environment must be configured for the AzureRM provider"))
 	}
+	if c.MsiEndpoint == "" {
+		err = multierror.Append(err, fmt.Errorf("MSI endpoint must be configured for the AzureRM provider"))
+	}
 
 	return err.ErrorOrNil()
 }

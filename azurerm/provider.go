@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -206,6 +207,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		if config.UseMsi {
 			log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
+			if config.MsiEndpoint == "" {
+				msiEndpoint, err := adal.GetMSIVMEndpoint()
+				if err != nil {
+					return nil, err
+				}
+				config.MsiEndpoint = msiEndpoint
+			}
 			if err := config.ValidateMsi(); err != nil {
 				return nil, err
 			}

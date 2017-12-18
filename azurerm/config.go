@@ -229,14 +229,6 @@ func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConf
 	}
 
 	if c.UseMsi {
-		useCustomEndpoint := c.MsiEndpoint != ""
-		if !useCustomEndpoint {
-			msiEndpoint, err := adal.GetMSIVMEndpoint()
-			if err != nil {
-				return nil, err
-			}
-			c.MsiEndpoint = msiEndpoint
-		}
 		spt, err := adal.NewServicePrincipalTokenFromMSI(c.MsiEndpoint, endpoint)
 		if err != nil {
 			return nil, err
