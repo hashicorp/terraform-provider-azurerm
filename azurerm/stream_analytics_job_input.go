@@ -12,6 +12,10 @@ func streamAnalyticsInputSchema() *schema.Schema {
 		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"input_name": &schema.Schema{
+					Type:     schema.TypeString,
+					Required: true,
+				},
 				"type": &schema.Schema{
 					Type:     schema.TypeString,
 					Required: true,

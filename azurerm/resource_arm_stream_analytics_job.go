@@ -22,6 +22,9 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			"sku": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(streamanalytics.Standard),
+				}, false),
 			},
 			"resource_group_name": {
 				Type:     schema.TypeString,
@@ -56,8 +59,8 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"inputs": streamAnalyticsInputSchema(),
-			"output": streamAnalyticsOutputSchema(),
+			// "inputs": streamAnalyticsInputSchema(),
+			// "output": streamAnalyticsOutputSchema(),
 		},
 	}
 
@@ -103,15 +106,31 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*jobResp.ID)
 
-	return nil
+	return resourceArmStreamAnalyticsJobRead(d, meta)
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
+
+	client := meta.(*ArmClient)
+
+	streamID := d.Id()
+	resourceId, err := parseAzureResourceID(streamID)
+
+	if err != nil {
+		return err
+	}
+	job, err := client.streamingJobClient.Get(resourceId.ResourceGroup, resourceId.Path["streamingjobs"], "")
+
+	if err != nil {
+		return err
+	}
+
+	d.Set("job_state", *job.JobState)
 	return nil
 }
 
 func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
+	return resourceArmStreamAnalyticsJobCreate(d, meta)
 }
 func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
 
