@@ -66,9 +66,11 @@ func dataSourceArmScheduledTime() *schema.Resource {
 				Optional: true,
 			},
 			"timezone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Default:      time.UTC.String(),
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateTimezone,
 			},
 			"next_run_time": {
 				Type:     schema.TypeString,
@@ -76,6 +78,16 @@ func dataSourceArmScheduledTime() *schema.Resource {
 			},
 		},
 	}
+}
+
+func validateTimezone(v interface{}, k string) (ws []string, errors []error) {
+	locationString := v.(string)
+
+	if _, err := time.LoadLocation(locationString); err != nil {
+		errors = append(errors, fmt.Errorf("Cannot parse timezone: %q", locationString))
+	}
+
+	return
 }
 
 func dataSourceArmScheduledTimeRead(d *schema.ResourceData, meta interface{}) error {
