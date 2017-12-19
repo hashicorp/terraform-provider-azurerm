@@ -6,7 +6,7 @@ description: |-
   Get information about the specified scheduled time.
 ---
 
-# azurerm\_scheduled\_time
+# azurerm_scheduled_time
 
 Use this data source to access the properties of an existing Scheduled Time.
 
@@ -14,10 +14,10 @@ Use this data source to access the properties of an existing Scheduled Time.
 
 ```hcl
 data "azurerm_scheduled_time" "test" {
-        "frequency" = "Day"
-        "hour" = "14"
-        "minute" = "25"
-        "minimum_delay_from_now_in_minutes" = "6"
+        frequency = "Day"
+        hour = 14
+        minute = 25
+        minimum_delay_from_now_in_minutes = 6
 }
 ```
 
@@ -27,12 +27,12 @@ data "azurerm_scheduled_time" "test" {
 * `second` - (Optional) Specifies the second part of the schedule time.
 * `minute` - (Optional) Specifies the minute part of the schedule time.
 * `hour` - (Optional) Specifies the hour part of the schedule time.
-* `day_of_week` - (Optional) Specifies the day of the week when the schedule time will be triggered. Conflicts with `day_of_week`.
-* `day_of_month` - (Optional) Specifies the day of the month when the schedule time will be triggered. Conflicts with `day_of_month`.
+* `day_of_week` - (Optional) Specifies the day of the week when the schedule time will be triggered. Conflicts with `day_of_month`.
+* `day_of_month` - (Optional) Specifies the day of the month when the schedule time will be triggered. Conflicts with `day_of_week`.
 * `minimum_delay_from_now_in_minutes` - (Optional) Minimum delay for the calculation of the first run time.
 * `timezone` - (Optional) Timezone of the scheduled time.
 
 ## Attributes Reference
 
 The following attributes are exported:
-* `next_run_time` - The value when should this schedule next run. This is computed from the previous parameters.
+* `next_run_time` - The RFC3339 formatted date when the schedule should next run.
