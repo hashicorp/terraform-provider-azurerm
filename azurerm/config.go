@@ -846,46 +846,59 @@ var (
 )
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
-	cacheIndex := resourceGroupName + "/" + storageAccountName
-	storageKeyCacheMu.RLock()
-	key, ok := storageKeyCache[cacheIndex]
-	storageKeyCacheMu.RUnlock()
-
-	if ok {
-		return key, true, nil
+	enableKeyCache := true
+	if _, envExists := os.LookupEnv("AZURE_DISABLE_STORAGE_ACCOUNT_KEYS_CACHE"); envExists {
+		enableKeyCache = false
 	}
 
-	storageKeyCacheMu.Lock()
-	defer storageKeyCacheMu.Unlock()
-	key, ok = storageKeyCache[cacheIndex]
-	if !ok {
-		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
-		if utils.ResponseWasNotFound(accountKeys.Response) {
-			return "", false, nil
-		}
-		if err != nil {
-			// We assume this is a transient error rather than a 404 (which is caught above),  so assume the
-			// account still exists.
-			return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
+	cacheIndex := ""
+	if enableKeyCache {
+		cacheIndex = resourceGroupName + "/" + storageAccountName
+		storageKeyCacheMu.RLock()
+		key, ok := storageKeyCache[cacheIndex]
+		storageKeyCacheMu.RUnlock()
+
+		if ok {
+			return key, true, nil
 		}
 
-		keys := *accountKeys.Keys
-		if accountKeys.Keys == nil {
-			return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
-		}
-		if len(keys) <= 0 {
-			return "", false, fmt.Errorf("No keys returned for storage account %q", storageAccountName)
-		}
+		storageKeyCacheMu.Lock()
+		defer storageKeyCacheMu.Unlock()
+		key, ok = storageKeyCache[cacheIndex]
 
-		keyPtr := keys[0].Value
-		if keyPtr == nil {
-			return "", false, fmt.Errorf("The first key returned is nil for storage account %q", storageAccountName)
+		if ok {
+			return key, true, nil
 		}
+	}
 
-		key = *keyPtr
+	accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
+	if utils.ResponseWasNotFound(accountKeys.Response) {
+		return "", false, nil
+	}
+	if err != nil {
+		// We assume this is a transient error rather than a 404 (which is caught above),  so assume the
+		// account still exists.
+		return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
+	}
+
+	keys := *accountKeys.Keys
+	if accountKeys.Keys == nil {
+		return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
+	}
+	if len(keys) <= 0 {
+		return "", false, fmt.Errorf("No keys returned for storage account %q", storageAccountName)
+	}
+
+	keyPtr := keys[0].Value
+	if keyPtr == nil {
+		return "", false, fmt.Errorf("The first key returned is nil for storage account %q", storageAccountName)
+	}
+
+	key := *keyPtr
+
+	if enableKeyCache {
 		storageKeyCache[cacheIndex] = key
 	}
-
 	return key, true, nil
 }
 
