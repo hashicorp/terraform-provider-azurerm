@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"errors"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/streamanalytics"
@@ -173,8 +174,34 @@ func streamAnalyticsInputSchema() *schema.Schema {
 	}
 }
 
-func unMarshalDatasource(datasource interface{}) string {
-	return ""
+func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics.ReferenceInputDataSource, error) {
+
+	datasourceList := dataMap["datasource"].([]interface{})
+	datasourceMap := datasourceList[0].(map[string]interface{})
+
+	blobSource := datasourceMap["blob"]
+
+	if blobSource == nil {
+		return nil, errors.New("Blob Datasource returned empty")
+	}
+	refType = streamanalytics.TypeReferenceInputDataSourceTypeMicrosoftStorageBlob
+
+	datasource := streamanalytics.BlobReferenceInputDataSource{
+		Type: refType,
+	}
+
+	return datasource, nil
+}
+
+func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.StreamInputDataSource, error) {
+	datasourceList := dataMap["datasource"].([]interface{})
+	datasourceMap := datasourceList[0].(map[string]interface{})
+
+	var refType streamanalytics.TypeReferenceInputDataSource
+	var datasource streamanalytics.StreamInputDataSource
+
+	return datasource, nil
+
 }
 
 func extractSerialization(dataMap map[string]interface{}) streamanalytics.Serialization {
@@ -192,6 +219,7 @@ func extractSerialization(dataMap map[string]interface{}) streamanalytics.Serial
 
 	case string(streamanalytics.TypeCsv):
 
+		// TODO: check for optional parameters
 		tfd := serial["field_delimiter"].(string)
 		serialization = streamanalytics.CsvSerialization{
 			Type: streamanalytics.TypeCsv,
@@ -214,27 +242,50 @@ func extractSerialization(dataMap map[string]interface{}) streamanalytics.Serial
 	return serialization
 }
 
-func generateInputfromSchema(data interface{}) streamanalytics.Input {
+func generateInputfromSchema(data interface{}) (*streamanalytics.Input, error) {
 	dataMap := data.(map[string]interface{})
 	inputType := dataMap["type"].(string)
 	inputName := dataMap["input_name"].(string)
-	input := streamanalytics.Input{
+
+	input := &streamanalytics.Input{
 		Name: &inputName,
 		Type: &inputType,
 	}
+
+	serialization := extractSerialization(dataMap)
+
+	var inputProperties streamanalytics.InputProperties
 
 	switch inputType {
 	case string(streamanalytics.TypeReference):
 		log.Println("[INFO] using Reference Type")
 
+		datasource, err := extractReferenceDataSource(dataMap)
+
+		if err != nil {
+			return nil, err
+		}
+		inputProperties = streamanalytics.ReferenceInputProperties{
+			Serialization: serialization,
+			Type:          streamanalytics.TypeReference,
+			Datasource:    datasource,
+		}
+
 	case string(streamanalytics.TypeStream):
 		log.Println("[INFO] using Stream Type")
 
+		datasource, err := extractStreamDataSource(dataMap)
+
+		if err != nil {
+			return nil, err
+		}
+		inputProperties = streamanalytics.StreamInputProperties{
+			Serialization: serialization,
+			Type:          streamanalytics.TypeStream,
+			Datasource:    datasource,
+		}
+
 	}
 
-	serialization := extractSerialization(dataMap)
-
-	return input
+	return input, nil
 }
-
-func extractDatasource(dataMap map[string]interface{}) streamanalytics.Data
