@@ -1,6 +1,8 @@
 package azurerm
 
 import (
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/arm/streamanalytics"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -19,6 +21,7 @@ func streamAnalyticsInputSchema() *schema.Schema {
 				"type": &schema.Schema{
 					Type:     schema.TypeString,
 					Required: true,
+					ForceNew: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(streamanalytics.TypeReference),
 						string(streamanalytics.TypeStream),
@@ -169,3 +172,69 @@ func streamAnalyticsInputSchema() *schema.Schema {
 		},
 	}
 }
+
+func unMarshalDatasource(datasource interface{}) string {
+	return ""
+}
+
+func extractSerialization(dataMap map[string]interface{}) streamanalytics.Serialization {
+
+	var serialization streamanalytics.Serialization
+	serializationList := dataMap["serialization"].([]interface{})
+	serial := serializationList[0].(map[string]interface{})
+	serialType := serial["type"].(string)
+
+	switch serialType {
+	case string(streamanalytics.TypeAvro):
+		serialization = streamanalytics.AvroSerialization{
+			Type: streamanalytics.TypeAvro,
+		}
+
+	case string(streamanalytics.TypeCsv):
+
+		tfd := serial["field_delimiter"].(string)
+		serialization = streamanalytics.CsvSerialization{
+			Type: streamanalytics.TypeCsv,
+			CsvSerializationProperties: &streamanalytics.CsvSerializationProperties{
+				FieldDelimiter: &tfd,
+				Encoding:       streamanalytics.Encoding(serial["encoding"].(string)),
+			},
+		}
+
+	case string(streamanalytics.TypeJSON):
+
+		serialization = streamanalytics.JSONSerialization{
+			Type: streamanalytics.TypeJSON,
+			JSONSerializationProperties: &streamanalytics.JSONSerializationProperties{
+				Encoding: streamanalytics.Encoding(serial["encoding"].(string)),
+			},
+		}
+	}
+
+	return serialization
+}
+
+func generateInputfromSchema(data interface{}) streamanalytics.Input {
+	dataMap := data.(map[string]interface{})
+	inputType := dataMap["type"].(string)
+	inputName := dataMap["input_name"].(string)
+	input := streamanalytics.Input{
+		Name: &inputName,
+		Type: &inputType,
+	}
+
+	switch inputType {
+	case string(streamanalytics.TypeReference):
+		log.Println("[INFO] using Reference Type")
+
+	case string(streamanalytics.TypeStream):
+		log.Println("[INFO] using Stream Type")
+
+	}
+
+	serialization := extractSerialization(dataMap)
+
+	return input
+}
+
+func extractDatasource(dataMap map[string]interface{}) streamanalytics.Data
