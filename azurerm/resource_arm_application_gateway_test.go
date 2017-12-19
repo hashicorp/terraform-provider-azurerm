@@ -1996,7 +1996,14 @@ resource "azurerm_application_gateway" "test" {
   }
 
   http_listener {
-    name                           = "${var.http_listener_name}"
+    name                           = "${var.http_listener_name_first}"
+    frontend_ip_configuration_name = "${var.frontend_ip_configuration_name}"
+    frontend_port_name             = "${var.frontend_port_name}"
+    protocol                       = "Http"
+  }
+
+  http_listener {
+    name                           = "${var.http_listener_name_second}"
     frontend_ip_configuration_name = "${var.frontend_ip_configuration_name}"
     frontend_port_name             = "${var.frontend_port_name}"
     protocol                       = "Http"
