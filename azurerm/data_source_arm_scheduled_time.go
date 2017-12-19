@@ -37,23 +37,28 @@ func dataSourceArmScheduledTime() *schema.Resource {
 			"second": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"minute": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"hour": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"day_of_week": {
 				Type:          schema.TypeInt,
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"day_of_month"},
 			},
 			"day_of_month": {
 				Type:          schema.TypeInt,
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"day_of_week"},
 			},
 			"minimum_delay_from_now_in_minutes": {
