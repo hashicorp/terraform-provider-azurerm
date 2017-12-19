@@ -80,8 +80,6 @@ func dataSourceArmScheduledTimeRead(d *schema.ResourceData, meta interface{}) er
 
 	if v, exists := d.GetOkExists("minimum_delay_from_now_in_minutes"); exists {
 		shiftTime = v.(int)
-	} else {
-		shiftTime = 0
 	}
 
 	if v, ok := d.GetOk("timezone"); ok {
