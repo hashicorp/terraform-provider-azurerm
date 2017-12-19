@@ -1,14 +1,15 @@
 ---
 layout: "azurerm"
-page_title: "Provider: Azure Resource Manager"
+page_title: "Provider: Azure"
 sidebar_current: "docs-azurerm-index"
 description: |-
-  The Microsoft AzureRM provider is used to interact with the many resources supported by Azure Resource Manager via the AzureRM API's. The provider needs to be configured with the credentials needed to generate OAuth tokens for the AzureRM API's.
+  The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through it's API's.
+
 ---
 
-# Microsoft AzureRM Provider
+# Azure Provider
 
-The Microsoft AzureRM provider is used to interact with the many resources supported by Azure Resource Manager via the AzureRM API's. The provider needs to be configured with the credentials needed to generate OAuth tokens for the AzureRM API's.
+The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (AzureRM) through it's API's.
 
 ~> **Note:** This supercedes the [legacy Azure provider](/docs/providers/azure/index.html), which interacts with Azure using the Service Management API.
 
@@ -23,26 +24,21 @@ We recommend [using a Service Principal when running in a Shared Environment](au
 ## Example Usage
 
 ```hcl
-# Configure the Microsoft Azure Provider
-provider "azurerm" {
-  subscription_id = "..."
-  client_id       = "..."
-  client_secret   = "..."
-  tenant_id       = "..."
-}
+# Configure the Azure Provider
+provider "azurerm" { }
 
 # Create a resource group
-resource "azurerm_resource_group" "production" {
+resource "azurerm_resource_group" "network" {
   name     = "production"
   location = "West US"
 }
 
-# Create a virtual network in the web_servers resource group
+# Create a virtual network within the resource group
 resource "azurerm_virtual_network" "network" {
-  name                = "productionNetwork"
+  name                = "production-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.production.name}"
+  location            = "${azurerm_resource_group.network.location}"
+  resource_group_name = "${azurerm_resource_group.network.name}"
 
   subnet {
     name           = "subnet1"
