@@ -99,15 +99,6 @@ func dataSourceArmScheduledTimeRead(d *schema.ResourceData, meta interface{}) er
 		shiftTime = v.(int)
 	}
 
-	if v, ok := d.GetOk("timezone"); ok {
-		var err error
-		if location, err = time.LoadLocation(v.(string)); err != nil {
-			return fmt.Errorf("Cannot parse timezone: %s", v.(string))
-		}
-	} else {
-		location = time.UTC
-	}
-
 	closestValidStartTime := time.Now().In(location).Add(time.Duration(shiftTime) * time.Minute)
 
 	var firstRunSec, firstRunMinute, firstRunHour, firstRunDayOfWeek, firstRunDayOfMonth int
