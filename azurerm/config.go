@@ -46,6 +46,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -839,17 +840,13 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.managementLocksClient = locksClient
 }
 
-type rgsaTuple struct {
-	resourceGroup, storageAccount string
-}
-
 var (
 	storageKeyCacheMu sync.RWMutex
-	storageKeyCache   = make(map[rgsaTuple]string)
+	storageKeyCache   = make(map[string]string)
 )
 
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
-	cacheIndex := rgsaTuple{resourceGroupName, storageAccountName}
+	cacheIndex := resourceGroupName + "/" + storageAccountName
 	storageKeyCacheMu.RLock()
 	key, ok := storageKeyCache[cacheIndex]
 	storageKeyCacheMu.RUnlock()
@@ -863,7 +860,7 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 	key, ok = storageKeyCache[cacheIndex]
 	if !ok {
 		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
-		if accountKeys.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(accountKeys.Response) {
 			return "", false, nil
 		}
 		if err != nil {
@@ -872,11 +869,20 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 			return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
 		}
 
+		keys := *accountKeys.Keys
 		if accountKeys.Keys == nil {
 			return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
 		}
+		if len(keys) <= 0 {
+			return "", false, fmt.Errorf("No keys returned for storage account %q", storageAccountName)
+		}
 
-		key = *(*accountKeys.Keys)[0].Value
+		keyPtr := keys[0].Value
+		if keyPtr == nil {
+			return "", false, fmt.Errorf("The first key returned is nil for storage account %q", storageAccountName)
+		}
+
+		key = *keyPtr
 		storageKeyCache[cacheIndex] = key
 	}
 
