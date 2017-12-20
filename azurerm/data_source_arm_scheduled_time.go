@@ -93,9 +93,9 @@ func dataSourceArmScheduledTimeRead(d *schema.ResourceData, meta interface{}) er
 
 	var shiftTime int
 	var location *time.Location
-	var err error		
-	if location, err = time.LoadLocation(d.Get("timezone").(string)); err != nil {		
-		return fmt.Errorf("Cannot parse timezone: %s", d.Get("timezone").(string))		
+	var err error
+	if location, err = time.LoadLocation(d.Get("timezone").(string)); err != nil {
+		return fmt.Errorf("Cannot parse timezone: %s", d.Get("timezone").(string))
 	}
 
 	if v, exists := d.GetOkExists("minimum_delay_from_now_in_minutes"); exists {
