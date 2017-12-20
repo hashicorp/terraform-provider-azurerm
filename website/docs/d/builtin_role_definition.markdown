@@ -6,7 +6,7 @@ description: |-
   Get information about a built-in Role Definition.
 ---
 
-# azurerm_builtin_role_definition
+# Data Source: azurerm_builtin_role_definition
 
 Use this data source to access the properties of a built-in Role Definition. To access information about a custom Role Definition, [please see the `azurerm_role_definition` data source](role_definition.html) instead.
 
