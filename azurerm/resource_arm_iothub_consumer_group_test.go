@@ -41,7 +41,7 @@ func testCheckAzureRMIotHubConsumerGroupExists(name string) resource.TestCheckFu
 
 		conn := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 
-		iotHubName := rs.Primary.Attributes["iothub_name"]
+		iotHubName := rs.Primary.Attributes["iot_hub_name"]
 		eventhubEndpoint := rs.Primary.Attributes["event_hub_endpoint"]
 
 		resp, err := conn.GetEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
@@ -67,7 +67,7 @@ func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
 
 		groupName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		iotHubName := rs.Primary.Attributes["iothub_name"]
+		iotHubName := rs.Primary.Attributes["iot_hub_name"]
 		eventhubEndpoint := rs.Primary.Attributes["event_hub_endpoint"]
 
 		resp, err := conn.GetEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
@@ -108,7 +108,7 @@ resource "azurerm_iothub" "bar" {
 resource "azurerm_iothub_consumer_group" "foo" {
 	name = "acctestiothubgroup-%d"
 	resource_group_name = "${azurerm_resource_group.foo.location}"
-	iothub_name = "${azurerm_iothub.bar.name}"
+	iot_hub_name = "${azurerm_iothub.bar.name}"
 	event_hub_endpoint = "test"
 }
 ', rInt, location, rInt, rInt)

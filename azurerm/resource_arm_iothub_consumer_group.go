@@ -20,7 +20,7 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 				Required: true,
 			},
 			"resource_group_name": resourceGroupNameSchema(),
-			"iothub_name": {
+			"iot_hub_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -39,7 +39,7 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 
 	groupName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	iotHubName := d.Get("iothub_name").(string)
+	iotHubName := d.Get("iot_hub_name").(string)
 	eventhubEndpoint := d.Get("event_hub_endpoint").(string)
 
 	_, err := iothubClient.CreateEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
@@ -86,7 +86,7 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", groupName)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("iothub_name", iotHubName)
+	d.Set("iot_hub_name", iotHubName)
 	d.Set("event_hub_endpoint", eventhubEndpoint)
 
 	return nil

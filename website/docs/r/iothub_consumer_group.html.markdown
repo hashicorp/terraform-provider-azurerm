@@ -13,15 +13,15 @@ Creates a new consumer group
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "foo" {
+resource "azurerm_resource_group" "test" {
 	name = "acctestIot-%d"
-	location = "%s"
+	location = "West US"
 }
 
-resource "azurerm_iothub" "bar" {
-	name = "acctestiothub-%d"
-	location = "${azurerm_resource_group.foo.location}"
-	resource_group_name = "${azurerm_resource_group.foo.name}"
+resource "azurerm_iothub" "test" {
+	name = "test"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
 	sku {
 		name = "S1"
 		tier = "Standard"
@@ -33,10 +33,10 @@ resource "azurerm_iothub" "bar" {
 	}
 }
 
-resource "azurerm_iothub_consumer_group" "foo" {
-	name = "acctestiothubgroup-%d"
-	resource_group_name = "${azurerm_resource_group.foo.location}"
-	iothub_name = "${azurerm_iothub.bar.name}"
+resource "azurerm_iothub_consumer_group" "test" {
+	name = "test"
+	resource_group_name = "${azurerm_resource_group.test.location}"
+	iot_hub_name = "${azurerm_iothub.test.name}"
 	event_hub_endpoint = "test"
 }
 
@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `resource_group_name` (Required) The name of the resource group that contains the IoT hub.
 
-* `iothub_name` (Required) The name of the IoT hub.
+* `iot_hub_name` (Required) The name of the IoT hub.
 
 * `event_hub_endpoint` (Required) The name of the Event Hub-compatible endpoint in the IoT hub.
 
