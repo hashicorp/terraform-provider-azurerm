@@ -271,12 +271,17 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 		namespace := eventhubMap["namespace"].(string)
 		sharedPolicyName := eventhubMap["shared_access_policy_name"].(string)
 		sharedPolicyKey := eventhubMap["shared_access_policy_key"].(string)
+		eventHubName := eventhubMap["event_hub_name"].(string)
+
+
 		eventhubStreamProps := streamanalytics.EventHubStreamInputDataSourceProperties{
 			ServiceBusNamespace: &namespace,
 			SharedAccessPolicyName: &sharedPolicyName,
 			SharedAccessPolicyKey: &sharedPolicyKey,
-
+			EventHubName: eventHubName,
 		}
+
+		if consumerGroup, ok := eventhubMap["consumer_group_name"].(string); con 
 
 		eventhubSource := streamanalytics.EventHubStreamInputDataSource{
 			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
