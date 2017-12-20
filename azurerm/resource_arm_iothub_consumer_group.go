@@ -10,14 +10,16 @@ import (
 
 func resourceArmIotHubConsumerGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotHubConsumerGroupCreate,
+		Create: resourceArmIotHubConsumerGroupCreateUpdate,
 		Read:   resourceArmIotHubConsumerGroupRead,
+		Update: resourceArmIotHubConsumerGroupCreateUpdate,
 		Delete: resourceArmIotHubConsumerGroupDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"resource_group_name": resourceGroupNameSchema(),
 			"iot_hub_name": {
@@ -32,7 +34,7 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 	}
 }
 
-func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
 	log.Printf("[INFO} preparing arguments for AzureRM IoTHub Consumer Group creation.")

@@ -2,22 +2,24 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAzureRMIotHubConsumerGroup_basic(t *testing.T) {
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		CheckDestory: testCheckAzureRMIotHubConsumerGroupDestory,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubConsumerGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHubConsumerGroupConfig(ri, testLocation())
+				Config: testAccAzureRMIotHubConsumerGroupConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubConsumerGroupExists("azurerm_iothub_consumer_group.foo"),
 				),
@@ -45,7 +47,7 @@ func testCheckAzureRMIotHubConsumerGroupExists(name string) resource.TestCheckFu
 		eventhubEndpoint := rs.Primary.Attributes["event_hub_endpoint"]
 
 		resp, err := conn.GetEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
-		if err != ;nil {
+		if err != nil {
 			return fmt.Errorf("Bad: Error on GetEventHubConsumerGroup: %+v", err)
 		}
 
@@ -84,7 +86,7 @@ func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMIotHubConsumerGroupConfig(rInt int, location string) string {
-	return fmt.Sprintf('
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
 	name = "acctestIot-%d"
 	location = "%s"
@@ -111,6 +113,6 @@ resource "azurerm_iothub_consumer_group" "foo" {
 	iot_hub_name = "${azurerm_iothub.bar.name}"
 	event_hub_endpoint = "test"
 }
-', rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt)
 
 }
