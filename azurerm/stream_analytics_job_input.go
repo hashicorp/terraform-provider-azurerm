@@ -81,9 +81,10 @@ func streamAnalyticsInputSchema() *schema.Schema {
 											Type:     schema.TypeString,
 											Required: true,
 										},
+										// This is being sent as null so for now keeping this as optional
 										"storage_account_key": &schema.Schema{
 											Type:     schema.TypeString,
-											Required: true,
+											Optional: true,
 										},
 										"container": &schema.Schema{
 											Type:     schema.TypeString,
@@ -128,6 +129,10 @@ func streamAnalyticsInputSchema() *schema.Schema {
 										},
 										"shared_access_policy_key": &schema.Schema{
 											Type:     schema.TypeString,
+											Required: true,
+										},
+										"event_hub_name": &schema.Schema{
+											Type: schema.TypeString,
 											Required: true,
 										},
 										"consumer_group_name": &schema.Schema{
@@ -179,15 +184,40 @@ func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics
 	datasourceList := dataMap["datasource"].([]interface{})
 	datasourceMap := datasourceList[0].(map[string]interface{})
 
-	blobSource := datasourceMap["blob"]
-
-	if blobSource == nil {
+	blobsourceList, _ := datasourceMap["blob"].([]interface{})
+	if blobsourceList == nil {
 		return nil, errors.New("Blob Datasource returned empty")
 	}
-	refType = streamanalytics.TypeReferenceInputDataSourceTypeMicrosoftStorageBlob
+	blobsourceMap := blobsourceList[0].(map[string]interface{})
+
+	container := blobsourceMap["container"].(string)
+	pathPattern := blobsourceMap["path_pattern"].(string)
+	storageAccountName := blobsourceMap["storage_account_name"].(string)
+	storageAccountKey := blobsourceMap["storage_account_key"].(string)
+
+	var storageAccounts []streamanalytics.StorageAccount
+	storageAccounts = append(storageAccounts, streamanalytics.StorageAccount{
+		AccountName: &storageAccountName,
+		AccountKey:  &storageAccountKey,
+	})
+
+	datasourceProperties := &streamanalytics.BlobReferenceInputDataSourceProperties{
+		Container:       &container,
+		PathPattern:     &pathPattern,
+		StorageAccounts: &storageAccounts,
+	}
+
+	if dateFormat, ok := blobsourceMap["date_format"].(string); ok && dateFormat != "" {
+		datasourceProperties.DateFormat = &dateFormat
+	}
+
+	if timeFormat, ok := blobsourceMap["time_format"].(string); ok && timeFormat != "" {
+		datasourceProperties.TimeFormat = &timeFormat
+	}
 
 	datasource := streamanalytics.BlobReferenceInputDataSource{
-		Type: refType,
+		Type: streamanalytics.TypeReferenceInputDataSourceTypeMicrosoftStorageBlob,
+		BlobReferenceInputDataSourceProperties: datasourceProperties,
 	}
 
 	return datasource, nil
@@ -196,11 +226,70 @@ func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics
 func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.StreamInputDataSource, error) {
 	datasourceList := dataMap["datasource"].([]interface{})
 	datasourceMap := datasourceList[0].(map[string]interface{})
+	var streamInputSource streamanalytics.StreamInputDataSource
 
-	var refType streamanalytics.TypeReferenceInputDataSource
-	var datasource streamanalytics.StreamInputDataSource
+	if blobsourceList, ok := datasourceMap["blob"].([]interface{}); ok {
+		blobsourceMap := blobsourceList[0].(map[string]interface{})
+		container := blobsourceMap["container"].(string)
+		pathPattern := blobsourceMap["path_pattern"].(string)
+		storageAccountName := blobsourceMap["storage_account_name"].(string)
+		storageAccountKey := blobsourceMap["storage_account_key"].(string)
 
-	return datasource, nil
+		var storageAccounts []streamanalytics.StorageAccount
+		storageAccounts = append(storageAccounts, streamanalytics.StorageAccount{
+			AccountName: &storageAccountName,
+			AccountKey:  &storageAccountKey,
+		})
+
+		datasourceProperties := &streamanalytics.BlobStreamInputDataSourceProperties{
+			Container:       &container,
+			PathPattern:     &pathPattern,
+			StorageAccounts: &storageAccounts,
+		}
+
+		if dateFormat, ok := blobsourceMap["date_format"].(string); ok && dateFormat != "" {
+			datasourceProperties.DateFormat = &dateFormat
+		}
+
+		if timeFormat, ok := blobsourceMap["time_format"].(string); ok && timeFormat != "" {
+			datasourceProperties.TimeFormat = &timeFormat
+		}
+
+		if sourcePartionCount, ok := blobsourceMap["source_partition_count"].(int); ok {
+			sourceCount32 := int32(sourcePartionCount)
+			datasourceProperties.SourcePartitionCount = &sourceCount32
+		}
+		blobStreamSource := streamanalytics.BlobStreamInputDataSource{
+			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftStorageBlob,
+			BlobStreamInputDataSourceProperties: datasourceProperties,
+		}
+		streamInputSource = blobStreamSource
+
+	} else if eventhubList, ok := datasourceMap["event_hub"].([]interface{}); ok {
+		eventhubMap := eventhubList[0].(map[string]interface{})
+		
+		namespace := eventhubMap["namespace"].(string)
+		sharedPolicyName := eventhubMap["shared_access_policy_name"].(string)
+		sharedPolicyKey := eventhubMap["shared_access_policy_key"].(string)
+		eventhubStreamProps := streamanalytics.EventHubStreamInputDataSourceProperties{
+			ServiceBusNamespace: &namespace,
+			SharedAccessPolicyName: &sharedPolicyName,
+			SharedAccessPolicyKey: &sharedPolicyKey,
+
+		}
+
+		eventhubSource := streamanalytics.EventHubStreamInputDataSource{
+			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
+			EventHubStreamInputDataSourceProperties: 
+		}
+	} else if () {
+
+	} else {
+		// just to keep the logical structure conventional
+		return nil, errors.New("All datasources are empty")
+	}
+
+	return streamInputSource, nil
 
 }
 
@@ -254,8 +343,6 @@ func generateInputfromSchema(data interface{}) (*streamanalytics.Input, error) {
 
 	serialization := extractSerialization(dataMap)
 
-	var inputProperties streamanalytics.InputProperties
-
 	switch inputType {
 	case string(streamanalytics.TypeReference):
 		log.Println("[INFO] using Reference Type")
@@ -265,11 +352,13 @@ func generateInputfromSchema(data interface{}) (*streamanalytics.Input, error) {
 		if err != nil {
 			return nil, err
 		}
-		inputProperties = streamanalytics.ReferenceInputProperties{
+		inputProperties := streamanalytics.ReferenceInputProperties{
 			Serialization: serialization,
 			Type:          streamanalytics.TypeReference,
 			Datasource:    datasource,
 		}
+
+		input.Properties = inputProperties
 
 	case string(streamanalytics.TypeStream):
 		log.Println("[INFO] using Stream Type")
@@ -279,11 +368,15 @@ func generateInputfromSchema(data interface{}) (*streamanalytics.Input, error) {
 		if err != nil {
 			return nil, err
 		}
-		inputProperties = streamanalytics.StreamInputProperties{
+		inputProperties := streamanalytics.StreamInputProperties{
 			Serialization: serialization,
 			Type:          streamanalytics.TypeStream,
 			Datasource:    datasource,
 		}
+
+		input.Properties = inputProperties
+	default:
+		return nil, errors.New("The input type not supported")
 
 	}
 
