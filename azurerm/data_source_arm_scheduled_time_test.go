@@ -2,11 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 	"strconv"
 	"testing"
 	"time"
-
-	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccDataSourceAzureRMScheduledTime_Daily_Today(t *testing.T) {
@@ -307,6 +307,58 @@ func TestAccDataSourceAzureRMScheduledTime_Monthly_Next_Month(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMScheduledTime_Monthly_Next_Month_NotFullyDefined(t *testing.T) {
+	dataSourceName := "data.azurerm_scheduled_time.test"
+
+	now := time.Now().UTC()
+	scheduletime := time.Date(now.Year(), now.Month()+1, now.Day(), now.Hour(), 0, 0, 0, time.UTC)
+	dayofmonth := scheduletime.Day()
+
+	config := testAccDataSourceAzureRMScheduledTime_Monthly_NotFullyDefined(dayofmonth, scheduletime)
+
+	expectedTime := time.Date(scheduletime.Year(), scheduletime.Month(), scheduletime.Day(), scheduletime.Hour(), 0, 0, 0, time.UTC)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "day_of_month", strconv.Itoa(dayofmonth)),
+					resource.TestCheckResourceAttr(dataSourceName, "hour", strconv.Itoa(scheduletime.Hour())),
+					resource.TestCheckResourceAttr(dataSourceName, "frequency", "Month"),
+					testCheckNotFullyDefinedNextRunTime("data.azurerm_scheduled_time.test", expectedTime),
+				),
+			},
+		},
+	})
+}
+
+func testCheckNotFullyDefinedNextRunTime(name string, expectedTime time.Time) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		nrt := rs.Primary.Attributes["next_run_time"]
+
+		nrt_time, err := time.Parse(time.RFC3339, nrt)
+
+		if err != nil {
+			return fmt.Errorf("Cannot parse: %s", nrt)
+		}
+
+		if expectedTime.Year() != nrt_time.Year() || expectedTime.Month() != nrt_time.Month() || expectedTime.Day() != nrt_time.Day() || expectedTime.Hour() != nrt_time.Hour() {
+			return fmt.Errorf("Expected time: %s Next run time: %s", expectedTime, nrt_time)
+		}
+
+		return nil
+	}
+}
+
 func TestAccDataSourceAzureRMScheduledTime_OneTime(t *testing.T) {
 	dataSourceName := "data.azurerm_scheduled_time.test"
 
@@ -336,6 +388,16 @@ func TestAccDataSourceAzureRMScheduledTime_OneTime(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccDataSourceAzureRMScheduledTime_Monthly_NotFullyDefined(dayofmonth int, scheduletime time.Time) string {
+	return fmt.Sprintf(`
+data "azurerm_scheduled_time" "test" {
+        "day_of_month" = "%d"
+        "hour" = "%d"
+        "frequency" = "Month"
+}
+`, dayofmonth, scheduletime.Hour())
 }
 
 func testAccDataSourceAzureRMScheduledTime_Monthly(dayofmonth int, scheduletime time.Time) string {
