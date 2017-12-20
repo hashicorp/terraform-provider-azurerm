@@ -111,5 +111,6 @@ resource "azurerm_iothub_consumer_group" "foo" {
 	iothub_name = "${azurerm_iothub.bar.name}"
 	event_hub_endpoint = "test"
 }
+', rInt, location, rInt, rInt)
 
 }
