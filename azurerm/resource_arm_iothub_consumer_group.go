@@ -15,15 +15,12 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 		Delete: resourceArmIotHubConsumerGroupDelete,
 
 		Schema: map[string]*schema.Schema{
-			"consumer_group_name": {
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"iotHub_name": {
+			"resource_group_name": resourceGroupNameSchema(),
+			"iothub_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -40,9 +37,9 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 	iothubClient := armClient.iothubResourceClient
 	log.Printf("[INFO} preparing arguments for AzureRM IoTHub Consumer Group creation.")
 
-	groupName := d.Get("consumer_group_name").(string)
+	groupName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	iotHubName := d.Get("iotHub_name").(string)
+	iotHubName := d.Get("iothub_name").(string)
 	eventhubEndpoint := d.Get("event_hub_endpoint").(string)
 
 	_, err := iothubClient.CreateEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
@@ -87,9 +84,9 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making read request on Azure IoTHub Consumer Group %s: %+v", groupName, err)
 	}
 
-	d.Set("consumer_group_name", groupName)
+	d.Set("name", groupName)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("iotHub_name", iotHubName)
+	d.Set("iothub_name", iotHubName)
 	d.Set("event_hub_endpoint", eventhubEndpoint)
 
 	return nil
