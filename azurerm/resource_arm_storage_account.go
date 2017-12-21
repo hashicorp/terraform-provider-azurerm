@@ -198,6 +198,16 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_connection_string": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_connection_string": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_blob_connection_string": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -525,6 +535,16 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		// Computed
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
+
+		if len(accessKeys) > 0 {
+			pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", *resp.Name, *accessKeys[0].Value)
+			d.Set("primary_connection_string", pcs)
+		}
+
+		if len(accessKeys) > 1 {
+			scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=core.windows.net", *resp.Name, *accessKeys[1].Value)
+			d.Set("secondary_connection_string", scs)
+		}
 
 		if endpoints := props.PrimaryEndpoints; endpoints != nil {
 			d.Set("primary_blob_endpoint", endpoints.Blob)
