@@ -652,30 +652,13 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	aschc.Sender = sender
 	client.automationScheduleClient = aschc
 
-<<<<<<< HEAD
 	ihrc := iothub.NewResourceClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ihrc.Client)
 	ihrc.Authorizer = auth
 	ihrc.Sender = autorest.CreateSender(withRequestLogging())
 	client.iothubResourceClient = ihrc
 
-=======
-<<<<<<< HEAD
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
-||||||| merged common ancestors
->>>>>>> 60cd688486d722c6c36a4ee7155f24252405c0d8
-	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
-
-=======
-	ihrc := iothub.NewResourceClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ihrc.Client)
-	ihrc.Authorizer = auth
-	ihrc.Sender = autorest.CreateSender(withRequestLogging())
-	client.iothubResourceClient = ihrc
-
-	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
-
->>>>>>> added the config and cleaned up the schema iothub resource schema
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)

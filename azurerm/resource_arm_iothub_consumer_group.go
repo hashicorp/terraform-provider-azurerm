@@ -10,25 +10,8 @@ import (
 
 func resourceArmIotHubConsumerGroup() *schema.Resource {
 	return &schema.Resource{
-<<<<<<< HEAD
 		Create: resourceArmIotHubConsumerGroupCreate,
 		Read:   resourceArmIotHubConsumerGroupRead,
-		Delete: resourceArmIotHubConsumerGroupDelete,
-
-		Schema: map[string]*schema.Schema{
-			"consumer_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"iotHub_name": {
-=======
-		Create: resourceArmIotHubConsumerGroupCreateUpdate,
-		Read:   resourceArmIotHubConsumerGroupRead,
-		Update: resourceArmIotHubConsumerGroupCreateUpdate,
 		Delete: resourceArmIotHubConsumerGroupDelete,
 
 		Schema: map[string]*schema.Schema{
@@ -39,36 +22,27 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 			},
 			"resource_group_name": resourceGroupNameSchema(),
 			"iot_hub_name": {
->>>>>>> 60cd688486d722c6c36a4ee7155f24252405c0d8
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"event_hub_endpoint": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
 }
 
-<<<<<<< HEAD
 func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-=======
-func resourceArmIotHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
->>>>>>> 60cd688486d722c6c36a4ee7155f24252405c0d8
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
 	log.Printf("[INFO} preparing arguments for AzureRM IoTHub Consumer Group creation.")
 
-<<<<<<< HEAD
-	groupName := d.Get("consumer_group_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	iotHubName := d.Get("iotHub_name").(string)
-=======
 	groupName := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	iotHubName := d.Get("iot_hub_name").(string)
->>>>>>> 60cd688486d722c6c36a4ee7155f24252405c0d8
 	eventhubEndpoint := d.Get("event_hub_endpoint").(string)
 
 	_, err := iothubClient.CreateEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
@@ -113,15 +87,9 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making read request on Azure IoTHub Consumer Group %s: %+v", groupName, err)
 	}
 
-<<<<<<< HEAD
-	d.Set("consumer_group_name", groupName)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("iotHub_name", iotHubName)
-=======
 	d.Set("name", groupName)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("iot_hub_name", iotHubName)
->>>>>>> 60cd688486d722c6c36a4ee7155f24252405c0d8
 	d.Set("event_hub_endpoint", eventhubEndpoint)
 
 	return nil

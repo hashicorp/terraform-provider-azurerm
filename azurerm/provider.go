@@ -170,10 +170,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_network":             resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_peering":     resourceArmVirtualNetworkPeering(),
 			"azurerm_iothub":                      resourceArmIotHub(),
-<<<<<<< HEAD
-=======
 			"azurerm_iothub_consumer_group":       resourceArmIotHubConsumerGroup(),
->>>>>>> 60cd688486d722c6c36a4ee7155f24252405c0d8
 		},
 	}
 
