@@ -63,3 +63,14 @@ func validateDBAccountName(v interface{}, k string) (ws []string, errors []error
 
 	return
 }
+
+func validateStringLength(maxLength int) schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (ws []string, errors []error) {
+		value := v.(string)
+		if len(value) > maxLength {
+			errors = append(errors, fmt.Errorf(
+				"The %q can be no longer than %d chars", k, maxLength))
+		}
+		return
+	}
+}

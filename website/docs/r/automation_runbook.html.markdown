@@ -23,7 +23,7 @@ resource "azurerm_automation_account" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku {
-        name = "Free"
+    name = "Basic"
   }
 }
 
@@ -37,7 +37,7 @@ resource "azurerm_automation_runbook" "example" {
   description         = "This is an example runbook"
   runbook_type        = "PowerShellWorkflow"
   publish_content_link {
-        uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 }
 ```

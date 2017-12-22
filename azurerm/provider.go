@@ -68,11 +68,18 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"azurerm_client_config":  dataSourceArmClientConfig(),
-			"azurerm_resource_group": dataSourceArmResourceGroup(),
-			"azurerm_public_ip":      dataSourceArmPublicIP(),
-			"azurerm_managed_disk":   dataSourceArmManagedDisk(),
-			"azurerm_subscription":   dataSourceArmSubscription(),
+			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
+			"azurerm_client_config":           dataSourceArmClientConfig(),
+			"azurerm_image":                   dataSourceArmImage(),
+			"azurerm_key_vault_access_policy": dataSourceArmKeyVaultAccessPolicy(),
+			"azurerm_managed_disk":            dataSourceArmManagedDisk(),
+			"azurerm_platform_image":          dataSourceArmPlatformImage(),
+			"azurerm_public_ip":               dataSourceArmPublicIP(),
+			"azurerm_resource_group":          dataSourceArmResourceGroup(),
+			"azurerm_role_definition":         dataSourceArmRoleDefinition(),
+			"azurerm_snapshot":                dataSourceArmSnapshot(),
+			"azurerm_subnet":                  dataSourceArmSubnet(),
+			"azurerm_subscription":            dataSourceArmSubscription(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -107,6 +114,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_express_route_circuit":       resourceArmExpressRouteCircuit(),
 			"azurerm_image":                       resourceArmImage(),
 			"azurerm_key_vault":                   resourceArmKeyVault(),
+			"azurerm_key_vault_certificate":       resourceArmKeyVaultCertificate(),
 			"azurerm_key_vault_key":               resourceArmKeyVaultKey(),
 			"azurerm_key_vault_secret":            resourceArmKeyVaultSecret(),
 			"azurerm_lb":                          resourceArmLoadBalancer(),
@@ -132,6 +140,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_public_ip":                   resourceArmPublicIp(),
 			"azurerm_redis_cache":                 resourceArmRedisCache(),
 			"azurerm_resource_group":              resourceArmResourceGroup(),
+			"azurerm_role_assignment":             resourceArmRoleAssignment(),
+			"azurerm_role_definition":             resourceArmRoleDefinition(),
 			"azurerm_route":                       resourceArmRoute(),
 			"azurerm_route_table":                 resourceArmRouteTable(),
 			"azurerm_search_service":              resourceArmSearchService(),
@@ -139,6 +149,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_queue":            resourceArmServiceBusQueue(),
 			"azurerm_servicebus_subscription":     resourceArmServiceBusSubscription(),
 			"azurerm_servicebus_topic":            resourceArmServiceBusTopic(),
+			"azurerm_snapshot":                    resourceArmSnapshot(),
 			"azurerm_sql_database":                resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":             resourceArmSqlElasticPool(),
 			"azurerm_sql_firewall_rule":           resourceArmSqlFirewallRule(),
@@ -159,6 +170,10 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_network":             resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_peering":     resourceArmVirtualNetworkPeering(),
 			"azurerm_iothub":                      resourceArmIotHub(),
+<<<<<<< HEAD
+=======
+			"azurerm_iothub_consumer_group":       resourceArmIotHubConsumerGroup(),
+>>>>>>> 60cd688486d722c6c36a4ee7155f24252405c0d8
 		},
 	}
 
@@ -394,6 +409,7 @@ func registerProviderWithSubscription(providerName string, client resources.Prov
 
 func determineAzureResourceProvidersToRegister(providerList []resources.Provider) map[string]struct{} {
 	providers := map[string]struct{}{
+		"Microsoft.Authorization":       {},
 		"Microsoft.Automation":          {},
 		"Microsoft.Cache":               {},
 		"Microsoft.Cdn":                 {},
@@ -401,6 +417,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ContainerInstance":   {},
 		"Microsoft.ContainerRegistry":   {},
 		"Microsoft.ContainerService":    {},
+		"Microsoft.DBforMySQL":          {},
 		"Microsoft.DBforPostgreSQL":     {},
 		"Microsoft.DocumentDB":          {},
 		"Microsoft.EventGrid":           {},

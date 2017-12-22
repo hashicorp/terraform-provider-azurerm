@@ -69,7 +69,8 @@ resource "azurerm_storage_account" "existing" {
   name                = "${var.existing_storage_acct}"
   resource_group_name = "${var.existing_resource_group}"
   location            = "${azurerm_resource_group.rg.location}"
-  account_type        = "${var.existing_storage_acct_type}"
+  account_tier             = "${var.storage_existing_account_tier}"
+  account_replication_type = "${var.storage_existing_replication_type}"
 
   lifecycle = {
     prevent_destroy = true
@@ -80,7 +81,8 @@ resource "azurerm_storage_account" "stor" {
   name                = "${var.hostname}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
-  account_type        = "${var.storage_account_type}"
+  account_tier             = "${var.storage_machine_account_tier}"
+  account_replication_type = "${var.storage_machine_replication_type}"
 }
 
 resource "azurerm_virtual_machine" "transfer" {

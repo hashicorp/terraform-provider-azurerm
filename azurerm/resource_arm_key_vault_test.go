@@ -123,8 +123,8 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "all"),
-					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "all"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "set"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 				),
 			},
@@ -221,11 +221,11 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.client_id}"
 
     key_permissions = [
-      "all",
+      "create",
     ]
 
     secret_permissions = [
-      "all",
+      "set",
     ]
   }
 

@@ -79,7 +79,7 @@ Possible values for `storage_mb` when using a SKU Name of `Standard` are:
 - `896000` (896GB)
 - `1024000` (1TB)
 
-* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enforced` and `Disabled`.
+* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

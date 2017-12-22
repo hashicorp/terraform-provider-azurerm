@@ -46,7 +46,8 @@ func testSweepSQLServer(region string) error {
 		name := resourceId.Path["servers"]
 
 		log.Printf("Deleting SQL Server '%s' in Resource Group '%s'", name, resourceGroup)
-		_, err = client.Delete(resourceGroup, name)
+		_, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
+		err = <-deleteErr
 		if err != nil {
 			return err
 		}
@@ -194,13 +195,13 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
 
-		resp, err := client.Delete(resourceGroup, serverName)
+		deleteResp, deleteErr := client.Delete(resourceGroup, serverName, make(chan struct{}))
+		resp := <-deleteResp
+		err := <-deleteErr
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return nil
+			if !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("Bad: Delete on sqlServersClient: %+v", err)
 			}
-
-			return fmt.Errorf("Bad: Delete on sqlServersClient: %+v", err)
 		}
 
 		return nil

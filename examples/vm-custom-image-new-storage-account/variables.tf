@@ -20,9 +20,14 @@ variable "existing_storage_acct" {
   description = "The name of the storage account in which your existing VHD and image reside"
 }
 
-variable "existing_storage_acct_type" {
-  description = "The type of the storage account in which your existing VHD and image reside"
-  default     = "Standard_LRS"
+variable "storage_existing_account_tier" {
+  description = "The Tier of the storage account in which your existing VHD and image reside (Standard or Premium)"
+  default     = "Standard"
+}
+
+variable "storage_existing_replication_type" {
+  description = "The Replication Type of the storage account in which your existing VHD and image reside (Options include LRS and GRS)"
+  default     = "LRS"
 }
 
 variable "existing_resource_group" {
@@ -39,9 +44,14 @@ variable "subnet_prefix" {
   default     = "10.0.0.0/24"
 }
 
-variable "storage_account_type" {
-  description = "Defines the type of storage account to be created. Valid options are Standard_LRS, Standard_ZRS, Standard_GRS, Standard_RAGRS, Premium_LRS. Changing this is sometimes valid - see the Azure documentation for more information on which types of accounts can be converted into other types."
-  default     = "Standard_LRS"
+variable "storage_machine_account_tier" {
+  description = "Defines the type of storage account to be created. Valid options are Standard or Premium."
+  default     = "Standard"
+}
+
+variable "storage_machine_replication_type" {
+  description = "Defines the Replication Type for the storage account to be created. Valid options include LRS, ZRS, GRS and RAGRS."
+  default     = "LRS"
 }
 
 variable "vm_size" {

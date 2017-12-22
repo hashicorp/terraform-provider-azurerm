@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
@@ -28,6 +29,7 @@ func TestAccAzureRMNetworkSecurityRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
+	resourceGroup := "azurerm_network_security_rule.test"
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
@@ -38,8 +40,8 @@ func TestAccAzureRMNetworkSecurityRule_disappears(t *testing.T) {
 			{
 				Config: testAccAzureRMNetworkSecurityRule_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkSecurityRuleExists("azurerm_network_security_rule.test"),
-					testCheckAzureRMNetworkSecurityRuleDisappears("azurerm_network_security_rule.test"),
+					testCheckAzureRMNetworkSecurityRuleExists(resourceGroup),
+					testCheckAzureRMNetworkSecurityRuleDisappears(resourceGroup),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -84,18 +86,17 @@ func testCheckAzureRMNetworkSecurityRuleExists(name string) resource.TestCheckFu
 		sgrName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for network security rule: %s", sgName)
+			return fmt.Errorf("Bad: no resource group found in state for network security rule: %q", sgName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).secRuleClient
 
 		resp, err := conn.Get(resourceGroup, sgName, sgrName)
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Network Security Rule %q (resource group: %q) (network security group: %q) does not exist", sgrName, sgName, resourceGroup)
+			}
 			return fmt.Errorf("Bad: Get on secRuleClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Network Security Rule %q (resource group: %q) (network security group: %q) does not exist", sgrName, sgName, resourceGroup)
 		}
 
 		return nil
@@ -107,7 +108,7 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(name string) resource.TestChe
 
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %q", name)
 		}
 
 		sgName := rs.Primary.Attributes["network_security_group_name"]
@@ -117,12 +118,14 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(name string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %s", sgName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).secRuleClient
-
-		_, error := conn.Delete(resourceGroup, sgName, sgrName, make(chan struct{}))
-		err := <-error
+		client := testAccProvider.Meta().(*ArmClient).secRuleClient
+		deleteResp, deleteErr := client.Delete(resourceGroup, sgName, sgrName, make(chan struct{}))
+		resp := <-deleteResp
+		err := <-deleteErr
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on secRuleClient: %+v", err)
+			if !utils.ResponseWasNotFound(resp) {
+				return fmt.Errorf("Bad: Delete on secRuleClient: %+v", err)
+			}
 		}
 
 		return nil
@@ -182,7 +185,6 @@ resource "azurerm_network_security_rule" "test" {
   resource_group_name         = "${azurerm_resource_group.test.name}"
   network_security_group_name = "${azurerm_network_security_group.test.name}"
 }
-
 `, rInt, location)
 }
 
