@@ -132,7 +132,7 @@ func streamAnalyticsInputSchema() *schema.Schema {
 											Required: true,
 										},
 										"event_hub_name": &schema.Schema{
-											Type: schema.TypeString,
+											Type:     schema.TypeString,
 											Required: true,
 										},
 										"consumer_group_name": &schema.Schema{
@@ -259,35 +259,55 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 			sourceCount32 := int32(sourcePartionCount)
 			datasourceProperties.SourcePartitionCount = &sourceCount32
 		}
-		blobStreamSource := streamanalytics.BlobStreamInputDataSource{
+		streamInputSource = streamanalytics.BlobStreamInputDataSource{
 			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftStorageBlob,
 			BlobStreamInputDataSourceProperties: datasourceProperties,
 		}
-		streamInputSource = blobStreamSource
 
 	} else if eventhubList, ok := datasourceMap["event_hub"].([]interface{}); ok {
 		eventhubMap := eventhubList[0].(map[string]interface{})
-		
+
 		namespace := eventhubMap["namespace"].(string)
 		sharedPolicyName := eventhubMap["shared_access_policy_name"].(string)
 		sharedPolicyKey := eventhubMap["shared_access_policy_key"].(string)
 		eventHubName := eventhubMap["event_hub_name"].(string)
 
-
 		eventhubStreamProps := streamanalytics.EventHubStreamInputDataSourceProperties{
-			ServiceBusNamespace: &namespace,
+			ServiceBusNamespace:    &namespace,
 			SharedAccessPolicyName: &sharedPolicyName,
-			SharedAccessPolicyKey: &sharedPolicyKey,
-			EventHubName: eventHubName,
+			SharedAccessPolicyKey:  &sharedPolicyKey,
+			EventHubName:           &eventHubName,
 		}
 
-		if consumerGroup, ok := eventhubMap["consumer_group_name"].(string); con 
+		if consumerGroup, ok := eventhubMap["consumer_group_name"].(string); ok && consumerGroup != "" {
+			eventhubStreamProps.ConsumerGroupName = &consumerGroup
+		}
 
-		eventhubSource := streamanalytics.EventHubStreamInputDataSource{
+		streamInputSource = streamanalytics.EventHubStreamInputDataSource{
 			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
-			EventHubStreamInputDataSourceProperties: 
+			EventHubStreamInputDataSourceProperties: &eventhubStreamProps,
 		}
-	} else if () {
+	} else if iothubList, ok := datasourceMap["iot_hub"].([]interface{}); ok {
+		iothubMap := iothubList[0].(map[string]interface{})
+
+		namespace := iothubMap["namespace"].(string)
+		sharedPolicyName := iothubMap["shared_access_policy_name"].(string)
+		sharedPolicyKey := iothubMap["shared_access_policy_key"].(string)
+
+		iothubStreamProps := streamanalytics.IoTHubStreamInputDataSourceProperties{
+			IotHubNamespace:        &namespace,
+			SharedAccessPolicyName: &sharedPolicyName,
+			SharedAccessPolicyKey:  &sharedPolicyKey,
+		}
+
+		if consumerGroup, ok := iothubMap["consumer_group_name"].(string); ok && consumerGroup != "" {
+			iothubStreamProps.ConsumerGroupName = &consumerGroup
+		}
+
+		streamInputSource = streamanalytics.IoTHubStreamInputDataSource{
+			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftDevicesIotHubs,
+			IoTHubStreamInputDataSourceProperties: &iothubStreamProps,
+		}
 
 	} else {
 		// just to keep the logical structure conventional
