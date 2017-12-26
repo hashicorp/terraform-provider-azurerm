@@ -49,14 +49,6 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 					string(streamanalytics.Drop),
 				}, false),
 			},
-			"streaming_unit": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"query": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
 			"job_state": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -101,6 +93,14 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	// TODO: try to make this whole creation as atomic as possible
 	jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
 	err := <-errChan
+	jobResp := <-jobChan
+
+	// The reason that we set the id of the job here i.e. before creation of the related resource
+	// is because if any of the child resource creation fail then the delete lifecycle method will
+	// clean them up as deleting of job will remove all the child resources as well.
+	// In retrospect if the setId is called after all the related resource are created then in case
+	// of failure the delete method will not remove anything hence leaking some resources.
+	d.SetId(*jobResp.ID)
 
 	if inputs, ok := d.GetOk("inputs"); ok {
 		inputList := inputs.([]interface{})
@@ -119,9 +119,6 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-	jobResp := <-jobChan
-
-	d.SetId(*jobResp.ID)
 
 	return resourceArmStreamAnalyticsJobRead(d, meta)
 }
