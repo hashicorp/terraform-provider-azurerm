@@ -1,6 +1,8 @@
 package azurerm
 
 import (
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/arm/streamanalytics"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -96,8 +98,23 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		StreamingJobProperties: jobProps,
 	}
 
+	// TODO: try to make this whole creation as atomic as possible
 	jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
 	err := <-errChan
+
+	if inputs, ok := d.GetOk("inputs"); ok {
+		inputList := inputs.([]interface{})
+		for _, inputSchema := range inputList {
+			input, err := streamAnalyticsInputfromSchema(inputSchema)
+			if err != nil {
+				return err
+			}
+			result, err := client.inputsClient.CreateOrReplace(*input, rg, jobName, *input.Name, "", "")
+			log.Printf("%#v \n", result)
+
+		}
+
+	}
 
 	if err != nil {
 		return err

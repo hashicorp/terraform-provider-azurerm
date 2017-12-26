@@ -9,10 +9,13 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
+const StreamAnalyticsInputType = "Microsoft.StreamAnalytics/streamingjobs/inputs"
+
 func streamAnalyticsInputSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		MinItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"input_name": &schema.Schema{
@@ -356,7 +359,7 @@ func extractSerialization(dataMap map[string]interface{}) streamanalytics.Serial
 	return serialization
 }
 
-func generateInputfromSchema(data interface{}) (*streamanalytics.Input, error) {
+func streamAnalyticsInputfromSchema(data interface{}) (*streamanalytics.Input, error) {
 	dataMap := data.(map[string]interface{})
 	inputType := dataMap["type"].(string)
 	inputName := dataMap["input_name"].(string)
