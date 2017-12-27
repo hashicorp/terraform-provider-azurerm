@@ -332,7 +332,7 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 
 }
 
-func extractSerialization(dataMap map[string]interface{}) streamanalytics.Serialization {
+func extractSerialization(dataMap map[string]interface{}, output bool) streamanalytics.Serialization {
 
 	var serialization streamanalytics.Serialization
 	serializationList := dataMap["serialization"].([]interface{})
@@ -359,10 +359,20 @@ func extractSerialization(dataMap map[string]interface{}) streamanalytics.Serial
 
 	case string(streamanalytics.TypeJSON):
 
+		format := streamanalytics.LineSeparated
+		if output {
+			if formatStr, ok := serial["format"].(string); ok && formatStr != "" {
+				if formatStr == string(streamanalytics.Array) {
+					format = streamanalytics.Array
+				}
+			}
+		}
+
 		serialization = streamanalytics.JSONSerialization{
 			Type: streamanalytics.TypeJSON,
 			JSONSerializationProperties: &streamanalytics.JSONSerializationProperties{
 				Encoding: streamanalytics.Encoding(serial["encoding"].(string)),
+				Format:   format,
 			},
 		}
 	}
@@ -380,7 +390,7 @@ func streamAnalyticsInputfromSchema(data interface{}) (*streamanalytics.Input, e
 		Type: &streamAnalyticsInputType,
 	}
 
-	serialization := extractSerialization(dataMap)
+	serialization := extractSerialization(dataMap, false)
 
 	switch inputType {
 	case string(streamanalytics.TypeReference):

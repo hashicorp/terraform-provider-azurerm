@@ -79,6 +79,15 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"format": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(streamanalytics.Array),
+								string(streamanalytics.LineSeparated),
+							}, false),
+							Default: string(streamanalytics.LineSeparated),
+						},
 					},
 				},
 			},
@@ -308,7 +317,7 @@ func streamAnalyticsOutputFromSchema(outputSchema interface{}) (*streamanalytics
 		Type: &streamAnalyticsOutputType,
 	}
 
-	serialization := extractSerialization(outputMap)
+	serialization := extractSerialization(outputMap, true)
 	datasource, err := extractOutputDatasource(outputMap)
 
 	if err != nil {
