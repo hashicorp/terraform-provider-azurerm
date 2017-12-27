@@ -1,6 +1,8 @@
 package azurerm
 
 import (
+	"errors"
+
 	"github.com/Azure/azure-sdk-for-go/arm/streamanalytics"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -241,10 +243,6 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 						Type:     schema.TypeString,
 						Required: true,
 					},
-					"property_columns": &schema.Schema{
-						Type:     schema.TypeString,
-						Optional: true,
-					},
 				},
 			},
 			"service_bus_topics": &schema.Schema{
@@ -270,10 +268,6 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 						Type:     schema.TypeString,
 						Required: true,
 					},
-					"property_columns": &schema.Schema{
-						Type:     schema.TypeString,
-						Optional: true,
-					},
 				},
 			},
 			"documentdb": &schema.Schema{
@@ -291,7 +285,7 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 						Type:     schema.TypeString,
 						Required: true,
 					},
-					"database": &schema.Schema{
+					"database_name": &schema.Schema{
 						Type:     schema.TypeString,
 						Required: true,
 					},
@@ -425,18 +419,98 @@ func extractOutputDatasource(outputMap map[string]interface{}) (streamanalytics.
 			EventHubOutputDataSourceProperties: &eventhubProps,
 		}
 
-	} else if SqlSchema := outputMap["sql_database"].([]interface{}); len(SqlSchema) != 0 {
-		SqlMap := SqlSchema[0].(map[string]interface{})
+	} else if sqlSchema := outputMap["sql_database"].([]interface{}); len(sqlSchema) != 0 {
+		sqlMap := sqlSchema[0].(map[string]interface{})
+		server := sqlMap["server"].(string)
+		database := sqlMap["database"].(string)
+		user := sqlMap["user"].(string)
+		password := sqlMap["password"].(string)
+		table := sqlMap["table"].(string)
 
-	} else if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
-		blobMap := blobSchema[0].(map[string]interface{})
-	} else if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
-		blobMap := blobSchema[0].(map[string]interface{})
-	} else if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
-		blobMap := blobSchema[0].(map[string]interface{})
+		sqlProps := streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
+			Server:   &server,
+			Database: &database,
+			User:     &user,
+			Password: &password,
+			Table:    &table,
+		}
+		outputDatasource = streamanalytics.AzureSQLDatabaseOutputDataSource{
+			Type: streamanalytics.TypeMicrosoftSQLServerDatabase,
+			AzureSQLDatabaseOutputDataSourceProperties: &sqlProps,
+		}
+
+	} else if sbqSchema := outputMap["service_bus_queues"].([]interface{}); len(sbqSchema) != 0 {
+		sbqMap := sbqSchema[0].(map[string]interface{})
+
+		namespace := sbqMap["namespace"].(string)
+		sharedPolicyName := sbqMap["shared_access_policy_name"].(string)
+		sharedPolicyKey := sbqMap["shared_access_policy_key"].(string)
+		queueName := sbqMap["queue_name"].(string)
+
+		sbqProps := streamanalytics.ServiceBusQueueOutputDataSourceProperties{
+			ServiceBusNamespace:    &namespace,
+			SharedAccessPolicyKey:  &sharedPolicyKey,
+			SharedAccessPolicyName: &sharedPolicyName,
+			QueueName:              &queueName,
+		}
+
+		outputDatasource = streamanalytics.ServiceBusQueueOutputDataSource{
+			Type: streamanalytics.TypeMicrosoftServiceBusQueue,
+			ServiceBusQueueOutputDataSourceProperties: &sbqProps,
+		}
+
+	} else if sbtSchema := outputMap["service_bus_topics"].([]interface{}); len(sbtSchema) != 0 {
+		sbtMap := sbtSchema[0].(map[string]interface{})
+
+		namespace := sbtMap["namespace"].(string)
+		sharedPolicyName := sbtMap["shared_access_policy_name"].(string)
+		sharedPolicyKey := sbtMap["shared_access_policy_key"].(string)
+		topicName := sbtMap["topic_name"].(string)
+
+		sbtProps := streamanalytics.ServiceBusTopicOutputDataSourceProperties{
+			ServiceBusNamespace:    &namespace,
+			SharedAccessPolicyKey:  &sharedPolicyKey,
+			SharedAccessPolicyName: &sharedPolicyName,
+			TopicName:              &topicName,
+		}
+
+		outputDatasource = streamanalytics.ServiceBusTopicOutputDataSource{
+			Type: streamanalytics.TypeMicrosoftServiceBusTopic,
+			ServiceBusTopicOutputDataSourceProperties: &sbtProps,
+		}
+
+	} else if docdbSchema := outputMap["documentdb"].([]interface{}); len(docdbSchema) != 0 {
+		docdbMap := docdbSchema[0].(map[string]interface{})
+		accountID := docdbMap["account_id"].(string)
+		accountKey := docdbMap["account_key"].(string)
+		databaseName := docdbMap["database_name"].(string)
+		cnp := docdbMap["collection_name_pattern"].(string)
+		partitionKey := docdbMap["partition_key"].(string)
+
+		docdbProps := streamanalytics.DocumentDbOutputDataSourceProperties{
+			AccountID:             &accountID,
+			AccountKey:            &accountKey,
+			Database:              &databaseName,
+			CollectionNamePattern: &cnp,
+			PartitionKey:          &partitionKey,
+		}
+
+		if documentID, ok := docdbMap["document_id"].(string); ok && documentID != "" {
+			docdbProps.DocumentID = &documentID
+		}
+
+		outputDatasource = streamanalytics.DocumentDbOutputDataSource{
+			Type: streamanalytics.TypeMicrosoftStorageDocumentDB,
+			DocumentDbOutputDataSourceProperties: &docdbProps,
+		}
+
+	} else {
+		return nil, errors.New("None of the output sources provided")
 	}
+
+	return outputDatasource, nil
 
 }
 func extractOutputSerialization(outputMap map[string]interface{}) (streamanalytics.Serialization, error) {
-
+	return nil, nil
 }
