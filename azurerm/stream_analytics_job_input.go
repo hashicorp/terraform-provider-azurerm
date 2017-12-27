@@ -297,7 +297,6 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 		}
 	} else if iothubList, ok := datasourceMap["iot_hub"].([]interface{}); ok && len(iothubList) != 0 {
 		iothubMap := iothubList[0].(map[string]interface{})
-
 		namespace := iothubMap["namespace"].(string)
 		sharedPolicyName := iothubMap["shared_access_policy_name"].(string)
 		sharedPolicyKey := iothubMap["shared_access_policy_key"].(string)

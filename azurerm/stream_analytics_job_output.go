@@ -80,233 +80,232 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 					},
 				},
 			},
-			"datasource": &schema.Schema{
+			"blob": &schema.Schema{
 				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
 				MaxItems: 1,
+				Optional: true,
+				// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+				// ConflictsWith: Allbut("blob"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"blob": &schema.Schema{
-							Type:          schema.TypeList,
-							MaxItems:      1,
-							Optional:      true,
-							ConflictsWith: Allbut("blob"),
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"storage_account_name": &schema.Schema{
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"storage_account_key": &schema.Schema{
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"container": &schema.Schema{
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"path_pattern": &schema.Schema{
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"date_format": &schema.Schema{
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"time_format": &schema.Schema{
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"source_partition_count": &schema.Schema{
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-								},
-							},
+						"storage_account_name": &schema.Schema{
+							Type:     schema.TypeString,
+							Required: true,
 						},
-						"table": &schema.Schema{
-							Type:          schema.TypeList,
-							MaxItems:      1,
-							Optional:      true,
-							ConflictsWith: Allbut("table"),
-							Elem: map[string]*schema.Schema{
-								"account_name": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"account_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"table": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"partition_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"row_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"columns_to_remove": &schema.Schema{
-									Type:     schema.TypeString,
-									Optional: true,
-								},
-								"batch_size": &schema.Schema{
-									Type:     schema.TypeString,
-									Optional: true,
-									Default:  100,
-								},
-							},
+						"storage_account_key": &schema.Schema{
+							Type:     schema.TypeString,
+							Required: true,
 						},
-						"event_hub": &schema.Schema{
-							Type:          schema.TypeList,
-							MaxItems:      1,
-							Optional:      true,
-							ConflictsWith: Allbut("event_hub"),
-							Elem: map[string]*schema.Schema{
+						"container": &schema.Schema{
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"path_pattern": &schema.Schema{
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"date_format": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"time_format": &schema.Schema{
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"source_partition_count": &schema.Schema{
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
+			"table": &schema.Schema{
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+				// ConflictsWith: Allbut("table"),
 
-								"namespace": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"shared_access_policy_name": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"shared_access_policy_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"event_hub_name": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"partition_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Optional: true,
-								},
-							},
-						},
-						"sql_database": &schema.Schema{
-							Type:          schema.TypeList,
-							MaxItems:      1,
-							Optional:      true,
-							ConflictsWith: Allbut("sql_database"),
-							Elem: map[string]*schema.Schema{
-								"server": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"database": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"user": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"password": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"table": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-							},
-						},
-						"service_bus_queues": &schema.Schema{
-							Type:          schema.TypeList,
-							MaxItems:      1,
-							Optional:      true,
-							ConflictsWith: Allbut("service_bus_queues"),
-							Elem: map[string]*schema.Schema{
-								"namespace": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"shared_access_policy_name": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"shared_access_policy_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"queue_name": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"property_columns": &schema.Schema{
-									Type:     schema.TypeString,
-									Optional: true,
-								},
-							},
-						},
-						"service_bus_topics": &schema.Schema{
-							Type:          schema.TypeList,
-							MaxItems:      1,
-							Optional:      true,
-							ConflictsWith: Allbut("service_bus_topics"),
-							Elem: map[string]*schema.Schema{
-								"namespace": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"shared_access_policy_name": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"shared_access_policy_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"topic_name": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"property_columns": &schema.Schema{
-									Type:     schema.TypeString,
-									Optional: true,
-								},
-							},
-						},
-						"documentdb": &schema.Schema{
-							Type:          schema.TypeList,
-							MaxItems:      1,
-							Optional:      true,
-							ConflictsWith: Allbut("documentdb"),
-							Elem: map[string]*schema.Schema{
-								"account_id": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"account_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"database": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"collection_name_pattern": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"partition_key": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: true,
-								},
-								"document_id": &schema.Schema{
-									Type:     schema.TypeString,
-									Required: false,
-								},
-							},
-						},
+				Elem: map[string]*schema.Schema{
+					"account_name": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"account_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"table": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"partition_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"row_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"columns_to_remove": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"batch_size": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+						Default:  100,
+					},
+				},
+			},
+			"event_hub": &schema.Schema{
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+
+				// ConflictsWith: Allbut("event_hub"),
+				Elem: map[string]*schema.Schema{
+
+					"namespace": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"shared_access_policy_name": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"shared_access_policy_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"event_hub_name": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"partition_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+			"sql_database": &schema.Schema{
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+				// ConflictsWith: Allbut("sql_database"),
+				Elem: map[string]*schema.Schema{
+					"server": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"database": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"user": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"password": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"table": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+				},
+			},
+			"service_bus_queues": &schema.Schema{
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+				// ConflictsWith: Allbut("service_bus_queues"),
+				Elem: map[string]*schema.Schema{
+					"namespace": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"shared_access_policy_name": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"shared_access_policy_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"queue_name": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"property_columns": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+			"service_bus_topics": &schema.Schema{
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+				// ConflictsWith: Allbut("service_bus_topics"),
+				Elem: map[string]*schema.Schema{
+					"namespace": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"shared_access_policy_name": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"shared_access_policy_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"topic_name": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"property_columns": &schema.Schema{
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+			"documentdb": &schema.Schema{
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+				// ConflictsWith: Allbut("documentdb"),
+				Elem: map[string]*schema.Schema{
+					"account_id": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"account_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"database": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"collection_name_pattern": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"partition_key": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"document_id": &schema.Schema{
+						Type:     schema.TypeString,
+						Required: false,
 					},
 				},
 			},
