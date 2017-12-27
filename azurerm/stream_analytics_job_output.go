@@ -313,3 +313,7 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 		},
 	}
 }
+
+func streamAnalyticsOutputFromSchema(outputSchema interface{}) (*streamanalytics.Output, error) {
+	return nil, nil
+}

@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-const StreamAnalyticsInputType = "Microsoft.StreamAnalytics/streamingjobs/inputs"
+var streamAnalyticsInputType = "Microsoft.StreamAnalytics/streamingjobs/inputs"
 
 func streamAnalyticsInputSchema() *schema.Schema {
 	return &schema.Schema{
@@ -73,11 +73,11 @@ func streamAnalyticsInputSchema() *schema.Schema {
 								Type:     schema.TypeList,
 								MaxItems: 1,
 								Optional: true,
-
-								ConflictsWith: []string{
-									"event_hub",
-									"iot_hub",
-								},
+								// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+								// ConflictsWith: []string{
+								// 	"event_hub",
+								// 	"iot_hub",
+								// },
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"storage_account_name": &schema.Schema{
@@ -116,10 +116,11 @@ func streamAnalyticsInputSchema() *schema.Schema {
 								Type:     schema.TypeList,
 								MaxItems: 1,
 								Optional: true,
-								ConflictsWith: []string{
-									"blob",
-									"iot_hub",
-								},
+								// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+								// ConflictsWith: []string{
+								// 	"blob",
+								// 	"iot_hub",
+								// },
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"namespace": &schema.Schema{
@@ -149,10 +150,11 @@ func streamAnalyticsInputSchema() *schema.Schema {
 								Type:     schema.TypeList,
 								MaxItems: 1,
 								Optional: true,
-								ConflictsWith: []string{
-									"blob",
-									"event_hub",
-								},
+								// ConfictWith doesnt work on list https://github.com/hashicorp/terraform/issues/11101
+								// ConflictsWith: []string{
+								// 	"blob",
+								// 	"event_hub",
+								// },
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
 										"namespace": &schema.Schema{
@@ -366,7 +368,7 @@ func streamAnalyticsInputfromSchema(data interface{}) (*streamanalytics.Input, e
 
 	input := &streamanalytics.Input{
 		Name: &inputName,
-		Type: &inputType,
+		Type: &streamAnalyticsInputType,
 	}
 
 	serialization := extractSerialization(dataMap)

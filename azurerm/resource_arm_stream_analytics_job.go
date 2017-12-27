@@ -53,7 +53,8 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"inputs": streamAnalyticsInputSchema(),
+			"transformation": streamAnalyticsTransformationSchema(),
+			"input":          streamAnalyticsInputSchema(),
 			// "output": streamAnalyticsOutputSchema(),
 		},
 	}
@@ -102,7 +103,7 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	// of failure the delete method will not remove anything hence leaking some resources.
 	d.SetId(*jobResp.ID)
 
-	if inputs, ok := d.GetOk("inputs"); ok {
+	if inputs, ok := d.GetOk("input"); ok {
 		inputList := inputs.([]interface{})
 		for _, inputSchema := range inputList {
 			input, err := streamAnalyticsInputfromSchema(inputSchema)
@@ -113,6 +114,18 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 			log.Printf("%#v \n", result)
 
 		}
+
+	}
+
+	if transformationI, ok := d.GetOk("transformation"); ok {
+		transformationList := transformationI.([]interface{})
+		transformationMap := transformationList[0].(map[string]interface{})
+		transformation := streamAnalyticsTransformationFromSchema(transformationMap)
+		result, err := client.trasformationsClient.CreateOrReplace(*transformation, rg, jobName, *transformation.Name, "", "")
+		if err != nil {
+			return err
+		}
+		log.Printf("Created transformation with fields %#v", result)
 
 	}
 

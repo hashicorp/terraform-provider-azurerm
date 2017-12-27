@@ -15,7 +15,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
-	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
+	cosmosdb "github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/Azure/azure-sdk-for-go/arm/eventgrid"
@@ -678,6 +678,12 @@ func (c *Config) getArmClient() (*ArmClient, error) {
 	sfc.Authorizer = auth
 	sfc.Sender = autorest.CreateSender(withRequestLogging())
 	client.functionClient = sfc
+
+	stc := streamanalytics.NewTransformationsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&stc.Client)
+	stc.Authorizer = auth
+	stc.Sender = autorest.CreateSender(withRequestLogging())
+	client.trasformationsClient = stc
 
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)

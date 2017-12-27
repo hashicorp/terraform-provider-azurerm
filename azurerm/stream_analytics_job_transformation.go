@@ -6,12 +6,12 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-const StreamAnalyticsTransformationType = "Microsoft.StreamAnalytics/streamingjobs/transformations"
+var streamAnalyticsTransformationType = "Microsoft.StreamAnalytics/streamingjobs/transformations"
 
 func streamAnalyticsTransformationSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
 		MaxItems: 1,
 		MinItems: 1,
 		Elem: &schema.Resource{
@@ -35,19 +35,19 @@ func streamAnalyticsTransformationSchema() *schema.Schema {
 	}
 }
 
-func streamAnalyticsTransformationFromSchema(transSchema interface{}) (*streamanalytics.Transformation) {
+func streamAnalyticsTransformationFromSchema(transSchema interface{}) *streamanalytics.Transformation {
 	transMap := transSchema.(map[string]interface{})
 	name := transMap["name"].(string)
 	streamingUnits := transMap["streaming_units"].(int) // defaults to 1 so no validation needed
 	query := transMap["query"].(string)
-	
+
 	streamingUnits32 := int32(streamingUnits)
 	return &streamanalytics.Transformation{
 		Name: &name,
-		Type: &StreamAnalyticsTransformationType,
-		&streamanalytics.TransformationProperties{
+		Type: &streamAnalyticsTransformationType,
+		TransformationProperties: &streamanalytics.TransformationProperties{
 			StreamingUnits: &streamingUnits32,
-			Query: &query,
-		}
+			Query:          &query,
+		},
 	}
 }
