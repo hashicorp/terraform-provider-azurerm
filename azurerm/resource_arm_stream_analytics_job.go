@@ -54,8 +54,8 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Computed: true,
 			},
 			"transformation": streamAnalyticsTransformationSchema(),
-			"input":          streamAnalyticsInputSchema(),
-			"output":         streamAnalyticsOutputSchema(),
+			"job_input":      streamAnalyticsInputSchema(),
+			"job_output":     streamAnalyticsOutputSchema(),
 		},
 	}
 
@@ -103,7 +103,7 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	// of failure the delete method will not remove anything hence leaking some resources.
 	d.SetId(*jobResp.ID)
 
-	if inputs, ok := d.GetOk("input"); ok {
+	if inputs, ok := d.GetOk("job_input"); ok {
 		inputList := inputs.([]interface{})
 		for _, inputSchema := range inputList {
 			input, err := streamAnalyticsInputfromSchema(inputSchema)
@@ -120,13 +120,14 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 
 	}
 
-	if outputs, ok := d.GetOk("output"); ok {
+	if outputs, ok := d.GetOk("job_output"); ok {
 		outputList := outputs.([]interface{})
 		for _, outputSchema := range outputList {
 			output, err := streamAnalyticsOutputFromSchema(outputSchema)
 			if err != nil {
 				return err
 			}
+			log.Printf("[DEBUG] GIRISH %#v", output)
 			result, err := client.outputsClient.CreateOrReplace(*output, rg, jobName, *output.Name, "", "")
 			if err != nil {
 				return err
@@ -135,6 +136,21 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 
 		}
 	}
+
+	// output := streamanalytics.Output{
+	// 	OutputProperties: &streamanalytics.OutputProperties{
+	// 		Datasource: streamanalytics.AzureSQLDatabaseOutputDataSource{
+	// 			AzureSQLDatabaseOutputDataSourceProperties: &streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
+	// 				Server:   to.StringPtr("sampleserver.database.windows.net"),
+	// 				Database: to.StringPtr("sampleDB"),
+	// 				Table:    to.StringPtr("sampleTable"),
+	// 				User:     to.StringPtr("user@sampleserver"),
+	// 				Password: to.StringPtr("****************"),
+	// 			},
+	// 		},
+	// 	},
+	// }
+	// _, err = client.outputsClient.CreateOrReplace(output, rg, jobName, "output", "", "")
 
 	if transformationI, ok := d.GetOk("transformation"); ok {
 		transformationList := transformationI.([]interface{})

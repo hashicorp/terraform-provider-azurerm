@@ -1,3 +1,3 @@
 package azurerm
 
-func streamAnalyticsFunctionSchema()
+func streamAnalyticsFunctionSchema() {}
