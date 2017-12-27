@@ -120,10 +120,6 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"source_partition_count": &schema.Schema{
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
 					},
 				},
 			},
@@ -143,7 +139,7 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 						Type:     schema.TypeString,
 						Required: true,
 					},
-					"table": &schema.Schema{
+					"table_name": &schema.Schema{
 						Type:     schema.TypeString,
 						Required: true,
 					},
@@ -155,12 +151,8 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 						Type:     schema.TypeString,
 						Required: true,
 					},
-					"columns_to_remove": &schema.Schema{
-						Type:     schema.TypeString,
-						Optional: true,
-					},
 					"batch_size": &schema.Schema{
-						Type:     schema.TypeString,
+						Type:     schema.TypeInt,
 						Optional: true,
 						Default:  100,
 					},
@@ -313,7 +305,7 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 					},
 					"document_id": &schema.Schema{
 						Type:     schema.TypeString,
-						Required: false,
+						Optional: true,
 					},
 				},
 			},
@@ -352,6 +344,97 @@ func streamAnalyticsOutputFromSchema(outputSchema interface{}) (*streamanalytics
 }
 
 func extractOutputDatasource(outputMap map[string]interface{}) (streamanalytics.OutputDataSource, error) {
+
+	var outputDatasource streamanalytics.OutputDataSource
+
+	if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
+		blobMap := blobSchema[0].(map[string]interface{})
+		storageAccountName := blobMap["storage_account_name"].(string)
+		storageAccountKey := blobMap["storage_account_key"].(string)
+		container := blobMap["container"].(string)
+		pathPattern := blobMap["path_pattern"].(string)
+
+		sAccounts := []streamanalytics.StorageAccount{
+			{
+				AccountKey:  &storageAccountKey,
+				AccountName: &storageAccountName,
+			},
+		}
+		outputDatasourceProps := streamanalytics.BlobOutputDataSourceProperties{
+			StorageAccounts: &sAccounts,
+			Container:       &container,
+			PathPattern:     &pathPattern,
+		}
+
+		if dateFormat, ok := blobMap["date_format"].(string); ok && dateFormat != "" {
+			outputDatasourceProps.DateFormat = &dateFormat
+		}
+		if timeFormat, ok := blobMap["time_format"].(string); ok && timeFormat != "" {
+			outputDatasourceProps.TimeFormat = &timeFormat
+		}
+
+		outputDatasource = streamanalytics.BlobOutputDataSource{
+			Type: streamanalytics.TypeMicrosoftStorageBlob,
+			BlobOutputDataSourceProperties: &outputDatasourceProps,
+		}
+
+	} else if tableSchema := outputMap["table"].([]interface{}); len(tableSchema) != 0 {
+		tableMap := tableSchema[0].(map[string]interface{})
+		accountName := tableMap["account_name"].(string)
+		accountKey := tableMap["account_key"].(string)
+		tableName := tableMap["table_name"].(string)
+		partitionKey := tableMap["partition_key"].(string)
+		rowKey := tableMap["row_key"].(string)
+		batchSize := tableMap["batch_size"].(int)
+		batchSize32 := int32(batchSize)
+
+		tableProps := streamanalytics.AzureTableOutputDataSourceProperties{
+			AccountName:  &accountName,
+			AccountKey:   &accountKey,
+			Table:        &tableName,
+			PartitionKey: &partitionKey,
+			RowKey:       &rowKey,
+			BatchSize:    &batchSize32,
+		}
+
+		outputDatasource = streamanalytics.AzureTableOutputDataSource{
+			Type: streamanalytics.TypeMicrosoftStorageTable,
+			AzureTableOutputDataSourceProperties: &tableProps,
+		}
+
+	} else if eventhubSchema := outputMap["event_hub"].([]interface{}); len(eventhubSchema) != 0 {
+		eventhubMap := eventhubSchema[0].(map[string]interface{})
+		namespace := eventhubMap["namespace"].(string)
+		sharedPolicyName := eventhubMap["shared_access_policy_name"].(string)
+		sharedPolicyKey := eventhubMap["shared_access_policy_key"].(string)
+		eventHubName := eventhubMap["event_hub_name"].(string)
+
+		eventhubProps := streamanalytics.EventHubOutputDataSourceProperties{
+			ServiceBusNamespace:    &namespace,
+			SharedAccessPolicyKey:  &sharedPolicyKey,
+			SharedAccessPolicyName: &sharedPolicyName,
+			EventHubName:           &eventHubName,
+		}
+
+		if partitionKey, ok := eventhubMap["partition_key"].(string); ok && partitionKey != "" {
+			eventhubProps.PartitionKey = &partitionKey
+		}
+
+		outputDatasource = streamanalytics.EventHubOutputDataSource{
+			Type: streamanalytics.TypeMicrosoftServiceBusEventHub,
+			EventHubOutputDataSourceProperties: &eventhubProps,
+		}
+
+	} else if SqlSchema := outputMap["sql_database"].([]interface{}); len(SqlSchema) != 0 {
+		SqlMap := SqlSchema[0].(map[string]interface{})
+
+	} else if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
+		blobMap := blobSchema[0].(map[string]interface{})
+	} else if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
+		blobMap := blobSchema[0].(map[string]interface{})
+	} else if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
+		blobMap := blobSchema[0].(map[string]interface{})
+	}
 
 }
 func extractOutputSerialization(outputMap map[string]interface{}) (streamanalytics.Serialization, error) {
