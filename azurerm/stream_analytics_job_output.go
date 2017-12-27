@@ -35,14 +35,22 @@ func Allbut(source string) (ret []string) {
 
 }
 
+var streamAnalyticsOutputType = "Microsoft.StreamAnalytics/streamingjobs/outputs"
+
 func streamAnalyticsOutputSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: false,
 		Elem: map[string]*schema.Schema{
+			"output_name": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"serialization": &schema.Schema{
 				Type:     schema.TypeList,
 				Required: true,
+				MinItems: 1,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": &schema.Schema{
@@ -314,5 +322,38 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 }
 
 func streamAnalyticsOutputFromSchema(outputSchema interface{}) (*streamanalytics.Output, error) {
-	return nil, nil
+
+	outputMap := outputSchema.(map[string]interface{})
+	outputName := outputMap["output_name"].(string)
+	output := &streamanalytics.Output{
+		Name: &outputName,
+		Type: &streamAnalyticsOutputType,
+	}
+
+	serialization, err := extractOutputSerialization(outputMap)
+
+	if err != nil {
+		return nil, err
+	}
+
+	datasource, err := extractOutputDatasource(outputMap)
+
+	if err != nil {
+		return nil, err
+	}
+	outputProperties := streamanalytics.OutputProperties{
+		Datasource:    datasource,
+		Serialization: serialization,
+	}
+
+	output.OutputProperties = &outputProperties
+
+	return output, nil
+}
+
+func extractOutputDatasource(outputMap map[string]interface{}) (streamanalytics.OutputDataSource, error) {
+
+}
+func extractOutputSerialization(outputMap map[string]interface{}) (streamanalytics.Serialization, error) {
+
 }
