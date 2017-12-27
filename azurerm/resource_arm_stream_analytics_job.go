@@ -55,7 +55,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			},
 			"transformation": streamAnalyticsTransformationSchema(),
 			"input":          streamAnalyticsInputSchema(),
-			// "output": streamAnalyticsOutputSchema(),
+			"output":         streamAnalyticsOutputSchema(),
 		},
 	}
 
@@ -111,10 +111,29 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 				return err
 			}
 			result, err := client.inputsClient.CreateOrReplace(*input, rg, jobName, *input.Name, "", "")
-			log.Printf("%#v \n", result)
+			if err != nil {
+				return err
+			}
+			log.Printf("[TRACE] Result from input creation is %#v \n", result)
 
 		}
 
+	}
+
+	if outputs, ok := d.GetOk("output"); ok {
+		outputList := outputs.([]interface{})
+		for _, outputSchema := range outputList {
+			output, err := streamAnalyticsOutputFromSchema(outputSchema)
+			if err != nil {
+				return err
+			}
+			result, err := client.outputsClient.CreateOrReplace(*output, rg, jobName, *output.Name, "", "")
+			if err != nil {
+				return err
+			}
+			log.Printf("[TRACE] Result from output creation is %#v \n", result)
+
+		}
 	}
 
 	if transformationI, ok := d.GetOk("transformation"); ok {

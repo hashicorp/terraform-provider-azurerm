@@ -50,6 +50,13 @@ func streamAnalyticsInputSchema() *schema.Schema {
 							"field_delimiter": &schema.Schema{
 								Type:     schema.TypeString,
 								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									DelimTab,
+									DelimComma,
+									DelimSemiColon,
+									DelimVerticalBar,
+									DelimSpace,
+								}, false),
 							},
 							"encoding": &schema.Schema{
 								Type:     schema.TypeString,
