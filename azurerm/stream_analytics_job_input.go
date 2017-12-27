@@ -231,9 +231,11 @@ func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics
 func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.StreamInputDataSource, error) {
 	datasourceList := dataMap["datasource"].([]interface{})
 	datasourceMap := datasourceList[0].(map[string]interface{})
+
 	var streamInputSource streamanalytics.StreamInputDataSource
 
-	if blobsourceList, ok := datasourceMap["blob"].([]interface{}); ok {
+	if blobsourceList, ok := datasourceMap["blob"].([]interface{}); ok && len(blobsourceList) != 0 {
+
 		blobsourceMap := blobsourceList[0].(map[string]interface{})
 		container := blobsourceMap["container"].(string)
 		pathPattern := blobsourceMap["path_pattern"].(string)
@@ -269,13 +271,14 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 			BlobStreamInputDataSourceProperties: datasourceProperties,
 		}
 
-	} else if eventhubList, ok := datasourceMap["event_hub"].([]interface{}); ok {
+	} else if eventhubList, ok := datasourceMap["event_hub"].([]interface{}); ok && len(eventhubList) != 0 {
 		eventhubMap := eventhubList[0].(map[string]interface{})
 
 		namespace := eventhubMap["namespace"].(string)
 		sharedPolicyName := eventhubMap["shared_access_policy_name"].(string)
 		sharedPolicyKey := eventhubMap["shared_access_policy_key"].(string)
 		eventHubName := eventhubMap["event_hub_name"].(string)
+		log.Printf("[INFO] Creating Eventhub input source using alias %s", eventHubName)
 
 		eventhubStreamProps := streamanalytics.EventHubStreamInputDataSourceProperties{
 			ServiceBusNamespace:    &namespace,
@@ -292,7 +295,7 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
 			EventHubStreamInputDataSourceProperties: &eventhubStreamProps,
 		}
-	} else if iothubList, ok := datasourceMap["iot_hub"].([]interface{}); ok {
+	} else if iothubList, ok := datasourceMap["iot_hub"].([]interface{}); ok && len(iothubList) != 0 {
 		iothubMap := iothubList[0].(map[string]interface{})
 
 		namespace := iothubMap["namespace"].(string)
