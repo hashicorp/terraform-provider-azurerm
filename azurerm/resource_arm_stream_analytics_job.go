@@ -52,10 +52,12 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			"job_state": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 			"transformation": streamAnalyticsTransformationSchema(),
 			"job_input":      streamAnalyticsInputSchema(),
 			"job_output":     streamAnalyticsOutputSchema(),
+			"function":       streamAnalyticsFunctionSchema(),
 		},
 	}
 
@@ -91,6 +93,11 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		StreamingJobProperties: jobProps,
 	}
 
+	if jobState, ok := d.GetOk("job_state"); ok {
+		jobStateStr := jobState.(string)
+		jobProps.JobState = &jobStateStr
+	}
+
 	// TODO: try to make this whole creation as atomic as possible
 	jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
 	err := <-errChan
@@ -102,6 +109,19 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	// In retrospect if the setId is called after all the related resource are created then in case
 	// of failure the delete method will not remove anything hence leaking some resources.
 	d.SetId(*jobResp.ID)
+
+	if functions, ok := d.GetOk("function"); ok {
+		functionList := functions.([]interface{})
+		for _, functionSchema := range functionList {
+			function := streamAnalyticsFunctionFromSchema(functionSchema)
+
+			result, err := client.functionClient.CreateOrReplace(function, rg, jobName, *function.Name, "", "")
+			if err != nil {
+				return err
+			}
+			log.Printf("[TRACE] Result from function creation is %#v \n", result)
+		}
+	}
 
 	if inputs, ok := d.GetOk("job_input"); ok {
 		inputList := inputs.([]interface{})
@@ -127,7 +147,6 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 			if err != nil {
 				return err
 			}
-			log.Printf("[DEBUG] GIRISH %#v", output)
 			result, err := client.outputsClient.CreateOrReplace(*output, rg, jobName, *output.Name, "", "")
 			if err != nil {
 				return err
@@ -136,21 +155,6 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 
 		}
 	}
-
-	// output := streamanalytics.Output{
-	// 	OutputProperties: &streamanalytics.OutputProperties{
-	// 		Datasource: streamanalytics.AzureSQLDatabaseOutputDataSource{
-	// 			AzureSQLDatabaseOutputDataSourceProperties: &streamanalytics.AzureSQLDatabaseOutputDataSourceProperties{
-	// 				Server:   to.StringPtr("sampleserver.database.windows.net"),
-	// 				Database: to.StringPtr("sampleDB"),
-	// 				Table:    to.StringPtr("sampleTable"),
-	// 				User:     to.StringPtr("user@sampleserver"),
-	// 				Password: to.StringPtr("****************"),
-	// 			},
-	// 		},
-	// 	},
-	// }
-	// _, err = client.outputsClient.CreateOrReplace(output, rg, jobName, "output", "", "")
 
 	if transformationI, ok := d.GetOk("transformation"); ok {
 		transformationList := transformationI.([]interface{})
@@ -162,6 +166,14 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		}
 		log.Printf("Created transformation with fields %#v", result)
 
+	}
+
+	// This solves the chicken and egg situation going on
+	if jobState, ok := d.GetOk("job_state"); ok {
+		jobStateStr := jobState.(string)
+		jobProps.JobState = &jobStateStr
+		jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
+		err := <-errChan
 	}
 
 	if err != nil {
