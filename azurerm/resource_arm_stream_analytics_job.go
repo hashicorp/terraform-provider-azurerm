@@ -101,6 +101,9 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	// TODO: try to make this whole creation as atomic as possible
 	jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
 	err := <-errChan
+	if err != nil {
+		return err
+	}
 	jobResp := <-jobChan
 
 	// The reason that we set the id of the job here i.e. before creation of the related resource
@@ -152,7 +155,6 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 				return err
 			}
 			log.Printf("[TRACE] Result from output creation is %#v \n", result)
-
 		}
 	}
 
@@ -174,6 +176,12 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		jobProps.JobState = &jobStateStr
 		jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
 		err := <-errChan
+		if err != nil {
+			return err
+		}
+		jobResp := <-jobChan
+		log.Printf("Job created and started with parameters %#v", jobResp)
+
 	}
 
 	if err != nil {
