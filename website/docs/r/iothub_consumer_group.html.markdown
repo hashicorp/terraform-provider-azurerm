@@ -47,17 +47,16 @@ resource "azurerm_iothub_consumer_group" "test" {
 
 The following arguments are supported:
 
-* `name` (Required) Specifies the name of the Consumer Group resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Consumer Group resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` (Required) The name of the resource group that contains the IoT hub.
+* `resource_group_name` - (Required) The name of the resource group that contains the IoT hub.
 
-* `iot_hub_name` (Required) The name of the IoT hub.
+* `iot_hub_name` - (Required) The name of the IoT hub.
 
-* `event_hub_endpoint` (Required) The name of the Event Hub-compatible endpoint in the IoT hub.
+* `event_hub_endpoint` - (Required) The name of the Event Hub-compatible endpoint in the IoT hub.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-WIP
-
+* `id` - The Event Hub-compatible consumer group identifier.

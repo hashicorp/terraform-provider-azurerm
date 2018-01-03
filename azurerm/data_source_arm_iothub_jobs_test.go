@@ -48,7 +48,7 @@ resource "azurerm_iothub" "bar" {
 	}
 }
 
-data "azurerm_iothub_keys" "test" {
+data "azurerm_iothub_jobs" "test" {
 	job_id = "test"
 	resource_group_name = "${azurerm_resource_group.foo.name}"
 	iot_hub_name = "${azurerm_iothub.bar.name}"

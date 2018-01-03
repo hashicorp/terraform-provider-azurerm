@@ -31,6 +31,7 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -74,9 +75,9 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 	}
 
 	resourceGroup := id.ResourceGroup
-	groupName := id.Path["consumergroups"]
-	iotHubName := id.Path["resourcename"]
-	eventhubEndpoint := id.Path["eventhubs"]
+	groupName := id.Path["name"]
+	iotHubName := id.Path["resourceName"]
+	eventhubEndpoint := id.Path["eventHubEndpointName"]
 
 	resp, err := iothubClient.GetEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
 	if err != nil {
@@ -87,10 +88,8 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making read request on Azure IoTHub Consumer Group %s: %+v", groupName, err)
 	}
 
-	d.Set("name", groupName)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("iot_hub_name", iotHubName)
-	d.Set("event_hub_endpoint", eventhubEndpoint)
+	d.Set("name", *resp.Name)
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
@@ -105,9 +104,9 @@ func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface
 	}
 
 	resourceGroup := id.ResourceGroup
-	groupName := id.Path["consumergroups"]
-	iotHubName := id.Path["resourcename"]
-	eventhubEndpoint := id.Path["eventhubs"]
+	groupName := id.Path["name"]
+	iotHubName := id.Path["resourceName"]
+	eventhubEndpoint := id.Path["eventHubEndpointName"]
 
 	resp, err := iothubClient.DeleteEventHubConsumerGroup(resourceGroup, iotHubName, eventhubEndpoint, groupName)
 	if err != nil {
