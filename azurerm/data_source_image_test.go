@@ -172,7 +172,7 @@ resource "azurerm_image" "test" {
   os_disk {
     os_type  = "Linux"
     os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    blob_uri = "${azurerm_virtual_machine.testsource.storage_os_disk.0.vhd_uri}"
     size_gb  = 30
     caching  = "None"
   }
@@ -181,8 +181,6 @@ resource "azurerm_image" "test" {
     environment = "Dev"
     cost-center = "Ops"
   }
-
-  depends_on = ["azurerm_virtual_machine.testsource"]
 }
 
 data "azurerm_image" "test" {
