@@ -80,6 +80,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_snapshot":                dataSourceArmSnapshot(),
 			"azurerm_subnet":                  dataSourceArmSubnet(),
 			"azurerm_subscription":            dataSourceArmSubscription(),
+			"azurerm_iothub_keys":             dataSourceArmIotHubKeys(),
+			"azurerm_iothub_sku":              dataSourceArmIotHubSku(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
