@@ -6,7 +6,7 @@ description: |-
   Get information about the templated Access Policies for Key Vault.
 ---
 
-# azurerm_key_vault_access_policy
+# Data Source: azurerm_key_vault_access_policy
 
 Use this data source to access information about the permissions from the Management Key Vault Templates.
 

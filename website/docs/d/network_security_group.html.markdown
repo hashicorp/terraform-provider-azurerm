@@ -6,7 +6,7 @@ description: |-
   Get information about the specified Network Security Group.
 ---
 
-# azurerm_network_security_group
+# Data Source: azurerm_network_security_group
 
 Use this data source to access the properties of a Network Security Group.
 

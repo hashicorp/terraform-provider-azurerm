@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_image
+# Data Source: azurerm_image
 
 Use this data source to access information about an Image.
 
