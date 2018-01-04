@@ -18,7 +18,7 @@ data "azurerm_builtin_role_definition" "contributor" {
 }
 
 output "contributor_role_definition_id" {
-  value = "${data.azurerm_builtin_role.contributor.id}"
+  value = "${data.azurerm_builtin_role_definition.contributor.id}"
 }
 ```
 
