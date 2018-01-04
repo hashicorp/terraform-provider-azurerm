@@ -10,18 +10,17 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-// change this to use ephemeral dynamic resource groups
-const TestResourceGroup = "girishsandbox"
-
 func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 	name := acctest.RandString(6)
+	rgname := acctest.RandString(5)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_basicStandard(name, TestResourceGroup, testLocation()),
+				Config: testAccAzureRMIotHub_basicStandard(name, rgname),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
 				),
@@ -83,23 +82,26 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMIotHub_basicStandard(name, rg, location string) string {
+func testAccAzureRMIotHub_basicStandard(name, rgname string) string {
 	return fmt.Sprintf(`
-	resource "azurerm_iothub" "test" {
+resource "azurerm_resource_group" "foo" {
+	name = "acctestRG-%s"
+	location = "East Us"
+}
+
+resource "azurerm_iothub" "test" {
 	name                             = "%s"
-	resource_group_name              = "%s"
-	location                         = "%s"
+	resource_group_name              = "${azurerm_resource_group.foo.name}"
+	location                         = "eastus"
 		sku {
 			name = "S1"
 			tier = "Standard"
-			capacity = "1"    
+			capacity = "1"
 		}
 
 		tags {
 			"purpose" = "testing"
 		}
-	}
-
-
-	`, name, rg, location)
+}
+`, rgname, name)
 }

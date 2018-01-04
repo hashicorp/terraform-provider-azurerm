@@ -9,7 +9,7 @@ import (
 
 func dataSourceArmIotHubKeys() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmIotHubSkuRead,
+		Read: dataSourceArmIotHubKeysRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -34,15 +34,21 @@ func dataSourceArmIotHubKeysRead(d *schema.ResourceData, meta interface{}) error
 	resourceGroup := d.Get("resource_group_name").(string)
 	iotHub := d.Get("iot_hub_name").(string)
 
-	keys, err := iothubClient.GetKeysForKeyName(resourceGroup, iotHub, name)
+	key, err := iothubClient.GetKeysForKeyName(resourceGroup, iotHub, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving keys with name: %s", name)
 	}
 
-	d.Set("key_name", keys.KeyName)
-	d.Set("primary_key", keys.PrimaryKey)
-	d.Set("secondary_key", keys.SecondaryKey)
-	d.Set("permissions", string(keys.Rights))
+	var keys []map[string]interface{}
+	keyMap := make(map[string]interface{})
+	keyMap["key_name"] = *key.KeyName
+	keyMap["primary_key"] = *key.PrimaryKey
+	keyMap["secondary_key"] = *key.SecondaryKey
+	keyMap["permissions"] = string(key.Rights)
+	keys = append(keys, keyMap)
+
+	d.SetId(name)
+	d.Set("shared_access_policy", keys)
 
 	return nil
 }

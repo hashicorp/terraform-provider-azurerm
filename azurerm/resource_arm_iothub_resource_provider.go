@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"errors"
-	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/iothub"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -218,7 +217,6 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	log.Println("[GIRISH]", keys)
 
 	d.Set("shared_access_policy", keys)
 	d.Set("hostname", *properties.HostName)

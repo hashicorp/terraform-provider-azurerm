@@ -82,7 +82,6 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_subscription":            dataSourceArmSubscription(),
 			"azurerm_iothub_keys":             dataSourceArmIotHubKeys(),
 			"azurerm_iothub_sku":              dataSourceArmIotHubSku(),
-			"azurerm_iothub_jobs":             dataSourceArmIotHubJobs(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -173,7 +172,6 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_network":             resourceArmVirtualNetwork(),
 			"azurerm_virtual_network_peering":     resourceArmVirtualNetworkPeering(),
 			"azurerm_iothub":                      resourceArmIotHub(),
-			"azurerm_iothub_consumer_group":       resourceArmIotHubConsumerGroup(),
 		},
 	}
 
