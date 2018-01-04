@@ -100,6 +100,11 @@ func resourceArmLoadBalancer() *schema.Resource {
 				},
 			},
 
+			"sku": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -114,6 +119,7 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	sku := convertSkuStringToLoadBalancerSku(d.Get("sku").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -127,6 +133,7 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Tags:     expandedTags,
+		Sku:      &sku,
 		LoadBalancerPropertiesFormat: &properties,
 	}
 
@@ -238,6 +245,17 @@ func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return nil
+}
+
+func convertSkuStringToLoadBalancerSku(s string) network.LoadBalancerSku {
+	skuNames := map[string]network.LoadBalancerSkuName{
+		"basic":    network.LoadBalancerSkuNameBasic,
+		"standard": network.LoadBalancerSkuNameStandard,
+	}
+
+	return network.LoadBalancerSku{
+		Name: skuNames[s],
+	}
 }
 
 func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *[]network.FrontendIPConfiguration {
