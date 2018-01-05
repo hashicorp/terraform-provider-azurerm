@@ -45,6 +45,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the LoadBalancer.
 * `location` - (Required) Specifies the supported Azure location where the resource exists.
 * `frontend_ip_configuration` - (Optional) A frontend ip configuration block as documented below.
+* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `frontend_ip_configuration` supports the following:
