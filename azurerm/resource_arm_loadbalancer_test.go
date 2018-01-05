@@ -66,6 +66,25 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_standard(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	var lb network.LoadBalancer
 	resourceName := "azurerm_lb.test"
@@ -202,6 +221,27 @@ resource "azurerm_lb" "test" {
     name = "arm-test-loadbalancer-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+
+    tags {
+    	Environment = "production"
+    	Purpose = "AcceptanceTests"
+    }
+
+}`, rInt, location, rInt)
+}
+
+func testAccAzureRMLoadBalancer_standard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestrg-%d"
+    location = "%s"
+}
+
+resource "azurerm_lb" "test" {
+    name = "arm-test-loadbalancer-%d"
+    location = "${azurerm_resource_group.test.location}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		sku = "Standard"
 
     tags {
     	Environment = "production"
