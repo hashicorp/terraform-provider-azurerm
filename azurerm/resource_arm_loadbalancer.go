@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -102,7 +103,14 @@ func resourceArmLoadBalancer() *schema.Resource {
 
 			"sku": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Default:  string(network.LoadBalancerSkuNameBasic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.LoadBalancerSkuNameBasic),
+					string(network.LoadBalancerSkuNameStandard),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"tags": tagsSchema(),
@@ -119,7 +127,9 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	sku := convertSkuStringToLoadBalancerSku(d.Get("sku").(string))
+	sku := network.LoadBalancerSku{
+		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
+	}
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -245,17 +255,6 @@ func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	return nil
-}
-
-func convertSkuStringToLoadBalancerSku(s string) network.LoadBalancerSku {
-	skuNames := map[string]network.LoadBalancerSkuName{
-		"basic":    network.LoadBalancerSkuNameBasic,
-		"standard": network.LoadBalancerSkuNameStandard,
-	}
-
-	return network.LoadBalancerSku{
-		Name: skuNames[s],
-	}
 }
 
 func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *[]network.FrontendIPConfiguration {
