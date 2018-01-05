@@ -140,6 +140,23 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 			},
 
+			/**
+			 * As of 2018-01-05: AN (aka. SR-IOV) on Azure is GA on Windows
+			 * and public preview on Linux.
+			 * Refer to: https://azure.microsoft.com/en-us/updates/accelerated-networking-in-expanded-preview/
+			 *
+			 * Your subscription must be whitelisted and provisioned
+			 * to enable AN support.
+			 *
+			 * Refer to: https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli
+			 * For details, VM configuration and caveats.
+			 */
+			"enable_accelerated_networking": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enable_ip_forwarding": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -173,10 +190,12 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
+	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := network.InterfacePropertiesFormat{
-		EnableIPForwarding: &enableIpForwarding,
+		EnableIPForwarding:          &enableIpForwarding,
+		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
