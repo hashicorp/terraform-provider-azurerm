@@ -869,10 +869,11 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 			return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
 		}
 
-		keys := *accountKeys.Keys
 		if accountKeys.Keys == nil {
 			return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
 		}
+
+		keys := *accountKeys.Keys
 		if len(keys) <= 0 {
 			return "", false, fmt.Errorf("No keys returned for storage account %q", storageAccountName)
 		}
