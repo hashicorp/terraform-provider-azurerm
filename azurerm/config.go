@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"os"
+	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
@@ -45,6 +46,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -929,23 +931,54 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.managementLocksClient = locksClient
 }
 
+var (
+	storageKeyCacheMu sync.RWMutex
+	storageKeyCache   = make(map[string]string)
+)
+
 func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
-	accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
-	if accountKeys.StatusCode == http.StatusNotFound {
-		return "", false, nil
-	}
-	if err != nil {
-		// We assume this is a transient error rather than a 404 (which is caught above),  so assume the
-		// account still exists.
-		return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
+	cacheIndex := resourceGroupName + "/" + storageAccountName
+	storageKeyCacheMu.RLock()
+	key, ok := storageKeyCache[cacheIndex]
+	storageKeyCacheMu.RUnlock()
+
+	if ok {
+		return key, true, nil
 	}
 
-	if accountKeys.Keys == nil {
-		return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
+	storageKeyCacheMu.Lock()
+	defer storageKeyCacheMu.Unlock()
+	key, ok = storageKeyCache[cacheIndex]
+	if !ok {
+		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
+		if utils.ResponseWasNotFound(accountKeys.Response) {
+			return "", false, nil
+		}
+		if err != nil {
+			// We assume this is a transient error rather than a 404 (which is caught above),  so assume the
+			// account still exists.
+			return "", true, fmt.Errorf("Error retrieving keys for storage account %q: %s", storageAccountName, err)
+		}
+
+		if accountKeys.Keys == nil {
+			return "", false, fmt.Errorf("Nil key returned for storage account %q", storageAccountName)
+		}
+
+		keys := *accountKeys.Keys
+		if len(keys) <= 0 {
+			return "", false, fmt.Errorf("No keys returned for storage account %q", storageAccountName)
+		}
+
+		keyPtr := keys[0].Value
+		if keyPtr == nil {
+			return "", false, fmt.Errorf("The first key returned is nil for storage account %q", storageAccountName)
+		}
+
+		key = *keyPtr
+		storageKeyCache[cacheIndex] = key
 	}
 
-	keys := *accountKeys.Keys
-	return *keys[0].Value, true, nil
+	return key, true, nil
 }
 
 func (armClient *ArmClient) getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName string) (*mainStorage.BlobStorageClient, bool, error) {
