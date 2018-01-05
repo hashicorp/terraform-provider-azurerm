@@ -205,6 +205,10 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
+	if sku := loadBalancer.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+	}
+
 	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs))
