@@ -334,6 +334,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
@@ -492,6 +493,16 @@ func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId st
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&crc.Client, auth)
 	c.containerRegistryClient = crc
+}
+
+func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	containerServicesClient := containerservice.NewContainerServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&containerServicesClient.Client, auth)
+	c.containerServicesClient = containerServicesClient
+
+	managedClustersClient := containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&managedClustersClient.Client, auth)
+	c.managedClustersClient = managedClustersClient
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
