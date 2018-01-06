@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -84,6 +85,18 @@ func resourceArmPublicIp() *schema.Resource {
 				Computed: true,
 			},
 
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.PublicIPAddressSkuNameBasic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.PublicIPAddressSkuNameBasic),
+					string(network.PublicIPAddressSkuNameStandard),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -98,6 +111,9 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	sku := network.PublicIPAddressSku{
+		Name: network.PublicIPAddressSkuName(d.Get("sku").(string)),
+	}
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := network.PublicIPAddressPropertiesFormat{
@@ -129,8 +145,9 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	publicIp := network.PublicIPAddress{
-		Name:                            &name,
-		Location:                        &location,
+		Name:     &name,
+		Location: &location,
+		Sku:      &sku,
 		PublicIPAddressPropertiesFormat: &properties,
 		Tags: expandTags(tags),
 	}
@@ -185,6 +202,19 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
+	d.Set("public_ip_address_allocation", strings.ToLower(string(resp.PublicIPAddressPropertiesFormat.PublicIPAllocationMethod)))
+
+	// TODO: Extract SKU from client response
+	/*
+		if sku := publicIPClient.Sku; sku != nil {
+			d.Set("sku", string(sku.Name))
+		}
+	*/
+
+	if resp.PublicIPAddressPropertiesFormat.DNSSettings != nil && resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != nil && *resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != "" {
+		d.Set("fqdn", resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn)
+	}
+
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
 		d.Set("public_ip_address_allocation", strings.ToLower(string(props.PublicIPAllocationMethod)))
 
@@ -227,6 +257,12 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 
 	return nil
 }
+
+/*
+TODO: Need validation for Public IP Standard restrictions
+- static allocation only
+- IPv4 only
+*/
 
 func validatePublicIpAllocation(v interface{}, k string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
