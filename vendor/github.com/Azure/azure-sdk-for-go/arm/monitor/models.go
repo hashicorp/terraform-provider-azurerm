@@ -389,8 +389,7 @@ type AlertRuleResource struct {
 	Type              *string             `json:"type,omitempty"`
 	Location          *string             `json:"location,omitempty"`
 	Tags              *map[string]*string `json:"tags,omitempty"`
-// The field AlertRule has been changed from an implicitly to an explicitly defined field to solve nil dereference issues when using the AlertRulesClient
-	AlertRule		  *AlertRule          `json:"properties,omitempty"`
+	*AlertRule        `json:"properties,omitempty"`
 }
 
 // AlertRuleResourceCollection is represents a collection of alert rule resources.
