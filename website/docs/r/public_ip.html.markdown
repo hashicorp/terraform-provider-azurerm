@@ -70,6 +70,6 @@ The following attributes are exported:
 
 Public IPs can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_public_ip.myPublicIp /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/myPublicIpAddress1
 ```

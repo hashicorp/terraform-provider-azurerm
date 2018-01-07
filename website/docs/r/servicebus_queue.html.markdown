@@ -12,26 +12,34 @@ Create and manage a ServiceBus Queue.
 
 ## Example Usage
 
-```
+```hcl
+variable "location" {
+  description = "Azure datacenter to deploy to."
+  default = "West US"
+}
+
+variable "servicebus_name" {
+  description = "Input your unique Azure service bus name"
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "terraform-servicebus"
+  location = "${var.location}"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acceptanceTestServiceBusNamespace"
-  location            = "West US"
+  name                = "${var.servicebus_name}"
+  location            = "${var.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard"
 
   tags {
-    environment = "Production"
+    source = "terraform"
   }
 }
 
 resource "azurerm_servicebus_queue" "test" {
   name                = "testQueue"
-  location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
@@ -80,6 +88,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Service Bus Premium namespaces are always partitioned, so `enable_partitioning` MUST be set to `true`.
 
+* `lock_duration` - (Optional) The ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. Maximum value is 5 minutes. Defaults to 1 minute. (`PT1M`)
+
 * `max_size_in_megabytes` - (Optional) Integer value which controls the size of
     memory allocated for the queue. For supported values see the "Queue/topic size"
     section of [this document](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-quotas).
@@ -103,6 +113,6 @@ The following attributes are exported:
 
 Service Bus Queue can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_queue.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/queues/snqueue1
 ```

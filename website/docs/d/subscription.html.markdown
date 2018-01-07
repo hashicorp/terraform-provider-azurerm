@@ -6,7 +6,7 @@ description: |-
   Get information about the specified subscription.
 ---
 
-# azurerm\_subscription
+# Data Source: azurerm_subscription
 
 Use this data source to access the properties of an Azure subscription.
 

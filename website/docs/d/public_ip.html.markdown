@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_public_ip
+# Data Source: azurerm_public_ip
 
 Use this data source to access the properties of an existing Azure Public IP Address.
 

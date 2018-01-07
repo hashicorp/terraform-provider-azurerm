@@ -71,6 +71,29 @@ func resourceArmVirtualMachine() *schema.Resource {
 				},
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"license_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -278,37 +301,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-			},
-
-			// TODO: remove this in the next major version
-			"diagnostics_profile": {
-				Type:          schema.TypeSet,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"boot_diagnostics"},
-				Removed:       "Use field boot_diagnostics instead",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"boot_diagnostics": {
-							Type:     schema.TypeSet,
-							Required: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-
-									"storage_uri": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 
 			"boot_diagnostics": {
@@ -589,6 +581,11 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: expandedTags,
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		vmIdentity := expandAzureRmVirtualMachineIdentity(d)
+		vm.Identity = vmIdentity
+	}
+
 	if _, ok := d.GetOk("plan"); ok {
 		plan, err := expandAzureRmVirtualMachinePlan(d)
 		if err != nil {
@@ -646,6 +643,8 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Plan error: %#v", err)
 		}
 	}
+
+	d.Set("identity", flattenAzureRmVirtualMachineIdentity(resp.Identity))
 
 	if resp.VirtualMachineProperties.AvailabilitySet != nil {
 		d.Set("availability_set_id", strings.ToLower(*resp.VirtualMachineProperties.AvailabilitySet.ID))
@@ -875,6 +874,20 @@ func flattenAzureRmVirtualMachineImageReference(image *compute.ImageReference) [
 	return []interface{}{result}
 }
 
+func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	return []interface{}{result}
+}
+
 func flattenAzureRmVirtualMachineDiagnosticsProfile(profile *compute.BootDiagnostics) []interface{} {
 	result := make(map[string]interface{})
 
@@ -1065,6 +1078,16 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, err
 		Name:      &name,
 		Product:   &product,
 	}, nil
+}
+
+func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.VirtualMachineIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &compute.VirtualMachineIdentity{
+		Type: compute.ResourceIdentityType(identityType),
+	}
 }
 
 func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {
@@ -1311,8 +1334,8 @@ func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.Data
 		if vhdURI != "" && managedDiskType != "" {
 			return nil, fmt.Errorf("[ERROR] Conflict between `vhd_uri` and `managed_disk_type` (only one or the other can be used)")
 		}
-		if managedDiskID == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.Attach)) {
-			return nil, fmt.Errorf("[ERROR] Must specify which disk to attach")
+		if managedDiskID == "" && vhdURI == "" && strings.EqualFold(string(data_disk.CreateOption), string(compute.Attach)) {
+			return nil, fmt.Errorf("[ERROR] Must specify `vhd_uri` or `managed_disk_id` to attach")
 		}
 
 		if v := config["caching"].(string); v != "" {

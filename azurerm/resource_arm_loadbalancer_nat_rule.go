@@ -46,6 +46,12 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
+			"enable_floating_ip": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"frontend_port": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -113,8 +119,8 @@ func resourceArmLoadBalancerNatRuleCreate(d *schema.ResourceData, meta interface
 		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	_, createError := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
+	err = <-createError
 	if err != nil {
 		return errwrap.Wrapf("Error Creating / Updating LoadBalancer {{err}}", err)
 	}
@@ -180,22 +186,26 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", config.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("protocol", config.InboundNatRulePropertiesFormat.Protocol)
-	d.Set("frontend_port", config.InboundNatRulePropertiesFormat.FrontendPort)
-	d.Set("backend_port", config.InboundNatRulePropertiesFormat.BackendPort)
 
-	if config.InboundNatRulePropertiesFormat.FrontendIPConfiguration != nil {
-		fipID, err := parseAzureResourceID(*config.InboundNatRulePropertiesFormat.FrontendIPConfiguration.ID)
-		if err != nil {
-			return err
+	if props := config.InboundNatRulePropertiesFormat; props != nil {
+		d.Set("protocol", props.Protocol)
+		d.Set("frontend_port", props.FrontendPort)
+		d.Set("backend_port", props.BackendPort)
+		d.Set("enable_floating_ip", props.EnableFloatingIP)
+
+		if ipconfiguration := props.FrontendIPConfiguration; ipconfiguration != nil {
+			fipID, err := parseAzureResourceID(*ipconfiguration.ID)
+			if err != nil {
+				return err
+			}
+
+			d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
+			d.Set("frontend_ip_configuration_id", ipconfiguration.ID)
 		}
 
-		d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
-		d.Set("frontend_ip_configuration_id", config.InboundNatRulePropertiesFormat.FrontendIPConfiguration.ID)
-	}
-
-	if config.InboundNatRulePropertiesFormat.BackendIPConfiguration != nil {
-		d.Set("backend_ip_configuration_id", config.InboundNatRulePropertiesFormat.BackendIPConfiguration.ID)
+		if ipconfiguration := props.BackendIPConfiguration; ipconfiguration != nil {
+			d.Set("backend_ip_configuration_id", ipconfiguration.ID)
+		}
 	}
 
 	return nil
@@ -243,7 +253,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read LoadBalancer %q (resource group %q) ID", loadBalancerName, resGroup)
 	}
 
 	return nil
@@ -255,6 +265,11 @@ func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBa
 		Protocol:     network.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort: utils.Int32(int32(d.Get("frontend_port").(int))),
 		BackendPort:  utils.Int32(int32(d.Get("backend_port").(int))),
+	}
+
+	if v, ok := d.GetOk("enable_floating_ip"); ok {
+		enableFloatingIP := v.(bool)
+		properties.EnableFloatingIP = utils.Bool(enableFloatingIP)
 	}
 
 	if v := d.Get("frontend_ip_configuration_name").(string); v != "" {

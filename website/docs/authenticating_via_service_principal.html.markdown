@@ -1,13 +1,13 @@
 ---
 layout: "azurerm"
-page_title: "AzureRM: Authenticating via a Service Principal"
+page_title: "Azure Provider: Authenticating via a Service Principal"
 sidebar_current: "docs-azurerm-index-authentication-service-principal"
 description: |-
-  The Azure Resource Manager provider supports authenticating via multiple means. This guide will cover creating a Service Principal which can be used to access Azure Resource Manager.
+  This guide will cover how to use a Service Principal (Shared Account) as authentication for the Azure Provider.
 
 ---
 
-# Authenticating to Azure Resource Manager using a Service Principal
+# Azure Provider: Authenticating using a Service Principal
 
 Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
@@ -23,7 +23,7 @@ It's possible to complete this task in either the [Azure CLI](#creating-a-servic
 
 ~> **Note**: if you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
-```
+```shell
 $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 ```
 
@@ -107,7 +107,7 @@ $ az vm list-sizes --location westus
 
 ~> **Note**: If you're using the **China**, **German** or **Government** Azure Clouds - you will need to switch `westus` out for another region. You can find which regions are available by running:
 
-```
+```shell
 $ az account list-locations
 ```
 

@@ -10,7 +10,7 @@ description: |-
 
 Create a LoadBalancer NAT pool.
 
-~> **NOTE When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
+~> **NOTE** When using this resource, the LoadBalancer needs to have a FrontEnd IP Configuration Attached
 
 ## Example Usage
 
@@ -41,7 +41,7 @@ resource "azurerm_lb" "test" {
 resource "azurerm_lb_nat_pool" "test" {
   resource_group_name            = "${azurerm_resource_group.test.name}"
   loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "SampleApplication Pool"
+  name                           = "SampleApplicationPool"
   protocol                       = "Tcp"
   frontend_port_start            = 80
   frontend_port_end              = 81
@@ -73,6 +73,6 @@ The following attributes are exported:
 
 Load Balancer NAT Pools can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_lb_nat_pool.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/inboundNatPools/pool1
 ```
