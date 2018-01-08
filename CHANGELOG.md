@@ -1,5 +1,9 @@
 ## 1.0.1 (Unreleased)
 
+FEATURES:
+
+* New Data Source: `azurerm_app_service_plan` [GH-668]
+
 IMPROVEMENTS:
 
 * core: adding a cache to the Storage Account Keys [GH-634]
