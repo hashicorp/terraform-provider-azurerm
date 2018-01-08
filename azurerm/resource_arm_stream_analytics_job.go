@@ -20,6 +20,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"sku": {
 				Type:     schema.TypeString,
@@ -91,6 +92,10 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		Name:                   &jobName,
 		Location:               &location,
 		StreamingJobProperties: jobProps,
+	}
+
+	if tagsInf, ok := d.GetOk("tags"); ok {
+		job.Tags = expandTags(tagsInf.(map[string]interface{}))
 	}
 
 	if jobState, ok := d.GetOk("job_state"); ok {
@@ -206,6 +211,8 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
+
+	flattenAndSetTags(d, job.Tags)
 
 	d.Set("job_state", *job.JobState)
 	return nil
