@@ -139,6 +139,34 @@ func setTransformation(d *schema.ResourceData, client *ArmClient, rg, jobName st
 }
 
 func setJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	if err := handleRunningJobState(d, client, rg, jobName); err != nil {
+		return err
+	}
+
+	return handleStoppedJobState(d, client, rg, jobName)
+}
+
+func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	if jobState, ok := d.GetOk("job_state"); ok {
+		jobStateStr := jobState.(string)
+
+		cancelChan := make(chan struct{})
+		defer close(cancelChan)
+
+		switch jobStateStr {
+		case "Running":
+			respChan, errChan := client.streamingJobClient.Start(rg, jobName, nil, cancelChan)
+			err := <-errChan
+			if err != nil {
+				return err
+			}
+			<-respChan
+		}
+	}
+	return nil
+}
+
+func handleStoppedJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
@@ -153,16 +181,7 @@ func setJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 				return err
 			}
 			<-respChan
-
-		case "Running":
-			respChan, errChan := client.streamingJobClient.Start(rg, jobName, nil, cancelChan)
-			err := <-errChan
-			if err != nil {
-				return err
-			}
-			<-respChan
 		}
-
 	}
 	return nil
 }
@@ -251,15 +270,82 @@ func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{
 	jobName := d.Get("name").(string)
 	rg := d.Get("resource_group_name").(string)
 
+	// if state is to stop the job then it should happen in the beginning
 	if d.HasChange("job_state") {
-		err := setJobState(d, client, rg, jobName)
+
+		err := handleStoppedJobState(d, client, rg, jobName)
 		if err != nil {
 			return err
 		}
 	}
 
-	return resourceArmStreamAnalyticsJobCreate(d, meta)
+	if d.HasChange("job_input") {
+		err := setInputs(d, client, rg, jobName)
+		if err != nil {
+			return err
+		}
+	}
 
+	if d.HasChange("job_output") {
+		err := setOutputs(d, client, rg, jobName)
+		if err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("function") {
+		err := setFunctions(d, client, rg, jobName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := manageProps(d, client, rg, jobName)
+	if err != nil {
+		return err
+	}
+
+	if d.HasChange("transformation") {
+		err := setTransformation(d, client, rg, jobName)
+		if err != nil {
+			return err
+		}
+	}
+
+	// if state is to start the job then that should start at the end else no changes can be applied
+	if d.HasChange("job_state") {
+		err := handleRunningJobState(d, client, rg, jobName)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
+
+func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	jobProps := &streamanalytics.StreamingJobProperties{}
+
+	if sec, ok := d.GetOk("events_out_of_order_max_delay_in_seconds"); ok {
+		seci := int32(sec.(int))
+		jobProps.EventsOutOfOrderMaxDelayInSeconds = &seci
+	}
+
+	if evpolicy, ok := d.GetOk("events_out_of_order_policy"); ok {
+		jobProps.EventsOutOfOrderPolicy = streamanalytics.EventsOutOfOrderPolicy(evpolicy.(string))
+	}
+
+	job := streamanalytics.StreamingJob{
+		StreamingJobProperties: jobProps,
+	}
+
+	if tagsInf, ok := d.GetOk("tags"); ok {
+		job.Tags = expandTags(tagsInf.(map[string]interface{}))
+	}
+
+	_, err := client.streamingJobClient.Update(job, rg, jobName, "")
+	return err
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
