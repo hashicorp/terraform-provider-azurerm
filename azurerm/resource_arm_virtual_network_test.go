@@ -17,6 +17,12 @@ func init() {
 	resource.AddTestSweepers("azurerm_virtual_network", &resource.Sweeper{
 		Name: "azurerm_virtual_network",
 		F:    testSweepVirtualNetworks,
+		Dependencies: []string{
+			"azurerm_application_gateway",
+			"azurerm_subnet",
+			"azurerm_network_interface",
+			"azurerm_virtual_machine",
+		},
 	})
 }
 

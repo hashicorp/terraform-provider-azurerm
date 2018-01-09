@@ -5,11 +5,64 @@ import (
 	"os"
 	"testing"
 
+	"log"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_application_gateway", &resource.Sweeper{
+		Name: "azurerm_application_gateway",
+		F:    testSweepApplicationGateways,
+	})
+}
+
+func testSweepApplicationGateways(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).applicationGatewayClient
+
+	log.Printf("Retrieving the Application Gateways..")
+	results, err := client.ListAll()
+	if err != nil {
+		return fmt.Errorf("Error Listing on Application Gateways: %+v", err)
+	}
+
+	for _, network := range *results.Value {
+		id, err := parseAzureResourceID(*network.ID)
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		}
+
+		resourceGroupName := id.ResourceGroup
+		name := *network.Name
+		location := *network.Location
+
+		if !shouldSweepAcceptanceTestResource(name, location, region) {
+			continue
+		}
+
+		log.Printf("Deleting Application Gateway %q", name)
+		deleteResponse, deleteErr := client.Delete(resourceGroupName, name, make(chan struct{}))
+		resp := <-deleteResponse
+		err = <-deleteErr
+		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				continue
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMApplicationGateway_basic_base(t *testing.T) {
 	resourceName := "azurerm_application_gateway.test"
