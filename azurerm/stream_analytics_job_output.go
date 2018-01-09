@@ -80,6 +80,10 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 							"encoding": &schema.Schema{
 								Type:     schema.TypeString,
 								Optional: true,
+								Default:  string(streamanalytics.UTF8),
+								ValidateFunc: validation.StringInSlice([]string{
+									string(streamanalytics.UTF8),
+								}, false),
 							},
 							"format": &schema.Schema{
 								Type:     schema.TypeString,
