@@ -201,6 +201,25 @@ func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_enableAnWithVM(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_anWithVM(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_accelerated_networking", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
@@ -578,6 +597,80 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_anWithVM(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                          = "acctestni-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  enable_ip_forwarding          = false
+  enable_accelerated_networking = true
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+    name                          = "acctestvm-%d"
+    location                      = "${azurerm_resource_group.test.location}"
+    resource_group_name           = "${azurerm_resource_group.test.name}"
+    primary_network_interface_id  = "${azurerm_network_interface.test.id}"
+    network_interface_ids         = [ "${azurerm_network_interface.test.id}" ]
+    // Only large VMs allow AN
+    vm_size                       = "Standard_D8_v3"
+    delete_os_disk_on_termination = true
+
+    storage_image_reference {
+        publisher = "${var.image["publisher"]}"
+        offer     = "${var.image["offer"]}"
+        sku       = "${var.image["sku"]}"
+        version   = "${var.image["version"]}"
+    }
+
+    storage_os_disk {
+        name              = "antest-%d-OSDisk"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "Standard_LRS"
+        disk_size_gb      = 32
+    }
+
+    os_profile {
+        computer_name  = "antestMachine-%d"
+        admin_username = "antestuser"
+        admin_password = "antestpassword"
+    }
+
+    os_profile_linux_config {
+        disable_password_authentication = false
+    }
+
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMNetworkInterface_withTags(rInt int, location string) string {
