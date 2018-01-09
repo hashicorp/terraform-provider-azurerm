@@ -154,12 +154,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 			},
 
 			/**
-			 * As of 2018-01-05: AN (aka. SR-IOV) on Azure is GA on Windows
-			 * and public preview on Linux.
-			 * Refer to: https://azure.microsoft.com/en-us/updates/accelerated-networking-in-expanded-preview/
+			 * As of 2018-01-06: AN (aka. SR-IOV) on Azure is GA on Windows and Linux.
 			 *
-			 * Your subscription must be whitelisted and provisioned
-			 * to enable AN support.
+			 * Refer to: https://azure.microsoft.com/en-us/blog/maximize-your-vm-s-performance-with-accelerated-networking-now-generally-available-for-both-windows-and-linux/
 			 *
 			 * Refer to: https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli
 			 * For details, VM configuration and caveats.
