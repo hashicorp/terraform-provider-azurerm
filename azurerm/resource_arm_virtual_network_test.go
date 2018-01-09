@@ -5,10 +5,64 @@ import (
 	"net/http"
 	"testing"
 
+	"log"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	utils "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_virtual_network", &resource.Sweeper{
+		Name: "azurerm_virtual_network",
+		F:    testSweepVirtualNetworks,
+	})
+}
+
+func testSweepVirtualNetworks(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).vnetClient
+
+	log.Printf("Retrieving the Virtual Networks..")
+	results, err := client.ListAll()
+	if err != nil {
+		return fmt.Errorf("Error Listing on Virtual Networks: %+v", err)
+	}
+
+	for _, network := range *results.Value {
+		id, err := parseAzureResourceID(*network.ID)
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		}
+
+		resourceGroupName := id.ResourceGroup
+		name := *network.Name
+		location := *network.Location
+
+		if !shouldSweepAcceptanceTestResource(name, location, region) {
+			continue
+		}
+
+		log.Printf("Deleting Virtual Network %q", name)
+		deleteResponse, deleteErr := client.Delete(resourceGroupName, name, make(chan struct{}))
+		resp := <-deleteResponse
+		err = <-deleteErr
+		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				continue
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
