@@ -454,7 +454,7 @@ func extractOutputDatasource(outputMap map[string]interface{}) (streamanalytics.
 			AzureSQLDatabaseOutputDataSourceProperties: &sqlProps,
 		}
 
-	} else if sbqSchema := outputMap["service_bus_queues"].([]interface{}); len(sbqSchema) != 0 {
+	} else if sbqSchema := outputMap["service_bus_queue"].([]interface{}); len(sbqSchema) != 0 {
 		sbqMap := sbqSchema[0].(map[string]interface{})
 
 		namespace := sbqMap["namespace"].(string)
@@ -474,7 +474,7 @@ func extractOutputDatasource(outputMap map[string]interface{}) (streamanalytics.
 			ServiceBusQueueOutputDataSourceProperties: &sbqProps,
 		}
 
-	} else if sbtSchema := outputMap["service_bus_topics"].([]interface{}); len(sbtSchema) != 0 {
+	} else if sbtSchema := outputMap["service_bus_topic"].([]interface{}); len(sbtSchema) != 0 {
 		sbtMap := sbtSchema[0].(map[string]interface{})
 
 		namespace := sbtMap["namespace"].(string)
