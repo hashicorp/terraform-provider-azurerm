@@ -68,6 +68,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_app_service_plan":        dataSourceAppServicePlan(),
 			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_client_config":           dataSourceArmClientConfig(),
+			"azurerm_eventhub_namespace":      dataSourceEventHubNamespace(),
 			"azurerm_image":                   dataSourceArmImage(),
 			"azurerm_key_vault_access_policy": dataSourceArmKeyVaultAccessPolicy(),
 			"azurerm_managed_disk":            dataSourceArmManagedDisk(),

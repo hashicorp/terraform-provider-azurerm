@@ -30,7 +30,7 @@ output "app_service_plan_id" {
 
 ## Attributes Reference
 
-* `id` - The ID of the built-in App Service Plan.
+* `id` - The ID of the App Service Plan.
 
 * `location` - The Azure location where the App Service Plan exists
 

@@ -11,80 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventHubNamespaceCapacity_validation(t *testing.T) {
-	cases := []struct {
-		Value    int
-		ErrCount int
-	}{
-		{
-			Value:    21,
-			ErrCount: 1,
-		},
-		{
-			Value:    1,
-			ErrCount: 0,
-		},
-		{
-			Value:    2,
-			ErrCount: 0,
-		},
-		{
-			Value:    3,
-			ErrCount: 0,
-		},
-		{
-			Value:    4,
-			ErrCount: 0,
-		},
-		{
-			Value:    0,
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateEventHubNamespaceCapacity(tc.Value, "azurerm_eventhub_namespace")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM EventHub Namespace Capacity '%d' to trigger a validation error", tc.Value)
-		}
-	}
-}
-
-func TestAccAzureRMEventHubNamespaceSku_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Basic",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateEventHubNamespaceSku(tc.Value, "azurerm_eventhub_namespace")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM EventHub Namespace Sku '%s' to trigger a validation error", tc.Value)
-		}
-	}
-}
-
 func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventHubNamespace_basic(ri, testLocation())
 
@@ -104,7 +31,6 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMEventHubNamespace_standard(ri, testLocation())
 
