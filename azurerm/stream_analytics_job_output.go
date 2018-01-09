@@ -229,7 +229,7 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 						},
 					},
 				},
-				"service_bus_queues": &schema.Schema{
+				"service_bus_queue": &schema.Schema{
 					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,
@@ -257,7 +257,7 @@ func streamAnalyticsOutputSchema() *schema.Schema {
 						},
 					},
 				},
-				"service_bus_topics": &schema.Schema{
+				"service_bus_topic": &schema.Schema{
 					Type:     schema.TypeList,
 					MaxItems: 1,
 					Optional: true,

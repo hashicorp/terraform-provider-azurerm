@@ -14,7 +14,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 		Create: resourceArmStreamAnalyticsJobCreate,
 		Read:   resourceArmStreamAnalyticsJobRead,
-		Update: resourceArmStreamAnalyticsJobUpdate,
+		Update: resourceArmStreamAnalyticsJobCreate,
 		Delete: resourceArmStreamAnalyticsJobDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -98,11 +98,6 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		job.Tags = expandTags(tagsInf.(map[string]interface{}))
 	}
 
-	if jobState, ok := d.GetOk("job_state"); ok {
-		jobStateStr := jobState.(string)
-		jobProps.JobState = &jobStateStr
-	}
-
 	// TODO: try to make this whole creation as atomic as possible
 	jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
 	err := <-errChan
@@ -138,6 +133,7 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 			if err != nil {
 				return err
 			}
+			log.Printf("RAMNANI %#v \n %s %s \n\n %#v", input, *input.Name, inputSchema)
 			result, err := client.inputsClient.CreateOrReplace(*input, rg, jobName, *input.Name, "", "")
 			if err != nil {
 				return err
@@ -178,14 +174,27 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	// This solves the chicken and egg situation going on
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
-		jobProps.JobState = &jobStateStr
-		jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
-		err := <-errChan
-		if err != nil {
-			return err
+
+		cancelChan := make(chan struct{})
+
+		switch jobStateStr {
+		case "Stopped":
+			respChan, errChan := client.streamingJobClient.Stop(rg, jobName, cancelChan)
+			err := <-errChan
+			if err != nil {
+				return err
+			}
+			<-respChan
+
+		case "Running":
+			respChan, errChan := client.streamingJobClient.Start(rg, jobName, nil, cancelChan)
+			err := <-errChan
+			if err != nil {
+				return err
+			}
+			<-respChan
 		}
-		jobResp := <-jobChan
-		log.Printf("Job created and started with parameters %#v", jobResp)
+		close(cancelChan)
 
 	}
 
@@ -218,9 +227,6 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmStreamAnalyticsJobCreate(d, meta)
-}
 func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*ArmClient)
