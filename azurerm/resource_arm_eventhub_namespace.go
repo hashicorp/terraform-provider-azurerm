@@ -169,7 +169,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 
 	keys, err := namespaceClient.ListKeys(resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List default keys for EventHub Namespace %q: %+v", name, err)
+		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", name, err)
 	} else {
 		d.Set("default_primary_connection_string", keys.PrimaryConnectionString)
 		d.Set("default_secondary_connection_string", keys.SecondaryConnectionString)
