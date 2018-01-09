@@ -210,12 +210,12 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient)
 
 	streamID := d.Id()
-	resourceId, err := parseAzureResourceID(streamID)
+	resourceID, err := parseAzureResourceID(streamID)
 
 	if err != nil {
 		return err
 	}
-	job, err := client.streamingJobClient.Get(resourceId.ResourceGroup, resourceId.Path["streamingjobs"], "")
+	job, err := client.streamingJobClient.Get(resourceID.ResourceGroup, resourceID.Path["streamingjobs"], "")
 
 	if err != nil {
 		return err
