@@ -14,7 +14,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 		Create: resourceArmStreamAnalyticsJobCreate,
 		Read:   resourceArmStreamAnalyticsJobRead,
-		Update: resourceArmStreamAnalyticsJobCreate,
+		Update: resourceArmStreamAnalyticsJobUpdate,
 		Delete: resourceArmStreamAnalyticsJobDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -62,6 +62,109 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 		},
 	}
 
+}
+
+func setFunctions(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	if functions, ok := d.GetOk("function"); ok {
+		functionList := functions.([]interface{})
+		for _, functionSchema := range functionList {
+			function := streamAnalyticsFunctionFromSchema(functionSchema)
+
+			result, err := client.functionClient.CreateOrReplace(function, rg, jobName, *function.Name, "", "")
+			if err != nil {
+				return err
+			}
+			log.Printf("[TRACE] Result from function creation is %#v \n", result)
+		}
+	}
+
+	return nil
+}
+
+func setInputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	if inputs, ok := d.GetOk("job_input"); ok {
+		inputList := inputs.([]interface{})
+		for _, inputSchema := range inputList {
+			input, err := streamAnalyticsInputfromSchema(inputSchema)
+			if err != nil {
+				return err
+			}
+			result, err := client.inputsClient.CreateOrReplace(*input, rg, jobName, *input.Name, "", "")
+			if err != nil {
+				return err
+			}
+			log.Printf("[TRACE] Result from input creation is %#v \n", result)
+
+		}
+
+	}
+
+	return nil
+
+}
+func setOutputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+
+	if outputs, ok := d.GetOk("job_output"); ok {
+		outputList := outputs.([]interface{})
+		for _, outputSchema := range outputList {
+			output, err := streamAnalyticsOutputFromSchema(outputSchema)
+			if err != nil {
+				return err
+			}
+			result, err := client.outputsClient.CreateOrReplace(*output, rg, jobName, *output.Name, "", "")
+			if err != nil {
+				return err
+			}
+			log.Printf("[TRACE] Result from output creation is %#v \n", result)
+		}
+	}
+
+	return nil
+}
+
+func setTransformation(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+
+	if transformationI, ok := d.GetOk("transformation"); ok {
+		transformationList := transformationI.([]interface{})
+		transformationMap := transformationList[0].(map[string]interface{})
+		transformation := streamAnalyticsTransformationFromSchema(transformationMap)
+		result, err := client.trasformationsClient.CreateOrReplace(*transformation, rg, jobName, *transformation.Name, "", "")
+		if err != nil {
+			return err
+		}
+		log.Printf("Created transformation with fields %#v", result)
+
+	}
+	return nil
+}
+
+func setJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	if jobState, ok := d.GetOk("job_state"); ok {
+		jobStateStr := jobState.(string)
+
+		cancelChan := make(chan struct{})
+		defer close(cancelChan)
+
+		switch jobStateStr {
+		case "Stopped":
+			respChan, errChan := client.streamingJobClient.Stop(rg, jobName, cancelChan)
+			err := <-errChan
+			if err != nil {
+				return err
+			}
+			<-respChan
+
+		case "Running":
+			respChan, errChan := client.streamingJobClient.Start(rg, jobName, nil, cancelChan)
+			err := <-errChan
+			if err != nil {
+				return err
+			}
+			<-respChan
+		}
+
+	}
+	return nil
 }
 
 func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{}) error {
@@ -113,96 +216,50 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	// of failure the delete method will not remove anything hence leaking some resources.
 	d.SetId(*jobResp.ID)
 
-	if functions, ok := d.GetOk("function"); ok {
-		functionList := functions.([]interface{})
-		for _, functionSchema := range functionList {
-			function := streamAnalyticsFunctionFromSchema(functionSchema)
-
-			result, err := client.functionClient.CreateOrReplace(function, rg, jobName, *function.Name, "", "")
-			if err != nil {
-				return err
-			}
-			log.Printf("[TRACE] Result from function creation is %#v \n", result)
-		}
+	err = setFunctions(d, client, rg, jobName)
+	if err != nil {
+		return err
 	}
 
-	if inputs, ok := d.GetOk("job_input"); ok {
-		inputList := inputs.([]interface{})
-		for _, inputSchema := range inputList {
-			input, err := streamAnalyticsInputfromSchema(inputSchema)
-			if err != nil {
-				return err
-			}
-			log.Printf("RAMNANI %#v \n %s %s \n\n %#v", input, *input.Name, inputSchema)
-			result, err := client.inputsClient.CreateOrReplace(*input, rg, jobName, *input.Name, "", "")
-			if err != nil {
-				return err
-			}
-			log.Printf("[TRACE] Result from input creation is %#v \n", result)
-
-		}
-
+	err = setInputs(d, client, rg, jobName)
+	if err != nil {
+		return err
 	}
 
-	if outputs, ok := d.GetOk("job_output"); ok {
-		outputList := outputs.([]interface{})
-		for _, outputSchema := range outputList {
-			output, err := streamAnalyticsOutputFromSchema(outputSchema)
-			if err != nil {
-				return err
-			}
-			result, err := client.outputsClient.CreateOrReplace(*output, rg, jobName, *output.Name, "", "")
-			if err != nil {
-				return err
-			}
-			log.Printf("[TRACE] Result from output creation is %#v \n", result)
-		}
+	err = setOutputs(d, client, rg, jobName)
+	if err != nil {
+		return err
 	}
 
-	if transformationI, ok := d.GetOk("transformation"); ok {
-		transformationList := transformationI.([]interface{})
-		transformationMap := transformationList[0].(map[string]interface{})
-		transformation := streamAnalyticsTransformationFromSchema(transformationMap)
-		result, err := client.trasformationsClient.CreateOrReplace(*transformation, rg, jobName, *transformation.Name, "", "")
-		if err != nil {
-			return err
-		}
-		log.Printf("Created transformation with fields %#v", result)
-
+	err = setTransformation(d, client, rg, jobName)
+	if err != nil {
+		return err
 	}
 
 	// This solves the chicken and egg situation going on
-	if jobState, ok := d.GetOk("job_state"); ok {
-		jobStateStr := jobState.(string)
-
-		cancelChan := make(chan struct{})
-
-		switch jobStateStr {
-		case "Stopped":
-			respChan, errChan := client.streamingJobClient.Stop(rg, jobName, cancelChan)
-			err := <-errChan
-			if err != nil {
-				return err
-			}
-			<-respChan
-
-		case "Running":
-			respChan, errChan := client.streamingJobClient.Start(rg, jobName, nil, cancelChan)
-			err := <-errChan
-			if err != nil {
-				return err
-			}
-			<-respChan
-		}
-		close(cancelChan)
-
-	}
-
+	err = setJobState(d, client, rg, jobName)
 	if err != nil {
 		return err
 	}
 
 	return resourceArmStreamAnalyticsJobRead(d, meta)
+}
+
+func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient)
+
+	jobName := d.Get("name").(string)
+	rg := d.Get("resource_group_name").(string)
+
+	if d.HasChange("job_state") {
+		err := setJobState(d, client, rg, jobName)
+		if err != nil {
+			return err
+		}
+	}
+
+	return resourceArmStreamAnalyticsJobCreate(d, meta)
+
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
