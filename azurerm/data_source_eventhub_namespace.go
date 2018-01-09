@@ -62,7 +62,7 @@ func dataSourceEventHubNamespace() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tagsForDataSourceSchema(),
 		},
 	}
 }
