@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_app_service_plan` [GH-668]
+* **New Data Source:** `azurerm_eventhub_namespace` [GH-673]
+
 
 IMPROVEMENTS:
 
