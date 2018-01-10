@@ -62,7 +62,7 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
       name         = "my-gateway-ip-configuration"
-      subnet_id    = "${azurerm_virtual_network.vnet.id}/subnets/${azurerm_subnet.sub1.name}"
+      subnet_id    = "${azurerm_subnet.sub1.id}"
   }
 
   frontend_port {
@@ -306,17 +306,13 @@ The `ssl_certificate` block supports:
 
 The `waf_configuration` block supports:
 
-* `name` - (Required) User defined name for a web application firewall.
+* `enabled` - (Required) Is the WAF Enabled?
 
-* `firewall_mode` - (Required) Firewall mode.  Valid values are:
-  * `Detection`
-  * `Prevention`
+* `firewall_mode` - (Required) Firewall mode. Valid values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Required) Rule set type.  Must be set to `OWASP`
+* `rule_set_type` - (Required) Rule set type. Defaults to `OWASP` which is the only supported value at this time.
 
-* `rule_set_version` - (Required) Ruleset version. Supported values:
-  * `2.2.9`
-  * `3.0`
+* `rule_set_version` - (Required) Rule Set version. Valid values are `2.2.9` and `3.0`.
 
 
 ## Attributes Reference
@@ -325,13 +321,6 @@ The following attributes are exported:
 
 * `id` - The application gatewayConfiguration ID.
 
-* `name` - The name of the application gateway.
-
-* `resource_group_name` - The name of the resource group in which to create the application gateway.
-
-* `location` - The location/region where the application gateway is created
-
-
 
 ## Import
 
@@ -339,5 +328,4 @@ application gateways can be imported using the `resource id`, e.g.
 
 ```shell 
 terraform import azurerm_application_gateway.testApplicationGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
-
 ```
