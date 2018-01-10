@@ -200,12 +200,9 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("public_ip_address_allocation", strings.ToLower(string(resp.PublicIPAddressPropertiesFormat.PublicIPAllocationMethod)))
 
-	// TODO: Extract SKU from client response
-	/*
-		if sku := publicIPClient.Sku; sku != nil {
-			d.Set("sku", string(sku.Name))
-		}
-	*/
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+	}
 
 	if resp.PublicIPAddressPropertiesFormat.DNSSettings != nil && resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != nil && *resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != "" {
 		d.Set("fqdn", resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn)
