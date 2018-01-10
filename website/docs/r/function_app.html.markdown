@@ -1,17 +1,19 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app"
-sidebar_current: "docs-azurerm-resource-function-app-x"
+sidebar_current: "docs-azurerm-resource-function-app"
 description: |-
-  Manages an Azure Functions service.
+  Manages a Function App.
 
 ---
 
 # azurerm_function_app
 
-Manages an Azure Functions service.
+Manages a Function App.
 
-## Example Usage
+> **Note:** Function Apps can be deployed to either an App Service Plan or to a Consumption Plan. At this time it's possible to deploy a Function App into an existing Consumption Plan or a new/existing App Service Plan - however it's not currently possible to create a new Consumption Plan. Support for this will be added in the future, and in the interim can be achieved by using [the `azurerm_template_deployment` resource](template_deployment.html).
+
+## Example Usage (with App Service Plan)
 
 ```hcl
 resource "azurerm_resource_group" "test" {
@@ -20,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "azure-functions-test-sa"
+  name                     = "functionsapptestsa"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -51,21 +53,21 @@ resource "azurerm_function_app" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Azure Functions service. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Function App. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Azure Functions service.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Function App.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Azure Functions service. Changing this forces a new resource to be created.
+* `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App. Changing this forces a new resource to be created.
 
-* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Azure Functions service (such as the dashboard, logs).
+* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs).
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
 * `enabled` - (Optional) Is the Azure Function service enabled? Changing this forces a new resource to be created.
 
-* `version` - (Optional) The runtime version of this Azure Function service. Possible values are `~1` (this is the default value) and `beta`.
+* `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
@@ -74,6 +76,6 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Azure Functions service
+* `id` - The ID of the Function App
 
-* `default_hostname` - The default hostname associated with the Azure Functions service - such as `mysite.azurewebsites.net`
+* `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
