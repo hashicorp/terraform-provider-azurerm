@@ -44,6 +44,9 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
+
+				// TODO: (tombuildsstuff) support Update once the API is fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/1697
 				ForceNew: true,
 			},
 
@@ -69,6 +72,8 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			// TODO: (tombuildsstuff) support Update once the API is fixed:
+			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsForceNewSchema(),
 
 			"default_hostname": {
@@ -90,16 +95,9 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	kind := "functionapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
-	storageConnection := d.Get("storage_connection_string").(string)
-	functionVersion := d.Get("version").(string)
-	contentShare := name + "-content"
 	tags := d.Get("tags").(map[string]interface{})
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
 
-	dashboardPropName := "AzureWebJobsDashboard"
-	storagePropName := "AzureWebJobsStorage"
-	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
-	contentSharePropName := "WEBSITE_CONTENTSHARE"
-	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 	siteEnvelope := web.Site{
 		Kind:     &kind,
 		Location: &location,
@@ -108,13 +106,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 			ServerFarmID: utils.String(appServicePlanID),
 			Enabled:      utils.Bool(enabled),
 			SiteConfig: &web.SiteConfig{
-				AppSettings: &[]web.NameValuePair{
-					{Name: &dashboardPropName, Value: &storageConnection},
-					{Name: &storagePropName, Value: &storageConnection},
-					{Name: &functionVersionPropName, Value: &functionVersion},
-					{Name: &contentSharePropName, Value: &contentShare},
-					{Name: &contentFileConnStringPropName, Value: &storageConnection},
-				},
+				AppSettings: &basicAppSettings,
 			},
 		},
 	}
@@ -153,8 +145,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	if d.HasChange("app_settings") {
-		appSettings := expandAppServiceAppSettings(d)
+	if d.HasChange("app_settings") || d.HasChange("version") {
+		appSettings := expandFunctionAppAppSettings(d)
 		settings := web.StringDictionary{
 			Properties: appSettings,
 		}
@@ -205,12 +197,19 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
-	if err := d.Set("app_settings", appSettings); err != nil {
-		return err
-	}
 
 	d.Set("storage_connection_string", appSettings["AzureWebJobsStorage"])
 	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
+
+	delete(appSettings, "AzureWebJobsDashboard")
+	delete(appSettings, "AzureWebJobsStorage")
+	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+	delete(appSettings, "WEBSITE_CONTENTSHARE")
+	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+
+	if err := d.Set("app_settings", appSettings); err != nil {
+		return err
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -240,4 +239,35 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
+}
+
+func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair {
+	dashboardPropName := "AzureWebJobsDashboard"
+	storagePropName := "AzureWebJobsStorage"
+	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
+	contentSharePropName := "WEBSITE_CONTENTSHARE"
+	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
+
+	storageConnection := d.Get("storage_connection_string").(string)
+	functionVersion := d.Get("version").(string)
+	contentShare := d.Get("name").(string) + "-content"
+
+	return []web.NameValuePair{
+		{Name: &dashboardPropName, Value: &storageConnection},
+		{Name: &storagePropName, Value: &storageConnection},
+		{Name: &functionVersionPropName, Value: &functionVersion},
+		{Name: &contentSharePropName, Value: &contentShare},
+		{Name: &contentFileConnStringPropName, Value: &storageConnection},
+	}
+}
+
+func expandFunctionAppAppSettings(d *schema.ResourceData) *map[string]*string {
+	output := expandAppServiceAppSettings(d)
+
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	for _, p := range basicAppSettings {
+		(*output)[*p.Name] = p.Value
+	}
+
+	return output
 }
