@@ -11,7 +11,7 @@ description: |-
 
 Manages a Function App.
 
-> **Note:** Function Apps can be deployed to either an App Service Plan or to a Consumption Plan. At this time it's possible to deploy a Function App into an existing Consumption Plan or a new/existing App Service Plan - however it's not currently possible to create a new Consumption Plan. Support for this will be added in the future, and in the interim can be achieved by using [the `azurerm_template_deployment` resource](template_deployment.html).
+-> **Note:** Function Apps can be deployed to either an App Service Plan or to a Consumption Plan. At this time it's possible to deploy a Function App into an existing Consumption Plan or a new/existing App Service Plan - however it's not currently possible to create a new Consumption Plan. Support for this will be added in the future, and in the interim can be achieved by using [the `azurerm_template_deployment` resource](template_deployment.html).
 
 ## Example Usage (with App Service Plan)
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
-* `enabled` - (Optional) Is the Azure Function service enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional) Is the Function App enabled? Changing this forces a new resource to be created.
 
 * `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
 
@@ -79,3 +79,12 @@ The following attributes are exported:
 * `id` - The ID of the Function App
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
+
+
+## Import
+
+Function Apps can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_function_app.functionapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/functionapp1
+```
