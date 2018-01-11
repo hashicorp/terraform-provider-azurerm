@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `enable_ip_forwarding` - (Optional) Enables IP Forwarding on the NIC. Defaults to `false`.
 
-* `enable_accelerated_networking` - (Optional) Enables Azure Accelerated Networking (AN) using SR-IOV. Only certain VM instance sizes support AN. Refer to [Create VM AN](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli). Defaults to `false`.
+* `enable_accelerated_networking` - (Optional) Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Refer to [Create a Virtual Machine with Accelerated Networking](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli). Defaults to `false`.
 
 * `dns_servers` - (Optional) List of DNS servers IP addresses to use for this NIC, overrides the VNet-level server list
 
