@@ -70,7 +70,6 @@ func resourceArmFunctionApp() *schema.Resource {
 			"app_settings": {
 				Type:     schema.TypeMap,
 				Optional: true,
-				Computed: true,
 			},
 
 			// TODO: (tombuildsstuff) support Update once the API is fixed:
