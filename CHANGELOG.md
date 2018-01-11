@@ -13,7 +13,9 @@ IMPROVEMENTS:
 * `azurerm_eventhub_consumer_group` - adding validation for the user metadata field [GH-641]
 * `azurerm_lb` - adding the computed field `public_ip_addresses` [GH-633]
 * `azurerm_local_network_gateway` - add support for `tags` [GH-638]
+* `azurerm_network_interface` - support for Accelerated Networking [GH-672]
 * `azurerm_storage_account` - expose `primary_connection_string` and `secondary_connection_string` [GH-647]
+
 
 ## 1.0.0 (December 15, 2017)
 
