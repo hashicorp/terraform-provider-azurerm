@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,18 +20,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-
-		/**
-		 * Adding accelerated networking changes the schema, and as such
-		 * we want the migration function to handle the change.
-		 *
-		 * Schema Version Changes:
-		 * 0: Initial
-		 * 1: Add enable_accelerated_networking
-		 */
-		SchemaVersion: 1,
-
-		MigrateState: resourceNetworkInterfaceMigrateState,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -376,6 +363,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
+	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -588,33 +576,6 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 	}
 
 	return ipConfigs, &subnetNamesToLock, &virtualNetworkNamesToLock, nil
-}
-
-func resourceNetworkInterfaceMigrateState(
-	v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
-	switch v {
-	case 0:
-		log.Println("[INFO] Found AzureRM Network Interface State v0; migrating to v1")
-		return migrateNetworkInterfaceStateV0toV1(is)
-	default:
-		return is, fmt.Errorf("unexpected schema version: %d", v)
-	}
-}
-
-func migrateNetworkInterfaceStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
-	if is.Empty() {
-		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
-		return is, nil
-	}
-
-	log.Printf("[DEBUG] ARM Network Interface Attributes before Migration: %#v", is.Attributes)
-
-	// All we do is add a "enable_accelerated_networking = false" migration
-	is.Attributes["enable_accelerated_networking"] = "false"
-
-	log.Printf("[DEBUG] ARM Network Interface Attributes after State Migration: %#v", is.Attributes)
-
-	return is, nil
 }
 
 func sliceContainsValue(input []string, value string) bool {
