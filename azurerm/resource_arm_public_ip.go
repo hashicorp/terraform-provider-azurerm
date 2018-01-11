@@ -251,12 +251,6 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-/*
-TODO: Need validation for Public IP Standard restrictions
-- static allocation only
-- IPv4 only
-*/
-
 func validatePublicIpAllocation(v interface{}, k string) (ws []string, errors []error) {
 	value := strings.ToLower(v.(string))
 	allocations := map[string]bool{
