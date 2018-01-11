@@ -95,7 +95,7 @@ func resourceArmEventHub() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											"EventHubArchive.AzureBlockBlob",
 											// TODO: support `EventHubArchive.AzureDataLake` once supported in the Swagger / SDK
-											// TODO: file a Swagger bug about that.
+											// https://github.com/Azure/azure-rest-api-specs/issues/2255
 											// BlobContainerName & StorageAccountID can then become Optional
 										}, false),
 									},
