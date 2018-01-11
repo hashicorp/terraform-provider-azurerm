@@ -4,7 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_app_service_plan` [GH-668]
 * **New Data Source:** `azurerm_eventhub_namespace` [GH-673]
-
+* **New Resource:** `azurerm_function_app` [GH-647]
 
 IMPROVEMENTS:
 
@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * `azurerm_eventhub_consumer_group` - adding validation for the user metadata field [GH-641]
 * `azurerm_lb` - adding the computed field `public_ip_addresses` [GH-633]
 * `azurerm_local_network_gateway` - add support for `tags` [GH-638]
+* `azurerm_storage_account` - expose `primary_connection_string` and `secondary_connection_string` [GH-647]
 
 ## 1.0.0 (December 15, 2017)
 
