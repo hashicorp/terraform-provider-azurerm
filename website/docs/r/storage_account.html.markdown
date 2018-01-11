@@ -99,6 +99,8 @@ The following attributes are exported in addition to the arguments listed above:
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 * `primary_access_key` - The primary access key for the storage account
 * `secondary_access_key` - The secondary access key for the storage account
+* `primary_connection_string` - The connection string associated with the primary location
+* `secondary_connection_string` - The connection string associated with the secondary location
 * `primary_blob_connection_string` - The connection string associated with the primary blob location
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location
 
