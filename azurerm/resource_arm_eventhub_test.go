@@ -96,6 +96,74 @@ func TestAccAzureRMEventHubMessageRetentionCount_validation(t *testing.T) {
 	}
 }
 
+func TestAccAzureRMEventHubArchiveNameFormat_validation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "",
+			ErrCount: 9,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 0,
+		},
+		{
+			Value:    "Prod_{Eventub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}/{Day}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Hour}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Minute}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Second}",
+			ErrCount: 1,
+		},
+		{
+			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}",
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateEventHubArchiveNameFormat(tc.Value, "azurerm_eventhub")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected %q to trigger a validation error", tc.Value)
+		}
+	}
+}
+
 func TestAccAzureRMEventHub_basic(t *testing.T) {
 
 	ri := acctest.RandInt()

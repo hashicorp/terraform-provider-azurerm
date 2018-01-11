@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -98,9 +100,9 @@ func resourceArmEventHub() *schema.Resource {
 										}, false),
 									},
 									"archive_name_format": {
-										Type:     schema.TypeString,
-										Required: true,
-										// TODO: A Capture Name Format must contain {Namespace}, {EventHub}, {PartitionId}, {Year}, {Month}, {Day}, {Hour}, {Minute} and {Second} fields. These can be arranged in any order with or without delimeters. E.g.  Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validateEventHubArchiveNameFormat,
 									},
 									"blob_container_name": {
 										Type:     schema.TypeString,
@@ -247,6 +249,30 @@ func validateEventHubMessageRetentionCount(v interface{}, k string) (ws []string
 	if !(7 >= value && value >= 1) {
 		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7"))
 	}
+	return
+}
+
+func validateEventHubArchiveNameFormat(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	requiredComponents := []string{
+		"{Namespace}",
+		"{EventHub}",
+		"{PartitionId}",
+		"{Year}",
+		"{Month}",
+		"{Day}",
+		"{Hour}",
+		"{Minute}",
+		"{Second}",
+	}
+
+	for _, component := range requiredComponents {
+		if !strings.Contains(value, component) {
+			errors = append(errors, fmt.Errorf("%s needs to contain %q", k, component))
+		}
+	}
+
 	return
 }
 
