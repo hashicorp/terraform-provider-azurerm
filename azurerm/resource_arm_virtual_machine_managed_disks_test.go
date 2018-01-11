@@ -1644,12 +1644,12 @@ resource "azurerm_virtual_machine" "test" {
     vm_size                       = "Standard_D8_v3"
     delete_os_disk_on_termination = true
 
-    storage_image_reference {
-        publisher = "${var.image["publisher"]}"
-        offer     = "${var.image["offer"]}"
-        sku       = "${var.image["sku"]}"
-        version   = "${var.image["version"]}"
-    }
+	storage_image_reference {
+		publisher = "Canonical"
+		offer     = "UbuntuServer"
+		sku       = "16.04-LTS"
+		version   = "latest"
+	}
 
     storage_os_disk {
         name              = "antest-%d-OSDisk"
@@ -1662,7 +1662,7 @@ resource "azurerm_virtual_machine" "test" {
     os_profile {
         computer_name  = "antestMachine-%d"
         admin_username = "antestuser"
-        admin_password = "antestpassword"
+        admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
