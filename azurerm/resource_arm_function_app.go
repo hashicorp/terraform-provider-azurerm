@@ -61,9 +61,10 @@ func resourceArmFunctionApp() *schema.Resource {
 			},
 
 			"storage_connection_string": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				ForceNew:  true,
+				Sensitive: true,
 			},
 
 			"app_settings": {
