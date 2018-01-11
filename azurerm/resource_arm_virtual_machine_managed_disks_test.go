@@ -356,7 +356,6 @@ func TestAccAzureRMVirtualMachine_enableAnWithVM(t *testing.T) {
 				Config: testAccAzureRMVirtualMachine_anWithVM(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
-					resource.TestCheckResourceAttr(resourceName, "enable_accelerated_networking", "true"),
 				),
 			},
 		},
