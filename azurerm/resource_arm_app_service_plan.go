@@ -112,7 +112,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
-	properties := expandAppServicePlanProperties(d)
+	properties := expandAppServicePlanProperties(d, name)
 
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
@@ -252,9 +252,11 @@ func flattenAppServicePlanSku(profile *web.SkuDescription) []interface{} {
 	return skus
 }
 
-func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanProperties {
+func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.AppServicePlanProperties {
 	configs := d.Get("properties").([]interface{})
-	properties := web.AppServicePlanProperties{}
+	properties := web.AppServicePlanProperties{
+		Name: &name,
+	}
 	if len(configs) == 0 {
 		return &properties
 	}

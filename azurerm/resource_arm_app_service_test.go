@@ -603,7 +603,7 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("App Service still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil

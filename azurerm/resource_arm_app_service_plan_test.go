@@ -200,7 +200,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("App Service Plan still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil

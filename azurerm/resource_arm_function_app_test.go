@@ -145,7 +145,7 @@ func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("Function App still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil
