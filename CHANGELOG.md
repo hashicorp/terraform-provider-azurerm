@@ -1,4 +1,10 @@
 ## 1.0.2 (Unreleased)
+
+IMPROVEMENTS:
+
+* core: upgrading to `v12.2.0-beta` of `Azure/azure-sdk-for-go` [GH-684]
+* core: upgrading to `v9.7.0` of `Azure/go-autorest` [GH-684]
+
 ## 1.0.1 (January 12, 2018)
 
 FEATURES:
