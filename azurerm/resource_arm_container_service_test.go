@@ -345,8 +345,9 @@ func testCheckAzureRMContainerServiceExists(name string) resource.TestCheckFunc 
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on containerServicesClient: %+v", err)
 		}
@@ -370,7 +371,7 @@ func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil

@@ -259,6 +259,14 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
+			"checksumSHA1": "nIM5srMy/s8HncHgkG4f2w1LVJk=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice",
+			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
+			"revisionTime": "2018-01-09T21:59:56Z",
+			"version": "v12.2.0-beta",
+			"versionExact": "v12.2.0-beta"
+		},
+		{
 			"checksumSHA1": "s5P9JAODA/hf6hjOkp0rhJ78ZsE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
