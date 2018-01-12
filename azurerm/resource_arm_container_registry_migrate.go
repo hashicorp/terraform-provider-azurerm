@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -93,7 +92,8 @@ func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{
 
 func findAzureStorageAccountIdFromName(name string, meta interface{}) (string, error) {
 	client := meta.(*ArmClient).storageServiceClient
-	accounts, err := client.List(context.TODO())
+	ctx := meta.(*ArmClient).StopContext
+	accounts, err := client.List(ctx)
 	if err != nil {
 		return "", err
 	}

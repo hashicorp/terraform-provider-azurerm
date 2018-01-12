@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 	"testing"
@@ -115,14 +114,15 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 			Tier: storage.Standard,
 		},
 	}
-	createFuture, err := storageClient.Create(context.TODO(), resourceGroupName, storageAccountName, createParams)
+	ctx := client.StopContext
+	createFuture, err := storageClient.Create(ctx, resourceGroupName, storageAccountName, createParams)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating Storage Account %q: %+v", resourceGroupName, err)
 	}
 
-	err = createFuture.WaitForCompletion(context.TODO(), client.searchServicesClient.Client)
+	err = createFuture.WaitForCompletion(ctx, client.searchServicesClient.Client)
 
-	account, err := storageClient.GetProperties(context.TODO(), resourceGroupName, storageAccountName)
+	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Storage Account %q: %+v", resourceGroupName, err)
 	}
@@ -131,6 +131,7 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 }
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
-	client.storageServiceClient.Delete(context.TODO(), resourceGroupName, storageAccountName)
+	ctx := client.StopContext
+	client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName)
 	client.resourceGroupClient.Delete(resourceGroupName, make(chan struct{}))
 }
