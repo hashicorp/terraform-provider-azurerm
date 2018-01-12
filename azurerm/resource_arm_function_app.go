@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -116,17 +115,18 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	forceDNSRegistration := false
 	skipCustomDomainVerification := true
 	ttlInSeconds := "60"
-	createFuture, err := client.CreateOrUpdate(context.TODO(), resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
+	ctx := meta.(*ArmClient).StopContext
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
 	if err != nil {
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(context.TODO(), client.Client)
+	err = createFuture.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(context.TODO(), resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -141,6 +141,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -156,7 +157,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettings(context.TODO(), resGroup, name, settings)
+		_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
 		if err != nil {
 			return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
 		}
@@ -167,6 +168,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -176,7 +178,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	resp, err := client.Get(context.TODO(), resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Function App %q (resource group %q) was not found - removing from state", name, resGroup)
@@ -186,7 +188,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", name, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(context.TODO(), resGroup, name)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
 	}
@@ -236,7 +238,8 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	skipDNSRegistration := true
-	resp, err := client.Delete(context.TODO(), resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

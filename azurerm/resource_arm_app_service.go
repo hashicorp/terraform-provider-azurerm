@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -273,22 +272,23 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	forceDNSRegistration := false
 	skipCustomDomainVerification := true
 	ttlInSeconds := "60"
-	createFuture, err := client.CreateOrUpdate(context.TODO(), resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
+	ctx := meta.(*ArmClient).StopContext
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
 	if err != nil {
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(context.TODO(), client.Client)
+	err = createFuture.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(context.TODO(), resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Service %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read App Service %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -298,6 +298,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -313,7 +314,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
-		_, err := client.CreateOrUpdateConfiguration(context.TODO(), resGroup, name, siteConfigResource)
+		_, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource)
 		if err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", name, err)
 		}
@@ -326,7 +327,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettings(context.TODO(), resGroup, name, settings)
+		_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
 		if err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", name, err)
 		}
@@ -339,7 +340,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			Properties: connectionStrings,
 		}
 
-		_, err := client.UpdateConnectionStrings(context.TODO(), resGroup, name, properties)
+		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
 		if err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
 		}
@@ -359,7 +360,8 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	resp, err := client.Get(context.TODO(), resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", name, resGroup)
@@ -369,17 +371,17 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", name, err)
 	}
 
-	configResp, err := client.GetConfiguration(context.TODO(), resGroup, name)
+	configResp, err := client.GetConfiguration(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Configuration %q: %+v", name, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(context.TODO(), resGroup, name)
+	appSettingsResp, err := client.ListApplicationSettings(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service AppSettings %q: %+v", name, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStrings(context.TODO(), resGroup, name)
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", name, err)
 	}
@@ -427,7 +429,8 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	skipDNSRegistration := true
-	resp, err := client.Delete(context.TODO(), resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

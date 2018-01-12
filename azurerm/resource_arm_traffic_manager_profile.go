@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -130,12 +129,13 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags:              expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(context.TODO(), resGroup, name, profile)
+	ctx := meta.(*ArmClient).StopContext
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, profile)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(context.TODO(), resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -150,6 +150,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 
 func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -158,7 +159,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Get(context.TODO(), resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -199,7 +200,8 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Delete(context.TODO(), resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err

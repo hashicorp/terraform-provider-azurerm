@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"context"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -151,8 +149,8 @@ func testCheckAzureRMTrafficManagerProfileExists(name string) resource.TestCheck
 
 		// Ensure resource group/virtual network combination exists in API
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerProfilesClient
-
-		resp, err := conn.Get(context.TODO(), resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerProfilesClient: %+v", err)
 		}
@@ -177,8 +175,8 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(context.TODO(), resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return nil
 		}

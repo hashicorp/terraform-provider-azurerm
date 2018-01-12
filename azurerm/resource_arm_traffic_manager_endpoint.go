@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -119,12 +118,13 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 		EndpointProperties: getArmTrafficManagerEndpointProperties(d),
 	}
 
-	_, err := client.CreateOrUpdate(context.TODO(), resGroup, profileName, endpointType, name, params)
+	ctx := meta.(*ArmClient).StopContext
+	_, err := client.CreateOrUpdate(ctx, resGroup, profileName, endpointType, name, params)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(context.TODO(), resGroup, profileName, endpointType, name)
+	read, err := client.Get(ctx, resGroup, profileName, endpointType, name)
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,8 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
 
-	resp, err := client.Get(context.TODO(), resGroup, profileName, endpointType, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Get(ctx, resGroup, profileName, endpointType, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -199,8 +200,8 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 
 	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
-
-	resp, err := client.Delete(context.TODO(), resGroup, profileName, endpointType, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Delete(ctx, resGroup, profileName, endpointType, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -102,6 +101,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicePlansClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
@@ -122,17 +122,17 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Sku:  &sku,
 	}
 
-	createFuture, err := client.CreateOrUpdate(context.TODO(), resGroup, name, appServicePlan)
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
 	if err != nil {
 		return err
 	}
 
-	err = createFuture.WaitForCompletion(context.TODO(), client.Client)
+	err = createFuture.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(context.TODO(), resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,8 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["serverfarms"]
 
-	resp, err := client.Get(context.TODO(), resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -192,6 +193,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicePlansClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -202,7 +204,7 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Deleting app service plan %s: %s", resGroup, name)
 
-	resp, err := client.Delete(context.TODO(), resGroup, name)
+	resp, err := client.Delete(ctx, resGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
