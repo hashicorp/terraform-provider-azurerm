@@ -52,23 +52,59 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			},
 
 			"source_port_range": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"source_port_ranges"},
+			},
+
+			"source_port_ranges": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				ConflictsWith: []string{"source_port_range"},
 			},
 
 			"destination_port_range": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"destination_port_ranges"},
+			},
+
+			"destination_port_ranges": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				ConflictsWith: []string{"destination_port_range"},
 			},
 
 			"source_address_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"source_address_prefixes"},
+			},
+
+			"source_address_prefixes": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				ConflictsWith: []string{"source_address_prefix"},
 			},
 
 			"destination_address_prefix": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"destination_address_prefixes"},
+			},
+
+			"destination_address_prefixes": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
 			"access": {
@@ -138,6 +174,46 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		rule.SecurityRulePropertiesFormat.Description = &description
 	}
 
+	if r, ok := d.GetOk("source_port_ranges"); ok {
+		var sourcePortRanges []string
+		r := r.(*schema.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			sourcePortRanges = append(sourcePortRanges, s)
+		}
+		rule.SecurityRulePropertiesFormat.SourcePortRanges = &sourcePortRanges
+	}
+
+	if r, ok := d.GetOk("destination_port_ranges"); ok {
+		var destinationPortRanges []string
+		r := r.(*schema.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			destinationPortRanges = append(destinationPortRanges, s)
+		}
+		rule.SecurityRulePropertiesFormat.DestinationPortRanges = &destinationPortRanges
+	}
+
+	if r, ok := d.GetOk("source_address_prefixes"); ok {
+		var sourceAddressPrefixes []string
+		r := r.(*schema.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			sourceAddressPrefixes = append(sourceAddressPrefixes, s)
+		}
+		rule.SecurityRulePropertiesFormat.SourceAddressPrefixes = &sourceAddressPrefixes
+	}
+
+	if r, ok := d.GetOk("destination_address_prefixes"); ok {
+		var destinationAddressPrefixes []string
+		r := r.(*schema.Set).List()
+		for _, v := range r {
+			s := v.(string)
+			destinationAddressPrefixes = append(destinationAddressPrefixes, s)
+		}
+		rule.SecurityRulePropertiesFormat.DestinationAddressPrefixes = &destinationAddressPrefixes
+	}
+
 	_, createErr := client.CreateOrUpdate(resGroup, nsgName, name, rule, make(chan struct{}))
 	err := <-createErr
 	if err != nil {
@@ -190,6 +266,10 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 		d.Set("protocol", string(props.Protocol))
 		d.Set("source_address_prefix", props.SourceAddressPrefix)
 		d.Set("source_port_range", props.SourcePortRange)
+		d.Set("source_address_prefixes", props.SourceAddressPrefixes)
+		d.Set("destination_address_prefixes", props.DestinationAddressPrefixes)
+		d.Set("source_port_ranges", props.SourcePortRanges)
+		d.Set("destination_port_ranges", props.DestinationPortRanges)
 	}
 
 	return nil
