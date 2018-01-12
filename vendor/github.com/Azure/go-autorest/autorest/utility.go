@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
-	"sort"
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -193,30 +192,6 @@ func pathEscape(s string) string {
 
 func queryEscape(s string) string {
 	return url.QueryEscape(s)
-}
-
-// This method is same as Encode() method of "net/url" go package,
-// except it does not encode the query parameters because they
-// already come encoded. It formats values map in query format (bar=foo&a=b).
-func createQuery(v url.Values) string {
-	var buf bytes.Buffer
-	keys := make([]string, 0, len(v))
-	for k := range v {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		vs := v[k]
-		prefix := url.QueryEscape(k) + "="
-		for _, v := range vs {
-			if buf.Len() > 0 {
-				buf.WriteByte('&')
-			}
-			buf.WriteString(prefix)
-			buf.WriteString(v)
-		}
-	}
-	return buf.String()
 }
 
 // ChangeToGet turns the specified http.Request into a GET (it assumes it wasn't).
