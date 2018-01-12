@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -81,6 +80,7 @@ func resourceArmSqlElasticPool() *schema.Resource {
 
 func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlElasticPoolsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for SQL ElasticPool creation.")
 
@@ -97,17 +97,17 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: expandTags(tags),
 	}
 
-	future, err := client.CreateOrUpdate(context.TODO(), resGroup, serverName, name, elasticPool)
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, name, elasticPool)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletion(context.TODO(), client.Client)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(context.TODO(), resGroup, serverName, name)
+	read, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		return err
 	}
@@ -122,13 +122,14 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlElasticPoolsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(context.TODO(), resGroup, serverName, name)
+	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -160,15 +161,15 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	elasticPoolsClient := client.sqlElasticPoolsClient
+	client := meta.(*ArmClient).sqlElasticPoolsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = elasticPoolsClient.Delete(context.TODO(), resGroup, serverName, name)
+	_, err = client.Delete(ctx, resGroup, serverName, name)
 
 	return err
 }

@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -67,6 +66,7 @@ func resourceArmSqlServer() *schema.Resource {
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -88,17 +88,17 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
-	future, err := client.CreateOrUpdate(context.TODO(), resGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	err = future.WaitForCompletion(context.TODO(), client.Client)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(context.TODO(), resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -110,6 +110,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -119,7 +120,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	resp, err := client.Get(context.TODO(), resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
@@ -147,6 +148,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -156,12 +158,12 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	future, err := client.Delete(context.TODO(), resGroup, name)
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
 	}
 
-	err = future.WaitForCompletion(context.TODO(), client.Client)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}

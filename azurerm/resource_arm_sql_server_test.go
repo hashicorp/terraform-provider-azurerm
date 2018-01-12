@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"testing"
@@ -26,9 +25,10 @@ func testSweepSQLServer(region string) error {
 	}
 
 	client := (*armClient).sqlServersClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the SQL Servers..")
-	results, err := client.List(context.TODO())
+	results, err := client.List(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on SQL Servers: %+v", err)
 	}
@@ -47,12 +47,12 @@ func testSweepSQLServer(region string) error {
 		name := resourceId.Path["servers"]
 
 		log.Printf("Deleting SQL Server '%s' in Resource Group '%s'", name, resourceGroup)
-		future, err := client.Delete(context.TODO(), resourceGroup, name)
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
 			return err
 		}
 
-		err = future.WaitForCompletion(context.TODO(), client.Client)
+		err = future.WaitForCompletion(ctx, client.Client)
 		if err != nil {
 			return err
 		}
@@ -147,7 +147,8 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
-		resp, err := conn.Get(context.TODO(), resourceGroup, sqlServerName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
@@ -161,6 +162,7 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_server" {
@@ -170,7 +172,7 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		sqlServerName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(context.TODO(), resourceGroup, sqlServerName)
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -199,13 +201,14 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 		serverName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		future, err := client.Delete(context.TODO(), resourceGroup, serverName)
+		future, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {
 			return err
 		}
 
-		err = future.WaitForCompletion(context.TODO(), client.Client)
+		err = future.WaitForCompletion(ctx, client.Client)
 		if err != nil {
 			return err
 		}
