@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/satori/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,7 +23,8 @@ func resourceArmRoleAssignment() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
@@ -55,6 +57,10 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	scope := d.Get("scope").(string)
 	roleDefinitionId := d.Get("role_definition_id").(string)
 	principalId := d.Get("principal_id").(string)
+
+	if name == "" {
+		name = uuid.NewV1().String()
+	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
 		Properties: &authorization.RoleAssignmentProperties{
