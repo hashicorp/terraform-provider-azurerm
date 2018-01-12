@@ -1,13 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -225,8 +226,7 @@ func resourceArmStorageAccount() *schema.Resource {
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	storageClient := client.storageServiceClient
+	client := meta.(*ArmClient).storageServiceClient
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("name").(string)
@@ -287,24 +287,25 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Create
-	_, createError := storageClient.Create(resourceGroupName, storageAccountName, parameters, make(chan struct{}))
-	createErr := <-createError
+	createFuture, createErr := client.Create(context.TODO(), resourceGroupName, storageAccountName, parameters)
+	if createErr != nil {
+		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, createErr)
+	}
+
+	err := createFuture.WaitForCompletion(context.TODO(), client.Client)
+	if err != nil {
+		return fmt.Errorf(
+			"Error creating Azure Storage Account %q: %+v",
+			storageAccountName, createErr)
+	}
 
 	// The only way to get the ID back apparently is to read the resource again
-	read, err := storageClient.GetProperties(resourceGroupName, storageAccountName)
+	read, err := client.GetProperties(context.TODO(), resourceGroupName, storageAccountName)
 
 	// Set the ID right away if we have one
 	if err == nil && read.ID != nil {
 		log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *read.ID)
 		d.SetId(*read.ID)
-	}
-
-	// If we had a create error earlier then we return with that error now.
-	// We do this later here so that we can grab the ID above is possible.
-	if createErr != nil {
-		return fmt.Errorf(
-			"Error creating Azure Storage Account %q: %+v",
-			storageAccountName, createErr)
 	}
 
 	// Check the read error now that we know it would exist without a create err
@@ -366,7 +367,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			Sku: &sku,
 		}
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(context.TODO(), resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account type %q: %+v", storageAccountName, err)
 		}
@@ -383,7 +384,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 		}
 
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(context.TODO(), resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
 		}
@@ -397,7 +398,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			Tags: expandTags(tags),
 		}
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(context.TODO(), resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account tags %q: %+v", storageAccountName, err)
 		}
@@ -434,7 +435,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			d.SetPartial("enable_file_encryption")
 		}
 
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(context.TODO(), resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
@@ -448,7 +449,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 		}
 
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(context.TODO(), resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Custom Domain %q: %+v", storageAccountName, err)
 		}
@@ -462,7 +463,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 				EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			},
 		}
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(context.TODO(), resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %+v", storageAccountName, err)
 		}
@@ -485,7 +486,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.GetProperties(resGroup, name)
+	resp, err := client.GetProperties(context.TODO(), resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -494,7 +495,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	keys, err := client.ListKeys(resGroup, name)
+	keys, err := client.ListKeys(context.TODO(), resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -601,7 +602,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	_, err = client.Delete(resGroup, name)
+	_, err = client.Delete(context.TODO(), resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error issuing AzureRM delete request for storage account %q: %+v", name, err)
 	}
@@ -655,9 +656,9 @@ func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []e
 	return
 }
 
-func storageAccountStateRefreshFunc(client *ArmClient, resourceGroupName string, storageAccountName string) resource.StateRefreshFunc {
+func storageAccountStateRefreshFunc(client storage.AccountsClient, resourceGroupName string, storageAccountName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.storageServiceClient.GetProperties(resourceGroupName, storageAccountName)
+		res, err := client.GetProperties(context.TODO(), resourceGroupName, storageAccountName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in storageAccountStateRefreshFunc to Azure ARM for Storage Account '%s' (RG: '%s'): %s", storageAccountName, resourceGroupName, err)
 		}

@@ -36,8 +36,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
-	"github.com/Azure/azure-sdk-for-go/arm/storage"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -121,9 +121,6 @@ type ArmClient struct {
 	jobsClient            scheduler.JobsClient
 	jobsCollectionsClient scheduler.JobCollectionsClient
 
-	storageServiceClient storage.AccountsClient
-	storageUsageClient   storage.UsageClient
-
 	deploymentsClient resources.DeploymentsClient
 
 	redisClient               redis.GroupClient
@@ -165,6 +162,10 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
+
+	// Storage
+	storageServiceClient storage.AccountsClient
+	storageUsageClient   storage.UsageClient
 
 	// Traffic Manager
 	trafficManagerProfilesClient  trafficmanager.ProfilesClient
@@ -597,20 +598,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	jcc.Sender = sender
 	client.jobsCollectionsClient = jcc
 
-	ssc := storage.NewAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ssc.Client)
-	ssc.Authorizer = auth
-	ssc.Sender = sender
-	ssc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.storageServiceClient = ssc
-
-	suc := storage.NewUsageClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&suc.Client)
-	suc.Authorizer = auth
-	suc.Sender = sender
-	suc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.storageUsageClient = suc
-
 	dc := resources.NewDeploymentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dc.Client)
 	dc.Authorizer = auth
@@ -669,6 +656,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerStorageClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth, sender)
 
@@ -907,6 +895,22 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.managementLocksClient = locksClient
 }
 
+func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	accountsClient := storage.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&accountsClient.Client)
+	accountsClient.Authorizer = auth
+	accountsClient.Sender = sender
+	accountsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.storageServiceClient = accountsClient
+
+	usageClient := storage.NewUsageClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&usageClient.Client)
+	usageClient.Authorizer = auth
+	usageClient.Sender = sender
+	usageClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.storageUsageClient = usageClient
+}
+
 func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	endpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
 	setUserAgent(&endpointsClient.Client)
@@ -958,7 +962,7 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 	defer storageKeyCacheMu.Unlock()
 	key, ok = storageKeyCache[cacheIndex]
 	if !ok {
-		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
+		accountKeys, err := armClient.storageServiceClient.ListKeys(context.TODO(), resourceGroupName, storageAccountName)
 		if utils.ResponseWasNotFound(accountKeys.Response) {
 			return "", false, nil
 		}

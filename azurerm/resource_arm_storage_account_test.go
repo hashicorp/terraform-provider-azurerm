@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -327,7 +328,7 @@ func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 		// Ensure resource group exists in API
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
 
-		resp, err := conn.GetProperties(resourceGroup, storageAccount)
+		resp, err := conn.GetProperties(context.TODO(), resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 		}
@@ -354,7 +355,7 @@ func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFun
 		// Ensure resource group exists in API
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
 
-		_, err := conn.Delete(resourceGroup, storageAccount)
+		_, err := conn.Delete(context.TODO(), resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
 		}
@@ -374,7 +375,7 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.GetProperties(resourceGroup, name)
+		resp, err := conn.GetProperties(context.TODO(), resourceGroup, name)
 		if err != nil {
 			return nil
 		}
