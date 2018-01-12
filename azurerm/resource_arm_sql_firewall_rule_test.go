@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -76,7 +77,7 @@ func testCheckAzureRMSqlFirewallRuleExists(name string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
 
-		resp, err := client.Get(resourceGroup, serverName, ruleName)
+		resp, err := client.Get(context.TODO(), resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("SQL Firewall Rule %q (server %q / resource group %q) was not found", ruleName, serverName, resourceGroup)
@@ -101,7 +102,7 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
 
-		resp, err := client.Get(resourceGroup, serverName, ruleName)
+		resp, err := client.Get(context.TODO(), resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -130,7 +131,7 @@ func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFu
 
 		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
 
-		resp, err := client.Delete(resourceGroup, serverName, ruleName)
+		resp, err := client.Delete(context.TODO(), resourceGroup, serverName, ruleName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
 				return nil

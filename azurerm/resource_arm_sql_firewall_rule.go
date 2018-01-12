@@ -1,10 +1,11 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -65,12 +66,12 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	_, err := client.CreateOrUpdate(resourceGroup, serverName, name, parameters)
+	_, err := client.CreateOrUpdate(context.TODO(), resourceGroup, serverName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating SQL Firewall Rule: %+v", err)
 	}
 
-	resp, err := client.Get(resourceGroup, serverName, name)
+	resp, err := client.Get(context.TODO(), resourceGroup, serverName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving SQL Firewall Rule: %+v", err)
 	}
@@ -92,7 +93,7 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 	serverName := id.Path["servers"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Get(resourceGroup, serverName, name)
+	resp, err := client.Get(context.TODO(), resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Firewall Rule %q - removing from state", d.Id())
@@ -124,7 +125,7 @@ func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) 
 	serverName := id.Path["servers"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Delete(resourceGroup, serverName, name)
+	resp, err := client.Delete(context.TODO(), resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

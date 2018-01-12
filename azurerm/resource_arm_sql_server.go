@@ -1,11 +1,11 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
-
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -88,19 +88,17 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		},
 	}
 
-	createResp, createErr := client.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
-	resp := <-createResp
-	err := <-createErr
+	future, err := client.CreateOrUpdate(context.TODO(), resGroup, name, parameters)
 	if err != nil {
-		// if the name is in-use, Azure returns a 409 "Unknown Service Error" which is a bad UX
-		if utils.ResponseWasConflict(resp.Response) {
-			return fmt.Errorf("SQL Server names need to be globally unique and '%s' is already in use.", name)
-		}
-
 		return err
 	}
 
-	resp, err = client.Get(resGroup, name)
+	err = future.WaitForCompletion(context.TODO(), client.Client)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -121,7 +119,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Server %q - removing from state", d.Id())
@@ -158,15 +156,14 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	deleteResp, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	resp := <-deleteResp
-	err = <-deleteErr
+	future, err := client.Delete(context.TODO(), resGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
 		return fmt.Errorf("Error deleting SQL Server %s: %+v", name, err)
+	}
+
+	err = future.WaitForCompletion(context.TODO(), client.Client)
+	if err != nil {
+		return err
 	}
 
 	return nil

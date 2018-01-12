@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -169,7 +170,7 @@ func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
 
-		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
+		resp, err := client.Get(context.TODO(), resourceGroup, serverName, databaseName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("SQL Database %q (server %q / resource group %q) was not found", databaseName, serverName, resourceGroup)
@@ -194,7 +195,7 @@ func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
 
-		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
+		resp, err := client.Get(context.TODO(), resourceGroup, serverName, databaseName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -223,7 +224,7 @@ func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
 
-		_, err := client.Delete(resourceGroup, serverName, databaseName)
+		_, err := client.Delete(context.TODO(), resourceGroup, serverName, databaseName)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on sqlDatabasesClient: %+v", err)
 		}

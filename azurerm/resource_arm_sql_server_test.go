@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"testing"
@@ -27,12 +28,12 @@ func testSweepSQLServer(region string) error {
 	client := (*armClient).sqlServersClient
 
 	log.Printf("Retrieving the SQL Servers..")
-	results, err := client.List()
+	results, err := client.List(context.TODO())
 	if err != nil {
 		return fmt.Errorf("Error Listing on SQL Servers: %+v", err)
 	}
 
-	for _, server := range *results.Value {
+	for _, server := range results.Values() {
 		if !shouldSweepAcceptanceTestResource(*server.Name, *server.Location, region) {
 			continue
 		}
@@ -46,8 +47,12 @@ func testSweepSQLServer(region string) error {
 		name := resourceId.Path["servers"]
 
 		log.Printf("Deleting SQL Server '%s' in Resource Group '%s'", name, resourceGroup)
-		_, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
-		err = <-deleteErr
+		future, err := client.Delete(context.TODO(), resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+		err = future.WaitForCompletion(context.TODO(), client.Client)
 		if err != nil {
 			return err
 		}
@@ -142,7 +147,7 @@ func testCheckAzureRMSqlServerExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
-		resp, err := conn.Get(resourceGroup, sqlServerName)
+		resp, err := conn.Get(context.TODO(), resourceGroup, sqlServerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: SQL Server %s (resource group: %s) does not exist", sqlServerName, resourceGroup)
@@ -165,7 +170,7 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		sqlServerName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, sqlServerName)
+		resp, err := conn.Get(context.TODO(), resourceGroup, sqlServerName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -195,13 +200,14 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
 
-		deleteResp, deleteErr := client.Delete(resourceGroup, serverName, make(chan struct{}))
-		resp := <-deleteResp
-		err := <-deleteErr
+		future, err := client.Delete(context.TODO(), resourceGroup, serverName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: Delete on sqlServersClient: %+v", err)
-			}
+			return err
+		}
+
+		err = future.WaitForCompletion(context.TODO(), client.Client)
+		if err != nil {
+			return err
 		}
 
 		return nil

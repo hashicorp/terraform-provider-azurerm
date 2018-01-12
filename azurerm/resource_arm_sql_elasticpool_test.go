@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -96,7 +97,7 @@ func testCheckAzureRMSqlElasticPoolExists(name string) resource.TestCheckFunc {
 
 		client := testAccProvider.Meta().(*ArmClient).sqlElasticPoolsClient
 
-		resp, err := client.Get(resourceGroup, serverName, poolName)
+		resp, err := client.Get(context.TODO(), resourceGroup, serverName, poolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on sqlElasticPoolsClient: %+v", err)
 		}
@@ -121,7 +122,7 @@ func testCheckAzureRMSqlElasticPoolDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		resp, err := client.Get(resourceGroup, serverName, poolName)
+		resp, err := client.Get(context.TODO(), resourceGroup, serverName, poolName)
 
 		if err != nil {
 			return nil
@@ -149,7 +150,7 @@ func testCheckAzureRMSqlElasticPoolDisappears(name string) resource.TestCheckFun
 
 		client := testAccProvider.Meta().(*ArmClient).sqlElasticPoolsClient
 
-		_, err := client.Delete(resourceGroup, serverName, poolName)
+		_, err := client.Delete(context.TODO(), resourceGroup, serverName, poolName)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on sqlElasticPoolsClient: %+v", err)
 		}
