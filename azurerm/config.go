@@ -37,8 +37,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
-	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
@@ -130,9 +130,6 @@ type ArmClient struct {
 	redisFirewallClient       redis.FirewallRuleClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
-	trafficManagerProfilesClient  trafficmanager.ProfilesClient
-	trafficManagerEndpointsClient trafficmanager.EndpointsClient
-
 	searchServicesClient          search.ServicesClient
 	serviceBusNamespacesClient    servicebus.NamespacesClient
 	serviceBusQueuesClient        servicebus.QueuesClient
@@ -168,6 +165,10 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
+
+	// Traffic Manager
+	trafficManagerProfilesClient  trafficmanager.ProfilesClient
+	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
 	// Web
 	appServicePlansClient web.AppServicePlansClient
@@ -617,20 +618,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	dc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.deploymentsClient = dc
 
-	tmpc := trafficmanager.NewProfilesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&tmpc.Client)
-	tmpc.Authorizer = auth
-	tmpc.Sender = sender
-	tmpc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.trafficManagerProfilesClient = tmpc
-
-	tmec := trafficmanager.NewEndpointsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&tmec.Client)
-	tmec.Authorizer = auth
-	tmec.Sender = sender
-	tmec.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.trafficManagerEndpointsClient = tmec
-
 	sesc := search.NewServicesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&sesc.Client)
 	sesc.Authorizer = auth
@@ -666,20 +653,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	sbsc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.serviceBusSubscriptionsClient = sbsc
 
-	aspc := web.NewAppServicePlansClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&aspc.Client)
-	aspc.Authorizer = auth
-	aspc.Sender = sender
-	aspc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.appServicePlansClient = aspc
-
-	ac := web.NewAppsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ac.Client)
-	ac.Authorizer = auth
-	ac.Sender = autorest.CreateSender(withRequestLogging())
-	ac.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.appServicesClient = ac
-
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ai.Client)
 	ai.Authorizer = auth
@@ -696,6 +669,8 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerWebClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
 }
@@ -930,6 +905,38 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	locksClient.Sender = sender
 	locksClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.managementLocksClient = locksClient
+}
+
+func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	endpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
+	setUserAgent(&endpointsClient.Client)
+	endpointsClient.Authorizer = auth
+	endpointsClient.Sender = sender
+	endpointsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.trafficManagerEndpointsClient = endpointsClient
+
+	profilesClient := trafficmanager.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&profilesClient.Client)
+	profilesClient.Authorizer = auth
+	profilesClient.Sender = sender
+	profilesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.trafficManagerProfilesClient = profilesClient
+}
+
+func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	appServicePlansClient := web.NewAppServicePlansClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&appServicePlansClient.Client)
+	appServicePlansClient.Authorizer = auth
+	appServicePlansClient.Sender = sender
+	appServicePlansClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.appServicePlansClient = appServicePlansClient
+
+	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&appsClient.Client)
+	appsClient.Authorizer = auth
+	appsClient.Sender = autorest.CreateSender(withRequestLogging())
+	appsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.appServicesClient = appsClient
 }
 
 var (

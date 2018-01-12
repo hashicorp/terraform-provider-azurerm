@@ -1,11 +1,12 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -118,12 +119,12 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 		EndpointProperties: getArmTrafficManagerEndpointProperties(d),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, profileName, endpointType, name, params)
+	_, err := client.CreateOrUpdate(context.TODO(), resGroup, profileName, endpointType, name, params)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, profileName, endpointType, name)
+	read, err := client.Get(context.TODO(), resGroup, profileName, endpointType, name)
 	if err != nil {
 		return err
 	}
@@ -158,7 +159,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
 
-	resp, err := client.Get(resGroup, profileName, endpointType, name)
+	resp, err := client.Get(context.TODO(), resGroup, profileName, endpointType, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -199,9 +200,16 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
 
-	_, err = client.Delete(resGroup, profileName, endpointType, name)
+	resp, err := client.Delete(context.TODO(), resGroup, profileName, endpointType, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
 
-	return err
+		return err
+	}
+
+	return nil
 }
 
 func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmanager.EndpointProperties {

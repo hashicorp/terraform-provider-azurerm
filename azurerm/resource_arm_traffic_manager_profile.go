@@ -2,11 +2,12 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -129,12 +130,12 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags:              expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, name, profile)
+	_, err := client.CreateOrUpdate(context.TODO(), resGroup, name, profile)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	read, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -157,7 +158,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -198,7 +199,7 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Delete(resGroup, name)
+	resp, err := client.Delete(context.TODO(), resGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err

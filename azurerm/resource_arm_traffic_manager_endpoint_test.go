@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"path"
@@ -236,7 +237,7 @@ func testCheckAzureRMTrafficManagerEndpointExists(name string) resource.TestChec
 		// Ensure resource group/virtual network combination exists in API
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
 
-		resp, err := conn.Get(resourceGroup, profileName, path.Base(endpointType), name)
+		resp, err := conn.Get(context.TODO(), resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on trafficManagerEndpointsClient: %+v", err)
 		}
@@ -268,7 +269,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(name string) resource.Test
 		// Ensure resource group/virtual network combination exists in API
 		conn := testAccProvider.Meta().(*ArmClient).trafficManagerEndpointsClient
 
-		_, err := conn.Delete(resourceGroup, profileName, path.Base(endpointType), name)
+		_, err := conn.Delete(context.TODO(), resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on trafficManagerEndpointsClient: %+v", err)
 		}
@@ -290,7 +291,7 @@ func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
 		profileName := rs.Primary.Attributes["profile_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, profileName, path.Base(endpointType), name)
+		resp, err := conn.Get(context.TODO(), resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
 			return nil
 		}
