@@ -1,20 +1,20 @@
-## 1.0.1 (Unreleased)
+## 1.0.1 (January 12, 2018)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_app_service_plan` [GH-668]
-* **New Data Source:** `azurerm_eventhub_namespace` [GH-673]
-* **New Resource:** `azurerm_function_app` [GH-647]
+* **New Data Source:** `azurerm_app_service_plan` ([#668](https://github.com/terraform-providers/terraform-provider-azurerm/issues/668))
+* **New Data Source:** `azurerm_eventhub_namespace` ([#673](https://github.com/terraform-providers/terraform-provider-azurerm/issues/673))
+* **New Resource:** `azurerm_function_app` ([#647](https://github.com/terraform-providers/terraform-provider-azurerm/issues/647))
 
 IMPROVEMENTS:
 
-* core: adding a cache to the Storage Account Keys [GH-634]
-* `azurerm_eventhub` - added support for `capture_description` [GH-681]
-* `azurerm_eventhub_consumer_group` - adding validation for the user metadata field [GH-641]
-* `azurerm_lb` - adding the computed field `public_ip_addresses` [GH-633]
-* `azurerm_local_network_gateway` - add support for `tags` [GH-638]
-* `azurerm_network_interface` - support for Accelerated Networking [GH-672]
-* `azurerm_storage_account` - expose `primary_connection_string` and `secondary_connection_string` [GH-647]
+* core: adding a cache to the Storage Account Keys ([#634](https://github.com/terraform-providers/terraform-provider-azurerm/issues/634))
+* `azurerm_eventhub` - added support for `capture_description` ([#681](https://github.com/terraform-providers/terraform-provider-azurerm/issues/681))
+* `azurerm_eventhub_consumer_group` - adding validation for the user metadata field ([#641](https://github.com/terraform-providers/terraform-provider-azurerm/issues/641))
+* `azurerm_lb` - adding the computed field `public_ip_addresses` ([#633](https://github.com/terraform-providers/terraform-provider-azurerm/issues/633))
+* `azurerm_local_network_gateway` - add support for `tags` ([#638](https://github.com/terraform-providers/terraform-provider-azurerm/issues/638))
+* `azurerm_network_interface` - support for Accelerated Networking ([#672](https://github.com/terraform-providers/terraform-provider-azurerm/issues/672))
+* `azurerm_storage_account` - expose `primary_connection_string` and `secondary_connection_string` ([#647](https://github.com/terraform-providers/terraform-provider-azurerm/issues/647))
 
 
 ## 1.0.0 (December 15, 2017)
