@@ -1,11 +1,12 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -121,18 +122,22 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Sku:  &sku,
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, name, appServicePlan, make(chan struct{}))
-	err := <-createErr
+	createFuture, err := client.CreateOrUpdate(context.TODO(), resGroup, name, appServicePlan)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = createFuture.WaitForCompletion(context.TODO(), client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM App Service Plan %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM App Service Plan %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -153,7 +158,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["serverfarms"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -197,9 +202,17 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Deleting app service plan %s: %s", resGroup, name)
 
-	_, err = client.Delete(resGroup, name)
+	resp, err := client.Delete(context.TODO(), resGroup, name)
 
-	return err
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {

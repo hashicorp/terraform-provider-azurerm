@@ -1,10 +1,11 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -115,13 +116,17 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	forceDNSRegistration := false
 	skipCustomDomainVerification := true
 	ttlInSeconds := "60"
-	_, createErr := client.CreateOrUpdate(resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds, make(chan struct{}))
-	err := <-createErr
+	createFuture, err := client.CreateOrUpdate(context.TODO(), resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = createFuture.WaitForCompletion(context.TODO(), client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -151,7 +156,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			Properties: appSettings,
 		}
 
-		_, err := client.UpdateApplicationSettings(resGroup, name, settings)
+		_, err := client.UpdateApplicationSettings(context.TODO(), resGroup, name, settings)
 		if err != nil {
 			return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
 		}
@@ -171,7 +176,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(context.TODO(), resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Function App %q (resource group %q) was not found - removing from state", name, resGroup)
@@ -181,7 +186,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", name, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(resGroup, name)
+	appSettingsResp, err := client.ListApplicationSettings(context.TODO(), resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
 	}
@@ -231,7 +236,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	skipDNSRegistration := true
-	resp, err := client.Delete(resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	resp, err := client.Delete(context.TODO(), resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

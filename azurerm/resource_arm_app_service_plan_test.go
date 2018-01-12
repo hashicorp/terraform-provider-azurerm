@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -189,7 +190,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(context.TODO(), resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -221,7 +222,7 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 
 		conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
 
-		resp, err := conn.Get(resourceGroup, appServicePlanName)
+		resp, err := conn.Get(context.TODO(), resourceGroup, appServicePlanName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Service Plan %q (resource group: %q) does not exist", appServicePlanName, resourceGroup)

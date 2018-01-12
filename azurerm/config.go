@@ -38,8 +38,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/sql"
 	"github.com/Azure/azure-sdk-for-go/arm/storage"
 	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
-	"github.com/Azure/azure-sdk-for-go/arm/web"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -142,9 +142,6 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
-	appServicePlansClient web.AppServicePlansClient
-	appServicesClient     web.AppsClient
-
 	appInsightsClient appinsights.ComponentsClient
 
 	// Authentication
@@ -171,6 +168,10 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
+
+	// Web
+	appServicePlansClient web.AppServicePlansClient
+	appServicesClient     web.AppsClient
 }
 
 func withRequestLogging() autorest.SendDecorator {
