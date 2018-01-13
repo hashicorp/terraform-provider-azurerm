@@ -169,8 +169,9 @@ func testCheckAzureRMManagedClusterExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).managedClustersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(testAccProvider.Meta().(*ArmClient).StopContext, resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on managedClustersClient: %+v", err)
 		}
@@ -194,7 +195,8 @@ func testCheckAzureRMManagedClusterDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(testAccProvider.Meta().(*ArmClient).StopContext, resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil

@@ -197,12 +197,13 @@ func resourceArmManagedClusterCreate(d *schema.ResourceData, meta interface{}) e
 		parameters.ServicePrincipalProfile = servicePrincipalProfile
 	}
 
-	_, error := managedClusterClient.CreateOrUpdate(client.StopContext, resGroup, name, parameters)
+	ctx := client.StopContext
+	_, error := managedClusterClient.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if error != nil {
 		return error
 	}
 
-	read, err := managedClusterClient.Get(client.StopContext, resGroup, name)
+	read, err := managedClusterClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -239,7 +240,8 @@ func resourceArmManagedClusterRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["managedClusters"]
 
-	resp, err := managedClusterClient.Get(client.StopContext, resGroup, name)
+	ctx := client.StopContext
+	resp, err := managedClusterClient.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -282,11 +284,15 @@ func resourceArmManagedClusterDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["managedClusters"]
 
-	delResp, _ := managedClusterClient.Delete(client.StopContext, resGroup, name)
-	err = delResp.WaitForCompletion(client.StopContext, managedClusterClient.Client)
-
+	ctx := client.StopContext
+	future, err := managedClusterClient.Delete(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Service '%s': %s", name, err)
+	}
+
+	err = future.WaitForCompletion(ctx, managedClusterClient.Client)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -469,7 +475,8 @@ func expandAzureRmManagedClusterAgentProfiles(d *schema.ResourceData) []containe
 
 func ManagedClusterStateRefreshFunc(client *ArmClient, resourceGroupName string, managedClusterName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.managedClustersClient.Get(client.StopContext, resourceGroupName, managedClusterName)
+		ctx := client.StopContext
+		res, err := client.managedClustersClient.Get(ctx, resourceGroupName, managedClusterName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in AKSStateRefreshFunc to Azure ARM for AKS managed cluster '%s' (RG: '%s'): %s", managedClusterName, resourceGroupName, err)
 		}
