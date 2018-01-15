@@ -127,11 +127,7 @@ type ArmClient struct {
 	redisFirewallClient       redis.FirewallRuleClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
-	searchServicesClient          search.ServicesClient
-	serviceBusNamespacesClient    servicebus.NamespacesClient
-	serviceBusQueuesClient        servicebus.QueuesClient
-	serviceBusTopicsClient        servicebus.TopicsClient
-	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
+	searchServicesClient search.ServicesClient
 
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
@@ -162,6 +158,12 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
+
+	// ServiceBus
+	serviceBusNamespacesClient    servicebus.NamespacesClient
+	serviceBusQueuesClient        servicebus.QueuesClient
+	serviceBusTopicsClient        servicebus.TopicsClient
+	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
 
 	// Storage
 	storageServiceClient storage.AccountsClient
@@ -612,34 +614,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	sesc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.searchServicesClient = sesc
 
-	sbnc := servicebus.NewNamespacesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sbnc.Client)
-	sbnc.Authorizer = auth
-	sbnc.Sender = sender
-	sbnc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.serviceBusNamespacesClient = sbnc
-
-	sbqc := servicebus.NewQueuesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sbqc.Client)
-	sbqc.Authorizer = auth
-	sbqc.Sender = sender
-	sbqc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.serviceBusQueuesClient = sbqc
-
-	sbtc := servicebus.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sbtc.Client)
-	sbtc.Authorizer = auth
-	sbtc.Sender = sender
-	sbtc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.serviceBusTopicsClient = sbtc
-
-	sbsc := servicebus.NewSubscriptionsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sbsc.Client)
-	sbsc.Authorizer = auth
-	sbsc.Sender = sender
-	sbsc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.serviceBusSubscriptionsClient = sbsc
-
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ai.Client)
 	ai.Authorizer = auth
@@ -656,6 +630,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth, sender)
@@ -893,6 +868,36 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	locksClient.Sender = sender
 	locksClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.managementLocksClient = locksClient
+}
+
+func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	queuesClient := servicebus.NewQueuesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&queuesClient.Client)
+	queuesClient.Authorizer = auth
+	queuesClient.Sender = sender
+	queuesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.serviceBusQueuesClient = queuesClient
+
+	namespacesClient := servicebus.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&namespacesClient.Client)
+	namespacesClient.Authorizer = auth
+	namespacesClient.Sender = sender
+	namespacesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.serviceBusNamespacesClient = namespacesClient
+
+	topicsClient := servicebus.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&topicsClient.Client)
+	topicsClient.Authorizer = auth
+	topicsClient.Sender = sender
+	topicsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.serviceBusTopicsClient = topicsClient
+
+	subscriptionsClient := servicebus.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&subscriptionsClient.Client)
+	subscriptionsClient.Authorizer = auth
+	subscriptionsClient.Sender = sender
+	subscriptionsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.serviceBusSubscriptionsClient = subscriptionsClient
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
