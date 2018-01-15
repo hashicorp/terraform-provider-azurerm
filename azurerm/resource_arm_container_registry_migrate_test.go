@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
-	"github.com/Azure/azure-sdk-for-go/arm/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -105,6 +105,7 @@ func createResourceGroup(client *ArmClient, resourceGroupName string, location s
 }
 
 func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountName, location string) (*storage.Account, error) {
+	storageClient := client.storageServiceClient
 	createParams := storage.AccountCreateParameters{
 		Location: &location,
 		Kind:     storage.Storage,
@@ -113,13 +114,15 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 			Tier: storage.Standard,
 		},
 	}
-	_, createErr := client.storageServiceClient.Create(resourceGroupName, storageAccountName, createParams, make(chan struct{}))
-	err := <-createErr
+	ctx := client.StopContext
+	createFuture, err := storageClient.Create(ctx, resourceGroupName, storageAccountName, createParams)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating Storage Account %q: %+v", resourceGroupName, err)
 	}
 
-	account, err := client.storageServiceClient.GetProperties(resourceGroupName, storageAccountName)
+	err = createFuture.WaitForCompletion(ctx, client.searchServicesClient.Client)
+
+	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Storage Account %q: %+v", resourceGroupName, err)
 	}
@@ -128,6 +131,7 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 }
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
-	client.storageServiceClient.Delete(resourceGroupName, storageAccountName)
+	ctx := client.StopContext
+	client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName)
 	client.resourceGroupClient.Delete(resourceGroupName, make(chan struct{}))
 }
