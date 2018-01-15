@@ -169,7 +169,8 @@ func TestAccAzureRMServiceBusNamespace_NonStandardCasing(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_namespace" {
@@ -179,7 +180,7 @@ func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -207,9 +208,10 @@ func testCheckAzureRMServiceBusNamespaceExists(name string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+		client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, namespaceName)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusNamespacesClient: %+v", err)
 		}
