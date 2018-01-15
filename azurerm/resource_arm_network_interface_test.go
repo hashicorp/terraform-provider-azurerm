@@ -4,11 +4,68 @@ import (
 	"fmt"
 	"testing"
 
+	"log"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_network_interface", &resource.Sweeper{
+		Name: "azurerm_network_interface",
+		F:    testSweepNetworkInterfaces,
+		Dependencies: []string{
+			"azurerm_application_gateway",
+			"azurerm_virtual_machine",
+		},
+	})
+}
+
+func testSweepNetworkInterfaces(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).ifaceClient
+
+	log.Printf("Retrieving the Network Interfaces..")
+	results, err := client.ListAll()
+	if err != nil {
+		return fmt.Errorf("Error Listing on Network Interfaces: %+v", err)
+	}
+
+	for _, network := range *results.Value {
+		id, err := parseAzureResourceID(*network.ID)
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		}
+
+		resourceGroupName := id.ResourceGroup
+		name := *network.Name
+		location := *network.Location
+
+		if !shouldSweepAcceptanceTestResource(name, location, region) {
+			continue
+		}
+
+		log.Printf("Deleting Network Interfaces %q", name)
+		deleteResponse, deleteErr := client.Delete(resourceGroupName, name, make(chan struct{}))
+		resp := <-deleteResponse
+		err = <-deleteErr
+		if err != nil {
+			if utils.ResponseWasNotFound(resp) {
+				continue
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	rInt := acctest.RandInt()
@@ -176,6 +233,25 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_ip_forwarding", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_acceleratedNetworking(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_accelerated_networking", "true"),
 				),
 			},
 		},
@@ -514,6 +590,43 @@ resource "azurerm_network_interface" "test" {
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_acceleratedNetworking(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                          = "acctestni-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  enable_ip_forwarding          = false
+  enable_accelerated_networking = true
 
   ip_configuration {
     name                          = "testconfiguration1"

@@ -460,7 +460,29 @@ func getMSIVMEndpoint(path string) (string, error) {
 }
 
 // NewServicePrincipalTokenFromMSI creates a ServicePrincipalToken via the MSI VM Extension.
+// It will use the system assigned identity when creating the token.
 func NewServicePrincipalTokenFromMSI(msiEndpoint, resource string, callbacks ...TokenRefreshCallback) (*ServicePrincipalToken, error) {
+	return newServicePrincipalTokenFromMSI(msiEndpoint, resource, nil, callbacks...)
+}
+
+// NewServicePrincipalTokenFromMSIWithUserAssignedID creates a ServicePrincipalToken via the MSI VM Extension.
+// It will use the specified user assigned identity when creating the token.
+func NewServicePrincipalTokenFromMSIWithUserAssignedID(msiEndpoint, resource string, userAssignedID string, callbacks ...TokenRefreshCallback) (*ServicePrincipalToken, error) {
+	return newServicePrincipalTokenFromMSI(msiEndpoint, resource, &userAssignedID, callbacks...)
+}
+
+func newServicePrincipalTokenFromMSI(msiEndpoint, resource string, userAssignedID *string, callbacks ...TokenRefreshCallback) (*ServicePrincipalToken, error) {
+	if err := validateStringParam(msiEndpoint, "msiEndpoint"); err != nil {
+		return nil, err
+	}
+	if err := validateStringParam(resource, "resource"); err != nil {
+		return nil, err
+	}
+	if userAssignedID != nil {
+		if err := validateStringParam(*userAssignedID, "userAssignedID"); err != nil {
+			return nil, err
+		}
+	}
 	// We set the oauth config token endpoint to be MSI's endpoint
 	msiEndpointURL, err := url.Parse(msiEndpoint)
 	if err != nil {
@@ -480,6 +502,10 @@ func NewServicePrincipalTokenFromMSI(msiEndpoint, resource string, callbacks ...
 		refreshWithin:    defaultRefresh,
 		sender:           &http.Client{},
 		refreshCallbacks: callbacks,
+	}
+
+	if userAssignedID != nil {
+		spt.clientID = *userAssignedID
 	}
 
 	return spt, nil

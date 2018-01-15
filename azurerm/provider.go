@@ -65,8 +65,10 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
+			"azurerm_app_service_plan":        dataSourceAppServicePlan(),
 			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_client_config":           dataSourceArmClientConfig(),
+			"azurerm_eventhub_namespace":      dataSourceEventHubNamespace(),
 			"azurerm_image":                   dataSourceArmImage(),
 			"azurerm_key_vault_access_policy": dataSourceArmKeyVaultAccessPolicy(),
 			"azurerm_managed_disk":            dataSourceArmManagedDisk(),
@@ -112,6 +114,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_consumer_group":     resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":          resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":       resourceArmExpressRouteCircuit(),
+			"azurerm_function_app":                resourceArmFunctionApp(),
 			"azurerm_image":                       resourceArmImage(),
 			"azurerm_key_vault":                   resourceArmKeyVault(),
 			"azurerm_key_vault_certificate":       resourceArmKeyVaultCertificate(),

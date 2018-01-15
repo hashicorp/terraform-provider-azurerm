@@ -188,8 +188,8 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -199,7 +199,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("App Service Plan still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil
@@ -220,8 +220,8 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
-
-		resp, err := conn.Get(resourceGroup, appServicePlanName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Service Plan %q (resource group: %q) does not exist", appServicePlanName, resourceGroup)

@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/sql"
+	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -226,13 +226,18 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	_, createErr := client.CreateOrUpdate(resourceGroup, serverName, name, properties, make(chan struct{}))
-	err := <-createErr
+	ctx := meta.(*ArmClient).StopContext
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(resourceGroup, serverName, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
 	if err != nil {
 		return err
 	}
@@ -244,6 +249,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlDatabasesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -254,7 +260,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
 
-	resp, err := client.Get(resourceGroup, serverName, name, "")
+	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Database %q - removing from state", d.Id())
@@ -307,6 +313,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlDatabasesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -317,7 +324,7 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 	serverName := id.Path["servers"]
 	name := id.Path["databases"]
 
-	resp, err := client.Delete(resourceGroup, serverName, name)
+	resp, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
