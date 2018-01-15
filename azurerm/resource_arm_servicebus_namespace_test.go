@@ -2,16 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"testing"
 
-	"log"
-
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func init() {
@@ -28,14 +26,15 @@ func testSweepServiceBusNamespace(region string) error {
 	}
 
 	client := (*armClient).serviceBusNamespacesClient
+	ctx := armClient.StopContext
 
 	log.Printf("Retrieving the Servicebus Namespaces..")
-	results, err := client.List()
+	results, err := client.List(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on Servicebus Namespaces: %+v", err)
 	}
 
-	for _, profile := range *results.Value {
+	for _, profile := range results.Values() {
 		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
 			continue
 		}
@@ -48,15 +47,14 @@ func testSweepServiceBusNamespace(region string) error {
 		resourceGroup := resourceId.ResourceGroup
 		name := resourceId.Path["namespaces"]
 
-		log.Printf("Deleting Servicebus Namespace '%s' in Resource Group '%s'", name, resourceGroup)
-		deleteResponse, error := client.Delete(resourceGroup, name, make(chan struct{}))
-		err = <-error
-		resp := <-deleteResponse
+		log.Printf("Deleting Servicebus Namespace %q in Resource Group %q", name, resourceGroup)
+		deleteFuture, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return nil
-			}
+			return err
+		}
 
+		err = deleteFuture.WaitForCompletion(ctx, client.Client)
+		if err != nil {
 			return err
 		}
 	}

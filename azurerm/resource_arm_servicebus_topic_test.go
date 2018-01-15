@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusTopic_basic(t *testing.T) {
@@ -202,6 +203,7 @@ func TestAccAzureRMServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 
 func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_topic" {
@@ -212,9 +214,9 @@ func testCheckAzureRMServiceBusTopicDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, namespaceName, name)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
@@ -244,8 +246,9 @@ func testCheckAzureRMServiceBusTopicExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, namespaceName, topicName)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusTopicsClient: %+v", err)
 		}
