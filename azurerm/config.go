@@ -8,6 +8,7 @@ import (
 	"net/http/httputil"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
@@ -176,6 +177,14 @@ type ArmClient struct {
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
+}
+
+func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
+	setUserAgent(client)
+	client.Authorizer = auth
+	client.Sender = autorest.CreateSender(withRequestLogging())
+	client.SkipResourceProviderRegistration = c.skipProviderRegistration
+	client.PollingDuration = 60 * time.Minute
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -630,10 +639,10 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerStorageClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerWebClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
+	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
+	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
+	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -870,81 +879,51 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.managementLocksClient = locksClient
 }
 
-func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	queuesClient := servicebus.NewQueuesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&queuesClient.Client)
-	queuesClient.Authorizer = auth
-	queuesClient.Sender = sender
-	queuesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&queuesClient.Client, auth)
 	c.serviceBusQueuesClient = queuesClient
 
 	namespacesClient := servicebus.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&namespacesClient.Client)
-	namespacesClient.Authorizer = auth
-	namespacesClient.Sender = sender
-	namespacesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&namespacesClient.Client, auth)
 	c.serviceBusNamespacesClient = namespacesClient
 
 	topicsClient := servicebus.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&topicsClient.Client)
-	topicsClient.Authorizer = auth
-	topicsClient.Sender = sender
-	topicsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&topicsClient.Client, auth)
 	c.serviceBusTopicsClient = topicsClient
 
 	subscriptionsClient := servicebus.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&subscriptionsClient.Client)
-	subscriptionsClient.Authorizer = auth
-	subscriptionsClient.Sender = sender
-	subscriptionsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&subscriptionsClient.Client, auth)
 	c.serviceBusSubscriptionsClient = subscriptionsClient
 }
 
-func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	accountsClient := storage.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&accountsClient.Client)
-	accountsClient.Authorizer = auth
-	accountsClient.Sender = sender
-	accountsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&accountsClient.Client, auth)
 	c.storageServiceClient = accountsClient
 
 	usageClient := storage.NewUsageClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&usageClient.Client)
-	usageClient.Authorizer = auth
-	usageClient.Sender = sender
-	usageClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
 }
 
-func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	endpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
-	setUserAgent(&endpointsClient.Client)
-	endpointsClient.Authorizer = auth
-	endpointsClient.Sender = sender
-	endpointsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&endpointsClient.Client, auth)
 	c.trafficManagerEndpointsClient = endpointsClient
 
 	profilesClient := trafficmanager.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&profilesClient.Client)
-	profilesClient.Authorizer = auth
-	profilesClient.Sender = sender
-	profilesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&profilesClient.Client, auth)
 	c.trafficManagerProfilesClient = profilesClient
 }
 
-func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	appServicePlansClient := web.NewAppServicePlansClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&appServicePlansClient.Client)
-	appServicePlansClient.Authorizer = auth
-	appServicePlansClient.Sender = sender
-	appServicePlansClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&appServicePlansClient.Client, auth)
 	c.appServicePlansClient = appServicePlansClient
 
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&appsClient.Client)
-	appsClient.Authorizer = auth
-	appsClient.Sender = autorest.CreateSender(withRequestLogging())
-	appsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
 }
 
