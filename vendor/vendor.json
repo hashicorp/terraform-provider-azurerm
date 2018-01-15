@@ -123,14 +123,6 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
-			"checksumSHA1": "sVkzLHOCP786rmV93HAIe+ke2hs=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/monitor",
-			"revision": "7692b0cef22674113fcf71cc17ac3ccc1a7fef48",
-			"revisionTime": "2017-11-07T22:03:28Z",
-			"version": "=v11.2.2-beta",
-			"versionExact": "v11.2.2-beta"
-		},
-		{
 			"checksumSHA1": "aSAQM4LTlSAyWJTSMCJjBxUkmVI=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/mysql",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
