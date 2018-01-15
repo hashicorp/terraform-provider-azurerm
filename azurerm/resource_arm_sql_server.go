@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -95,6 +96,11 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
+
+		if response.WasConflict(future.Response()) {
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
+		}
+
 		return err
 	}
 
