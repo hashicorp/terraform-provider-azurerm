@@ -339,6 +339,14 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
+			"checksumSHA1": "BIYVv8ZatuZvOoUoYH9xhI+p+zA=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights",
+			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
+			"revisionTime": "2018-01-09T21:59:56Z",
+			"version": "=v12.2.0-beta",
+			"versionExact": "v12.2.0-beta"
+		},
+		{
 			"checksumSHA1": "YfkdpUnZChrGOsllGtPCqvTPauo=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
