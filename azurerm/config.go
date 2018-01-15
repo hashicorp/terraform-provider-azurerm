@@ -33,8 +33,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
-	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
@@ -119,9 +119,6 @@ type ArmClient struct {
 
 	subscriptionsGroupClient subscriptions.GroupClient
 
-	jobsClient            scheduler.JobsClient
-	jobsCollectionsClient scheduler.JobCollectionsClient
-
 	deploymentsClient resources.DeploymentsClient
 
 	redisClient               redis.GroupClient
@@ -157,6 +154,10 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
+
+	// Scheduler
+	jobsClient            scheduler.JobsClient
+	jobsCollectionsClient scheduler.JobCollectionsClient
 
 	// Search
 	searchServicesClient search.ServicesClient
@@ -597,19 +598,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	subgc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.subscriptionsGroupClient = subgc
 
-	jc := scheduler.NewJobsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&jc.Client)
-	jc.Authorizer = auth
-	jc.Sender = sender
-	jc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.jobsClient = jc
-
-	jcc := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&jcc.Client)
-	jcc.Authorizer = auth
-	jcc.Sender = sender
-	client.jobsCollectionsClient = jcc
-
 	dc := resources.NewDeploymentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dc.Client)
 	dc.Authorizer = auth
@@ -633,6 +621,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
@@ -872,6 +861,16 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	locksClient.Sender = sender
 	locksClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.managementLocksClient = locksClient
+}
+
+func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, c.subscriptionId)
+	c.configureClient(&jobsClient.Client, auth)
+	c.jobsClient = jobsClient
+
+	collectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&collectionsClient.Client, auth)
+	c.jobsCollectionsClient = collectionsClient
 }
 
 func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
