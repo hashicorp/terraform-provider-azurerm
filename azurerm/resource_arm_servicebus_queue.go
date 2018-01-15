@@ -103,7 +103,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 
 func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusQueuesClient
-	ctx := meta.(ArmClient).StopContext
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue creation/update.")
 
 	name := d.Get("name").(string)
