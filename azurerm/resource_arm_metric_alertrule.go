@@ -2,7 +2,7 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/arm/monitor"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -57,10 +57,10 @@ func resourceArmMetricAlertRule() *schema.Resource {
 				Required:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(monitor.ConditionOperatorGreaterThan),
-					string(monitor.ConditionOperatorGreaterThanOrEqual),
-					string(monitor.ConditionOperatorLessThan),
-					string(monitor.ConditionOperatorLessThanOrEqual),
+					string(insights.ConditionOperatorGreaterThan),
+					string(insights.ConditionOperatorGreaterThanOrEqual),
+					string(insights.ConditionOperatorLessThan),
+					string(insights.ConditionOperatorLessThanOrEqual),
 				}, true),
 			},
 
@@ -80,11 +80,11 @@ func resourceArmMetricAlertRule() *schema.Resource {
 				Required:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(monitor.TimeAggregationOperatorAverage),
-					string(monitor.TimeAggregationOperatorLast),
-					string(monitor.TimeAggregationOperatorMaximum),
-					string(monitor.TimeAggregationOperatorMinimum),
-					string(monitor.TimeAggregationOperatorTotal),
+					string(insights.TimeAggregationOperatorAverage),
+					string(insights.TimeAggregationOperatorLast),
+					string(insights.TimeAggregationOperatorMaximum),
+					string(insights.TimeAggregationOperatorMinimum),
+					string(insights.TimeAggregationOperatorTotal),
 				}, true),
 			},
 
@@ -144,34 +144,35 @@ func resourceArmMetricAlertRule() *schema.Resource {
 
 func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Alert Rule creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	alertRule, _ := expandAzureRmMetricThresholdAlertRule(d)
 
-	alertRuleResource := monitor.AlertRuleResource{
+	alertRuleResource := insights.AlertRuleResource{
 		Name:      &name,
 		Location:  &location,
 		Tags:      expandTags(tags),
 		AlertRule: alertRule,
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, name, alertRuleResource)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM Alert Rule '%s' (Resource Group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM Alert Rule '%s' (Resource Group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -181,16 +182,17 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
+	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Metric Alert Rule %q (resource group %q) was not found - removing from state", name, resGroup)
+			log.Printf("[DEBUG] Metric Alert Rule %q (resource group %q) was not found - removing from state", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -199,7 +201,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	alertRule := resp.AlertRule
@@ -273,24 +275,25 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorAlertRulesClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
+	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(resGroup, name)
+	_, err = client.Delete(ctx, resourceGroup, name)
 
 	return err
 }
 
-func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*monitor.AlertRule, error) {
+func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.AlertRule, error) {
 	name := d.Get("name").(string)
 
 	resource := d.Get("resource").(string)
 	metric_name := d.Get("metric_name").(string)
 
-	metricDataSource := monitor.RuleMetricDataSource{
+	metricDataSource := insights.RuleMetricDataSource{
 		ResourceURI: &resource,
 		MetricName:  &metric_name,
 	}
@@ -300,15 +303,15 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*monitor.Ale
 	period := d.Get("period").(string)
 	aggregation := d.Get("aggregation").(string)
 
-	thresholdRuleCondition := monitor.ThresholdRuleCondition{
+	thresholdRuleCondition := insights.ThresholdRuleCondition{
 		DataSource:      metricDataSource,
-		Operator:        monitor.ConditionOperator(operator),
+		Operator:        insights.ConditionOperator(operator),
 		Threshold:       &threshold,
-		TimeAggregation: monitor.TimeAggregationOperator(aggregation),
+		TimeAggregation: insights.TimeAggregationOperator(aggregation),
 		WindowSize:      &period,
 	}
 
-	actions := make([]monitor.RuleAction, 0, 2)
+	actions := make([]insights.BasicRuleAction, 0, 2)
 
 	// Email action
 
@@ -316,7 +319,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*monitor.Ale
 
 	if len(email_actions) > 0 {
 		email_action := email_actions[0].(map[string]interface{})
-		emailAction := monitor.RuleEmailAction{}
+		emailAction := insights.RuleEmailAction{}
 
 		if v, ok := email_action["custom_emails"]; ok {
 			custom_emails := v.([]interface{})
@@ -358,7 +361,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*monitor.Ale
 			}
 		}
 
-		webhookAction := monitor.RuleWebhookAction{
+		webhookAction := insights.RuleWebhookAction{
 			ServiceURI: &service_uri,
 			Properties: &webhook_properties,
 		}
@@ -368,7 +371,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*monitor.Ale
 
 	enabled := d.Get("enabled").(bool)
 
-	alertRule := monitor.AlertRule{
+	alertRule := insights.AlertRule{
 		Name:      &name,
 		Condition: &thresholdRuleCondition,
 		Actions:   &actions,
@@ -389,7 +392,7 @@ func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, er
 		return "", "", err
 	}
 	name := id.Path["alertrules"]
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 
-	return resGroup, name, nil
+	return resourceGroup, name, nil
 }

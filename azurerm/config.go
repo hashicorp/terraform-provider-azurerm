@@ -24,7 +24,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
-	"github.com/Azure/azure-sdk-for-go/arm/monitor"
 	"github.com/Azure/azure-sdk-for-go/arm/mysql"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
@@ -37,6 +36,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/search"
 	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
@@ -159,7 +159,7 @@ type ArmClient struct {
 	sqlServersClient               sql.ServersClient
 
 	// Monitor
-	monitorAlertRulesClient monitor.AlertRulesClient
+	monitorAlertRulesClient insights.AlertRulesClient
 
 	// Networking
 	watcherClient network.WatchersClient
@@ -859,7 +859,7 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	arc := monitor.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
+	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&arc.Client)
 	arc.Authorizer = auth
 	arc.Sender = autorest.CreateSender(withRequestLogging())
