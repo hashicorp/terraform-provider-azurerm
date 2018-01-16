@@ -65,7 +65,8 @@ func resourceArmContainerService() *schema.Resource {
 
 						"vm_size": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "Standard_D2_v2",
 						},
 
 						"os_disk_size_gb": {
@@ -357,6 +358,7 @@ func flattenAzureRmContainerServiceMasterProfile(profile containerservice.Master
 	masterProfile["dns_prefix"] = *profile.DNSPrefix
 	masterProfile["fqdn"] = *profile.Fqdn
 	masterProfile["vm_size"] = string(profile.VMSize)
+	masterProfile["os_disk_size_gb"] = int(*profile.OsDiskSizeGB)
 
 	masterProfiles.Add(masterProfile)
 
@@ -428,6 +430,10 @@ func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerser
 }
 
 func flattenAzureRmContainerServiceDiagnosticsProfile(profile *containerservice.DiagnosticsProfile) *schema.Set {
+	if profile == nil {
+		return nil
+	}
+
 	diagnosticProfiles := &schema.Set{
 		F: resourceAzureRMContainerServiceDiagnosticProfilesHash,
 	}
@@ -495,11 +501,13 @@ func expandAzureRmContainerServiceMasterProfile(d *schema.ResourceData) containe
 	count := int32(config["count"].(int))
 	dnsPrefix := config["dns_prefix"].(string)
 	vmSize := config["vm_size"].(string)
+	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
 
 	profile := containerservice.MasterProfile{
-		Count:     &count,
-		DNSPrefix: &dnsPrefix,
-		VMSize:    containerservice.VMSizeTypes(vmSize),
+		Count:        &count,
+		DNSPrefix:    &dnsPrefix,
+		VMSize:       containerservice.VMSizeTypes(vmSize),
+		OsDiskSizeGB: &osDiskSizeGB,
 	}
 
 	return profile
@@ -570,10 +578,12 @@ func resourceAzureRMContainerServiceMasterProfileHash(v interface{}) int {
 	count := m["count"].(int)
 	dnsPrefix := m["dns_prefix"].(string)
 	vm_size := m["vm_size"].(string)
+	os_disk_size_gb := m["os_disk_size_gb"].(int)
 
 	buf.WriteString(fmt.Sprintf("%d-", count))
 	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
 	buf.WriteString(fmt.Sprintf("%s-", vm_size))
+	buf.WriteString(fmt.Sprintf("%d-", os_disk_size_gb))
 
 	return hashcode.String(buf.String())
 }
