@@ -5,6 +5,7 @@ IMPROVEMENTS:
 * core: upgrading to `v12.2.0-beta` of `Azure/azure-sdk-for-go` [GH-684]
 * core: upgrading to `v9.7.0` of `Azure/go-autorest` [GH-684]
 * `azurerm_app_service` - exposing the `outbound_ip_addresses` field [GH-700]
+* `azurerm_function_app` - exposing the `outbound_ip_addresses` field [GH-706]
 * `azurerm_role_assignment` - generating a name if one isn't specified [GH-685]
 
 ## 1.0.1 (January 12, 2018)
