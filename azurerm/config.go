@@ -33,7 +33,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
-	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
@@ -118,9 +117,6 @@ type ArmClient struct {
 	resourceFindClient  resources.GroupClient
 
 	subscriptionsGroupClient subscriptions.GroupClient
-
-	jobsClient            scheduler.JobsClient
-	jobsCollectionsClient scheduler.JobCollectionsClient
 
 	deploymentsClient resources.DeploymentsClient
 
@@ -596,19 +592,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	subgc.Sender = sender
 	subgc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.subscriptionsGroupClient = subgc
-
-	jc := scheduler.NewJobsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&jc.Client)
-	jc.Authorizer = auth
-	jc.Sender = sender
-	jc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.jobsClient = jc
-
-	jcc := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&jcc.Client)
-	jcc.Authorizer = auth
-	jcc.Sender = sender
-	client.jobsCollectionsClient = jcc
 
 	dc := resources.NewDeploymentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&dc.Client)
