@@ -80,6 +80,11 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -194,6 +199,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
+		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
