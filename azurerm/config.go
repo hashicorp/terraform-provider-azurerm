@@ -149,7 +149,6 @@ type ArmClient struct {
 	resourceFindClient    resources.GroupClient
 	resourceGroupClient   resources.GroupsClient
 	subscriptionsClient   subscriptions.Client
-	tagsClient            resources.TagsClient
 
 	// Search
 	searchServicesClient search.ServicesClient
@@ -823,11 +822,6 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	providersClient := resources.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&providersClient.Client, auth)
 	c.providers = providersClient
-
-	// unused
-	tagsClient := resources.NewTagsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&tagsClient.Client, auth)
-	c.tagsClient = tagsClient
 
 	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
 	c.configureClient(&subscriptionsClient.Client, auth)
