@@ -80,6 +80,7 @@ The following attributes are exported:
 
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 
+* `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
 ## Import
 
