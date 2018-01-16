@@ -31,9 +31,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
-	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
@@ -111,15 +111,6 @@ type ArmClient struct {
 
 	workspacesClient operationalinsights.WorkspacesClient
 
-	providers           resources.ProvidersClient
-	resourceGroupClient resources.GroupsClient
-	tagsClient          resources.TagsClient
-	resourceFindClient  resources.GroupClient
-
-	subscriptionsGroupClient subscriptions.GroupClient
-
-	deploymentsClient resources.DeploymentsClient
-
 	redisClient               redis.GroupClient
 	redisFirewallClient       redis.FirewallRuleClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
@@ -153,6 +144,12 @@ type ArmClient struct {
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
+	deploymentsClient     resources.DeploymentsClient
+	providers             resources.ProvidersClient
+	resourceFindClient    resources.GroupClient
+	resourceGroupClient   resources.GroupsClient
+	subscriptionsClient   subscriptions.Client
+	tagsClient            resources.TagsClient
 
 	// Search
 	searchServicesClient search.ServicesClient
@@ -558,48 +555,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	zo.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.zonesClient = zo
 
-	rgc := resources.NewGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&rgc.Client)
-	rgc.Authorizer = auth
-	rgc.Sender = sender
-	rgc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.resourceGroupClient = rgc
-
-	pc := resources.NewProvidersClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&pc.Client)
-	pc.Authorizer = auth
-	pc.Sender = sender
-	pc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.providers = pc
-
-	tc := resources.NewTagsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&tc.Client)
-	tc.Authorizer = auth
-	tc.Sender = sender
-	tc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.tagsClient = tc
-
-	rf := resources.NewGroupClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&rf.Client)
-	rf.Authorizer = auth
-	rf.Sender = sender
-	rf.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.resourceFindClient = rf
-
-	subgc := subscriptions.NewGroupClientWithBaseURI(endpoint)
-	setUserAgent(&subgc.Client)
-	subgc.Authorizer = auth
-	subgc.Sender = sender
-	subgc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.subscriptionsGroupClient = subgc
-
-	dc := resources.NewDeploymentsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&dc.Client)
-	dc.Authorizer = auth
-	dc.Sender = sender
-	dc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.deploymentsClient = dc
-
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ai.Client)
 	ai.Authorizer = auth
@@ -615,8 +570,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
+	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
@@ -849,13 +803,35 @@ func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth a
 	c.redisPatchSchedulesClient = patchSchedulesClient
 }
 
-func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	locksClient := locks.NewManagementLocksClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&locksClient.Client)
-	locksClient.Authorizer = auth
-	locksClient.Sender = sender
-	locksClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&locksClient.Client, auth)
 	c.managementLocksClient = locksClient
+
+	deploymentsClient := resources.NewDeploymentsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&deploymentsClient.Client, auth)
+	c.deploymentsClient = deploymentsClient
+
+	resourceGroupClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&resourceGroupClient.Client, auth)
+	c.resourceGroupClient = resourceGroupClient
+
+	resourceFindClient := resources.NewGroupClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&resourceFindClient.Client, auth)
+	c.resourceFindClient = resourceFindClient
+
+	providersClient := resources.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&providersClient.Client, auth)
+	c.providers = providersClient
+
+	// unused
+	tagsClient := resources.NewTagsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&tagsClient.Client, auth)
+	c.tagsClient = tagsClient
+
+	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
+	c.configureClient(&subscriptionsClient.Client, auth)
+	c.subscriptionsClient = subscriptionsClient
 }
 
 func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
