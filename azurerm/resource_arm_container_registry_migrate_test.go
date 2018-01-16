@@ -1,11 +1,12 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
@@ -27,8 +28,9 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	resourceGroupName := fmt.Sprintf("acctestrg%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)
 	location := azureRMNormalizeLocation(testLocation())
+	ctx := client.StopContext
 
-	err = createResourceGroup(client, resourceGroupName, location)
+	err = createResourceGroup(client, ctx, resourceGroupName, location)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -93,11 +95,11 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	}
 }
 
-func createResourceGroup(client *ArmClient, resourceGroupName string, location string) error {
+func createResourceGroup(client *ArmClient, ctx context.Context, resourceGroupName string, location string) error {
 	group := resources.Group{
 		Location: &location,
 	}
-	_, err := client.resourceGroupClient.CreateOrUpdate(resourceGroupName, group)
+	_, err := client.resourceGroupsClient.CreateOrUpdate(ctx, resourceGroupName, group)
 	if err != nil {
 		return fmt.Errorf("Error creating Resource Group %q: %+v", resourceGroupName, err)
 	}
@@ -133,5 +135,5 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
 	client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName)
-	client.resourceGroupClient.Delete(resourceGroupName, make(chan struct{}))
+	client.resourceGroupsClient.Delete(ctx, resourceGroupName)
 }

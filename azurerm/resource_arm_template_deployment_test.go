@@ -121,9 +121,10 @@ func testCheckAzureRMTemplateDeploymentExists(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on deploymentsClient: %s", err)
 		}
@@ -150,10 +151,15 @@ func testCheckAzureRMTemplateDeploymentDisappears(name string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-error
+		deleteFuture, err := client.Delete(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on deploymentsClient: %s", err)
+		}
+
+		err = deleteFuture.WaitForCompletion(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on deploymentsClient: %s", err)
 		}

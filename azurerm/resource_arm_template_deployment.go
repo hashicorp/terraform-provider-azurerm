@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -58,9 +59,10 @@ func resourceArmTemplateDeployment() *schema.Resource {
 func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	deployClient := client.deploymentsClient
+	ctx := client.StopContext
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	deploymentMode := d.Get("deployment_mode").(string)
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Template Deployment creation.")
@@ -96,31 +98,36 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		Properties: &properties,
 	}
 
-	_, error := deployClient.CreateOrUpdate(resGroup, name, deployment, make(chan struct{}))
-	err := <-error
+	future, err := deployClient.CreateOrUpdate(ctx, resourceGroup, name, deployment)
 	if err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
-	read, err := deployClient.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, deployClient.Client)
+	if err != nil {
+		return fmt.Errorf("Error creating deployment: %+v", err)
+	}
+
+	read, err := deployClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Template Deployment %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Template Deployment %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	log.Printf("[DEBUG] Waiting for Template Deployment (%s) to become available", name)
+	// TODO: is this even needed anymore?
+	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to become available", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"creating", "updating", "accepted", "running"},
 		Target:  []string{"succeeded"},
-		Refresh: templateDeploymentStateRefreshFunc(client, resGroup, name),
+		Refresh: templateDeploymentStateRefreshFunc(client, ctx, resourceGroup, name),
 		Timeout: 40 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Template Deployment (%s) to become available: %+v", name, err)
+		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to become available: %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmTemplateDeploymentRead(d, meta)
@@ -129,24 +136,25 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	deployClient := client.deploymentsClient
+	ctx := client.StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["deployments"]
 	if name == "" {
 		name = id.Path["Deployments"]
 	}
 
-	resp, err := deployClient.Get(resGroup, name)
+	resp, err := deployClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	var outputs map[string]string
@@ -192,23 +200,32 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	deployClient := client.deploymentsClient
+	ctx := client.StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["deployments"]
 	if name == "" {
 		name = id.Path["Deployments"]
 	}
 
-	_, error := deployClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := deployClient.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, deployClient.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
+// TODO: move this out into the new `helpers` structure
 func expandTemplateBody(template string) (map[string]interface{}, error) {
 	var templateBody map[string]interface{}
 	err := json.Unmarshal([]byte(template), &templateBody)
@@ -231,11 +248,11 @@ func normalizeJson(jsonString interface{}) string {
 	return string(b[:])
 }
 
-func templateDeploymentStateRefreshFunc(client *ArmClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func templateDeploymentStateRefreshFunc(client *ArmClient, ctx context.Context, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.deploymentsClient.Get(resourceGroupName, name)
+		res, err := client.deploymentsClient.Get(ctx, resourceGroupName, name)
 		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in templateDeploymentStateRefreshFunc to Azure ARM for Template Deployment '%s' (RG: '%s'): %+v", name, resourceGroupName, err)
+			return nil, "", fmt.Errorf("Error issuing read request in templateDeploymentStateRefreshFunc to Azure ARM for Template Deployment %q (RG: %q): %+v", name, resourceGroupName, err)
 		}
 
 		return res, strings.ToLower(*res.Properties.ProvisioningState), nil

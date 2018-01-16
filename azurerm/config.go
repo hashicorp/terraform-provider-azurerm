@@ -30,10 +30,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
@@ -145,9 +145,9 @@ type ArmClient struct {
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
 	deploymentsClient     resources.DeploymentsClient
-	providers             resources.ProvidersClient
-	resourceFindClient    resources.GroupClient
-	resourceGroupClient   resources.GroupsClient
+	providersClient       resources.ProvidersClient
+	resourcesClient       resources.Client
+	resourceGroupsClient  resources.GroupsClient
 	subscriptionsClient   subscriptions.Client
 
 	// Search
@@ -811,17 +811,17 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.configureClient(&deploymentsClient.Client, auth)
 	c.deploymentsClient = deploymentsClient
 
-	resourceGroupClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourceGroupClient.Client, auth)
-	c.resourceGroupClient = resourceGroupClient
+	resourcesClient := resources.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&resourcesClient.Client, auth)
+	c.resourcesClient = resourcesClient
 
-	resourceFindClient := resources.NewGroupClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&resourceFindClient.Client, auth)
-	c.resourceFindClient = resourceFindClient
+	resourceGroupsClient := resources.NewGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&resourceGroupsClient.Client, auth)
+	c.resourceGroupsClient = resourceGroupsClient
 
 	providersClient := resources.NewProvidersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&providersClient.Client, auth)
-	c.providers = providersClient
+	c.providersClient = providersClient
 
 	subscriptionsClient := subscriptions.NewClientWithBaseURI(endpoint)
 	c.configureClient(&subscriptionsClient.Client, auth)
