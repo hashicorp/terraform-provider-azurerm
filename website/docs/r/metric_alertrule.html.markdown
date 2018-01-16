@@ -69,12 +69,12 @@ resource "azurerm_metric_alertrule" "test" {
   email_action {
     service_owners = false
     custom_emails = [
-      "support@azure.microsoft.com",
+      "some.user@example.com",
     ]
   }
 
   webhook_action {
-    service_uri = "https://requestb.in/18jamc41"
+    service_uri = "https://example.com/some-url"
       properties = {
         severity = "incredible"
         acceptance_test = "true"
