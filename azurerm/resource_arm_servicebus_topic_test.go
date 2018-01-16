@@ -148,7 +148,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 	resourceName := "azurerm_servicebus_topic.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	preConfig := testAccAzureRMServiceBusTopic_basic(ri, location)
+	preConfig := testAccAzureRMServiceBusTopic_basicPremium(ri, location)
 	postConfig := testAccAzureRMServiceBusTopic_enablePartitioningPremium(ri, location)
 
 	resource.Test(t, resource.TestCase{
@@ -326,6 +326,30 @@ resource "azurerm_servicebus_topic" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     enable_batched_operations = true
     enable_express = true
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusTopic_basicPremium(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name = "acctestservicebusnamespace-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "Premium"
+    capacity = 1
+}
+
+resource "azurerm_servicebus_topic" "test" {
+    name = "acctestservicebustopic-%d"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    enable_partitioning = true
 }
 `, rInt, location, rInt, rInt)
 }
