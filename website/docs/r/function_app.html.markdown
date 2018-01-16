@@ -11,7 +11,7 @@ description: |-
 
 Manages a Function App.
 
--> **Note:** Function Apps can be deployed to either an App Service Plan or to a Consumption Plan. At this time it's possible to deploy a Function App into an existing Consumption Plan or a new/existing App Service Plan - however it's not currently possible to create a new Consumption Plan. Support for this will be added in the future, and in the interim can be achieved by using [the `azurerm_template_deployment` resource](template_deployment.html).
+-> **Note:** Function Apps can be deployed to either an App Service Plan or to a Consumption Plan. At this time it's possible to deploy a Function App into an existing Consumption Plan or a new/existing App Service Plan [using the `azurerm_app_service_plan` Data Source](app_service_plan.html) - however it's not currently possible to create a new Consumption Plan natively in Terraform. Support for this will be added in the future, and in the interim can be achieved by using [the `azurerm_template_deployment` resource](template_deployment.html).
 
 ## Example Usage (with App Service Plan)
 
