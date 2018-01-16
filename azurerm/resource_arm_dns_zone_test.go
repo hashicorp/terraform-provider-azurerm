@@ -35,7 +35,7 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
-	postConfig := testAccAzureRMDnsZone_withTagsUupdate(ri, location)
+	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -139,14 +139,14 @@ resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
     tags {
-	environment = "Production"
-	cost_center = "MSFT"
+	  environment = "Production"
+	  cost_center = "MSFT"
     }
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMDnsZone_withTagsUupdate(rInt int, location string) string {
+func testAccAzureRMDnsZone_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
@@ -157,7 +157,7 @@ resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
     tags {
-	environment = "staging"
+	  environment = "staging"
     }
 }
 `, rInt, location, rInt)
