@@ -2,12 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/satori/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,7 +58,12 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		name = uuid.NewV1().String()
+		uuid, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+		}
+
+		name = uuid
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
