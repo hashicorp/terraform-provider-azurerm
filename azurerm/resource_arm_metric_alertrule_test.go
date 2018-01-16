@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"strconv"
 )
 
 func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
@@ -120,13 +121,7 @@ func testCheckAzureRMMetricAlertRuleDestroy(s *terraform.State) error {
 func testAccAzureRMMetricAlertRule_virtualMachineCpu(rInt int, location string, enabled bool) string {
 	basicLinuxMachine := testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(rInt, location)
 
-	var enabledString string
-
-	if enabled {
-		enabledString = "true"
-	} else {
-		enabledString = "false"
-	}
+	enabledString := strconv.FormatBool(enabled)
 
 	return fmt.Sprintf(`
 %s
@@ -140,7 +135,7 @@ resource "azurerm_metric_alertrule" "test" {
 
   enabled = %s
 
-  resource = "${azurerm_virtual_machine.test.id}"
+  resource_id = "${azurerm_virtual_machine.test.id}"
   metric_name = "Percentage CPU"
   operator = "GreaterThan"
   threshold = 75
@@ -180,7 +175,7 @@ resource "azurerm_metric_alertrule" "test" {
 
   enabled = true
 
-  resource = "${azurerm_sql_database.test.id}"
+  resource_id = "${azurerm_sql_database.test.id}"
   metric_name = "storage"
   operator = "GreaterThan"
   threshold = 1073741824

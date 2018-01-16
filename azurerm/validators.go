@@ -83,7 +83,7 @@ func validateIso8601Duration() schema.SchemaValidateFunc {
 			return
 		}
 
-		matched, _ := regexp.MatchString(`^P(([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?))?$`, v)
+		matched, _ := regexp.MatchString(`^P([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?)?$`, v)
 
 		if !matched {
 			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))

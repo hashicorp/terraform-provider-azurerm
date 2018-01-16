@@ -42,7 +42,7 @@ func resourceArmMetricAlertRule() *schema.Resource {
 				Default:  true,
 			},
 
-			"resource": {
+			"resource_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -172,7 +172,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM Alert Rule '%s' (Resource Group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read AzureRM Alert Rule %q (Resource Group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -197,18 +197,16 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM Metric Alert Rule '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Metric Alert Rule %q: %+v", name, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	alertRule := resp.AlertRule
-
-	if alertRule != nil {
-		d.Set("description", *alertRule.Description)
-		d.Set("enabled", *alertRule.IsEnabled)
+	if alertRule := resp.AlertRule; alertRule != nil {
+		d.Set("description", alertRule.Description)
+		d.Set("enabled", alertRule.IsEnabled)
 
 		ruleCondition := alertRule.Condition
 
@@ -217,7 +215,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 			d.Set("operator", string(thresholdRuleCondition.Operator))
 			d.Set("threshold", float64(*thresholdRuleCondition.Threshold))
-			d.Set("period", *thresholdRuleCondition.WindowSize)
+			d.Set("period", thresholdRuleCondition.WindowSize)
 			d.Set("aggregation", string(thresholdRuleCondition.TimeAggregation))
 
 			dataSource := thresholdRuleCondition.DataSource
@@ -225,8 +223,8 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 			if dataSource != nil {
 				metricDataSource, _ := dataSource.AsRuleMetricDataSource()
 
-				d.Set("resource", *metricDataSource.ResourceURI)
-				d.Set("metric_name", *metricDataSource.MetricName)
+				d.Set("resource_id", metricDataSource.ResourceURI)
+				d.Set("metric_name", metricDataSource.MetricName)
 			}
 		}
 
@@ -237,7 +235,9 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 			if emailAction, ok := ruleAction.AsRuleEmailAction(); ok {
 				email_action := make(map[string]interface{}, 1)
 
-				email_action["service_owners"] = *emailAction.SendToServiceOwners
+				if sendToOwners := emailAction.SendToServiceOwners; sendToOwners != nil {
+					email_action["service_owners"] = *sendToOwners
+				}
 
 				custom_emails := []string{}
 				for _, custom_email := range *emailAction.CustomEmails {
@@ -282,7 +282,14 @@ func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	_, err = client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting Metric Alert Rule %q (resource group %q): %+v", name, resourceGroup, err)
+	}
 
 	return err
 }
@@ -290,7 +297,7 @@ func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) 
 func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.AlertRule, error) {
 	name := d.Get("name").(string)
 
-	resource := d.Get("resource").(string)
+	resource := d.Get("resource_id").(string)
 	metric_name := d.Get("metric_name").(string)
 
 	metricDataSource := insights.RuleMetricDataSource{

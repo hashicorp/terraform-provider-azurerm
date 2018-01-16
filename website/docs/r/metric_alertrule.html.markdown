@@ -23,7 +23,7 @@ resource "azurerm_metric_alertrule" "test" {
 
   enabled = true
 
-  resource = "${azurerm_virtual_machine.test.id}"
+  resource_id = "${azurerm_virtual_machine.test.id}"
   metric_name = "Percentage CPU"
   operator = "GreaterThan"
   threshold = 75
@@ -33,12 +33,12 @@ resource "azurerm_metric_alertrule" "test" {
   email_action {
     service_owners = false
     custom_emails = [
-      "support@azure.microsoft.com",
+      "some.user@example.com",
     ]
   }
 
   webhook_action {
-    service_uri = "https://requestb.in/18jamc41"
+    service_uri = "https://example.com/some-url"
       properties = {
         severity = "incredible"
         acceptance_test = "true"
@@ -59,7 +59,7 @@ resource "azurerm_metric_alertrule" "test" {
 
   enabled = true
 
-  resource = "${azurerm_sql_database.test.id}"
+  resource_id = "${azurerm_sql_database.test.id}"
   metric_name = "storage"
   operator = "GreaterThan"
   threshold = 1073741824
@@ -95,13 +95,15 @@ The following arguments are supported:
 
 * `description` - (Optional) A verbose description of the alert rule that will be included in the alert email.
 
-* `enabled` - (Optional) If true, the alert rule is enabled. Defaults to true.
+* `enabled` - (Optional) If `true`, the alert rule is enabled. Defaults to `true`.
 
 ---
 
-* `resource` - (Required) The ID of the resource monitored by the alert rule.
+* `resource_id` - (Required) The ID of the resource monitored by the alert rule.
 
 * `metric_name` - (Required) The metric that defines what the rule monitors.
+
+-> For a comprehensive reference of supported `metric_name` values for types of `resource` refer to [Supported metrics with Azure Monitor](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-supported-metrics) in the Azure documentation. In the referred table, the column "Metric" corresponds to supported values for `metric_name`.
 
 * `operator` - (Required) The operator used to compare the metric data and the threshold. Possible values are `GreaterThan`, `GreaterThanOrEqual`, `LessThan`, and `LessThanOrEqual`.
 
@@ -111,11 +113,9 @@ The following arguments are supported:
 
 * `aggregation` - (Required) Defines how the metric data is combined over time. Possible values are `Average`, `Minimum`, `Maximum`, `Total`, and `Last`.
 
-~> For a comprehensive reference of supported `metric_name` values for types of `resource` refer to [Supported metric with Azure Monitor](https://docs.microsoft.com/en-us/azure/monitoring-and-diagnostics/monitoring-supported-metrics) in the Azure documentation. In the referred table, the column "Metric" corresponds to supported values for `metric_name`.
-
 ---
 
-* `email_action` - (Optional) An `email_action` block as defined below.
+* `email_action` - (Optional) A `email_action` block as defined below.
 
 * `webhook_action` - (Optional) A `webhook_action` block as defined below.
 
@@ -125,9 +125,9 @@ The following arguments are supported:
 
 `email_action` supports the following:
 
-* `service_owners` - (Optional) If true, the administrators (service and co-administrators) of the subscription are notified when the alert is triggered. Defaults to false.
+* `service_owners` - (Optional) If `true`, the administrators (service and co-administrators) of the subscription are notified when the alert is triggered. Defaults to `false`.
 
-* `custom_emails` - (Optional) A list of email addresses to be notified when the alert is triggered. Defaults to an empty list.
+* `custom_emails` - (Optional) A list of email addresses to be notified when the alert is triggered.
 
 ---
 
