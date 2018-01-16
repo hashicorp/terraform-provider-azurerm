@@ -1,5 +1,9 @@
 ## 1.0.2 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_dns_zone` [GH-702]
+
 IMPROVEMENTS:
 
 * core: upgrading to `v12.2.0-beta` of `Azure/azure-sdk-for-go` [GH-684]
