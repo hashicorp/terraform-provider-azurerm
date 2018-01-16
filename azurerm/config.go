@@ -34,8 +34,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/arm/scheduler"
-	"github.com/Azure/azure-sdk-for-go/arm/search"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
@@ -128,8 +128,6 @@ type ArmClient struct {
 	redisFirewallClient       redis.FirewallRuleClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
-	searchServicesClient search.ServicesClient
-
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
@@ -160,9 +158,12 @@ type ArmClient struct {
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
 
+	// Search
+	searchServicesClient search.ServicesClient
+
 	// ServiceBus
-	serviceBusNamespacesClient    servicebus.NamespacesClient
 	serviceBusQueuesClient        servicebus.QueuesClient
+	serviceBusNamespacesClient    servicebus.NamespacesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
 	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
 
@@ -616,13 +617,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	dc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.deploymentsClient = dc
 
-	sesc := search.NewServicesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&sesc.Client)
-	sesc.Authorizer = auth
-	sesc.Sender = sender
-	sesc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.searchServicesClient = sesc
-
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ai.Client)
 	ai.Authorizer = auth
@@ -639,6 +633,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
@@ -877,6 +872,12 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	locksClient.Sender = sender
 	locksClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.managementLocksClient = locksClient
+}
+
+func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	searchClient := search.NewServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&searchClient.Client, auth)
+	c.searchServicesClient = searchClient
 }
 
 func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
