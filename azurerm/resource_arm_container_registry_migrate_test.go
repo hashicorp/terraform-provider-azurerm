@@ -30,7 +30,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	location := azureRMNormalizeLocation(testLocation())
 	ctx := client.StopContext
 
-	err = createResourceGroup(client, ctx, resourceGroupName, location)
+	err = createResourceGroup(ctx, client, resourceGroupName, location)
 	if err != nil {
 		t.Fatal(err)
 		return
@@ -95,7 +95,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 	}
 }
 
-func createResourceGroup(client *ArmClient, ctx context.Context, resourceGroupName string, location string) error {
+func createResourceGroup(ctx context.Context, client *ArmClient, resourceGroupName string, location string) error {
 	group := resources.Group{
 		Location: &location,
 	}
