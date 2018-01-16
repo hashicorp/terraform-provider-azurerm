@@ -616,7 +616,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
