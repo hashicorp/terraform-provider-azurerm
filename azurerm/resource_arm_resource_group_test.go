@@ -172,12 +172,12 @@ func testCheckAzureRMResourceGroupDisappears(name string) resource.TestCheckFunc
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on resourceGroupClient: %+v", err)
+			return fmt.Errorf("Failed deleting Resource Group %q: %+v", resourceGroup, err)
 		}
 
 		err = deleteFuture.WaitForCompletion(ctx, client.Client)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on resourceGroupClient: %+v", err)
+			return fmt.Errorf("Failed long polling for the deletion of Resource Group %q: %+v", resourceGroup, err)
 		}
 
 		return nil

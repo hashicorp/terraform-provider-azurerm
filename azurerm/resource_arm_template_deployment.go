@@ -212,12 +212,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		name = id.Path["Deployments"]
 	}
 
-	future, err := deployClient.Delete(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-
-	err = future.WaitForCompletion(ctx, deployClient.Client)
+	_, err = deployClient.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
