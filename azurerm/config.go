@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/cdn"
@@ -33,6 +32,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
@@ -127,7 +127,7 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
-	appInsightsClient appinsights.ComponentsClient
+	appInsightsClient insights.ComponentsClient
 
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
@@ -600,13 +600,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	dc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.deploymentsClient = dc
 
-	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ai.Client)
-	ai.Authorizer = auth
-	ai.Sender = sender
-	ai.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.appInsightsClient = ai
-
+	client.registerAppInsightsClient(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
@@ -623,6 +617,15 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerAppInsightsClient(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	ai := insights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&ai.Client)
+	ai.Authorizer = auth
+	ai.Sender = sender
+	ai.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.appInsightsClient = ai
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
