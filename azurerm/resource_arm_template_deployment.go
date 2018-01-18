@@ -118,18 +118,6 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*read.ID)
 
-	// TODO: is this even needed anymore?
-	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to become available", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"creating", "updating", "accepted", "running"},
-		Target:  []string{"succeeded"},
-		Refresh: templateDeploymentStateRefreshFunc(client, ctx, resourceGroup, name),
-		Timeout: 40 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to become available: %+v", name, resourceGroup, err)
-	}
-
 	return resourceArmTemplateDeploymentRead(d, meta)
 }
 
@@ -217,7 +205,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	return nil
+	return waitForTemplateDeploymentToBeDeleted(ctx, deployClient, resourceGroup, name)
 }
 
 // TODO: move this out into the new `helpers` structure
@@ -243,13 +231,35 @@ func normalizeJson(jsonString interface{}) string {
 	return string(b[:])
 }
 
-func templateDeploymentStateRefreshFunc(client *ArmClient, ctx context.Context, resourceGroupName string, name string) resource.StateRefreshFunc {
+func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string) error {
+	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
+	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"200"},
+		Target:  []string{"404"},
+		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout: 40 * time.Minute,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client resources.DeploymentsClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.deploymentsClient.Get(ctx, resourceGroupName, name)
+		res, err := client.Get(ctx, resourceGroup, name)
+
+		log.Printf("Retrieving Template Deployment %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+
 		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in templateDeploymentStateRefreshFunc to Azure ARM for Template Deployment %q (RG: %q): %+v", name, resourceGroupName, err)
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, strconv.Itoa(res.StatusCode), nil
+			}
+			return nil, "", fmt.Errorf("Error polling for the status of the Template Deployment %q (RG: %q): %+v", name, resourceGroup, err)
 		}
 
-		return res, strings.ToLower(*res.Properties.ProvisioningState), nil
+		return res, strconv.Itoa(res.StatusCode), nil
 	}
 }
