@@ -88,7 +88,7 @@ The `dns_config` block supports:
 
 The `monitor_config` block supports:
 
-* `http` - (Required) The protocol used by the monitoring checks, supported
+* `protocol` - (Required) The protocol used by the monitoring checks, supported
     values are `http` or `https`.
 
 * `port` - (Required) The port number used by the monitoring checks.
