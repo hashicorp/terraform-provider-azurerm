@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"net/http"
-
 	"time"
 
 	"bytes"
 
-	"github.com/Azure/azure-sdk-for-go/arm/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -207,7 +205,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 		Properties: &containerservice.Properties{
 			MasterProfile: &masterProfile,
 			LinuxProfile:  &linuxProfile,
-			OrchestratorProfile: &containerservice.OrchestratorProfile{
+			OrchestratorProfile: &containerservice.OrchestratorProfileType{
 				OrchestratorType: containerservice.OrchestratorTypes(orchestrationPlatform),
 			},
 			AgentPoolProfiles:  &agentProfiles,
@@ -221,13 +219,13 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 		parameters.ServicePrincipalProfile = servicePrincipalProfile
 	}
 
-	_, error := containerServiceClient.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
-	err := <-error
-	if err != nil {
-		return err
+	ctx := meta.(*ArmClient).StopContext
+	_, error := containerServiceClient.CreateOrUpdate(ctx, resGroup, name, parameters)
+	if error != nil {
+		return error
 	}
 
-	read, err := containerServiceClient.Get(resGroup, name)
+	read, err := containerServiceClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -263,7 +261,8 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["containerServices"]
 
-	resp, err := containerServiceClient.Get(resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := containerServiceClient.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -314,19 +313,18 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 	resGroup := id.ResourceGroup
 	name := id.Path["containerServices"]
 
-	delResp, error := containerServiceClient.Delete(resGroup, name, make(chan struct{}))
-	resp := <-delResp
-	err = <-error
-	if err != nil {
-		return err
-	}
+	ctx := meta.(*ArmClient).StopContext
+	future, err := containerServiceClient.Delete(ctx, resGroup, name)
 
-	if resp.StatusCode != http.StatusOK {
+	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Service '%s': %s", name, err)
 	}
 
+	err = future.WaitForCompletion(ctx, containerServiceClient.Client)
+	if err != nil {
+		return err
+	}
 	return nil
-
 }
 
 func flattenAzureRmContainerServiceMasterProfile(profile containerservice.MasterProfile) *schema.Set {
@@ -530,7 +528,8 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 
 func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.containerServicesClient.Get(resourceGroupName, containerServiceName)
+		ctx := client.StopContext
+		res, err := client.containerServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
 		}

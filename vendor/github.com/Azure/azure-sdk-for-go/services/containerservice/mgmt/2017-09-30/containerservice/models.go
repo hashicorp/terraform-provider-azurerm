@@ -327,6 +327,12 @@ const (
 	StandardNV6 VMSizeTypes = "Standard_NV6"
 )
 
+// AccessProfile profile for enabling a user to access a managed cluster.
+type AccessProfile struct {
+	// KubeConfig - Base64-encoded Kubernetes configuration file.
+	KubeConfig *string `json:"kubeConfig,omitempty"`
+}
+
 // AgentPoolProfile profile for the container service agent pool.
 type AgentPoolProfile struct {
 	// Name - Unique name of the agent pool profile in the context of the subscription and resource group.
@@ -635,6 +641,452 @@ func (page ListResultPage) Values() []ContainerService {
 	return *page.lr.Value
 }
 
+// ManagedCluster managed cluster.
+type ManagedCluster struct {
+	autorest.Response `json:"-"`
+	// ID - Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags *map[string]*string `json:"tags,omitempty"`
+	// ManagedClusterProperties - Properties of a managed cluster.
+	*ManagedClusterProperties `json:"properties,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedCluster struct.
+func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	var v *json.RawMessage
+
+	v = m["properties"]
+	if v != nil {
+		var properties ManagedClusterProperties
+		err = json.Unmarshal(*m["properties"], &properties)
+		if err != nil {
+			return err
+		}
+		mc.ManagedClusterProperties = &properties
+	}
+
+	v = m["id"]
+	if v != nil {
+		var ID string
+		err = json.Unmarshal(*m["id"], &ID)
+		if err != nil {
+			return err
+		}
+		mc.ID = &ID
+	}
+
+	v = m["name"]
+	if v != nil {
+		var name string
+		err = json.Unmarshal(*m["name"], &name)
+		if err != nil {
+			return err
+		}
+		mc.Name = &name
+	}
+
+	v = m["type"]
+	if v != nil {
+		var typeVar string
+		err = json.Unmarshal(*m["type"], &typeVar)
+		if err != nil {
+			return err
+		}
+		mc.Type = &typeVar
+	}
+
+	v = m["location"]
+	if v != nil {
+		var location string
+		err = json.Unmarshal(*m["location"], &location)
+		if err != nil {
+			return err
+		}
+		mc.Location = &location
+	}
+
+	v = m["tags"]
+	if v != nil {
+		var tags map[string]*string
+		err = json.Unmarshal(*m["tags"], &tags)
+		if err != nil {
+			return err
+		}
+		mc.Tags = &tags
+	}
+
+	return nil
+}
+
+// ManagedClusterAccessProfile managed cluster Access Profile.
+type ManagedClusterAccessProfile struct {
+	autorest.Response `json:"-"`
+	// ID - Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags *map[string]*string `json:"tags,omitempty"`
+	// AccessProfile - AccessProfile of a managed cluster.
+	*AccessProfile `json:"properties,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedClusterAccessProfile struct.
+func (mcap *ManagedClusterAccessProfile) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	var v *json.RawMessage
+
+	v = m["properties"]
+	if v != nil {
+		var properties AccessProfile
+		err = json.Unmarshal(*m["properties"], &properties)
+		if err != nil {
+			return err
+		}
+		mcap.AccessProfile = &properties
+	}
+
+	v = m["id"]
+	if v != nil {
+		var ID string
+		err = json.Unmarshal(*m["id"], &ID)
+		if err != nil {
+			return err
+		}
+		mcap.ID = &ID
+	}
+
+	v = m["name"]
+	if v != nil {
+		var name string
+		err = json.Unmarshal(*m["name"], &name)
+		if err != nil {
+			return err
+		}
+		mcap.Name = &name
+	}
+
+	v = m["type"]
+	if v != nil {
+		var typeVar string
+		err = json.Unmarshal(*m["type"], &typeVar)
+		if err != nil {
+			return err
+		}
+		mcap.Type = &typeVar
+	}
+
+	v = m["location"]
+	if v != nil {
+		var location string
+		err = json.Unmarshal(*m["location"], &location)
+		if err != nil {
+			return err
+		}
+		mcap.Location = &location
+	}
+
+	v = m["tags"]
+	if v != nil {
+		var tags map[string]*string
+		err = json.Unmarshal(*m["tags"], &tags)
+		if err != nil {
+			return err
+		}
+		mcap.Tags = &tags
+	}
+
+	return nil
+}
+
+// ManagedClusterListResult the response from the List Managed Clusters operation.
+type ManagedClusterListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of managed clusters.
+	Value *[]ManagedCluster `json:"value,omitempty"`
+	// NextLink - The URL to get the next set of managed cluster results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ManagedClusterListResultIterator provides access to a complete listing of ManagedCluster values.
+type ManagedClusterListResultIterator struct {
+	i    int
+	page ManagedClusterListResultPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ManagedClusterListResultIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ManagedClusterListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ManagedClusterListResultIterator) Response() ManagedClusterListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ManagedClusterListResultIterator) Value() ManagedCluster {
+	if !iter.page.NotDone() {
+		return ManagedCluster{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (mclr ManagedClusterListResult) IsEmpty() bool {
+	return mclr.Value == nil || len(*mclr.Value) == 0
+}
+
+// managedClusterListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (mclr ManagedClusterListResult) managedClusterListResultPreparer() (*http.Request, error) {
+	if mclr.NextLink == nil || len(to.String(mclr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(mclr.NextLink)))
+}
+
+// ManagedClusterListResultPage contains a page of ManagedCluster values.
+type ManagedClusterListResultPage struct {
+	fn   func(ManagedClusterListResult) (ManagedClusterListResult, error)
+	mclr ManagedClusterListResult
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ManagedClusterListResultPage) Next() error {
+	next, err := page.fn(page.mclr)
+	if err != nil {
+		return err
+	}
+	page.mclr = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ManagedClusterListResultPage) NotDone() bool {
+	return !page.mclr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ManagedClusterListResultPage) Response() ManagedClusterListResult {
+	return page.mclr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ManagedClusterListResultPage) Values() []ManagedCluster {
+	if page.mclr.IsEmpty() {
+		return nil
+	}
+	return *page.mclr.Value
+}
+
+// ManagedClusterPoolUpgradeProfile the list of available upgrade versions.
+type ManagedClusterPoolUpgradeProfile struct {
+	// KubernetesVersion - Kubernetes version (major, minor, patch).
+	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+	// Name - Pool name.
+	Name *string `json:"name,omitempty"`
+	// OsType - OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux. Possible values include: 'Linux', 'Windows'
+	OsType OSType `json:"osType,omitempty"`
+	// Upgrades - List of orchestrator types and versions available for upgrade.
+	Upgrades *[]string `json:"upgrades,omitempty"`
+}
+
+// ManagedClusterProperties properties of the managed cluster.
+type ManagedClusterProperties struct {
+	// ProvisioningState - The current deployment or provisioning state, which only appears in the response.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// DNSPrefix - DNS prefix specified when creating the managed cluster.
+	DNSPrefix *string `json:"dnsPrefix,omitempty"`
+	// Fqdn - FDQN for the master pool.
+	Fqdn *string `json:"fqdn,omitempty"`
+	// KubernetesVersion - Version of Kubernetes specified when creating the managed cluster.
+	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
+	// AgentPoolProfiles - Properties of the agent pool.
+	AgentPoolProfiles *[]AgentPoolProfile `json:"agentPoolProfiles,omitempty"`
+	// LinuxProfile - Profile for Linux VMs in the container service cluster.
+	LinuxProfile *LinuxProfile `json:"linuxProfile,omitempty"`
+	// ServicePrincipalProfile - Information about a service principal identity for the cluster to use for manipulating Azure APIs. Either secret or keyVaultSecretRef must be specified.
+	ServicePrincipalProfile *ServicePrincipalProfile `json:"servicePrincipalProfile,omitempty"`
+}
+
+// ManagedClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ManagedClustersCreateOrUpdateFuture struct {
+	azure.Future
+	req *http.Request
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future ManagedClustersCreateOrUpdateFuture) Result(client ManagedClustersClient) (mc ManagedCluster, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		return
+	}
+	if !done {
+		return mc, autorest.NewError("containerservice.ManagedClustersCreateOrUpdateFuture", "Result", "asynchronous operation has not completed")
+	}
+	if future.PollingMethod() == azure.PollingLocation {
+		mc, err = client.CreateOrUpdateResponder(future.Response())
+		return
+	}
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, autorest.ChangeToGet(future.req),
+		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if err != nil {
+		return
+	}
+	mc, err = client.CreateOrUpdateResponder(resp)
+	return
+}
+
+// ManagedClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type ManagedClustersDeleteFuture struct {
+	azure.Future
+	req *http.Request
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future ManagedClustersDeleteFuture) Result(client ManagedClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		return
+	}
+	if !done {
+		return ar, autorest.NewError("containerservice.ManagedClustersDeleteFuture", "Result", "asynchronous operation has not completed")
+	}
+	if future.PollingMethod() == azure.PollingLocation {
+		ar, err = client.DeleteResponder(future.Response())
+		return
+	}
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, autorest.ChangeToGet(future.req),
+		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if err != nil {
+		return
+	}
+	ar, err = client.DeleteResponder(resp)
+	return
+}
+
+// ManagedClusterUpgradeProfile the list of available upgrades for compute pools.
+type ManagedClusterUpgradeProfile struct {
+	autorest.Response `json:"-"`
+	// ID - Id of upgrade profile.
+	ID *string `json:"id,omitempty"`
+	// Name - Name of upgrade profile.
+	Name *string `json:"name,omitempty"`
+	// Type - Type of upgrade profile.
+	Type *string `json:"type,omitempty"`
+	// ManagedClusterUpgradeProfileProperties - Properties of upgrade profile.
+	*ManagedClusterUpgradeProfileProperties `json:"properties,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for ManagedClusterUpgradeProfile struct.
+func (mcup *ManagedClusterUpgradeProfile) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	var v *json.RawMessage
+
+	v = m["id"]
+	if v != nil {
+		var ID string
+		err = json.Unmarshal(*m["id"], &ID)
+		if err != nil {
+			return err
+		}
+		mcup.ID = &ID
+	}
+
+	v = m["name"]
+	if v != nil {
+		var name string
+		err = json.Unmarshal(*m["name"], &name)
+		if err != nil {
+			return err
+		}
+		mcup.Name = &name
+	}
+
+	v = m["type"]
+	if v != nil {
+		var typeVar string
+		err = json.Unmarshal(*m["type"], &typeVar)
+		if err != nil {
+			return err
+		}
+		mcup.Type = &typeVar
+	}
+
+	v = m["properties"]
+	if v != nil {
+		var properties ManagedClusterUpgradeProfileProperties
+		err = json.Unmarshal(*m["properties"], &properties)
+		if err != nil {
+			return err
+		}
+		mcup.ManagedClusterUpgradeProfileProperties = &properties
+	}
+
+	return nil
+}
+
+// ManagedClusterUpgradeProfileProperties control plane and agent pool upgrade profiles.
+type ManagedClusterUpgradeProfileProperties struct {
+	// ControlPlaneProfile - The list of available upgrade versions for the control plane.
+	ControlPlaneProfile *ManagedClusterPoolUpgradeProfile `json:"controlPlaneProfile,omitempty"`
+	// AgentPoolProfiles - The list of available upgrade versions for agent pools.
+	AgentPoolProfiles *[]ManagedClusterPoolUpgradeProfile `json:"agentPoolProfiles,omitempty"`
+}
+
 // MasterProfile profile for the container service master.
 type MasterProfile struct {
 	// Count - Number of masters (VMs) in the container service cluster. Allowed values are 1, 3, and 5. The default value is 1.
@@ -655,12 +1107,103 @@ type MasterProfile struct {
 	Fqdn *string `json:"fqdn,omitempty"`
 }
 
-// OrchestratorProfile profile for the container service orchestrator.
+// OrchestratorProfile contains information about orchestrator.
 type OrchestratorProfile struct {
+	// OrchestratorType - Orchestrator type.
+	OrchestratorType *string `json:"orchestratorType,omitempty"`
+	// OrchestratorVersion - Orchestrator version (major, minor, patch).
+	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
+}
+
+// OrchestratorProfileType profile for the container service orchestrator.
+type OrchestratorProfileType struct {
 	// OrchestratorType - The orchestrator to use to manage container service cluster resources. Valid values are Kubernetes, Swarm, DCOS, DockerCE and Custom. Possible values include: 'Kubernetes', 'Swarm', 'DCOS', 'DockerCE', 'Custom'
 	OrchestratorType OrchestratorTypes `json:"orchestratorType,omitempty"`
 	// OrchestratorVersion - The version of the orchestrator to use. You can specify the major.minor.patch part of the actual version.For example, you can specify version as "1.6.11".
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
+}
+
+// OrchestratorVersionProfile the profile of an orchestrator and its available versions.
+type OrchestratorVersionProfile struct {
+	// OrchestratorType - Orchestrator type.
+	OrchestratorType *string `json:"orchestratorType,omitempty"`
+	// OrchestratorVersion - Orchestrator version (major, minor, patch).
+	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
+	// Default - Installed by default if version is not specified.
+	Default *bool `json:"default,omitempty"`
+	// Upgrades - The list of available upgrade versions.
+	Upgrades *[]OrchestratorProfile `json:"upgrades,omitempty"`
+}
+
+// OrchestratorVersionProfileListResult the list of versions for supported orchestrators.
+type OrchestratorVersionProfileListResult struct {
+	autorest.Response `json:"-"`
+	// ID - Id of the orchestrator version profile list result.
+	ID *string `json:"id,omitempty"`
+	// Name - Name of the orchestrator version profile list result.
+	Name *string `json:"name,omitempty"`
+	// Type - Type of the orchestrator version profile list result.
+	Type *string `json:"type,omitempty"`
+	// OrchestratorVersionProfileProperties - The properties of an orchestrator version profile.
+	*OrchestratorVersionProfileProperties `json:"properties,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for OrchestratorVersionProfileListResult struct.
+func (ovplr *OrchestratorVersionProfileListResult) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	var v *json.RawMessage
+
+	v = m["id"]
+	if v != nil {
+		var ID string
+		err = json.Unmarshal(*m["id"], &ID)
+		if err != nil {
+			return err
+		}
+		ovplr.ID = &ID
+	}
+
+	v = m["name"]
+	if v != nil {
+		var name string
+		err = json.Unmarshal(*m["name"], &name)
+		if err != nil {
+			return err
+		}
+		ovplr.Name = &name
+	}
+
+	v = m["type"]
+	if v != nil {
+		var typeVar string
+		err = json.Unmarshal(*m["type"], &typeVar)
+		if err != nil {
+			return err
+		}
+		ovplr.Type = &typeVar
+	}
+
+	v = m["properties"]
+	if v != nil {
+		var properties OrchestratorVersionProfileProperties
+		err = json.Unmarshal(*m["properties"], &properties)
+		if err != nil {
+			return err
+		}
+		ovplr.OrchestratorVersionProfileProperties = &properties
+	}
+
+	return nil
+}
+
+// OrchestratorVersionProfileProperties the properties of an orchestrator version profile.
+type OrchestratorVersionProfileProperties struct {
+	// Orchestrators - List of orchstrator version profiles.
+	Orchestrators *OrchestratorVersionProfile `json:"orchestrators,omitempty"`
 }
 
 // Properties properties of the container service.
@@ -668,7 +1211,7 @@ type Properties struct {
 	// ProvisioningState - The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// OrchestratorProfile - Profile for the container service orchestrator.
-	OrchestratorProfile *OrchestratorProfile `json:"orchestratorProfile,omitempty"`
+	OrchestratorProfile *OrchestratorProfileType `json:"orchestratorProfile,omitempty"`
 	// CustomProfile - Properties to configure a custom container service cluster.
 	CustomProfile *CustomProfile `json:"customProfile,omitempty"`
 	// ServicePrincipalProfile - Information about a service principal identity for the cluster to use for manipulating Azure APIs. Exact one of secret or keyVaultSecretRef need to be specified.
