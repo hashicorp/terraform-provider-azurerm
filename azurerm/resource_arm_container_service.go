@@ -43,7 +43,7 @@ func resourceArmContainerService() *schema.Resource {
 			},
 
 			"master_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -66,11 +66,10 @@ func resourceArmContainerService() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMContainerServiceMasterProfileHash,
 			},
 
 			"linux_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -80,7 +79,7 @@ func resourceArmContainerService() *schema.Resource {
 							Required: true,
 						},
 						"ssh_key": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -94,11 +93,10 @@ func resourceArmContainerService() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMContainerServiceLinuxProfilesHash,
 			},
 
 			"agent_pool_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -133,11 +131,10 @@ func resourceArmContainerService() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMContainerServiceAgentPoolProfilesHash,
 			},
 
 			"service_principal": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -154,7 +151,6 @@ func resourceArmContainerService() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMContainerServiceServicePrincipalProfileHash,
 			},
 
 			"diagnostics_profile": {
@@ -190,7 +186,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 
 	orchestrationPlatform := d.Get("orchestration_platform").(string)
 
@@ -205,13 +201,13 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 		Name:     &name,
 		Location: &location,
 		Properties: &containerservice.Properties{
-			MasterProfile: &masterProfile,
-			LinuxProfile:  &linuxProfile,
+			MasterProfile: masterProfile,
+			LinuxProfile:  linuxProfile,
 			OrchestratorProfile: &containerservice.OrchestratorProfile{
 				OrchestratorType: containerservice.OrchestratorTypes(orchestrationPlatform),
 			},
-			AgentPoolProfiles:  &agentProfiles,
-			DiagnosticsProfile: &diagnosticsProfile,
+			AgentPoolProfiles:  agentProfiles,
+			DiagnosticsProfile: diagnosticsProfile,
 		},
 		Tags: expandTags(tags),
 	}
@@ -279,18 +275,18 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("orchestration_platform", string(resp.Properties.OrchestratorProfile.OrchestratorType))
 
-	masterProfiles := flattenAzureRmContainerServiceMasterProfile(*resp.Properties.MasterProfile)
-	d.Set("master_profile", &masterProfiles)
+	masterProfile := flattenAzureRmContainerServiceMasterProfile(resp.Properties.MasterProfile)
+	d.Set("master_profile", &masterProfile)
 
-	linuxProfile := flattenAzureRmContainerServiceLinuxProfile(*resp.Properties.LinuxProfile)
+	linuxProfile := flattenAzureRmContainerServiceLinuxProfile(resp.Properties.LinuxProfile)
 	d.Set("linux_profile", &linuxProfile)
 
-	agentPoolProfiles := flattenAzureRmContainerServiceAgentPoolProfiles(resp.Properties.AgentPoolProfiles)
+	agentPoolProfiles := flattenAzureRmContainerServiceAgentPoolProfiles(resp.Properties.AgentPoolProfiles, d)
 	d.Set("agent_pool_profile", &agentPoolProfiles)
 
-	servicePrincipal := flattenAzureRmContainerServiceServicePrincipalProfile(resp.Properties.ServicePrincipalProfile)
+	servicePrincipal := flattenAzureRmContainerServiceServicePrincipalProfile(resp.Properties.ServicePrincipalProfile, d)
 	if servicePrincipal != nil {
-		d.Set("service_principal", servicePrincipal)
+		d.Set("service_principal", &servicePrincipal)
 	}
 
 	diagnosticProfile := flattenAzureRmContainerServiceDiagnosticsProfile(resp.Properties.DiagnosticsProfile)
@@ -329,81 +325,79 @@ func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{})
 
 }
 
-func flattenAzureRmContainerServiceMasterProfile(profile containerservice.MasterProfile) *schema.Set {
-	masterProfiles := &schema.Set{
-		F: resourceAzureRMContainerServiceMasterProfileHash,
-	}
-
+// change output to a List
+func flattenAzureRmContainerServiceMasterProfile(profile *containerservice.MasterProfile) []interface{} {
 	masterProfile := make(map[string]interface{}, 3)
 
 	masterProfile["count"] = int(*profile.Count)
 	masterProfile["dns_prefix"] = *profile.DNSPrefix
 	masterProfile["fqdn"] = *profile.Fqdn
 
-	masterProfiles.Add(masterProfile)
+	masterProfiles := make([]interface{}, 0)
+	masterProfiles = append(masterProfiles, masterProfile)
 
 	return masterProfiles
 }
 
-func flattenAzureRmContainerServiceLinuxProfile(profile containerservice.LinuxProfile) *schema.Set {
-	profiles := &schema.Set{
-		F: resourceAzureRMContainerServiceLinuxProfilesHash,
-	}
-
+func flattenAzureRmContainerServiceLinuxProfile(profile *containerservice.LinuxProfile) []interface{} {
 	values := map[string]interface{}{}
 
-	sshKeys := &schema.Set{
-		F: resourceAzureRMContainerServiceLinuxProfilesSSHKeysHash,
-	}
+	sshKeys := make([]interface{}, 0)
 	for _, ssh := range *profile.SSH.PublicKeys {
 		keys := map[string]interface{}{}
 		keys["key_data"] = *ssh.KeyData
-		sshKeys.Add(keys)
+		sshKeys = append(sshKeys, keys)
 	}
 
 	values["admin_username"] = *profile.AdminUsername
 	values["ssh_key"] = sshKeys
-	profiles.Add(values)
+
+	profiles := make([]interface{}, 0)
+	profiles = append(profiles, values)
 
 	return profiles
 }
 
-func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile) *schema.Set {
-	agentPoolProfiles := &schema.Set{
-		F: resourceAzureRMContainerServiceAgentPoolProfilesHash,
-	}
+func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile, d *schema.ResourceData) []interface{} {
+	configs := d.Get("agent_pool_profile").([]interface{})
+	config := configs[0].(map[string]interface{})
+	dnsPrefix := config["dns_prefix"].(string)
+
+	agentPoolProfiles := make([]interface{}, 0)
 
 	for _, profile := range *profiles {
 		agentPoolProfile := map[string]interface{}{}
 		agentPoolProfile["count"] = int(*profile.Count)
-		agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
+		agentPoolProfile["dns_prefix"] = dnsPrefix //*profile.DNSPrefix // not returned from the API
 		agentPoolProfile["fqdn"] = *profile.Fqdn
 		agentPoolProfile["name"] = *profile.Name
 		agentPoolProfile["vm_size"] = string(profile.VMSize)
-		agentPoolProfiles.Add(agentPoolProfile)
+		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
 	}
 
 	return agentPoolProfiles
 }
 
-func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
+func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile, d *schema.ResourceData) []interface{} {
 
-	if profile == nil {
+	if profile == nil || profile.ClientID == nil {
 		return nil
 	}
 
-	servicePrincipalProfiles := &schema.Set{
-		F: resourceAzureRMContainerServiceServicePrincipalProfileHash,
-	}
-
 	values := map[string]interface{}{}
-
 	values["client_id"] = *profile.ClientID
-	if profile.Secret != nil {
-		values["client_secret"] = *profile.Secret
+
+	value, exists := d.GetOk("service_principal")
+	if exists {
+		configs := value.([]interface{})
+		config := configs[0].(map[string]interface{})
+		clientSecret := config["client_secret"].(string)
+
+		values["client_secret"] = clientSecret //*profile.Secret // blank in SDK
 	}
 
-	servicePrincipalProfiles.Add(values)
+	servicePrincipalProfiles := make([]interface{}, 0)
+	servicePrincipalProfiles = append(servicePrincipalProfiles, values)
 
 	return servicePrincipalProfiles
 }
@@ -424,7 +418,7 @@ func flattenAzureRmContainerServiceDiagnosticsProfile(profile *containerservice.
 	return diagnosticProfiles
 }
 
-func expandAzureRmContainerServiceDiagnostics(d *schema.ResourceData) containerservice.DiagnosticsProfile {
+func expandAzureRmContainerServiceDiagnostics(d *schema.ResourceData) *containerservice.DiagnosticsProfile {
 	configs := d.Get("diagnostics_profile").(*schema.Set).List()
 	profile := containerservice.DiagnosticsProfile{}
 
@@ -438,16 +432,16 @@ func expandAzureRmContainerServiceDiagnostics(d *schema.ResourceData) containers
 		},
 	}
 
-	return profile
+	return &profile
 }
 
-func expandAzureRmContainerServiceLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
-	profiles := d.Get("linux_profile").(*schema.Set).List()
+func expandAzureRmContainerServiceLinuxProfile(d *schema.ResourceData) *containerservice.LinuxProfile {
+	profiles := d.Get("linux_profile").([]interface{})
 	config := profiles[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
 
-	linuxKeys := config["ssh_key"].(*schema.Set).List()
+	linuxKeys := config["ssh_key"].([]interface{})
 	sshPublicKeys := []containerservice.SSHPublicKey{}
 
 	key := linuxKeys[0].(map[string]interface{})
@@ -466,11 +460,11 @@ func expandAzureRmContainerServiceLinuxProfile(d *schema.ResourceData) container
 		},
 	}
 
-	return profile
+	return &profile
 }
 
-func expandAzureRmContainerServiceMasterProfile(d *schema.ResourceData) containerservice.MasterProfile {
-	configs := d.Get("master_profile").(*schema.Set).List()
+func expandAzureRmContainerServiceMasterProfile(d *schema.ResourceData) *containerservice.MasterProfile {
+	configs := d.Get("master_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
 
 	count := int32(config["count"].(int))
@@ -481,33 +475,32 @@ func expandAzureRmContainerServiceMasterProfile(d *schema.ResourceData) containe
 		DNSPrefix: &dnsPrefix,
 	}
 
-	return profile
+	return &profile
 }
 
 func expandAzureRmContainerServiceServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
-
 	value, exists := d.GetOk("service_principal")
 	if !exists {
 		return nil
 	}
 
-	configs := value.(*schema.Set).List()
+	configs := value.([]interface{})
 
 	config := configs[0].(map[string]interface{})
 
-	clientId := config["client_id"].(string)
+	clientID := config["client_id"].(string)
 	clientSecret := config["client_secret"].(string)
 
 	principal := containerservice.ServicePrincipalProfile{
-		ClientID: &clientId,
+		ClientID: &clientID,
 		Secret:   &clientSecret,
 	}
 
 	return &principal
 }
 
-func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []containerservice.AgentPoolProfile {
-	configs := d.Get("agent_pool_profile").(*schema.Set).List()
+func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) *[]containerservice.AgentPoolProfile {
+	configs := d.Get("agent_pool_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
 	profiles := make([]containerservice.AgentPoolProfile, 0, len(configs))
 
@@ -525,42 +518,7 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 
 	profiles = append(profiles, profile)
 
-	return profiles
-}
-
-func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.containerServicesClient.Get(resourceGroupName, containerServiceName)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
-		}
-
-		return res, *res.Properties.ProvisioningState, nil
-	}
-}
-
-func resourceAzureRMContainerServiceMasterProfileHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	count := m["count"].(int)
-	dnsPrefix := m["dns_prefix"].(string)
-
-	buf.WriteString(fmt.Sprintf("%d-", count))
-	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
-
-	return hashcode.String(buf.String())
-}
-
-func resourceAzureRMContainerServiceLinuxProfilesHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	adminUsername := m["admin_username"].(string)
-
-	buf.WriteString(fmt.Sprintf("%s-", adminUsername))
-
-	return hashcode.String(buf.String())
+	return &profiles
 }
 
 func resourceAzureRMContainerServiceLinuxProfilesSSHKeysHash(v interface{}) int {
@@ -574,31 +532,15 @@ func resourceAzureRMContainerServiceLinuxProfilesSSHKeysHash(v interface{}) int 
 	return hashcode.String(buf.String())
 }
 
-func resourceAzureRMContainerServiceAgentPoolProfilesHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
+func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.containerServicesClient.Get(resourceGroupName, containerServiceName)
+		if err != nil {
+			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
+		}
 
-	count := m["count"].(int)
-	dnsPrefix := m["dns_prefix"].(string)
-	name := m["name"].(string)
-	vm_size := m["vm_size"].(string)
-
-	buf.WriteString(fmt.Sprintf("%d-", count))
-	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
-	buf.WriteString(fmt.Sprintf("%s-", name))
-	buf.WriteString(fmt.Sprintf("%s-", vm_size))
-
-	return hashcode.String(buf.String())
-}
-
-func resourceAzureRMContainerServiceServicePrincipalProfileHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	clientId := m["client_id"].(string)
-	buf.WriteString(fmt.Sprintf("%s-", clientId))
-
-	return hashcode.String(buf.String())
+		return res, *res.Properties.ProvisioningState, nil
+	}
 }
 
 func resourceAzureRMContainerServiceDiagnosticProfilesHash(v interface{}) int {
