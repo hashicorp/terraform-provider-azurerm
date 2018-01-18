@@ -85,14 +85,15 @@ func testCheckAzureRMMySQLServerExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlServersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MySQL Server %q (resource group: %q) does not exist", name, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on mysqlServersClient: %s", err)
+			return fmt.Errorf("Bad: Get on mysqlServersClient: %+v", err)
 		}
 
 		return nil
@@ -101,6 +102,7 @@ func testCheckAzureRMMySQLServerExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).mysqlServersClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_server" {
@@ -110,7 +112,7 @@ func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
