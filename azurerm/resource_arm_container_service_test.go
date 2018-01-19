@@ -257,8 +257,7 @@ resource "azurerm_container_service" "test" {
   master_profile {
     count           = 1
     dns_prefix      = "acctestmaster%d"
-    vm_size         = "Standard_D2_v2"
-    os_disk_size_gb = 50
+    vm_size         = "Standard_D1_v2"
   }
 
   linux_profile {
@@ -274,7 +273,6 @@ resource "azurerm_container_service" "test" {
     count           = 1
     dns_prefix      = "acctestagent%d"
     vm_size         = "Standard_A0"
-    os_disk_size_gb = 50
   }
 
   service_principal {
