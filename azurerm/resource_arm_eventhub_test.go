@@ -260,6 +260,7 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 
 func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub" {
@@ -270,7 +271,7 @@ func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
 
 		if err != nil {
 			return nil
@@ -300,8 +301,9 @@ func testCheckAzureRMEventHubExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, namespaceName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)
 		}

@@ -47,14 +47,15 @@ func dataSourceArmSubscription() *schema.Resource {
 
 func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	groupClient := client.subscriptionsGroupClient
+	groupClient := client.subscriptionsClient
+	ctx := client.StopContext
 
 	subscriptionId := d.Get("subscription_id").(string)
 	if subscriptionId == "" {
 		subscriptionId = client.subscriptionId
 	}
 
-	resp, err := groupClient.Get(subscriptionId)
+	resp, err := groupClient.Get(ctx, subscriptionId)
 	if err != nil {
 		return fmt.Errorf("Error reading subscription: %+v", err)
 	}

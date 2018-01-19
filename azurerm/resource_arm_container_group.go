@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -174,6 +174,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
+	ctx := meta.(*ArmClient).StopContext
 	containerGroupsClient := client.containerGroupsClient
 
 	// container group properties
@@ -200,12 +201,12 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	_, err := containerGroupsClient.CreateOrUpdate(resGroup, name, containerGroup)
+	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
 		return err
 	}
 
-	read, err := containerGroupsClient.Get(resGroup, name)
+	read, err := containerGroupsClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -221,6 +222,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
+	ctx := meta.(*ArmClient).StopContext
 	containterGroupsClient := client.containerGroupsClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -232,7 +234,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
-	resp, err := containterGroupsClient.Get(resGroup, name)
+	resp, err := containterGroupsClient.Get(ctx, resGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -266,6 +268,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
+	ctx := meta.(*ArmClient).StopContext
 	containterGroupsClient := client.containerGroupsClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -278,7 +281,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
-	resp, err := containterGroupsClient.Delete(resGroup, name)
+	resp, err := containterGroupsClient.Delete(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

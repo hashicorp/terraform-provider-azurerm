@@ -6,7 +6,7 @@ import (
 
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -131,6 +131,7 @@ func resourceArmEventHub() *schema.Resource {
 
 func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
 	name := d.Get("name").(string)
@@ -155,12 +156,12 @@ func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Properties.CaptureDescription = captureDescription
 	}
 
-	_, err := client.CreateOrUpdate(resourceGroup, namespaceName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resourceGroup, namespaceName, name)
+	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return err
 	}
@@ -176,6 +177,8 @@ func resourceArmEventHubCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
+	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -184,7 +187,7 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["eventhubs"]
-	resp, err := client.Get(resourceGroup, namespaceName, name)
+	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -213,6 +216,7 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
+	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -221,7 +225,7 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["eventhubs"]
-	resp, err := client.Delete(resourceGroup, namespaceName, name)
+	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {

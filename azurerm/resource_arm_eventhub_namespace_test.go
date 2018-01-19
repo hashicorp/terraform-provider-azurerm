@@ -120,6 +120,7 @@ func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
 
 func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_namespace" {
@@ -129,7 +130,7 @@ func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -156,8 +157,9 @@ func testCheckAzureRMEventHubNamespaceExists(name string) resource.TestCheckFunc
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, namespaceName)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Event Hub Namespace %q (resource group: %q) does not exist", namespaceName, resourceGroup)

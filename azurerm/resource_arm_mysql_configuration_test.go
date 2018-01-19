@@ -111,8 +111,9 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
@@ -136,8 +137,9 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, configurationName)
+		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MySQL Configuration %q (server %q resource group: %q) does not exist", configurationName, serverName, resourceGroup)
@@ -158,6 +160,7 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 
 func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).mysqlConfigurationsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_configuration" {
@@ -168,7 +171,7 @@ func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
