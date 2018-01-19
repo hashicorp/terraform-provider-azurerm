@@ -51,8 +51,13 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
+<<<<<<< HEAD
 			"checksumSHA1": "IXreuQabmzmRhjA0cCHXulObl1c=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/dns",
+=======
+			"checksumSHA1": "ukh0GPROTDLuKagYzTAnOp0E5hk=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/graphrbac",
+>>>>>>> Migrating dns to new version of sdk
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
 			"revisionTime": "2018-01-09T21:59:56Z",
 			"version": "v12.2.0-beta",
