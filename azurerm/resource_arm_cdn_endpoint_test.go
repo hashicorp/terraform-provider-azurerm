@@ -132,8 +132,9 @@ func testCheckAzureRMCdnEndpointExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, profileName, name)
+		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnEndpointsClient: %+v", err)
 		}
@@ -162,9 +163,14 @@ func testCheckAzureRMCdnEndpointDisappears(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, profileName, name, make(chan struct{}))
-		err := <-error
+		future, err := conn.Delete(ctx, resourceGroup, profileName, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %+v", err)
+		}
+
+		err = future.WaitForCompletion(ctx, conn.Client)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on cdnEndpointsClient: %+v", err)
 		}
@@ -175,6 +181,7 @@ func testCheckAzureRMCdnEndpointDisappears(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).cdnEndpointsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cdn_endpoint" {
@@ -185,7 +192,7 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		profileName := rs.Primary.Attributes["profile_name"]
 
-		resp, err := conn.Get(resourceGroup, profileName, name)
+		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
 		if err != nil {
 			return nil
 		}

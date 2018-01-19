@@ -10,17 +10,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/appinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/authorization"
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
-	"github.com/Azure/azure-sdk-for-go/arm/cdn"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
-	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
-	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
@@ -28,9 +24,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
@@ -97,9 +97,6 @@ type ArmClient struct {
 	dnsClient                    dns.RecordSetsClient
 	zonesClient                  dns.ZonesClient
 
-	cdnProfilesClient  cdn.ProfilesClient
-	cdnEndpointsClient cdn.EndpointsClient
-
 	containerRegistryClient containerregistry.RegistriesClient
 	containerServicesClient containerservice.ContainerServicesClient
 	containerGroupsClient   containerinstance.ContainerGroupsClient
@@ -118,12 +115,17 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
+	// Application Insights
 	appInsightsClient appinsights.ComponentsClient
 
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
 	roleDefinitionsClient   authorization.RoleDefinitionsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
+
+	// CDN
+	cdnProfilesClient  cdn.ProfilesClient
+	cdnEndpointsClient cdn.EndpointsClient
 
 	// Databases
 	mysqlConfigurationsClient      mysql.ConfigurationsClient
@@ -386,13 +388,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	csc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.containerServicesClient = csc
 
-	cgc := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&cgc.Client)
-	cgc.Authorizer = auth
-	cgc.Sender = autorest.CreateSender(withRequestLogging())
-	cgc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.containerGroupsClient = cgc
-
 	cdb := cosmosdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&cdb.Client)
 	cdb.Authorizer = auth
@@ -406,27 +401,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	img.Sender = sender
 	img.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.imageClient = img
-
-	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ehc.Client)
-	ehc.Authorizer = auth
-	ehc.Sender = sender
-	ehc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.eventHubClient = ehc
-
-	chcgc := eventhub.NewConsumerGroupsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&chcgc.Client)
-	chcgc.Authorizer = auth
-	chcgc.Sender = sender
-	chcgc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.eventHubConsumerGroupClient = chcgc
-
-	ehnc := eventhub.NewNamespacesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ehnc.Client)
-	ehnc.Authorizer = auth
-	ehnc.Sender = sender
-	ehnc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.eventHubNamespacesClient = ehnc
 
 	ifc := network.NewInterfacesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ifc.Client)
@@ -547,19 +521,15 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	zo.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.zonesClient = zo
 
-	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&ai.Client)
-	ai.Authorizer = auth
-	ai.Sender = sender
-	ai.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.appInsightsClient = ai
-
+	client.registerAppInsightsClient(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
@@ -571,6 +541,15 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerAppInsightsClient(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&ai.Client)
+	ai.Authorizer = auth
+	ai.Sender = sender
+	ai.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.appInsightsClient = ai
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -640,6 +619,12 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 	profilesClient.Sender = sender
 	profilesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.cdnProfilesClient = profilesClient
+}
+
+func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	cgc := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&cgc.Client, auth)
+	c.containerGroupsClient = cgc
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -754,6 +739,29 @@ func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, au
 	egtc.Sender = sender
 	egtc.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.eventGridTopicsClient = egtc
+}
+
+func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&ehc.Client)
+	ehc.Authorizer = auth
+	ehc.Sender = sender
+	ehc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.eventHubClient = ehc
+
+	chcgc := eventhub.NewConsumerGroupsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&chcgc.Client)
+	chcgc.Authorizer = auth
+	chcgc.Sender = sender
+	chcgc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.eventHubConsumerGroupClient = chcgc
+
+	ehnc := eventhub.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&ehnc.Client)
+	ehnc.Authorizer = auth
+	ehnc.Sender = sender
+	ehnc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.eventHubNamespacesClient = ehnc
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {

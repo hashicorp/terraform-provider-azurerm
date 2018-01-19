@@ -52,6 +52,7 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 
 func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_consumer_group" {
@@ -63,7 +64,7 @@ func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -90,11 +91,12 @@ func testCheckAzureRMEventHubConsumerGroupExists(name string) resource.TestCheck
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Event Hub Consumer Group %q (resource group: %q) does not exist", name, resourceGroup)

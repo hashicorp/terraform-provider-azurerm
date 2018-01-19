@@ -287,7 +287,7 @@ resource "azurerm_storage_account" "test" {
 	account_tier             = "Standard"
 	account_replication_type = "LRS"
 }
-	
+
 resource "azurerm_storage_share" "test" {
 	name = "acctestss-%d"
 
@@ -296,7 +296,7 @@ resource "azurerm_storage_share" "test" {
 
 	quota = 50
 }
-	
+
 resource "azurerm_container_group" "test" {
 	name                = "acctestcontainergroup-%d"
 	location            = "${azurerm_resource_group.test.location}"
@@ -351,8 +351,9 @@ func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Container Group %q (resource group: %q) does not exist", name, resourceGroup)
@@ -366,6 +367,7 @@ func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_group" {
@@ -375,7 +377,7 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if resp.StatusCode != http.StatusNotFound {

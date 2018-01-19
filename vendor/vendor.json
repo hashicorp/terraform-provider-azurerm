@@ -3,14 +3,6 @@
 	"ignore": "test github.com/hashicorp/terraform/backend",
 	"package": [
 		{
-			"checksumSHA1": "6L+lfS4jjiDIT4vBffPkpmx2PI0=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/appinsights",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
 			"checksumSHA1": "IjNs00z0UNBU/yuPRYynmrgVGGs=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/authorization",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
@@ -27,24 +19,8 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
-			"checksumSHA1": "wgnU3Mmf/S8pUvERC4TRzoLLH5g=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/cdn",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
 			"checksumSHA1": "ntK9uWj6tVf/jSFsQiGezSsr9dM=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/compute",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
-			"checksumSHA1": "IedxDiI9EV0mSaxf4eNtK92crZY=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/containerinstance",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
 			"revisionTime": "2018-01-09T21:59:56Z",
 			"version": "v12.2.0-beta",
@@ -77,14 +53,6 @@
 		{
 			"checksumSHA1": "IXreuQabmzmRhjA0cCHXulObl1c=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/dns",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
-			"checksumSHA1": "NiwGn7ohqvpC1UevRLxGbiqvWMw=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/eventhub",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
 			"revisionTime": "2018-01-09T21:59:56Z",
 			"version": "v12.2.0-beta",
