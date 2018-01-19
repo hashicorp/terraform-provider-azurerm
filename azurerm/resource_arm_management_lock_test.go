@@ -227,8 +227,9 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 
 		client := testAccProvider.Meta().(*ArmClient).managementLocksClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.GetByScope(scope, name)
+		resp, err := client.GetByScope(ctx, scope, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Management Lock %q (Scope %q) does not exist", name, scope)
@@ -243,6 +244,7 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).managementLocksClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_management_lock" {
@@ -252,7 +254,7 @@ func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		scope := rs.Primary.Attributes["scope"]
 
-		resp, err := client.GetByScope(scope, name)
+		resp, err := client.GetByScope(ctx, scope, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
