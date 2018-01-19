@@ -121,9 +121,10 @@ func testCheckAzureRMTemplateDeploymentExists(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on deploymentsClient: %s", err)
 		}
@@ -144,26 +145,27 @@ func testCheckAzureRMTemplateDeploymentDisappears(name string) resource.TestChec
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		name := rs.Primary.Attributes["name"]
+		deploymentName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-error
+		_, err := client.Delete(ctx, resourceGroup, deploymentName)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on deploymentsClient: %s", err)
+			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
-		return nil
+		return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, deploymentName)
 	}
 }
 
 func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vmClient
+	client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_template_deployment" {
@@ -173,14 +175,14 @@ func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Template Deployment still exists:\n%#v", resp.VirtualMachineProperties)
+			return fmt.Errorf("Template Deployment still exists:\n%#v", resp.Properties)
 		}
 	}
 

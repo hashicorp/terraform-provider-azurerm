@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,7 +32,8 @@ func resourceArmResourceGroup() *schema.Resource {
 }
 
 func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourceGroupClient
+	client := meta.(*ArmClient).resourceGroupsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -40,12 +42,12 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 		Location: utils.String(location),
 		Tags:     expandTags(tags),
 	}
-	_, err := client.CreateOrUpdate(name, parameters)
+	_, err := client.CreateOrUpdate(ctx, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating resource group: %+v", err)
 	}
 
-	resp, err := client.Get(name)
+	resp, err := client.Get(ctx, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving resource group: %+v", err)
 	}
@@ -56,7 +58,8 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourceGroupClient
+	client := meta.(*ArmClient).resourceGroupsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -65,7 +68,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	name := id.ResourceGroup
 
-	resp, err := client.Get(name)
+	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
@@ -84,7 +87,8 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*ArmClient).resourceGroupClient
+	client := meta.(*ArmClient).resourceGroupsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -93,7 +97,7 @@ func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (b
 
 	name := id.ResourceGroup
 
-	resp, err := client.Get(name)
+	resp, err := client.Get(ctx, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
@@ -106,7 +110,8 @@ func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (b
 }
 
 func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourceGroupClient
+	client := meta.(*ArmClient).resourceGroupsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -115,15 +120,22 @@ func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) er
 
 	name := id.ResourceGroup
 
-	deleteResp, deleteErr := client.Delete(name, make(chan struct{}))
-	resp := <-deleteResp
-	err = <-deleteErr
+	deleteFuture, err := client.Delete(ctx, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting resource group: %+v", err)
+		return fmt.Errorf("Error deleting Resource Group %q: %+v", name, err)
+	}
+
+	err = deleteFuture.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(deleteFuture.Response()) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting Resource Group %q: %+v", name, err)
 	}
 
 	return nil
