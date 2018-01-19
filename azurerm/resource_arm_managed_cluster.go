@@ -39,7 +39,6 @@ func resourceArmManagedCluster() *schema.Resource {
 
 			"kubernetes_version": {
 				Type:     schema.TypeString,
-				Required: false,
 				Optional: true,
 			},
 
@@ -87,7 +86,7 @@ func resourceArmManagedCluster() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      1,
-							ValidateFunc: validateArmManagedClusterAgentPoolProfileCount,
+							ValidateFunc: validation.IntBetween(1, 100),
 						},
 
 						"dns_prefix": {
@@ -554,12 +553,4 @@ func resourceAzureRMManagedClusterServicePrincipalProfileHash(v interface{}) int
 	buf.WriteString(fmt.Sprintf("%s-", clientId))
 
 	return hashcode.String(buf.String())
-}
-
-func validateArmManagedClusterAgentPoolProfileCount(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-	if value > 100 || 0 >= value {
-		errors = append(errors, fmt.Errorf("The Count for an Agent Pool Profile can only be between 1 and 100"))
-	}
-	return
 }

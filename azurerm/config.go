@@ -73,6 +73,7 @@ type ArmClient struct {
 
 	containerRegistryClient containerregistry.RegistriesClient
 	containerServicesClient containerservice.ContainerServicesClient
+	managedClustersClient   containerservice.ManagedClustersClient
 	containerGroupsClient   containerinstance.ContainerGroupsClient
 
 	eventGridTopicsClient       eventgrid.TopicsClient
