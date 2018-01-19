@@ -20,7 +20,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/dns"
-	"github.com/Azure/azure-sdk-for-go/arm/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
 	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
@@ -31,6 +30,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
@@ -407,13 +407,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	img.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.imageClient = img
 
-	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&egtc.Client)
-	egtc.Authorizer = auth
-	egtc.Sender = sender
-	egtc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.eventGridTopicsClient = egtc
-
 	ehc := eventhub.NewEventHubsClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&ehc.Client)
 	ehc.Authorizer = auth
@@ -566,6 +559,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
+	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
@@ -751,6 +745,15 @@ func (c *ArmClient) registerDisks(endpoint, subscriptionId string, auth autorest
 	snapshotsClient.Sender = sender
 	snapshotsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.snapshotsClient = snapshotsClient
+}
+
+func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	egtc := eventgrid.NewTopicsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&egtc.Client)
+	egtc.Authorizer = auth
+	egtc.Sender = sender
+	egtc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.eventGridTopicsClient = egtc
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
