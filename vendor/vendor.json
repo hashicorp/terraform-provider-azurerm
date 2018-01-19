@@ -59,14 +59,6 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
-			"checksumSHA1": "ukh0GPROTDLuKagYzTAnOp0E5hk=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/graphrbac",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
 			"checksumSHA1": "MTOGJVzeFd1VxLpuz+JoJ/5r8lA=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/keyvault",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
