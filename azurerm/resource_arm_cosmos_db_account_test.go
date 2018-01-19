@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func init() {
@@ -26,9 +25,10 @@ func testSweepCosmosDBAccount(region string) error {
 	}
 
 	client := (*armClient).cosmosDBClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the CosmosDB Accounts..")
-	results, err := client.List()
+	results, err := client.List(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on CosmosDB Accounts: %+v", err)
 	}
@@ -47,13 +47,13 @@ func testSweepCosmosDBAccount(region string) error {
 		name := resourceId.Path["databaseAccounts"]
 
 		log.Printf("Deleting CosmosDB Account '%s' in Resource Group '%s'", name, resourceGroup)
-		deleteResp, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
-		resp := <-deleteResp
-		err = <-deleteErr
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return err
-			}
+			return err
+		}
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -201,6 +201,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated(t *testing.T) {
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cosmosdb_account" {
@@ -210,7 +211,7 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -239,8 +240,9 @@ func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cosmosDBClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosDBClient: %+v", err)
 		}
