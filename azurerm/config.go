@@ -618,10 +618,7 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 
 func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	cgc := containerinstance.NewContainerGroupsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&cgc.Client)
-	cgc.Authorizer = auth
-	cgc.Sender = autorest.CreateSender(withRequestLogging())
-	cgc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&cgc.Client, auth)
 	c.containerGroupsClient = cgc
 }
 
