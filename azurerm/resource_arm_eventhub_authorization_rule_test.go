@@ -88,6 +88,7 @@ func TestAccAzureRMEventHubAuthorizationRule_manage(t *testing.T) {
 
 func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_authorization_rule" {
@@ -99,7 +100,7 @@ func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error 
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.GetAuthorizationRule(resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -127,7 +128,8 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(name string) resource.TestC
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).eventHubClient
-		resp, err := conn.GetAuthorizationRule(resourceGroup, namespaceName, eventHubName, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Event Hub Authorization Rule %q (eventhub %s, namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, resourceGroup)
