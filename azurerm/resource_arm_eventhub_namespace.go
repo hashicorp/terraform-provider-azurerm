@@ -221,7 +221,7 @@ func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}
 
 func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client eventhub.NamespacesClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for EventHub NampSpace (%q in Resource Group %q) to be deleted", name, resourceGroup)
+	log.Printf("[DEBUG] Waiting for EventHub Namespace (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
