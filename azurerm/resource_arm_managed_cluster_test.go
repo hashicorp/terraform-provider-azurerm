@@ -11,28 +11,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMManagedCluster_agentProfilePoolCountValidation(t *testing.T) {
-	cases := []struct {
-		Value    int
-		ErrCount int
-	}{
-		{Value: 0, ErrCount: 1},
-		{Value: 1, ErrCount: 0},
-		{Value: 2, ErrCount: 0},
-		{Value: 99, ErrCount: 0},
-		{Value: 100, ErrCount: 0},
-		{Value: 101, ErrCount: 1},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateArmManagedClusterAgentPoolProfileCount(tc.Value, "azurerm_managed_cluster")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM AKS Managed Cluster Agent Pool Profile Count to trigger a validation error for '%d'", tc.Value)
-		}
-	}
-}
-
 func TestAccAzureRMManagedCluster_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
