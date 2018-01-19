@@ -43,14 +43,6 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
-			"checksumSHA1": "PDMRG1zVjFxDESUXBwR74V+zVHs=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/network",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
 			"checksumSHA1": "z/C9jsbI3ZO3u8lJRAPXN0ZX2r0=",
 			"path": "github.com/Azure/azure-sdk-for-go/dataplane/keyvault",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
