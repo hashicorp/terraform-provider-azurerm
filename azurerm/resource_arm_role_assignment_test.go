@@ -82,7 +82,8 @@ func testCheckAzureRMRoleAssignmentExists(name string) resource.TestCheckFunc {
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).roleAssignmentsClient
-		resp, err := client.Get(scope, roleAssignmentName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -105,7 +106,8 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).roleAssignmentsClient
-		resp, err := client.Get(scope, roleAssignmentName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
