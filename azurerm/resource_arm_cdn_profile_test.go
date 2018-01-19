@@ -25,14 +25,15 @@ func testSweepCDNProfiles(region string) error {
 	}
 
 	client := (*armClient).cdnProfilesClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the CDN Profiles..")
-	results, err := client.List()
+	results, err := client.List(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on CDN Profiles: %+v", err)
 	}
 
-	for _, profile := range *results.Value {
+	for _, profile := range results.Values() {
 		if !shouldSweepAcceptanceTestResource(*profile.Name, *profile.Location, region) {
 			continue
 		}
@@ -46,8 +47,12 @@ func testSweepCDNProfiles(region string) error {
 		name := resourceId.Path["profiles"]
 
 		log.Printf("Deleting CDN Profile '%s' in Resource Group '%s'", name, resourceGroup)
-		_, error := client.Delete(resourceGroup, name, make(chan struct{}))
-		err = <-error
+		future, err := client.Delete(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
 		if err != nil {
 			return err
 		}
@@ -188,8 +193,9 @@ func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnProfilesClient: %+v", err)
 		}
@@ -204,6 +210,7 @@ func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).cdnProfilesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_cdn_profile" {
@@ -213,7 +220,7 @@ func testCheckAzureRMCdnProfileDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
