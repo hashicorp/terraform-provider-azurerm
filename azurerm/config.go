@@ -32,7 +32,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
 	"github.com/Azure/azure-sdk-for-go/arm/resources/subscriptions"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
@@ -127,7 +127,8 @@ type ArmClient struct {
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.ManagementClient
 
-	appInsightsClient insights.ComponentsClient
+	// Application Insights
+	appInsightsClient appinsights.ComponentsClient
 
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
@@ -620,7 +621,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 }
 
 func (c *ArmClient) registerAppInsightsClient(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	ai := insights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
+	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&ai.Client)
 	ai.Authorizer = auth
 	ai.Sender = sender
