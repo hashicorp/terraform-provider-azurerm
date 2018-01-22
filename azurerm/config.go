@@ -16,7 +16,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
@@ -27,6 +26,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -507,20 +507,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	rc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.routesClient = rc
 
-	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&dn.Client)
-	dn.Authorizer = auth
-	dn.Sender = sender
-	dn.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.dnsClient = dn
-
-	zo := dns.NewZonesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&zo.Client)
-	zo.Authorizer = auth
-	zo.Sender = sender
-	zo.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.zonesClient = zo
-
 	client.registerAppInsightsClient(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
@@ -528,6 +514,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
@@ -730,6 +717,16 @@ func (c *ArmClient) registerDisks(endpoint, subscriptionId string, auth autorest
 	snapshotsClient.Sender = sender
 	snapshotsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.snapshotsClient = snapshotsClient
+}
+
+func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dn.Client, auth)
+	c.dnsClient = dn
+
+	zo := dns.NewZonesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&zo.Client, auth)
+	c.zonesClient = zo
 }
 
 func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

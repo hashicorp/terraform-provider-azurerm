@@ -75,7 +75,8 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).zonesClient
-		resp, err := client.Get(resourceGroup, zoneName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
 		}
@@ -90,6 +91,7 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).zonesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_zone" {
@@ -99,7 +101,7 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 		zoneName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, zoneName)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil
