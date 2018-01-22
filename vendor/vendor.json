@@ -59,8 +59,13 @@
 			"versionExact": "v12.2.0-beta"
 		},
 		{
+<<<<<<< HEAD
 			"checksumSHA1": "1IZMTPTijWAzodsaa1Qsn7T/wj8=",
 			"path": "github.com/Azure/azure-sdk-for-go/arm/postgresql",
+=======
+			"checksumSHA1": "1vQZbJJLbYz+ocnsVsWmPrAfu4A=",
+			"path": "github.com/Azure/azure-sdk-for-go/arm/redis",
+>>>>>>> SDKv12 postgresql migration
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
 			"revisionTime": "2018-01-09T21:59:56Z",
 			"version": "v12.2.0-beta",
