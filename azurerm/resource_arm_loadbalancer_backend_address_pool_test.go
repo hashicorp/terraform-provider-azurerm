@@ -142,7 +142,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName str
 func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
-		ctx := testAccProvider.Meta().(ArmClient).StopContext
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if !exists {
