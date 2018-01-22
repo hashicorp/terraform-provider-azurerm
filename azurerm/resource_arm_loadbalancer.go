@@ -196,11 +196,13 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 			privateIpAddresses := make([]string, 0, len(*feipConfigs))
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
-					if privateIpAddress == "" {
-						privateIpAddress = *feipProps.PrivateIPAddress
-					}
+					if ip := feipProps.PrivateIPAddress; ip != nil {
+						if privateIpAddress == "" {
+							privateIpAddress = *feipProps.PrivateIPAddress
+						}
 
-					privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
+						privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
+					}
 				}
 			}
 
