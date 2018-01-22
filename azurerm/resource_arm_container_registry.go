@@ -7,9 +7,10 @@ import (
 
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -105,6 +106,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 
 func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containerRegistryClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -140,13 +142,17 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	_, createErr := client.Create(resourceGroup, name, parameters, make(<-chan struct{}))
-	err := <-createErr
+	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resourceGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -162,6 +168,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containerRegistryClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -192,13 +199,14 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	_, updateErr := client.Update(resourceGroup, name, parameters, make(chan struct{}))
-	err := <-updateErr
+	future, err := client.Update(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resourceGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -214,6 +222,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containerRegistryClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -222,7 +231,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	resourceGroup := id.ResourceGroup
 	name := id.Path["registries"]
 
-	resp, err := client.Get(resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -247,7 +256,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if *resp.AdminUserEnabled {
-		credsResp, err := client.ListCredentials(resourceGroup, name)
+		credsResp, err := client.ListCredentials(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Error making Read request on Azure Container Registry %s for Credentials: %s", name, err)
 		}
@@ -269,6 +278,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containerRegistryClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -277,14 +287,20 @@ func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["registries"]
 
-	deleteResp, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
-	resp := <-deleteResp
-	err = <-deleteErr
-
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
+		if response.WasNotFound(future.Response()) {
+			return nil
 		}
+		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error issuing Azure ARM delete request of Container Registry '%s': %+v", name, err)
 	}
 
 	return nil
