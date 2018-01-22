@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -138,15 +138,16 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 
 func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secRuleClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	nsgName := d.Get("network_security_group_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	source_port_range := d.Get("source_port_range").(string)
-	destination_port_range := d.Get("destination_port_range").(string)
-	source_address_prefix := d.Get("source_address_prefix").(string)
-	destination_address_prefix := d.Get("destination_address_prefix").(string)
+	sourcePortRange := d.Get("source_port_range").(string)
+	destinationPortRange := d.Get("destination_port_range").(string)
+	sourceAddressPrefix := d.Get("source_address_prefix").(string)
+	destinationAddressPrefix := d.Get("destination_address_prefix").(string)
 	priority := int32(d.Get("priority").(int))
 	access := d.Get("access").(string)
 	direction := d.Get("direction").(string)
@@ -158,10 +159,10 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 	rule := network.SecurityRule{
 		Name: &name,
 		SecurityRulePropertiesFormat: &network.SecurityRulePropertiesFormat{
-			SourcePortRange:          &source_port_range,
-			DestinationPortRange:     &destination_port_range,
-			SourceAddressPrefix:      &source_address_prefix,
-			DestinationAddressPrefix: &destination_address_prefix,
+			SourcePortRange:          &sourcePortRange,
+			DestinationPortRange:     &destinationPortRange,
+			SourceAddressPrefix:      &sourceAddressPrefix,
+			DestinationAddressPrefix: &destinationAddressPrefix,
 			Priority:                 &priority,
 			Access:                   network.SecurityRuleAccess(access),
 			Direction:                network.SecurityRuleDirection(direction),
@@ -214,13 +215,17 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		rule.SecurityRulePropertiesFormat.DestinationAddressPrefixes = &destinationAddressPrefixes
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, nsgName, name, rule, make(chan struct{}))
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, nsgName, name, rule)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
-	read, err := client.Get(resGroup, nsgName, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, nsgName, name)
 	if err != nil {
 		return err
 	}
@@ -235,6 +240,7 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 
 func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secRuleClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -244,7 +250,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 	networkSGName := id.Path["networkSecurityGroups"]
 	sgRuleName := id.Path["securityRules"]
 
-	resp, err := client.Get(resGroup, networkSGName, sgRuleName)
+	resp, err := client.Get(ctx, resGroup, networkSGName, sgRuleName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -277,6 +283,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 
 func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secRuleClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -289,8 +296,15 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	azureRMLockByName(nsgName, networkSecurityGroupResourceName)
 	defer azureRMUnlockByName(nsgName, networkSecurityGroupResourceName)
 
-	_, deleteErr := client.Delete(resGroup, nsgName, sgRuleName, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, nsgName, sgRuleName)
+	if err != nil {
+		return fmt.Errorf("Error Deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
+	}
 
 	return err
 }

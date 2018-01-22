@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,14 +31,15 @@ func testSweepNetworkInterfaces(region string) error {
 	}
 
 	client := (*armClient).ifaceClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the Network Interfaces..")
-	results, err := client.ListAll()
+	results, err := client.ListAll(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on Network Interfaces: %+v", err)
 	}
 
-	for _, network := range *results.Value {
+	for _, network := range results.Values() {
 		id, err := parseAzureResourceID(*network.ID)
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
@@ -52,11 +54,18 @@ func testSweepNetworkInterfaces(region string) error {
 		}
 
 		log.Printf("Deleting Network Interfaces %q", name)
-		deleteResponse, deleteErr := client.Delete(resourceGroupName, name, make(chan struct{}))
-		resp := <-deleteResponse
-		err = <-deleteErr
+		future, err := client.Delete(ctx, resourceGroupName, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
+			if response.WasNotFound(future.Response()) {
+				continue
+			}
+
+			return err
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			if response.WasNotFound(future.Response()) {
 				continue
 			}
 
@@ -338,7 +347,9 @@ func testCheckAzureRMNetworkInterfaceExists(name string) resource.TestCheckFunc 
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).ifaceClient
-		resp, err := client.Get(resourceGroup, name, "")
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Network Interface %q (resource group: %q) does not exist", name, resourceGroup)
@@ -365,12 +376,17 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, deleteErr := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-deleteErr
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on ifaceClient: %+v", err)
+			return fmt.Errorf("Error deleting Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for the deletion of Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		return nil
@@ -379,6 +395,7 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 
 func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).ifaceClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_interface" {
@@ -388,7 +405,7 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

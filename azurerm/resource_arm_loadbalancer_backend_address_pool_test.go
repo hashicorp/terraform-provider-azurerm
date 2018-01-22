@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -17,7 +17,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 	addressPoolName := fmt.Sprintf("%d-address-pool", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	backendAddressPool_id := fmt.Sprintf(
+	backendAddressPoolId := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
 		subscriptionID, ri, ri, addressPoolName)
 
@@ -32,7 +32,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
 					resource.TestCheckResourceAttr(
-						"azurerm_lb_backend_address_pool.test", "id", backendAddressPool_id),
+						"azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
 				),
 			},
 		},
@@ -141,7 +141,8 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName str
 
 func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		ctx := testAccProvider.Meta().(ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerBackEndAddressPoolByName(lb, addressPoolName)
 		if !exists {
@@ -157,13 +158,17 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 			return err
 		}
 
-		_, error := conn.CreateOrUpdate(id.ResourceGroup, *lb.Name, *lb, make(chan struct{}))
-		err = <-error
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
 			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
 		}
 
-		_, err = conn.Get(id.ResourceGroup, *lb.Name, "")
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
+		}
+
+		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
 }

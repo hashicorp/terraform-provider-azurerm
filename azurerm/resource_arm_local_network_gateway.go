@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -74,6 +75,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 
 func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).localNetConnClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -102,13 +104,17 @@ func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface
 		Tags: expandTags(tags),
 	}
 
-	_, createError := client.CreateOrUpdate(resGroup, name, gateway, make(chan struct{}))
-	err = <-createError
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
-		return fmt.Errorf("Error creating Local Network Gateway %q: %+v", name, err)
+		return fmt.Errorf("Error creating Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of Local Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -123,6 +129,7 @@ func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface
 
 func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).localNetConnClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -131,7 +138,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 	name := id.Path["localNetworkGateways"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -166,6 +173,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 
 func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).localNetConnClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -174,16 +182,22 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 	name := id.Path["localNetworkGateways"]
 	resGroup := id.ResourceGroup
 
-	deleteResp, error := client.Delete(resGroup, name, make(chan struct{}))
-	resp := <-deleteResp
-	err = <-error
-
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
+		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing delete request for local network gateway %q: %+v", name, err)
+		return fmt.Errorf("Error issuing delete request for local network gateway % (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+
+		return fmt.Errorf("Error waiting for completion of local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil

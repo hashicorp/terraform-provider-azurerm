@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -63,6 +63,7 @@ func resourceArmRoute() *schema.Resource {
 
 func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).routesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	rtName := d.Get("route_table_name").(string)
@@ -89,13 +90,17 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		RoutePropertiesFormat: &properties,
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, rtName, name, route, make(chan struct{}))
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, rtName, name, route)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Creating/Updating Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
 	}
 
-	read, err := client.Get(resGroup, rtName, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion for Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, rtName, name)
 	if err != nil {
 		return err
 	}
@@ -109,6 +114,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).routesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -118,7 +124,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	rtName := id.Path["routeTables"]
 	routeName := id.Path["routes"]
 
-	resp, err := client.Get(resGroup, rtName, routeName)
+	resp, err := client.Get(ctx, resGroup, rtName, routeName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -145,6 +151,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).routesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -157,8 +164,15 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	azureRMLockByName(rtName, routeTableResourceName)
 	defer azureRMUnlockByName(rtName, routeTableResourceName)
 
-	_, deleteErr := client.Delete(resGroup, rtName, routeName, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, rtName, routeName)
+	if err != nil {
+		return fmt.Errorf("Error deleting Route %q (Route Table %q / Resource Group %q): %+v", routeName, rtName, resGroup, err)
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for deletion of Route %q (Route Table %q / Resource Group %q): %+v", routeName, rtName, resGroup, err)
+	}
+
+	return nil
 }

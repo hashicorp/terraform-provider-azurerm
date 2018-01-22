@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -75,8 +75,8 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 }
 
 func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -113,42 +113,47 @@ func resourceArmLoadBalancerNatPoolCreate(d *schema.ResourceData, meta interface
 		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error waiting for the completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read LoadBalancer %q (Resource Group %q) ID", loadBalancerName, resGroup)
 	}
 
-	var natPool_id string
+	var natPoolId string
 	for _, InboundNatPool := range *(*read.LoadBalancerPropertiesFormat).InboundNatPools {
 		if *InboundNatPool.Name == d.Get("name").(string) {
-			natPool_id = *InboundNatPool.ID
+			natPoolId = *InboundNatPool.ID
 		}
 	}
 
-	if natPool_id != "" {
-		d.SetId(natPool_id)
-	} else {
-		return fmt.Errorf("Cannot find created LoadBalancer NAT Pool ID %q", natPool_id)
+	if natPoolId == "" {
+		return fmt.Errorf("Cannot find created LoadBalancer NAT Pool ID %q", natPoolId)
 	}
 
-	log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", loadBalancerName)
+	d.SetId(natPoolId)
+
+	// TODO: is this needed?
+	log.Printf("[DEBUG] Waiting for LoadBalancer (%q) to become available", loadBalancerName)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(client, resGroup, loadBalancerName),
+		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for LoadBalancer (%s) to become available: %s", loadBalancerName, err)
+		return fmt.Errorf("Error waiting for LoadBalancer (%q - Resource Group %q) to become available: %+v", loadBalancerName, err)
 	}
 
 	return resourceArmLoadBalancerNatPoolRead(d, meta)
@@ -163,7 +168,7 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d.Get("loadbalancer_id").(string), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -180,27 +185,30 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", config.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("protocol", config.InboundNatPoolPropertiesFormat.Protocol)
-	d.Set("frontend_port_start", config.InboundNatPoolPropertiesFormat.FrontendPortRangeStart)
-	d.Set("frontend_port_end", config.InboundNatPoolPropertiesFormat.FrontendPortRangeEnd)
-	d.Set("backend_port", config.InboundNatPoolPropertiesFormat.BackendPort)
 
-	if config.InboundNatPoolPropertiesFormat.FrontendIPConfiguration != nil {
-		fipID, err := parseAzureResourceID(*config.InboundNatPoolPropertiesFormat.FrontendIPConfiguration.ID)
-		if err != nil {
-			return err
+	if props := config.InboundNatPoolPropertiesFormat; props != nil {
+		d.Set("protocol", props.Protocol)
+		d.Set("frontend_port_start", props.FrontendPortRangeStart)
+		d.Set("frontend_port_end", props.FrontendPortRangeEnd)
+		d.Set("backend_port", props.BackendPort)
+
+		if feipConfig := props.FrontendIPConfiguration; feipConfig != nil {
+			fipID, err := parseAzureResourceID(*feipConfig.ID)
+			if err != nil {
+				return err
+			}
+
+			d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
+			d.Set("frontend_ip_configuration_id", feipConfig.ID)
 		}
-
-		d.Set("frontend_ip_configuration_name", fipID.Path["frontendIPConfigurations"])
-		d.Set("frontend_ip_configuration_id", config.InboundNatPoolPropertiesFormat.FrontendIPConfiguration.ID)
 	}
 
 	return nil
 }
 
 func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -208,7 +216,7 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error retrieving LoadBalancer by ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -229,18 +237,22 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error creating/updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error waiting for completion of the Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Load Balancer: %+v", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read LoadBalancer %q (Resource Group %q) ID", loadBalancerName, resGroup)
 	}
 
 	return nil

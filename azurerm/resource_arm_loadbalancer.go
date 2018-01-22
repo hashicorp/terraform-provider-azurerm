@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -106,8 +106,8 @@ func resourceArmLoadBalancer() *schema.Resource {
 }
 
 func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	loadBalancerClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM LoadBalancer creation.")
 
@@ -123,38 +123,43 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 		properties.FrontendIPConfigurations = expandAzureRmLoadBalancerFrontendIpConfigurations(d)
 	}
 
-	loadbalancer := network.LoadBalancer{
+	loadBalancer := network.LoadBalancer{
 		Name:     utils.String(name),
 		Location: utils.String(location),
 		Tags:     expandedTags,
 		LoadBalancerPropertiesFormat: &properties,
 	}
 
-	_, error := loadBalancerClient.CreateOrUpdate(resGroup, name, loadbalancer, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := loadBalancerClient.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}", err)
+		return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
+	if err != nil {
+		return fmt.Errorf("Error Retrieving LoadBalancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read LoadBalancer %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", name)
+	// TODO: is this still needed?
+	log.Printf("[DEBUG] Waiting for LoadBalancer (%q) to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(client, resGroup, name),
+		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for LoadBalancer (%s) to become available: %s", name, err)
+		return fmt.Errorf("Error waiting for LoadBalancer (%q - Resource Group %q) to become available: %s", name, resGroup, err)
 	}
 
 	return resourecArmLoadBalancerRead(d, meta)
@@ -168,36 +173,40 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d.Id(), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error retrieving Load Balancer by ID %q: %+v", d.Id(), err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] LoadBalancer %q not found. Removing from state", d.Get("name").(string))
+		log.Printf("[INFO] LoadBalancer %q not found. Removing from state", d.Id())
 		return nil
 	}
 
 	d.Set("name", loadBalancer.Name)
-	d.Set("location", azureRMNormalizeLocation(*loadBalancer.Location))
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if loadBalancer.LoadBalancerPropertiesFormat != nil && loadBalancer.LoadBalancerPropertiesFormat.FrontendIPConfigurations != nil {
-		ipconfigs := loadBalancer.LoadBalancerPropertiesFormat.FrontendIPConfigurations
-		d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(ipconfigs))
+	if location := loadBalancer.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
-		privateIpAddress := ""
-		privateIpAddresses := make([]string, 0, len(*ipconfigs))
-		for _, config := range *ipconfigs {
-			if config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress != nil {
-				if privateIpAddress == "" {
-					privateIpAddress = *config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress
+	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
+			d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs))
+
+			privateIpAddress := ""
+			privateIpAddresses := make([]string, 0, len(*feipConfigs))
+			for _, config := range *feipConfigs {
+				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
+					if privateIpAddress == "" {
+						privateIpAddress = *feipProps.PrivateIPAddress
+					}
+
+					privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
 				}
-
-				privateIpAddresses = append(privateIpAddresses, *config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress)
 			}
-		}
 
-		d.Set("private_ip_address", privateIpAddress)
-		d.Set("private_ip_addresses", privateIpAddresses)
+			d.Set("private_ip_address", privateIpAddress)
+			d.Set("private_ip_addresses", privateIpAddresses)
+		}
 	}
 
 	flattenAndSetTags(d, loadBalancer.Tags)
@@ -206,7 +215,8 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	loadBalancerClient := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -215,13 +225,16 @@ func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["loadBalancers"]
 
-	_, error := loadBalancerClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return errwrap.Wrapf("Error Deleting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error deleting Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId("")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the deleting Load Balancer %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
 	return nil
 }
 
@@ -232,9 +245,9 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
-		private_ip_allocation_method := data["private_ip_address_allocation"].(string)
+		privateIpAllocationMethod := data["private_ip_address_allocation"].(string)
 		properties := network.FrontendIPConfigurationPropertiesFormat{
-			PrivateIPAllocationMethod: network.IPAllocationMethod(private_ip_allocation_method),
+			PrivateIPAllocationMethod: network.IPAllocationMethod(privateIpAllocationMethod),
 		}
 
 		if v := data["private_ip_address"].(string); v != "" {
@@ -270,38 +283,40 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 	for _, config := range *ipConfigs {
 		ipConfig := make(map[string]interface{})
 		ipConfig["name"] = *config.Name
-		ipConfig["private_ip_address_allocation"] = config.FrontendIPConfigurationPropertiesFormat.PrivateIPAllocationMethod
 
-		if config.FrontendIPConfigurationPropertiesFormat.Subnet != nil {
-			ipConfig["subnet_id"] = *config.FrontendIPConfigurationPropertiesFormat.Subnet.ID
-		}
+		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
+			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
 
-		if config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress != nil {
-			ipConfig["private_ip_address"] = *config.FrontendIPConfigurationPropertiesFormat.PrivateIPAddress
-		}
-
-		if config.FrontendIPConfigurationPropertiesFormat.PublicIPAddress != nil {
-			ipConfig["public_ip_address_id"] = *config.FrontendIPConfigurationPropertiesFormat.PublicIPAddress.ID
-		}
-
-		if config.FrontendIPConfigurationPropertiesFormat.LoadBalancingRules != nil {
-			load_balancing_rules := make([]string, 0, len(*config.FrontendIPConfigurationPropertiesFormat.LoadBalancingRules))
-			for _, rule := range *config.FrontendIPConfigurationPropertiesFormat.LoadBalancingRules {
-				load_balancing_rules = append(load_balancing_rules, *rule.ID)
+			if subnet := props.Subnet; subnet != nil {
+				ipConfig["subnet_id"] = *subnet.ID
 			}
 
-			ipConfig["load_balancer_rules"] = load_balancing_rules
-
-		}
-
-		if config.FrontendIPConfigurationPropertiesFormat.InboundNatRules != nil {
-			inbound_nat_rules := make([]string, 0, len(*config.FrontendIPConfigurationPropertiesFormat.InboundNatRules))
-			for _, rule := range *config.FrontendIPConfigurationPropertiesFormat.InboundNatRules {
-				inbound_nat_rules = append(inbound_nat_rules, *rule.ID)
+			if pip := props.PrivateIPAddress; pip != nil {
+				ipConfig["private_ip_address"] = *pip
 			}
 
-			ipConfig["inbound_nat_rules"] = inbound_nat_rules
+			if pip := props.PublicIPAddress; pip != nil {
+				ipConfig["public_ip_address_id"] = *pip.ID
+			}
 
+			if rules := props.LoadBalancingRules; rules != nil {
+				loadBalancingRules := make([]string, 0, len(*rules))
+				for _, rule := range *rules {
+					loadBalancingRules = append(loadBalancingRules, *rule.ID)
+				}
+
+				ipConfig["load_balancer_rules"] = loadBalancingRules
+			}
+
+			if rules := props.InboundNatRules; rules != nil {
+				inboundNatRules := make([]string, 0, len(*rules))
+				for _, rule := range *rules {
+					inboundNatRules = append(inboundNatRules, *rule.ID)
+				}
+
+				ipConfig["inbound_nat_rules"] = inboundNatRules
+
+			}
 		}
 
 		result = append(result, ipConfig)

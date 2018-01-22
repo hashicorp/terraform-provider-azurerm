@@ -94,9 +94,10 @@ func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).routesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, rtName, name)
+		resp, err := client.Get(ctx, resourceGroup, rtName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Route %q (resource group: %q) does not exist", name, resourceGroup)
@@ -123,12 +124,17 @@ func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).routesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, rtName, name, make(chan struct{}))
-		err := <-error
+		future, err := client.Delete(ctx, resourceGroup, rtName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on routesClient: %+v", err)
+			return fmt.Errorf("Error deleting Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resourceGroup, err)
 		}
 
 		return nil
@@ -136,7 +142,8 @@ func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMRouteDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).routesClient
+	client := testAccProvider.Meta().(*ArmClient).routesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route" {
@@ -147,7 +154,7 @@ func testCheckAzureRMRouteDestroy(s *terraform.State) error {
 		rtName := rs.Primary.Attributes["route_table_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, rtName, name)
+		resp, err := client.Get(ctx, resourceGroup, rtName, name)
 
 		if err != nil {
 			return nil
