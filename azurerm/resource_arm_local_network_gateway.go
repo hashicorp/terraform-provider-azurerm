@@ -188,7 +188,7 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing delete request for local network gateway % (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error issuing delete request for local network gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
