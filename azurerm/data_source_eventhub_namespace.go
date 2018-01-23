@@ -69,11 +69,12 @@ func dataSourceEventHubNamespace() *schema.Resource {
 
 func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubNamespacesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := client.Get(resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -91,7 +92,7 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("sku", string(resp.Sku.Name))
 	d.Set("capacity", resp.Sku.Capacity)
 
-	keys, err := client.ListKeys(resourceGroup, name, eventHubNamespaceDefaultAuthorizationRule)
+	keys, err := client.ListKeys(ctx, resourceGroup, name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	} else {

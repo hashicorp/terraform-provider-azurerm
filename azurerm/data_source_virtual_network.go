@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -56,11 +56,12 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 
 func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := client.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error making Read request on Azure virtual network %q (resource group %q): %+v", name, resGroup, err)

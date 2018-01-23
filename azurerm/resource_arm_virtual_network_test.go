@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	utils "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 )
 
 func init() {
@@ -33,14 +33,15 @@ func testSweepVirtualNetworks(region string) error {
 	}
 
 	client := (*armClient).vnetClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the Virtual Networks..")
-	results, err := client.ListAll()
+	results, err := client.ListAll(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on Virtual Networks: %+v", err)
 	}
 
-	for _, network := range *results.Value {
+	for _, network := range results.Values() {
 		id, err := parseAzureResourceID(*network.ID)
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
@@ -55,11 +56,18 @@ func testSweepVirtualNetworks(region string) error {
 		}
 
 		log.Printf("Deleting Virtual Network %q", name)
-		deleteResponse, deleteErr := client.Delete(resourceGroupName, name, make(chan struct{}))
-		resp := <-deleteResponse
-		err = <-deleteErr
+		future, err := client.Delete(ctx, resourceGroupName, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
+			if response.WasNotFound(future.Response()) {
+				continue
+			}
+
+			return err
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			if response.WasNotFound(future.Response()) {
 				continue
 			}
 
@@ -184,9 +192,10 @@ func testCheckAzureRMVirtualNetworkExists(name string) resource.TestCheckFunc {
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).vnetClient
+		client := testAccProvider.Meta().(*ArmClient).vnetClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, virtualNetworkName, "")
+		resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetClient: %s", err)
 		}
@@ -214,12 +223,17 @@ func testCheckAzureRMVirtualNetworkDisappears(name string) resource.TestCheckFun
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).vnetClient
+		client := testAccProvider.Meta().(*ArmClient).vnetClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, virtualNetworkName, make(chan struct{}))
-		err := <-error
+		future, err := client.Delete(ctx, resourceGroup, virtualNetworkName)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on vnetClient: %s", err)
+			return fmt.Errorf("Error deleting Virtual Network %q (RG %q): %+v", virtualNetworkName, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Virtual Network %q (RG %q): %+v", virtualNetworkName, resourceGroup, err)
 		}
 
 		return nil
@@ -227,7 +241,8 @@ func testCheckAzureRMVirtualNetworkDisappears(name string) resource.TestCheckFun
 }
 
 func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vnetClient
+	client := testAccProvider.Meta().(*ArmClient).vnetClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network" {
@@ -237,14 +252,14 @@ func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Virtual Network sitll exists:\n%#v", resp.VirtualNetworkPropertiesFormat)
+			return fmt.Errorf("Virtual Network still exists:\n%#v", resp.VirtualNetworkPropertiesFormat)
 		}
 	}
 

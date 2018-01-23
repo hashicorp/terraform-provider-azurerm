@@ -111,7 +111,8 @@ func testCheckAzureRMRedisFirewallRuleExists(name string) resource.TestCheckFunc
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).redisFirewallClient
-		resp, err := client.Get(resourceGroup, cacheName, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Firewall Rule %q (cache %q resource group: %q) does not exist", name, cacheName, resourceGroup)
@@ -124,7 +125,8 @@ func testCheckAzureRMRedisFirewallRuleExists(name string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resourceGroupClient
+	client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_redis_firewall_rule" {
@@ -133,7 +135,7 @@ func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
 
 		resourceGroup := rs.Primary.ID
 
-		resp, err := client.Get(resourceGroup)
+		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {
 			return nil
 		}

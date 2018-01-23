@@ -118,9 +118,10 @@ func testCheckAzureRMVirtualNetworkPeeringExists(name string) resource.TestCheck
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+		client := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, vnetName, name)
+		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetPeeringsClient: %s", err)
 		}
@@ -149,12 +150,17 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(name string) resource.TestC
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+		client := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, vnetName, name, make(chan struct{}))
-		err := <-error
+		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on vnetPeeringsClient: %s", err)
+			return fmt.Errorf("Error deleting Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Peering %q (NW %q / RG %q): %+v", name, vnetName, resourceGroup, err)
 		}
 
 		return nil
@@ -162,7 +168,8 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(name string) resource.TestC
 }
 
 func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+	client := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network_peering" {
@@ -173,7 +180,7 @@ func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, vnetName, name)
+		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
 		if err != nil {
 			return nil
 		}

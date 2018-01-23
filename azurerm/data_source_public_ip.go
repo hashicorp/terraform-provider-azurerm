@@ -2,9 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmPublicIP() *schema.Resource {
@@ -44,14 +44,15 @@ func dataSourceArmPublicIP() *schema.Resource {
 }
 
 func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
-	publicIPClient := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).publicIPClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := publicIPClient.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 		}
 		return fmt.Errorf("Error making Read request on Azure public ip %s: %s", name, err)

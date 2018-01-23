@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,20 +28,21 @@ func testSweepApplicationGateways(region string) error {
 	}
 
 	client := (*armClient).applicationGatewayClient
+	ctx := (*armClient).StopContext
 
 	log.Printf("Retrieving the Application Gateways..")
-	results, err := client.ListAll()
+	results, err := client.ListAll(ctx)
 	if err != nil {
 		return fmt.Errorf("Error Listing on Application Gateways: %+v", err)
 	}
 
-	for _, network := range *results.Value {
+	for _, network := range results.Values() {
 		id, err := parseAzureResourceID(*network.ID)
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 		}
 
-		resourceGroupName := id.ResourceGroup
+		resourceGroup := id.ResourceGroup
 		name := *network.Name
 		location := *network.Location
 
@@ -48,12 +50,19 @@ func testSweepApplicationGateways(region string) error {
 			continue
 		}
 
-		log.Printf("Deleting Application Gateway %q", name)
-		deleteResponse, deleteErr := client.Delete(resourceGroupName, name, make(chan struct{}))
-		resp := <-deleteResponse
-		err = <-deleteErr
+		log.Printf("Deleting Application Gateway %q (Resource Group %q)", name, resourceGroup)
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
+			if response.WasNotFound(future.Response()) {
+				continue
+			}
+
+			return err
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			if response.WasNotFound(future.Response()) {
 				continue
 			}
 
@@ -203,8 +212,9 @@ func testCheckAzureRMApplicationGatewayExists(name string) resource.TestCheckFun
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
+		resp, err := conn.Get(ctx, resourceGroup, ApplicationGatewayName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
@@ -224,18 +234,19 @@ func testCheckAzureRMApplicationGatewaySslCertificateAssigned(name string, certN
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		ApplicationGatewayName := rs.Primary.Attributes["name"]
+		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %q", ApplicationGatewayName)
+			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %q", gatewayName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
+		resp, err := conn.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
+				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", gatewayName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %+v", err)
@@ -270,18 +281,19 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		ApplicationGatewayName := rs.Primary.Attributes["name"]
+		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %q", ApplicationGatewayName)
+			return fmt.Errorf("Bad: no resource group found in state for App Gateway: %q", gatewayName)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, ApplicationGatewayName)
+		resp, err := conn.Get(ctx, resourceGroup, gatewayName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", ApplicationGatewayName, resourceGroup)
+				return fmt.Errorf("Bad: App Gateway %q (resource group: %q) does not exist", gatewayName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on ApplicationGatewayClient: %+v", err)
@@ -315,6 +327,7 @@ func testCheckAzureRMApplicationGatewayAuthenticationCertificateAssigned(name st
 
 func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_gateway" {
@@ -324,7 +337,7 @@ func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

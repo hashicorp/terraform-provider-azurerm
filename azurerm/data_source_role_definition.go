@@ -67,11 +67,12 @@ func dataSourceArmRoleDefinition() *schema.Resource {
 
 func dataSourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
 	scope := d.Get("scope").(string)
 
-	role, err := client.Get(scope, roleDefinitionId)
+	role, err := client.Get(ctx, scope, roleDefinitionId)
 	if err != nil {
 		return fmt.Errorf("Error loadng Role Definition: %+v", err)
 	}

@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -228,7 +229,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		if !config.SkipCredentialsValidation {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
-			providerList, err := client.providers.List(nil, "")
+			ctx := client.StopContext
+			providerList, err := client.providersClient.List(ctx, nil, "")
 			if err != nil {
 				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
@@ -236,7 +238,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			}
 
 			if !config.SkipProviderRegistration {
-				err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client.providers)
+				err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client.providersClient)
 				if err != nil {
 					return nil, err
 				}
@@ -247,8 +249,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	}
 }
 
-func registerProviderWithSubscription(providerName string, client resources.ProvidersClient) error {
-	_, err := client.Register(providerName)
+func registerProviderWithSubscription(ctx context.Context, providerName string, client resources.ProvidersClient) error {
+	_, err := client.Register(ctx, providerName)
 	if err != nil {
 		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
 	}
@@ -301,7 +303,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 // all Azure resource providers which the Terraform provider may require (regardless of
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
-func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
+func registerAzureResourceProvidersWithSubscription(ctx context.Context, providerList []resources.Provider, client resources.ProvidersClient) error {
 	providers := determineAzureResourceProvidersToRegister(providerList)
 
 	var err error
@@ -312,7 +314,7 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 		go func(p string) {
 			defer wg.Done()
 			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-			if innerErr := registerProviderWithSubscription(p, client); err != nil {
+			if innerErr := registerProviderWithSubscription(ctx, p, client); err != nil {
 				err = innerErr
 			}
 		}(providerName)
