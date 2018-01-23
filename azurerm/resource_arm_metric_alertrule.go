@@ -2,11 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func resourceArmMetricAlertRule() *schema.Resource {
