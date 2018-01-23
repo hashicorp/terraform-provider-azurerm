@@ -72,6 +72,42 @@ func resourceArmFunctionApp() *schema.Resource {
 				Optional: true,
 			},
 
+			"connection_string": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.APIHub),
+								string(web.Custom),
+								string(web.DocDb),
+								string(web.EventHub),
+								string(web.MySQL),
+								string(web.NotificationHub),
+								string(web.PostgreSQL),
+								string(web.RedisCache),
+								string(web.ServiceBus),
+								string(web.SQLAzure),
+								string(web.SQLServer),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+					},
+				},
+			},
+
 			// TODO: (tombuildsstuff) support Update once the API is fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsForceNewSchema(),
@@ -84,6 +120,22 @@ func resourceArmFunctionApp() *schema.Resource {
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"site_config": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"always_on": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -102,6 +154,8 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	enabled := d.Get("enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,
@@ -110,9 +164,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanID),
 			Enabled:      utils.Bool(enabled),
-			SiteConfig: &web.SiteConfig{
-				AppSettings: &basicAppSettings,
-			},
+			SiteConfig:   &siteConfig,
 		},
 	}
 
@@ -168,6 +220,30 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("site_config") {
+		siteConfig := expandFunctionAppSiteConfig(d)
+		siteConfigResource := web.SiteConfigResource{
+			SiteConfig: &siteConfig,
+		}
+		_, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource)
+		if err != nil {
+			return fmt.Errorf("Error updating Configuration for Function App %q: %+v", name, err)
+		}
+	}
+
+	if d.HasChange("connection_string") {
+		// update the ConnectionStrings
+		connectionStrings := expandFunctionAppConnectionStrings(d)
+		properties := web.ConnectionStringDictionary{
+			Properties: connectionStrings,
+		}
+
+		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
+		if err != nil {
+			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
+		}
+	}
+
 	return resourceArmFunctionAppRead(d, meta)
 }
 
@@ -198,6 +274,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on AzureRM Function App AppSettings %q: %+v", name, err)
 	}
 
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
@@ -221,6 +302,19 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
 
 	if err := d.Set("app_settings", appSettings); err != nil {
+		return err
+	}
+	if err := d.Set("connection_string", flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)); err != nil {
+		return err
+	}
+
+	configResp, err := client.GetConfiguration(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", name, err)
+	}
+
+	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
+	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
 
@@ -284,4 +378,72 @@ func expandFunctionAppAppSettings(d *schema.ResourceData) *map[string]*string {
 	}
 
 	return output
+}
+
+func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
+	configs := d.Get("site_config").([]interface{})
+	siteConfig := web.SiteConfig{}
+
+	if len(configs) == 0 {
+		return siteConfig
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["always_on"]; ok {
+		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+	}
+
+	return siteConfig
+}
+
+func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] SiteConfig is nil")
+		return results
+	}
+
+	if input.AlwaysOn != nil {
+		result["always_on"] = *input.AlwaysOn
+	}
+
+	results = append(results, result)
+	return results
+}
+
+func expandFunctionAppConnectionStrings(d *schema.ResourceData) *map[string]*web.ConnStringValueTypePair {
+	input := d.Get("connection_string").([]interface{})
+	output := make(map[string]*web.ConnStringValueTypePair, len(input))
+
+	for _, v := range input {
+		vals := v.(map[string]interface{})
+
+		csName := vals["name"].(string)
+		csType := vals["type"].(string)
+		csValue := vals["value"].(string)
+
+		output[csName] = &web.ConnStringValueTypePair{
+			Value: utils.String(csValue),
+			Type:  web.ConnectionStringType(csType),
+		}
+	}
+
+	return &output
+}
+
+func flattenFunctionAppConnectionStrings(input *map[string]*web.ConnStringValueTypePair) interface{} {
+	results := make([]interface{}, 0)
+
+	for k, v := range *input {
+		result := make(map[string]interface{}, 0)
+		result["name"] = k
+		result["type"] = string(v.Type)
+		result["value"] = *v.Value
+		results = append(results, result)
+	}
+
+	return results
 }
