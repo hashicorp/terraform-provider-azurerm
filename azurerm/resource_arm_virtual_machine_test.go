@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -23,9 +23,10 @@ func testCheckAzureRMVirtualMachineExists(name string, vm *compute.VirtualMachin
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).vmClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, vmName, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
 		}
@@ -41,7 +42,8 @@ func testCheckAzureRMVirtualMachineExists(name string, vm *compute.VirtualMachin
 }
 
 func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vmClient
+	client := testAccProvider.Meta().(*ArmClient).vmClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine" {
@@ -51,7 +53,7 @@ func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

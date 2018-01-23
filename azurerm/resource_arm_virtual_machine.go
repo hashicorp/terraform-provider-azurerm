@@ -1,14 +1,13 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
 
-	"bytes"
-
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -500,8 +499,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 }
 
 func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	vmClient := client.vmClient
+	client := meta.(*ArmClient).vmClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
 
@@ -595,13 +594,17 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		vm.Plan = plan
 	}
 
-	_, vmError := vmClient.CreateOrUpdate(resGroup, name, vm, make(chan struct{}))
-	vmErr := <-vmError
-	if vmErr != nil {
-		return vmErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
+	if err != nil {
+		return err
 	}
 
-	read, err := vmClient.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
@@ -616,6 +619,7 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	vmClient := meta.(*ArmClient).vmClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -624,7 +628,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
-	resp, err := vmClient.Get(resGroup, name, "")
+	resp, err := vmClient.Get(ctx, resGroup, name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -721,7 +725,8 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	vmClient := meta.(*ArmClient).vmClient
+	client := meta.(*ArmClient).vmClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -730,9 +735,12 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
-	_, error := vmClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
 
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}

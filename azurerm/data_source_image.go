@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -109,6 +109,7 @@ func dataSourceArmImage() *schema.Resource {
 
 func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).imageClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
 
@@ -123,7 +124,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 
 	if !nameRegexOk {
 		var err error
-		if img, err = client.Get(resGroup, name, ""); err != nil {
+		if img, err = client.Get(ctx, resGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(img.Response) {
 				d.SetId("")
 				return nil
@@ -134,28 +135,19 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		r := regexp.MustCompile(nameRegex.(string))
 
 		list := []compute.Image{}
-		resp, err := client.ListByResourceGroup(resGroup)
+		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+			if utils.ResponseWasNotFound(resp.Response().Response) {
 				d.SetId("")
 				return nil
 			}
 			return fmt.Errorf("[ERROR] Error getting list of images (resource group %q): %+v", resGroup, err)
 		}
-		for _, ri := range *resp.Value {
-			if r.Match(([]byte)(*ri.Name)) {
-				list = append(list, ri)
-			}
-		}
-		for resp.NextLink != nil && *resp.NextLink != "" {
-			resp, err = client.ListByResourceGroupNextResults(resp)
-			if err != nil {
-				return fmt.Errorf("[ERROR] Unable to query next results for image list (resource group %q): %+v", resGroup, err)
-			}
-			for _, ri := range *resp.Value {
-				if r.Match(([]byte)(*ri.Name)) {
-					list = append(list, ri)
-				}
+
+		for resp.NotDone() {
+			img := resp.Value()
+			if r.Match(([]byte)(*img.Name)) {
+				list = append(list, img)
 			}
 		}
 
@@ -180,17 +172,20 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*img.ID)
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*img.Location))
+
+	if location := img.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if profile := img.StorageProfile; profile != nil {
 		if disk := profile.OsDisk; disk != nil {
-			if err := d.Set("os_disk", flattenAzureRmImageOSDisk(d, disk)); err != nil {
+			if err := d.Set("os_disk", flattenAzureRmImageOSDisk(disk)); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image OS Disk error: %+v", err)
 			}
 		}
 
-		if disks := img.StorageProfile.DataDisks; disks != nil {
-			if err := d.Set("data_disk", flattenAzureRmImageDataDisks(d, disks)); err != nil {
+		if disks := profile.DataDisks; disks != nil {
+			if err := d.Set("data_disk", flattenAzureRmImageDataDisks(disks)); err != nil {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}

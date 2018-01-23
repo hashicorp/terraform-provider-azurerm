@@ -158,6 +158,7 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 	return func(s *terraform.State) error {
 		armClient := testAccProvider.Meta().(*ArmClient)
 		vmClient := armClient.vmClient
+		ctx := armClient.StopContext
 
 		normalizedLocation := azureRMNormalizeLocation(location)
 		suffix := armClient.environment.ResourceManagerVMDNSSuffix
@@ -168,13 +169,17 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 			return fmt.Errorf("Bad: Deprovisioning error %+v", err)
 		}
 
-		_, deallocateErr := vmClient.Deallocate(resourceGroup, vmName, nil)
-		err = <-deallocateErr
+		future, err := vmClient.Deallocate(ctx, resourceGroup, vmName)
 		if err != nil {
 			return fmt.Errorf("Bad: Deallocating error %+v", err)
 		}
 
-		_, err = vmClient.Generalize(resourceGroup, vmName)
+		err = future.WaitForCompletion(ctx, vmClient.Client)
+		if err != nil {
+			return fmt.Errorf("Bad: Deallocating error %+v", err)
+		}
+
+		_, err = vmClient.Generalize(ctx, resourceGroup, vmName)
 		if err != nil {
 			return fmt.Errorf("Bad: Generalizing error %+v", err)
 		}
@@ -232,9 +237,10 @@ func testCheckAzureRMImageExists(name string, shouldExist bool) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for image: %s", dName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).imageClient
+		client := testAccProvider.Meta().(*ArmClient).imageClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, dName, "")
+		resp, err := client.Get(ctx, resourceGroup, dName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on imageClient: %+v", err)
 		}
@@ -254,7 +260,8 @@ func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestChec
 	return func(s *terraform.State) error {
 		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - BEGIN.")
 
-		vmClient := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).vmClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		vmRs, vmOk := s.RootModule().Resources[sourceVM]
 		if !vmOk {
 			return fmt.Errorf("VM Not found: %s", sourceVM)
@@ -266,9 +273,9 @@ func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for VM: %s", vmName)
 		}
 
-		resp, err := vmClient.Get(resourceGroup, vmName, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
+			return fmt.Errorf("Bad: Get on client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound && shouldExist {
@@ -289,6 +296,7 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
 
 		vmssClient := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		vmRs, vmOk := s.RootModule().Resources[sourceVMSS]
 		if !vmOk {
 			return fmt.Errorf("VMSS Not found: %s", sourceVMSS)
@@ -300,7 +308,7 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for VMSS: %s", vmssName)
 		}
 
-		resp, err := vmssClient.Get(resourceGroup, vmssName)
+		resp, err := vmssClient.Get(ctx, resourceGroup, vmssName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmssClient: %+v", err)
 		}

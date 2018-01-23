@@ -10,12 +10,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
@@ -62,15 +62,6 @@ type ArmClient struct {
 
 	StopContext context.Context
 
-	availSetClient         compute.AvailabilitySetsClient
-	usageOpsClient         compute.UsageClient
-	vmExtensionImageClient compute.VirtualMachineExtensionImagesClient
-	vmExtensionClient      compute.VirtualMachineExtensionsClient
-	vmScaleSetClient       compute.VirtualMachineScaleSetsClient
-	vmImageClient          compute.VirtualMachineImagesClient
-	vmClient               compute.VirtualMachinesClient
-	imageClient            compute.ImagesClient
-
 	diskClient                 disk.DisksClient
 	snapshotsClient            disk.SnapshotsClient
 	cosmosDBClient             documentdb.DatabaseAccountsClient
@@ -108,6 +99,16 @@ type ArmClient struct {
 	// CDN
 	cdnProfilesClient  cdn.ProfilesClient
 	cdnEndpointsClient cdn.EndpointsClient
+
+	// Compute
+	availSetClient         compute.AvailabilitySetsClient
+	imageClient            compute.ImagesClient
+	usageOpsClient         compute.UsageClient
+	vmExtensionImageClient compute.VirtualMachineExtensionImagesClient
+	vmExtensionClient      compute.VirtualMachineExtensionsClient
+	vmScaleSetClient       compute.VirtualMachineScaleSetsClient
+	vmImageClient          compute.VirtualMachineImagesClient
+	vmClient               compute.VirtualMachinesClient
 
 	// Databases
 	mysqlConfigurationsClient      mysql.ConfigurationsClient
@@ -321,57 +322,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return keyVaultSpt, nil
 	})
 
-	// NOTE: these declarations should be left separate for clarity should the
-	// clients be wished to be configured with custom Responders/PollingModes etc...
-	asc := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&asc.Client)
-	asc.Authorizer = auth
-	asc.Sender = sender
-	asc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.availSetClient = asc
-
-	uoc := compute.NewUsageClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&uoc.Client)
-	uoc.Authorizer = auth
-	uoc.Sender = sender
-	uoc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.usageOpsClient = uoc
-
-	vmeic := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&vmeic.Client)
-	vmeic.Authorizer = auth
-	vmeic.Sender = sender
-	vmeic.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.vmExtensionImageClient = vmeic
-
-	vmec := compute.NewVirtualMachineExtensionsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&vmec.Client)
-	vmec.Authorizer = auth
-	vmec.Sender = sender
-	vmec.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.vmExtensionClient = vmec
-
-	vmic := compute.NewVirtualMachineImagesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&vmic.Client)
-	vmic.Authorizer = auth
-	vmic.Sender = sender
-	vmic.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.vmImageClient = vmic
-
-	vmssc := compute.NewVirtualMachineScaleSetsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&vmssc.Client)
-	vmssc.Authorizer = auth
-	vmssc.Sender = sender
-	vmssc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.vmScaleSetClient = vmssc
-
-	vmc := compute.NewVirtualMachinesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&vmc.Client)
-	vmc.Authorizer = auth
-	vmc.Sender = sender
-	vmc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.vmClient = vmc
-
 	csc := containerservice.NewContainerServicesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&csc.Client)
 	csc.Authorizer = auth
@@ -379,17 +329,11 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	csc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.containerServicesClient = csc
 
-	img := compute.NewImagesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&img.Client)
-	img.Authorizer = auth
-	img.Sender = sender
-	img.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.imageClient = img
-
-	client.registerAppInsightsClient(endpoint, c.SubscriptionID, auth, sender)
+	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
@@ -413,7 +357,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	return &client, nil
 }
 
-func (c *ArmClient) registerAppInsightsClient(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	ai := appinsights.NewComponentsClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&ai.Client)
 	ai.Authorizer = auth
@@ -495,7 +439,40 @@ func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, aut
 	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId, "", "", "", "", "")
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDBClient = cdb
+}
 
+func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&availabilitySetsClient.Client, auth)
+	c.availSetClient = availabilitySetsClient
+
+	imagesClient := compute.NewImagesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&imagesClient.Client, auth)
+	c.imageClient = imagesClient
+
+	usageClient := compute.NewUsageClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&usageClient.Client, auth)
+	c.usageOpsClient = usageClient
+
+	extensionImagesClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&extensionImagesClient.Client, auth)
+	c.vmExtensionImageClient = extensionImagesClient
+
+	extensionsClient := compute.NewVirtualMachineExtensionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&extensionsClient.Client, auth)
+	c.vmExtensionClient = extensionsClient
+
+	virtualMachineImagesClient := compute.NewVirtualMachineImagesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&virtualMachineImagesClient.Client, auth)
+	c.vmImageClient = virtualMachineImagesClient
+
+	scaleSetsClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&scaleSetsClient.Client, auth)
+	c.vmScaleSetClient = scaleSetsClient
+
+	virtualMachinesClient := compute.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&virtualMachinesClient.Client, auth)
+	c.vmClient = virtualMachinesClient
 }
 
 func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
