@@ -31,7 +31,7 @@ resource "azurerm_metric_alertrule" "test" {
   period = "PT5M"
 
   email_action {
-    service_owners = false
+    send_to_service_owners = false
     custom_emails = [
       "some.user@example.com",
     ]
@@ -67,7 +67,7 @@ resource "azurerm_metric_alertrule" "test" {
   period = "PT10M"
 
   email_action {
-    service_owners = false
+    send_to_service_owners = false
     custom_emails = [
       "some.user@example.com",
     ]
@@ -125,7 +125,7 @@ The following arguments are supported:
 
 `email_action` supports the following:
 
-* `service_owners` - (Optional) If `true`, the administrators (service and co-administrators) of the subscription are notified when the alert is triggered. Defaults to `false`.
+* `send_to_service_owners` - (Optional) If `true`, the administrators (service and co-administrators) of the subscription are notified when the alert is triggered. Defaults to `false`.
 
 * `custom_emails` - (Optional) A list of email addresses to be notified when the alert is triggered.
 

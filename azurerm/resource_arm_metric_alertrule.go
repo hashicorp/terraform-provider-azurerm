@@ -95,7 +95,7 @@ func resourceArmMetricAlertRule() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"service_owners": {
+						"send_to_service_owners": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
@@ -153,7 +153,10 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	alertRule, _ := expandAzureRmMetricThresholdAlertRule(d)
+	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
+	if err != nil {
+		return err
+	}
 
 	alertRuleResource := insights.AlertRuleResource{
 		Name:      &name,
@@ -162,7 +165,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 		AlertRule: alertRule,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource)
+	_, err = client.CreateOrUpdate(ctx, resourceGroup, name, alertRuleResource)
 	if err != nil {
 		return err
 	}
@@ -211,20 +214,20 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 		ruleCondition := alertRule.Condition
 
 		if ruleCondition != nil {
-			thresholdRuleCondition, _ := ruleCondition.AsThresholdRuleCondition()
+			if thresholdRuleCondition, ok := ruleCondition.AsThresholdRuleCondition(); ok && thresholdRuleCondition != nil {
+				d.Set("operator", string(thresholdRuleCondition.Operator))
+				d.Set("threshold", *thresholdRuleCondition.Threshold)
+				d.Set("period", thresholdRuleCondition.WindowSize)
+				d.Set("aggregation", string(thresholdRuleCondition.TimeAggregation))
 
-			d.Set("operator", string(thresholdRuleCondition.Operator))
-			d.Set("threshold", float64(*thresholdRuleCondition.Threshold))
-			d.Set("period", thresholdRuleCondition.WindowSize)
-			d.Set("aggregation", string(thresholdRuleCondition.TimeAggregation))
+				dataSource := thresholdRuleCondition.DataSource
 
-			dataSource := thresholdRuleCondition.DataSource
-
-			if dataSource != nil {
-				metricDataSource, _ := dataSource.AsRuleMetricDataSource()
-
-				d.Set("resource_id", metricDataSource.ResourceURI)
-				d.Set("metric_name", metricDataSource.MetricName)
+				if dataSource != nil {
+					if metricDataSource, ok := dataSource.AsRuleMetricDataSource(); ok && metricDataSource != nil {
+						d.Set("resource_id", metricDataSource.ResourceURI)
+						d.Set("metric_name", metricDataSource.MetricName)
+					}
+				}
 			}
 		}
 
@@ -232,11 +235,11 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 		webhook_actions := make([]interface{}, 0)
 
 		for _, ruleAction := range *alertRule.Actions {
-			if emailAction, ok := ruleAction.AsRuleEmailAction(); ok {
+			if emailAction, ok := ruleAction.AsRuleEmailAction(); ok && emailAction != nil {
 				email_action := make(map[string]interface{}, 1)
 
 				if sendToOwners := emailAction.SendToServiceOwners; sendToOwners != nil {
-					email_action["service_owners"] = *sendToOwners
+					email_action["send_to_service_owners"] = *sendToOwners
 				}
 
 				custom_emails := []string{}
@@ -247,18 +250,26 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 				email_action["custom_emails"] = custom_emails
 
 				email_actions = append(email_actions, email_action)
-			} else if webhookAction, ok := ruleAction.AsRuleWebhookAction(); ok {
+			} else if webhookAction, ok := ruleAction.AsRuleWebhookAction(); ok && webhookAction != nil {
 				webhook_action := make(map[string]interface{}, 1)
 
 				webhook_action["service_uri"] = *webhookAction.ServiceURI
 
-				properties := make(map[string]string, len(*webhookAction.Properties))
-				for k, v := range *webhookAction.Properties {
-					if k != "$type" {
-						properties[k] = *v
+				//var properties map[string]string;
+
+				if webhookAction.Properties != nil {
+					properties := make(map[string]string, len(*webhookAction.Properties))
+
+					for k, v := range *webhookAction.Properties {
+						if k != "$type" {
+							properties[k] = *v
+						}
 					}
+					webhook_action["properties"] = properties
 				}
-				webhook_action["properties"] = properties
+				//else {
+				//	properties = make(map[string]string, 0)
+				//}
 
 				webhook_actions = append(webhook_actions, webhook_action)
 			}
@@ -340,7 +351,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 			emailAction.CustomEmails = &customEmails
 		}
 
-		if v, ok := email_action["service_owners"]; ok {
+		if v, ok := email_action["send_to_service_owners"]; ok {
 			sendToServiceOwners := v.(bool)
 			emailAction.SendToServiceOwners = &sendToServiceOwners
 		}

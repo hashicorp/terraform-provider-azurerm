@@ -143,7 +143,7 @@ resource "azurerm_metric_alertrule" "test" {
   period = "PT5M"
 
   email_action {
-    service_owners = false
+    send_to_service_owners = false
     custom_emails = [
       "support@azure.microsoft.com",
     ]
@@ -183,7 +183,7 @@ resource "azurerm_metric_alertrule" "test" {
   period = "PT10M"
 
   email_action {
-    service_owners = false
+    send_to_service_owners = false
     custom_emails = [
       "support@azure.microsoft.com",
     ]
