@@ -834,7 +834,8 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 }
 
 func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta interface{}) error {
-	diskClient := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(managedDiskID)
 	if err != nil {
@@ -843,8 +844,12 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 	resGroup := id.ResourceGroup
 	name := id.Path["disks"]
 
-	_, error := diskClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
 	}

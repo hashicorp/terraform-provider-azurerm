@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
@@ -62,9 +61,8 @@ type ArmClient struct {
 
 	StopContext context.Context
 
-	diskClient                 disk.DisksClient
-	snapshotsClient            disk.SnapshotsClient
-	cosmosDBClient             documentdb.DatabaseAccountsClient
+	cosmosDBClient documentdb.DatabaseAccountsClient
+
 	automationAccountClient    automation.AccountClient
 	automationRunbookClient    automation.RunbookClient
 	automationCredentialClient automation.CredentialClient
@@ -102,7 +100,9 @@ type ArmClient struct {
 
 	// Compute
 	availSetClient         compute.AvailabilitySetsClient
+	diskClient             compute.DisksClient
 	imageClient            compute.ImagesClient
+	snapshotsClient        compute.SnapshotsClient
 	usageOpsClient         compute.UsageClient
 	vmExtensionImageClient compute.VirtualMachineExtensionImagesClient
 	vmExtensionClient      compute.VirtualMachineExtensionsClient
@@ -338,7 +338,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDisks(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
@@ -446,9 +445,17 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	c.configureClient(&availabilitySetsClient.Client, auth)
 	c.availSetClient = availabilitySetsClient
 
+	diskClient := compute.NewDisksClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&diskClient.Client, auth)
+	c.diskClient = diskClient
+
 	imagesClient := compute.NewImagesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&imagesClient.Client, auth)
 	c.imageClient = imagesClient
+
+	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&snapshotsClient.Client, auth)
+	c.snapshotsClient = snapshotsClient
 
 	usageClient := compute.NewUsageClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usageClient.Client, auth)
@@ -562,22 +569,6 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlSrvClient.Sender = sender
 	sqlSrvClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.sqlServersClient = sqlSrvClient
-}
-
-func (c *ArmClient) registerDisks(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	diskClient := disk.NewDisksClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&diskClient.Client)
-	diskClient.Authorizer = auth
-	diskClient.Sender = sender
-	diskClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.diskClient = diskClient
-
-	snapshotsClient := disk.NewSnapshotsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&snapshotsClient.Client)
-	snapshotsClient.Authorizer = auth
-	snapshotsClient.Sender = sender
-	snapshotsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.snapshotsClient = snapshotsClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

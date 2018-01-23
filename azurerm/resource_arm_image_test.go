@@ -327,7 +327,8 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 }
 
 func testCheckAzureRMImageDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).diskClient
+	client := testAccProvider.Meta().(*ArmClient).diskClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_image" {
@@ -337,14 +338,14 @@ func testCheckAzureRMImageDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Managed Image still exists: \n%#v", resp.Properties)
+			return fmt.Errorf("Managed Image still exists: \n%#v", resp.DiskProperties)
 		}
 	}
 

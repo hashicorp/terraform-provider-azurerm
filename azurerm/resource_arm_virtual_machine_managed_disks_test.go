@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -1373,15 +1372,16 @@ func findAzureRMVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (
 	return *md.ID, nil
 }
 
-func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*disk.Model, error) {
+func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Disk, error) {
 	armID, err := parseAzureResourceID(*managedDiskID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %+v", *managedDiskID, err)
 	}
 	name := armID.Path["disks"]
 	resourceGroup := armID.ResourceGroup
-	conn := testAccProvider.Meta().(*ArmClient).diskClient
-	d, err := conn.Get(resourceGroup, name)
+	client := testAccProvider.Meta().(*ArmClient).diskClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	d, err := client.Get(ctx, resourceGroup, name)
 	//check status first since sdk client returns error if not 200
 	if d.Response.StatusCode == http.StatusNotFound {
 		return &d, nil
