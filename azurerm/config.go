@@ -617,7 +617,7 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
+	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId, "", "", "", "", "")
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDBClient = cdb
 }
