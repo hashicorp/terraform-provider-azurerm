@@ -6,7 +6,7 @@ description: |-
   Get information about the specified Snapshot
 ---
 
-# azurerm_snapshot
+# Data Source: azurerm_snapshot
 
 Use this data source to access the properties of a Snapshot of an Disk.
 

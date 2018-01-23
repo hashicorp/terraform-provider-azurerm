@@ -38,15 +38,20 @@ resource "azurerm_key_vault" "test" {
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     certificate_permissions = [
-      "all",
+      "create","delete","deleteissuers",
+      "get","getissuers","import","list",
+      "listissuers","managecontacts","manageissuers",
+      "setissuers","update",
     ]
 
     key_permissions = [
-      "all",
+      "backup","create","decrypt","delete","encrypt","get",
+      "import","list","purge","recover","restore","sign",
+      "unwrapKey","update","verify","wrapKey",
     ]
 
     secret_permissions = [
-      "all",
+      "backup","delete","get","list","purge","recover","restore","set",
     ]
   }
 
@@ -251,6 +256,6 @@ The following attributes are exported:
 
 Key Vault Certificates can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_key_vault_certificate.test https://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

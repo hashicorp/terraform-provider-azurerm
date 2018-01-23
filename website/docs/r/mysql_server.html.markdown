@@ -102,6 +102,6 @@ The following attributes are exported:
 
 MySQL Server's can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_mysql_server.server1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforMySQL/servers/server1
 ```

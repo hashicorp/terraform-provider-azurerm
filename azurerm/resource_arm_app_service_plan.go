@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,9 +23,10 @@ func resourceArmAppServicePlan() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAppServicePlanName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -99,6 +101,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicePlansClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
@@ -109,7 +112,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
-	properties := expandAppServicePlanProperties(d)
+	properties := expandAppServicePlanProperties(d, name)
 
 	appServicePlan := web.AppServicePlan{
 		Location:                 &location,
@@ -119,18 +122,22 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Sku:  &sku,
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, name, appServicePlan, make(chan struct{}))
-	err := <-createErr
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, appServicePlan)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = createFuture.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM App Service Plan %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM App Service Plan %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -151,7 +158,8 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["serverfarms"]
 
-	resp, err := client.Get(resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -185,6 +193,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicePlansClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -195,9 +204,17 @@ func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Deleting app service plan %s: %s", resGroup, name)
 
-	_, err = client.Delete(resGroup, name)
+	resp, err := client.Delete(ctx, resGroup, name)
 
-	return err
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 func expandAzureRmAppServicePlanSku(d *schema.ResourceData) web.SkuDescription {
@@ -237,9 +254,11 @@ func flattenAppServicePlanSku(profile *web.SkuDescription) []interface{} {
 	return skus
 }
 
-func expandAppServicePlanProperties(d *schema.ResourceData) *web.AppServicePlanProperties {
+func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.AppServicePlanProperties {
 	configs := d.Get("properties").([]interface{})
-	properties := web.AppServicePlanProperties{}
+	properties := web.AppServicePlanProperties{
+		Name: &name,
+	}
 	if len(configs) == 0 {
 		return &properties
 	}
@@ -268,4 +287,14 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interfac
 
 	result = append(result, properties)
 	return result
+}
+
+func validateAppServicePlanName(v interface{}, k string) (ws []string, es []error) {
+	value := v.(string)
+
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	}
+
+	return
 }

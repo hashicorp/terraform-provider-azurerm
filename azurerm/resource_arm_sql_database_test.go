@@ -168,8 +168,9 @@ func testCheckAzureRMSqlDatabaseExists(name string) resource.TestCheckFunc {
 		databaseName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
+		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("SQL Database %q (server %q / resource group %q) was not found", databaseName, serverName, resourceGroup)
@@ -193,8 +194,9 @@ func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
 		databaseName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, databaseName, "")
+		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -222,8 +224,9 @@ func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
 		databaseName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(resourceGroup, serverName, databaseName)
+		_, err := client.Delete(ctx, resourceGroup, serverName, databaseName)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on sqlDatabasesClient: %+v", err)
 		}

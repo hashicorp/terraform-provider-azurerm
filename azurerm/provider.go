@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
@@ -8,15 +9,12 @@ import (
 	"log"
 	"strings"
 	"sync"
-	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
-	"github.com/Azure/go-autorest/autorest/adal"
-	"github.com/Azure/go-autorest/autorest/azure/cli"
-	"github.com/hashicorp/go-multierror"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -68,11 +66,15 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
+			"azurerm_app_service_plan":        dataSourceAppServicePlan(),
 			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_client_config":           dataSourceArmClientConfig(),
+			"azurerm_dns_zone":                dataSourceArmDnsZone(),
+			"azurerm_eventhub_namespace":      dataSourceEventHubNamespace(),
 			"azurerm_image":                   dataSourceArmImage(),
 			"azurerm_key_vault_access_policy": dataSourceArmKeyVaultAccessPolicy(),
 			"azurerm_managed_disk":            dataSourceArmManagedDisk(),
+			"azurerm_network_security_group":  dataSourceArmNetworkSecurityGroup(),
 			"azurerm_platform_image":          dataSourceArmPlatformImage(),
 			"azurerm_public_ip":               dataSourceArmPublicIP(),
 			"azurerm_resource_group":          dataSourceArmResourceGroup(),
@@ -80,6 +82,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_snapshot":                dataSourceArmSnapshot(),
 			"azurerm_subnet":                  dataSourceArmSubnet(),
 			"azurerm_subscription":            dataSourceArmSubscription(),
+			"azurerm_virtual_network":         dataSourceArmVirtualNetwork(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -113,6 +116,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_consumer_group":            resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":                 resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":              resourceArmExpressRouteCircuit(),
+			"azurerm_function_app":                       resourceArmFunctionApp(),
 			"azurerm_image":                              resourceArmImage(),
 			"azurerm_key_vault":                          resourceArmKeyVault(),
 			"azurerm_key_vault_certificate":              resourceArmKeyVaultCertificate(),
@@ -127,6 +131,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_local_network_gateway":              resourceArmLocalNetworkGateway(),
 			"azurerm_log_analytics_workspace":            resourceArmLogAnalyticsWorkspace(),
 			"azurerm_managed_disk":                       resourceArmManagedDisk(),
+			"azurerm_management_lock":                    resourceArmManagementLock(),
 			"azurerm_mysql_configuration":                resourceArmMySQLConfiguration(),
 			"azurerm_mysql_database":                     resourceArmMySqlDatabase(),
 			"azurerm_mysql_firewall_rule":                resourceArmMySqlFirewallRule(),
@@ -134,12 +139,14 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_network_interface":                  resourceArmNetworkInterface(),
 			"azurerm_network_security_group":             resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":              resourceArmNetworkSecurityRule(),
+			"azurerm_network_watcher":                    resourceArmNetworkWatcher(),
 			"azurerm_postgresql_configuration":           resourceArmPostgreSQLConfiguration(),
 			"azurerm_postgresql_database":                resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":           resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                  resourceArmPostgreSQLServer(),
 			"azurerm_public_ip":                          resourceArmPublicIp(),
 			"azurerm_redis_cache":                        resourceArmRedisCache(),
+			"azurerm_redis_firewall_rule":                resourceArmRedisFirewallRule(),
 			"azurerm_resource_group":                     resourceArmResourceGroup(),
 			"azurerm_role_assignment":                    resourceArmRoleAssignment(),
 			"azurerm_role_definition":                    resourceArmRoleDefinition(),
@@ -169,9 +176,9 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_machine":                    resourceArmVirtualMachine(),
 			"azurerm_virtual_machine_scale_set":          resourceArmVirtualMachineScaleSet(),
 			"azurerm_virtual_network":                    resourceArmVirtualNetwork(),
+			"azurerm_virtual_network_peering":            resourceArmVirtualNetworkPeering(),
 			"azurerm_virtual_network_gateway":            resourceArmVirtualNetworkGateway(),
 			"azurerm_virtual_network_gateway_connection": resourceArmVirtualNetworkGatewayConnection(),
-			"azurerm_virtual_network_peering":            resourceArmVirtualNetworkPeering(),
 		},
 	}
 
@@ -180,162 +187,9 @@ func Provider() terraform.ResourceProvider {
 	return p
 }
 
-// Config is the configuration structure used to instantiate a
-// new Azure management client.
-type Config struct {
-	ManagementURL string
-
-	// Core
-	ClientID                  string
-	SubscriptionID            string
-	TenantID                  string
-	Environment               string
-	SkipCredentialsValidation bool
-	SkipProviderRegistration  bool
-
-	// Service Principal Auth
-	ClientSecret string
-
-	// Bearer Auth
-	AccessToken  *adal.Token
-	IsCloudShell bool
-}
-
-func (c *Config) validateServicePrincipal() error {
-	var err *multierror.Error
-
-	if c.SubscriptionID == "" {
-		err = multierror.Append(err, fmt.Errorf("Subscription ID must be configured for the AzureRM provider"))
-	}
-	if c.ClientID == "" {
-		err = multierror.Append(err, fmt.Errorf("Client ID must be configured for the AzureRM provider"))
-	}
-	if c.ClientSecret == "" {
-		err = multierror.Append(err, fmt.Errorf("Client Secret must be configured for the AzureRM provider"))
-	}
-	if c.TenantID == "" {
-		err = multierror.Append(err, fmt.Errorf("Tenant ID must be configured for the AzureRM provider"))
-	}
-	if c.Environment == "" {
-		err = multierror.Append(err, fmt.Errorf("Environment must be configured for the AzureRM provider"))
-	}
-
-	return err.ErrorOrNil()
-}
-
-func (c *Config) validateBearerAuth() error {
-	var err *multierror.Error
-
-	if c.AccessToken == nil {
-		err = multierror.Append(err, fmt.Errorf("Access Token was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	if c.ClientID == "" {
-		err = multierror.Append(err, fmt.Errorf("Client ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	if c.SubscriptionID == "" {
-		err = multierror.Append(err, fmt.Errorf("Subscription ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	if c.TenantID == "" {
-		err = multierror.Append(err, fmt.Errorf("Tenant ID was not found in your Azure CLI Credentials.\n\nPlease login to the Azure CLI again via `az login`"))
-	}
-
-	return err.ErrorOrNil()
-}
-
-func (c *Config) LoadTokensFromAzureCLI() error {
-	profilePath, err := cli.ProfilePath()
-	if err != nil {
-		return fmt.Errorf("Error loading the Profile Path from the Azure CLI: %+v", err)
-	}
-
-	profile, err := cli.LoadProfile(profilePath)
-	if err != nil {
-		return fmt.Errorf("Azure CLI Authorization Profile was not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
-	}
-
-	// pull out the TenantID and Subscription ID from the Azure Profile
-	for _, subscription := range profile.Subscriptions {
-		if subscription.IsDefault {
-			c.SubscriptionID = subscription.ID
-			c.TenantID = subscription.TenantID
-			c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
-			break
-		}
-	}
-
-	foundToken := false
-	if c.TenantID != "" {
-		// pull out the ClientID and the AccessToken from the Azure Access Token
-		tokensPath, err := cli.AccessTokensPath()
-		if err != nil {
-			return fmt.Errorf("Error loading the Tokens Path from the Azure CLI: %+v", err)
-		}
-
-		tokens, err := cli.LoadTokens(tokensPath)
-		if err != nil {
-			return fmt.Errorf("Azure CLI Authorization Tokens were not found. Please ensure the Azure CLI is installed and then log-in with `az login`.")
-		}
-
-		for _, accessToken := range tokens {
-			token, err := accessToken.ToADALToken()
-			if err != nil {
-				return fmt.Errorf("[DEBUG] Error converting access token to token: %+v", err)
-			}
-
-			expirationDate, err := cli.ParseExpirationDate(accessToken.ExpiresOn)
-			if err != nil {
-				return fmt.Errorf("Error parsing expiration date: %q", accessToken.ExpiresOn)
-			}
-
-			if expirationDate.UTC().Before(time.Now().UTC()) {
-				log.Printf("[DEBUG] Token '%s' has expired", token.AccessToken)
-				continue
-			}
-
-			if !strings.Contains(accessToken.Resource, "management") {
-				log.Printf("[DEBUG] Resource '%s' isn't a management domain", accessToken.Resource)
-				continue
-			}
-
-			if !strings.HasSuffix(accessToken.Authority, c.TenantID) {
-				log.Printf("[DEBUG] Resource '%s' isn't for the correct Tenant", accessToken.Resource)
-				continue
-			}
-
-			c.ClientID = accessToken.ClientID
-			c.AccessToken = &token
-			c.IsCloudShell = accessToken.RefreshToken == ""
-			foundToken = true
-			break
-		}
-	}
-
-	if !foundToken {
-		return fmt.Errorf("No valid (unexpired) Azure CLI Auth Tokens found. Please run `az login`.")
-	}
-
-	return nil
-}
-
-func normalizeEnvironmentName(input string) string {
-	// Environment is stored as `Azure{Environment}Cloud`
-	output := strings.ToLower(input)
-	output = strings.TrimPrefix(output, "azure")
-	output = strings.TrimSuffix(output, "cloud")
-
-	// however Azure Public is `AzureCloud` in the CLI Profile and not `AzurePublicCloud`.
-	if output == "" {
-		return "public"
-	}
-	return output
-}
-
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-		config := &Config{
+		config := &authentication.Config{
 			SubscriptionID:            d.Get("subscription_id").(string),
 			ClientID:                  d.Get("client_id").(string),
 			ClientSecret:              d.Get("client_secret").(string),
@@ -347,7 +201,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		if config.ClientSecret != "" {
 			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
-			if err := config.validateServicePrincipal(); err != nil {
+			if err := config.ValidateServicePrincipal(); err != nil {
 				return nil, err
 			}
 		} else {
@@ -356,12 +210,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 				return nil, err
 			}
 
-			if err := config.validateBearerAuth(); err != nil {
+			if err := config.ValidateBearerAuth(); err != nil {
 				return nil, fmt.Errorf("Please specify either a Service Principal, or log in with the Azure CLI (using `az login`)")
 			}
 		}
 
-		client, err := config.getArmClient()
+		client, err := getArmClient(config)
 		if err != nil {
 			return nil, err
 		}
@@ -377,7 +231,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		if !config.SkipCredentialsValidation {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
-			providerList, err := client.providers.List(nil, "")
+			ctx := client.StopContext
+			providerList, err := client.providersClient.List(ctx, nil, "")
 			if err != nil {
 				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
@@ -385,7 +240,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			}
 
 			if !config.SkipProviderRegistration {
-				err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client.providers)
+				err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client.providersClient)
 				if err != nil {
 					return nil, err
 				}
@@ -396,8 +251,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	}
 }
 
-func registerProviderWithSubscription(providerName string, client resources.ProvidersClient) error {
-	_, err := client.Register(providerName)
+func registerProviderWithSubscription(ctx context.Context, providerName string, client resources.ProvidersClient) error {
+	_, err := client.Register(ctx, providerName)
 	if err != nil {
 		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
 	}
@@ -450,7 +305,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 // all Azure resource providers which the Terraform provider may require (regardless of
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
-func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
+func registerAzureResourceProvidersWithSubscription(ctx context.Context, providerList []resources.Provider, client resources.ProvidersClient) error {
 	providers := determineAzureResourceProvidersToRegister(providerList)
 
 	var err error
@@ -461,7 +316,7 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 		go func(p string) {
 			defer wg.Done()
 			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-			if innerErr := registerProviderWithSubscription(p, client); err != nil {
+			if innerErr := registerProviderWithSubscription(ctx, p, client); err != nil {
 				err = innerErr
 			}
 		}(providerName)
@@ -491,6 +346,11 @@ func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool
 // supplied value to lower before saving to state for consistency.
 func ignoreCaseStateFunc(val interface{}) string {
 	return strings.ToLower(val.(string))
+}
+
+func userDataDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	oldValue := userDataStateFunc(old)
+	return oldValue == new
 }
 
 func userDataStateFunc(v interface{}) string {

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -43,16 +44,17 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 			"location": deprecatedLocationSchema(),
 
 			"user_metadata": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1024),
 			},
 		},
 	}
 }
 
 func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	eventhubClient := client.eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Consumer Group creation.")
 
 	name := d.Get("name").(string)
@@ -68,12 +70,12 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	_, err := eventhubClient.CreateOrUpdate(resGroup, namespaceName, eventHubName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, namespaceName, eventHubName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := eventhubClient.Get(resGroup, namespaceName, eventHubName, name)
+	read, err := client.Get(ctx, resGroup, namespaceName, eventHubName, name)
 
 	if err != nil {
 		return err
@@ -89,7 +91,8 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	eventhubClient := meta.(*ArmClient).eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -100,7 +103,7 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 	eventHubName := id.Path["eventhubs"]
 	name := id.Path["consumergroups"]
 
-	resp, err := eventhubClient.Get(resGroup, namespaceName, eventHubName, name)
+	resp, err := client.Get(ctx, resGroup, namespaceName, eventHubName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -119,7 +122,8 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	eventhubClient := meta.(*ArmClient).eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -130,7 +134,7 @@ func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interfa
 	eventHubName := id.Path["eventhubs"]
 	name := id.Path["consumergroups"]
 
-	resp, err := eventhubClient.Delete(resGroup, namespaceName, eventHubName, name)
+	resp, err := client.Delete(ctx, resGroup, namespaceName, eventHubName, name)
 
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {

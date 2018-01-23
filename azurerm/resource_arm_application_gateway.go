@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	//	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -18,9 +16,9 @@ import (
 
 func resourceArmApplicationGateway() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmApplicationGatewayCreate,
+		Create: resourceArmApplicationGatewayCreateUpdate,
 		Read:   resourceArmApplicationGatewayRead,
-		Update: resourceArmApplicationGatewayCreate,
+		Update: resourceArmApplicationGatewayCreateUpdate,
 		Delete: resourceArmApplicationGatewayDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -680,9 +678,10 @@ func resourceArmApplicationGateway() *schema.Resource {
 	}
 }
 
-func resourceArmApplicationGatewayCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	client := armClient.applicationGatewayClient
+	ctx := armClient.StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM ApplicationGateway creation.")
 
@@ -722,15 +721,19 @@ func resourceArmApplicationGatewayCreate(d *schema.ResourceData, meta interface{
 		ApplicationGatewayPropertiesFormat: &properties,
 	}
 
-	_, errChan := client.CreateOrUpdate(resGroup, name, gateway, make(chan struct{}))
-	err := <-errChan
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, gateway)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating ApplicationGateway {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting ApplicationGateway {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving ApplicationGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ApplicationGateway %s (resource group %s) ID", name, resGroup)
@@ -808,6 +811,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).applicationGatewayClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -816,10 +820,14 @@ func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{
 	resGroup := id.ResourceGroup
 	name := id.Path["applicationGateways"]
 
-	_, errChan := client.Delete(resGroup, name, make(chan struct{}))
-	err = <-errChan
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return errwrap.Wrapf("Error Deleting ApplicationGateway {{err}}", err)
+		return fmt.Errorf("Error deleting for AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for deletion of AppGateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId("")
@@ -837,15 +845,16 @@ func ApplicationGatewayResGroupAndNameFromID(ApplicationGatewayID string) (strin
 	return resGroup, name, nil
 }
 
-func retrieveApplicationGatewayById(ApplicationGatewayID string, meta interface{}) (*network.ApplicationGateway, bool, error) {
+func retrieveApplicationGatewayById(applicationGatewayID string, meta interface{}) (*network.ApplicationGateway, bool, error) {
 	client := meta.(*ArmClient).applicationGatewayClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resGroup, name, err := ApplicationGatewayResGroupAndNameFromID(ApplicationGatewayID)
+	resGroup, name, err := ApplicationGatewayResGroupAndNameFromID(applicationGatewayID)
 	if err != nil {
 		return nil, false, errwrap.Wrapf("Error Getting ApplicationGateway Name and Group: {{err}}", err)
 	}
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, false, nil
@@ -854,19 +863,6 @@ func retrieveApplicationGatewayById(ApplicationGatewayID string, meta interface{
 	}
 
 	return &resp, true, nil
-}
-
-func ApplicationGatewayStateRefreshFunc(client *ArmClient, resourceGroupName string, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.applicationGatewayClient.Get(resourceGroupName, name)
-		if err != nil {
-			return nil, "", fmt.Errorf(
-				"Error issuing read request in ApplicationGatewayStateRefreshFunc to Azure ARM for ApplicationGateway '%s' (RG: '%s'): %+v",
-				name, resourceGroupName, err)
-		}
-
-		return res, *res.ApplicationGatewayPropertiesFormat.ProvisioningState, nil
-	}
 }
 
 func expandApplicationGatewaySku(d *schema.ResourceData) *network.ApplicationGatewaySku {

@@ -66,6 +66,8 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 
 func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
+
 	name := d.Get("name").(string)
 	roleDefinitionIds := map[string]string{
 		"Contributor":               "/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
@@ -77,7 +79,7 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 
 	d.SetId(roleDefinitionId)
 
-	role, err := client.GetByID(roleDefinitionId)
+	role, err := client.GetByID(ctx, roleDefinitionId)
 	if err != nil {
 		return fmt.Errorf("Error loadng Role Definition: %+v", err)
 	}

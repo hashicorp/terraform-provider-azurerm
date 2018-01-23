@@ -237,6 +237,7 @@ The following arguments are supported:
 * `storage_data_disk` - (Optional) A list of Storage Data disk blocks as referenced below.
 * `delete_data_disks_on_termination` - (Optional) Flag to enable deletion of storage data disk VHD blobs or managed disks when the VM is deleted, defaults to `false`
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
+* `identity` - (Optional) An identity block as documented below.
 
 * `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. The only allowable value, if supplied, is `Windows_Server`.
 * `os_profile_windows_config` - (Required, when a Windows machine) A Windows config block as documented below.
@@ -322,6 +323,36 @@ resource "azurerm_virtual_machine" "test" {
 2. Contains a lowercase character
 3. Contains a numeric digit
 4. Contains a special character
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the virtual machine. The only allowable value is `SystemAssigned`. To enable Managed Service Identity the virtual machine extension "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added to the virtual machine. The Principal ID can be retrieved after the virtual machine has been created, e.g.
+
+```hcl
+resource "azurerm_virtual_machine" "test" {
+  name                = "test"
+
+  identity = {
+    type = "SystemAssigned"
+  }
+}
+resource "azurerm_virtual_machine_extension" "test" {
+  name                 = "test"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.ManagedIdentity"
+  type                 = "ManagedIdentityExtensionForWindows"
+  type_handler_version = "1.0"
+
+  settings = <<SETTINGS
+    {
+        "port": 50342
+    }
+SETTINGS
+}
+output "principal_id" {
+  value = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
+}
+```
 
 `os_profile_windows_config` supports the following:
 

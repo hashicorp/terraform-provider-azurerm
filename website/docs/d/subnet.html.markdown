@@ -6,7 +6,7 @@ description: |-
   Get information about the specified Subnet located within a Virtual Network.
 ---
 
-# azurerm_subnet
+# Data Source: azurerm_subnet
 
 Use this data source to access the properties of an Azure Subnet located within a Virtual Network.
 

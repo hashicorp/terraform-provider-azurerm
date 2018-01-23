@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
 )
 
 func TestMain(m *testing.M) {
@@ -29,7 +30,7 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		return nil, fmt.Errorf("ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET and ARM_TENANT_ID must be set for acceptance tests")
 	}
 
-	config := &Config{
+	config := &authentication.Config{
 		SubscriptionID:           subscriptionID,
 		ClientID:                 clientID,
 		ClientSecret:             clientSecret,
@@ -38,26 +39,22 @@ func buildConfigForSweepers() (*ArmClient, error) {
 		SkipProviderRegistration: false,
 	}
 
-	return config.getArmClient()
+	return getArmClient(config)
 }
 
 func shouldSweepAcceptanceTestResource(name string, resourceLocation string, region string) bool {
 	loweredName := strings.ToLower(name)
 
-	prefixesToIgnore := []string{"acctest"}
-
-	for _, prefix := range prefixesToIgnore {
-		if !strings.HasPrefix(loweredName, prefix) {
-			log.Printf("Ignoring Resource '%s' due to prefix '%s'", name, prefix)
-			return false
-		}
+	if !strings.HasPrefix(loweredName, "acctest") {
+		log.Printf("Ignoring Resource %q as it doesn't start with `acctest`", name)
+		return false
 	}
 
 	normalisedResourceLocation := azureRMNormalizeLocation(resourceLocation)
 	normalisedRegion := azureRMNormalizeLocation(region)
 
 	if normalisedResourceLocation != normalisedRegion {
-		log.Printf("Region '%s' isn't '%s' - skipping", normalisedResourceLocation, normalisedRegion)
+		log.Printf("Region %q isn't %q - skipping", normalisedResourceLocation, normalisedRegion)
 		return false
 	}
 

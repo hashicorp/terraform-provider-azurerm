@@ -60,13 +60,13 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The LoadBalancer ID.
-* `private_ip_address` - The private IP address assigned to the load balancer, if any.
+* `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
+* `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 
 ## Import
 
 Load Balancers can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_lb.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1
 ```
-
