@@ -187,7 +187,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}
