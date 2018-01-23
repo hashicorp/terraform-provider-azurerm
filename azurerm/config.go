@@ -17,7 +17,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
-	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
@@ -30,6 +29,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
@@ -646,31 +646,19 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 
 	// PostgreSQL
 	postgresqlConfigClient := postgresql.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&postgresqlConfigClient.Client)
-	postgresqlConfigClient.Authorizer = auth
-	postgresqlConfigClient.Sender = autorest.CreateSender(withRequestLogging())
-	postgresqlConfigClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&postgresqlConfigClient.Client, auth)
 	c.postgresqlConfigurationsClient = postgresqlConfigClient
 
 	postgresqlDBClient := postgresql.NewDatabasesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&postgresqlDBClient.Client)
-	postgresqlDBClient.Authorizer = auth
-	postgresqlDBClient.Sender = autorest.CreateSender(withRequestLogging())
-	postgresqlDBClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&postgresqlDBClient.Client, auth)
 	c.postgresqlDatabasesClient = postgresqlDBClient
 
 	postgresqlFWClient := postgresql.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&postgresqlFWClient.Client)
-	postgresqlFWClient.Authorizer = auth
-	postgresqlFWClient.Sender = autorest.CreateSender(withRequestLogging())
-	postgresqlFWClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&postgresqlFWClient.Client, auth)
 	c.postgresqlFirewallRulesClient = postgresqlFWClient
 
 	postgresqlSrvClient := postgresql.NewServersClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&postgresqlSrvClient.Client)
-	postgresqlSrvClient.Authorizer = auth
-	postgresqlSrvClient.Sender = autorest.CreateSender(withRequestLogging())
-	postgresqlSrvClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&postgresqlSrvClient.Client, auth)
 	c.postgresqlServersClient = postgresqlSrvClient
 
 	// SQL Azure

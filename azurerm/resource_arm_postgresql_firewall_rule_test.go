@@ -48,8 +48,9 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(name string) resource.TestChec
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).postgresqlFirewallRulesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: PostgreSQL Firewall Rule %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
@@ -64,6 +65,7 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(name string) resource.TestChec
 
 func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_postgresql_firewall_rule" {
@@ -74,7 +76,7 @@ func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
