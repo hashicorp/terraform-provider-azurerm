@@ -248,7 +248,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
-		Refresh:    redisStateRefreshFunc(client, ctx, resGroup, name),
+		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
@@ -327,7 +327,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
-		Refresh:    redisStateRefreshFunc(client, ctx, resGroup, name),
+		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
 		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
@@ -456,7 +456,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func redisStateRefreshFunc(client redis.Client, ctx context.Context, resourceGroupName string, sgName string) resource.StateRefreshFunc {
+func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGroupName string, sgName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, sgName)
 		if err != nil {
