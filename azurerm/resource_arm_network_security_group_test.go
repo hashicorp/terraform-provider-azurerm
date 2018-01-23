@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	response "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -163,7 +164,8 @@ func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckF
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).secGroupClient
-		resp, err := client.Get(resourceGroup, sgName, "")
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, sgName, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Network Security Group %q (resource group: %q) does not exist", name, resourceGroup)
@@ -191,12 +193,11 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(name string) resource.TestCh
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).secGroupClient
-		deleteResp, deleteErr := client.Delete(resourceGroup, sgName, make(chan struct{}))
-		resp := <-deleteResp
-		err := <-deleteErr
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		future, err := client.Delete(ctx, resourceGroup, sgName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: Delete on secGroupClient: %+v", err)
+			if !response.WasNotFound(future.Response()) {
+				return fmt.Errorf("Error deleting NSG %q (Resource Group %q): %+v", sgName, resourceGroup, err)
 			}
 		}
 
@@ -206,6 +207,7 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(name string) resource.TestCh
 
 func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).secGroupClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_security_group" {
@@ -215,7 +217,7 @@ func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

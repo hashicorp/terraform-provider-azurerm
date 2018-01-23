@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -213,8 +214,9 @@ func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFu
 
 		// and finally, check that it exists on Azure:
 		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resGrp, localNetName)
+		resp, err := client.Get(ctx, resGrp, localNetName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resGrp)
@@ -241,19 +243,23 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(name string) resource.TestChe
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
-		resGrp := id.ResourceGroup
+		resourceGroup := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
 		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		deleteResp, error := client.Delete(resGrp, localNetName, make(chan struct{}))
-		resp := <-deleteResp
-		err = <-error
+		future, err := client.Delete(ctx, resourceGroup, localNetName)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resGrp)
+			if response.WasNotFound(future.Response()) {
+				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resourceGroup)
 			}
 			return fmt.Errorf("Error deleting the state of local network gateway %q: %+v", localNetName, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of the local network gateway %q to complete: %+v", localNetName, err)
 		}
 
 		return nil
@@ -271,10 +277,11 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
-		resGrp := id.ResourceGroup
+		resourceGroup := id.ResourceGroup
 
 		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
-		resp, err := client.Get(resGrp, localNetName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, localNetName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

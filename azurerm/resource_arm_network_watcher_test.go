@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -105,9 +106,10 @@ func testCheckAzureRMNetworkWatcherExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).watcherClient
+		client := testAccProvider.Meta().(*ArmClient).watcherClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Network Watcher %q (resource group: %q) does not exist", name, resourceGroup)
@@ -134,13 +136,17 @@ func testCheckAzureRMNetworkWatcherDisappears(name string) resource.TestCheckFun
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).watcherClient
-		deleteResp, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
-		resp := <-deleteResp
-		err := <-deleteErr
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
+			if !response.WasNotFound(future.Response()) {
 				return fmt.Errorf("Bad: Delete on watcherClient: %+v", err)
 			}
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on watcherClient: %+v", err)
 		}
 
 		return nil
@@ -158,7 +164,8 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).watcherClient
-		resp, err := client.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {

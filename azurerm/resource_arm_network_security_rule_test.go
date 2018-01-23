@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -106,14 +107,15 @@ func testCheckAzureRMNetworkSecurityRuleExists(name string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for network security rule: %q", sgName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).secRuleClient
+		client := testAccProvider.Meta().(*ArmClient).secRuleClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, sgName, sgrName)
+		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Network Security Rule %q (resource group: %q) (network security group: %q) does not exist", sgrName, sgName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on secRuleClient: %+v", err)
+			return fmt.Errorf("Error retrieving Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgrName, sgName, resourceGroup, err)
 		}
 
 		return nil
@@ -136,12 +138,11 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(name string) resource.TestChe
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).secRuleClient
-		deleteResp, deleteErr := client.Delete(resourceGroup, sgName, sgrName, make(chan struct{}))
-		resp := <-deleteResp
-		err := <-deleteErr
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		future, err := client.Delete(ctx, resourceGroup, sgName, sgrName)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: Delete on secRuleClient: %+v", err)
+			if !response.WasNotFound(future.Response()) {
+				return fmt.Errorf("Error deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgrName, sgName, resourceGroup, err)
 			}
 		}
 
@@ -150,7 +151,8 @@ func testCheckAzureRMNetworkSecurityRuleDisappears(name string) resource.TestChe
 }
 
 func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).secRuleClient
+	client := testAccProvider.Meta().(*ArmClient).secRuleClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 
@@ -162,7 +164,7 @@ func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
 		sgrName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, sgName, sgrName)
+		resp, err := client.Get(ctx, resourceGroup, sgName, sgrName)
 
 		if err != nil {
 			return nil
