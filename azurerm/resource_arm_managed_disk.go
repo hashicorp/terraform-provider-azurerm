@@ -37,8 +37,8 @@ func resourceArmManagedDisk() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.PremiumLRS),
 					string(compute.StandardLRS),
+					string(compute.PremiumLRS),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -119,6 +119,13 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
+	var skuName compute.StorageAccountTypes
+	if strings.ToLower(storageAccountType) == strings.ToLower(string(compute.PremiumLRS)) {
+		skuName = compute.PremiumLRS
+	} else {
+		skuName = compute.StandardLRS
+	}
+
 	createDisk := compute.Disk{
 		Name:     &name,
 		Location: &location,
@@ -126,7 +133,7 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 			OsType: compute.OperatingSystemTypes(osType),
 		},
 		Sku: &compute.DiskSku{
-			Name: compute.StorageAccountTypes(storageAccountType),
+			Name: (skuName),
 		},
 		Tags: expandedTags,
 	}
