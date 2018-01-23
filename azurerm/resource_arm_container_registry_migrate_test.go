@@ -24,6 +24,8 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 		return
 	}
 
+	client.StopContext = testAccProvider.StopContext()
+
 	rs := acctest.RandString(4)
 	resourceGroupName := fmt.Sprintf("acctestrg%s", rs)
 	storageAccountName := fmt.Sprintf("acctestsa%s", rs)

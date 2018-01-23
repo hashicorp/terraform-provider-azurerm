@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -90,10 +90,10 @@ func resourceArmPublicIp() *schema.Resource {
 }
 
 func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	publicIPClient := client.publicIPClient
+	client := meta.(*ArmClient).publicIPClient
+	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Public IP creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -111,22 +111,21 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		dnsSettings := network.PublicIPAddressDNSSettings{}
 
 		if hasRfqdn {
-			reverse_fqdn := rfqdn.(string)
-			dnsSettings.ReverseFqdn = &reverse_fqdn
+			reverseFqdn := rfqdn.(string)
+			dnsSettings.ReverseFqdn = &reverseFqdn
 		}
 
 		if hasDnl {
-			domain_name_label := dnl.(string)
-			dnsSettings.DomainNameLabel = &domain_name_label
-
+			domainNameLabel := dnl.(string)
+			dnsSettings.DomainNameLabel = &domainNameLabel
 		}
 
 		properties.DNSSettings = &dnsSettings
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		idle_timeout := int32(v.(int))
-		properties.IdleTimeoutInMinutes = &idle_timeout
+		idleTimeout := int32(v.(int))
+		properties.IdleTimeoutInMinutes = &idleTimeout
 	}
 
 	publicIp := network.PublicIPAddress{
@@ -136,18 +135,22 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags: expandTags(tags),
 	}
 
-	_, error := publicIPClient.CreateOrUpdate(resGroup, name, publicIp, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, publicIp)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Creating/Updating Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := publicIPClient.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Public IP %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Public IP %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -156,7 +159,8 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	publicIPClient := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).publicIPClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -165,26 +169,34 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["publicIPAddresses"]
 
-	resp, err := publicIPClient.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure public ip %s: %s", name, err)
+
+		return fmt.Errorf("Error making Read request on Public IP %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("name", resp.Name)
-	d.Set("public_ip_address_allocation", strings.ToLower(string(resp.PublicIPAddressPropertiesFormat.PublicIPAllocationMethod)))
-
-	if resp.PublicIPAddressPropertiesFormat.DNSSettings != nil && resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != nil && *resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != "" {
-		d.Set("fqdn", resp.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn)
+	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if resp.PublicIPAddressPropertiesFormat.IPAddress != nil && *resp.PublicIPAddressPropertiesFormat.IPAddress != "" {
-		d.Set("ip_address", resp.PublicIPAddressPropertiesFormat.IPAddress)
+	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
+		d.Set("public_ip_address_allocation", strings.ToLower(string(props.PublicIPAllocationMethod)))
+
+		if settings := props.DNSSettings; settings != nil {
+			if fqdn := settings.Fqdn; fqdn != nil {
+				d.Set("fqdn", fqdn)
+			}
+
+			if ip := props.IPAddress; ip != nil {
+				d.Set("ip_address", ip)
+			}
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -193,7 +205,8 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
-	publicIPClient := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).publicIPClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -202,10 +215,17 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["publicIPAddresses"]
 
-	_, error := publicIPClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", name, resGroup, err)
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for deletion of Public IP %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	return nil
 }
 
 func validatePublicIpAllocation(v interface{}, k string) (ws []string, errors []error) {

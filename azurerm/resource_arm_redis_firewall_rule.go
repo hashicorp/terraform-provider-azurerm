@@ -6,7 +6,7 @@ import (
 
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,6 +49,7 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 
 func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).redisFirewallClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Redis Firewall Rule creation.")
 
 	name := d.Get("name").(string)
@@ -65,12 +66,12 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	_, err := client.CreateOrUpdate(resourceGroup, cacheName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, cacheName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resourceGroup, cacheName, name)
+	read, err := client.Get(ctx, resourceGroup, cacheName, name)
 	if err != nil {
 		return err
 	}
@@ -85,6 +86,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).redisFirewallClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -94,7 +96,7 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 	cacheName := id.Path["Redis"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Get(resourceGroup, cacheName, name)
+	resp, err := client.Get(ctx, resourceGroup, cacheName, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -119,6 +121,7 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).redisFirewallClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -128,7 +131,7 @@ func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}
 	cacheName := id.Path["Redis"]
 	name := id.Path["firewallRules"]
 
-	resp, err := client.Delete(resourceGroup, cacheName, name)
+	resp, err := client.Delete(ctx, resourceGroup, cacheName, name)
 
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {

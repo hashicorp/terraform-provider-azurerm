@@ -88,9 +88,11 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"http",
-								"https",
-							}, false),
+								string(trafficmanager.HTTP),
+								string(trafficmanager.HTTPS),
+								string(trafficmanager.TCP),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -99,7 +101,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						},
 						"path": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -269,7 +271,10 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 
 	result["protocol"] = string(cfg.Protocol)
 	result["port"] = int(*cfg.Port)
-	result["path"] = *cfg.Path
+
+	if cfg.Path != nil {
+		result["path"] = *cfg.Path
+	}
 
 	return []interface{}{result}
 }
@@ -290,7 +295,10 @@ func resourceAzureRMTrafficManagerMonitorConfigHash(v interface{}) int {
 
 	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["protocol"].(string))))
 	buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-	buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+
+	if m["path"] != "" {
+		buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }

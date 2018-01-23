@@ -65,12 +65,29 @@ The following arguments are supported:
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
+* `connection_string` - (Optional) An `connection_string` block as defined below.
+
 * `enabled` - (Optional) Is the Function App enabled? Changing this forces a new resource to be created.
 
 * `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
 
+* `site_config` - (Optional) A `site_config` object as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
+---
+
+`connection_string` supports the following:
+
+* `name` - (Required) The name of the Connection String.
+* `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
+* `value` - (Required) The value for the Connection String.
+
+---
+
+`site_config` supports the following:
+
+* `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 
 ## Attributes Reference
 

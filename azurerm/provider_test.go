@@ -117,7 +117,7 @@ func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
 	}
 
 	client := armClient.providersClient
-	ctx := armClient.StopContext
+	ctx := testAccProvider.StopContext()
 	providerList, err := client.List(ctx, nil, "")
 	if err != nil {
 		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+

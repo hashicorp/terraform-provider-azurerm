@@ -46,8 +46,9 @@ func testCheckAzureRMMySQLDatabaseExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).mysqlDatabasesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: MySQL Database %q (server %q resource group: %q) does not exist", name, serverName, resourceGroup)
@@ -61,6 +62,7 @@ func testCheckAzureRMMySQLDatabaseExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).mysqlDatabasesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_mysql_database" {
@@ -71,7 +73,7 @@ func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, serverName, name)
+		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

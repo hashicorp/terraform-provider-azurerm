@@ -43,11 +43,12 @@ func dataSourceArmDnsZone() *schema.Resource {
 
 func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).zonesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
