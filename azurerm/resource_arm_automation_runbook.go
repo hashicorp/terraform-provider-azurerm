@@ -116,6 +116,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	client.ResourceGroupName = resGroup
 	tags := d.Get("tags").(map[string]interface{})
 
 	accName := d.Get("account_name").(string)
@@ -166,6 +167,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 
@@ -205,6 +207,7 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 

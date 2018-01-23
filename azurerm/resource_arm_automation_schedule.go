@@ -109,6 +109,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	client.ResourceGroupName = resGroup
 
 	accName := d.Get("account_name").(string)
 	freqstr := d.Get("frequency").(string)
@@ -169,6 +170,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["schedules"]
 
@@ -202,6 +204,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["schedules"]
 

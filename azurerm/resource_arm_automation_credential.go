@@ -57,6 +57,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	client.ResourceGroupName = resGroup
 	accName := d.Get("account_name").(string)
 	user := d.Get("username").(string)
 	password := d.Get("password").(string)
@@ -98,6 +99,7 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["credentials"]
 
@@ -131,6 +133,7 @@ func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["credentials"]
 

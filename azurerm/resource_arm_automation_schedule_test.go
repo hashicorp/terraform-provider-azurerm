@@ -43,6 +43,12 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accName := rs.Primary.Attributes["account_name"]
 
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Automation Schedule: '%s'", name)
+		}
+		conn.ResourceGroupName = resourceGroup
+
 		resp, err := conn.Get(ctx, accName, name)
 
 		if err != nil {
@@ -76,6 +82,7 @@ func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq 
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).automationScheduleClient
+		conn.ResourceGroupName = resourceGroup
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, accName, name)

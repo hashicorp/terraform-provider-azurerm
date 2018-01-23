@@ -626,28 +626,28 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
+	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&accountClient.Client)
 	accountClient.Authorizer = auth
 	accountClient.Sender = sender
 	accountClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationAccountClient = accountClient
 
-	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
+	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&credentialClient.Client)
 	credentialClient.Authorizer = auth
 	credentialClient.Sender = sender
 	credentialClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationCredentialClient = credentialClient
 
-	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
+	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&runbookClient.Client)
 	runbookClient.Authorizer = auth
 	runbookClient.Sender = sender
 	runbookClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationRunbookClient = runbookClient
 
-	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
+	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&scheduleClient.Client)
 	scheduleClient.Authorizer = auth
 	scheduleClient.Sender = sender

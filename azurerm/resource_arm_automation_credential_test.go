@@ -65,6 +65,12 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accName := rs.Primary.Attributes["account_name"]
 
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Automation Credential: '%s'", name)
+		}
+		conn.ResourceGroupName = resourceGroup
+
 		resp, err := conn.Get(ctx, accName, name)
 
 		if err != nil {
@@ -100,6 +106,7 @@ func testCheckAzureRMAutomationCredentialExists(name string) resource.TestCheckF
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).automationCredentialClient
+		conn.ResourceGroupName = resourceGroup
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, accName, name)

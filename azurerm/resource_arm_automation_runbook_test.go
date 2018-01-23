@@ -64,6 +64,12 @@ func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accName := rs.Primary.Attributes["account_name"]
 
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Automation Runbook: '%s'", name)
+		}
+		conn.ResourceGroupName = resourceGroup
+
 		resp, err := conn.Get(ctx, accName, name)
 
 		if err != nil {
@@ -98,6 +104,7 @@ func testCheckAzureRMAutomationRunbookExists(name string) resource.TestCheckFunc
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).automationRunbookClient
+		conn.ResourceGroupName = resourceGroup
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, accName, name)
