@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_image` - add support for filtering images by a regex on the name [GH-642]
 * `azurerm_network_security_rule` - add support for augmented security rules [GH-692]
 * `azurerm_role_assignment` - generating a name if one isn't specified [GH-685]
+* `azurerm_traffic_manager_profile` - adding support for setting `protocol` to `TCP` [GH-742]
 
 ## 1.0.1 (January 12, 2018)
 
