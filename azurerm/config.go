@@ -18,7 +18,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/arm/network"
 	"github.com/Azure/azure-sdk-for-go/arm/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
-	"github.com/Azure/azure-sdk-for-go/arm/redis"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
@@ -31,6 +30,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
@@ -108,7 +108,7 @@ type ArmClient struct {
 
 	workspacesClient operationalinsights.WorkspacesClient
 
-	redisClient               redis.GroupClient
+	redisClient               redis.Client
 	redisFirewallClient       redis.FirewallRuleClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
@@ -788,25 +788,16 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	groupsClient := redis.NewGroupClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&groupsClient.Client)
-	groupsClient.Authorizer = auth
-	groupsClient.Sender = sender
-	groupsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.redisClient = groupsClient
+	redisClient := redis.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&redisClient.Client, auth)
+	c.redisClient = redisClient
 
 	firewallRuleClient := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&firewallRuleClient.Client)
-	firewallRuleClient.Authorizer = auth
-	firewallRuleClient.Sender = sender
-	firewallRuleClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&firewallRuleClient.Client, auth)
 	c.redisFirewallClient = firewallRuleClient
 
 	patchSchedulesClient := redis.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&patchSchedulesClient.Client)
-	patchSchedulesClient.Authorizer = auth
-	patchSchedulesClient.Sender = sender
-	patchSchedulesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&patchSchedulesClient.Client, auth)
 	c.redisPatchSchedulesClient = patchSchedulesClient
 }
 
