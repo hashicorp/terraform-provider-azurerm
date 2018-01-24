@@ -147,7 +147,8 @@ func testCheckAzureRMAvailabilitySetExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).availSetClient
-		resp, err := client.Get(resourceGroup, availSetName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", name, resourceGroup)
@@ -175,7 +176,8 @@ func testCheckAzureRMAvailabilitySetDisappears(name string) resource.TestCheckFu
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).availSetClient
-		resp, err := client.Delete(resourceGroup, availSetName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Delete(ctx, resourceGroup, availSetName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Delete on availSetClient: %+v", err)
@@ -196,7 +198,8 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).availSetClient
-		resp, err := client.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

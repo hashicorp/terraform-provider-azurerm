@@ -101,18 +101,19 @@ func dataSourceArmSnapshot() *schema.Resource {
 
 func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).snapshotsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := client.Get(resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error loading Snapshot %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	if props := resp.Properties; props != nil {
+	if props := resp.DiskProperties; props != nil {
 		d.Set("os_type", string(props.OsType))
 		d.Set("time_created", props.TimeCreated.String())
 

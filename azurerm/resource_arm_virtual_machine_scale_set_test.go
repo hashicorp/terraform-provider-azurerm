@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -557,9 +557,10 @@ func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName strin
 		return nil, fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 	}
 
-	conn := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+	client := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	vmss, err := conn.Get(resourceGroup, name)
+	vmss, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return nil, fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
 	}
@@ -592,10 +593,15 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+		client := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, deleteErr := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-deleteErr
+		future, err := client.Delete(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on vmScaleSetClient: %+v", err)
 		}
@@ -605,7 +611,8 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 }
 
 func testCheckAzureRMVirtualMachineScaleSetDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+	client := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine_scale_set" {
@@ -615,7 +622,7 @@ func testCheckAzureRMVirtualMachineScaleSetDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -788,8 +795,9 @@ func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
-		resp, err := conn.Get(resourceGroup, name)
+		client := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
 		}

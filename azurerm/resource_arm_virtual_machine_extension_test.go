@@ -96,9 +96,10 @@ func testCheckAzureRMVirtualMachineExtensionExists(name string) resource.TestChe
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+		client := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, vmName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmExtensionClient: %s", err)
 		}
@@ -112,7 +113,8 @@ func testCheckAzureRMVirtualMachineExtensionExists(name string) resource.TestChe
 }
 
 func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+	client := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine_extension" {
@@ -123,7 +125,7 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, vmName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 
 		if err != nil {
 			return nil

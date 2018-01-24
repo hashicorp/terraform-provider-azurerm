@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -80,6 +80,7 @@ func resourceArmVirtualMachineExtensions() *schema.Resource {
 
 func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -118,13 +119,17 @@ func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta inte
 		extension.VirtualMachineExtensionProperties.ProtectedSettings = &protectedSettings
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, vmName, name, extension, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, vmName, name, extension)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, vmName, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, vmName, name, "")
 	if err != nil {
 		return err
 	}
@@ -140,6 +145,7 @@ func resourceArmVirtualMachineExtensionsCreate(d *schema.ResourceData, meta inte
 
 func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -149,7 +155,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	vmName := id.Path["virtualMachines"]
 	name := id.Path["extensions"]
 
-	resp, err := client.Get(resGroup, vmName, name, "")
+	resp, err := client.Get(ctx, resGroup, vmName, name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -183,6 +189,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 
 func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).vmExtensionClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -192,8 +199,15 @@ func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta inte
 	name := id.Path["extensions"]
 	vmName := id.Path["virtualMachines"]
 
-	_, error := client.Delete(resGroup, vmName, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, vmName, name)
+	if err != nil {
+		return err
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

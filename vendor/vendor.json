@@ -3,22 +3,6 @@
 	"ignore": "test github.com/hashicorp/terraform/backend",
 	"package": [
 		{
-			"checksumSHA1": "ntK9uWj6tVf/jSFsQiGezSsr9dM=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/compute",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
-			"checksumSHA1": "IuOad6dkXLtlhfpz0uAXf2D/0BU=",
-			"path": "github.com/Azure/azure-sdk-for-go/arm/disk",
-			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
-			"revisionTime": "2018-01-09T21:59:56Z",
-			"version": "v12.2.0-beta",
-			"versionExact": "v12.2.0-beta"
-		},
-		{
 			"checksumSHA1": "Awr0JcnLwKoi785lZSEp1uJt0LU=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights",
 			"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
