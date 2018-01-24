@@ -21,9 +21,10 @@ func TestAccAzureRMSnapshot_import(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
 			},
 		},
 	})
@@ -44,9 +45,10 @@ func TestAccAzureRMSnapshot_importEncryption(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
 			},
 		},
 	})

@@ -46,13 +46,12 @@ func resourceArmSnapshot() *schema.Resource {
 			"source_uri": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
+				ForceNew: true,
 			},
 
 			"source_resource_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ForceNew: true,
 			},
 
@@ -172,14 +171,6 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 
 		if data := props.CreationData; data != nil {
 			d.Set("create_option", string(data.CreateOption))
-
-			if uri := data.SourceURI; uri != nil {
-				d.Set("source_uri", uri)
-			}
-
-			if resourceId := data.SourceResourceID; resourceId != nil {
-				d.Set("source_resource_id", resourceId)
-			}
 
 			if accountId := data.StorageAccountID; accountId != nil {
 				d.Set("storage_account_id", accountId)
