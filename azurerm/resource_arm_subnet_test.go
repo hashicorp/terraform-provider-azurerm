@@ -325,6 +325,26 @@ func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
 	return nil
 }
 
+func TestAccAzureRMSubnet_serviceEndpoints(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMSubnet_serviceEndpoints(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSubnetExists("azurerm_subnet.test"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMSubnet_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -344,6 +364,7 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Sql","Microsoft.Storage"]
 }
 `, rInt, location, rInt, rInt)
 }
@@ -666,4 +687,28 @@ resource "azurerm_subnet" "test" {
   network_security_group_id = "${azurerm_network_security_group.test.id}"
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSubnet_serviceEndpoints(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Sql","Microsoft.Storage"]
+}
+`, rInt, location, rInt, rInt)
 }
