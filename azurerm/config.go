@@ -26,6 +26,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
@@ -124,6 +125,9 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+
+	// Monitor
+	monitorAlertRulesClient insights.AlertRulesClient
 
 	// Networking
 	applicationGatewayClient     network.ApplicationGatewaysClient
@@ -400,6 +404,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
+	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
@@ -652,6 +657,14 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	keyVaultManagementClient.Sender = sender
 	keyVaultManagementClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.keyVaultManagementClient = keyVaultManagementClient
+}
+
+func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	arc := insights.NewAlertRulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&arc.Client)
+	arc.Authorizer = auth
+	arc.Sender = autorest.CreateSender(withRequestLogging())
+	c.monitorAlertRulesClient = arc
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

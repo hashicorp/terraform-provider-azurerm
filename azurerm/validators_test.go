@@ -130,3 +130,44 @@ func TestDBAccountName_validation(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateIso8601Duration(t *testing.T) {
+	cases := []struct {
+		Value  string
+		Errors int
+	}{
+		{
+			// Date components only
+			Value:  "P1Y2M3D",
+			Errors: 0,
+		},
+		{
+			// Time components only
+			Value:  "PT7H42M3S",
+			Errors: 0,
+		},
+		{
+			// Date and time components
+			Value:  "P1Y2M3DT7H42M3S",
+			Errors: 0,
+		},
+		{
+			// Invalid prefix
+			Value:  "1Y2M3DT7H42M3S",
+			Errors: 1,
+		},
+		{
+			// Wrong order of components, i.e. invalid format
+			Value:  "PT7H42M3S1Y2M3D",
+			Errors: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateIso8601Duration()(tc.Value, "example")
+
+		if len(errors) != tc.Errors {
+			t.Fatalf("Expected validateIso8601Duration to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+		}
+	}
+}
