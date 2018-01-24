@@ -55,9 +55,10 @@ func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheck
 			return err
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).vnetGatewayClient
+		client := testAccProvider.Meta().(*ArmClient).vnetGatewayClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vnetGatewayClient: %+v", err)
 		}
@@ -71,7 +72,8 @@ func testCheckAzureRMVirtualNetworkGatewayExists(name string) resource.TestCheck
 }
 
 func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vnetGatewayClient
+	client := testAccProvider.Meta().(*ArmClient).vnetGatewayClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_network_gateway" {
@@ -81,7 +83,7 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
