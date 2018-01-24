@@ -12,7 +12,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
-	"github.com/Azure/azure-sdk-for-go/arm/cosmos-db"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
@@ -22,6 +21,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
@@ -73,7 +73,7 @@ type ArmClient struct {
 
 	diskClient                 disk.DisksClient
 	snapshotsClient            disk.SnapshotsClient
-	cosmosDBClient             cosmosdb.DatabaseAccountsClient
+	cosmosDBClient             documentdb.DatabaseAccountsClient
 	automationAccountClient    automation.AccountClient
 	automationRunbookClient    automation.RunbookClient
 	automationCredentialClient automation.CredentialClient
@@ -378,13 +378,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	csc.SkipResourceProviderRegistration = c.SkipProviderRegistration
 	client.containerServicesClient = csc
 
-	cdb := cosmosdb.NewDatabaseAccountsClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&cdb.Client)
-	cdb.Authorizer = auth
-	cdb.Sender = sender
-	cdb.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.cosmosDBClient = cdb
-
 	img := compute.NewImagesClientWithBaseURI(endpoint, c.SubscriptionID)
 	setUserAgent(&img.Client)
 	img.Authorizer = auth
@@ -396,6 +389,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
@@ -494,6 +488,13 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 	profilesClient.Sender = sender
 	profilesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.cdnProfilesClient = profilesClient
+}
+
+func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId, "", "", "", "", "")
+	c.configureClient(&cdb.Client, auth)
+	c.cosmosDBClient = cdb
+
 }
 
 func (c *ArmClient) registerContainerInstanceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
