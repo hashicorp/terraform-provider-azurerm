@@ -206,7 +206,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if alertRule := resp.AlertRule; alertRule != nil {
 		d.Set("description", alertRule.Description)
@@ -256,21 +259,15 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 				webhook_action["service_uri"] = *webhookAction.ServiceURI
 
-				//var properties map[string]string;
-
-				if webhookAction.Properties != nil {
-					properties := make(map[string]string, len(*webhookAction.Properties))
-
-					for k, v := range *webhookAction.Properties {
+				properties := make(map[string]string, 0)
+				if props := webhookAction.Properties; props != nil {
+					for k, v := range *props {
 						if k != "$type" {
 							properties[k] = *v
 						}
 					}
-					webhook_action["properties"] = properties
 				}
-				//else {
-				//	properties = make(map[string]string, 0)
-				//}
+				webhook_action["properties"] = properties
 
 				webhook_actions = append(webhook_actions, webhook_action)
 			}
