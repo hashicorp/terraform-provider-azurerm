@@ -58,6 +58,12 @@ func resourceArmSubnet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
+
+			"service_endpoints": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -109,6 +115,13 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		azureRMLockByName(routeTableName, routeTableResourceName)
 		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
 	}
+
+	serviceEndpoints, serviceEndpointsErr := expandAzureRmServiceEndpoints(d)
+	if serviceEndpointsErr != nil {
+		return fmt.Errorf("Error Building list of Service Endpoints: %+v", serviceEndpointsErr)
+	}
+
+	properties.ServiceEndpoints = &serviceEndpoints
 
 	subnet := network.Subnet{
 		Name: &name,
@@ -179,6 +192,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("ip_configurations", ips); err != nil {
 			return err
 		}
+
+		serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
+		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -235,6 +253,35 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func expandAzureRmServiceEndpoints(d *schema.ResourceData) ([]network.ServiceEndpointPropertiesFormat, error) {
+	serviceEndpoints := d.Get("service_endpoints").([]interface{})
+	enpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
+
+	for _, serviceEndpointsRaw := range serviceEndpoints {
+		data := serviceEndpointsRaw.(string)
+
+		endpoint := network.ServiceEndpointPropertiesFormat{
+			Service: &data,
+		}
+
+		enpoints = append(enpoints, endpoint)
+	}
+
+	return enpoints, nil
+}
+
+func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
+	endpoints := make([]string, 0)
+
+	if serviceEndpoints != nil {
+		for _, endpoint := range *serviceEndpoints {
+			endpoints = append(endpoints, *endpoint.Service)
+		}
+	}
+
+	return endpoints
 }
 
 func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) []string {
