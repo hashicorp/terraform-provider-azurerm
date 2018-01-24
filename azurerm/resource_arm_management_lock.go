@@ -3,11 +3,10 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
-	"regexp"
-
-	"github.com/Azure/azure-sdk-for-go/arm/resources/locks"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -58,6 +57,7 @@ func resourceArmManagementLock() *schema.Resource {
 
 func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).managementLocksClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Management Lock creation.")
 
 	name := d.Get("name").(string)
@@ -72,12 +72,12 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdateByScope(scope, name, lock)
+	_, err := client.CreateOrUpdateByScope(ctx, scope, name, lock)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.GetByScope(scope, name)
+	read, err := client.GetByScope(ctx, scope, name)
 	if err != nil {
 		return err
 	}
@@ -92,13 +92,14 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).managementLocksClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureRMLockId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetByScope(id.Scope, id.Name)
+	resp, err := client.GetByScope(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -120,13 +121,14 @@ func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmManagementLockDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).managementLocksClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureRMLockId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.DeleteByScope(id.Scope, id.Name)
+	resp, err := client.DeleteByScope(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

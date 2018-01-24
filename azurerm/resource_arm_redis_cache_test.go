@@ -333,8 +333,9 @@ func testCheckAzureRMRedisCacheExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).redisClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, redisName)
+		resp, err := conn.Get(ctx, resourceGroup, redisName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on redisClient: %+v", err)
 		}
@@ -349,6 +350,7 @@ func testCheckAzureRMRedisCacheExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).redisClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_redis_cache" {
@@ -358,7 +360,7 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil

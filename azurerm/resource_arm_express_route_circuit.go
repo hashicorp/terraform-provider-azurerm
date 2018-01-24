@@ -2,13 +2,11 @@ package azurerm
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"strings"
 
-	"fmt"
-
-	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/errwrap"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -107,8 +105,8 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 }
 
 func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ercClient := client.expressRouteCircuitClient
+	client := meta.(*ArmClient).expressRouteCircuitClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRouteCircuit creation.")
 
@@ -138,18 +136,22 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 		Tags: expandedTags,
 	}
 
-	_, error := ercClient.CreateOrUpdate(resGroup, name, erc, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating ExpressRouteCircuit {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := ercClient.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting ExpressRouteCircuit {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error Retrieving ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ExpressRouteCircuit %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ExpressRouteCircuit %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -193,16 +195,25 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
-	ercClient := meta.(*ArmClient).expressRouteCircuitClient
+	client := meta.(*ArmClient).expressRouteCircuitClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resGroup, name, err := extractResourceGroupAndErcName(d.Id())
+	resourceGroup, name, err := extractResourceGroupAndErcName(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 
-	_, error := ercClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
-	return err
+	future, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func expandExpressRouteCircuitSku(d *schema.ResourceData) *network.ExpressRouteCircuitSku {

@@ -52,6 +52,7 @@ func TestAccAzureRMApplicationInsights_basicOther(t *testing.T) {
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_application_insights" {
@@ -61,7 +62,7 @@ func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -90,8 +91,9 @@ func testCheckAzureRMApplicationInsightsExists(name string) resource.TestCheckFu
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).appInsightsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on appInsightsClient: %+v", err)
 		}

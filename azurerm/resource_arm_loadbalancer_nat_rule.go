@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -81,8 +81,8 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 }
 
 func resourceArmLoadBalancerNatRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -116,41 +116,47 @@ func resourceArmLoadBalancerNatRuleCreate(d *schema.ResourceData, meta interface
 	loadBalancer.LoadBalancerPropertiesFormat.InboundNatRules = &natRules
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer Name and Group: %+v", err)
 	}
 
-	_, createError := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-createError
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating / Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating / Updating LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read LoadBalancer %q (Resource Group %q) ID", loadBalancerName, resGroup)
 	}
 
-	var natRule_id string
+	var natRuleId string
 	for _, InboundNatRule := range *(*read.LoadBalancerPropertiesFormat).InboundNatRules {
 		if *InboundNatRule.Name == d.Get("name").(string) {
-			natRule_id = *InboundNatRule.ID
+			natRuleId = *InboundNatRule.ID
 		}
 	}
 
-	if natRule_id != "" {
-		d.SetId(natRule_id)
+	if natRuleId != "" {
+		d.SetId(natRuleId)
 	} else {
-		return fmt.Errorf("Cannot find created LoadBalancer NAT Rule ID %q", natRule_id)
+		return fmt.Errorf("Cannot find created LoadBalancer NAT Rule ID %q", natRuleId)
 	}
 
+	// TODO: is this still needed?
 	log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", loadBalancerName)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(client, resGroup, loadBalancerName),
+		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -169,7 +175,7 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d.Get("loadbalancer_id").(string), meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -212,8 +218,8 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -221,7 +227,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -239,18 +245,22 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer Name and Group: %+v", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q) %+v", loadBalancerName, resGroup, err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error waiting for the completion of LoadBalancer updates for %q (Resource Group %q) %+v", loadBalancerName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read LoadBalancer %q (resource group %q) ID", loadBalancerName, resGroup)

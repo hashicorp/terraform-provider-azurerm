@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -126,7 +126,8 @@ func testCheckAzureRMDnsCNameRecordExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).dnsClient
-		resp, err := conn.Get(resourceGroup, zoneName, cnameName, dns.CNAME)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, cnameName, dns.CNAME)
 		if err != nil {
 			return fmt.Errorf("Bad: Get CNAME RecordSet: %v", err)
 		}
@@ -141,6 +142,7 @@ func testCheckAzureRMDnsCNameRecordExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_cname_record" {
@@ -151,7 +153,7 @@ func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, zoneName, cnameName, dns.CNAME)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, cnameName, dns.CNAME)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
