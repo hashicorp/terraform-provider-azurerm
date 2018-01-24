@@ -10,13 +10,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
 	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
 	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
@@ -422,28 +422,28 @@ func (c *ArmClient) registerAppInsightsClient(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
+	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&accountClient.Client)
 	accountClient.Authorizer = auth
 	accountClient.Sender = sender
 	accountClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationAccountClient = accountClient
 
-	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
+	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&credentialClient.Client)
 	credentialClient.Authorizer = auth
 	credentialClient.Sender = sender
 	credentialClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationCredentialClient = credentialClient
 
-	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
+	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&runbookClient.Client)
 	runbookClient.Authorizer = auth
 	runbookClient.Sender = sender
 	runbookClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationRunbookClient = runbookClient
 
-	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
+	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId, "")
 	setUserAgent(&scheduleClient.Client)
 	scheduleClient.Authorizer = auth
 	scheduleClient.Sender = sender
