@@ -3,13 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net"
 	"regexp"
-
 	"time"
 
-	"net"
-
-	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -189,6 +187,7 @@ func resourceArmKeyVault() *schema.Resource {
 
 func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM KeyVault creation.")
 
 	name := d.Get("name").(string)
@@ -213,12 +212,12 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -244,6 +243,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -252,7 +252,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -279,6 +279,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -287,7 +288,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 
-	_, err = client.Delete(resGroup, name)
+	_, err = client.Delete(ctx, resGroup, name)
 
 	return err
 }

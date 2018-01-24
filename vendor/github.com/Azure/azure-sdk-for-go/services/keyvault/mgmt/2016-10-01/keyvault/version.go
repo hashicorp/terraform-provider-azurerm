@@ -19,7 +19,7 @@ package keyvault
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-	return "Azure-SDK-For-Go/v12.2.0-beta arm-keyvault/2016-10-01"
+	return "Azure-SDK-For-Go/v12.2.0-beta services"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.

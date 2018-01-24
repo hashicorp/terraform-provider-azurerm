@@ -12,8 +12,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/arm/compute"
 	"github.com/Azure/azure-sdk-for-go/arm/disk"
-	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
-	keyVault "github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
@@ -26,6 +24,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
@@ -97,9 +97,6 @@ type ArmClient struct {
 	redisFirewallClient       redis.FirewallRuleClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
-	keyVaultClient           keyvault.VaultsClient
-	keyVaultManagementClient keyVault.ManagementClient
-
 	// Application Insights
 	appInsightsClient appinsights.ComponentsClient
 
@@ -125,6 +122,10 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+
+	// KeyVault
+	keyVaultClient           keyvault.VaultsClient
+	keyVaultManagementClient keyVault.BaseClient
 
 	// Monitor
 	monitorAlertRulesClient insights.AlertRulesClient
