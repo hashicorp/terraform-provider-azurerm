@@ -116,8 +116,16 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	tags := d.Get("tags").(map[string]interface{})
 
+	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
+
+	if strings.ToLower(string(sku.Name)) == "standard" {
+		if strings.ToLower(string(ipAllocationMethod)) != "static" {
+			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
+		}
+	}
+
 	properties := network.PublicIPAddressPropertiesFormat{
-		PublicIPAllocationMethod: network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string)),
+		PublicIPAllocationMethod: ipAllocationMethod,
 	}
 
 	dnl, hasDnl := d.GetOk("domain_name_label")
