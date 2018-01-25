@@ -34,16 +34,18 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"location": locationSchema(),
+
 			"type": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.ExpressRoute),
 					string(network.IPsec),
 					string(network.Vnet2Vnet),
 				}, true),
-				ForceNew: true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"virtual_network_gateway_id": {
@@ -92,8 +94,6 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"location": locationSchema(),
-
 			"tags": tagsSchema(),
 		},
 	}
@@ -137,7 +137,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read AzureRM Virtual Network Gateway Connection %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AzureRM Virtual Network Gateway Connection %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -160,7 +160,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway Connection %q: %+v", name, err)
 	}
 
 	conn := *resp.VirtualNetworkGatewayConnectionPropertiesFormat
@@ -222,7 +222,6 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway Connection %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId("")
 	return nil
 }
 
@@ -303,6 +302,29 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	if v, ok := d.GetOk("shared_key"); ok {
 		sharedKey := v.(string)
 		props.SharedKey = &sharedKey
+	}
+
+	// TODO: ensure the documentation matches this
+	if props.ConnectionType == network.ExpressRoute {
+		if props.Peer == nil || props.Peer.ID == nil {
+			return nil, fmt.Errorf("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute")
+		}
+	}
+
+	if props.ConnectionType == network.IPsec {
+		if props.LocalNetworkGateway2 == nil || props.LocalNetworkGateway2.ID == nil {
+			return nil, fmt.Errorf("`local_network_gateway_id` and `shared_key` must be specified when `type` is set to `IPsec")
+		}
+
+		if props.SharedKey == nil {
+			return nil, fmt.Errorf("`local_network_gateway_id` and `shared_key` must be specified when `type` is set to `IPsec")
+		}
+	}
+
+	if props.ConnectionType == network.Vnet2Vnet {
+		if props.VirtualNetworkGateway2 == nil || props.VirtualNetworkGateway2.ID == nil {
+			return nil, fmt.Errorf("`peer_virtual_network_gateway_id` and `shared_key` must be specified when `type` is set to `Vnet2Vnet")
+		}
 	}
 
 	return props, nil
