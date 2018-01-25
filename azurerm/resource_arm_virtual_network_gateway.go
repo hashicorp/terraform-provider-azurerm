@@ -176,7 +176,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 			},
 
 			"bgp_settings": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
@@ -196,7 +196,6 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						},
 					},
 				},
-				Set: hashVirtualNetworkGatewayBgpSettings,
 			},
 
 			"default_local_network_gateway_id": {
@@ -304,13 +303,15 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 		if gw.VpnClientConfiguration != nil {
 			vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
 			if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
-				return fmt.Errorf("Error setting VPN Client Configuration: %+v", err)
+				return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 			}
 		}
 
 		if gw.BgpSettings != nil {
 			bgpSettingsFlat := flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)
-			d.Set("bgp_settings", schema.NewSet(hashVirtualNetworkGatewayBgpSettings, bgpSettingsFlat))
+			if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
+				return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+			}
 		}
 	}
 
@@ -401,7 +402,7 @@ func getArmVirtualNetworkGatewayProperties(d *schema.ResourceData) (*network.Vir
 }
 
 func expandArmVirtualNetworkGatewayBgpSettings(d *schema.ResourceData) *network.BgpSettings {
-	bgpSets := d.Get("bgp_settings").(*schema.Set).List()
+	bgpSets := d.Get("bgp_settings").([]interface{})
 	bgp := bgpSets[0].(map[string]interface{})
 
 	asn := int64(bgp["asn"].(int))
@@ -574,17 +575,6 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 	flat["revoked_certificate"] = schema.NewSet(hashVirtualNetworkGatewayRevokedCert, revokedCerts)
 
 	return []interface{}{flat}
-}
-
-func hashVirtualNetworkGatewayBgpSettings(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	buf.WriteString(fmt.Sprintf("%d-", m["asn"].(int)))
-	buf.WriteString(fmt.Sprintf("%s-", m["peering_address"].(string)))
-	buf.WriteString(fmt.Sprintf("%d-", m["peer_weight"].(int)))
-
-	return hashcode.String(buf.String())
 }
 
 func hashVirtualNetworkGatewayRootCert(v interface{}) int {
