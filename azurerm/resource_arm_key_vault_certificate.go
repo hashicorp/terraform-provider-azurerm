@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/dataplane/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -229,6 +229,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 
 func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	keyVaultBaseUrl := d.Get("vault_uri").(string)
@@ -245,7 +246,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy:        &policy,
 			Tags:                     expandTags(tags),
 		}
-		_, err := client.ImportCertificate(keyVaultBaseUrl, name, importParameters)
+		_, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters)
 		if err != nil {
 			return err
 		}
@@ -255,13 +256,13 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy: &policy,
 			Tags:              expandTags(tags),
 		}
-		_, err := client.CreateCertificate(keyVaultBaseUrl, name, parameters)
+		_, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters)
 		if err != nil {
 			return err
 		}
 	}
 
-	resp, err := client.GetCertificate(keyVaultBaseUrl, name, "")
+	resp, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
 	if err != nil {
 		return err
 	}
@@ -273,13 +274,14 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	cert, err := client.GetCertificate(id.KeyVaultBaseUrl, id.Name, "")
+	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
@@ -307,13 +309,14 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultManagementClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseKeyVaultChildID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.DeleteCertificate(id.KeyVaultBaseUrl, id.Name)
+	resp, err := client.DeleteCertificate(ctx, id.KeyVaultBaseUrl, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

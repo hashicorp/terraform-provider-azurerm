@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
+	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -57,6 +57,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationAccountClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Account creation.")
 
 	name := d.Get("name").(string)
@@ -75,12 +76,12 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -96,6 +97,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationAccountClient
+	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -103,7 +105,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	resGroup := id.ResourceGroup
 	name := id.Path["automationAccounts"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -125,6 +127,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationAccountClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -133,7 +136,7 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	resGroup := id.ResourceGroup
 	name := id.Path["automationAccounts"]
 
-	resp, err := client.Delete(resGroup, name)
+	resp, err := client.Delete(ctx, resGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {

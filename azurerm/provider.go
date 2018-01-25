@@ -132,6 +132,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_log_analytics_workspace":            resourceArmLogAnalyticsWorkspace(),
 			"azurerm_managed_disk":                       resourceArmManagedDisk(),
 			"azurerm_management_lock":                    resourceArmManagementLock(),
+			"azurerm_metric_alertrule":                   resourceArmMetricAlertRule(),
 			"azurerm_mysql_configuration":                resourceArmMySQLConfiguration(),
 			"azurerm_mysql_database":                     resourceArmMySqlDatabase(),
 			"azurerm_mysql_firewall_rule":                resourceArmMySqlFirewallRule(),
@@ -176,9 +177,9 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_virtual_machine":                    resourceArmVirtualMachine(),
 			"azurerm_virtual_machine_scale_set":          resourceArmVirtualMachineScaleSet(),
 			"azurerm_virtual_network":                    resourceArmVirtualNetwork(),
-			"azurerm_virtual_network_peering":            resourceArmVirtualNetworkPeering(),
 			"azurerm_virtual_network_gateway":            resourceArmVirtualNetworkGateway(),
 			"azurerm_virtual_network_gateway_connection": resourceArmVirtualNetworkGatewayConnection(),
+			"azurerm_virtual_network_peering":            resourceArmVirtualNetworkPeering(),
 		},
 	}
 

@@ -5,15 +5,14 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
-	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAzureRMManagedDisk_empty(t *testing.T) {
-	var d disk.Model
+	var d compute.Disk
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagedDisk_empty(ri, testLocation())
 	resource.Test(t, resource.TestCase{
@@ -32,7 +31,7 @@ func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_import(t *testing.T) {
-	var d disk.Model
+	var d compute.Disk
 	var vm compute.VirtualMachine
 	ri := acctest.RandInt()
 	location := testLocation()
@@ -64,7 +63,7 @@ func TestAccAzureRMManagedDisk_import(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_copy(t *testing.T) {
-	var d disk.Model
+	var d compute.Disk
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagedDisk_copy(ri, testLocation())
 	resource.Test(t, resource.TestCase{
@@ -83,7 +82,7 @@ func TestAccAzureRMManagedDisk_copy(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
-	var d disk.Model
+	var d compute.Disk
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagedDisk_platformImage(ri, testLocation())
 	resource.Test(t, resource.TestCase{
@@ -102,7 +101,7 @@ func TestAccAzureRMManagedDisk_fromPlatformImage(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_update(t *testing.T) {
-	var d disk.Model
+	var d compute.Disk
 
 	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
@@ -121,7 +120,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "tags.cost-center", "ops"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "1"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(disk.StandardLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.StandardLRS)),
 				),
 			},
 			{
@@ -131,7 +130,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
 					resource.TestCheckResourceAttr(resourceName, "disk_size_gb", "2"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(disk.PremiumLRS)),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_type", string(compute.PremiumLRS)),
 				),
 			},
 		},
@@ -139,7 +138,7 @@ func TestAccAzureRMManagedDisk_update(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
-	var d disk.Model
+	var d compute.Disk
 
 	resourceName := "azurerm_managed_disk.test"
 	ri := acctest.RandInt()
@@ -169,7 +168,7 @@ func TestAccAzureRMManagedDisk_encryption(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
-	var d disk.Model
+	var d compute.Disk
 	ri := acctest.RandInt()
 	config := testAccAzureRMManagedDiskNonStandardCasing(ri, testLocation())
 	resource.Test(t, resource.TestCase{
@@ -192,7 +191,7 @@ func TestAccAzureRMManagedDisk_NonStandardCasing(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMManagedDiskExists(name string, d *disk.Model, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMManagedDiskExists(name string, d *compute.Disk, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -205,9 +204,10 @@ func testCheckAzureRMManagedDiskExists(name string, d *disk.Model, shouldExist b
 			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).diskClient
+		client := testAccProvider.Meta().(*ArmClient).diskClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, dName)
+		resp, err := client.Get(ctx, resourceGroup, dName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on diskClient: %+v", err)
 		}
@@ -226,7 +226,8 @@ func testCheckAzureRMManagedDiskExists(name string, d *disk.Model, shouldExist b
 }
 
 func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).diskClient
+	client := testAccProvider.Meta().(*ArmClient).diskClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_managed_disk" {
@@ -236,14 +237,14 @@ func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Managed Disk still exists: \n%#v", resp.Properties)
+			return fmt.Errorf("Managed Disk still exists: \n%#v", resp.DiskProperties)
 		}
 	}
 
@@ -263,10 +264,15 @@ func testDeleteAzureRMVirtualMachine(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).vmClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, vmName, make(chan struct{}))
-		err := <-error
+		future, err := client.Delete(ctx, resourceGroup, vmName)
+		if err != nil {
+			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on vmClient: %+v", err)
 		}

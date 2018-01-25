@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
+	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -33,6 +33,7 @@ func TestAccAzureRMAutomationSchedule_oneTime(t *testing.T) {
 
 func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).automationScheduleClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_automation_schedule" {
@@ -41,9 +42,14 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		accName := rs.Primary.Attributes["account_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, accName, name)
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Automation Schedule: '%s'", name)
+		}
+		conn.ResourceGroupName = resourceGroup
+
+		resp, err := conn.Get(ctx, accName, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -76,8 +82,10 @@ func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq 
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).automationScheduleClient
+		conn.ResourceGroupName = resourceGroup
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, accName, name)
+		resp, err := conn.Get(ctx, accName, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

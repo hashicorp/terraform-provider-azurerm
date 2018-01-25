@@ -84,3 +84,20 @@ func validateStringLength(maxLength int) schema.SchemaValidateFunc {
 		return
 	}
 }
+
+func validateIso8601Duration() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		matched, _ := regexp.MatchString(`^P([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?)?$`, v)
+
+		if !matched {
+			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
+		}
+		return
+	}
+}
