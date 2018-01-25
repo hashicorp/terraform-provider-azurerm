@@ -1,9 +1,10 @@
 package azurerm
 
 import (
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
-	"testing"
 )
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_importSiteToSite(t *testing.T) {
