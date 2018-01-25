@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -85,11 +86,14 @@ func resourceArmPublicIp() *schema.Resource {
 			},
 
 			"sku": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          string(network.PublicIPAddressSkuNameBasic),
-				ForceNew:         true,
-				ValidateFunc:     validatePublicIpSku,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.PublicIPAddressSkuNameBasic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.PublicIPAddressSkuNameBasic),
+					string(network.PublicIPAddressSkuNameStandard),
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
@@ -260,19 +264,6 @@ func validatePublicIpAllocation(v interface{}, k string) (ws []string, errors []
 
 	if !allocations[value] {
 		errors = append(errors, fmt.Errorf("Public IP Allocation must be an accepted value: Static, Dynamic"))
-	}
-	return
-}
-
-func validatePublicIpSku(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	allowedSkus := map[string]bool{
-		"basic":    true,
-		"standard": true,
-	}
-
-	if !allowedSkus[value] {
-		errors = append(errors, fmt.Errorf("Public IP SKU must be an accepted value: Basic, Standard"))
 	}
 	return
 }
