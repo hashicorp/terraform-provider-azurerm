@@ -338,7 +338,6 @@ func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error waiting for deletion of Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId("")
 	return nil
 }
 
@@ -540,29 +539,37 @@ func flattenArmVirtualNetworkGatewayIPConfigurations(ipConfigs *[]network.Virtua
 func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfiguration) []interface{} {
 	flat := make(map[string]interface{})
 
-	addressSpace := make([]interface{}, 0, len(*cfg.VpnClientAddressPool.AddressPrefixes))
-	for _, addr := range *cfg.VpnClientAddressPool.AddressPrefixes {
-		addressSpace = append(addressSpace, addr)
+	addressSpace := make([]interface{}, 0)
+	if pool := cfg.VpnClientAddressPool; pool != nil {
+		if prefixes := pool.AddressPrefixes; prefixes != nil {
+			for _, addr := range *prefixes {
+				addressSpace = append(addressSpace, addr)
+			}
+		}
 	}
 	flat["address_space"] = addressSpace
 
-	rootCerts := make([]interface{}, 0, len(*cfg.VpnClientRootCertificates))
-	for _, cert := range *cfg.VpnClientRootCertificates {
-		v := map[string]interface{}{
-			"name":             *cert.Name,
-			"public_cert_data": *cert.VpnClientRootCertificatePropertiesFormat.PublicCertData,
+	rootCerts := make([]interface{}, 0)
+	if certs := cfg.VpnClientRootCertificates; certs != nil {
+		for _, cert := range *certs {
+			v := map[string]interface{}{
+				"name":             *cert.Name,
+				"public_cert_data": *cert.VpnClientRootCertificatePropertiesFormat.PublicCertData,
+			}
+			rootCerts = append(rootCerts, v)
 		}
-		rootCerts = append(rootCerts, v)
 	}
 	flat["root_certificate"] = schema.NewSet(hashVirtualNetworkGatewayRootCert, rootCerts)
 
-	revokedCerts := make([]interface{}, 0, len(*cfg.VpnClientRevokedCertificates))
-	for _, cert := range *cfg.VpnClientRevokedCertificates {
-		v := map[string]interface{}{
-			"name":       *cert.Name,
-			"thumbprint": *cert.VpnClientRevokedCertificatePropertiesFormat.Thumbprint,
+	revokedCerts := make([]interface{}, 0)
+	if certs := cfg.VpnClientRevokedCertificates; certs != nil {
+		for _, cert := range *certs {
+			v := map[string]interface{}{
+				"name":       *cert.Name,
+				"thumbprint": *cert.VpnClientRevokedCertificatePropertiesFormat.Thumbprint,
+			}
+			revokedCerts = append(revokedCerts, v)
 		}
-		revokedCerts = append(revokedCerts, v)
 	}
 	flat["revoked_certificate"] = schema.NewSet(hashVirtualNetworkGatewayRevokedCert, revokedCerts)
 
