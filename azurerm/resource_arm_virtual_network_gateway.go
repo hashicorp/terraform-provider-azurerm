@@ -125,7 +125,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 			},
 
 			"vpn_client_configuration": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -173,7 +173,6 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						},
 					},
 				},
-				Set: hashVirtualNetworkGatewayVpnClientConfig,
 			},
 
 			"bgp_settings": {
@@ -304,7 +303,9 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 
 		if gw.VpnClientConfiguration != nil {
 			vpnConfigFlat := flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)
-			d.Set("vpn_client_configuration", schema.NewSet(hashVirtualNetworkGatewayVpnClientConfig, vpnConfigFlat))
+			if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
+				return fmt.Errorf("Error setting VPN Client Configuration: %+v", err)
+			}
 		}
 
 		if gw.BgpSettings != nil {
@@ -453,7 +454,7 @@ func expandArmVirtualNetworkGatewayIPConfigurations(d *schema.ResourceData) *[]n
 }
 
 func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *network.VpnClientConfiguration {
-	configSets := d.Get("vpn_client_configuration").(*schema.Set).List()
+	configSets := d.Get("vpn_client_configuration").([]interface{})
 	conf := configSets[0].(map[string]interface{})
 
 	confAddresses := conf["address_space"].([]interface{})
@@ -595,30 +596,6 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 
 	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
-
-	return hashcode.String(buf.String())
-}
-
-func hashVirtualNetworkGatewayVpnClientConfig(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	addressList := m["address_space"].([]interface{})
-	for _, a := range addressList {
-		buf.WriteString(fmt.Sprintf("%s-", a.(string)))
-	}
-
-	rootCerts := m["root_certificate"].(*schema.Set)
-	for _, cert := range rootCerts.List() {
-		buf.WriteString(fmt.Sprintf("%d-", rootCerts.F(cert)))
-	}
-
-	if m["revoked_certificate"] != nil {
-		revokedCerts := m["revoked_certificate"].(*schema.Set)
-		for _, cert := range revokedCerts.List() {
-			buf.WriteString(fmt.Sprintf("%d-", revokedCerts.F(cert)))
-		}
-	}
 
 	return hashcode.String(buf.String())
 }
