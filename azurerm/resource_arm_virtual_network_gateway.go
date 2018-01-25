@@ -38,26 +38,26 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 			"location": locationSchema(),
 
 			"type": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.VirtualNetworkGatewayTypeExpressRoute),
 					string(network.VirtualNetworkGatewayTypeVpn),
 				}, true),
-				ForceNew: true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"vpn_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Default:          string(network.RouteBased),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(network.RouteBased),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.RouteBased),
 					string(network.PolicyBased),
 				}, true),
-				ForceNew: true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"enable_bgp": {
