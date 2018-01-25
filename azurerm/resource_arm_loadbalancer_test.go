@@ -240,12 +240,12 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_lb" "test" {
     name = "arm-test-loadbalancer-%d"
     location = "${azurerm_resource_group.test.location}"
-		resource_group_name = "${azurerm_resource_group.test.name}"
-		sku = "Standard"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "Standard"
 
     tags {
-    	Environment = "production"
-    	Purpose = "AcceptanceTests"
+      Environment = "production"
+      Purpose = "AcceptanceTests"
     }
 
 }`, rInt, location, rInt)
