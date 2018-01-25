@@ -100,13 +100,13 @@ func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
 func testAccAzureRMVirtualNetworkGateway_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%[1]d"
-    location = "%[2]s"
+  name = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "test-%[1]d"
-  location = "%[2]s"
+  name = "acctestvn-%d"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -119,15 +119,15 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-%[1]d"
-    location = "%[2]s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "Dynamic"
+  name = "acctestpip-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name = "test-%[1]d"
-  location = "%[2]s"
+  name = "acctestvng-%d"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -140,19 +140,19 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id = "${azurerm_subnet.test.id}"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualNetworkGateway_vpnGw1(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%[1]d"
-    location = "%[2]s"
+  name = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "test-%[1]d"
-  location = "%[2]s"
+  name = "acctestvn-%d"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -165,15 +165,15 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-%[1]d"
-    location = "%[2]s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "Dynamic"
+  name = "acctestpip-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name = "test-%[1]d"
-  location = "%[2]s"
+  name = "acctestvng-%d"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -186,5 +186,5 @@ resource "azurerm_virtual_network_gateway" "test" {
     subnet_id = "${azurerm_subnet.test.id}"
   }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt, rInt)
 }
