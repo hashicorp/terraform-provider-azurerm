@@ -6,7 +6,6 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -320,18 +319,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			storageAccountName, resourceGroupName)
 	}
 
-	log.Printf("[DEBUG] Waiting for Storage Account (%s) to become available", storageAccountName)
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating"},
-		Target:     []string{"Succeeded"},
-		Refresh:    storageAccountStateRefreshFunc(client, ctx, resourceGroupName, storageAccountName),
-		Timeout:    30 * time.Minute,
-		MinTimeout: 15 * time.Second,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Storage Account (%s) to become available: %s", storageAccountName, err)
-	}
-
 	return resourceArmStorageAccountRead(d, meta)
 }
 
@@ -616,6 +603,12 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 
 func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDomain {
 	domains := d.Get("custom_domain").([]interface{})
+	if domains == nil || len(domains) == 0 {
+		return &storage.CustomDomain{
+			Name: utils.String(""),
+		}
+	}
+
 	domain := domains[0].(map[string]interface{})
 	name := domain["name"].(string)
 	useSubDomain := domain["use_subdomain"].(bool)
