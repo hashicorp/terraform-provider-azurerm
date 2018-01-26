@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_network_gateway_connection"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-connection"
 description: |-
-  Creates a new connection in an existing virtual network gateway.
+  Creates a new connection in an existing Virtual Network Gateway.
 ---
 
-# azurerm\_virtual\_network\_gateway\_connection
+# azurerm_virtual_network_gateway_connection
 
-Creates a new connection in an existing virtual network gateway.
+Creates a new connection in an existing Virtual Network Gateway.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name = "test"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -39,7 +39,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_local_network_gateway" "onpremise" {
   name = "onpremise"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   gateway_address = "168.62.225.23"
   address_space = ["10.1.1.0/24"]
@@ -47,14 +47,14 @@ resource "azurerm_local_network_gateway" "onpremise" {
 
 resource "azurerm_public_ip" "test" {
   name = "test"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
   name = "test"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -73,7 +73,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 
 resource "azurerm_virtual_network_gateway_connection" "onpremise" {
   name = "onpremise"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "IPsec"
@@ -97,7 +97,7 @@ resource "azurerm_resource_group" "us" {
 
 resource "azurerm_virtual_network" "us" {
   name = "us"
-  location = "East US"
+  location = "${azurerm_resource_group.us.location}"
   resource_group_name = "${azurerm_resource_group.us.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -111,14 +111,14 @@ resource "azurerm_subnet" "us_gateway" {
 
 resource "azurerm_public_ip" "us" {
   name = "us"
-  location = "East US"
+  location = "${azurerm_resource_group.us.location}"
   resource_group_name = "${azurerm_resource_group.us.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "us" {
   name = "us-gateway"
-  location = "East US"
+  location = "${azurerm_resource_group.us.location}"
   resource_group_name = "${azurerm_resource_group.us.name}"
 
   type = "Vpn"
@@ -139,7 +139,7 @@ resource "azurerm_resource_group" "europe" {
 
 resource "azurerm_virtual_network" "europe" {
   name = "europe"
-  location = "West Europe"
+  location = "${azurerm_resource_group.europe.location}"
   resource_group_name = "${azurerm_resource_group.europe.name}"
   address_space = ["10.1.0.0/16"]
 }
@@ -153,14 +153,14 @@ resource "azurerm_subnet" "europe_gateway" {
 
 resource "azurerm_public_ip" "europe" {
   name = "europe"
-  location = "West Europe"
+  location = "${azurerm_resource_group.europe.location}"
   resource_group_name = "${azurerm_resource_group.europe.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "europe" {
   name = "europe-gateway"
-  location = "West Europe"
+  location = "${azurerm_resource_group.europe.location}"
   resource_group_name = "${azurerm_resource_group.europe.name}"
 
   type = "Vpn"
@@ -176,8 +176,8 @@ resource "azurerm_virtual_network_gateway" "europe" {
 
 resource "azurerm_virtual_network_gateway_connection" "us_to_europe" {
   name = "us-to-europe"
-  location = "East US"
-  resource_group_name = "${azurerm_resource_group.europe.name}"
+  location = "${azurerm_resource_group.us.location}"
+  resource_group_name = "${azurerm_resource_group.us.name}"
 
   type = "Vnet2Vnet"
   virtual_network_gateway_id = "${azurerm_virtual_network_gateway.us.id}"
@@ -188,7 +188,7 @@ resource "azurerm_virtual_network_gateway_connection" "us_to_europe" {
 
 resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
   name = "europe-to-us"
-  location = "West Europe"
+  location = "${azurerm_resource_group.europe.location}"
   resource_group_name = "${azurerm_resource_group.europe.name}"
 
   type = "Vnet2Vnet"
@@ -208,7 +208,7 @@ The following arguments are supported:
     new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
-    create the connection.
+    create the connection Changing the name forces a new resource to be created.
 
 * `location` - (Required) The location/region where the connection is
     located. Changing this forces a new resource to be created.
@@ -219,21 +219,21 @@ The following arguments are supported:
     examples above). Changing the connection type will force a new connection
     to be created.
 
-* `virtual_network_gateway_id` - (Required) The ID of the virtual network gateway
+* `virtual_network_gateway_id` - (Required) The ID of the Virtual Network Gateway
     in which the connection will be created. Changing the gateway forces a new
     resource to be created.
 
 * `authorization_key` - (Optional) The authorization key associated with the
     Express Route Circuit. This field is required only if the type is an
     ExpressRoute connection.
-
+§
 * `express_route_circuit_id` - (Optional) The ID of the Express Route Circuit
     when creating an ExpressRoute connection (i.e. when `type` is `ExpressRoute`).
     The Express Route Circuit can be in the same or in a different subscription.
 
 * `peer_virtual_network_gateway_id` - (Optional) The ID of the peer virtual
     network gateway when creating a VNet-to-VNet connection (i.e. when `type`
-    is `Vnet2Vnet`). The peer virtual network gateway can be in the same or
+    is `Vnet2Vnet`). The peer Virtual Network Gateway can be in the same or
     in a different subscription.
 
 * `local_network_gateway_id` - (Optional) The ID of the local network gateway
@@ -255,13 +255,6 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The connection ID.
-
-* `name` - The name of the connection.
-
-* `resource_group_name` - The name of the resource group in which to create
-    the virtual network gateway connection.
-
-* `location` - The location/region where the virtual network gateway connection is located.
 
 ## Import
 

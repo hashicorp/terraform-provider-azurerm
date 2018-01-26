@@ -1,14 +1,16 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_network_gateway"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway"
+sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
   Creates a new virtual network gateway to establish secure, cross-premises connectivity.
 ---
 
-# azurerm\_virtual\_network\_gateway
+# azurerm_virtual_network_gateway
 
-Creates a new virtual network gateway to establish secure, cross-premises connectivity.
+Creates a new Virtual Network Gateway to establish secure, cross-premises connectivity.
+
+-> **Note:** Please be aware that provisioning a Virtual Network Gateway takes a long time (between 30 minutes and 1 hour)
 
 ## Example Usage
 
@@ -20,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name = "test"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -34,14 +36,14 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
   name = "test"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
   name = "test"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -59,7 +61,7 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 
   vpn_client_configuration {
-    address_space = [ "10.0.2.0/24" ]
+    address_space = [ "10.2.0.0/24" ]
 
     root_certificate {
       name = "DigiCert-Federated-ID-Root-CA"
@@ -99,25 +101,26 @@ EOF
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the virtual network gateway. Changing the name
+* `name` - (Required) The name of the Virtual Network Gateway. Changing the name
     forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
-    create the virtual network gateway.
+    create the Virtual Network Gateway. Changing the resource group name forces
+    a new resource to be created.
 
-* `location` - (Required) The location/region where the virtual network gateway is
+* `location` - (Required) The location/region where the Virtual Network Gateway is
     located. Changing the location/region forces a new resource to be created.
 
-* `type` - (Required) The type of the virtual network gateway. Valid options are
+* `type` - (Required) The type of the Virtual Network Gateway. Valid options are
     `Vpn` or `ExpressRoute`. Changing the type forces a new resource to be created.
 
-* `vpn_type` - (Optional) The routing type of the virtual network gateway. Valid
+* `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid
     options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`.
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled
-    for this virtual network gateway. Defaults to `false`.
+    for this Virtual Network Gateway. Defaults to `false`.
 
-* `active_active` - (Optional) If `true`, an active-active virtual network gateway
+* `active_active` - (Optional) If `true`, an active-active Virtual Network Gateway
     will be created. An active-active gateway requires a `HighPerformance` or an
     `UltraPerformance` sku. If `false`, an active-standby gateway will be created.
     Defaults to `false`.
@@ -126,7 +129,7 @@ The following arguments are supported:
     through which outbound Internet traffic from the virtual network in which the
     gateway is created will be routed (*forced tunneling*). Refer to the
     [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
-    If not provided, forced tunneling is disabled.
+    If not specified, forced tunneling is disabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
@@ -139,7 +142,7 @@ The following arguments are supported:
     an active-active gateway requires exactly two `ip_configuration` blocks.
 
 * `vpn_client_configuration` (Optional) A `vpn_client_configuration` block which
-    is documented below. In this block the virtual network gateway can be configured
+    is documented below. In this block the Virtual Network Gateway can be configured
     to accept IPSec point-to-site connections.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -156,10 +159,10 @@ The `ip_configuration` block supports:
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in
     which the virtual network gateway will be created. It is mandatory that
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
-    network can contain at most a single virtual network gateway.
+    network can contain at most a single Virtual Network Gateway.
 
 * `public_ip_address_id` - (Optional) The ID of the public ip address to associate
-    with the virtual network gateway.
+    with the Virtual Network Gateway.
 
 The `vpn_client_configuration` block supports:
 
@@ -181,7 +184,7 @@ The `bgp_settings` block supports:
 * `peering_address` - (Optional) The BGP peer IP address of the virtual network
     gateway. This address is needed to configure the created gateway as a BGP Peer
     on the on-premises VPN devices. The IP address must be part of the subnet of
-    the virtual network gateway.
+    the Virtual Network Gateway.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
@@ -206,13 +209,7 @@ The `root_revoked_certificate` block supports:
 
 The following attributes are exported:
 
-* `id` - The ID of the virtual network gateway.
-
-* `name` - The name of the virtual network gateway.
-
-* `resource_group_name` - The name of the resource group in which to create the virtual network gateway.
-
-* `location` - The location/region where the virtual network gateway is located.
+* `id` - The ID of the Virtual Network Gateway.
 
 ## Import
 
