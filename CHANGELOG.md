@@ -1,31 +1,31 @@
-## 1.1.0 (Unreleased)
+## 1.1.0 (January 26, 2018)
 
 UPGRADE NOTES:
 
-* Data Source: `azurerm_builtin_role_definition` - now returns the correct UUID/GUID for the `Virtual Machines Contributor` role (previously the ID for the `Classic Virtual Machine Contributor` role was returned) [GH-762]
-* `azurerm_snapshot` - `source_uri` now forces a new resource on changes due to behavioural changes in the Azure API [GH-744]
+* Data Source: `azurerm_builtin_role_definition` - now returns the correct UUID/GUID for the `Virtual Machines Contributor` role (previously the ID for the `Classic Virtual Machine Contributor` role was returned) ([#762](https://github.com/terraform-providers/terraform-provider-azurerm/issues/762))
+* `azurerm_snapshot` - `source_uri` now forces a new resource on changes due to behavioural changes in the Azure API ([#744](https://github.com/terraform-providers/terraform-provider-azurerm/issues/744))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_dns_zone` [GH-702]
-* **New Resource:** `azurerm_metric_alertrule` [GH-478]
-* **New Resource:** `azurerm_virtual_network_gateway` [GH-133]
-* **New Resource:** `azurerm_virtual_network_gateway_connection` [GH-133]
+* **New Data Source:** `azurerm_dns_zone` ([#702](https://github.com/terraform-providers/terraform-provider-azurerm/issues/702))
+* **New Resource:** `azurerm_metric_alertrule` ([#478](https://github.com/terraform-providers/terraform-provider-azurerm/issues/478))
+* **New Resource:** `azurerm_virtual_network_gateway` ([#133](https://github.com/terraform-providers/terraform-provider-azurerm/issues/133))
+* **New Resource:** `azurerm_virtual_network_gateway_connection` ([#133](https://github.com/terraform-providers/terraform-provider-azurerm/issues/133))
 
 IMPROVEMENTS:
 
-* core: upgrading to `v12.2.0-beta` of `Azure/azure-sdk-for-go` [GH-684]
-* core: upgrading to `v9.7.0` of `Azure/go-autorest` [GH-684]
-* Data Source: `azurerm_builtin_role_definition` - adding extra role definitions [GH-762]
-* `azurerm_app_service` - exposing the `outbound_ip_addresses` field [GH-700]
-* `azurerm_function_app` - exposing the `outbound_ip_addresses` field [GH-706]
-* `azurerm_function_app` - add support for the `always_on` and `connection_string` fields [GH-695]
-* `azurerm_image` - add support for filtering images by a regex on the name [GH-642]
-* `azurerm_lb` - adding support for the `Standard` SKU (in Preview) [GH-665]
-* `azurerm_public_ip` - adding support for the `Standard` SKU (in Preview) [GH-665]
-* `azurerm_network_security_rule` - add support for augmented security rules [GH-692]
-* `azurerm_role_assignment` - generating a name if one isn't specified [GH-685]
-* `azurerm_traffic_manager_profile` - adding support for setting `protocol` to `TCP` [GH-742]
+* core: upgrading to `v12.2.0-beta` of `Azure/azure-sdk-for-go` ([#684](https://github.com/terraform-providers/terraform-provider-azurerm/issues/684))
+* core: upgrading to `v9.7.0` of `Azure/go-autorest` ([#684](https://github.com/terraform-providers/terraform-provider-azurerm/issues/684))
+* Data Source: `azurerm_builtin_role_definition` - adding extra role definitions ([#762](https://github.com/terraform-providers/terraform-provider-azurerm/issues/762))
+* `azurerm_app_service` - exposing the `outbound_ip_addresses` field ([#700](https://github.com/terraform-providers/terraform-provider-azurerm/issues/700))
+* `azurerm_function_app` - exposing the `outbound_ip_addresses` field ([#706](https://github.com/terraform-providers/terraform-provider-azurerm/issues/706))
+* `azurerm_function_app` - add support for the `always_on` and `connection_string` fields ([#695](https://github.com/terraform-providers/terraform-provider-azurerm/issues/695))
+* `azurerm_image` - add support for filtering images by a regex on the name ([#642](https://github.com/terraform-providers/terraform-provider-azurerm/issues/642))
+* `azurerm_lb` - adding support for the `Standard` SKU (in Preview) ([#665](https://github.com/terraform-providers/terraform-provider-azurerm/issues/665))
+* `azurerm_public_ip` - adding support for the `Standard` SKU (in Preview) ([#665](https://github.com/terraform-providers/terraform-provider-azurerm/issues/665))
+* `azurerm_network_security_rule` - add support for augmented security rules ([#692](https://github.com/terraform-providers/terraform-provider-azurerm/issues/692))
+* `azurerm_role_assignment` - generating a name if one isn't specified ([#685](https://github.com/terraform-providers/terraform-provider-azurerm/issues/685))
+* `azurerm_traffic_manager_profile` - adding support for setting `protocol` to `TCP` ([#742](https://github.com/terraform-providers/terraform-provider-azurerm/issues/742))
 
 ## 1.0.1 (January 12, 2018)
 
