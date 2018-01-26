@@ -44,7 +44,9 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Public IP. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
-~> **Note** Public IP Standard SKUs require `public_ip_address_allocation` to be set to `static`.
+-> **Note** Public IP Standard SKUs require `public_ip_address_allocation` to be set to `static`.
+
+-> **Note:** The `Standard` SKU is currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions `Standard` SKU's are available in are available here](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-overview)
 
 * `public_ip_address_allocation` - (Required) Defines whether the IP address is static or dynamic. Options are Static or Dynamic.
 
