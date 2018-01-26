@@ -131,12 +131,10 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).localNetConnClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	resGroup, name, err := resourceGroupAndLocalNetworkGatewayFromId(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["localNetworkGateways"]
-	resGroup := id.ResourceGroup
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
@@ -175,12 +173,10 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).localNetConnClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	resGroup, name, err := resourceGroupAndLocalNetworkGatewayFromId(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["localNetworkGateways"]
-	resGroup := id.ResourceGroup
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
@@ -201,6 +197,17 @@ func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func resourceGroupAndLocalNetworkGatewayFromId(localNetworkGatewayId string) (string, string, error) {
+	id, err := parseAzureResourceID(localNetworkGatewayId)
+	if err != nil {
+		return "", "", err
+	}
+	name := id.Path["localNetworkGateways"]
+	resGroup := id.ResourceGroup
+
+	return resGroup, name, nil
 }
 
 func expandLocalNetworkGatewayBGPSettings(d *schema.ResourceData) (*network.BgpSettings, error) {

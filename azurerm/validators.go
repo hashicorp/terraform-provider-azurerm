@@ -64,6 +64,16 @@ func validateDBAccountName(v interface{}, k string) (ws []string, errors []error
 	return
 }
 
+func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) {
+	_, es := validateFunc(i, k)
+
+	if len(es) > 0 {
+		return false, es[0]
+	}
+
+	return true, nil
+}
+
 func validateStringLength(maxLength int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
 		value := v.(string)
