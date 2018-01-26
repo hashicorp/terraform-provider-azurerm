@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -84,6 +85,18 @@ func resourceArmPublicIp() *schema.Resource {
 				Computed: true,
 			},
 
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.PublicIPAddressSkuNameBasic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.PublicIPAddressSkuNameBasic),
+					string(network.PublicIPAddressSkuNameStandard),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -98,10 +111,21 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	sku := network.PublicIPAddressSku{
+		Name: network.PublicIPAddressSkuName(d.Get("sku").(string)),
+	}
 	tags := d.Get("tags").(map[string]interface{})
 
+	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
+
+	if strings.ToLower(string(sku.Name)) == "standard" {
+		if strings.ToLower(string(ipAllocationMethod)) != "static" {
+			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")
+		}
+	}
+
 	properties := network.PublicIPAddressPropertiesFormat{
-		PublicIPAllocationMethod: network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string)),
+		PublicIPAllocationMethod: ipAllocationMethod,
 	}
 
 	dnl, hasDnl := d.GetOk("domain_name_label")
@@ -129,8 +153,9 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	publicIp := network.PublicIPAddress{
-		Name:                            &name,
-		Location:                        &location,
+		Name:     &name,
+		Location: &location,
+		Sku:      &sku,
 		PublicIPAddressPropertiesFormat: &properties,
 		Tags: expandTags(tags),
 	}
@@ -185,6 +210,12 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
+	d.Set("public_ip_address_allocation", strings.ToLower(string(resp.PublicIPAddressPropertiesFormat.PublicIPAllocationMethod)))
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+	}
+
 	if props := resp.PublicIPAddressPropertiesFormat; props != nil {
 		d.Set("public_ip_address_allocation", strings.ToLower(string(props.PublicIPAllocationMethod)))
 
@@ -236,7 +267,7 @@ func validatePublicIpAllocation(v interface{}, k string) (ws []string, errors []
 	}
 
 	if !allocations[value] {
-		errors = append(errors, fmt.Errorf("Public IP Allocation can only be Static of Dynamic"))
+		errors = append(errors, fmt.Errorf("Public IP Allocation must be an accepted value: Static, Dynamic"))
 	}
 	return
 }
