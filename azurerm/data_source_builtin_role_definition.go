@@ -81,6 +81,7 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 					"Support Request Contributor",
 					"Traffic Manager Contributor",
 					"User Access Administrator",
+					// TODO: make this `Virtual Machine Contributor` and handle deprecation
 					"VirtualMachineContributor",
 					"Web Plan Contributor",
 					"Website Contributor",
@@ -135,6 +136,7 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 
 	name := d.Get("name").(string)
 	roleDefinitionIds := map[string]string{
+		// TODO: pull this list from an API
 		"Auditor": "/providers/Microsoft.Authorization/roleDefinitions/8da36ee2-a5e5-4c9d-ad4a-6d281636c8b1",
 		"CloudAware Collector Storage Account Keys Access": "/providers/Microsoft.Authorization/roleDefinitions/caea9d35-7d6c-4bd5-ac15-1e92cb428f43",
 		"DB Admin":                                          "/providers/Microsoft.Authorization/roleDefinitions/d80f878a-b665-46fd-a179-5b231a7a126e",
