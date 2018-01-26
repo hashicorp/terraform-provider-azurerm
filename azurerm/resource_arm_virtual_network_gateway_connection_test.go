@@ -2,11 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
@@ -28,10 +29,14 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
+func TestAccAzureRMVirtualNetworkGatewayConnection_vnettonet(t *testing.T) {
+	firstResourceName := "azurerm_virtual_network_gateway_connection.test_1"
+	secondResourceName := "azurerm_virtual_network_gateway_connection.test_2"
+
 	ri := acctest.RandInt()
 	ri2 := acctest.RandInt()
-	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, testLocation(), testAltLocation())
+	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+	config := testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, sharedKey, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,8 +46,49 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.test_1"),
-					testCheckAzureRMVirtualNetworkGatewayConnectionExists("azurerm_virtual_network_gateway_connection.test_2"),
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "shared_key", sharedKey),
+					resource.TestCheckResourceAttr(secondResourceName, "shared_key", sharedKey),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
+	firstResourceName := "azurerm_virtual_network_gateway_connection.test_1"
+	secondResourceName := "azurerm_virtual_network_gateway_connection.test_2"
+
+	ri := acctest.RandInt()
+	ri2 := acctest.RandInt()
+	loc1 := testLocation()
+	loc2 := testAltLocation()
+
+	firstSharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+	secondSharedKey := "4-r33ly-53cr37-1p53c-5h4r3d-k3y"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, firstSharedKey, loc1, loc2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "shared_key", firstSharedKey),
+					resource.TestCheckResourceAttr(secondResourceName, "shared_key", firstSharedKey),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(ri, ri2, secondSharedKey, loc1, loc2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(firstResourceName),
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(secondResourceName),
+					resource.TestCheckResourceAttr(firstResourceName, "shared_key", secondSharedKey),
+					resource.TestCheckResourceAttr(secondResourceName, "shared_key", secondSharedKey),
 				),
 			},
 		},
@@ -100,14 +146,18 @@ func testCheckAzureRMVirtualNetworkGatewayConnectionDestroy(s *terraform.State) 
 
 func testAccAzureRMVirtualNetworkGatewayConnection_sitetosite(rInt int, location string) string {
 	return fmt.Sprintf(`
+variable "random" {
+  default = "%d"
+}
+
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%[1]d"
-    location = "%[2]s"
+  name = "acctestRG-${var.random}"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "test-%[1]d"
-  location = "%[2]s"
+  name = "test-${var.random}"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -120,15 +170,15 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "test-%[1]d"
-    location = "%[2]s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    public_ip_address_allocation = "Dynamic"
+  name = "test-${var.random}"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name = "test-%[1]d"
-  location = "%[2]s"
+  name = "test-${var.random}"
+  location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   type = "Vpn"
@@ -144,38 +194,50 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 resource "azurerm_local_network_gateway" "test" {
-    name = "test-%[1]d"
-    location = "%[2]s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name = "test-${var.random}"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    gateway_address = "168.62.225.23"
-    address_space = ["10.1.1.0/24"]
+  gateway_address = "168.62.225.23"
+  address_space = ["10.1.1.0/24"]
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-    name = "test-%[1]d"
-    location = "%[2]s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name = "test-${var.random}"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    type = "IPsec"
-    virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test.id}"
-    local_network_gateway_id = "${azurerm_local_network_gateway.test.id}"
+  type = "IPsec"
+  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test.id}"
+  local_network_gateway_id = "${azurerm_local_network_gateway.test.id}"
 
-    shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
 `, rInt, location)
 }
 
-func testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(rInt int, rInt2 int, location string, altLocation string) string {
+func testAccAzureRMVirtualNetworkGatewayConnection_vnettovnet(rInt, rInt2 int, sharedKey, location, altLocation string) string {
 	return fmt.Sprintf(`
+variable "random1" {
+  default = "%d"
+}
+
+variable "random2" {
+  default = "%d"
+}
+
+variable "shared_key" {
+  default = "%s"
+}
+
 resource "azurerm_resource_group" "test_1" {
-    name = "acctestRG-%[1]d"
-    location = "%[3]s"
+  name = "acctestRG-${var.random1}"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test_1" {
-  name = "acctest-%[1]d"
-  location = "%[3]s"
+  name = "acctest-${var.random1}"
+  location = "${azurerm_resource_group.test_1.location}"
   resource_group_name = "${azurerm_resource_group.test_1.name}"
   address_space = ["10.0.0.0/16"]
 }
@@ -188,15 +250,15 @@ resource "azurerm_subnet" "test_1" {
 }
 
 resource "azurerm_public_ip" "test_1" {
-  name = "acctest-%[1]d"
-  location = "%[3]s"
+  name = "acctest-${var.random1}"
+  location = "${azurerm_resource_group.test_1.location}"
   resource_group_name = "${azurerm_resource_group.test_1.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_1" {
-  name = "acctest-%[1]d"
-  location = "%[3]s"
+  name = "acctest-${var.random1}"
+  location = "${azurerm_resource_group.test_1.location}"
   resource_group_name = "${azurerm_resource_group.test_1.name}"
 
   type = "Vpn"
@@ -212,25 +274,25 @@ resource "azurerm_virtual_network_gateway" "test_1" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test_1" {
-  name = "acctest-%[1]d"
-  location = "%[3]s"
+  name = "acctest-${var.random1}"
+  location = "${azurerm_resource_group.test_1.location}"
   resource_group_name = "${azurerm_resource_group.test_1.name}"
 
   type = "Vnet2Vnet"
   virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_1.id}"
   peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_2.id}"
 
-  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+  shared_key = "${var.shared_key}"
 }
 
 resource "azurerm_resource_group" "test_2" {
-    name = "acctestRG-%[2]d"
-    location = "%[4]s"
+  name = "acctestRG-${var.random2}"
+  location = "%s"
 }
 
 resource "azurerm_virtual_network" "test_2" {
-  name = "acctest-%[2]d"
-  location = "%[4]s"
+  name = "acctest-${var.random2}"
+  location = "${azurerm_resource_group.test_2.location}"
   resource_group_name = "${azurerm_resource_group.test_2.name}"
   address_space = ["10.1.0.0/16"]
 }
@@ -243,15 +305,15 @@ resource "azurerm_subnet" "test_2" {
 }
 
 resource "azurerm_public_ip" "test_2" {
-  name = "acctest-%[2]d"
-  location = "%[4]s"
+  name = "acctest-${var.random2}"
+  location = "${azurerm_resource_group.test_2.location}"
   resource_group_name = "${azurerm_resource_group.test_2.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_2" {
-  name = "acctest-%[2]d"
-  location = "%[4]s"
+  name = "acctest-${var.random2}"
+  location = "${azurerm_resource_group.test_2.location}"
   resource_group_name = "${azurerm_resource_group.test_2.name}"
 
   type = "Vpn"
@@ -267,15 +329,15 @@ resource "azurerm_virtual_network_gateway" "test_2" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test_2" {
-  name = "acctest-%[2]d"
-  location = "%[4]s"
+  name = "acctest-${var.random2}"
+  location = "${azurerm_resource_group.test_2.location}"
   resource_group_name = "${azurerm_resource_group.test_2.name}"
 
   type = "Vnet2Vnet"
   virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_2.id}"
   peer_virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test_1.id}"
 
-  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+  shared_key = "${var.shared_key}"
 }
-`, rInt, rInt2, location, altLocation)
+`, rInt, rInt2, sharedKey, location, altLocation)
 }

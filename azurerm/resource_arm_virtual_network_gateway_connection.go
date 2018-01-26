@@ -304,7 +304,6 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		props.SharedKey = &sharedKey
 	}
 
-	// TODO: ensure the documentation matches this
 	if props.ConnectionType == network.ExpressRoute {
 		if props.Peer == nil || props.Peer.ID == nil {
 			return nil, fmt.Errorf("`express_route_circuit_id` must be specified when `type` is set to `ExpressRoute")
