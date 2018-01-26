@@ -1,5 +1,9 @@
 ## 1.0.2 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_snapshot` - `source_uri` now forces a new resource on changes due to behavioural changes in the Azure API [GH-744]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_dns_zone` [GH-702]
