@@ -2,6 +2,7 @@
 
 UPGRADE NOTES:
 
+* Data Source: `azurerm_builtin_role_definition` - now returns the correct UUID/GUID for the `Virtual Machines Contributor` role (previously the ID for the `Classic Virtual Machine Contributor` role was returned) [GH-762]
 * `azurerm_snapshot` - `source_uri` now forces a new resource on changes due to behavioural changes in the Azure API [GH-744]
 
 FEATURES:
@@ -15,6 +16,7 @@ IMPROVEMENTS:
 
 * core: upgrading to `v12.2.0-beta` of `Azure/azure-sdk-for-go` [GH-684]
 * core: upgrading to `v9.7.0` of `Azure/go-autorest` [GH-684]
+* Data Source: `azurerm_builtin_role_definition` - adding extra role definitions [GH-762]
 * `azurerm_app_service` - exposing the `outbound_ip_addresses` field [GH-700]
 * `azurerm_function_app` - exposing the `outbound_ip_addresses` field [GH-706]
 * `azurerm_function_app` - add support for the `always_on` and `connection_string` fields [GH-695]
