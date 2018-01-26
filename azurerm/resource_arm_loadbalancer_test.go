@@ -238,7 +238,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_lb" "test" {
-    name = "arm-test-loadbalancer-%d"
+    name = "acctest-loadbalancer-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku = "Standard"
