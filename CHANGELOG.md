@@ -8,6 +8,8 @@ FEATURES:
 
 * **New Data Source:** `azurerm_dns_zone` [GH-702]
 * **New Resource:** `azurerm_metric_alertrule` [GH-478]
+* **New Resource:** `azurerm_virtual_network_gateway` [GH-133]
+* **New Resource:** `azurerm_virtual_network_gateway_connection` [GH-133]
 
 IMPROVEMENTS:
 
