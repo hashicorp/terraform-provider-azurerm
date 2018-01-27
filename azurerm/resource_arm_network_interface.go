@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -140,6 +140,20 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 			},
 
+			/**
+			 * As of 2018-01-06: AN (aka. SR-IOV) on Azure is GA on Windows and Linux.
+			 *
+			 * Refer to: https://azure.microsoft.com/en-us/blog/maximize-your-vm-s-performance-with-accelerated-networking-now-generally-available-for-both-windows-and-linux/
+			 *
+			 * Refer to: https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli
+			 * For details, VM configuration and caveats.
+			 */
+			"enable_accelerated_networking": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enable_ip_forwarding": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -166,6 +180,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
 
@@ -173,10 +188,12 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
+	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := network.InterfacePropertiesFormat{
-		EnableIPForwarding: &enableIpForwarding,
+		EnableIPForwarding:          &enableIpForwarding,
+		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
@@ -239,13 +256,17 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		Tags: expandTags(tags),
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, name, iface, make(chan struct{}))
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, iface)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
@@ -260,6 +281,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 
 func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -268,13 +290,13 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["networkInterfaces"]
 
-	resp, err := client.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Interface %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	iface := *resp.InterfacePropertiesFormat
@@ -347,6 +369,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
+	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -355,6 +378,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -403,8 +427,15 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	azureRMLockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 
-	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the deletion of Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
+	}
 
 	return err
 }

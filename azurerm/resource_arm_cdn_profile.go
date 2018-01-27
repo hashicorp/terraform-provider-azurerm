@@ -5,8 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,8 +46,8 @@ func resourceArmCdnProfile() *schema.Resource {
 }
 
 func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	cdnProfilesClient := client.cdnProfilesClient
+	client := meta.(*ArmClient).cdnProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN Profile creation.")
 
@@ -64,13 +65,17 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
-	_, error := cdnProfilesClient.Create(resGroup, name, cdnProfile, make(chan struct{}))
-	err := <-error
+	future, err := client.Create(ctx, resGroup, name, cdnProfile)
 	if err != nil {
 		return err
 	}
 
-	read, err := cdnProfilesClient.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -84,7 +89,8 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
-	cdnProfilesClient := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdnProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -93,7 +99,7 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["profiles"]
 
-	resp, err := cdnProfilesClient.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -116,7 +122,8 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
-	cdnProfilesClient := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdnProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	if !d.HasChange("tags") {
 		return nil
@@ -130,8 +137,12 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 		Tags: expandTags(newTags),
 	}
 
-	_, error := cdnProfilesClient.Update(resGroup, name, props, make(chan struct{}))
-	err := <-error
+	future, err := client.Update(ctx, resGroup, name, props)
+	if err != nil {
+		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Profile %q: %s", name, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Profile %q: %s", name, err)
 	}
@@ -140,7 +151,8 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	cdnProfilesClient := meta.(*ArmClient).cdnProfilesClient
+	client := meta.(*ArmClient).cdnProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -149,9 +161,21 @@ func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["profiles"]
 
-	_, error := cdnProfilesClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
-	// TODO: check the status code
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error issuing AzureRM delete request for CDN Profile %q: %s", name, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error issuing AzureRM delete request for CDN Profile %q: %s", name, err)
+	}
 
 	return err
 }

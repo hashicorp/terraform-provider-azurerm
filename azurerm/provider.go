@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"crypto/sha1"
 	"encoding/base64"
 	"encoding/hex"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/arm/resources/resources"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -76,8 +77,11 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
+			"azurerm_app_service_plan":        dataSourceAppServicePlan(),
 			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_client_config":           dataSourceArmClientConfig(),
+			"azurerm_dns_zone":                dataSourceArmDnsZone(),
+			"azurerm_eventhub_namespace":      dataSourceEventHubNamespace(),
 			"azurerm_image":                   dataSourceArmImage(),
 			"azurerm_key_vault_access_policy": dataSourceArmKeyVaultAccessPolicy(),
 			"azurerm_managed_disk":            dataSourceArmManagedDisk(),
@@ -93,96 +97,100 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"azurerm_application_gateway":         resourceArmApplicationGateway(),
-			"azurerm_application_insights":        resourceArmApplicationInsights(),
-			"azurerm_app_service":                 resourceArmAppService(),
-			"azurerm_app_service_plan":            resourceArmAppServicePlan(),
-			"azurerm_automation_account":          resourceArmAutomationAccount(),
-			"azurerm_automation_credential":       resourceArmAutomationCredential(),
-			"azurerm_automation_runbook":          resourceArmAutomationRunbook(),
-			"azurerm_automation_schedule":         resourceArmAutomationSchedule(),
-			"azurerm_availability_set":            resourceArmAvailabilitySet(),
-			"azurerm_cdn_endpoint":                resourceArmCdnEndpoint(),
-			"azurerm_cdn_profile":                 resourceArmCdnProfile(),
-			"azurerm_container_registry":          resourceArmContainerRegistry(),
-			"azurerm_container_service":           resourceArmContainerService(),
-			"azurerm_container_group":             resourceArmContainerGroup(),
-			"azurerm_cosmosdb_account":            resourceArmCosmosDBAccount(),
-			"azurerm_dns_a_record":                resourceArmDnsARecord(),
-			"azurerm_dns_aaaa_record":             resourceArmDnsAAAARecord(),
-			"azurerm_dns_cname_record":            resourceArmDnsCNameRecord(),
-			"azurerm_dns_mx_record":               resourceArmDnsMxRecord(),
-			"azurerm_dns_ns_record":               resourceArmDnsNsRecord(),
-			"azurerm_dns_ptr_record":              resourceArmDnsPtrRecord(),
-			"azurerm_dns_srv_record":              resourceArmDnsSrvRecord(),
-			"azurerm_dns_txt_record":              resourceArmDnsTxtRecord(),
-			"azurerm_dns_zone":                    resourceArmDnsZone(),
-			"azurerm_eventgrid_topic":             resourceArmEventGridTopic(),
-			"azurerm_eventhub":                    resourceArmEventHub(),
-			"azurerm_eventhub_authorization_rule": resourceArmEventHubAuthorizationRule(),
-			"azurerm_eventhub_consumer_group":     resourceArmEventHubConsumerGroup(),
-			"azurerm_eventhub_namespace":          resourceArmEventHubNamespace(),
-			"azurerm_express_route_circuit":       resourceArmExpressRouteCircuit(),
-			"azurerm_image":                       resourceArmImage(),
-			"azurerm_key_vault":                   resourceArmKeyVault(),
-			"azurerm_key_vault_certificate":       resourceArmKeyVaultCertificate(),
-			"azurerm_key_vault_key":               resourceArmKeyVaultKey(),
-			"azurerm_key_vault_secret":            resourceArmKeyVaultSecret(),
-			"azurerm_lb":                          resourceArmLoadBalancer(),
-			"azurerm_lb_backend_address_pool":     resourceArmLoadBalancerBackendAddressPool(),
-			"azurerm_lb_nat_rule":                 resourceArmLoadBalancerNatRule(),
-			"azurerm_lb_nat_pool":                 resourceArmLoadBalancerNatPool(),
-			"azurerm_lb_probe":                    resourceArmLoadBalancerProbe(),
-			"azurerm_lb_rule":                     resourceArmLoadBalancerRule(),
-			"azurerm_local_network_gateway":       resourceArmLocalNetworkGateway(),
-			"azurerm_log_analytics_workspace":     resourceArmLogAnalyticsWorkspace(),
-			"azurerm_managed_disk":                resourceArmManagedDisk(),
-			"azurerm_management_lock":             resourceArmManagementLock(),
-			"azurerm_mysql_configuration":         resourceArmMySQLConfiguration(),
-			"azurerm_mysql_database":              resourceArmMySqlDatabase(),
-			"azurerm_mysql_firewall_rule":         resourceArmMySqlFirewallRule(),
-			"azurerm_mysql_server":                resourceArmMySqlServer(),
-			"azurerm_network_interface":           resourceArmNetworkInterface(),
-			"azurerm_network_security_group":      resourceArmNetworkSecurityGroup(),
-			"azurerm_network_security_rule":       resourceArmNetworkSecurityRule(),
-			"azurerm_network_watcher":             resourceArmNetworkWatcher(),
-			"azurerm_postgresql_configuration":    resourceArmPostgreSQLConfiguration(),
-			"azurerm_postgresql_database":         resourceArmPostgreSQLDatabase(),
-			"azurerm_postgresql_firewall_rule":    resourceArmPostgreSQLFirewallRule(),
-			"azurerm_postgresql_server":           resourceArmPostgreSQLServer(),
-			"azurerm_public_ip":                   resourceArmPublicIp(),
-			"azurerm_redis_cache":                 resourceArmRedisCache(),
-			"azurerm_redis_firewall_rule":         resourceArmRedisFirewallRule(),
-			"azurerm_resource_group":              resourceArmResourceGroup(),
-			"azurerm_role_assignment":             resourceArmRoleAssignment(),
-			"azurerm_role_definition":             resourceArmRoleDefinition(),
-			"azurerm_route":                       resourceArmRoute(),
-			"azurerm_route_table":                 resourceArmRouteTable(),
-			"azurerm_search_service":              resourceArmSearchService(),
-			"azurerm_servicebus_namespace":        resourceArmServiceBusNamespace(),
-			"azurerm_servicebus_queue":            resourceArmServiceBusQueue(),
-			"azurerm_servicebus_subscription":     resourceArmServiceBusSubscription(),
-			"azurerm_servicebus_topic":            resourceArmServiceBusTopic(),
-			"azurerm_snapshot":                    resourceArmSnapshot(),
-			"azurerm_sql_database":                resourceArmSqlDatabase(),
-			"azurerm_sql_elasticpool":             resourceArmSqlElasticPool(),
-			"azurerm_sql_firewall_rule":           resourceArmSqlFirewallRule(),
-			"azurerm_sql_server":                  resourceArmSqlServer(),
-			"azurerm_storage_account":             resourceArmStorageAccount(),
-			"azurerm_storage_blob":                resourceArmStorageBlob(),
-			"azurerm_storage_container":           resourceArmStorageContainer(),
-			"azurerm_storage_share":               resourceArmStorageShare(),
-			"azurerm_storage_queue":               resourceArmStorageQueue(),
-			"azurerm_storage_table":               resourceArmStorageTable(),
-			"azurerm_subnet":                      resourceArmSubnet(),
-			"azurerm_template_deployment":         resourceArmTemplateDeployment(),
-			"azurerm_traffic_manager_endpoint":    resourceArmTrafficManagerEndpoint(),
-			"azurerm_traffic_manager_profile":     resourceArmTrafficManagerProfile(),
-			"azurerm_virtual_machine_extension":   resourceArmVirtualMachineExtensions(),
-			"azurerm_virtual_machine":             resourceArmVirtualMachine(),
-			"azurerm_virtual_machine_scale_set":   resourceArmVirtualMachineScaleSet(),
-			"azurerm_virtual_network":             resourceArmVirtualNetwork(),
-			"azurerm_virtual_network_peering":     resourceArmVirtualNetworkPeering(),
+			"azurerm_application_gateway":                resourceArmApplicationGateway(),
+			"azurerm_application_insights":               resourceArmApplicationInsights(),
+			"azurerm_app_service":                        resourceArmAppService(),
+			"azurerm_app_service_plan":                   resourceArmAppServicePlan(),
+			"azurerm_automation_account":                 resourceArmAutomationAccount(),
+			"azurerm_automation_credential":              resourceArmAutomationCredential(),
+			"azurerm_automation_runbook":                 resourceArmAutomationRunbook(),
+			"azurerm_automation_schedule":                resourceArmAutomationSchedule(),
+			"azurerm_availability_set":                   resourceArmAvailabilitySet(),
+			"azurerm_cdn_endpoint":                       resourceArmCdnEndpoint(),
+			"azurerm_cdn_profile":                        resourceArmCdnProfile(),
+			"azurerm_container_registry":                 resourceArmContainerRegistry(),
+			"azurerm_container_service":                  resourceArmContainerService(),
+			"azurerm_container_group":                    resourceArmContainerGroup(),
+			"azurerm_cosmosdb_account":                   resourceArmCosmosDBAccount(),
+			"azurerm_dns_a_record":                       resourceArmDnsARecord(),
+			"azurerm_dns_aaaa_record":                    resourceArmDnsAAAARecord(),
+			"azurerm_dns_cname_record":                   resourceArmDnsCNameRecord(),
+			"azurerm_dns_mx_record":                      resourceArmDnsMxRecord(),
+			"azurerm_dns_ns_record":                      resourceArmDnsNsRecord(),
+			"azurerm_dns_ptr_record":                     resourceArmDnsPtrRecord(),
+			"azurerm_dns_srv_record":                     resourceArmDnsSrvRecord(),
+			"azurerm_dns_txt_record":                     resourceArmDnsTxtRecord(),
+			"azurerm_dns_zone":                           resourceArmDnsZone(),
+			"azurerm_eventgrid_topic":                    resourceArmEventGridTopic(),
+			"azurerm_eventhub":                           resourceArmEventHub(),
+			"azurerm_eventhub_authorization_rule":        resourceArmEventHubAuthorizationRule(),
+			"azurerm_eventhub_consumer_group":            resourceArmEventHubConsumerGroup(),
+			"azurerm_eventhub_namespace":                 resourceArmEventHubNamespace(),
+			"azurerm_express_route_circuit":              resourceArmExpressRouteCircuit(),
+			"azurerm_function_app":                       resourceArmFunctionApp(),
+			"azurerm_image":                              resourceArmImage(),
+			"azurerm_key_vault":                          resourceArmKeyVault(),
+			"azurerm_key_vault_certificate":              resourceArmKeyVaultCertificate(),
+			"azurerm_key_vault_key":                      resourceArmKeyVaultKey(),
+			"azurerm_key_vault_secret":                   resourceArmKeyVaultSecret(),
+			"azurerm_lb":                                 resourceArmLoadBalancer(),
+			"azurerm_lb_backend_address_pool":            resourceArmLoadBalancerBackendAddressPool(),
+			"azurerm_lb_nat_rule":                        resourceArmLoadBalancerNatRule(),
+			"azurerm_lb_nat_pool":                        resourceArmLoadBalancerNatPool(),
+			"azurerm_lb_probe":                           resourceArmLoadBalancerProbe(),
+			"azurerm_lb_rule":                            resourceArmLoadBalancerRule(),
+			"azurerm_local_network_gateway":              resourceArmLocalNetworkGateway(),
+			"azurerm_log_analytics_workspace":            resourceArmLogAnalyticsWorkspace(),
+			"azurerm_managed_disk":                       resourceArmManagedDisk(),
+			"azurerm_management_lock":                    resourceArmManagementLock(),
+			"azurerm_metric_alertrule":                   resourceArmMetricAlertRule(),
+			"azurerm_mysql_configuration":                resourceArmMySQLConfiguration(),
+			"azurerm_mysql_database":                     resourceArmMySqlDatabase(),
+			"azurerm_mysql_firewall_rule":                resourceArmMySqlFirewallRule(),
+			"azurerm_mysql_server":                       resourceArmMySqlServer(),
+			"azurerm_network_interface":                  resourceArmNetworkInterface(),
+			"azurerm_network_security_group":             resourceArmNetworkSecurityGroup(),
+			"azurerm_network_security_rule":              resourceArmNetworkSecurityRule(),
+			"azurerm_network_watcher":                    resourceArmNetworkWatcher(),
+			"azurerm_postgresql_configuration":           resourceArmPostgreSQLConfiguration(),
+			"azurerm_postgresql_database":                resourceArmPostgreSQLDatabase(),
+			"azurerm_postgresql_firewall_rule":           resourceArmPostgreSQLFirewallRule(),
+			"azurerm_postgresql_server":                  resourceArmPostgreSQLServer(),
+			"azurerm_public_ip":                          resourceArmPublicIp(),
+			"azurerm_redis_cache":                        resourceArmRedisCache(),
+			"azurerm_redis_firewall_rule":                resourceArmRedisFirewallRule(),
+			"azurerm_resource_group":                     resourceArmResourceGroup(),
+			"azurerm_role_assignment":                    resourceArmRoleAssignment(),
+			"azurerm_role_definition":                    resourceArmRoleDefinition(),
+			"azurerm_route":                              resourceArmRoute(),
+			"azurerm_route_table":                        resourceArmRouteTable(),
+			"azurerm_search_service":                     resourceArmSearchService(),
+			"azurerm_servicebus_namespace":               resourceArmServiceBusNamespace(),
+			"azurerm_servicebus_queue":                   resourceArmServiceBusQueue(),
+			"azurerm_servicebus_subscription":            resourceArmServiceBusSubscription(),
+			"azurerm_servicebus_topic":                   resourceArmServiceBusTopic(),
+			"azurerm_snapshot":                           resourceArmSnapshot(),
+			"azurerm_sql_database":                       resourceArmSqlDatabase(),
+			"azurerm_sql_elasticpool":                    resourceArmSqlElasticPool(),
+			"azurerm_sql_firewall_rule":                  resourceArmSqlFirewallRule(),
+			"azurerm_sql_server":                         resourceArmSqlServer(),
+			"azurerm_storage_account":                    resourceArmStorageAccount(),
+			"azurerm_storage_blob":                       resourceArmStorageBlob(),
+			"azurerm_storage_container":                  resourceArmStorageContainer(),
+			"azurerm_storage_share":                      resourceArmStorageShare(),
+			"azurerm_storage_queue":                      resourceArmStorageQueue(),
+			"azurerm_storage_table":                      resourceArmStorageTable(),
+			"azurerm_subnet":                             resourceArmSubnet(),
+			"azurerm_template_deployment":                resourceArmTemplateDeployment(),
+			"azurerm_traffic_manager_endpoint":           resourceArmTrafficManagerEndpoint(),
+			"azurerm_traffic_manager_profile":            resourceArmTrafficManagerProfile(),
+			"azurerm_virtual_machine_extension":          resourceArmVirtualMachineExtensions(),
+			"azurerm_virtual_machine":                    resourceArmVirtualMachine(),
+			"azurerm_virtual_machine_scale_set":          resourceArmVirtualMachineScaleSet(),
+			"azurerm_virtual_network":                    resourceArmVirtualNetwork(),
+			"azurerm_virtual_network_gateway":            resourceArmVirtualNetworkGateway(),
+			"azurerm_virtual_network_gateway_connection": resourceArmVirtualNetworkGatewayConnection(),
+			"azurerm_virtual_network_peering":            resourceArmVirtualNetworkPeering(),
 		},
 	}
 
@@ -251,7 +259,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		if !config.SkipCredentialsValidation {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
-			providerList, err := client.providers.List(nil, "")
+			ctx := client.StopContext
+			providerList, err := client.providersClient.List(ctx, nil, "")
 			if err != nil {
 				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
@@ -259,7 +268,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			}
 
 			if !config.SkipProviderRegistration {
-				err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client.providers)
+				err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client.providersClient)
 				if err != nil {
 					return nil, err
 				}
@@ -270,8 +279,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	}
 }
 
-func registerProviderWithSubscription(providerName string, client resources.ProvidersClient) error {
-	_, err := client.Register(providerName)
+func registerProviderWithSubscription(ctx context.Context, providerName string, client resources.ProvidersClient) error {
+	_, err := client.Register(ctx, providerName)
 	if err != nil {
 		return fmt.Errorf("Cannot register provider %s with Azure Resource Manager: %s.", providerName, err)
 	}
@@ -324,7 +333,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 // all Azure resource providers which the Terraform provider may require (regardless of
 // whether they are actually used by the configuration or not). It was confirmed by Microsoft
 // that this is the approach their own internal tools also take.
-func registerAzureResourceProvidersWithSubscription(providerList []resources.Provider, client resources.ProvidersClient) error {
+func registerAzureResourceProvidersWithSubscription(ctx context.Context, providerList []resources.Provider, client resources.ProvidersClient) error {
 	providers := determineAzureResourceProvidersToRegister(providerList)
 
 	var err error
@@ -335,7 +344,7 @@ func registerAzureResourceProvidersWithSubscription(providerList []resources.Pro
 		go func(p string) {
 			defer wg.Done()
 			log.Printf("[DEBUG] Registering provider with namespace %s\n", p)
-			if innerErr := registerProviderWithSubscription(p, client); err != nil {
+			if innerErr := registerProviderWithSubscription(ctx, p, client); err != nil {
 				err = innerErr
 			}
 		}(providerName)

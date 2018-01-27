@@ -5,11 +5,20 @@ AzureRM Terraform Provider
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
-Requirements
+General Requirements
 ------------
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
 -	[Go](https://golang.org/doc/install) 1.9 (to build the provider plugin)
+
+Windows Specific Requirements
+-----------------------------
+- [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
+- [Git Bash for Windows](https://git-scm.com/download/win)
+
+For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
+
+For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
 
 Building The Provider
 ---------------------

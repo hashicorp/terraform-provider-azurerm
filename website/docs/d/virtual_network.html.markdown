@@ -6,7 +6,7 @@ description: |-
   Get information about the specified Virtual Network.
 ---
 
-# azurerm_virtual_network
+# Data Source: azurerm_virtual_network
 
 Use this data source to access the properties of an Azure Virtual Network.
 

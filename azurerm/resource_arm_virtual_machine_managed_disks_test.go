@@ -3,18 +3,18 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
 
-	"os"
-
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
-	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+// NOTE: Test `TestAccAzureRMVirtualMachine_enableAnWithVM` requires a machine of size `D8_v3` which is large/expensive - you may wish to ignore this test"
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_explicit(t *testing.T) {
 	var vm compute.VirtualMachine
@@ -335,6 +335,25 @@ func TestAccAzureRMVirtualMachine_managedServiceIdentity(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
 					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", match),
 					resource.TestMatchOutput("principal_id", match),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachine_enableAnWithVM(t *testing.T) {
+	var vm compute.VirtualMachine
+	resourceName := "azurerm_virtual_machine.test"
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachine_anWithVM(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 				),
 			},
 		},
@@ -1353,15 +1372,16 @@ func findAzureRMVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (
 	return *md.ID, nil
 }
 
-func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*disk.Model, error) {
+func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Disk, error) {
 	armID, err := parseAzureResourceID(*managedDiskID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %+v", *managedDiskID, err)
 	}
 	name := armID.Path["disks"]
 	resourceGroup := armID.ResourceGroup
-	conn := testAccProvider.Meta().(*ArmClient).diskClient
-	d, err := conn.Get(resourceGroup, name)
+	client := testAccProvider.Meta().(*ArmClient).diskClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	d, err := client.Get(ctx, resourceGroup, name)
 	//check status first since sdk client returns error if not 200
 	if d.Response.StatusCode == http.StatusNotFound {
 		return &d, nil
@@ -1575,4 +1595,78 @@ resource "azurerm_virtual_machine" "test" {
 	os_profile_windows_config {}
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rString, rString)
+}
+
+func testAccAzureRMVirtualMachine_anWithVM(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                          = "acctestni-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  enable_ip_forwarding          = false
+  enable_accelerated_networking = true
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+    name                          = "acctestvm-%d"
+    location                      = "${azurerm_resource_group.test.location}"
+    resource_group_name           = "${azurerm_resource_group.test.name}"
+    primary_network_interface_id  = "${azurerm_network_interface.test.id}"
+    network_interface_ids         = [ "${azurerm_network_interface.test.id}" ]
+    // Only large VMs allow AN
+    vm_size                       = "Standard_D8_v3"
+    delete_os_disk_on_termination = true
+
+	storage_image_reference {
+		publisher = "Canonical"
+		offer     = "UbuntuServer"
+		sku       = "16.04-LTS"
+		version   = "latest"
+	}
+
+    storage_os_disk {
+        name              = "antest-%d-OSDisk"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "Standard_LRS"
+        disk_size_gb      = 32
+    }
+
+    os_profile {
+        computer_name  = "antestMachine-%d"
+        admin_username = "antestuser"
+        admin_password = "Password1234!"
+    }
+
+    os_profile_linux_config {
+        disable_password_authentication = false
+    }
+
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }

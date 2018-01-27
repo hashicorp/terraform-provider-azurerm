@@ -4,11 +4,77 @@ import (
 	"fmt"
 	"testing"
 
+	"log"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func init() {
+	resource.AddTestSweepers("azurerm_network_interface", &resource.Sweeper{
+		Name: "azurerm_network_interface",
+		F:    testSweepNetworkInterfaces,
+		Dependencies: []string{
+			"azurerm_application_gateway",
+			"azurerm_virtual_machine",
+		},
+	})
+}
+
+func testSweepNetworkInterfaces(region string) error {
+	armClient, err := buildConfigForSweepers()
+	if err != nil {
+		return err
+	}
+
+	client := (*armClient).ifaceClient
+	ctx := (*armClient).StopContext
+
+	log.Printf("Retrieving the Network Interfaces..")
+	results, err := client.ListAll(ctx)
+	if err != nil {
+		return fmt.Errorf("Error Listing on Network Interfaces: %+v", err)
+	}
+
+	for _, network := range results.Values() {
+		id, err := parseAzureResourceID(*network.ID)
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		}
+
+		resourceGroupName := id.ResourceGroup
+		name := *network.Name
+		location := *network.Location
+
+		if !shouldSweepAcceptanceTestResource(name, location, region) {
+			continue
+		}
+
+		log.Printf("Deleting Network Interfaces %q", name)
+		future, err := client.Delete(ctx, resourceGroupName, name)
+		if err != nil {
+			if response.WasNotFound(future.Response()) {
+				continue
+			}
+
+			return err
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			if response.WasNotFound(future.Response()) {
+				continue
+			}
+
+			return err
+		}
+	}
+
+	return nil
+}
 
 func TestAccAzureRMNetworkInterface_basic(t *testing.T) {
 	rInt := acctest.RandInt()
@@ -182,6 +248,25 @@ func TestAccAzureRMNetworkInterface_enableIPForwarding(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_enableAcceleratedNetworking(t *testing.T) {
+	resourceName := "azurerm_network_interface.test"
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_acceleratedNetworking(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enable_accelerated_networking", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMNetworkInterface_multipleLoadBalancers(t *testing.T) {
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
@@ -262,7 +347,9 @@ func testCheckAzureRMNetworkInterfaceExists(name string) resource.TestCheckFunc 
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).ifaceClient
-		resp, err := client.Get(resourceGroup, name, "")
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Network Interface %q (resource group: %q) does not exist", name, resourceGroup)
@@ -289,12 +376,17 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, deleteErr := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-deleteErr
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on ifaceClient: %+v", err)
+			return fmt.Errorf("Error deleting Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for the deletion of Network Interface %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		return nil
@@ -303,6 +395,7 @@ func testCheckAzureRMNetworkInterfaceDisappears(name string) resource.TestCheckF
 
 func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).ifaceClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_network_interface" {
@@ -312,7 +405,7 @@ func testCheckAzureRMNetworkInterfaceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -514,6 +607,43 @@ resource "azurerm_network_interface" "test" {
   location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   enable_ip_forwarding = true
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMNetworkInterface_acceleratedNetworking(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-rg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name                          = "acctestni-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  enable_ip_forwarding          = false
+  enable_accelerated_networking = true
 
   ip_configuration {
     name                          = "testconfiguration1"

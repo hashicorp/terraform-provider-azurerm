@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusQueue_basic(t *testing.T) {
@@ -177,6 +178,7 @@ func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_queue" {
@@ -187,9 +189,9 @@ func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, namespaceName, name)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
@@ -219,8 +221,9 @@ func testCheckAzureRMServiceBusQueueExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, namespaceName, queueName)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, queueName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusQueuesClient: %s", err)
 		}

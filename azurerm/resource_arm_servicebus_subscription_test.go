@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
@@ -87,6 +88,7 @@ func TestAccAzureRMServiceBusSubscription_updateRequiresSession(t *testing.T) {
 
 func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).serviceBusSubscriptionsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_servicebus_subscription" {
@@ -98,9 +100,9 @@ func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, namespaceName, topicName, name)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
@@ -127,17 +129,18 @@ func testCheckAzureRMServiceBusSubscriptionExists(name string) resource.TestChec
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subscription: %s", topicName)
+			return fmt.Errorf("Bad: no resource group found in state for subscription: %q", topicName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).serviceBusSubscriptionsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, namespaceName, topicName, subscriptionName)
+		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on serviceBusSubscriptionsClient: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Bad: Subscription %q (resource group: %q) does not exist", subscriptionName, resourceGroup)
 		}
 

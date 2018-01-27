@@ -6,7 +6,7 @@ description: |-
   Get information about the specified Platform Image.
 ---
 
-# azurerm_platform_image
+# Data Source: azurerm_platform_image
 
 Use this data source to access the properties of an Azure Platform Image.
 

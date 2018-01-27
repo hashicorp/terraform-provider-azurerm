@@ -145,6 +145,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_key_vault" {
@@ -154,7 +155,7 @@ func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -183,8 +184,9 @@ func testCheckAzureRMKeyVaultExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, vaultName)
+		resp, err := client.Get(ctx, resourceGroup, vaultName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Vault %q (resource group: %q) does not exist", vaultName, resourceGroup)

@@ -85,11 +85,12 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 
 func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := client.Get(resourceGroup, name, "")
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")

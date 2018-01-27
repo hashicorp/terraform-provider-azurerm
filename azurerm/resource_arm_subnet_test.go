@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -199,9 +200,10 @@ func testCheckAzureRMSubnetExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, vnetName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vnetName, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Subnet %q (resource group: %q) does not exist", name, resourceGroup)
@@ -231,8 +233,11 @@ func testCheckAzureRMSubnetRouteTableExists(subnetName string, routeTableId stri
 			return fmt.Errorf("Bad: no resource group found in state for subnet: %s", name)
 		}
 
-		vnetConn := testAccProvider.Meta().(*ArmClient).vnetClient
-		vnetResp, vnetErr := vnetConn.Get(resourceGroup, vnetName, "")
+		networksClient := testAccProvider.Meta().(*ArmClient).vnetClient
+		subnetsClient := testAccProvider.Meta().(*ArmClient).subnetClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		vnetResp, vnetErr := networksClient.Get(ctx, resourceGroup, vnetName, "")
 		if vnetErr != nil {
 			return fmt.Errorf("Bad: Get on vnetClient: %+v", vnetErr)
 		}
@@ -241,9 +246,7 @@ func testCheckAzureRMSubnetRouteTableExists(subnetName string, routeTableId stri
 			return fmt.Errorf("Bad: Vnet %q (resource group: %q) does not have subnets after update", vnetName, resourceGroup)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).subnetClient
-
-		resp, err := conn.Get(resourceGroup, vnetName, name, "")
+		resp, err := subnetsClient.Get(ctx, resourceGroup, vnetName, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Subnet %q (resource group: %q) does not exist", subnetName, resourceGroup)
@@ -280,13 +283,17 @@ func testCheckAzureRMSubnetDisappears(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).subnetClient
-		deleteResp, deleteErr := client.Delete(resourceGroup, vnetName, name, make(chan struct{}))
-		resp := <-deleteResp
-		err := <-deleteErr
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: Delete on subnetClient: %+v", err)
+			if !response.WasNotFound(future.Response()) {
+				return fmt.Errorf("Error deleting Subnet %q (Network %q / Resource Group %q): %+v", name, vnetName, resourceGroup, err)
 			}
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for completion of Subnet %q (Network %q / Resource Group %q): %+v", name, vnetName, resourceGroup, err)
 		}
 
 		return nil
@@ -295,6 +302,7 @@ func testCheckAzureRMSubnetDisappears(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).subnetClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_subnet" {
@@ -305,7 +313,7 @@ func testCheckAzureRMSubnetDestroy(s *terraform.State) error {
 		vnetName := rs.Primary.Attributes["virtual_network_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, vnetName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vnetName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Subnet still exists:\n%#v", resp.SubnetPropertiesFormat)

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -17,7 +17,7 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 	natPoolName := fmt.Sprintf("NatPool-%d", ri)
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
-	natPool_id := fmt.Sprintf(
+	natPoolId := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/inboundNatPools/%s",
 		subscriptionID, ri, ri, natPoolName)
 
@@ -32,7 +32,7 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
 					resource.TestCheckResourceAttr(
-						"azurerm_lb_nat_pool.test", "id", natPool_id),
+						"azurerm_lb_nat_pool.test", "id", natPoolId),
 				),
 			},
 		},
@@ -181,7 +181,8 @@ func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerNatPoolByName(lb, natPoolName)
 		if !exists {
@@ -197,13 +198,17 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 			return err
 		}
 
-		_, error := conn.CreateOrUpdate(id.ResourceGroup, *lb.Name, *lb, make(chan struct{}))
-		err = <-error
+		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, *lb.Name, *lb)
 		if err != nil {
 			return fmt.Errorf("Error Creating/Updating LoadBalancer %+v", err)
 		}
 
-		_, err = conn.Get(id.ResourceGroup, *lb.Name, "")
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for the completion of LoadBalancer %+v", err)
+		}
+
+		_, err = client.Get(ctx, id.ResourceGroup, *lb.Name, "")
 		return err
 	}
 }

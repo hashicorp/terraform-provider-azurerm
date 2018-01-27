@@ -11,6 +11,26 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestAccAzureRMRoleAssignment_emptyName(t *testing.T) {
+	resourceName := "azurerm_role_assignment.test"
+	config := testAccAzureRMRoleAssignment_emptyName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleAssignmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRoleAssignment_builtin(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccAzureRMRoleAssignment_builtin(id)
@@ -62,7 +82,8 @@ func testCheckAzureRMRoleAssignmentExists(name string) resource.TestCheckFunc {
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).roleAssignmentsClient
-		resp, err := client.Get(scope, roleAssignmentName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -85,7 +106,8 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 		roleAssignmentName := rs.Primary.Attributes["name"]
 
 		client := testAccProvider.Meta().(*ArmClient).roleAssignmentsClient
-		resp, err := client.Get(scope, roleAssignmentName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, scope, roleAssignmentName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -99,6 +121,24 @@ func testCheckAzureRMRoleAssignmentDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMRoleAssignment_emptyName() string {
+	return `
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_builtin_role_definition" "test" {
+  name = "Reader"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope              = "${data.azurerm_subscription.primary.id}"
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_builtin_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+}
+`
 }
 
 func testAccAzureRMRoleAssignment_builtin(id string) string {

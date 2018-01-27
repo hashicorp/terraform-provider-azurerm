@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -64,6 +64,7 @@ func resourceArmSubnet() *schema.Resource {
 
 func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).subnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
@@ -114,18 +115,22 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		SubnetPropertiesFormat: &properties,
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, vnetName, name, subnet, make(chan struct{}))
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, vnetName, name, subnet)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Creating/Updating Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	read, err := client.Get(resGroup, vnetName, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, vnetName, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Subnet %s/%s (resource group %s) ID", vnetName, name, resGroup)
+		return fmt.Errorf("Cannot read ID of Subnet %q (VN %q / Resource Group %q)", vnetName, name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -135,6 +140,7 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).subnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -144,7 +150,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	vnetName := id.Path["virtualNetworks"]
 	name := id.Path["subnets"]
 
-	resp, err := client.Get(resGroup, vnetName, name, "")
+	resp, err := client.Get(ctx, resGroup, vnetName, name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -180,6 +186,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).subnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -217,10 +224,17 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	azureRMLockByName(name, subnetResourceName)
 	defer azureRMUnlockByName(name, subnetResourceName)
 
-	_, deleteErr := client.Delete(resGroup, vnetName, name, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, vnetName, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion for Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	}
+
+	return nil
 }
 
 func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) []string {

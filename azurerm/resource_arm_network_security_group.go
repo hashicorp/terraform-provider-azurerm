@@ -2,11 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
-	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -115,6 +112,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 
 func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
@@ -138,30 +136,22 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 		Tags: expandTags(tags),
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, name, sg, make(chan struct{}))
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, sg)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating NSG %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := client.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the completion of NSG %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Network %q (resource group %q) ID", name, resGroup)
-	}
-
-	log.Printf("[DEBUG] Waiting for NSG (%q) to become available", name)
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating"},
-		Target:     []string{"Succeeded"},
-		Refresh:    networkSecurityGroupStateRefreshFunc(client, resGroup, name),
-		Timeout:    30 * time.Minute,
-		MinTimeout: 15 * time.Second,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for NSG (%q) to become available: %+v", name, err)
+		return fmt.Errorf("Cannot read NSG %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -171,6 +161,7 @@ func resourceArmNetworkSecurityGroupCreate(d *schema.ResourceData, meta interfac
 
 func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -179,13 +170,13 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	resGroup := id.ResourceGroup
 	name := id.Path["networkSecurityGroups"]
 
-	resp, err := client.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Security Group %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Network Security Group %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -203,6 +194,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 
 func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).secGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -211,8 +203,15 @@ func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interfac
 	resGroup := id.ResourceGroup
 	name := id.Path["networkSecurityGroups"]
 
-	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Network Security Group %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error deleting Network Security Group %q (Resource Group %q): %+v", name, resGroup, err)
+	}
 
 	return err
 }
@@ -296,15 +295,4 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 	}
 
 	return rules, nil
-}
-
-func networkSecurityGroupStateRefreshFunc(client network.SecurityGroupsClient, resourceGroupName string, sgName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(resourceGroupName, sgName, "")
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in networkSecurityGroupStateRefreshFunc for NSG '%s' (RG: '%s'): %+v", sgName, resourceGroupName, err)
-		}
-
-		return res, *res.SecurityGroupPropertiesFormat.ProvisioningState, nil
-	}
 }

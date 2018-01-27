@@ -27,10 +27,10 @@ fmt:
 	gofmt -w $(GOFMT_FILES)
 
 fmtcheck:
-	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
+	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 
 errcheck:
-	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
+	@sh "$(CURDIR)/scripts/errcheck.sh"
 
 vendor-status:
 	@govendor status

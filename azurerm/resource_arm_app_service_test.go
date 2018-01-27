@@ -593,7 +593,8 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -602,7 +603,7 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("App Service still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil
@@ -623,8 +624,8 @@ func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).appServicesClient
-
-		resp, err := client.Get(resourceGroup, appServiceName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Service %q (resource group: %q) does not exist", appServiceName, resourceGroup)

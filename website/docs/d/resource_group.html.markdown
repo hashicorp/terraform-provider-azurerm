@@ -6,7 +6,7 @@ description: |-
   Get information about the specified resource group.
 ---
 
-# azurerm\_resource\_group
+# Data Source: azurerm_resource_group
 
 Use this data source to access the properties of an Azure resource group.
 

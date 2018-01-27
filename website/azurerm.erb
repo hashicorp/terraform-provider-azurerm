@@ -8,7 +8,7 @@
             </li>
 
             <li<%= sidebar_current("docs-azurerm-index") %>>
-              <a href="/docs/providers/azurerm/index.html">Microsoft Azure Provider</a>
+              <a href="/docs/providers/azurerm/index.html">Azure Provider</a>
               <ul class="nav nav-visible">
                 <li<%= sidebar_current("docs-azurerm-index-authentication-azure-cli") %>>
                     <a href="/docs/providers/azurerm/authenticating_via_azure_cli.html">Authenticating via the Azure CLI</a>
@@ -27,12 +27,24 @@
             <li<%= sidebar_current("docs-azurerm-datasource") %>>
               <a href="#">Data Sources</a>
               <ul class="nav nav-visible">
-                <li<%= sidebar_current("docs-azurerm-datasource-builtin_role_definition") %>>
+                <li<%= sidebar_current("docs-azurerm-datasource-app-service-plan") %>>
+                    <a href="/docs/providers/azurerm/d/app_service_plan.html">azurerm_app_service_plan</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-builtin-role-definition") %>>
                     <a href="/docs/providers/azurerm/d/builtin_role_definition.html">azurerm_builtin_role_definition</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-client-config") %>>
                     <a href="/docs/providers/azurerm/d/client_config.html">azurerm_client_config</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-dns-zone") %>>
+                    <a href="/docs/providers/azurerm/d/dns_zone.html">azurerm_dns_zone</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-datasource-eventhub-namespace") %>>
+                    <a href="/docs/providers/azurerm/d/eventhub_namespace.html">azurerm_eventhub_namespace</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-datasource-image") %>>
@@ -71,6 +83,10 @@
                     <a href="/docs/providers/azurerm/d/subscription.html">azurerm_subscription</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-datasource-virtual-network") %>>
+                    <a href="/docs/providers/azurerm/d/virtual_network.html">azurerm_virtual_network</a>
+		        </li>
+
               </ul>
             </li>
 
@@ -93,6 +109,10 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-app-service-plan") %>>
                   <a href="/docs/providers/azurerm/r/app_service_plan.html">azurerm_app_service_plan</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-function-app") %>>
+                  <a href="/docs/providers/azurerm/r/function_app.html">azurerm_function_app</a>
                 </li>
 
               </ul>
@@ -428,6 +448,15 @@
               </ul>
             </li>
 
+            <li<%= sidebar_current("docs-azurerm-resource-monitor") %>>
+              <a href="#">Monitor Resources</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-resource-metric-alertrule") %>>
+                  <a href="/docs/providers/azurerm/r/metric_alertrule.html">azurerm_metric_alertrule</a>
+                </li>
+              </ul>
+            </li>
+
             <li<%= sidebar_current("docs-azurerm-resource-network") %>>
               <a href="#">Network Resources</a>
               <ul class="nav nav-visible">
@@ -486,6 +515,14 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-network-virtual-network") %>>
                   <a href="/docs/providers/azurerm/r/virtual_network.html">azurerm_virtual_network</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-network-virtual-network-gateway-x") %>>
+                  <a href="/docs/providers/azurerm/r/virtual_network_gateway.html">azurerm_virtual_network_gateway</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-network-virtual-network-gateway-connection") %>>
+                  <a href="/docs/providers/azurerm/r/virtual_network_gateway_connection.html">azurerm_virtual_network_gateway_connection</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-network-virtual-network-peering") %>>
@@ -564,9 +601,6 @@
               </ul>
             </li>
 
-            <li>
-              <a href="/docs/providers/azure/index.html">Azure Service Management Provider &raquo;</a>
-            </li>
           </ul>
         </div>
     <% end %>

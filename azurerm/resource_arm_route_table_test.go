@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -213,9 +214,10 @@ func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Route Table %q (resource group: %q) does not exist", name, resourceGroup)
@@ -242,13 +244,18 @@ func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).routeTablesClient
-		deleteResp, deleteErr := client.Delete(resourceGroup, name, make(chan struct{}))
-		resp := <-deleteResp
-		err := <-deleteErr
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Bad: Delete on routeTablesClient: %+v", err)
+			if !response.WasNotFound(future.Response()) {
+				return fmt.Errorf("Error deleting Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		return nil
@@ -257,6 +264,7 @@ func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route_table" {
@@ -266,7 +274,7 @@ func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -103,11 +103,12 @@ func resourceArmServiceBusQueue() *schema.Resource {
 
 func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusQueuesClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue creation/update.")
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
@@ -142,7 +143,8 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
-	namespace, nsErr := meta.(*ArmClient).serviceBusNamespacesClient.Get(resGroup, namespaceName)
+	namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+	namespace, nsErr := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 	if nsErr != nil {
 		return nsErr
 	}
@@ -159,17 +161,17 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("ServiceBus Queue (%s) does not support Express Entities in Premium SKU and must be disabled", name)
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, namespaceName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, namespaceName, name)
+	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Queue %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ServiceBus Queue %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -179,75 +181,77 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusQueuesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["queues"]
 
-	resp, err := client.Get(resGroup, namespaceName, name)
+	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("namespace_name", namespaceName)
 
-	if resp.SBQueueProperties == nil {
-		return fmt.Errorf("Missing QueueProperties in response for Azure ServiceBus Queue %s: %s", name, err)
-	}
+	if props := resp.SBQueueProperties; props != nil {
+		d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
+		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
+		d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
+		d.Set("lock_duration", props.LockDuration)
 
-	props := resp.SBQueueProperties
-	d.Set("auto_delete_on_idle", props.AutoDeleteOnIdle)
-	d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
-	d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-	d.Set("lock_duration", props.LockDuration)
+		d.Set("enable_express", props.EnableExpress)
+		d.Set("enable_partitioning", props.EnablePartitioning)
+		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 
-	d.Set("enable_express", props.EnableExpress)
-	d.Set("enable_partitioning", props.EnablePartitioning)
-	d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
+		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
+			maxSize := int(*maxSizeMB)
 
-	maxSize := int(*props.MaxSizeInMegabytes)
+			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
+			// then the max size returned by the API will be 16 times greater than the value set.
+			if *props.EnablePartitioning {
+				namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
+				if err != nil {
+					return err
+				}
 
-	// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
-	// then the max size returned by the API will be 16 times greater than the value set.
-	if *props.EnablePartitioning {
-		namespace, err := meta.(*ArmClient).serviceBusNamespacesClient.Get(resGroup, namespaceName)
-		if err != nil {
-			return err
+				if namespace.Sku.Name != servicebus.Premium {
+					const partitionCount = 16
+					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+				}
+			}
+
+			d.Set("max_size_in_megabytes", maxSize)
 		}
-
-		if namespace.Sku.Name != servicebus.Premium {
-			const partitionCount = 16
-			maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
-		}
 	}
-
-	d.Set("max_size_in_megabytes", maxSize)
 
 	return nil
 }
 
 func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusQueuesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	name := id.Path["queues"]
 
-	resp, err := client.Delete(resGroup, namespaceName, name)
+	resp, err := client.Delete(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

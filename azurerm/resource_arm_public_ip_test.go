@@ -98,6 +98,26 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMPublicIPStatic_standard(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
@@ -230,15 +250,16 @@ func testCheckAzureRMPublicIpExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		availSetName := rs.Primary.Attributes["name"]
+		publicIPName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", availSetName)
+			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIPName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).publicIPClient
+		client := testAccProvider.Meta().(*ArmClient).publicIPClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, availSetName, "")
+		resp, err := client.Get(ctx, resourceGroup, publicIPName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on publicIPClient: %+v", err)
 		}
@@ -265,12 +286,16 @@ func testCheckAzureRMPublicIpDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIpName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).publicIPClient
-
-		_, error := conn.Delete(resourceGroup, publicIpName, make(chan struct{}))
-		err := <-error
+		client := testAccProvider.Meta().(*ArmClient).publicIPClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		future, err := client.Delete(ctx, resourceGroup, publicIpName)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on publicIPClient: %+v", err)
+			return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)
 		}
 
 		return nil
@@ -278,7 +303,8 @@ func testCheckAzureRMPublicIpDisappears(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).publicIPClient
+	client := testAccProvider.Meta().(*ArmClient).publicIPClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_public_ip" {
@@ -288,7 +314,7 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			return nil
@@ -314,6 +340,23 @@ resource "azurerm_public_ip" "test" {
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_standard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name = "acctestpublicip-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+    sku = "standard"
 }
 `, rInt, location, rInt)
 }
