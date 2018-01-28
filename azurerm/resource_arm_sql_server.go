@@ -55,30 +55,6 @@ func resourceArmSqlServer() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"ad_administrator": {
-				Type: schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"login": {
-							Type: schema.TypeString,
-							Required: true,
-						},
-
-						"object_id": {
-							Type: schema.TypeString,
-							Required: true,
-						},
-
-						"tenant_id": {
-							Type: schema.TypeString,
-							Required: true,
-						},
-					},
-				},
-			},
-
 			"fully_qualified_domain_name": {
 				Type:     schema.TypeString,
 				Computed: true,

@@ -112,18 +112,19 @@ type ArmClient struct {
 	vmClient               compute.VirtualMachinesClient
 
 	// Databases
-	mysqlConfigurationsClient      mysql.ConfigurationsClient
-	mysqlDatabasesClient           mysql.DatabasesClient
-	mysqlFirewallRulesClient       mysql.FirewallRulesClient
-	mysqlServersClient             mysql.ServersClient
-	postgresqlConfigurationsClient postgresql.ConfigurationsClient
-	postgresqlDatabasesClient      postgresql.DatabasesClient
-	postgresqlFirewallRulesClient  postgresql.FirewallRulesClient
-	postgresqlServersClient        postgresql.ServersClient
-	sqlDatabasesClient             sql.DatabasesClient
-	sqlElasticPoolsClient          sql.ElasticPoolsClient
-	sqlFirewallRulesClient         sql.FirewallRulesClient
-	sqlServersClient               sql.ServersClient
+	mysqlConfigurationsClient            mysql.ConfigurationsClient
+	mysqlDatabasesClient                 mysql.DatabasesClient
+	mysqlFirewallRulesClient             mysql.FirewallRulesClient
+	mysqlServersClient                   mysql.ServersClient
+	postgresqlConfigurationsClient       postgresql.ConfigurationsClient
+	postgresqlDatabasesClient            postgresql.DatabasesClient
+	postgresqlFirewallRulesClient        postgresql.FirewallRulesClient
+	postgresqlServersClient              postgresql.ServersClient
+	sqlDatabasesClient                   sql.DatabasesClient
+	sqlElasticPoolsClient                sql.ElasticPoolsClient
+	sqlFirewallRulesClient               sql.FirewallRulesClient
+	sqlServersClient                     sql.ServersClient
+	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -586,6 +587,13 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlSrvClient.Sender = sender
 	sqlSrvClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.sqlServersClient = sqlSrvClient
+
+	sqlADClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sqlADClient.Client)
+	sqlADClient.Authorizer = auth
+	sqlADClient.Sender = sender
+	sqlADClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.sqlServerAzureADAdministratorsClient = sqlADClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
