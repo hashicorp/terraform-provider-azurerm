@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_managed_cluster"
-sidebar_current: "docs-azurerm-resource-managed-cluster"
+page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
+sidebar_current: "docs-azurerm-resource-kubernetes-cluster"
 description: |-
-  Creates an AKS Managed Cluster instance.
+  Creates an Azure Container Service (AKS) Kubernetes Cluster instance.
 ---
 
-# azurerm\_managed\_cluster
+# azurerm_kubernetes_cluster
 
-Creates an AKS Managed Cluster instance
+Creates an Azure Container Service (AKS) Managed Cluster instance
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "test" {
   location = "West US"
 }
 
-resource "azurerm_managed_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "test" {
   name                   = "acctestaks1"
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
@@ -105,6 +105,4 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The AKS Managed Cluster ID.
-
-* `fqdn` - FDQN for the master pool.
+* `id` - The Azure Container Service (AKS) Managed Cluster ID.

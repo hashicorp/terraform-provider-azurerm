@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmManagedCluster() *schema.Resource {
+func resourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmManagedClusterCreate,
-		Read:   resourceArmManagedClusterRead,
-		Update: resourceArmManagedClusterCreate,
-		Delete: resourceArmManagedClusterDelete,
+		Create: resourceArmKubernetesClusterCreate,
+		Read:   resourceArmKubernetesClusterRead,
+		Update: resourceArmKubernetesClusterCreate,
+		Delete: resourceArmKubernetesClusterDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -67,7 +67,7 @@ func resourceArmManagedCluster() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMManagedClusterLinuxProfilesHash,
+				Set: resourceAzureRMKubernetesClusterLinuxProfilesHash,
 			},
 
 			"agent_pool_profile": {
@@ -133,7 +133,7 @@ func resourceArmManagedCluster() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMManagedClusterAgentPoolProfilesHash,
+				Set: resourceAzureRMKubernetesClusterAgentPoolProfilesHash,
 			},
 
 			"service_principal": {
@@ -154,7 +154,7 @@ func resourceArmManagedCluster() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMManagedClusterServicePrincipalProfileHash,
+				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
 			"tags": tagsSchema(),
@@ -162,9 +162,9 @@ func resourceArmManagedCluster() *schema.Resource {
 	}
 }
 
-func resourceArmManagedClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	managedClusterClient := client.managedClustersClient
+	kubernetesClustersClient := client.kubernetesClustersClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM AKS managed cluster creation.")
 
@@ -174,8 +174,8 @@ func resourceArmManagedClusterCreate(d *schema.ResourceData, meta interface{}) e
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
-	linuxProfile := expandAzureRmManagedClusterLinuxProfile(d)
-	agentProfiles := expandAzureRmManagedClusterAgentProfiles(d)
+	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
+	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -191,18 +191,18 @@ func resourceArmManagedClusterCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: expandTags(tags),
 	}
 
-	servicePrincipalProfile := expandAzureRmManagedClusterServicePrincipal(d)
+	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 	if servicePrincipalProfile != nil {
 		parameters.ServicePrincipalProfile = servicePrincipalProfile
 	}
 
 	ctx := client.StopContext
-	_, error := managedClusterClient.CreateOrUpdate(ctx, resGroup, name, parameters)
+	_, error := kubernetesClustersClient.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if error != nil {
 		return error
 	}
 
-	read, err := managedClusterClient.Get(ctx, resGroup, name)
+	read, err := kubernetesClustersClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func resourceArmManagedClusterCreate(d *schema.ResourceData, meta interface{}) e
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
-		Refresh:    ManagedClusterStateRefreshFunc(client, resGroup, name),
+		Refresh:    kubernetesClusterStateRefreshFunc(client, resGroup, name),
 		Timeout:    30 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
@@ -225,12 +225,12 @@ func resourceArmManagedClusterCreate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmManagedClusterRead(d, meta)
+	return resourceArmKubernetesClusterRead(d, meta)
 }
 
-func resourceArmManagedClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	managedClusterClient := meta.(*ArmClient).managedClustersClient
+	kubernetesClustersClient := meta.(*ArmClient).kubernetesClustersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -240,7 +240,7 @@ func resourceArmManagedClusterRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["managedClusters"]
 
 	ctx := client.StopContext
-	resp, err := managedClusterClient.Get(ctx, resGroup, name)
+	resp, err := kubernetesClustersClient.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -256,13 +256,13 @@ func resourceArmManagedClusterRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("dns_prefix", resp.DNSPrefix)
 	d.Set("kubernetes_version", resp.KubernetesVersion)
 
-	linuxProfile := flattenAzureRmManagedClusterLinuxProfile(*resp.ManagedClusterProperties.LinuxProfile)
+	linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(*resp.ManagedClusterProperties.LinuxProfile)
 	d.Set("linux_profile", &linuxProfile)
 
-	agentPoolProfiles := flattenAzureRmManagedClusterAgentPoolProfiles(resp.ManagedClusterProperties.AgentPoolProfiles)
+	agentPoolProfiles := flattenAzureRmKubernetesClusterAgentPoolProfiles(resp.ManagedClusterProperties.AgentPoolProfiles)
 	d.Set("agent_pool_profile", &agentPoolProfiles)
 
-	servicePrincipal := flattenAzureRmManagedClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
+	servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 	if servicePrincipal != nil {
 		d.Set("service_principal", servicePrincipal)
 	}
@@ -272,9 +272,9 @@ func resourceArmManagedClusterRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmManagedClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	managedClusterClient := client.managedClustersClient
+	kubernetesClustersClient := client.kubernetesClustersClient
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -284,12 +284,12 @@ func resourceArmManagedClusterDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["managedClusters"]
 
 	ctx := client.StopContext
-	future, err := managedClusterClient.Delete(ctx, resGroup, name)
+	future, err := kubernetesClustersClient.Delete(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of Container Service '%s': %s", name, err)
 	}
 
-	err = future.WaitForCompletion(ctx, managedClusterClient.Client)
+	err = future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
 	if err != nil {
 		return err
 	}
@@ -297,15 +297,15 @@ func resourceArmManagedClusterDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func flattenAzureRmManagedClusterLinuxProfile(profile containerservice.LinuxProfile) *schema.Set {
+func flattenAzureRmKubernetesClusterLinuxProfile(profile containerservice.LinuxProfile) *schema.Set {
 	profiles := &schema.Set{
-		F: resourceAzureRMManagedClusterLinuxProfilesHash,
+		F: resourceAzureRMKubernetesClusterLinuxProfilesHash,
 	}
 
 	values := make(map[string]interface{})
 
 	sshKeys := &schema.Set{
-		F: resourceAzureRMManagedClusterLinuxProfilesSSHKeysHash,
+		F: resourceAzureRMKubernetesClusterLinuxProfilesSSHKeysHash,
 	}
 	for _, ssh := range *profile.SSH.PublicKeys {
 		keys := make(map[string]interface{})
@@ -320,9 +320,9 @@ func flattenAzureRmManagedClusterLinuxProfile(profile containerservice.LinuxProf
 	return profiles
 }
 
-func flattenAzureRmManagedClusterAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile) *schema.Set {
+func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile) *schema.Set {
 	agentPoolProfiles := &schema.Set{
-		F: resourceAzureRMManagedClusterAgentPoolProfilesHash,
+		F: resourceAzureRMKubernetesClusterAgentPoolProfilesHash,
 	}
 
 	for _, profile := range *profiles {
@@ -370,14 +370,14 @@ func flattenAzureRmManagedClusterAgentPoolProfiles(profiles *[]containerservice.
 	return agentPoolProfiles
 }
 
-func flattenAzureRmManagedClusterServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
+func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
 
 	if profile == nil {
 		return nil
 	}
 
 	servicePrincipalProfiles := &schema.Set{
-		F: resourceAzureRMManagedClusterServicePrincipalProfileHash,
+		F: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 	}
 
 	values := make(map[string]interface{})
@@ -392,7 +392,7 @@ func flattenAzureRmManagedClusterServicePrincipalProfile(profile *containerservi
 	return servicePrincipalProfiles
 }
 
-func expandAzureRmManagedClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
+func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
 	profiles := d.Get("linux_profile").(*schema.Set).List()
 	config := profiles[0].(map[string]interface{})
 
@@ -420,7 +420,7 @@ func expandAzureRmManagedClusterLinuxProfile(d *schema.ResourceData) containerse
 	return profile
 }
 
-func expandAzureRmManagedClusterServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
+func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
 
 	value, exists := d.GetOk("service_principal")
 	if !exists {
@@ -442,7 +442,7 @@ func expandAzureRmManagedClusterServicePrincipal(d *schema.ResourceData) *contai
 	return &principal
 }
 
-func expandAzureRmManagedClusterAgentProfiles(d *schema.ResourceData) []containerservice.AgentPoolProfile {
+func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []containerservice.AgentPoolProfile {
 	configs := d.Get("agent_pool_profile").(*schema.Set).List()
 	config := configs[0].(map[string]interface{})
 	profiles := make([]containerservice.AgentPoolProfile, 0, len(configs))
@@ -472,19 +472,19 @@ func expandAzureRmManagedClusterAgentProfiles(d *schema.ResourceData) []containe
 	return profiles
 }
 
-func ManagedClusterStateRefreshFunc(client *ArmClient, resourceGroupName string, managedClusterName string) resource.StateRefreshFunc {
+func kubernetesClusterStateRefreshFunc(client *ArmClient, resourceGroupName string, kubernetesClusterName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		ctx := client.StopContext
-		res, err := client.managedClustersClient.Get(ctx, resourceGroupName, managedClusterName)
+		res, err := client.kubernetesClustersClient.Get(ctx, resourceGroupName, kubernetesClusterName)
 		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in AKSStateRefreshFunc to Azure ARM for AKS managed cluster '%s' (RG: '%s'): %s", managedClusterName, resourceGroupName, err)
+			return nil, "", fmt.Errorf("Error issuing read request in AKSStateRefreshFunc to Azure ARM for AKS managed cluster '%s' (RG: '%s'): %s", kubernetesClusterName, resourceGroupName, err)
 		}
 
 		return res, *res.ManagedClusterProperties.ProvisioningState, nil
 	}
 }
 
-func resourceAzureRMManagedClusterLinuxProfilesHash(v interface{}) int {
+func resourceAzureRMKubernetesClusterLinuxProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
@@ -495,7 +495,7 @@ func resourceAzureRMManagedClusterLinuxProfilesHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceAzureRMManagedClusterLinuxProfilesSSHKeysHash(v interface{}) int {
+func resourceAzureRMKubernetesClusterLinuxProfilesSSHKeysHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
@@ -506,7 +506,7 @@ func resourceAzureRMManagedClusterLinuxProfilesSSHKeysHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceAzureRMManagedClusterAgentPoolProfilesHash(v interface{}) int {
+func resourceAzureRMKubernetesClusterAgentPoolProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
@@ -545,7 +545,7 @@ func resourceAzureRMManagedClusterAgentPoolProfilesHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceAzureRMManagedClusterServicePrincipalProfileHash(v interface{}) int {
+func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 

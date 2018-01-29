@@ -11,56 +11,56 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMManagedCluster_basic(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMManagedCluster_basic(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMManagedClusterDestroy,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedClusterExists("azurerm_managed_cluster.test"),
+					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMManagedCluster_complete(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMManagedCluster_complete(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_complete(ri, clientId, clientSecret, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMManagedClusterDestroy,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMManagedClusterExists("azurerm_managed_cluster.test"),
+					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMManagedCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_managed_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "test" {
   name                   = "acctestaks%d"
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
@@ -89,14 +89,14 @@ resource "azurerm_managed_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMManagedCluster_complete(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_complete(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_managed_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "test" {
   name                   = "acctestaks%d"
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
@@ -132,7 +132,7 @@ resource "azurerm_managed_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testCheckAzureRMManagedClusterExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -146,12 +146,12 @@ func testCheckAzureRMManagedClusterExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for AKS managed cluster instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).managedClustersClient
+		conn := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on managedClustersClient: %+v", err)
+			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -162,11 +162,11 @@ func testCheckAzureRMManagedClusterExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMManagedClusterDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).managedClustersClient
+func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_managed_cluster" {
+		if rs.Type != "azurerm_kubernetes_cluster" {
 			continue
 		}
 
