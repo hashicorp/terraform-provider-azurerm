@@ -71,10 +71,10 @@ type ArmClient struct {
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
 
-	containerRegistryClient containerregistry.RegistriesClient
-	containerServicesClient containerservice.ContainerServicesClient
-	managedClustersClient   containerservice.ManagedClustersClient
-	containerGroupsClient   containerinstance.ContainerGroupsClient
+	containerRegistryClient  containerregistry.RegistriesClient
+	containerServicesClient  containerservice.ContainerServicesClient
+	kubernetesClustersClient containerservice.ManagedClustersClient
+	containerGroupsClient    containerinstance.ContainerGroupsClient
 
 	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
@@ -497,13 +497,15 @@ func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId st
 }
 
 func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	// ACS
 	containerServicesClient := containerservice.NewContainerServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&containerServicesClient.Client, auth)
 	c.containerServicesClient = containerServicesClient
 
-	managedClustersClient := containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&managedClustersClient.Client, auth)
-	c.managedClustersClient = managedClustersClient
+	// AKS
+	kubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&kubernetesClustersClient.Client, auth)
+	c.kubernetesClustersClient = kubernetesClustersClient
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
