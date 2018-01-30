@@ -174,7 +174,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Reader"
   principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
-`)
+`, id)
 }
 
 func testAccAzureRMRoleAssignment_builtin(id string) string {
