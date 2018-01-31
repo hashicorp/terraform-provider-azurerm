@@ -27,7 +27,7 @@ resource "azurerm_dns_mx_record" "test" {
   name                = "test"
   zone_name           = "${azurerm_dns_zone.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  ttl                 = "300"
+  ttl                 = 300
 
   record {
     preference = 10
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
 
 * `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields documented below.
 
@@ -76,6 +76,6 @@ The following attributes are exported:
 
 MX records can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_dns_mx_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/MX/myrecord1
 ```

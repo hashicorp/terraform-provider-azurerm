@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerProfile() *schema.Resource {
@@ -30,17 +30,27 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+
 			"profile_status": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Enabled", "Disabled"}, true),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(trafficmanager.ProfileStatusEnabled),
+					string(trafficmanager.ProfileStatusDisabled),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"traffic_routing_method": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringInSlice([]string{"Performance", "Weighted", "Priority"}, false),
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(trafficmanager.Performance),
+					string(trafficmanager.Weighted),
+					string(trafficmanager.Priority),
+				}, false),
 			},
 
 			"dns_config": {
@@ -75,9 +85,14 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"http", "https"}, false),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(trafficmanager.HTTP),
+								string(trafficmanager.HTTPS),
+								string(trafficmanager.TCP),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -86,18 +101,11 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						},
 						"path": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
 				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
-			},
-
-			"resource_group_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
 			},
 
 			"tags": tagsSchema(),
@@ -123,12 +131,13 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 		Tags:              expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, name, profile)
+	ctx := meta.(*ArmClient).StopContext
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, profile)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -143,6 +152,7 @@ func resourceArmTrafficManagerProfileCreate(d *schema.ResourceData, meta interfa
 
 func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerProfilesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -151,13 +161,13 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %+v", name, err)
 	}
 
 	profile := *resp.ProfileProperties
@@ -192,22 +202,28 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	_, err = client.Delete(resGroup, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return err
+		}
+	}
 
-	return err
+	return nil
 }
 
 func getArmTrafficManagerProfileProperties(d *schema.ResourceData) *trafficmanager.ProfileProperties {
 	routingMethod := d.Get("traffic_routing_method").(string)
 	props := &trafficmanager.ProfileProperties{
-		TrafficRoutingMethod: &routingMethod,
+		TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(routingMethod),
 		DNSConfig:            expandArmTrafficManagerDNSConfig(d),
 		MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
 		s := status.(string)
-		props.ProfileStatus = &s
+		props.ProfileStatus = trafficmanager.ProfileStatus(s)
 	}
 
 	return props
@@ -222,7 +238,7 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 	path := monitor["path"].(string)
 
 	return &trafficmanager.MonitorConfig{
-		Protocol: &proto,
+		Protocol: trafficmanager.MonitorProtocol(proto),
 		Port:     &port,
 		Path:     &path,
 	}
@@ -253,9 +269,12 @@ func flattenAzureRMTrafficManagerProfileDNSConfig(dns *trafficmanager.DNSConfig)
 func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.MonitorConfig) []interface{} {
 	result := make(map[string]interface{})
 
-	result["protocol"] = *cfg.Protocol
+	result["protocol"] = string(cfg.Protocol)
 	result["port"] = int(*cfg.Port)
-	result["path"] = *cfg.Path
+
+	if cfg.Path != nil {
+		result["path"] = *cfg.Path
+	}
 
 	return []interface{}{result}
 }
@@ -276,7 +295,10 @@ func resourceAzureRMTrafficManagerMonitorConfigHash(v interface{}) int {
 
 	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["protocol"].(string))))
 	buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-	buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+
+	if m["path"] != "" {
+		buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }

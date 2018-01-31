@@ -6,11 +6,11 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerRule() *schema.Resource {
@@ -33,11 +33,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 
 			"location": deprecatedLocationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
 				Type:     schema.TypeString,
@@ -106,8 +102,8 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 }
 
 func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -144,13 +140,17 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
 		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion for LoadBalancer updates: %+v", err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
 	if err != nil {
 		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
 	}
@@ -158,24 +158,24 @@ func resourceArmLoadBalancerRuleCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
 	}
 
-	var rule_id string
+	var ruleId string
 	for _, LoadBalancingRule := range *(*read.LoadBalancerPropertiesFormat).LoadBalancingRules {
 		if *LoadBalancingRule.Name == d.Get("name").(string) {
-			rule_id = *LoadBalancingRule.ID
+			ruleId = *LoadBalancingRule.ID
 		}
 	}
 
-	if rule_id != "" {
-		d.SetId(rule_id)
-	} else {
-		return fmt.Errorf("Cannot find created LoadBalancer Rule ID %q", rule_id)
+	if ruleId == "" {
+		return fmt.Errorf("Cannot find created LoadBalancer Rule ID %q", ruleId)
 	}
+
+	d.SetId(ruleId)
 
 	log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", loadBalancerName)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(client, resGroup, loadBalancerName),
+		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -250,8 +250,8 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -280,18 +280,22 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
 	if err != nil {
 		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read ID of LoadBalancer %q (resource group %s)", loadBalancerName, resGroup)
 	}
 
 	return nil
@@ -301,13 +305,13 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 
 	properties := network.LoadBalancingRulePropertiesFormat{
 		Protocol:         network.TransportProtocol(d.Get("protocol").(string)),
-		FrontendPort:     azure.Int32(int32(d.Get("frontend_port").(int))),
-		BackendPort:      azure.Int32(int32(d.Get("backend_port").(int))),
-		EnableFloatingIP: azure.Bool(d.Get("enable_floating_ip").(bool)),
+		FrontendPort:     utils.Int32(int32(d.Get("frontend_port").(int))),
+		BackendPort:      utils.Int32(int32(d.Get("backend_port").(int))),
+		EnableFloatingIP: utils.Bool(d.Get("enable_floating_ip").(bool)),
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		properties.IdleTimeoutInMinutes = azure.Int32(int32(v.(int)))
+		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
 	}
 
 	if v := d.Get("load_distribution").(string); v != "" {
@@ -344,7 +348,7 @@ func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalan
 	}
 
 	lbRule := network.LoadBalancingRule{
-		Name: azure.String(d.Get("name").(string)),
+		Name: utils.String(d.Get("name").(string)),
 		LoadBalancingRulePropertiesFormat: &properties,
 	}
 

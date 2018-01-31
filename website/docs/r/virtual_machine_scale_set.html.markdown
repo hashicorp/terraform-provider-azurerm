@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
-sidebar_current: "docs-azurerm-resource-virtualmachine-scale-set"
+sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
 description: |-
   Create a Virtual Machine scale set.
 ---
@@ -13,100 +13,7 @@ Create a virtual machine scale set.
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
-## Example Usage
-
-```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
-  location = "West US"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctvn"
-  address_space       = ["10.0.0.0/16"]
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "accsa"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "westus"
-  account_type        = "Standard_LRS"
-
-  tags {
-    environment = "staging"
-  }
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-
-resource "azurerm_virtual_machine_scale_set" "test" {
-  name                = "mytestscaleset-1"
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  upgrade_policy_mode = "Manual"
-
-  sku {
-    name     = "Standard_A0"
-    tier     = "Standard"
-    capacity = 2
-  }
-
-  os_profile {
-    computer_name_prefix = "testvm"
-    admin_username       = "myadmin"
-    admin_password       = "Passwword1234"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = true
-
-    ssh_keys {
-      path     = "/home/myadmin/.ssh/authorized_keys"
-      key_data = "${file("~/.ssh/demo_key.pub")}"
-    }
-  }
-
-  network_profile {
-    name    = "TestNetworkProfile"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      subnet_id = "${azurerm_subnet.test.id}"
-    }
-  }
-
-  storage_profile_os_disk {
-    name           = "osDiskProfile"
-    caching        = "ReadWrite"
-    create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
-  }
-
-  storage_profile_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "14.04.2-LTS"
-    version   = "latest"
-  }
-}
-```
-
-## Example Usage with Managed Disks
+## Example Usage with Managed Disks (Recommended)
 
 ```hcl
 resource "azurerm_resource_group" "test" {
@@ -184,7 +91,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   storage_profile_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "14.04.2-LTS"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 
@@ -199,7 +106,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 	  lun 		   = 0
     caching        = "ReadWrite"
     create_option  = "Empty"
-    disk_size_gb   = 10	
+    disk_size_gb   = 10
   }
 
   os_profile {
@@ -235,6 +142,100 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 }
 ```
 
+## Example Usage with Unmanaged Disks
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg"
+  location = "West US"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn"
+  address_space       = ["10.0.0.0/16"]
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "westus"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "mytestscaleset-1"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name     = "Standard_A0"
+    tier     = "Standard"
+    capacity = 2
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = true
+
+    ssh_keys {
+      path     = "/home/myadmin/.ssh/authorized_keys"
+      key_data = "${file("~/.ssh/demo_key.pub")}"
+    }
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+
+  storage_profile_os_disk {
+    name           = "osDiskProfile"
+    caching        = "ReadWrite"
+    create_option  = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -256,6 +257,8 @@ The following arguments are supported:
 * `storage_profile_data_disk` - (Optional) A storage profile data disk block as documented below
 * `storage_profile_image_reference` - (Optional) A storage profile image reference block as documented below.
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
+* `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
+* `plan` - (Optional) A plan block as documented below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 
@@ -270,7 +273,7 @@ The following arguments are supported:
 * `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 15 characters long.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
 * `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set..
-* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes. Changing this forces a new resource to be created.
+* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 `os_profile_secrets` supports the following:
 
@@ -315,6 +318,7 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below
+* `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
 
 `ip_configuration` supports the following:
 
@@ -322,10 +326,21 @@ The following arguments are supported:
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
+* `primary` - (Optional) Specifies if this ip_configuration is the primary one.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
+false.
+* `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
+ PublicIPAddress configuration. The public_ip_address_configuration is documented below.
+
+`public_ip_address_configuration` supports the following:
+
+* `name` - (Required) The name of the public ip address configuration
+* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 32.
+* `domain_name_label` - (Required) The domain name label for the dns settings.
 
 `storage_profile_os_disk` supports the following:
 
-* `name` - (Required) Specifies the disk name. Value must be blank (`""`) when `managed_disk_type` is specified. 
+* `name` - (Optional) Specifies the disk name. Must be specified when using unmanaged disk ('managed_disk_type' property not set).
 * `vhd_containers` - (Optional) Specifies the vhd uri. Cannot be used when `image` or `managed_disk_type` is specified.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS` or `Premium_LRS`. Cannot be used when `vhd_containers` or `image` is specified.
 * `create_option` - (Required) Specifies how the virtual machine should be created. The only possible option is `FromImage`.
@@ -345,10 +360,18 @@ The following arguments are supported:
 
 `storage_profile_image_reference` supports the following:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines
-* `offer` - (Required) Specifies the offer of the image used to create the virtual machines.
-* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
+machine scale set, as in the [example below](#example-of-storage_profile_image_reference-with-id).
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
 * `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
+`boot_diagnostics` supports the following:
+
+* `enabled`: (Required) Whether to enable boot diagnostics for the virtual machine.
+* `storage_uri`: (Required) Blob endpoint for the storage account to hold the virtual machine's diagnostic files. This must be the root of a storage account, and not a storage container.
+
 
 `extension` supports the following:
 
@@ -359,6 +382,32 @@ The following arguments are supported:
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
 * `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
+
+`plan` supports the following:
+
+* `name` - (Required) Specifies the name of the image from the marketplace.
+* `publisher` - (Required) Specifies the publisher of the image.
+* `product` - (Required) Specifies the product of the image from the marketplace.
+
+## Example of storage_profile_image_reference with id
+
+```hcl
+
+resource "azurerm_image" "test" {
+	name = "test"
+  ...
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+	name = "test"
+  ...
+
+	storage_profile_image_reference {
+		id = "${azurerm_image.test.id}"
+	}
+
+...
+```
 
 ## Attributes Reference
 
@@ -371,6 +420,6 @@ The following attributes are exported:
 
 Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_machine_scale_set.scaleset1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```

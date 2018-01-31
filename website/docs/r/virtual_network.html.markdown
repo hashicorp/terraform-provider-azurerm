@@ -11,9 +11,24 @@ description: |-
 Creates a new virtual network including any configured subnets. Each subnet can
 optionally be configured with a security group to be associated with the subnet.
 
+~> **NOTE on Virtual Networks and Subnet's:** Terraform currently
+provides both a standalone [Subnet resource](subnet.html), and allows for Subnets to be defined in-line within the [Virtual Network resource](virtual_network.html).
+At this time you cannot use a Virtual Network with in-line Subnets in conjunction with any Subnet resources. Doing so will cause a conflict of Subnet configurations and will overwrite Subnet's.
+
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "acceptanceTestResourceGroup1"
+  location = "West US"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "virtualNetwork1"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -95,6 +110,6 @@ The following attributes are exported:
 
 Virtual Networks can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_network.testNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1
 ```

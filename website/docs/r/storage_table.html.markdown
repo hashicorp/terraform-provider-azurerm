@@ -14,15 +14,16 @@ Create an Azure Storage Table.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "azuretest"
   location = "westus"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "acctestacc%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "westus"
-  account_type        = "Standard_LRS"
+  name                     = "azureteststorage1"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "westus"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_table" "test" {

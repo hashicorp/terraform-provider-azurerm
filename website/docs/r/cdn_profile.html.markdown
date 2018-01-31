@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cdn_profile" "test" {
-  name                = "acceptanceTestCdnProfile1"
+  name                = "exampleCdnProfile"
   location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Verizon"
@@ -57,6 +57,6 @@ The following attributes are exported:
 
 CDN Profiles can be imported using the `resource id`, e.g.
 
-```hcl
+```shell
 terraform import azurerm_cdn_profile.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1
 ```

@@ -3,12 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/disk"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmManagedDisk() *schema.Resource {
@@ -30,18 +31,14 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(disk.PremiumLRS),
-					string(disk.StandardLRS),
+					string(compute.StandardLRS),
+					string(compute.PremiumLRS),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -51,9 +48,10 @@ func resourceArmManagedDisk() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(disk.Import),
-					string(disk.Empty),
-					string(disk.Copy),
+					string(compute.Copy),
+					string(compute.Empty),
+					string(compute.FromImage),
+					string(compute.Import),
 				}, true),
 			},
 
@@ -70,20 +68,28 @@ func resourceArmManagedDisk() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"image_reference_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"os_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(disk.Windows),
-					string(disk.Linux),
+					string(compute.Windows),
+					string(compute.Linux),
 				}, true),
 			},
 
 			"disk_size_gb": {
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validateDiskSizeGB,
 			},
+
+			"encryption_settings": encryptionSettingsSchema(),
 
 			"tags": tagsSchema(),
 		},
@@ -100,64 +106,87 @@ func validateDiskSizeGB(v interface{}, k string) (ws []string, errors []error) {
 }
 
 func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	diskClient := client.diskClient
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	storageAccountType := d.Get("storage_account_type").(string)
+	osType := d.Get("os_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
-	createDisk := disk.Model{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandedTags,
+	var skuName compute.StorageAccountTypes
+	if strings.ToLower(storageAccountType) == strings.ToLower(string(compute.PremiumLRS)) {
+		skuName = compute.PremiumLRS
+	} else {
+		skuName = compute.StandardLRS
 	}
 
-	storageAccountType := d.Get("storage_account_type").(string)
-	osType := d.Get("os_type").(string)
-
-	createDisk.Properties = &disk.Properties{
-		AccountType: disk.StorageAccountTypes(storageAccountType),
-		OsType:      disk.OperatingSystemTypes(osType),
+	createDisk := compute.Disk{
+		Name:     &name,
+		Location: &location,
+		DiskProperties: &compute.DiskProperties{
+			OsType: compute.OperatingSystemTypes(osType),
+		},
+		Sku: &compute.DiskSku{
+			Name: (skuName),
+		},
+		Tags: expandedTags,
 	}
 
 	if v := d.Get("disk_size_gb"); v != 0 {
 		diskSize := int32(v.(int))
-		createDisk.Properties.DiskSizeGB = &diskSize
+		createDisk.DiskProperties.DiskSizeGB = &diskSize
 	}
+
 	createOption := d.Get("create_option").(string)
-
-	creationData := &disk.CreationData{
-		CreateOption: disk.CreateOption(createOption),
+	createDisk.CreationData = &compute.CreationData{
+		CreateOption: compute.DiskCreateOption(createOption),
 	}
 
-	if strings.EqualFold(createOption, string(disk.Import)) {
+	if strings.EqualFold(createOption, string(compute.Import)) {
 		if sourceUri := d.Get("source_uri").(string); sourceUri != "" {
-			creationData.SourceURI = &sourceUri
+			createDisk.CreationData.SourceURI = &sourceUri
 		} else {
-			return fmt.Errorf("[ERROR] source_uri must be specified when create_option is `%s`", disk.Import)
+			return fmt.Errorf("[ERROR] source_uri must be specified when create_option is `%s`", compute.Import)
 		}
-	} else if strings.EqualFold(createOption, string(disk.Copy)) {
+	} else if strings.EqualFold(createOption, string(compute.Copy)) {
 		if sourceResourceId := d.Get("source_resource_id").(string); sourceResourceId != "" {
-			creationData.SourceResourceID = &sourceResourceId
+			createDisk.CreationData.SourceResourceID = &sourceResourceId
 		} else {
-			return fmt.Errorf("[ERROR] source_resource_id must be specified when create_option is `%s`", disk.Copy)
+			return fmt.Errorf("[ERROR] source_resource_id must be specified when create_option is `%s`", compute.Copy)
+		}
+	} else if strings.EqualFold(createOption, string(compute.FromImage)) {
+		if imageReferenceId := d.Get("image_reference_id").(string); imageReferenceId != "" {
+			createDisk.CreationData.ImageReference = &compute.ImageDiskReference{
+				ID: utils.String(imageReferenceId),
+			}
+		} else {
+			return fmt.Errorf("[ERROR] image_reference_id must be specified when create_option is `%s`", compute.FromImage)
 		}
 	}
 
-	createDisk.CreationData = creationData
+	if v, ok := d.GetOk("encryption_settings"); ok {
+		encryptionSettings := v.([]interface{})
+		settings := encryptionSettings[0].(map[string]interface{})
+		createDisk.EncryptionSettings = expandManagedDiskEncryptionSettings(settings)
+	}
 
-	_, diskErr := diskClient.CreateOrUpdate(resGroup, name, createDisk, make(chan struct{}))
-	err := <-diskErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, createDisk)
 	if err != nil {
 		return err
 	}
 
-	read, err := diskClient.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -171,7 +200,8 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	diskClient := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -180,9 +210,9 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["disks"]
 
-	resp, err := diskClient.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -191,14 +221,33 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	if resp.Properties != nil {
-		flattenAzureRmManagedDiskProperties(d, resp.Properties)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("storage_account_type", string(sku.Name))
+	}
+
+	if props := resp.DiskProperties; props != nil {
+		if diskSize := props.DiskSizeGB; diskSize != nil {
+			d.Set("disk_size_gb", *diskSize)
+		}
+		if osType := props.OsType; osType != "" {
+			d.Set("os_type", string(osType))
+		}
 	}
 
 	if resp.CreationData != nil {
 		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
+	}
+
+	if settings := resp.EncryptionSettings; settings != nil {
+		flattened := flattenManagedDiskEncryptionSettings(settings)
+		if err := d.Set("encryption_settings", flattened); err != nil {
+			return fmt.Errorf("Error flattening encryption settings: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -207,7 +256,8 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
-	diskClient := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -216,27 +266,31 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["disks"]
 
-	_, error := diskClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return err
+		if !response.WasNotFound(future.Response()) {
+			return err
+		}
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func flattenAzureRmManagedDiskProperties(d *schema.ResourceData, properties *disk.Properties) {
-	d.Set("storage_account_type", string(properties.AccountType))
-	if properties.DiskSizeGB != nil {
-		d.Set("disk_size_gb", *properties.DiskSizeGB)
-	}
-	if properties.OsType != "" {
-		d.Set("os_type", string(properties.OsType))
-	}
-}
-
-func flattenAzureRmManagedDiskCreationData(d *schema.ResourceData, creationData *disk.CreationData) {
+func flattenAzureRmManagedDiskCreationData(d *schema.ResourceData, creationData *compute.CreationData) {
 	d.Set("create_option", string(creationData.CreateOption))
+	if ref := creationData.ImageReference; ref != nil {
+		d.Set("image_reference_id", *ref.ID)
+	}
+	if id := creationData.SourceResourceID; id != nil {
+		d.Set("source_resource_id", *id)
+	}
 	if creationData.SourceURI != nil {
 		d.Set("source_uri", *creationData.SourceURI)
 	}

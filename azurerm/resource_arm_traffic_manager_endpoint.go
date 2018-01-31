@@ -3,12 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/arm/trafficmanager"
+	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmTrafficManagerEndpoint() *schema.Resource {
@@ -29,10 +29,14 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 			},
 
 			"type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"azureEndpoints", "nestedEndpoints", "externalEndpoints"}, false),
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"azureEndpoints",
+					"nestedEndpoints",
+					"externalEndpoints",
+				}, false),
 			},
 
 			"profile_name": {
@@ -57,6 +61,11 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(trafficmanager.EndpointStatusDisabled),
+					string(trafficmanager.EndpointStatusEnabled),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"weight": {
@@ -87,12 +96,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Optional: true,
 			},
 
-			"resource_group_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: resourceAzurermResourceGroupNameDiffSuppress,
-			},
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
 		},
 	}
 }
@@ -114,12 +118,13 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 		EndpointProperties: getArmTrafficManagerEndpointProperties(d),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, profileName, endpointType, name, params)
+	ctx := meta.(*ArmClient).StopContext
+	_, err := client.CreateOrUpdate(ctx, resGroup, profileName, endpointType, name, params)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, profileName, endpointType, name)
+	read, err := client.Get(ctx, resGroup, profileName, endpointType, name)
 	if err != nil {
 		return err
 	}
@@ -154,13 +159,14 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
 
-	resp, err := client.Get(resGroup, profileName, endpointType, name)
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Get(ctx, resGroup, profileName, endpointType, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %s: %+v", name, err)
 	}
 
 	endpoint := *resp.EndpointProperties
@@ -169,7 +175,7 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	d.Set("name", resp.Name)
 	d.Set("type", endpointType)
 	d.Set("profile_name", profileName)
-	d.Set("endpoint_status", endpoint.EndpointStatus)
+	d.Set("endpoint_status", string(endpoint.EndpointStatus))
 	d.Set("target_resource_id", endpoint.TargetResourceID)
 	d.Set("target", endpoint.Target)
 	d.Set("weight", endpoint.Weight)
@@ -194,10 +200,17 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 
 	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
+	ctx := meta.(*ArmClient).StopContext
+	resp, err := client.Delete(ctx, resGroup, profileName, endpointType, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
 
-	_, err = client.Delete(resGroup, profileName, endpointType, name)
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmanager.EndpointProperties {
@@ -212,7 +225,7 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	}
 
 	if status := d.Get("endpoint_status").(string); status != "" {
-		endpointProps.EndpointStatus = &status
+		endpointProps.EndpointStatus = trafficmanager.EndpointStatus(status)
 	}
 
 	if weight := d.Get("weight").(int); weight != 0 {

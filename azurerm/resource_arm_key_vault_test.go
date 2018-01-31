@@ -2,17 +2,75 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func TestAccAzureRMKeyVault_name(t *testing.T) {
+	cases := []struct {
+		Input       string
+		ExpectError bool
+	}{
+		{
+			Input:       "",
+			ExpectError: true,
+		},
+		{
+			Input:       "hi",
+			ExpectError: true,
+		},
+		{
+			Input:       "hello",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello-world",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello-world-21",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello_world_21",
+			ExpectError: true,
+		},
+		{
+			Input:       "Hello-World",
+			ExpectError: false,
+		},
+		{
+			Input:       "20202020",
+			ExpectError: false,
+		},
+		{
+			Input:       "ABC123!@£",
+			ExpectError: true,
+		},
+		{
+			Input:       "abcdefghijklmnopqrstuvwxyz",
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateKeyVaultName(tc.Input, "")
+
+		hasError := len(errors) > 0
+
+		if tc.ExpectError && !hasError {
+			t.Fatalf("Expected the Key Vault Name to trigger a validation error for '%s'", tc.Input)
+		}
+	}
+}
 
 func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMKeyVault_basic, ri, ri)
+	config := testAccAzureRMKeyVault_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,10 +87,32 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_complete(t *testing.T) {
+	resourceName := "azurerm_key_vault.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMKeyVault_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "access_policy.0.application_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVault_update(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMKeyVault_basic, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMKeyVault_update, ri, ri)
+	resourceName := "azurerm_key_vault.test"
+	preConfig := testAccAzureRMKeyVault_basic(ri, testLocation())
+	postConfig := testAccAzureRMKeyVault_update(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,21 +122,21 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultExists("azurerm_key_vault.test"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.key_permissions.0", "all"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.secret_permissions.0", "all"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "tags.environment", "Production"),
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "set"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.key_permissions.0", "get"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "access_policy.0.secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "enabled_for_deployment", "true"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "enabled_for_disk_encryption", "true"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "enabled_for_template_deployment", "true"),
-					resource.TestCheckResourceAttr("azurerm_key_vault.test", "tags.environment", "Staging"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_deployment", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_disk_encryption", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_template_deployment", "true"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Staging"),
 				),
 			},
 		},
@@ -65,6 +145,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_key_vault" {
@@ -74,17 +155,15 @@ func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Key Vault still exists:\n%#v", resp.Properties)
-		}
+		return fmt.Errorf("Key Vault still exists:\n%#v", resp.Properties)
 	}
 
 	return nil
@@ -105,94 +184,143 @@ func testCheckAzureRMKeyVaultExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, vaultName)
+		resp, err := client.Get(ctx, resourceGroup, vaultName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on keyVaultClient: %s", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Vault %q (resource group: %q) does not exist", vaultName, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Vault %q (resource group: %q) does not exist", vaultName, resourceGroup)
+			return fmt.Errorf("Bad: Get on keyVaultClient: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-var testAccAzureRMKeyVault_basic = `
+func testAccAzureRMKeyVault_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
-    name = "vault%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-	tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-    sku {
-		name = "premium"
-	}
+  sku {
+    name = "premium"
+  }
 
-	access_policy {
-		tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-		object_id = "${data.azurerm_client_config.current.client_id}"
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
 
-		key_permissions = [
-			"all"
-		]
+    key_permissions = [
+      "create",
+    ]
 
-		secret_permissions = [
-			"all"
-		]
-	}
+    secret_permissions = [
+      "set",
+    ]
+  }
 
-	tags {
-		environment = "Production"
-	}
+  tags {
+    environment = "Production"
+  }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMKeyVault_update = `
+func testAccAzureRMKeyVault_update(rInt int, location string) string {
+	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
-    name = "vault%d"
-    location = "West US"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-	tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-    sku {
-		name = "premium"
-	}
+  sku {
+    name = "premium"
+  }
 
-	access_policy {
-		tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-		object_id = "${data.azurerm_client_config.current.client_id}"
+  access_policy {
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+    object_id = "${data.azurerm_client_config.current.client_id}"
 
-		key_permissions = [
-			"get"
-		]
+    key_permissions = [
+      "get",
+    ]
 
-		secret_permissions = [
-			"get"
-		]
-	}
+    secret_permissions = [
+      "get",
+    ]
+  }
 
-	enabled_for_deployment = true
-	enabled_for_disk_encryption = true
-	enabled_for_template_deployment = true
+  enabled_for_deployment          = true
+  enabled_for_disk_encryption     = true
+  enabled_for_template_deployment = true
 
-	tags {
-		environment = "Staging"
-	}
+  tags {
+    environment = "Staging"
+  }
 }
-`
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+
+  sku {
+    name = "premium"
+  }
+
+  access_policy {
+    tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
+    object_id      = "${data.azurerm_client_config.current.client_id}"
+    application_id = "${data.azurerm_client_config.current.service_principal_application_id}"
+
+    certificate_permissions = [
+      "get",
+    ]
+
+    key_permissions = [
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+    ]
+  }
+
+  tags {
+    environment = "Production"
+  }
+}
+`, rInt, location, rInt)
+}

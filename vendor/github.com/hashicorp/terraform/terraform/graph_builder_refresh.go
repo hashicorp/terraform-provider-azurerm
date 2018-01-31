@@ -133,6 +133,9 @@ func (b *RefreshGraphBuilder) Steps() []GraphTransformer {
 		&ParentProviderTransformer{},
 		&AttachProviderConfigTransformer{Module: b.Module},
 
+		// Add the local values
+		&LocalTransformer{Module: b.Module},
+
 		// Add the outputs
 		&OutputTransformer{Module: b.Module},
 
@@ -144,7 +147,15 @@ func (b *RefreshGraphBuilder) Steps() []GraphTransformer {
 		&ReferenceTransformer{},
 
 		// Target
-		&TargetsTransformer{Targets: b.Targets},
+		&TargetsTransformer{
+			Targets: b.Targets,
+
+			// Resource nodes from config have not yet been expanded for
+			// "count", so we must apply targeting without indices. Exact
+			// targeting will be dealt with later when these resources
+			// DynamicExpand.
+			IgnoreIndices: true,
+		},
 
 		// Close opened plugin connections
 		&CloseProviderTransformer{},

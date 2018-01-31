@@ -3,22 +3,24 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/search"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmSearchService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSearchServiceCreate,
+		Create: resourceArmSearchServiceCreateUpdate,
 		Read:   resourceArmSearchServiceRead,
-		Update: resourceArmSearchServiceCreate,
 		Delete: resourceArmSearchServiceDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -26,99 +28,78 @@ func resourceArmSearchService() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": &schema.Schema{
+			"resource_group_name": resourceGroupNameSchema(),
+
+			"sku": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(search.Free),
+					string(search.Basic),
+					string(search.Standard),
+					string(search.Standard2),
+					string(search.Standard3),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"sku": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
-			"replica_count": &schema.Schema{
+			"replica_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
-			"partition_count": &schema.Schema{
+			"partition_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tagsForceNewSchema(),
 		},
 	}
 }
 
-func resourceArmSearchServiceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).searchServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
+	name := d.Get("name").(string)
+	location := d.Get("location").(string)
+	resourceGroupName := d.Get("resource_group_name").(string)
+	skuName := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
 
-	command := &search.CreateOrUpdateSearchService{
-		Name:              d.Get("name").(string),
-		Location:          d.Get("location").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-		Tags:              *expandedTags,
-		Sku: search.Sku{
-			Name: d.Get("sku").(string),
+	properties := search.Service{
+		Location: utils.String(location),
+		Sku: &search.Sku{
+			Name: search.SkuName(skuName),
 		},
+		ServiceProperties: &search.ServiceProperties{},
+		Tags:              expandTags(tags),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
-		replica_count := v.(int)
-		command.ReplicaCount = &replica_count
+		replicaCount := int32(v.(int))
+		properties.ServiceProperties.ReplicaCount = utils.Int32(replicaCount)
 	}
 
 	if v, ok := d.GetOk("partition_count"); ok {
-		partition_count := v.(int)
-		command.PartitionCount = &partition_count
+		partitionCount := int32(v.(int))
+		properties.ServiceProperties.PartitionCount = utils.Int32(partitionCount)
 	}
 
-	createRequest := rivieraClient.NewRequest()
-	createRequest.Command = command
-
-	createResponse, err := createRequest.Execute()
+	_, err := client.CreateOrUpdate(ctx, resourceGroupName, name, properties, nil)
 	if err != nil {
-		return fmt.Errorf("Error creating Search Service: %s", err)
-	}
-	if !createResponse.IsSuccessful() {
-		return fmt.Errorf("Error creating Search Service: %s", createResponse.Error)
+		return err
 	}
 
-	getSearchServiceCommand := &search.GetSearchService{
-		Name:              d.Get("name").(string),
-		ResourceGroupName: d.Get("resource_group_name").(string),
-	}
-
-	readRequest := rivieraClient.NewRequest()
-	readRequest.Command = getSearchServiceCommand
-
-	readResponse, err := readRequest.Execute()
+	resp, err := client.Get(ctx, resourceGroupName, name, nil)
 	if err != nil {
-		return fmt.Errorf("Error reading Search Service: %s", err)
-	}
-	if !readResponse.IsSuccessful() {
-		return fmt.Errorf("Error reading Search Service: %s", readResponse.Error)
-	}
-	resp := readResponse.Parsed.(*search.GetSearchServiceResponse)
-
-	log.Printf("[DEBUG] Waiting for Search Service (%s) to become available", d.Get("name"))
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"provisioning"},
-		Target:     []string{"succeeded"},
-		Refresh:    azureStateRefreshFunc(*resp.ID, client, getSearchServiceCommand),
-		Timeout:    30 * time.Minute,
-		MinTimeout: 15 * time.Second,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Search Service (%s) to become available: %s", d.Get("name"), err)
+		return err
 	}
 
 	d.SetId(*resp.ID)
@@ -127,46 +108,71 @@ func resourceArmSearchServiceCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).searchServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
-	readRequest := rivieraClient.NewRequestForURI(d.Id())
-	readRequest.Command = &search.GetSearchService{}
-
-	readResponse, err := readRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error reading Search Service: %s", err)
+		return err
 	}
-	if !readResponse.IsSuccessful() {
-		log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
-		d.SetId("")
-		return fmt.Errorf("Error reading Search Service: %s", readResponse.Error)
+	resourceGroup := id.ResourceGroup
+	name := id.Path["searchServices"]
+
+	resp, err := client.Get(ctx, resourceGroup, name, nil)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading Search Service %q - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error reading Search Service: %+v", err)
 	}
 
-	resp := readResponse.Parsed.(*search.GetSearchServiceResponse)
-	d.Set("sku", resp.Sku)
-	if resp.PartitionCount != nil {
-		d.Set("partition_count", resp.PartitionCount)
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	if resp.ReplicaCount != nil {
-		d.Set("replica_count", resp.ReplicaCount)
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
 	}
+
+	if props := resp.ServiceProperties; props != nil {
+		if count := props.PartitionCount; count != nil {
+			d.Set("partition_count", int(*count))
+		}
+
+		if count := props.ReplicaCount; count != nil {
+			d.Set("replica_count", int(*count))
+		}
+	}
+
+	flattenAndSetTags(d, resp.Tags)
+
 	return nil
 }
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	rivieraClient := client.rivieraClient
+	client := meta.(*ArmClient).searchServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
-	deleteRequest := rivieraClient.NewRequestForURI(d.Id())
-	deleteRequest.Command = &search.DeleteSearchService{}
-
-	deleteResponse, err := deleteRequest.Execute()
+	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting Search Service: %s", err)
+		return err
 	}
-	if !deleteResponse.IsSuccessful() {
-		return fmt.Errorf("Error deleting Search Service: %s", deleteResponse.Error)
+	resourceGroup := id.ResourceGroup
+	name := id.Path["searchServices"]
+
+	resp, err := client.Delete(ctx, resourceGroup, name, nil)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting Search Service %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

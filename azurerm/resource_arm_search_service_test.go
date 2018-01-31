@@ -7,59 +7,46 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/jen20/riviera/search"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSearchService_basic(t *testing.T) {
+	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMSearchService_basic, ri, ri)
+	config := testAccAzureRMSearchService_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.%", "2"),
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMSearchService_updateReplicaCountAndTags(t *testing.T) {
+func TestAccAzureRMSearchService_complete(t *testing.T) {
+	resourceName := "azurerm_search_service.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMSearchService_basic, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMSearchService_updated, ri, ri)
+	config := testAccAzureRMSearchService_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
-				Config: preConfig,
+			{
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "replica_count", "1"),
-				),
-			},
-
-			resource.TestStep{
-				Config: postConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSearchServiceExists("azurerm_search_service.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_search_service.test", "replica_count", "2"),
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "replica_count", "2"),
 				),
 			},
 		},
@@ -74,17 +61,20 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).rivieraClient
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		searchName := rs.Primary.Attributes["name"]
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &search.GetSearchService{}
+		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		readResponse, err := readRequest.Execute()
+		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetSearchService: %s", err)
-		}
-		if !readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: GetSearchService: %s", readResponse.Error)
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Search Service %q (resource group %q) was not found: %+v", searchName, resourceGroup, err)
+			}
+
+			return fmt.Errorf("Bad: GetSearchService: %+v", err)
 		}
 
 		return nil
@@ -92,56 +82,63 @@ func testCheckAzureRMSearchServiceExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).rivieraClient
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_search_service" {
 			continue
 		}
 
-		readRequest := conn.NewRequestForURI(rs.Primary.ID)
-		readRequest.Command = &search.GetSearchService{}
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		searchName := rs.Primary.Attributes["name"]
 
-		readResponse, err := readRequest.Execute()
+		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
+
 		if err != nil {
-			return fmt.Errorf("Bad: GetSearchService: %s", err)
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if readResponse.IsSuccessful() {
-			return fmt.Errorf("Bad: Search Service still exists: %s", readResponse.Error)
-		}
+		return fmt.Errorf("Bad: Search Service %q (resource group %q) still exists: %+v", searchName, resourceGroup, resp)
 	}
 
 	return nil
 }
 
-var testAccAzureRMSearchService_basic = `
+func testAccAzureRMSearchService_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_search_service" "test" {
     name = "acctestsearchservice%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     sku = "standard"
 
     tags {
     	environment = "staging"
-    	database = "test"
     }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMSearchService_updated = `
+func testAccAzureRMSearchService_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
-    location = "West US"
+    location = "%s"
 }
 resource "azurerm_search_service" "test" {
     name = "acctestsearchservice%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     sku = "standard"
     replica_count = 2
 
@@ -149,4 +146,5 @@ resource "azurerm_search_service" "test" {
     	environment = "production"
     }
 }
-`
+`, rInt, location, rInt)
+}

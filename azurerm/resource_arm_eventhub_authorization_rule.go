@@ -3,11 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmEventHubAuthorizationRule() *schema.Resource {
@@ -39,13 +39,9 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
-			"location": locationSchema(),
+			"location": deprecatedLocationSchema(),
 
 			"listen": {
 				Type:     schema.TypeBool,
@@ -90,10 +86,10 @@ func resourceArmEventHubAuthorizationRule() *schema.Resource {
 
 func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Authorization Rule creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -103,20 +99,19 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 		return err
 	}
 
-	parameters := eventhub.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
-		Name:     &name,
-		Location: &location,
-		SharedAccessAuthorizationRuleProperties: &eventhub.SharedAccessAuthorizationRuleProperties{
+	parameters := eventhub.AuthorizationRule{
+		Name: &name,
+		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
 			Rights: rights,
 		},
 	}
 
-	_, err = client.CreateOrUpdateAuthorizationRule(resGroup, namespaceName, eventHubName, name, parameters)
+	_, err = client.CreateOrUpdateAuthorizationRule(ctx, resGroup, namespaceName, eventHubName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.GetAuthorizationRule(resGroup, namespaceName, eventHubName, name)
+	read, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, eventHubName, name)
 	if err != nil {
 		return err
 	}
@@ -132,6 +127,7 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 
 func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).eventHubClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -142,22 +138,21 @@ func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta inter
 	eventHubName := id.Path["eventhubs"]
 	name := id.Path["authorizationRules"]
 
-	resp, err := client.GetAuthorizationRule(resGroup, namespaceName, eventHubName, name)
+	resp, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, eventHubName, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure EventHub Authorization Rule %s: %+v", name, err)
 	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
-	}
 
-	keysResp, err := client.ListKeys(resGroup, namespaceName, eventHubName, name)
+	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, eventHubName, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure EventHub Authorization Rule List Keys %s: %+v", name, err)
 	}
 
 	d.Set("name", name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("eventhub_name", eventHubName)
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
@@ -174,6 +169,7 @@ func resourceArmEventHubAuthorizationRuleRead(d *schema.ResourceData, meta inter
 
 func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
 	eventhubClient := meta.(*ArmClient).eventHubClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -184,7 +180,7 @@ func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta int
 	eventHubName := id.Path["eventhubs"]
 	name := id.Path["authorizationRules"]
 
-	resp, err := eventhubClient.DeleteAuthorizationRule(resGroup, namespaceName, eventHubName, name)
+	resp, err := eventhubClient.DeleteAuthorizationRule(ctx, resGroup, namespaceName, eventHubName, name)
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error issuing Azure ARM delete request of EventHub Authorization Rule '%s': %+v", name, err)
@@ -221,7 +217,7 @@ func expandEventHubAuthorizationRuleAccessRights(d *schema.ResourceData) (*[]eve
 	return &rights, nil
 }
 
-func flattenEventHubAuthorizationRuleAccessRights(d *schema.ResourceData, resp eventhub.SharedAccessAuthorizationRuleResource) {
+func flattenEventHubAuthorizationRuleAccessRights(d *schema.ResourceData, resp eventhub.AuthorizationRule) {
 
 	var canListen = false
 	var canSend = false

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_search_service" "test" {
   name                = "acceptanceTestSearchService1"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   sku                 = "standard"
 
   tags {
@@ -34,23 +34,30 @@ resource "azurerm_search_service" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Search Service.
+* `name` - (Required) The name of the Search Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Search Service.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Search Service. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Valid values are `free` and `standard`. `standard2` is also valid, but can only be used when it's enabled on the backend by Microsoft support. `free` provisions the service in shared clusters. `standard` provisions the service in dedicated clusters
+* `sku` - (Required) Valid values are `free` and `standard`. `standard2` and `standard3` are also valid, but can only be used when it's enabled on the backend by Microsoft support. `free` provisions the service in shared clusters. `standard` provisions the service in dedicated clusters.  Changing this forces a new resource to be created.
 
-* `replica_count` - (Optional) Default is 1. Valid values include 1 through 12. Valid only when `sku` is `standard`.
+* `replica_count` - (Optional) Default is 1. Valid values include 1 through 12. Valid only when `sku` is `standard`. Changing this forces a new resource to be created.
 
-* `partition_count` - (Optional) Default is 1. Valid values include 1, 2, 3, 4, 6, or 12. Valid only when `sku` is `standard`.
+* `partition_count` - (Optional) Default is 1. Valid values include 1, 2, 3, 4, 6, or 12. Valid only when `sku` is `standard`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Search Service ID.
+
+## Import
+
+Search Services can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_search_service.service1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Search/searchServices/service1
+```

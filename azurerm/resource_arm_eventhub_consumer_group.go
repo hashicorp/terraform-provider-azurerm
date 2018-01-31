@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"net/http"
-
-	"github.com/Azure/azure-sdk-for-go/arm/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmEventHubConsumerGroup() *schema.Resource {
@@ -39,48 +39,43 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
-			"location": locationSchema(),
+			"location": deprecatedLocationSchema(),
 
 			"user_metadata": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(1, 1024),
 			},
 		},
 	}
 }
 
 func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	eventhubClient := client.eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Consumer Group creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	userMetaData := d.Get("user_metadata").(string)
 
-	parameters := eventhub.ConsumerGroupCreateOrUpdateParameters{
-		Name:     &name,
-		Location: &location,
+	parameters := eventhub.ConsumerGroup{
+		Name: &name,
 		ConsumerGroupProperties: &eventhub.ConsumerGroupProperties{
 			UserMetadata: &userMetaData,
 		},
 	}
 
-	_, err := eventhubClient.CreateOrUpdate(resGroup, namespaceName, eventHubName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, namespaceName, eventHubName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := eventhubClient.Get(resGroup, namespaceName, eventHubName, name)
+	read, err := client.Get(ctx, resGroup, namespaceName, eventHubName, name)
 
 	if err != nil {
 		return err
@@ -96,7 +91,8 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	eventhubClient := meta.(*ArmClient).eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -107,17 +103,16 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 	eventHubName := id.Path["eventhubs"]
 	name := id.Path["consumergroups"]
 
-	resp, err := eventhubClient.Get(resGroup, namespaceName, eventHubName, name)
+	resp, err := client.Get(ctx, resGroup, namespaceName, eventHubName, name)
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
 		return fmt.Errorf("Error making Read request on Azure EventHub Consumer Group %s: %+v", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
 	}
 
 	d.Set("name", name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("eventhub_name", eventHubName)
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
@@ -127,7 +122,8 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	eventhubClient := meta.(*ArmClient).eventHubConsumerGroupClient
+	client := meta.(*ArmClient).eventHubConsumerGroupClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -138,10 +134,12 @@ func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interfa
 	eventHubName := id.Path["eventhubs"]
 	name := id.Path["consumergroups"]
 
-	resp, err := eventhubClient.Delete(resGroup, namespaceName, eventHubName, name)
+	resp, err := client.Delete(ctx, resGroup, namespaceName, eventHubName, name)
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error issuing Azure ARM delete request of EventHub Consumer Group '%s': %+v", name, err)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error issuing Azure ARM delete request of EventHub Consumer Group '%s': %+v", name, err)
+		}
 	}
 
 	return nil

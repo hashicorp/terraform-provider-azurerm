@@ -10,31 +10,34 @@ description: |-
 
 Create a ServiceBus Topic.
 
-**Note** Topics can only be created in Namespaces with an SKU or `standard` or
-higher.
+**Note** Topics can only be created in Namespaces with an SKU of `standard` or higher.
 
 ## Example Usage
 
 ```hcl
+variable "location" {
+  description = "Azure datacenter to deploy to."
+  default = "West US"
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "terraform-servicebus"
+  location = "${var.location}"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acceptanceTestServiceBusNamespace"
-  location            = "West US"
+  name                = "${var.servicebus_name}"
+  location            = "${var.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard"
 
   tags {
-    environment = "Production"
+    source = "terraform"
   }
 }
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "testTopic"
-  location            = "West US"
   resource_group_name = "${azurerm_resource_group.test.name}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
@@ -58,6 +61,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
 
+* `status` - (Optional) The Status of the Service Bus Topic. Acceptable values are `Active` or `Disabled`. Defaults to `Active`.
+
 * `auto_delete_on_idle` - (Optional) The idle interval after which the
     Topic is automatically deleted, minimum of 5 minutes. Provided in the [TimeSpan](#timespan-format)
     format.
@@ -75,10 +80,6 @@ The following arguments are supported:
 * `enable_express` - (Optional) Boolean flag which controls whether Express Entities
     are enabled. An express topic holds a message in memory temporarily before writing
     it to persistent storage. Defaults to false.
-
-* `enable_filtering_messages_before_publishing` - (Optional) Boolean flag which
-    controls whether messages should be filtered before publishing. Defaults to
-    false.
 
 * `enable_partitioning` - (Optional) Boolean flag which controls whether to enable
     the topic to be partitioned across multiple message brokers. Defaults to false.
@@ -110,6 +111,6 @@ The following attributes are exported:
 
 Service Bus Topics can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_servicebus_topic.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1
 ```

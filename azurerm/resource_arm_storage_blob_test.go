@@ -146,14 +146,14 @@ func TestResourceAzureRMStorageBlobAttempts_validation(t *testing.T) {
 func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageBlob_basic, ri, rs)
+	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists("azurerm_storage_blob.test"),
@@ -166,14 +166,14 @@ func TestAccAzureRMStorageBlob_basic(t *testing.T) {
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := fmt.Sprintf(testAccAzureRMStorageBlob_basic, ri, rs)
+	config := testAccAzureRMStorageBlob_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists("azurerm_storage_blob.test"),
@@ -203,14 +203,14 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := fmt.Sprintf(testAccAzureRMStorageBlobBlock_source, ri, rs1, sourceBlob.Name())
+	config := testAccAzureRMStorageBlobBlock_source(ri, rs1, sourceBlob.Name(), testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.source", storage.BlobTypeBlock, sourceBlob.Name()),
@@ -222,7 +222,7 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 
 func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 	ri := acctest.RandInt()
-	rs1 := strings.ToLower(acctest.RandString(11))
+	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -262,14 +262,14 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := fmt.Sprintf(testAccAzureRMStorageBlobPage_source, ri, rs1, sourceBlob.Name())
+	config := testAccAzureRMStorageBlobPage_source(ri, rs, sourceBlob.Name(), testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.source", storage.BlobTypePage, sourceBlob.Name()),
@@ -281,7 +281,7 @@ func TestAccAzureRMStorageBlobPage_source(t *testing.T) {
 
 func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 	ri := acctest.RandInt()
-	rs1 := strings.ToLower(acctest.RandString(11))
+	rs := strings.ToLower(acctest.RandString(11))
 	sourceBlob, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatalf("Failed to create local source blob file")
@@ -297,14 +297,14 @@ func TestAccAzureRMStorageBlob_source_uri(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := fmt.Sprintf(testAccAzureRMStorageBlob_source_uri, ri, rs1, sourceBlob.Name())
+	config := testAccAzureRMStorageBlob_source_uri(ri, rs, sourceBlob.Name(), testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobMatchesFile("azurerm_storage_blob.destination", storage.BlobTypeBlock, sourceBlob.Name()),
@@ -493,17 +493,19 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMStorageBlob_basic = `
+func testAccAzureRMStorageBlob_basic(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "acctestacc%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "acctestacc%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -527,19 +529,22 @@ resource "azurerm_storage_blob" "test" {
     type = "page"
     size = 5120
 }
-`
+`, rInt, location, rString)
+}
 
-var testAccAzureRMStorageBlobBlock_source = `
+func testAccAzureRMStorageBlobBlock_source(rInt int, rString string, sourceBlobName string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "source" {
-    name = "acctestacc%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "acctestacc%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -561,23 +566,26 @@ resource "azurerm_storage_blob" "source" {
     storage_container_name = "${azurerm_storage_container.source.name}"
 
     type = "block"
-		source = "%s"
-		parallelism = 4
-		attempts = 2
+    source = "%s"
+    parallelism = 4
+    attempts = 2
 }
-`
+`, rInt, location, rString, sourceBlobName)
+}
 
-var testAccAzureRMStorageBlobPage_source = `
+func testAccAzureRMStorageBlobPage_source(rInt int, rString string, sourceBlobName string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "source" {
-    name = "acctestacc%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "acctestacc%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -599,23 +607,26 @@ resource "azurerm_storage_blob" "source" {
     storage_container_name = "${azurerm_storage_container.source.name}"
 
     type = "page"
-		source = "%s"
-		parallelism = 3
-		attempts = 3
+    source = "%s"
+    parallelism = 3
+    attempts = 3
 }
-`
+`, rInt, location, rString, sourceBlobName)
+}
 
-var testAccAzureRMStorageBlob_source_uri = `
+func testAccAzureRMStorageBlob_source_uri(rInt int, rString string, sourceBlobName string, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "westus"
+    location = "%s"
 }
 
 resource "azurerm_storage_account" "source" {
-    name = "acctestacc%s"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "acctestacc%s"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -637,18 +648,17 @@ resource "azurerm_storage_blob" "source" {
     storage_container_name = "${azurerm_storage_container.source.name}"
 
     type = "block"
-		source = "%s"
-		parallelism = 4
-		attempts = 2
+    source = "%s"
+    parallelism = 4
+    attempts = 2
 }
 
 resource "azurerm_storage_blob" "destination" {
     name = "destination.vhd"
-
     resource_group_name = "${azurerm_resource_group.test.name}"
     storage_account_name = "${azurerm_storage_account.source.name}"
     storage_container_name = "${azurerm_storage_container.source.name}"
-
-		source_uri = "${azurerm_storage_blob.source.url}"
+    source_uri = "${azurerm_storage_blob.source.url}"
 }
-`
+`, rInt, location, rString, sourceBlobName)
+}

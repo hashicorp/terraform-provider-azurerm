@@ -3,12 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_network_interface"
 sidebar_current: "docs-azurerm-resource-network-interface"
 description: |-
-  Manages the Network Interface cards that link the Virtual Machines and Virtual Network.
+  Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
+
 ---
 
-# azurerm\_network\_interface
+# azurerm_network_interface
 
-Network interface cards are virtual network cards that form the link between virtual machines and the virtual network
+Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
 
 ## Example Usage
 
@@ -21,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acceptanceTestVirtualNetwork1"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -34,7 +35,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acceptanceTestNetworkInterface1"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
@@ -53,25 +54,23 @@ resource "azurerm_network_interface" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network interface. Changing this forces a
-    new resource to be created.
+* `name` - (Required) The name of the network interface. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the network interface.
+* `resource_group_name` - (Required) The name of the resource group in which to create the network interface. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the network interface is
-    created. Changing this forces a new resource to be created.
+* `location` - (Required) The location/region where the network interface is created. Changing this forces a new resource to be created.
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with
-                                               the network interface.
+* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the network interface.
 
 * `internal_dns_name_label` - (Optional) Relative DNS name for this NIC used for internal communications between VMs in the same VNet
 
 * `enable_ip_forwarding` - (Optional) Enables IP Forwarding on the NIC. Defaults to `false`.
 
+* `enable_accelerated_networking` - (Optional) Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Refer to [Create a Virtual Machine with Accelerated Networking](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli). Defaults to `false`.
+
 * `dns_servers` - (Optional) List of DNS servers IP addresses to use for this NIC, overrides the VNet-level server list
 
-* `ip_configuration` - (Required) Collection of ipConfigurations associated with this NIC. Each `ip_configuration` block supports fields documented below.
+* `ip_configuration` - (Required) One or more `ip_configuration` associated with this NIC as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -91,11 +90,13 @@ The `ip_configuration` block supports:
 
 * `load_balancer_inbound_nat_rules_ids` - (Optional) List of Load Balancer Inbound Nat Rules IDs involving this NIC
 
+* `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The virtual NetworkConfiguration ID.
+* `id` - The Virtual Network Interface ID.
 * `mac_address` - The media access control (MAC) address of the network interface.
 * `private_ip_address` - The private ip address of the network interface.
 * `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
@@ -106,6 +107,6 @@ The following attributes are exported:
 
 Network Interfaces can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_network_interface.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1
 ```

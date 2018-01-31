@@ -1,6 +1,5 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
-COVER_TEST?=$$(go list ./... |grep -v 'vendor')
 
 default: build
 
@@ -13,18 +12,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
-
-testrace: fmtcheck
-	TF_ACC= go test -race $(TEST) $(TESTARGS)
-
-cover:
-	@go tool cover 2>/dev/null; if [ $$? -eq 3 ]; then \
-		go get -u golang.org/x/tools/cmd/cover; \
-	fi
-	go test $(COVER_TEST) -coverprofile=coverage.out
-	go tool cover -html=coverage.out
-	rm coverage.out
+	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 180m
 
 vet:
 	@echo "go vet ."
@@ -39,20 +27,21 @@ fmt:
 	gofmt -w $(GOFMT_FILES)
 
 fmtcheck:
-	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
+	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 
 errcheck:
-	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
+	@sh "$(CURDIR)/scripts/errcheck.sh"
 
 vendor-status:
 	@govendor status
 
-test-compile: fmtcheck
+test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./builtin/providers/aws"; \
+		echo "  make test-compile TEST=./aws"; \
 		exit 1; \
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-.PHONY: build test testacc testrace cover vet fmt fmtcheck errcheck vendor-status test-compile
+.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile
+

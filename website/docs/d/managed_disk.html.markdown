@@ -6,7 +6,7 @@ description: |-
   Get information about the specified managed disk.
 ---
 
-# azurerm\_managed\_disk
+# Data Source: azurerm_managed_disk
 
 Use this data source to access the properties of an existing Azure Managed Disk.
 
@@ -54,7 +54,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "14.04.2-LTS"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 

@@ -533,6 +533,43 @@ func (s *State) equal(other *State) bool {
 	return true
 }
 
+// MarshalEqual is similar to Equal but provides a stronger definition of
+// "equal", where two states are equal if and only if their serialized form
+// is byte-for-byte identical.
+//
+// This is primarily useful for callers that are trying to save snapshots
+// of state to persistent storage, allowing them to detect when a new
+// snapshot must be taken.
+//
+// Note that the serial number and lineage are included in the serialized form,
+// so it's the caller's responsibility to properly manage these attributes
+// so that this method is only called on two states that have the same
+// serial and lineage, unless detecting such differences is desired.
+func (s *State) MarshalEqual(other *State) bool {
+	if s == nil && other == nil {
+		return true
+	} else if s == nil || other == nil {
+		return false
+	}
+
+	recvBuf := &bytes.Buffer{}
+	otherBuf := &bytes.Buffer{}
+
+	err := WriteState(s, recvBuf)
+	if err != nil {
+		// should never happen, since we're writing to a buffer
+		panic(err)
+	}
+
+	err = WriteState(other, otherBuf)
+	if err != nil {
+		// should never happen, since we're writing to a buffer
+		panic(err)
+	}
+
+	return bytes.Equal(recvBuf.Bytes(), otherBuf.Bytes())
+}
+
 type StateAgeComparison int
 
 const (
@@ -603,36 +640,16 @@ func (s *State) SameLineage(other *State) bool {
 // DeepCopy performs a deep copy of the state structure and returns
 // a new structure.
 func (s *State) DeepCopy() *State {
+	if s == nil {
+		return nil
+	}
+
 	copy, err := copystructure.Config{Lock: true}.Copy(s)
 	if err != nil {
 		panic(err)
 	}
 
 	return copy.(*State)
-}
-
-// IncrementSerialMaybe increments the serial number of this state
-// if it different from the other state.
-func (s *State) IncrementSerialMaybe(other *State) {
-	if s == nil {
-		return
-	}
-	if other == nil {
-		return
-	}
-	s.Lock()
-	defer s.Unlock()
-
-	if s.Serial > other.Serial {
-		return
-	}
-	if other.TFVersion != s.TFVersion || !s.equal(other) {
-		if other.Serial > s.Serial {
-			s.Serial = other.Serial
-		}
-
-		s.Serial++
-	}
 }
 
 // FromFutureTerraform checks if this state was written by a Terraform
@@ -660,6 +677,7 @@ func (s *State) init() {
 	if s.Version == 0 {
 		s.Version = StateVersion
 	}
+
 	if s.moduleByPath(rootModulePath) == nil {
 		s.addModule(rootModulePath)
 	}
@@ -958,6 +976,10 @@ type ModuleState struct {
 	// Path is the import path from the root module. Modules imports are
 	// always disjoint, so the path represents amodule tree
 	Path []string `json:"path"`
+
+	// Locals are kept only transiently in-memory, because we can always
+	// re-compute them.
+	Locals map[string]interface{} `json:"-"`
 
 	// Outputs declared by the module and maintained for each module
 	// even though only the root module technically needs to be kept.
@@ -1663,7 +1685,20 @@ func (s *InstanceState) Equal(other *InstanceState) bool {
 		// We only do the deep check if both are non-nil. If one is nil
 		// we treat it as equal since their lengths are both zero (check
 		// above).
-		if !reflect.DeepEqual(s.Meta, other.Meta) {
+		//
+		// Since this can contain numeric values that may change types during
+		// serialization, let's compare the serialized values.
+		sMeta, err := json.Marshal(s.Meta)
+		if err != nil {
+			// marshaling primitives shouldn't ever error out
+			panic(err)
+		}
+		otherMeta, err := json.Marshal(other.Meta)
+		if err != nil {
+			panic(err)
+		}
+
+		if !bytes.Equal(sMeta, otherMeta) {
 			return false
 		}
 	}

@@ -81,14 +81,34 @@ func TestResourceAzureRMPublicIpDomainNameLabel_validation(t *testing.T) {
 func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVPublicIpStatic_basic, ri, ri)
+	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMPublicIPStatic_standard(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
@@ -99,20 +119,20 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
-
+	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVPublicIpStatic_basic, ri, ri)
+	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
-					testCheckAzureRMPublicIpDisappears("azurerm_public_ip.test"),
+					testCheckAzureRMPublicIpExists(resourceName),
+					testCheckAzureRMPublicIpDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -121,24 +141,20 @@ func TestAccAzureRMPublicIpStatic_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
-
+	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVPublicIpStatic_idleTimeout, ri, ri)
+	config := testAccAzureRMPublicIPStatic_idleTimeout(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test",
-						"idle_timeout_in_minutes",
-						"30",
-					),
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "idle_timeout_in_minutes", "30"),
 				),
 			},
 		},
@@ -146,37 +162,32 @@ func TestAccAzureRMPublicIpStatic_idleTimeout(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
-
+	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVPublicIpStatic_withTags, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVPublicIpStatic_withTagsUpdate, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMPublicIPStatic_withTags(ri, location)
+	postConfig := testAccAzureRMPublicIPStatic_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test", "tags.environment", "staging"),
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -184,29 +195,28 @@ func TestAccAzureRMPublicIpStatic_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
-
+	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVPublicIpStatic_basic, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVPublicIpStatic_update, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMPublicIPStatic_basic(ri, location)
+	postConfig := testAccAzureRMPublicIPStatic_update(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
+					testCheckAzureRMPublicIpExists(resourceName),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_public_ip.test", "domain_name_label", "mylabel01"),
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_label", fmt.Sprintf("acctest-%d", ri)),
 				),
 			},
 		},
@@ -214,16 +224,15 @@ func TestAccAzureRMPublicIpStatic_update(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpDynamic_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVPublicIpDynamic_basic, ri, ri)
+	config := testAccAzureRMPublicIPDynamic_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
@@ -241,17 +250,18 @@ func testCheckAzureRMPublicIpExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		availSetName := rs.Primary.Attributes["name"]
+		publicIPName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", availSetName)
+			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIPName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).publicIPClient
+		client := testAccProvider.Meta().(*ArmClient).publicIPClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, availSetName, "")
+		resp, err := client.Get(ctx, resourceGroup, publicIPName, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on publicIPClient: %s", err)
+			return fmt.Errorf("Bad: Get on publicIPClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -276,12 +286,16 @@ func testCheckAzureRMPublicIpDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIpName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).publicIPClient
-
-		_, error := conn.Delete(resourceGroup, publicIpName, make(chan struct{}))
-		err := <-error
+		client := testAccProvider.Meta().(*ArmClient).publicIPClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		future, err := client.Delete(ctx, resourceGroup, publicIpName)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on publicIPClient: %s", err)
+			return fmt.Errorf("Error deleting Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Public IP %q (Resource Group %q): %+v", publicIpName, resourceGroup, err)
 		}
 
 		return nil
@@ -289,7 +303,8 @@ func testCheckAzureRMPublicIpDisappears(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).publicIPClient
+	client := testAccProvider.Meta().(*ArmClient).publicIPClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_public_ip" {
@@ -299,7 +314,7 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			return nil
@@ -313,68 +328,99 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMVPublicIpStatic_basic = `
+func testAccAzureRMPublicIPStatic_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_public_ip" "test" {
     name = "acctestpublicip-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMVPublicIpStatic_update = `
+func testAccAzureRMPublicIPStatic_standard(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_public_ip" "test" {
     name = "acctestpublicip-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
-    domain_name_label = "mylabel01"
+    sku = "standard"
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMVPublicIpStatic_idleTimeout = `
+func testAccAzureRMPublicIPStatic_update(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_public_ip" "test" {
     name = "acctestpublicip-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+    domain_name_label = "acctest-%d"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_idleTimeout(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name = "acctestpublicip-%d"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
     idle_timeout_in_minutes = 30
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMVPublicIpDynamic_basic = `
+func testAccAzureRMPublicIPDynamic_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_public_ip" "test" {
     name = "acctestpublicip-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "dynamic"
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMVPublicIpStatic_withTags = `
+func testAccAzureRMPublicIPStatic_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_public_ip" "test" {
     name = "acctestpublicip-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
 
@@ -383,16 +429,19 @@ resource "azurerm_public_ip" "test" {
 	cost_center = "MSFT"
     }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMVPublicIpStatic_withTagsUpdate = `
+func testAccAzureRMPublicIPStatic_withTagsUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
+
 resource "azurerm_public_ip" "test" {
     name = "acctestpublicip-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
 
@@ -400,4 +449,5 @@ resource "azurerm_public_ip" "test" {
 	environment = "staging"
     }
 }
-`
+`, rInt, location, rInt)
+}

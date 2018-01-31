@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMRoute_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRoute_basic, ri, ri, ri)
+	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,9 +31,8 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_disappears(t *testing.T) {
-
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRoute_basic, ri, ri, ri)
+	config := testAccAzureRMRoute_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -53,10 +52,10 @@ func TestAccAzureRMRoute_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
-
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMRoute_basic, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMRoute_multipleRoutes, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMRoute_basic(ri, location)
+	postConfig := testAccAzureRMRoute_multipleRoutes(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -85,25 +84,25 @@ func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %q", name)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		rtName := rs.Primary.Attributes["route_table_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).routesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, rtName, name)
+		resp, err := client.Get(ctx, resourceGroup, rtName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on routesClient: %s", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Route %q (resource group: %q) does not exist", name, resourceGroup)
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Route %q (resource group: %q) does not exist", name, resourceGroup)
+			}
+			return fmt.Errorf("Bad: Get on routesClient: %+v", err)
 		}
 
 		return nil
@@ -125,12 +124,17 @@ func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).routesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, rtName, name, make(chan struct{}))
-		err := <-error
+		future, err := client.Delete(ctx, resourceGroup, rtName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on routesClient: %s", err)
+			return fmt.Errorf("Error deleting Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Route %q (Route Table %q / Resource Group %q): %+v", name, rtName, resourceGroup, err)
 		}
 
 		return nil
@@ -138,7 +142,8 @@ func testCheckAzureRMRouteDisappears(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMRouteDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).routesClient
+	client := testAccProvider.Meta().(*ArmClient).routesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route" {
@@ -149,7 +154,7 @@ func testCheckAzureRMRouteDestroy(s *terraform.State) error {
 		rtName := rs.Primary.Attributes["route_table_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, rtName, name)
+		resp, err := client.Get(ctx, resourceGroup, rtName, name)
 
 		if err != nil {
 			return nil
@@ -163,15 +168,16 @@ func testCheckAzureRMRouteDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMRoute_basic = `
+func testAccAzureRMRoute_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -183,17 +189,19 @@ resource "azurerm_route" "test" {
     address_prefix = "10.1.0.0/16"
     next_hop_type = "vnetlocal"
 }
-`
+`, rInt, location, rInt, rInt)
+}
 
-var testAccAzureRMRoute_multipleRoutes = `
+func testAccAzureRMRoute_multipleRoutes(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -205,4 +213,5 @@ resource "azurerm_route" "test1" {
     address_prefix = "10.2.0.0/16"
     next_hop_type = "none"
 }
-`
+`, rInt, location, rInt, rInt)
+}

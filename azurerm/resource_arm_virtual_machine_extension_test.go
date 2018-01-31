@@ -3,9 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"testing"
-
 	"regexp"
+	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -13,27 +12,29 @@ import (
 )
 
 func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_extension.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMVirtualMachineExtension_basic, ri, ri, ri, ri, ri, ri, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMVirtualMachineExtension_basicUpdate, ri, ri, ri, ri, ri, ri, ri, ri)
+	location := testLocation()
+	preConfig := testAccAzureRMVirtualMachineExtension_basic(ri, location)
+	postConfig := testAccAzureRMVirtualMachineExtension_basicUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists("azurerm_virtual_machine_extension.test"),
-					resource.TestMatchResourceAttr("azurerm_virtual_machine_extension.test", "settings", regexp.MustCompile("hostname")),
+					testCheckAzureRMVirtualMachineExtensionExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "settings", regexp.MustCompile("hostname")),
 				),
 			},
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists("azurerm_virtual_machine_extension.test"),
-					resource.TestMatchResourceAttr("azurerm_virtual_machine_extension.test", "settings", regexp.MustCompile("whoami")),
+					testCheckAzureRMVirtualMachineExtensionExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "settings", regexp.MustCompile("whoami")),
 				),
 			},
 		},
@@ -41,21 +42,23 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
+	firstResourceName := "azurerm_virtual_machine_extension.test"
+	secondResourceName := "azurerm_virtual_machine_extension.test2"
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineExtension_concurrent, ri, ri, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineExtension_concurrent(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineExtensionExists("azurerm_virtual_machine_extension.test"),
-					testCheckAzureRMVirtualMachineExtensionExists("azurerm_virtual_machine_extension.test2"),
-					resource.TestMatchResourceAttr("azurerm_virtual_machine_extension.test", "settings", regexp.MustCompile("hostname")),
-					resource.TestMatchResourceAttr("azurerm_virtual_machine_extension.test2", "settings", regexp.MustCompile("whoami")),
+					testCheckAzureRMVirtualMachineExtensionExists(firstResourceName),
+					testCheckAzureRMVirtualMachineExtensionExists(secondResourceName),
+					resource.TestMatchResourceAttr(firstResourceName, "settings", regexp.MustCompile("hostname")),
+					resource.TestMatchResourceAttr(secondResourceName, "settings", regexp.MustCompile("whoami")),
 				),
 			},
 		},
@@ -64,14 +67,14 @@ func TestAccAzureRMVirtualMachineExtension_concurrent(t *testing.T) {
 
 func TestAccAzureRMVirtualMachineExtension_linuxDiagnostics(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMVirtualMachineExtension_linuxDiagnostics, ri, ri, ri, ri, ri, ri, ri, ri)
+	config := testAccAzureRMVirtualMachineExtension_linuxDiagnostics(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineExtensionDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExtensionExists("azurerm_virtual_machine_extension.test"),
@@ -93,9 +96,10 @@ func testCheckAzureRMVirtualMachineExtensionExists(name string) resource.TestChe
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+		client := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, vmName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmExtensionClient: %s", err)
 		}
@@ -109,7 +113,8 @@ func testCheckAzureRMVirtualMachineExtensionExists(name string) resource.TestChe
 }
 
 func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+	client := testAccProvider.Meta().(*ArmClient).vmExtensionClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_virtual_machine_extension" {
@@ -120,7 +125,7 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, vmName, name, "")
+		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
 
 		if err != nil {
 			return nil
@@ -134,16 +139,17 @@ func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
 	return nil
 }
 
-var testAccAzureRMVirtualMachineExtension_basic = `
+func testAccAzureRMVirtualMachineExtension_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestrg-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -156,7 +162,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -167,10 +173,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -186,16 +193,16 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_A0"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -206,9 +213,9 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hostname%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hostname%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
@@ -218,7 +225,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
     name = "acctvme-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     virtual_machine_name = "${azurerm_virtual_machine.test.name}"
     publisher = "Microsoft.Azure.Extensions"
@@ -235,18 +242,20 @@ SETTINGS
 		environment = "Production"
 	}
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachineExtension_basicUpdate = `
+func testAccAzureRMVirtualMachineExtension_basicUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestrg-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -259,7 +268,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -270,10 +279,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -289,16 +299,16 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_A0"
 
     storage_image_reference {
-	publisher = "Canonical"
-	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
-	version = "latest"
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
     }
 
     storage_os_disk {
@@ -309,9 +319,9 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-	computer_name = "hostname%d"
-	admin_username = "testadmin"
-	admin_password = "Password1234!"
+		computer_name = "hostname%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
@@ -321,7 +331,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
     name = "acctvme-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     virtual_machine_name = "${azurerm_virtual_machine.test.name}"
     publisher = "Microsoft.Azure.Extensions"
@@ -339,18 +349,20 @@ SETTINGS
 		cost_center = "MSFT"
 	}
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachineExtension_concurrent = `
+func testAccAzureRMVirtualMachineExtension_concurrent(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestrg-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -363,7 +375,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -374,10 +386,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -393,7 +406,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_A0"
@@ -401,7 +414,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -425,7 +438,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
     name = "acctvme-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     virtual_machine_name = "${azurerm_virtual_machine.test.name}"
     publisher = "Microsoft.Azure.Extensions"
@@ -441,7 +454,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "test2" {
     name = "acctvme-%d-2"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     virtual_machine_name = "${azurerm_virtual_machine.test.name}"
     publisher = "Microsoft.OSTCExtensions"
@@ -454,18 +467,20 @@ resource "azurerm_virtual_machine_extension" "test2" {
 	}
 SETTINGS
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
 
-var testAccAzureRMVirtualMachineExtension_linuxDiagnostics = `
+func testAccAzureRMVirtualMachineExtension_linuxDiagnostics(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestrg-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_virtual_network" "test" {
     name = "acctvn-%d"
     address_space = ["10.0.0.0/16"]
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -478,7 +493,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
     name = "acctni-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
@@ -489,10 +504,11 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name = "accsa%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westus"
-    account_type = "Standard_LRS"
+    name                     = "accsa%d"
+    resource_group_name      = "${azurerm_resource_group.test.name}"
+    location                 = "${azurerm_resource_group.test.location}"
+    account_tier             = "Standard"
+    account_replication_type = "LRS"
 
     tags {
         environment = "staging"
@@ -508,7 +524,7 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
     name = "acctvm-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_A0"
@@ -516,7 +532,7 @@ resource "azurerm_virtual_machine" "test" {
     storage_image_reference {
 	publisher = "Canonical"
 	offer = "UbuntuServer"
-	sku = "14.04.2-LTS"
+	sku = "16.04-LTS"
 	version = "latest"
     }
 
@@ -540,7 +556,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
     name = "acctvme-%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     virtual_machine_name = "${azurerm_virtual_machine.test.name}"
     publisher = "Microsoft.OSTCExtensions"
@@ -558,4 +574,5 @@ SETTINGS
 		environment = "Production"
 	}
 }
-`
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}

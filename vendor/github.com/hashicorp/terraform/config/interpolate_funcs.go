@@ -1,6 +1,8 @@
 package config
 
 import (
+	"bytes"
+	"compress/gzip"
 	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
@@ -12,6 +14,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net"
+	"net/url"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -58,6 +61,7 @@ func Funcs() map[string]ast.Function {
 		"basename":     interpolationFuncBasename(),
 		"base64decode": interpolationFuncBase64Decode(),
 		"base64encode": interpolationFuncBase64Encode(),
+		"base64gzip":   interpolationFuncBase64Gzip(),
 		"base64sha256": interpolationFuncBase64Sha256(),
 		"base64sha512": interpolationFuncBase64Sha512(),
 		"bcrypt":       interpolationFuncBcrypt(),
@@ -70,14 +74,17 @@ func Funcs() map[string]ast.Function {
 		"coalescelist": interpolationFuncCoalesceList(),
 		"compact":      interpolationFuncCompact(),
 		"concat":       interpolationFuncConcat(),
+		"contains":     interpolationFuncContains(),
 		"dirname":      interpolationFuncDirname(),
 		"distinct":     interpolationFuncDistinct(),
 		"element":      interpolationFuncElement(),
 		"file":         interpolationFuncFile(),
 		"matchkeys":    interpolationFuncMatchKeys(),
+		"flatten":      interpolationFuncFlatten(),
 		"floor":        interpolationFuncFloor(),
 		"format":       interpolationFuncFormat(),
 		"formatlist":   interpolationFuncFormatList(),
+		"indent":       interpolationFuncIndent(),
 		"index":        interpolationFuncIndex(),
 		"join":         interpolationFuncJoin(),
 		"jsonencode":   interpolationFuncJSONEncode(),
@@ -106,6 +113,7 @@ func Funcs() map[string]ast.Function {
 		"title":        interpolationFuncTitle(),
 		"trimspace":    interpolationFuncTrimSpace(),
 		"upper":        interpolationFuncUpper(),
+		"urlencode":    interpolationFuncURLEncode(),
 		"zipmap":       interpolationFuncZipMap(),
 	}
 }
@@ -352,6 +360,22 @@ func interpolationFuncCoalesceList() ast.Function {
 				}
 			}
 			return make([]ast.Variable, 0), nil
+		},
+	}
+}
+
+// interpolationFuncContains returns true if an element is in the list
+// and return false otherwise
+func interpolationFuncContains() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeList, ast.TypeString},
+		ReturnType: ast.TypeBool,
+		Callback: func(args []interface{}) (interface{}, error) {
+			_, err := interpolationFuncIndex().Callback(args)
+			if err != nil {
+				return false, nil
+			}
+			return true, nil
 		},
 	}
 }
@@ -652,6 +676,21 @@ func interpolationFuncFormatList() ast.Function {
 	}
 }
 
+// interpolationFuncIndent indents a multi-line string with the
+// specified number of spaces
+func interpolationFuncIndent() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeInt, ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			spaces := args[0].(int)
+			data := args[1].(string)
+			pad := strings.Repeat(" ", spaces)
+			return strings.Replace(data, "\n", "\n"+pad, -1), nil
+		},
+	}
+}
+
 // interpolationFuncIndex implements the "index" function that allows one to
 // find the index of a specific element in a list
 func interpolationFuncIndex() ast.Function {
@@ -806,8 +845,7 @@ func interpolationFuncJoin() ast.Function {
 }
 
 // interpolationFuncJSONEncode implements the "jsonencode" function that encodes
-// a string, list, or map as its JSON representation. For now, values in the
-// list or map may only be strings.
+// a string, list, or map as its JSON representation.
 func interpolationFuncJSONEncode() ast.Function {
 	return ast.Function{
 		ArgTypes:   []ast.Type{ast.TypeAny},
@@ -820,28 +858,36 @@ func interpolationFuncJSONEncode() ast.Function {
 				toEncode = typedArg
 
 			case []ast.Variable:
-				// We preallocate the list here. Note that it's important that in
-				// the length 0 case, we have an empty list rather than nil, as
-				// they encode differently.
-				// XXX It would be nice to support arbitrarily nested data here. Is
-				// there an inverse of hil.InterfaceToVariable?
 				strings := make([]string, len(typedArg))
 
 				for i, v := range typedArg {
 					if v.Type != ast.TypeString {
-						return "", fmt.Errorf("list elements must be strings")
+						variable, _ := hil.InterfaceToVariable(typedArg)
+						toEncode, _ = hil.VariableToInterface(variable)
+
+						jEnc, err := json.Marshal(toEncode)
+						if err != nil {
+							return "", fmt.Errorf("failed to encode JSON data '%s'", toEncode)
+						}
+						return string(jEnc), nil
+
 					}
 					strings[i] = v.Value.(string)
 				}
 				toEncode = strings
 
 			case map[string]ast.Variable:
-				// XXX It would be nice to support arbitrarily nested data here. Is
-				// there an inverse of hil.InterfaceToVariable?
 				stringMap := make(map[string]string)
 				for k, v := range typedArg {
 					if v.Type != ast.TypeString {
-						return "", fmt.Errorf("map values must be strings")
+						variable, _ := hil.InterfaceToVariable(typedArg)
+						toEncode, _ = hil.VariableToInterface(variable)
+
+						jEnc, err := json.Marshal(toEncode)
+						if err != nil {
+							return "", fmt.Errorf("failed to encode JSON data '%s'", toEncode)
+						}
+						return string(jEnc), nil
 					}
 					stringMap[k] = v.Value.(string)
 				}
@@ -1180,6 +1226,32 @@ func interpolationFuncBase64Decode() ast.Function {
 	}
 }
 
+// interpolationFuncBase64Gzip implements the "gzip" function that allows gzip
+// compression encoding the result using base64
+func interpolationFuncBase64Gzip() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			s := args[0].(string)
+
+			var b bytes.Buffer
+			gz := gzip.NewWriter(&b)
+			if _, err := gz.Write([]byte(s)); err != nil {
+				return "", fmt.Errorf("failed to write gzip raw data: '%s'", s)
+			}
+			if err := gz.Flush(); err != nil {
+				return "", fmt.Errorf("failed to flush gzip writer: '%s'", s)
+			}
+			if err := gz.Close(); err != nil {
+				return "", fmt.Errorf("failed to close gzip writer: '%s'", s)
+			}
+
+			return base64.StdEncoding.EncodeToString(b.Bytes()), nil
+		},
+	}
+}
+
 // interpolationFuncLower implements the "lower" function that does
 // string lower casing.
 func interpolationFuncLower() ast.Function {
@@ -1433,6 +1505,44 @@ func interpolationFuncSubstr() ast.Function {
 			}
 
 			return str[offset:length], nil
+		},
+	}
+}
+
+// Flatten until it's not ast.TypeList
+func flattener(finalList []ast.Variable, flattenList []ast.Variable) []ast.Variable {
+	for _, val := range flattenList {
+		if val.Type == ast.TypeList {
+			finalList = flattener(finalList, val.Value.([]ast.Variable))
+		} else {
+			finalList = append(finalList, val)
+		}
+	}
+	return finalList
+}
+
+// Flatten to single list
+func interpolationFuncFlatten() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeList},
+		ReturnType: ast.TypeList,
+		Variadic:   false,
+		Callback: func(args []interface{}) (interface{}, error) {
+			inputList := args[0].([]ast.Variable)
+
+			var outputList []ast.Variable
+			return flattener(outputList, inputList), nil
+		},
+	}
+}
+
+func interpolationFuncURLEncode() ast.Function {
+	return ast.Function{
+		ArgTypes:   []ast.Type{ast.TypeString},
+		ReturnType: ast.TypeString,
+		Callback: func(args []interface{}) (interface{}, error) {
+			s := args[0].(string)
+			return url.QueryEscape(s), nil
 		},
 	}
 }

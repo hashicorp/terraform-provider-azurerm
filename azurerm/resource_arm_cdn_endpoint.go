@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"net/http"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmCdnEndpoint() *schema.Resource {
@@ -31,11 +32,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"profile_name": {
 				Type:     schema.TypeString,
@@ -80,13 +77,13 @@ func resourceArmCdnEndpoint() *schema.Resource {
 						"http_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  80,
 						},
 
 						"https_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Computed: true,
+							Default:  443,
 						},
 					},
 				},
@@ -133,8 +130,8 @@ func resourceArmCdnEndpoint() *schema.Resource {
 }
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	cdnEndpointsClient := client.cdnEndpointsClient
+	client := meta.(*ArmClient).cdnEndpointsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
 
@@ -190,13 +187,17 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		Tags:               expandTags(tags),
 	}
 
-	_, error := cdnEndpointsClient.Create(resGroup, profileName, name, cdnEndpoint, make(<-chan struct{}))
-	err := <-error
+	future, err := client.Create(ctx, resGroup, profileName, name, cdnEndpoint)
 	if err != nil {
 		return err
 	}
 
-	read, err := cdnEndpointsClient.Get(resGroup, profileName, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, profileName, name)
 	if err != nil {
 		return err
 	}
@@ -210,7 +211,8 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	cdnEndpointsClient := meta.(*ArmClient).cdnEndpointsClient
+	client := meta.(*ArmClient).cdnEndpointsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -223,9 +225,9 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		profileName = id.Path["Profiles"]
 	}
 	log.Printf("[INFO] Trying to find the AzureRM CDN Endpoint %s (Profile: %s, RG: %s)", name, profileName, resGroup)
-	resp, err := cdnEndpointsClient.Get(resGroup, profileName, name)
+	resp, err := client.Get(ctx, resGroup, profileName, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -258,11 +260,8 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
-	cdnEndpointsClient := meta.(*ArmClient).cdnEndpointsClient
-
-	if !d.HasChange("tags") {
-		return nil
-	}
+	client := meta.(*ArmClient).cdnEndpointsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -306,8 +305,12 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		EndpointPropertiesUpdateParameters: &properties,
 	}
 
-	_, error := cdnEndpointsClient.Update(resGroup, profileName, name, updateProps, make(<-chan struct{}))
-	err := <-error
+	future, err := client.Update(ctx, resGroup, profileName, name, updateProps)
+	if err != nil {
+		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Endpoint %q: %s", name, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Endpoint %q: %s", name, err)
 	}
@@ -317,6 +320,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).cdnEndpointsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -329,11 +333,17 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 	name := id.Path["endpoints"]
 
-	accResp, error := client.Delete(resGroup, profileName, name, make(<-chan struct{}))
-	resp := <-accResp
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, profileName, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error issuing AzureRM delete request for CDN Endpoint %q: %s", name, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error issuing AzureRM delete request for CDN Endpoint %q: %s", name, err)

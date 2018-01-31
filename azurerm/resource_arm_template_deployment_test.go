@@ -13,7 +13,7 @@ import (
 
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTemplateDeployment_basicMultiple, ri, ri)
+	config := testAccAzureRMTemplateDeployment_basicMultiple(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -31,7 +31,7 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTemplateDeployment_basicSingle, ri, ri, ri)
+	config := testAccAzureRMTemplateDeployment_basicSingle(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -51,7 +51,7 @@ func TestAccAzureRMTemplateDeployment_disappears(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTemplateDeployment_withParams, ri, ri, ri)
+	config := testAccAzureRMTemplateDeployment_withParams(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -70,7 +70,7 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTemplateDeployment_withOutputs, ri, ri, ri)
+	config := testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -93,7 +93,7 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 
 func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMTemplateDeployment_withError, ri, ri)
+	config := testAccAzureRMTemplateDeployment_withError(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -101,7 +101,7 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      config,
-				ExpectError: regexp.MustCompile("The deployment operation failed"),
+				ExpectError: regexp.MustCompile("Code=\"DeploymentFailed\""),
 			},
 		},
 	})
@@ -121,9 +121,10 @@ func testCheckAzureRMTemplateDeploymentExists(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on deploymentsClient: %s", err)
 		}
@@ -144,26 +145,27 @@ func testCheckAzureRMTemplateDeploymentDisappears(name string) resource.TestChec
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		name := rs.Primary.Attributes["name"]
+		deploymentName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-error
+		_, err := client.Delete(ctx, resourceGroup, deploymentName)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on deploymentsClient: %s", err)
+			return fmt.Errorf("Failed deleting Deployment %q (Resource Group %q): %+v", deploymentName, resourceGroup, err)
 		}
 
-		return nil
+		return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, deploymentName)
 	}
 }
 
 func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).vmClient
+	client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_template_deployment" {
@@ -173,24 +175,25 @@ func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Template Deployment still exists:\n%#v", resp.VirtualMachineProperties)
+			return fmt.Errorf("Template Deployment still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-var testAccAzureRMTemplateDeployment_basicSingle = `
-  resource "azurerm_resource_group" "test" {
+func testAccAzureRMTemplateDeployment_basicSingle(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
   }
 
   resource "azurerm_template_deployment" "test" {
@@ -224,13 +227,14 @@ var testAccAzureRMTemplateDeployment_basicSingle = `
 DEPLOY
     deployment_mode = "Complete"
   }
+`, rInt, location, rInt, rInt)
+}
 
-`
-
-var testAccAzureRMTemplateDeployment_basicMultiple = `
+func testAccAzureRMTemplateDeployment_basicMultiple(rInt int, location string) string {
+	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
   }
 
   resource "azurerm_template_deployment" "test" {
@@ -289,13 +293,14 @@ var testAccAzureRMTemplateDeployment_basicMultiple = `
 DEPLOY
     deployment_mode = "Complete"
   }
+`, rInt, location, rInt)
+}
 
-`
-
-var testAccAzureRMTemplateDeployment_withParams = `
+func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) string {
+	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
   }
 
   output "test" {
@@ -384,13 +389,14 @@ DEPLOY
     }
     deployment_mode = "Complete"
   }
+`, rInt, location, rInt, rInt)
+}
 
-`
-
-var testAccAzureRMTemplateDeployment_withOutputs = `
+func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) string {
+	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
   }
 
   output "tfStringOutput" {
@@ -504,14 +510,15 @@ DEPLOY
     }
     deployment_mode = "Incremental"
   }
-
-`
+`, rInt, location, rInt, rInt)
+}
 
 // StorageAccount name is too long, forces error
-var testAccAzureRMTemplateDeployment_withError = `
-  resource "azurerm_resource_group" "test" {
+func testAccAzureRMTemplateDeployment_withError(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
   }
 
   output "test" {
@@ -568,4 +575,5 @@ DEPLOY
     }
     deployment_mode = "Complete"
   }
-`
+`, rInt, location, rInt)
+}

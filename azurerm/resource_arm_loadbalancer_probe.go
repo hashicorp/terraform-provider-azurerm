@@ -5,11 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/jen20/riviera/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancerProbe() *schema.Resource {
@@ -31,11 +31,7 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 
 			"location": deprecatedLocationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"loadbalancer_id": {
 				Type:     schema.TypeString,
@@ -84,8 +80,8 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 }
 
 func resourceArmLoadBalancerProbeCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -93,7 +89,7 @@ func resourceArmLoadBalancerProbeCreate(d *schema.ResourceData, meta interface{}
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -103,7 +99,7 @@ func resourceArmLoadBalancerProbeCreate(d *schema.ResourceData, meta interface{}
 
 	newProbe, err := expandAzureRmLoadBalancerProbe(d, loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Expanding Probe {{err}}", err)
+		return fmt.Errorf("Error Expanding Probe: %+v", err)
 	}
 
 	probes := append(*loadBalancer.LoadBalancerPropertiesFormat.Probes, *newProbe)
@@ -119,45 +115,49 @@ func resourceArmLoadBalancerProbeCreate(d *schema.ResourceData, meta interface{}
 	loadBalancer.LoadBalancerPropertiesFormat.Probes = &probes
 	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer Name and Group: %+v", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read LoadBalancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read LoadBalancer %q (resource group %q) ID", loadBalancerName, resGroup)
 	}
 
-	var createdProbe_id string
+	var createdProbeId string
 	for _, Probe := range *(*read.LoadBalancerPropertiesFormat).Probes {
 		if *Probe.Name == d.Get("name").(string) {
-			createdProbe_id = *Probe.ID
+			createdProbeId = *Probe.ID
 		}
 	}
 
-	if createdProbe_id != "" {
-		d.SetId(createdProbe_id)
-	} else {
-		return fmt.Errorf("Cannot find created LoadBalancer Probe ID %q", createdProbe_id)
+	if createdProbeId == "" {
+		return fmt.Errorf("Cannot find created LoadBalancer Probe ID %q", createdProbeId)
 	}
+
+	d.SetId(createdProbeId)
 
 	log.Printf("[DEBUG] Waiting for LoadBalancer (%s) to become available", loadBalancerName)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"Accepted", "Updating"},
 		Target:  []string{"Succeeded"},
-		Refresh: loadbalancerStateRefreshFunc(client, resGroup, loadBalancerName),
+		Refresh: loadbalancerStateRefreshFunc(ctx, client, resGroup, loadBalancerName),
 		Timeout: 10 * time.Minute,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for LoadBalancer (%s) to become available: %s", loadBalancerName, err)
+		return fmt.Errorf("Error waiting for LoadBalancer (%q - Resource Group %q) to become available: %+v", loadBalancerName, resGroup, err)
 	}
 
 	return resourceArmLoadBalancerProbeRead(d, meta)
@@ -207,8 +207,8 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	lbClient := client.loadBalancerClient
+	client := meta.(*ArmClient).loadBalancerClient
+	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	armMutexKV.Lock(loadBalancerID)
@@ -216,7 +216,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting LoadBalancer By ID {{err}}", err)
+		return fmt.Errorf("Error Getting LoadBalancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
@@ -237,13 +237,17 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return errwrap.Wrapf("Error Getting LoadBalancer Name and Group: {{err}}", err)
 	}
 
-	_, error := lbClient.CreateOrUpdate(resGroup, loadBalancerName, *loadBalancer, make(chan struct{}))
-	err = <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating LoadBalancer {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
 	}
 
-	read, err := lbClient.Get(resGroup, loadBalancerName, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of LoadBalancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
 	if err != nil {
 		return errwrap.Wrapf("Error Getting LoadBalancer {{err}}", err)
 	}
@@ -257,9 +261,9 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 func expandAzureRmLoadBalancerProbe(d *schema.ResourceData, lb *network.LoadBalancer) (*network.Probe, error) {
 
 	properties := network.ProbePropertiesFormat{
-		NumberOfProbes:    azure.Int32(int32(d.Get("number_of_probes").(int))),
-		IntervalInSeconds: azure.Int32(int32(d.Get("interval_in_seconds").(int))),
-		Port:              azure.Int32(int32(d.Get("port").(int))),
+		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
+		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),
+		Port:              utils.Int32(int32(d.Get("port").(int))),
 	}
 
 	if v, ok := d.GetOk("protocol"); ok {
@@ -267,11 +271,11 @@ func expandAzureRmLoadBalancerProbe(d *schema.ResourceData, lb *network.LoadBala
 	}
 
 	if v, ok := d.GetOk("request_path"); ok {
-		properties.RequestPath = azure.String(v.(string))
+		properties.RequestPath = utils.String(v.(string))
 	}
 
 	probe := network.Probe{
-		Name: azure.String(d.Get("name").(string)),
+		Name: utils.String(d.Get("name").(string)),
 		ProbePropertiesFormat: &properties,
 	}
 

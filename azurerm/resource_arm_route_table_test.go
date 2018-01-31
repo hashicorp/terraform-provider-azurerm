@@ -2,73 +2,25 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestResourceAzureRMRouteTableNextHopType_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-		{
-			Value:    "VirtualNetworkGateway",
-			ErrCount: 0,
-		},
-		{
-			Value:    "VNETLocal",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Internet",
-			ErrCount: 0,
-		},
-		{
-			Value:    "VirtualAppliance",
-			ErrCount: 0,
-		},
-		{
-			Value:    "None",
-			ErrCount: 0,
-		},
-		{
-			Value:    "VIRTUALNETWORKGATEWAY",
-			ErrCount: 0,
-		},
-		{
-			Value:    "virtualnetworkgateway",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateRouteTableNextHopType(tc.Value, "azurerm_route_table")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Route Table nextHopType to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAzureRMRouteTable_basic(t *testing.T) {
-
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRouteTable_basic, ri, ri)
+	config := testAccAzureRMRouteTable_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
@@ -78,21 +30,69 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRouteTable_disappears(t *testing.T) {
-
+func TestAccAzureRMRouteTable_singleRoute(t *testing.T) {
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMRouteTable_basic, ri, ri)
+	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
-					testCheckAzureRMRouteTableDisappears("azurerm_route_table.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
+	updatedConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRouteTable_disappears(t *testing.T) {
+	resourceName := "azurerm_route_table.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMRouteTable_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					testCheckAzureRMRouteTableDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -101,37 +101,31 @@ func TestAccAzureRMRouteTable_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMRouteTable_withTags(t *testing.T) {
-
+	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMRouteTable_withTags, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMRouteTable_withTagsUpdate, ri, ri)
+	preConfig := testAccAzureRMRouteTable_withTags(ri, testLocation())
+	postConfig := testAccAzureRMRouteTable_withTagsUpdate(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_route_table.test", "tags.%", "2"),
-					resource.TestCheckResourceAttr(
-						"azurerm_route_table.test", "tags.environment", "Production"),
-					resource.TestCheckResourceAttr(
-						"azurerm_route_table.test", "tags.cost_center", "MSFT"),
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.cost_center", "MSFT"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_route_table.test", "tags.%", "1"),
-					resource.TestCheckResourceAttr(
-						"azurerm_route_table.test", "tags.environment", "staging"),
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
 				),
 			},
 		},
@@ -139,31 +133,67 @@ func TestAccAzureRMRouteTable_withTags(t *testing.T) {
 }
 
 func TestAccAzureRMRouteTable_multipleRoutes(t *testing.T) {
-
+	resourceName := "azurerm_route_table.test"
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccAzureRMRouteTable_basic, ri, ri)
-	postConfig := fmt.Sprintf(testAccAzureRMRouteTable_multipleRoutes, ri, ri)
+	preConfig := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
+	postConfig := testAccAzureRMRouteTable_multipleRoutes(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
-			resource.TestStep{
+			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_route_table.test", "route.#", "1"),
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "route.0.name", "route1"),
+					resource.TestCheckResourceAttr(resourceName, "route.0.address_prefix", "10.1.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "route.0.next_hop_type", "VnetLocal"),
 				),
 			},
-
-			resource.TestStep{
+			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "route.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "route.0.name", "route1"),
+					resource.TestCheckResourceAttr(resourceName, "route.0.address_prefix", "10.1.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "route.0.next_hop_type", "VnetLocal"),
+					resource.TestCheckResourceAttr(resourceName, "route.1.name", "route2"),
+					resource.TestCheckResourceAttr(resourceName, "route.1.address_prefix", "10.2.0.0/16"),
+					resource.TestCheckResourceAttr(resourceName, "route.1.next_hop_type", "VnetLocal"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
+	ri := acctest.RandInt()
+	configSetup := testAccAzureRMRouteTable_withTagsSubnet(ri, testLocation())
+	configTest := testAccAzureRMRouteTable_withAddTagsSubnet(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configSetup,
+				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
-					resource.TestCheckResourceAttr(
-						"azurerm_route_table.test", "route.#", "2"),
+					testCheckAzureRMSubnetExists("azurerm_subnet.subnet1"),
+					resource.TestCheckResourceAttrSet("azurerm_subnet.subnet1", "route_table_id"),
+				),
+			},
+			{
+				Config: configTest,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists("azurerm_route_table.test"),
+					testCheckAzureRMSubnetExists("azurerm_subnet.subnet1"),
+					resource.TestCheckResourceAttrSet("azurerm_subnet.subnet1", "route_table_id"),
 				),
 			},
 		},
@@ -175,24 +205,25 @@ func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
 
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %q", name)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route table: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on routeTablesClient: %s", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Route Table %q (resource group: %q) does not exist", name, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Route Table %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Get on routeTablesClient: %+v", err)
 		}
 
 		return nil
@@ -201,24 +232,30 @@ func testCheckAzureRMRouteTableExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %q", name)
 		}
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for route table: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, error := conn.Delete(resourceGroup, name, make(chan struct{}))
-		err := <-error
+		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Delete on routeTablesClient: %s", err)
+			if !response.WasNotFound(future.Response()) {
+				return fmt.Errorf("Error deleting Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of Route Table %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		return nil
@@ -226,7 +263,8 @@ func testCheckAzureRMRouteTableDisappears(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).routeTablesClient
+	client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_route_table" {
@@ -236,29 +274,46 @@ func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
-
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
-			return nil
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Route Table still exists:\n%#v", resp.RouteTablePropertiesFormat)
-		}
+		return fmt.Errorf("Route Table still exists:\n%#v", resp.RouteTablePropertiesFormat)
 	}
 
 	return nil
 }
 
-var testAccAzureRMRouteTable_basic = `
+func testAccAzureRMRouteTable_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_singleRoute(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+    name = "acctestrt%d"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
@@ -267,17 +322,35 @@ resource "azurerm_route_table" "test" {
 		next_hop_type = "vnetlocal"
     }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMRouteTable_multipleRoutes = `
+func testAccAzureRMRouteTable_singleRouteRemoved(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+	route = []
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_multipleRoutes(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+    name = "acctestrt%d"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
@@ -292,17 +365,19 @@ resource "azurerm_route_table" "test" {
 		next_hop_type = "vnetlocal"
     }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMRouteTable_withTags = `
+func testAccAzureRMRouteTable_withTags(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
@@ -312,21 +387,23 @@ resource "azurerm_route_table" "test" {
     }
 
     tags {
-	environment = "Production"
-	cost_center = "MSFT"
+		environment = "Production"
+		cost_center = "MSFT"
     }
 }
-`
+`, rInt, location, rInt)
+}
 
-var testAccAzureRMRouteTable_withTagsUpdate = `
+func testAccAzureRMRouteTable_withTagsUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 
 resource "azurerm_route_table" "test" {
     name = "acctestrt%d"
-    location = "West US"
+    location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     route {
@@ -336,7 +413,105 @@ resource "azurerm_route_table" "test" {
     }
 
     tags {
-	environment = "staging"
+		environment = "staging"
     }
 }
-`
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMRouteTable_withTagsSubnet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name 		= "acctestRG-%d"
+	location 	= "%s"
+    tags {
+		environment = "staging"
+    }
+}
+
+resource "azurerm_virtual_network" "test" {
+    name 				= "acctestvirtnet%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    address_space 		= ["10.0.0.0/16"]
+ 
+	tags {
+		environment = "staging"
+    }
+}
+  
+resource "azurerm_subnet" "subnet1" {
+	name                 = "subnet1"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.1.0/24"
+	route_table_id       = "${azurerm_route_table.test.id}"
+}
+
+resource "azurerm_route_table" "test" {
+    name 				= "acctestrt%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    route {
+    	name = "route1"
+    	address_prefix = "10.1.0.0/16"
+    	next_hop_type = "vnetlocal"
+    }
+
+    tags {
+		environment = "staging"
+    }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRouteTable_withAddTagsSubnet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name 		= "acctestRG-%d"
+	location 	= "%s"
+    tags {
+		environment = "staging"
+		cloud = "Azure"
+    }
+}
+
+resource "azurerm_virtual_network" "test" {
+    name 				= "acctestvirtnet%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    address_space 		= ["10.0.0.0/16"]
+ 
+	tags {
+		environment = "staging"
+		cloud = "Azure"
+    }
+}
+  
+resource "azurerm_subnet" "subnet1" {
+	name                 = "subnet1"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.1.0/24"
+	route_table_id       = "${azurerm_route_table.test.id}"
+}
+
+resource "azurerm_route_table" "test" {
+    name 				= "acctestrt%d"
+    location 			= "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    route {
+    	name = "route1"
+    	address_prefix = "10.1.0.0/16"
+    	next_hop_type = "vnetlocal"
+    }
+
+    tags {
+		environment = "staging"
+		cloud = "Azure"
+    }
+}
+`, rInt, location, rInt, rInt)
+}

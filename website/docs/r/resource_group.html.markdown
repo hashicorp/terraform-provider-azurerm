@@ -46,6 +46,6 @@ The following attributes are exported:
 
 Resource Groups can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_resource_group.mygroup /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup
 ```

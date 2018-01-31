@@ -2,18 +2,18 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubConsumerGroup_basic, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubConsumerGroup_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,7 +33,7 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 
 	ri := acctest.RandInt()
-	config := fmt.Sprintf(testAccAzureRMEventHubConsumerGroup_complete, ri, ri, ri, ri)
+	config := testAccAzureRMEventHubConsumerGroup_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -52,6 +52,7 @@ func TestAccAzureRMEventHubConsumerGroup_complete(t *testing.T) {
 
 func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_eventhub_consumer_group" {
@@ -63,14 +64,12 @@ func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
 
 		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("EventHub Consumer Group still exists:\n%#v", resp.ConsumerGroupProperties)
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
 		}
 	}
 
@@ -92,80 +91,83 @@ func testCheckAzureRMEventHubConsumerGroupExists(name string) resource.TestCheck
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		eventHubName := rs.Primary.Attributes["eventhub_name"]
 
-		resp, err := conn.Get(resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.Get(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on eventHubConsumerGroupClient: %s", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Event Hub Consumer Group %q (resource group: %q) does not exist", name, resourceGroup)
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Event Hub Consumer Group %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Get on eventHubConsumerGroupClient: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-var testAccAzureRMEventHubConsumerGroup_basic = `
+func testAccAzureRMEventHubConsumerGroup_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-    name                = "acctesteventhub-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    partition_count     = 2
-    message_retention   = 7
+  name                = "acctesteventhub-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-    name = "acctesteventhubcg-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    eventhub_name       = "${azurerm_eventhub.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctesteventhubcg-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  eventhub_name       = "${azurerm_eventhub.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}
 
-var testAccAzureRMEventHubConsumerGroup_complete = `
+func testAccAzureRMEventHubConsumerGroup_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
-    location = "West US"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
+
 resource "azurerm_eventhub_namespace" "test" {
-    name = "acctesteventhubnamespace-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    sku = "Standard"
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_eventhub" "test" {
-    name                = "acctesteventhub-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    partition_count     = 2
-    message_retention   = 7
+  name                = "acctesteventhub-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "test" {
-    name                = "acctesteventhubcg-%d"
-    namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-    eventhub_name       = "${azurerm_eventhub.test.name}"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    user_metadata       = "some-meta-data"
+  name                = "acctesteventhubcg-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  eventhub_name       = "${azurerm_eventhub.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  user_metadata       = "some-meta-data"
 }
-`
+`, rInt, location, rInt, rInt, rInt)
+}

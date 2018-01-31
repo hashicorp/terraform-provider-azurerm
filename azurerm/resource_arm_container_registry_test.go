@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
@@ -66,10 +67,67 @@ func TestAccAzureRMContainerRegistryName_validation(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMContainerRegistry_basic(t *testing.T) {
+func TestAccAzureRMContainerRegistry_basicClassic(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_basic(ri, rs)
+	config := testAccAzureRMContainerRegistry_basicUnmanaged(ri, rs, testLocation(), "Classic")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_basicBasic(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_basicStandard(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Standard")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists("azurerm_container_registry.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -89,7 +147,7 @@ func TestAccAzureRMContainerRegistry_basic(t *testing.T) {
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_complete(ri, rs)
+	config := testAccAzureRMContainerRegistry_complete(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -109,8 +167,9 @@ func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
-	config := testAccAzureRMContainerRegistry_complete(ri, rs)
-	updatedConfig := testAccAzureRMContainerRegistry_completeUpdated(ri, rs)
+	location := testLocation()
+	config := testAccAzureRMContainerRegistry_complete(ri, rs, location)
+	updatedConfig := testAccAzureRMContainerRegistry_completeUpdated(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -135,6 +194,7 @@ func TestAccAzureRMContainerRegistry_update(t *testing.T) {
 
 func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).containerRegistryClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_registry" {
@@ -144,15 +204,14 @@ func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
-
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return nil
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return err
+			}
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Container Registry still exists:\n%#v", resp)
-		}
+		return nil
 	}
 
 	return nil
@@ -173,10 +232,11 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerRegistryClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on containerRegistryClient: %s", err)
+			return fmt.Errorf("Bad: Get on containerRegistryClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -187,46 +247,60 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 	}
 }
 
-func testAccAzureRMContainerRegistry_basic(rInt int, rStr string) string {
+func testAccAzureRMContainerRegistry_basicManaged(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"
-  location = "West US"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "testaccsa%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  location = "%s"
 }
 
 resource "azurerm_container_registry" "test" {
   name                = "testacccr%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  sku                 = "Basic"
-
-  storage_account {
-    name       = "${azurerm_storage_account.test.name}"
-    access_key = "${azurerm_storage_account.test.primary_access_key}"
-  }
+  sku                 = "%s"
 }
-`, rInt, rStr, rInt)
+`, rInt, location, rInt, sku)
 }
 
-func testAccAzureRMContainerRegistry_complete(rInt int, rStr string) string {
+func testAccAzureRMContainerRegistry_basicUnmanaged(rInt int, rStr string, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"
-  location = "West US"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "testaccsa%s"
+  name                     = "testaccsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  sku                 = "%s"
+  storage_account_id = "${azurerm_storage_account.test.id}"
+}
+`, rInt, location, rStr, rInt, sku)
+}
+
+func testAccAzureRMContainerRegistry_complete(rInt int, rStr string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_container_registry" "test" {
@@ -234,32 +308,29 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = false
-  sku                 = "Basic"
-
-  storage_account {
-    name       = "${azurerm_storage_account.test.name}"
-    access_key = "${azurerm_storage_account.test.primary_access_key}"
-  }
+  sku                 = "Classic"
+  storage_account_id = "${azurerm_storage_account.test.id}"
 
   tags {
     environment = "production"
   }
 }
-`, rInt, rStr, rInt)
+`, rInt, location, rStr, rInt)
 }
 
-func testAccAzureRMContainerRegistry_completeUpdated(rInt int, rStr string) string {
+func testAccAzureRMContainerRegistry_completeUpdated(rInt int, rStr string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "testAccRg-%d"
-  location = "West US"
+  location = "%s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "testaccsa%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  account_type        = "Standard_LRS"
+  name                     = "testaccsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_container_registry" "test" {
@@ -267,16 +338,12 @@ resource "azurerm_container_registry" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
-  sku                 = "Basic"
-
-  storage_account {
-    name       = "${azurerm_storage_account.test.name}"
-    access_key = "${azurerm_storage_account.test.primary_access_key}"
-  }
+  sku                 = "Classic"
+  storage_account_id = "${azurerm_storage_account.test.id}"
 
   tags {
     environment = "production"
   }
 }
-`, rInt, rStr, rInt)
+`, rInt, location, rStr, rInt)
 }

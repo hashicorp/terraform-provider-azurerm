@@ -3,12 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
+	"net"
+	"regexp"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/keyvault"
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/satori/uuid"
+	uuid "github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // As can be seen in the API definition, the Sku Family only supports the value
@@ -25,24 +30,23 @@ func resourceArmKeyVault() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		MigrateState:  resourceAzureRMKeyVaultMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateKeyVaultName,
 			},
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -86,13 +90,39 @@ func resourceArmKeyVault() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validateUUID,
 						},
+						"application_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validateUUID,
+						},
+						"certificate_permissions": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(keyvault.Create),
+									string(keyvault.Delete),
+									string(keyvault.Deleteissuers),
+									string(keyvault.Get),
+									string(keyvault.Getissuers),
+									string(keyvault.Import),
+									string(keyvault.List),
+									string(keyvault.Listissuers),
+									string(keyvault.Managecontacts),
+									string(keyvault.Manageissuers),
+									string(keyvault.Setissuers),
+									string(keyvault.Update),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							},
+						},
 						"key_permissions": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.KeyPermissionsAll),
 									string(keyvault.KeyPermissionsBackup),
 									string(keyvault.KeyPermissionsCreate),
 									string(keyvault.KeyPermissionsDecrypt),
@@ -101,13 +131,16 @@ func resourceArmKeyVault() *schema.Resource {
 									string(keyvault.KeyPermissionsGet),
 									string(keyvault.KeyPermissionsImport),
 									string(keyvault.KeyPermissionsList),
+									string(keyvault.KeyPermissionsPurge),
+									string(keyvault.KeyPermissionsRecover),
 									string(keyvault.KeyPermissionsRestore),
 									string(keyvault.KeyPermissionsSign),
 									string(keyvault.KeyPermissionsUnwrapKey),
 									string(keyvault.KeyPermissionsUpdate),
 									string(keyvault.KeyPermissionsVerify),
 									string(keyvault.KeyPermissionsWrapKey),
-								}, false),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							},
 						},
 						"secret_permissions": {
@@ -116,12 +149,16 @@ func resourceArmKeyVault() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.SecretPermissionsAll),
+									string(keyvault.SecretPermissionsBackup),
 									string(keyvault.SecretPermissionsDelete),
 									string(keyvault.SecretPermissionsGet),
 									string(keyvault.SecretPermissionsList),
+									string(keyvault.SecretPermissionsPurge),
+									string(keyvault.SecretPermissionsRecover),
+									string(keyvault.SecretPermissionsRestore),
 									string(keyvault.SecretPermissionsSet),
-								}, false),
+								}, true),
+								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							},
 						},
 					},
@@ -150,6 +187,7 @@ func resourceArmKeyVault() *schema.Resource {
 
 func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM KeyVault creation.")
 
 	name := d.Get("name").(string)
@@ -174,12 +212,12 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags: expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -189,11 +227,23 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 	d.SetId(*read.ID)
 
+	if d.IsNewResource() {
+		if props := read.Properties; props != nil {
+			if vault := props.VaultURI; vault != nil {
+				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	return resourceArmKeyVaultRead(d, meta)
 }
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -202,13 +252,13 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %s", name, err)
-	}
-	if resp.StatusCode == http.StatusNotFound {
-		d.SetId("")
-		return nil
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -229,6 +279,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -237,13 +288,13 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 
-	_, err = client.Delete(resGroup, name)
+	_, err = client.Delete(ctx, resGroup, name)
 
 	return err
 }
 
 func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
-	skuSets := d.Get("sku").(*schema.Set).List()
+	skuSets := d.Get("sku").([]interface{})
 	sku := skuSets[0].(map[string]interface{})
 
 	return &keyvault.Sku{
@@ -259,6 +310,12 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 	for _, policySet := range policies {
 		policyRaw := policySet.(map[string]interface{})
 
+		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]interface{})
+		certificatePermissions := []keyvault.CertificatePermissions{}
+		for _, permission := range certificatePermissionsRaw {
+			certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
+		}
+
 		keyPermissionsRaw := policyRaw["key_permissions"].([]interface{})
 		keyPermissions := []keyvault.KeyPermissions{}
 		for _, permission := range keyPermissionsRaw {
@@ -273,8 +330,9 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 
 		policy := keyvault.AccessPolicyEntry{
 			Permissions: &keyvault.Permissions{
-				Keys:    &keyPermissions,
-				Secrets: &secretPermissions,
+				Certificates: &certificatePermissions,
+				Keys:         &keyPermissions,
+				Secrets:      &secretPermissions,
 			},
 		}
 
@@ -282,6 +340,11 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 		policy.TenantID = &tenantUUID
 		objectUUID := policyRaw["object_id"].(string)
 		policy.ObjectID = &objectUUID
+
+		if v := policyRaw["application_id"]; v != "" {
+			applicationUUID := uuid.FromStringOrNil(v.(string))
+			policy.ApplicationID = &applicationUUID
+		}
 
 		result = append(result, policy)
 	}
@@ -315,11 +378,48 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []int
 
 		policyRaw["tenant_id"] = policy.TenantID.String()
 		policyRaw["object_id"] = *policy.ObjectID
+		if policy.ApplicationID != nil {
+			policyRaw["application_id"] = policy.ApplicationID.String()
+		}
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
+
+		if policy.Permissions.Certificates != nil {
+			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
+			for _, certificatePermission := range *policy.Permissions.Certificates {
+				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+			}
+			policyRaw["certificate_permissions"] = certificatePermissionsRaw
+		}
 
 		result = append(result, policyRaw)
 	}
 
 	return result
+}
+
+func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
+	}
+
+	return
+}
+
+func checkKeyVaultDNSIsAvailable(vaultUri string) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		uri, err := url.Parse(vaultUri)
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", uri.Host))
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+
+		_ = conn.Close()
+		return nil
+	}
 }
