@@ -205,8 +205,6 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	resGroup := d.Get("resource_group_name").(string)
 
 	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)
-	staticIP := d.Get("static_ip").(string)
-	subnetID := d.Get("subnet_id").(string)
 
 	capacity := int32(d.Get("capacity").(int))
 	family := redis.SkuFamily(d.Get("family").(string))
@@ -231,10 +229,18 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 				Name:     sku,
 			},
 			RedisConfiguration: expandRedisConfiguration(d),
-			StaticIP:           &staticIP,
-			SubnetID:           &subnetID,
 		},
 		Tags: expandedTags,
+	}
+
+	if v, ok := d.GetOk("static_ip"); ok {
+		staticIp := v.(string)
+		parameters.CreateProperties.StaticIP = &staticIp
+	}
+
+	if v, ok := d.GetOk("subnet_id"); ok {
+		subnetId := v.(string)
+		parameters.CreateProperties.SubnetID = &subnetId
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
@@ -299,9 +305,6 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	family := redis.SkuFamily(d.Get("family").(string))
 	sku := redis.SkuName(d.Get("sku_name").(string))
 
-	staticIP := d.Get("static_ip").(string)
-	subnetID := d.Get("subnet_id").(string)
-
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
@@ -313,10 +316,18 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 				Family:   family,
 				Name:     sku,
 			},
-			StaticIP: &staticIP,
-			SubnetID: &subnetID,
 		},
 		Tags: expandedTags,
+	}
+
+	if v, ok := d.GetOk("static_ip"); ok {
+		staticIp := v.(string)
+		parameters.UpdateProperties.StaticIP = &staticIp
+	}
+
+	if v, ok := d.GetOk("subnet_id"); ok {
+		subnetId := v.(string)
+		parameters.UpdateProperties.SubnetID = &subnetId
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
