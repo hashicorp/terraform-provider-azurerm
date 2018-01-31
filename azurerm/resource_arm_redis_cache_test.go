@@ -206,7 +206,7 @@ func TestAccAzureRMRedisCache_NonStandardCasing(t *testing.T) {
 
 func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMRedisCacheInternalSubnet(ri)
+	config := testAccAzureRMRedisCacheInternalSubnet(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -225,7 +225,7 @@ func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
 
 func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMRedisCacheInternalSubnetStaticIP(ri)
+	config := testAccAzureRMRedisCacheInternalSubnetStaticIP(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -625,11 +625,11 @@ resource "azurerm_redis_cache" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMRedisCacheInternalSubnet(ri int) string {
+func testAccAzureRMRedisCacheInternalSubnet(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
@@ -657,14 +657,14 @@ resource "azurerm_redis_cache" "test" {
       maxclients = "256"
     }
 }
-`, ri, ri, ri)
+`, ri, location, ri, ri)
 }
 
-func testAccAzureRMRedisCacheInternalSubnetStaticIP(ri int) string {
+func testAccAzureRMRedisCacheInternalSubnetStaticIP(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
-    location = "West US"
+    location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
   name                = "acctestnw-%d"
@@ -693,5 +693,5 @@ resource "azurerm_redis_cache" "test" {
       maxclients = "256"
     }
 }
-`, ri, ri, ri)
+`, ri, location, ri, ri)
 }
