@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -66,7 +65,7 @@ func TestAccDataSourceAzureRMPublicIPs_count(t *testing.T) {
 	dataSourceNameUnused := "data.azurerm_public_ips.test_unused"
 	name, resourceGroupName := randNames()
 
-	config := testAccDataSourceAzureRMPublicIPsCount(name, resourceGroupName, testLocation(), 10, 5)
+	config := testAccDataSourceAzureRMPublicIPsCount(name, resourceGroupName, testLocation(), 10)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -80,24 +79,6 @@ func TestAccDataSourceAzureRMPublicIPs_count(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceNameUnused, "public_ips.#", "10"),
 				),
 				ExpectNonEmptyPlan: true,
-			},
-		},
-	})
-}
-
-func TestAccDataSourceAzureRMPublicIPs_tooFew(t *testing.T) {
-	name, resourceGroupName := randNames()
-
-	config := testAccDataSourceAzureRMPublicIPsCount(name, resourceGroupName, testLocation(), 10, 15)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPublicIpDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      config,
-				ExpectError: regexp.MustCompile(fmt.Sprintf("Not enough unassigned public IP addresses in resource group %s", resourceGroupName)),
 			},
 		},
 	})
@@ -155,7 +136,7 @@ data "azurerm_public_ips" "test_used" {
 `, resourceGroupName, location, pipCount, name, lbCount)
 }
 
-func testAccDataSourceAzureRMPublicIPsCount(name string, resourceGroupName string, location string, pipCount int, minCount int) string {
+func testAccDataSourceAzureRMPublicIPsCount(name string, resourceGroupName string, location string, pipCount int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "%s"
@@ -178,8 +159,7 @@ resource "azurerm_public_ip" "test" {
 data "azurerm_public_ips" "test_unused" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	attached            = false
-  minimum_count       = %d
   depends_on          = ["azurerm_public_ip.test"]
 }
-`, resourceGroupName, location, pipCount, name, minCount)
+`, resourceGroupName, location, pipCount, name)
 }

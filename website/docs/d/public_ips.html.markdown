@@ -17,7 +17,6 @@ in a resource group, optionally specifying a minimum required number.
 data "azurerm_public_ips" "test" {
   resource_group_name = "pip-test"
   attached            = false
-  minimum_count       = 2
 }
 
 resource "azurerm_lb" "load_balancer" {
@@ -28,7 +27,7 @@ resource "azurerm_lb" "load_balancer" {
 
   frontend_ip_configuration {
     name                 = "frontend"
-    public_ip_address_id = "${lookup(data.azurerm_public_ips.test.public_ips[count.index], "public_ip_address_id")}"
+    public_ip_address_id = "${lookup(data.azurerm_public_ips.test.public_ips[count.index], "id")}"
   }
 }
 ```
@@ -37,8 +36,6 @@ resource "azurerm_lb" "load_balancer" {
 
 * `resource_group_name` - (Required) Specifies the name of the resource group.
 * `attached` - (Required) Whether to return public IPs that are attached or not.
-* `minimum_count` - (Optional) Specifies the minimum number of IP addresses that
-must be available, otherwise an error will be raised.
 
 
 ## Attributes Reference
