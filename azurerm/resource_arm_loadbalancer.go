@@ -85,6 +85,8 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
+						"zones": zonesSchema(),
 					},
 				},
 			},
@@ -215,6 +217,7 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 			privateIpAddress := ""
 			privateIpAddresses := make([]string, 0, len(*feipConfigs))
+			zones := make([]string, 0, len(*feipConfigs))
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
 					if ip := feipProps.PrivateIPAddress; ip != nil {
@@ -225,10 +228,15 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 						privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
 					}
 				}
+				configZones := config.Zones
+				for _, zone := range *configZones {
+					zones = append(zones, zone)
+				}
 			}
 
 			d.Set("private_ip_address", privateIpAddress)
 			d.Set("private_ip_addresses", privateIpAddresses)
+			d.Set("zones", zones)
 		}
 	}
 
@@ -290,9 +298,11 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
+		zones := zoneValuesToStrings(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name: &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
+			Zones: zones,
 		}
 
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)

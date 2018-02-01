@@ -35,6 +35,8 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zones": zonesSchema(),
+
 			"sku": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -564,6 +566,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
+	zones := zoneValuesToStrings(d.Get("zones").([]interface{}))
 
 	sku, err := expandVirtualMachineScaleSetSku(d)
 	if err != nil {
@@ -632,6 +635,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		Tags:     expandTags(tags),
 		Sku:      sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
+		Zones: zones,
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
@@ -690,6 +694,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	d.Set("zones", resp.Zones)
 
 	if err := d.Set("sku", flattenAzureRmVirtualMachineScaleSetSku(resp.Sku)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Sku error: %#v", err)

@@ -43,6 +43,8 @@ func resourceArmPublicIp() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zones": singleZonesSchema(),
+
 			"public_ip_address_allocation": {
 				Type:             schema.TypeString,
 				Required:         true,
@@ -115,6 +117,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		Name: network.PublicIPAddressSkuName(d.Get("sku").(string)),
 	}
 	tags := d.Get("tags").(map[string]interface{})
+	zones := zoneValuesToStrings(d.Get("zones").([]interface{}))
 
 	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
 
@@ -157,7 +160,8 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		Location: &location,
 		Sku:      &sku,
 		PublicIPAddressPropertiesFormat: &properties,
-		Tags: expandTags(tags),
+		Tags:  expandTags(tags),
+		Zones: zones,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, publicIp)
@@ -206,6 +210,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("zones", resp.Zones)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -223,10 +228,10 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 			if fqdn := settings.Fqdn; fqdn != nil {
 				d.Set("fqdn", fqdn)
 			}
+		}
 
-			if ip := props.IPAddress; ip != nil {
-				d.Set("ip_address", ip)
-			}
+		if ip := props.IPAddress; ip != nil {
+			d.Set("ip_address", ip)
 		}
 	}
 
