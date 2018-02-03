@@ -1,14 +1,12 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -651,15 +649,4 @@ func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []e
 
 	es = append(es, fmt.Errorf("Invalid storage account type %q", input))
 	return
-}
-
-func storageAccountStateRefreshFunc(client storage.AccountsClient, ctx context.Context, resourceGroupName string, storageAccountName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in storageAccountStateRefreshFunc to Azure ARM for Storage Account '%s' (RG: '%s'): %s", storageAccountName, resourceGroupName, err)
-		}
-
-		return res, string(res.AccountProperties.ProvisioningState), nil
-	}
 }

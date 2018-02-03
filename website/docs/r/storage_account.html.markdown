@@ -6,7 +6,7 @@ description: |-
   Create a Azure Storage Account.
 ---
 
-# azurerm\_storage\_account
+# azurerm_storage_account
 
 Create an Azure Storage Account.
 
