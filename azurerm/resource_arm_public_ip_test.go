@@ -79,7 +79,7 @@ func TestResourceAzureRMPublicIpDomainNameLabel_validation(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
-
+	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_basic(ri, testLocation())
 
@@ -91,7 +91,9 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPublicIpExists("azurerm_public_ip.test"),
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
 				),
 			},
 		},
@@ -99,7 +101,6 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
-
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_standard(ri, testLocation())
 
