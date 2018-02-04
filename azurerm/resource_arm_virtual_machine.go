@@ -252,10 +252,11 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"managed_disk_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Computed: true,
+							Type:             schema.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							Computed:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"managed_disk_type": {
