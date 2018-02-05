@@ -4,6 +4,10 @@ BUG FIXES:
 
 * `azurerm_public_ip` - Setting the `ip_address` field regardless of the DNS Settings [GH-772]
 
+FEATURES:
+
+* **New Data Source:** `azurerm_virtual_network_gateway` [GH-796]
+
 ## 1.1.0 (January 26, 2018)
 
 UPGRADE NOTES:
