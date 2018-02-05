@@ -91,7 +91,7 @@ func (client VirtualMachineScaleSetsClient) CreateOrUpdatePreparer(ctx context.C
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -163,7 +163,7 @@ func (client VirtualMachineScaleSetsClient) DeallocatePreparer(ctx context.Conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -236,7 +236,7 @@ func (client VirtualMachineScaleSetsClient) DeletePreparer(ctx context.Context, 
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -311,7 +311,7 @@ func (client VirtualMachineScaleSetsClient) DeleteInstancesPreparer(ctx context.
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -354,6 +354,75 @@ func (client VirtualMachineScaleSetsClient) DeleteInstancesResponder(resp *http.
 	return
 }
 
+// ForceRecoveryServiceFabricPlatformUpdateDomainWalk manual platform update domain walk to update virtual machines in
+// a service fabric virtual machine scale set.
+//
+// resourceGroupName is the name of the resource group. VMScaleSetName is the name of the VM scale set.
+// platformUpdateDomain is the platform update domain for which a manual recovery walk is requested
+func (client VirtualMachineScaleSetsClient) ForceRecoveryServiceFabricPlatformUpdateDomainWalk(ctx context.Context, resourceGroupName string, VMScaleSetName string, platformUpdateDomain int32) (result RecoveryWalkResponse, err error) {
+	req, err := client.ForceRecoveryServiceFabricPlatformUpdateDomainWalkPreparer(ctx, resourceGroupName, VMScaleSetName, platformUpdateDomain)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineScaleSetsClient", "ForceRecoveryServiceFabricPlatformUpdateDomainWalk", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ForceRecoveryServiceFabricPlatformUpdateDomainWalkSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineScaleSetsClient", "ForceRecoveryServiceFabricPlatformUpdateDomainWalk", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ForceRecoveryServiceFabricPlatformUpdateDomainWalkResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineScaleSetsClient", "ForceRecoveryServiceFabricPlatformUpdateDomainWalk", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ForceRecoveryServiceFabricPlatformUpdateDomainWalkPreparer prepares the ForceRecoveryServiceFabricPlatformUpdateDomainWalk request.
+func (client VirtualMachineScaleSetsClient) ForceRecoveryServiceFabricPlatformUpdateDomainWalkPreparer(ctx context.Context, resourceGroupName string, VMScaleSetName string, platformUpdateDomain int32) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
+	}
+
+	const APIVersion = "2017-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version":          APIVersion,
+		"platformUpdateDomain": autorest.Encode("query", platformUpdateDomain),
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachineScaleSets/{vmScaleSetName}/forceRecoveryServiceFabricPlatformUpdateDomainWalk", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ForceRecoveryServiceFabricPlatformUpdateDomainWalkSender sends the ForceRecoveryServiceFabricPlatformUpdateDomainWalk request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualMachineScaleSetsClient) ForceRecoveryServiceFabricPlatformUpdateDomainWalkSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ForceRecoveryServiceFabricPlatformUpdateDomainWalkResponder handles the response to the ForceRecoveryServiceFabricPlatformUpdateDomainWalk request. The method always
+// closes the http.Response Body.
+func (client VirtualMachineScaleSetsClient) ForceRecoveryServiceFabricPlatformUpdateDomainWalkResponder(resp *http.Response) (result RecoveryWalkResponse, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Get display information about a virtual machine scale set.
 //
 // resourceGroupName is the name of the resource group. VMScaleSetName is the name of the VM scale set.
@@ -387,7 +456,7 @@ func (client VirtualMachineScaleSetsClient) GetPreparer(ctx context.Context, res
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -453,7 +522,7 @@ func (client VirtualMachineScaleSetsClient) GetInstanceViewPreparer(ctx context.
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -519,7 +588,7 @@ func (client VirtualMachineScaleSetsClient) ListPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -611,7 +680,7 @@ func (client VirtualMachineScaleSetsClient) ListAllPreparer(ctx context.Context)
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -706,7 +775,7 @@ func (client VirtualMachineScaleSetsClient) ListSkusPreparer(ctx context.Context
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -795,7 +864,7 @@ func (client VirtualMachineScaleSetsClient) PowerOffPreparer(ctx context.Context
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -869,7 +938,7 @@ func (client VirtualMachineScaleSetsClient) ReimagePreparer(ctx context.Context,
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -944,7 +1013,7 @@ func (client VirtualMachineScaleSetsClient) ReimageAllPreparer(ctx context.Conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1018,7 +1087,7 @@ func (client VirtualMachineScaleSetsClient) RestartPreparer(ctx context.Context,
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1092,7 +1161,7 @@ func (client VirtualMachineScaleSetsClient) StartPreparer(ctx context.Context, r
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1166,7 +1235,7 @@ func (client VirtualMachineScaleSetsClient) UpdatePreparer(ctx context.Context, 
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1243,7 +1312,7 @@ func (client VirtualMachineScaleSetsClient) UpdateInstancesPreparer(ctx context.
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2017-03-30"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
