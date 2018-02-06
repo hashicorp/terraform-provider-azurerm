@@ -69,7 +69,7 @@ func TestAccDataSourceAzureRMBuiltInRoleDefinition_reader(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.actions.0", "*/read"),
-					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.not_actions.#", "0"),
 				),
 			},
 		},
