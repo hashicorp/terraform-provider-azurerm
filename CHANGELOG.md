@@ -1,4 +1,9 @@
 ## 1.1.2 (Unreleased)
+
+FEATURES:
+
+* `azurerm_subnet` - add support for Service Endpoints [GH-786]
+
 ## 1.1.1 (February 06, 2018)
 
 BUG FIXES:
