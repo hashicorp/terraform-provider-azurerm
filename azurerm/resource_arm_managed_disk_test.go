@@ -30,6 +30,25 @@ func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMManagedDisk_zeroGbFromPlatformImage(t *testing.T) {
+	var d compute.Disk
+	ri := acctest.RandInt()
+	config := testAccAzureRMManagedDisk_zeroGbFromPlatformImage(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMManagedDiskDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMManagedDiskExists("azurerm_managed_disk.test", &d, true),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMManagedDisk_import(t *testing.T) {
 	var d compute.Disk
 	var vm compute.VirtualMachine
@@ -445,6 +464,32 @@ resource "azurerm_managed_disk" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   os_type = "Linux"
   create_option = "FromImage"
+  image_reference_id = "${data.azurerm_platform_image.test.id}"
+  storage_account_type = "Standard_LRS"
+}
+`, location, rInt, location, rInt)
+}
+
+func testAccAzureRMManagedDisk_zeroGbFromPlatformImage(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_platform_image" "test" {
+  location  = "%s"
+  publisher = "Canonical"
+  offer     = "UbuntuServer"
+  sku       = "16.04-LTS"
+}
+
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_managed_disk" "test" {
+  name = "acctestd-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  os_type = "Linux"
+  create_option = "FromImage"
+  disk_size_gb = "0" 
   image_reference_id = "${data.azurerm_platform_image.test.id}"
   storage_account_type = "Standard_LRS"
 }
