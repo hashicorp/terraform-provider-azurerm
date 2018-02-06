@@ -3,6 +3,7 @@
 BUG FIXES:
 
 * `azurerm_public_ip` - Setting the `ip_address` field regardless of the DNS Settings [GH-772]
+* `azurerm_virtual_machine` - ignores the case of the Managed Data Disk ID's to work around an Azure Portal bug [GH-792]
 
 FEATURES:
 
