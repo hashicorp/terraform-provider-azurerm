@@ -6,6 +6,7 @@ BUG FIXES:
 
 FEATURES:
 
+* **New Data Source:** `azurerm_storage_account` [GH-794]
 * **New Data Source:** `azurerm_virtual_network_gateway` [GH-796]
 
 ## 1.1.0 (January 26, 2018)
