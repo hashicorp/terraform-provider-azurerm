@@ -84,13 +84,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      1,
-							ValidateFunc: validation.IntBetween(1, 100),
+							ValidateFunc: validation.IntBetween(1, 50),
 						},
 
 						"dns_prefix": {
 							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Computed: true,
 						},
 
 						"fqdn": {
