@@ -32,12 +32,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"dns_prefix": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 			},
 
 			"kubernetes_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 
 			"linux_profile": {
@@ -69,6 +71,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"agent_pool_profile": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -136,7 +139,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"service_principal": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
