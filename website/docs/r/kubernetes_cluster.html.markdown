@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster.
+* `dns_prefix` - (Optional) DNS prefix specified when creating the managed cluster.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster.
 
@@ -90,8 +90,7 @@ The following arguments are supported:
 `agent_pool_profile` supports the following:
 
 * `name` - (Required) Unique name of the agent pool profile in the context of the subscription and resource group.
-* `count` - (Required) Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
-* `dns_prefix` - (Required) The DNS Prefix given to Agents in this Agent Pool.
+* `count` - (Required) Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 50 (inclusive). The default value is 1.
 * `vm_size` - (Required) The VM Size of each of the Agent Pool VM's (e.g. Standard_F1 / Standard_D2v2).
 * `storage_profile` - (Optional) Storage profile specifies what kind of storage used. Choose from StorageAccount and ManagedDisks. Leave it empty, we will choose for you based on the orchestrator choice.
 * `os_type` - (Optional) OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux.
@@ -106,3 +105,5 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Azure Container Service (AKS) Managed Cluster ID.
+
+* `fqdn` - The Azure Container Service (AKS) Control Plane FQDN.
