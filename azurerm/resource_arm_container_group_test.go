@@ -225,8 +225,8 @@ resource "azurerm_container_group" "test" {
   os_type             = "windows"
 
   container {
-    name   = "winapp"
-    image  = "winappimage:latest"
+    name   = "windowsservercore"
+    image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
     port   = "80"
@@ -254,8 +254,8 @@ resource "azurerm_container_group" "test" {
   os_type             = "windows"
 
   container {
-    name   = "winapp"
-    image  = "winappimage:latest"
+    name   = "windowsservercore"
+    image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
     port   = "80"
