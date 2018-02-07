@@ -1,5 +1,9 @@
 ## 1.1.2 (Unreleased)
 
+BUG FIXES:
+
+* **Data Source:** `azurerm_virtual_network` - Fixing a crash when the DhcpOptions aren't specified [GH-803]
+
 FEATURES:
 
 * core: upgrading to `v12.4.0` of the Azure SDK for Go [GH-797]
