@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -43,9 +42,10 @@ func resourceArmRoleAssignment() *schema.Resource {
 			},
 
 			"role_definition_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"role_definition_id"},
 			},
 
 			"principal_id": {
