@@ -28,7 +28,6 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
-					resource.TestCheckResourceAttr(resourceName, "restart_policy", "onFailure"),
 				),
 			},
 		},
@@ -114,7 +113,6 @@ func TestAccAzureRMContainerGroup_windowsBasic(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
-					resource.TestCheckResourceAttr(resourceName, "restart_policy", "onFailure"),
 				),
 			},
 		},
@@ -162,7 +160,6 @@ resource "azurerm_container_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
   os_type             = "linux"
-  restart_policy      = "onFailure"
 
   container {
     name   = "hw"
@@ -192,7 +189,6 @@ resource "azurerm_container_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
   os_type             = "linux"
-  restart_policy      = "onFailure"
 
   container {
     name   = "hw"
@@ -229,7 +225,6 @@ resource "azurerm_container_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
   os_type             = "windows"
-  restart_policy      = "onFailure"
 
   container {
     name   = "windowsservercore"
