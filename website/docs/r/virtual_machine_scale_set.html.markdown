@@ -260,7 +260,7 @@ The following arguments are supported:
 * `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
 * `plan` - (Optional) A plan block as documented below.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
+* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
 
 `sku` supports the following:
 

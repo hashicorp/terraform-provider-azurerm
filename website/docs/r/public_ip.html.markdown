@@ -60,6 +60,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
+
 ## Attributes Reference
 
 The following attributes are exported:

@@ -58,6 +58,7 @@ The following arguments are supported:
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) Defines how a private IP address is assigned. Options are Static or Dynamic.
 * `public_ip_address_id` - (Optional) Reference to Public IP address to be associated with the Load Balancer.
+* `zones` - (Optional) A collection containing the availability zone to allocate the IP in.
 
 ## Attributes Reference
 
