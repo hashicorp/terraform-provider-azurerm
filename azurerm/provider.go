@@ -79,12 +79,10 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_public_ip":               dataSourceArmPublicIP(),
 			"azurerm_resource_group":          dataSourceArmResourceGroup(),
 			"azurerm_role_definition":         dataSourceArmRoleDefinition(),
-			"azurerm_storage_account":         dataSourceArmStorageAccount(),
 			"azurerm_snapshot":                dataSourceArmSnapshot(),
 			"azurerm_subnet":                  dataSourceArmSubnet(),
 			"azurerm_subscription":            dataSourceArmSubscription(),
 			"azurerm_virtual_network":         dataSourceArmVirtualNetwork(),
-			"azurerm_virtual_network_gateway": dataSourceArmVirtualNetworkGateway(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -120,6 +118,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_express_route_circuit":              resourceArmExpressRouteCircuit(),
 			"azurerm_function_app":                       resourceArmFunctionApp(),
 			"azurerm_image":                              resourceArmImage(),
+			"azurerm_hdinsight_cluster":                  resourceArmHDInsight(),
 			"azurerm_key_vault":                          resourceArmKeyVault(),
 			"azurerm_key_vault_certificate":              resourceArmKeyVaultCertificate(),
 			"azurerm_key_vault_key":                      resourceArmKeyVaultKey(),

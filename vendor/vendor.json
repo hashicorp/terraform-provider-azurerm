@@ -11,6 +11,14 @@
 			"versionExact": "v12.4.0-beta"
 		},
 		{
+			+"checksumSHA1": "+euonsMNm2OxMPNwPdqFCvzp1X0=",
+			+"path": "github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight",
+			+"revision": "eae258195456be76b2ec9ad2ee2ab63cdda365d9",
+			+"revisionTime": "2018-01-09T21:59:56Z",
+			+"version": "v12.2.0-beta",
+			+"versionExact": "v12.2.0-beta"
+		},
+		{
 			"checksumSHA1": "k89BZmNzjRa4IlyXc/uuY9CJ580=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization",
 			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",

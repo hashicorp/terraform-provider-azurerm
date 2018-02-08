@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
@@ -123,6 +124,12 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+
+	// HDInsight
+
+	hdiClusterClient     hdinsight.ClustersClient
+	hdiApplicationClient hdinsight.ApplicationsClient
+	hdiExtentionClient   hdinsight.ExtensionClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -352,8 +359,33 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerHDIInsightClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerHDIInsightClients(endpoint, subscriptionID string, auth autorest.Authorizer, sender autorest.Sender) {
+	hdc := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionID)
+	setUserAgent(&hdc.Client)
+	hdc.Authorizer = auth
+	hdc.Sender = sender
+	hdc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.hdiClusterClient = hdc
+
+	hda := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionID)
+	setUserAgent(&hda.Client)
+	hda.Authorizer = auth
+	hda.Sender = sender
+	hda.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.hdiApplicationClient = hda
+
+	hde := hdinsight.NewExtensionClientWithBaseURI(endpoint, subscriptionID)
+	setUserAgent(&hde.Client)
+	hde.Authorizer = auth
+	hde.Sender = sender
+	hde.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.hdiExtentionClient = hde
+
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
