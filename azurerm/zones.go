@@ -28,6 +28,17 @@ func singleZonesSchema() *schema.Schema {
 	}
 }
 
+func zonesSchemaComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}
+
 func zoneValuesToStrings(v []interface{}) *[]string {
 	zones := make([]string, 0)
 	for _, zone := range v {

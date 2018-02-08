@@ -111,3 +111,4 @@ resource "azurerm_virtual_machine" "test" {
 * `os_type` - The operating system for managed disk. Valid values are `Linux` or `Windows`
 * `disk_size_gb` - The size of the managed disk in gigabytes.
 * `tags` - A mapping of tags assigned to the resource.
+* `zones` - (Optional) A collection containing the availability zone the managed disk is allocated in.
