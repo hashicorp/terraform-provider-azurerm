@@ -86,7 +86,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Set:      schema.HashString,
 						},
 
-						"zones": zonesSchema(),
+						"zones": singleZonesSchema(),
 					},
 				},
 			},
@@ -217,7 +217,6 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 			privateIpAddress := ""
 			privateIpAddresses := make([]string, 0, len(*feipConfigs))
-			zones := make([]string, 0, len(*feipConfigs))
 			for _, config := range *feipConfigs {
 				if feipProps := config.FrontendIPConfigurationPropertiesFormat; feipProps != nil {
 					if ip := feipProps.PrivateIPAddress; ip != nil {
@@ -228,15 +227,10 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 						privateIpAddresses = append(privateIpAddresses, *feipProps.PrivateIPAddress)
 					}
 				}
-				configZones := config.Zones
-				for _, zone := range *configZones {
-					zones = append(zones, zone)
-				}
 			}
 
 			d.Set("private_ip_address", privateIpAddress)
 			d.Set("private_ip_addresses", privateIpAddresses)
-			d.Set("zones", zones)
 		}
 	}
 
@@ -316,6 +310,7 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 	for _, config := range *ipConfigs {
 		ipConfig := make(map[string]interface{})
 		ipConfig["name"] = *config.Name
+		ipConfig["zones"] = *config.Zones
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
