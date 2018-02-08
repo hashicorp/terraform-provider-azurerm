@@ -9,7 +9,7 @@ description: |-
 
 # Azure Provider
 
-The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (AzureRM) through it's API's.
+The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (AzureRM) through its APIs.
 
 ~> **Note:** This supercedes the [legacy Azure provider](/docs/providers/azure/index.html), which interacts with Azure using the Service Management API.
 
@@ -83,12 +83,12 @@ The following arguments are supported:
 * `skip_credentials_validation` - (Optional) Prevents the provider from validating
   the given credentials. When set to `true`, `skip_provider_registration` is assumed.
   It can also be sourced from the `ARM_SKIP_CREDENTIALS_VALIDATION` environment
-  variable, defaults to `false`.
+  variable; defaults to `false`.
 
 * `skip_provider_registration` - (Optional) Prevents the provider from registering
   the ARM provider namespaces, this can be used if you don't wish to give the Active
   Directory Application permission to register resource providers. It can also be
-  sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable, defaults
+  sourced from the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable; defaults
   to `false`.
 
 ## Testing
