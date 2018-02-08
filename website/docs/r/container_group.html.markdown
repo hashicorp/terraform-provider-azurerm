@@ -41,6 +41,7 @@ resource "azurerm_container_group" "aci-helloworld" {
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type     = "public"
   os_type             = "linux"
+  restart_policy      = "always"
 
   container {
     name = "hw"
@@ -91,6 +92,8 @@ The following arguments are supported:
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+
+* `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`, default value is `Always`.
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
