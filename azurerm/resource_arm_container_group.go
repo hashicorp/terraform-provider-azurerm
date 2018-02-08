@@ -59,10 +59,10 @@ func resourceArmContainerGroup() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Default:          containerinstance.Always,
+				Default:          string(containerinstance.Always),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
-					"always",
+					string(containerinstance.Always),
 					"never",
 					"onFailure",
 				}, true),
