@@ -58,6 +58,7 @@ func resourceArmContainerGroup() *schema.Resource {
 			"restart_policy": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				ForceNew:         true,
 				Default:          containerinstance.Always,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
