@@ -55,6 +55,18 @@ func resourceArmContainerGroup() *schema.Resource {
 
 			"tags": tagsForceNewSchema(),
 
+			"restart_policy": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          containerinstance.Always,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					"always",
+					"never",
+					"onFailure",
+				}, true),
+			},
+
 			"ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -184,6 +196,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
+	restartPolicy := d.Get("restart_policy").(string)
 
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
@@ -191,7 +204,8 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     expandTags(tags),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			Containers: containers,
+			Containers:    containers,
+			RestartPolicy: containerinstance.ContainerRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
 				Type:  &IPAddressType,
 				Ports: containerGroupPorts,
@@ -254,6 +268,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_address_type", address.Type)
 		d.Set("ip_address", address.IP)
 	}
+	d.Set("restart_policy", string(resp.RestartPolicy))
 
 	if props := resp.ContainerGroupProperties; props != nil {
 		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress.Ports, props.Volumes)
