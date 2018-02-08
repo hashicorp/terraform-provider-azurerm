@@ -18,6 +18,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 		Read:   resourceArmKubernetesClusterRead,
 		Update: resourceArmKubernetesClusterCreate,
 		Delete: resourceArmKubernetesClusterDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -176,6 +179,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
+	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -183,17 +187,13 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			DNSPrefix:         &dnsPrefix,
-			KubernetesVersion: &kubernetesVersion,
-			LinuxProfile:      &linuxProfile,
-			AgentPoolProfiles: &agentProfiles,
+			AgentPoolProfiles:       &agentProfiles,
+			DNSPrefix:               &dnsPrefix,
+			KubernetesVersion:       &kubernetesVersion,
+			LinuxProfile:            &linuxProfile,
+			ServicePrincipalProfile: servicePrincipalProfile,
 		},
 		Tags: expandTags(tags),
-	}
-
-	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
-	if servicePrincipalProfile != nil {
-		parameters.ServicePrincipalProfile = servicePrincipalProfile
 	}
 
 	ctx := client.StopContext
@@ -213,7 +213,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read AKS managed cluster %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read AKS Managed Cluster %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -240,7 +240,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AKS managed cluster %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -258,7 +258,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 
 	agentPoolProfiles := flattenAzureRmKubernetesClusterAgentPoolProfiles(resp.ManagedClusterProperties.AgentPoolProfiles)
 	if err := d.Set("agent_pool_profile", &agentPoolProfiles); err != nil {
-		return fmt.Errorf("Error setting `agent_pool_profile `: %+v", err)
+		return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 	}
 
 	servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
@@ -285,7 +285,7 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	ctx := client.StopContext
 	future, err := kubernetesClustersClient.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error issuing Azure ARM delete request of Container Service '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request of AKS Managed Cluster %q (resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
@@ -359,7 +359,6 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 }
 
 func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
-
 	if profile == nil {
 		return nil
 	}
@@ -385,9 +384,7 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containe
 	config := profiles[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
-
 	linuxKeys := config["ssh_key"].([]interface{})
-	sshPublicKeys := []containerservice.SSHPublicKey{}
 
 	key := linuxKeys[0].(map[string]interface{})
 	keyData := key["key_data"].(string)
@@ -396,7 +393,7 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containe
 		KeyData: &keyData,
 	}
 
-	sshPublicKeys = append(sshPublicKeys, sshPublicKey)
+	sshPublicKeys := []containerservice.SSHPublicKey{sshPublicKey}
 
 	profile := containerservice.LinuxProfile{
 		AdminUsername: &adminUsername,
