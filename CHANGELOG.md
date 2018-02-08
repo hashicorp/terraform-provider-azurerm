@@ -8,6 +8,7 @@ FEATURES:
 
 * core: upgrading to `v12.4.0` of the Azure SDK for Go [GH-797]
 * compute: upgrading to use the `2017-12-01` API Version [GH-797]
+* `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed [GH-800]
 * `azurerm_subnet` - add support for Service Endpoints [GH-786]
 
 ## 1.1.1 (February 06, 2018)
