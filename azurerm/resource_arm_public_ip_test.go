@@ -344,6 +344,23 @@ resource "azurerm_public_ip" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMPublicIPStatic_basic_withZone(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name = "acctestpublicip-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+	zones = ["1"]
+}
+`, rInt, location, rInt)
+}
+
 func testAccAzureRMPublicIPStatic_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
