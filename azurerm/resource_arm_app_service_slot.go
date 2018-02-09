@@ -283,6 +283,15 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 	skipCustomDomainVerification := true
 	ttlInSeconds := "60"
 	ctx := meta.(*ArmClient).StopContext
+
+	resp, err := client.Get(ctx, resGroup, appServiceName)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("[DEBUG] App Service %q (resource group %q) was not found.", appServiceName, resGroup)
+		}
+		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", appServiceName, err)
+	}
+
 	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
 	if err != nil {
 		return err
