@@ -194,7 +194,7 @@ The following arguments are supported:
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
 * `use_32_bit_worker_process` - (Optional) Should the App Service Slot run in 32 bit mode, rather than 64 bit mode?
 
-~> **Note:** When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+~> **Note:** Deployment Slots are not supported in the `Free`, `Shared`, or `Basic` App Service Plans. 
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 

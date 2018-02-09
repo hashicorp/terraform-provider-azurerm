@@ -30,46 +30,8 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_freeTier(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppServiceSlot_freeTier(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAppServiceSlot_sharedTier(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMAppServiceSlot_sharedTier(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-				),
-			},
-		},
-	})
-}
+// Removed freeTier Test Case because Slots are not supported in the Free App Service plan
+// Removed sharedTier Test Case because Slots are not supported in the Shared App Service plan
 
 func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
@@ -627,87 +589,10 @@ resource "azurerm_app_service" "test" {
 
 resource "azurerm_app_service_slot" "test" {
 	name                = "acctestASSlot-%d"
-	app_service_name    = "${azurerm_app_service.test.name}"
 	location            = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-  }
-`, rInt, location, rInt, rInt, rInt)
-}
-
-func testAccAzureRMAppServiceSlot_freeTier(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Free"
-    size = "F1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-}
-
-resource "azurerm_app_service_slot" "test" {
-  name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 	app_service_name    = "${azurerm_app_service.test.name}"
-  site_config {
-		use_32_bit_worker_process = true
-  }
-}
-`, rInt, location, rInt, rInt, rInt)
-}
-
-func testAccAzureRMAppServiceSlot_sharedTier(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-	name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-}
-
-resource "azurerm_app_service_slot" "test" {
-	name                = "acctestASSlot-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-	app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-	app_service_name    = "${azurerm_app_service.test.name}"
-
-  site_config {
-	use_32_bit_worker_process = true
-  }
 }
 `, rInt, location, rInt, rInt, rInt)
 }
