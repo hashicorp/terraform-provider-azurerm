@@ -680,7 +680,7 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_empty(rInt int, location string) string {
