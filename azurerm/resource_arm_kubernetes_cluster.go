@@ -103,11 +103,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"vm_size": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"os_disk_size_gb": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							ForceNew: true,
 						},
 
 						"storage_profile": {
@@ -123,11 +125,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"vnet_subnet_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 
 						"os_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 							Default:  containerservice.Linux,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Linux),
