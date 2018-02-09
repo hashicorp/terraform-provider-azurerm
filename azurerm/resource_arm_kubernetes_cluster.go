@@ -112,16 +112,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ForceNew: true,
 						},
 
-						"storage_profile": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(containerservice.StorageAccount),
-								string(containerservice.ManagedDisks),
-							}, true),
-						},
-
 						"vnet_subnet_id": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -344,10 +334,6 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 			agentPoolProfile["os_disk_size_gb"] = int(*profile.OsDiskSizeGB)
 		}
 
-		if profile.StorageProfile != "" {
-			agentPoolProfile["storage_profile"] = string(profile.StorageProfile)
-		}
-
 		if profile.VnetSubnetID != nil {
 			agentPoolProfile["vnet_subnet_id"] = *profile.VnetSubnetID
 		}
@@ -440,7 +426,6 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	dnsPrefix := config["dns_prefix"].(string)
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
-	storageProfile := config["storage_profile"].(string)
 	vnetSubnetID := config["vnet_subnet_id"].(string)
 	osType := config["os_type"].(string)
 
@@ -450,7 +435,7 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 		VMSize:         containerservice.VMSizeTypes(vmSize),
 		DNSPrefix:      &dnsPrefix,
 		OsDiskSizeGB:   &osDiskSizeGB,
-		StorageProfile: containerservice.StorageProfileTypes(storageProfile),
+		StorageProfile: containerservice.ManagedDisks,
 		VnetSubnetID:   &vnetSubnetID,
 		OsType:         containerservice.OSType(osType),
 	}
