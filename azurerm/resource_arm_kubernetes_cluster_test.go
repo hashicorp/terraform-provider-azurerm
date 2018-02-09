@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -118,11 +117,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                   = "acctestaks%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  dns_prefix             = "acctestaks%d"
-  kubernetes_version     = "1.7.7"
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "1.7.7"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -133,9 +132,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   agent_pool_profile {
-    name       = "default"
-    count      = "1"
-    vm_size    = "Standard_DS2_v2"
+    name    = "default"
+    count   = "1"
+    vm_size = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -154,11 +153,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                   = "acctestaks%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  dns_prefix             = "acctestaks%d"
-  kubernetes_version     = "1.7.7"
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "1.7.7"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -169,9 +168,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   agent_pool_profile {
-    name       = "default"
-    count      = "2"
-    vm_size    = "Standard_DS2_v2"
+    name    = "default"
+    count   = "2"
+    vm_size = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -273,39 +272,33 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testCheckAzureRMKubernetesCluster(s *terraform.State, resourceName string) (result *containerservice.ManagedCluster, err error) {
-	// Ensure we have enough information in state to look up in API
-	rs, ok := s.RootModule().Resources[resourceName]
-	if !ok {
-		return nil, fmt.Errorf("Not found: %s", resourceName)
-	}
-
-	name := rs.Primary.Attributes["resourceName"]
-
-	resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-	if !hasResourceGroup {
-		return nil, fmt.Errorf("Bad: no resource group found in state for AKS managed cluster instance: %s", name)
-	}
-
-	client := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-	aks, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return nil, fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
-	}
-
-	if aks.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("Bad: AKS managed cluster instance %q (resource group: %q) does not exist", name, resourceGroup)
-	}
-
-	return &aks, err
-}
-
 func testCheckAzureRMKubernetesClusterExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		_, err := testCheckAzureRMKubernetesCluster(s, name)
-		return err
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		resourceName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for AKS managed cluster instance: %s", resourceName)
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).kubernetesClustersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		aks, err := client.Get(ctx, resourceGroup, resourceName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)
+		}
+
+		if aks.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: AKS managed cluster instance %q (resource group: %q) does not exist", resourceName, resourceGroup)
+		}
+
+		return nil
 	}
 }
 
