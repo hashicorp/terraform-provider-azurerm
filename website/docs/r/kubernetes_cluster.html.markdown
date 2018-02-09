@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-resource-kubernetes-cluster"
 description: |-
-  Creates an Azure Container Service (AKS) Kubernetes Cluster instance.
+  Creates a managed Kubernetes Cluster (AKS)
 ---
 
 # azurerm_kubernetes_cluster
 
-Creates an Azure Container Service (AKS) Managed Cluster instance
+Creates a managed Kubernetes Cluster (AKS)
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -89,21 +89,29 @@ The following arguments are supported:
 
 `agent_pool_profile` supports the following:
 
-* `name` - (Required) Unique name of the agent pool profile in the context of the subscription and resource group.
-* `count` - (Required) Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 50 (inclusive). The default value is 1.
-* `vm_size` - (Required) The VM Size of each of the Agent Pool VM's (e.g. Standard_F1 / Standard_D2v2).
-* `storage_profile` - (Optional) Storage profile specifies what kind of storage used. Choose from StorageAccount and ManagedDisks. Leave it empty, we will choose for you based on the orchestrator choice.
-* `os_type` - (Optional) OsType to be used to specify os type. Choose from Linux and Windows. Default to Linux.
+* `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group.
+* `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 50 (inclusive). Defaults to `1`.
+* `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`).
+* `storage_profile` - (Optional) The kind of Storage to use. Possible values include `StorageAccount` and `ManagedDisks`.
+* `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
 `service_principal` supports the following:
 
-* `client_id` - (Required) The ID for the Service Principal.
-* `client_secret` - (Required) The secret password associated with the service principal.
+* `client_id` - (Required) The Client ID for the Service Principal.
+* `client_secret` - (Required) The Client Secret for the Service Principal.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Azure Container Service (AKS) Managed Cluster ID.
+* `id` - The Kubernetes Managed Cluster ID.
 
-* `fqdn` - The Azure Container Service (AKS) Control Plane FQDN.
+* `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+## Import
+
+Kubernetes Managed Clusters can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1
+```
