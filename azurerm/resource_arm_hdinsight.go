@@ -9,15 +9,17 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmHDInsight() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightCreate,
-		Read:   resourceArmHDInsightRead,
-		//	Update: resourceArmHDInsightUpdate,
-		Delete: resourceArmHDInsightDelete,
+		Create: resourceArmHDInsightClusterCreate,
+		Read:   resourceArmHDInsightClusterRead,
+		Update: resourceArmHDInsightClusterUpdate,
+		Delete: resourceArmHDInsightClusterDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -49,12 +51,21 @@ func resourceArmHDInsight() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Default:  "Standard",
+				ValidateFunc: validation.StringInSlice([]string{
+					string(hdinsight.Premium),
+					string(hdinsight.Standard),
+				}, true),
 			},
 			"kind": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				//TODO:ValidateFunc: validateHDInsightKind,
+				ValidateFunc: validation.StringInSlice([]string{
+					"hadoop",
+					"hbase",
+					"storm",
+					"spark",
+				}, true),
 			},
 			"gateway": {
 				Type:     schema.TypeMap,
@@ -238,10 +249,10 @@ func resourceArmHDInsight() *schema.Resource {
 	}
 }
 
-func resourceArmHDInsightCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	hdiClusterClient := client.hdiClusterClient
-	log.Printf("[INFO] preparing arguments for AzureRM HDI creation.")
+	log.Printf("[INFO] preparing arguments Azure HDInsight Cluster creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -302,6 +313,9 @@ func resourceArmHDInsightCreate(d *schema.ResourceData, meta interface{}) error 
 
 	err = createFuture.WaitForCompletion(ctx, hdiClusterClient.Client)
 	if err != nil {
+		if response.WasConflict(future.Response()) {
+			return fmt.Errorf("HDInsight Cluster name needs to be globally unique and %q is already in use.", name)
+		}
 		return err
 	}
 
@@ -310,44 +324,43 @@ func resourceArmHDInsightCreate(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read HDI %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Azure HDInsight Cluster %s (resource group %s) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmHDInsightRead(d, meta)
+	return resourceArmHDInsightClusterRead(d, meta)
 }
 
-/*
-func resourceArmHDInsightUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).hdiClusterClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	tags := d.Get("tags").(map[string]interface{})
+
+	metadata := expandTags(tags)
+
+	parameters := hdinsight.ClusterPatchParameters{
+		Tags: metadata,
+	}
+
+	_, err := client.Update(ctx, resGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["cluster"]
+	resp, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
 
-	// if d.HasChange("app_settings") || d.HasChange("version") {
-	// 	appSettings := expandHDInsightAppSettings(d)
-	// 	settings := web.StringDictionary{
-	// 		Properties: appSettings,
-	// 	}
-	//client.
-	// 	_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
-	// 	if err != nil {
-	// 		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
-	// 	}
-	// }
+	d.SetId(*resp.ID)
 
-	return resourceArmHDInsightRead(d, meta)
-
+	return resourceArmHDInsightClusterRead(d, meta)
 }
-*/
-func resourceArmHDInsightRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
 	hdinsightClusterClient := meta.(*ArmClient).hdiClusterClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -366,7 +379,7 @@ func resourceArmHDInsightRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure HDInsight %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure HDInsight Cluster %s: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -408,7 +421,7 @@ func resourceArmHDInsightRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmHDInsightDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).hdiClusterClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -418,7 +431,7 @@ func resourceArmHDInsightDelete(d *schema.ResourceData, meta interface{}) error 
 	resGroup := id.ResourceGroup
 	name := id.Path["cluster"]
 
-	log.Printf("[DEBUG] Deleting HDi Cluster %q (resource group %q)", name, resGroup)
+	log.Printf("[DEBUG] Deleting Azure HDInsight Cluster %q (resource group %q)", name, resGroup)
 
 	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Delete(ctx, resGroup, name)
