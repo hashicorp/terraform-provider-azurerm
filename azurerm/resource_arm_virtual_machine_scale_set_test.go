@@ -1911,46 +1911,45 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
-  name = "acctvmss-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  upgrade_policy_mode = "Manual"
-  zones = ["1", "2"]
+    name = "acctvmss-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    upgrade_policy_mode = "Manual"
+    zones = ["1", "2"]
 
-  sku {
-    name = "Standard_D1_v2"
-    tier = "Standard"
-    capacity = 2
-  }
-
-  os_profile {
-    computer_name_prefix = "testvm-%d"
-    admin_username = "myadmin"
-    admin_password = "Passwword1234"
-  }
-
-  network_profile {
-    name = "TestNetworkProfile-%d"
-    primary = true
-    ip_configuration {
-      name = "TestIPConfiguration"
-      subnet_id = "${azurerm_subnet.test.id}"
+    sku {
+        name = "Standard_D1_v2"
+        tier = "Standard"
+        capacity = 2
     }
-  }
 
-  storage_profile_os_disk {
-    name 		  = ""
-    caching       = "ReadWrite"
-    create_option = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
+    os_profile {
+        computer_name_prefix = "testvm-%d"
+        admin_username = "myadmin"
+        admin_password = "Passwword1234"
+    }
 
-  storage_profile_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
+    network_profile {
+        name = "TestNetworkProfile-%d"
+        primary = true
+        ip_configuration {
+            name = "TestIPConfiguration"
+            subnet_id = "${azurerm_subnet.test.id}"
+        }
+    }
+
+    storage_profile_os_disk {
+        caching = "ReadWrite"
+        create_option = "FromImage"
+        managed_disk_type = "Standard_LRS"
+    }
+
+    storage_profile_image_reference {
+        publisher = "Canonical"
+        offer = "UbuntuServer"
+        sku = "16.04-LTS"
+        version = "latest"
+    }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }

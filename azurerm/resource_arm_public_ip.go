@@ -117,7 +117,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		Name: network.PublicIPAddressSkuName(d.Get("sku").(string)),
 	}
 	tags := d.Get("tags").(map[string]interface{})
-	zones := zoneValuesToStrings(d.Get("zones").([]interface{}))
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	ipAllocationMethod := network.IPAllocationMethod(d.Get("public_ip_address_allocation").(string))
 

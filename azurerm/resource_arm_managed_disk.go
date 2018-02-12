@@ -120,7 +120,7 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 	osType := d.Get("os_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
-	zones := zoneValuesToStrings(d.Get("zones").([]interface{}))
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	var skuName compute.StorageAccountTypes
 	if strings.ToLower(storageAccountType) == strings.ToLower(string(compute.PremiumLRS)) {

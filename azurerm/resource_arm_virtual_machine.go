@@ -511,7 +511,7 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
-	zones := zoneValuesToStrings(d.Get("zones").([]interface{}))
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	osDisk, err := expandAzureRmVirtualMachineOsDisk(d)
 	if err != nil {

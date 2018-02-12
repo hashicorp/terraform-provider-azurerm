@@ -292,7 +292,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
-		zones := zoneValuesToStrings(data["zones"].([]interface{}))
+		zones := expandZones(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name: &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,

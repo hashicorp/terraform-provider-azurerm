@@ -39,7 +39,7 @@ func zonesSchemaComputed() *schema.Schema {
 	}
 }
 
-func zoneValuesToStrings(v []interface{}) *[]string {
+func expandZones(v []interface{}) *[]string {
 	zones := make([]string, 0)
 	for _, zone := range v {
 		zones = append(zones, zone.(string))

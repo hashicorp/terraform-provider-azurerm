@@ -318,7 +318,7 @@ resource "azurerm_managed_disk" "test" {
     storage_account_type = "Standard_LRS"
     create_option = "Empty"
     disk_size_gb = "1"
-	zones = ["1"]
+    zones = ["1"]
 
     tags {
         environment = "acctest"

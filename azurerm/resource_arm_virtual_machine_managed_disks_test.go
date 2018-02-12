@@ -612,9 +612,9 @@ resource "azurerm_network_interface" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
 
     ip_configuration {
-    	name = "testconfiguration1"
-    	subnet_id = "${azurerm_subnet.test.id}"
-    	private_ip_address_allocation = "dynamic"
+        name = "testconfiguration1"
+        subnet_id = "${azurerm_subnet.test.id}"
+        private_ip_address_allocation = "dynamic"
     }
 }
 
@@ -624,13 +624,13 @@ resource "azurerm_virtual_machine" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
     vm_size = "Standard_D1_v2"
-	zones = ["1"]
+    zones = ["1"]
 
     storage_image_reference {
-		publisher = "Canonical"
-		offer = "UbuntuServer"
-		sku = "16.04-LTS"
-		version = "latest"
+        publisher = "Canonical"
+        offer = "UbuntuServer"
+        sku = "16.04-LTS"
+        version = "latest"
     }
 
     storage_os_disk {
@@ -641,18 +641,18 @@ resource "azurerm_virtual_machine" "test" {
     }
 
     os_profile {
-		computer_name = "hn%d"
-		admin_username = "testadmin"
-		admin_password = "Password1234!"
+        computer_name = "hn%d"
+        admin_username = "testadmin"
+        admin_password = "Password1234!"
     }
 
     os_profile_linux_config {
-		disable_password_authentication = false
+        disable_password_authentication = false
     }
 
     tags {
-    	environment = "Production"
-    	cost-center = "Ops"
+        environment = "Production"
+        cost-center = "Ops"
     }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)

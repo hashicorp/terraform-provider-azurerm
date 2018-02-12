@@ -566,7 +566,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	zones := zoneValuesToStrings(d.Get("zones").([]interface{}))
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	sku, err := expandVirtualMachineScaleSetSku(d)
 	if err != nil {
