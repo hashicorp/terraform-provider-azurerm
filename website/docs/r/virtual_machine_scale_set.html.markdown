@@ -262,6 +262,8 @@ The following arguments are supported:
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
 
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+
 `sku` supports the following:
 
 * `name` - (Required) Specifies the size of virtual machines in a scale set.
