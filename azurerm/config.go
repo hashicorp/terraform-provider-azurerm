@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
@@ -124,6 +125,11 @@ type ArmClient struct {
 	sqlElasticPoolsClient          sql.ElasticPoolsClient
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
+
+	// HDInsight
+
+	hdiClusterClient     hdinsight.ClustersClient
+	hdiApplicationClient hdinsight.ApplicationsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -354,8 +360,31 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerHDIInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerHDIInsightsClients(endpoint, subscriptionID string, auth autorest.Authorizer, sender autorest.Sender) {
+
+	clustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionID)
+	c.configureClient(&clustersClient.Client, auth)
+	c.hdiClusterClient = clustersClient
+
+	/*hda := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionID)
+	setUserAgent(&hda.Client)
+	hda.Authorizer = auth
+	hda.Sender = sender
+	hda.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.hdiApplicationClient = hda*/
+
+	/*hde := hdinsight.NewExtensionClientWithBaseURI(endpoint, subscriptionID)
+	setUserAgent(&hde.Client)
+	hde.Authorizer = auth
+	hde.Sender = sender
+	hde.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.hdiExtentionClient = hde*/
+
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
