@@ -50,6 +50,4 @@ The following arguments are supported:
 
 * `app_service_name` - (Required) The name of the App Service within which the Slot exists.  Changing this forces a new resource to be created.
 
-* `preserve_vnet` - (Required) `true` to preserve Virtual Network to the slot during swap; otherwise, `false`.
-
 * `app_service_slot_name` - (Required) Source deployment slot for the swap operation.

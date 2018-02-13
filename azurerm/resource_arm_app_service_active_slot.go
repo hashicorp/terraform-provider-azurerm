@@ -32,11 +32,6 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-
-			"preserve_vnet": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
 		},
 	}
 }
@@ -48,7 +43,7 @@ func resourceArmAppServiceActiveSlotCreate(d *schema.ResourceData, meta interfac
 	appServiceName := d.Get("app_service_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	targetSlot := d.Get("app_service_slot_name").(string)
-	preserveVnet := d.Get("preserve_vnet").(bool)
+	preserveVnet := true
 
 	resp, err := client.Get(ctx, resGroup, appServiceName)
 	if err != nil {
@@ -108,8 +103,6 @@ func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{
 	d.Set("app_service_name", resp.Name)
 	d.Set("resource_group_name", resp.ResourceGroup)
 	d.Set("app_service_slot_name", resp.SiteProperties.SlotSwapStatus.SourceSlotName)
-	// The API does not return the preserve vnet value
-	d.Set("preserve_vnet", d.Get("preserve_vnet").(bool))
 	return nil
 }
 
