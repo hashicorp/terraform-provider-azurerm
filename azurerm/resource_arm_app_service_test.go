@@ -582,6 +582,27 @@ func TestAccAzureRMAppService_webSockets(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_scmType(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_scmType(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.scm_type", "LocalGit"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -689,7 +710,7 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   site_config {
-	use_32_bit_worker_process = true
+    use_32_bit_worker_process = true
   }
 }
 `, rInt, location, rInt, rInt)
@@ -719,7 +740,7 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   site_config {
-	use_32_bit_worker_process = true
+    use_32_bit_worker_process = true
   }
 }
 `, rInt, location, rInt, rInt)
@@ -750,7 +771,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-  	always_on = true
+    always_on = true
   }
 }
 `, rInt, location, rInt, rInt)
@@ -781,7 +802,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-  	use_32_bit_worker_process = true
+    use_32_bit_worker_process = true
   }
 }
 `, rInt, location, rInt, rInt)
@@ -812,7 +833,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   app_settings {
-  	"foo" = "bar"
+    "foo" = "bar"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -871,9 +892,9 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   connection_string {
-  	name  = "Example"
-  	value = "some-postgresql-connection-string"
-  	type  = "PostgreSQL"
+    name  = "Example"
+    value = "some-postgresql-connection-string"
+    type  = "PostgreSQL"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -904,11 +925,11 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-  	default_documents = [
-		"first.html",
-		"second.jsp",
-		"third.aspx",
-  	]
+    default_documents = [
+      "first.html",
+      "second.jsp",
+      "third.aspx",
+    ]
   }
 }
 `, rInt, location, rInt, rInt)
@@ -967,7 +988,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-  	local_mysql_enabled = true
+    local_mysql_enabled = true
   }
 }
 `, rInt, location, rInt, rInt)
@@ -998,7 +1019,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-  	managed_pipeline_mode = "Classic"
+    managed_pipeline_mode = "Classic"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -1034,7 +1055,7 @@ resource "azurerm_app_service" "test" {
   }
 
   tags {
-  	"Hello" = "World"
+    "Hello" = "World"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -1065,7 +1086,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   tags {
-  	"Hello" = "World"
+    "Hello" = "World"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -1096,8 +1117,8 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   tags {
-  	"Hello"     = "World"
-  	"Terraform" = "AcceptanceTests"
+    "Hello"     = "World"
+    "Terraform" = "AcceptanceTests"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -1255,6 +1276,37 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     websockets_enabled = true
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_scmType(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    scm_type          = "LocalGit"
   }
 }
 `, rInt, location, rInt, rInt)
