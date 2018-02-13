@@ -1,4 +1,32 @@
-## 1.1.1 (Unreleased)
+## 1.1.2 (Unreleased)
+
+BUG FIXES:
+
+* **Data Source:** `azurerm_virtual_network` - Fixing a crash when the DhcpOptions aren't specified [GH-803]
+
+FEATURES:
+
+* **New Resource:** `azurerm_kubernetes_cluster` [GH-693]
+* **New Resource:** `azurerm_app_service_active_slot` [GH-818]
+* **New Resource:** `azurerm_app_service_slot` [GH-818]
+* core: upgrading to `v12.4.0` of the Azure SDK for Go [GH-797]
+* compute: upgrading to use the `2017-12-01` API Version [GH-797]
+* `azurerm_role_assignment` - add `role_definition_name` [GH-775]
+* `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed [GH-800]
+* `azurerm_subnet` - add support for Service Endpoints [GH-786]
+
+## 1.1.1 (February 06, 2018)
+
+BUG FIXES:
+
+* `azurerm_public_ip` - Setting the `ip_address` field regardless of the DNS Settings ([#772](https://github.com/terraform-providers/terraform-provider-azurerm/issues/772))
+* `azurerm_virtual_machine` - ignores the case of the Managed Data Disk ID's to work around an Azure Portal bug ([#792](https://github.com/terraform-providers/terraform-provider-azurerm/issues/792))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_storage_account` ([#794](https://github.com/terraform-providers/terraform-provider-azurerm/issues/794))
+* **New Data Source:** `azurerm_virtual_network_gateway` ([#796](https://github.com/terraform-providers/terraform-provider-azurerm/issues/796))
+
 ## 1.1.0 (January 26, 2018)
 
 UPGRADE NOTES:

@@ -223,10 +223,10 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 			if fqdn := settings.Fqdn; fqdn != nil {
 				d.Set("fqdn", fqdn)
 			}
+		}
 
-			if ip := props.IPAddress; ip != nil {
-				d.Set("ip_address", ip)
-			}
+		if ip := props.IPAddress; ip != nil {
+			d.Set("ip_address", ip)
 		}
 	}
 

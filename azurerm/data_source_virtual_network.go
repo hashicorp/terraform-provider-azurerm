@@ -77,9 +77,11 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		dnsServers := flattenVnetAddressPrefixes(props.DhcpOptions.DNSServers)
-		if err := d.Set("dns_servers", dnsServers); err != nil {
-			return err
+		if options := props.DhcpOptions; options != nil {
+			dnsServers := flattenVnetAddressPrefixes(options.DNSServers)
+			if err := d.Set("dns_servers", dnsServers); err != nil {
+				return err
+			}
 		}
 
 		subnets := flattenVnetSubnetsNames(props.Subnets)

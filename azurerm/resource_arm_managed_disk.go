@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -86,6 +86,7 @@ func resourceArmManagedDisk() *schema.Resource {
 			"disk_size_gb": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validateDiskSizeGB,
 			},
 
@@ -98,9 +99,9 @@ func resourceArmManagedDisk() *schema.Resource {
 
 func validateDiskSizeGB(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(int)
-	if value < 1 || value > 4095 {
+	if value < 0 || value > 4095 {
 		errors = append(errors, fmt.Errorf(
-			"The `disk_size_gb` can only be between 1 and 4095"))
+			"The `disk_size_gb` can only be between 0 and 4095"))
 	}
 	return
 }

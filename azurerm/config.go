@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-03-30/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
@@ -71,9 +71,10 @@ type ArmClient struct {
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
 
-	containerRegistryClient containerregistry.RegistriesClient
-	containerServicesClient containerservice.ContainerServicesClient
-	containerGroupsClient   containerinstance.ContainerGroupsClient
+	containerRegistryClient  containerregistry.RegistriesClient
+	containerServicesClient  containerservice.ContainerServicesClient
+	kubernetesClustersClient containerservice.ManagedClustersClient
+	containerGroupsClient    containerinstance.ContainerGroupsClient
 
 	eventGridTopicsClient       eventgrid.TopicsClient
 	eventHubClient              eventhub.EventHubsClient
@@ -334,6 +335,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
@@ -492,6 +494,18 @@ func (c *ArmClient) registerContainerRegistryClients(endpoint, subscriptionId st
 	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&crc.Client, auth)
 	c.containerRegistryClient = crc
+}
+
+func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	// ACS
+	containerServicesClient := containerservice.NewContainerServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&containerServicesClient.Client, auth)
+	c.containerServicesClient = containerServicesClient
+
+	// AKS
+	kubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&kubernetesClustersClient.Client, auth)
+	c.kubernetesClustersClient = kubernetesClustersClient
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
