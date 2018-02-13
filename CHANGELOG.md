@@ -7,6 +7,8 @@ BUG FIXES:
 FEATURES:
 
 * **New Resource:** `azurerm_kubernetes_cluster` [GH-693]
+* **New Resource:** `azurerm_app_service_active_slot` [GH-818]
+* **New Resource:** `azurerm_app_service_slot` [GH-818]
 * core: upgrading to `v12.4.0` of the Azure SDK for Go [GH-797]
 * compute: upgrading to use the `2017-12-01` API Version [GH-797]
 * `azurerm_role_assignment` - add `role_definition_name` [GH-775]
