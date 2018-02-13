@@ -1,566 +1,566 @@
 package azurerm
 
 import (
-  "fmt"
-  "testing"
+	"fmt"
+	"testing"
 
-  "github.com/hashicorp/terraform/helper/acctest"
-  "github.com/hashicorp/terraform/helper/resource"
-  "github.com/hashicorp/terraform/terraform"
-  "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_32Bit(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_32Bit(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_32Bit(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_alwaysOn(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_alwaysOn(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_alwaysOn(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_appSettings(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_appSettings(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_appSettings(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "app_settings.foo", "bar"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "app_settings.foo", "bar"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_clientAffinityEnabled(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_clientAffinityEnabled(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_connectionStrings(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_connectionStrings(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "connection_string.0.name", "Example"),
-          resource.TestCheckResourceAttr(resourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-          resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.0.name", "Example"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.0.value", "some-postgresql-connection-string"),
+					resource.TestCheckResourceAttr(resourceName, "connection_string.0.type", "PostgreSQL"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_defaultDocuments(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_defaultDocuments(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.0", "first.html"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.1", "second.jsp"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.2", "third.aspx"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.0", "first.html"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.1", "second.jsp"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.default_documents.2", "third.aspx"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_enabled(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_enabled(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_localMySql(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_localMySql(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_localMySql(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.local_mysql_enabled", "true"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.local_mysql_enabled", "true"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_managedPipelineMode(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_managedPipelineMode(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_managedPipelineMode(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.managed_pipeline_mode", "Classic"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.managed_pipeline_mode", "Classic"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_tagsUpdate(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_tags(ri, testLocation())
-  updatedConfig := testAccAzureRMAppServiceSlot_tagsUpdated(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_tags(ri, testLocation())
+	updatedConfig := testAccAzureRMAppServiceSlot_tagsUpdated(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-          resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
-        ),
-      },
-      {
-        Config: updatedConfig,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
-          resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
-          resource.TestCheckResourceAttr(resourceName, "tags.Terraform", "AcceptanceTests"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Terraform", "AcceptanceTests"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_remoteDebugging(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_remoteDebugging(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.remote_debugging_enabled", "true"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.remote_debugging_version", "VS2015"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.remote_debugging_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.remote_debugging_version", "VS2015"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v2.0"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v2.0"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsDotNetUpdate(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
-  updatedConfig := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v2.0")
+	updatedConfig := testAccAzureRMAppServiceSlot_windowsDotNet(ri, testLocation(), "v4.0")
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v2.0"),
-        ),
-      },
-      {
-        Config: updatedConfig,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v2.0"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava7Jetty(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "JETTY", "9.3")
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "JETTY", "9.3")
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+		},
+	})
 }
 func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.7", "TOMCAT", "9.0")
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "1.8", "TOMCAT", "9.0")
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsPHP(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsPHP(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.1"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.php_version", "7.1"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_windowsPython(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_windowsPython(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.python_version", "3.4"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.python_version", "3.4"),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
-  resourceName := "azurerm_app_service_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceSlot_webSockets(ri, testLocation())
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_webSockets(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:     func() { testAccPreCheck(t) },
-    Providers:    testAccProviders,
-    CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMAppServiceSlotExists(resourceName),
-          resource.TestCheckResourceAttr(resourceName, "site_config.0.websockets_enabled", "true"),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.websockets_enabled", "true"),
+				),
+			},
+		},
+	})
 }
 
 func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
-  client := testAccProvider.Meta().(*ArmClient).appServicesClient
+	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
-  for _, rs := range s.RootModule().Resources {
-    if rs.Type != "azurerm_app_service_slot" {
-      continue
-    }
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_app_service_slot" {
+			continue
+		}
 
-    slot := rs.Primary.Attributes["name"]
-    appServiceName := rs.Primary.Attributes["app_service_name"]
-    resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		slot := rs.Primary.Attributes["name"]
+		appServiceName := rs.Primary.Attributes["app_service_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-    ctx := testAccProvider.Meta().(*ArmClient).StopContext
-    resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 
-    if err != nil {
-      if utils.ResponseWasNotFound(resp.Response) {
-        return nil
-      }
-      return err
-    }
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+			return err
+		}
 
-    return nil
-  }
+		return nil
+	}
 
-  return nil
+	return nil
 }
 
 func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
-  return func(s *terraform.State) error {
-    // Ensure we have enough information in state to look up in API
-    rs, ok := s.RootModule().Resources[slot]
-    if !ok {
-      return fmt.Errorf("Slot Not found: %q", slot)
-    }
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[slot]
+		if !ok {
+			return fmt.Errorf("Slot Not found: %q", slot)
+		}
 
-    appServiceName := rs.Primary.Attributes["app_service_name"]
-    resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-    if !hasResourceGroup {
-      return fmt.Errorf("Bad: no resource group found in state for App Service Slot: %q/%q", appServiceName, slot)
-    }
+		appServiceName := rs.Primary.Attributes["app_service_name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for App Service Slot: %q/%q", appServiceName, slot)
+		}
 
-    client := testAccProvider.Meta().(*ArmClient).appServicesClient
-    ctx := testAccProvider.Meta().(*ArmClient).StopContext
-    resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
-    if err != nil {
-      if utils.ResponseWasNotFound(resp.Response) {
-        return fmt.Errorf("Bad: App Service slot %q/%q (resource group: %q) does not exist", appServiceName, slot, resourceGroup)
-      }
+		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: App Service slot %q/%q (resource group: %q) does not exist", appServiceName, slot, resourceGroup)
+			}
 
-      return fmt.Errorf("Bad: Get on appServicesClient: %+v", err)
-    }
+			return fmt.Errorf("Bad: Get on appServicesClient: %+v", err)
+		}
 
-    return nil
-  }
+		return nil
+	}
 }
 
 func testAccAzureRMAppServiceSlot_basic(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -595,7 +595,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_32Bit(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -634,7 +634,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_alwaysOn(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -673,7 +673,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_appSettings(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -712,7 +712,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_clientAffinityEnabled(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -748,7 +748,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_connectionStrings(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -789,7 +789,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_defaultDocuments(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -832,7 +832,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_enabled(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -868,7 +868,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_localMySql(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -907,7 +907,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_managedPipelineMode(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -946,7 +946,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_tags(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -985,7 +985,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_tagsUpdated(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -1025,7 +1025,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_remoteDebugging(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -1069,7 +1069,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_windowsDotNet(rInt int, location, version string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -1108,7 +1108,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_windowsJava(rInt int, location, javaVersion, container, containerVersion string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -1149,7 +1149,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_windowsPHP(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -1188,7 +1188,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_windowsPython(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"
@@ -1227,7 +1227,7 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 func testAccAzureRMAppServiceSlot_webSockets(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
   location = "%s"

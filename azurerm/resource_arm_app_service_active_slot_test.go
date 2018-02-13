@@ -1,64 +1,64 @@
 package azurerm
 
 import (
-  "fmt"
-  "testing"
+	"fmt"
+	"testing"
 
-  "github.com/hashicorp/terraform/helper/acctest"
-  "github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform/helper/resource"
 )
 
 func TestAccAzureRMAppServiceActiveSlot_basic(t *testing.T) {
-  resourceName := "azurerm_app_service_active_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceActiveSlot_basic(ri, testLocation())
+	resourceName := "azurerm_app_service_active_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceActiveSlot_basic(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:  func() { testAccPreCheck(t) },
-    Providers: testAccProviders,
-    // Destroy actually does nothing so we just return nil
-    CheckDestroy: nil,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", ri)),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// Destroy actually does nothing so we just return nil
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", ri)),
+				),
+			},
+		},
+	})
 }
 
 func TestAccAzureRMAppServiceActiveSlot_update(t *testing.T) {
-  resourceName := "azurerm_app_service_active_slot.test"
-  ri := acctest.RandInt()
-  config := testAccAzureRMAppServiceActiveSlot_update(ri, testLocation())
-  config2 := testAccAzureRMAppServiceActiveSlot_updated(ri, testLocation())
+	resourceName := "azurerm_app_service_active_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceActiveSlot_update(ri, testLocation())
+	config2 := testAccAzureRMAppServiceActiveSlot_updated(ri, testLocation())
 
-  resource.Test(t, resource.TestCase{
-    PreCheck:  func() { testAccPreCheck(t) },
-    Providers: testAccProviders,
-    // Destroy actually does nothing so we just return nil
-    CheckDestroy: nil,
-    Steps: []resource.TestStep{
-      {
-        Config: config,
-        Check: resource.ComposeTestCheckFunc(
-          resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", ri)),
-        ),
-      },
-      {
-        Config: config2,
-        Check: resource.ComposeTestCheckFunc(
-          resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot2-%d", ri)),
-        ),
-      },
-    },
-  })
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		// Destroy actually does nothing so we just return nil
+		CheckDestroy: nil,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot-%d", ri)),
+				),
+			},
+			{
+				Config: config2,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "app_service_slot_name", fmt.Sprintf("acctestASSlot2-%d", ri)),
+				),
+			},
+		},
+	})
 }
 
 func testAccAzureRMAppServiceActiveSlot_basic(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
@@ -100,7 +100,7 @@ func testAccAzureRMAppServiceActiveSlot_basic(rInt int, location string) string 
 }
 
 func testAccAzureRMAppServiceActiveSlot_update(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
@@ -150,7 +150,7 @@ func testAccAzureRMAppServiceActiveSlot_update(rInt int, location string) string
 }
 
 func testAccAzureRMAppServiceActiveSlot_updated(rInt int, location string) string {
-  return fmt.Sprintf(`
+	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
