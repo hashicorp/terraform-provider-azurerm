@@ -163,6 +163,7 @@ func resourceArmAppService() *schema.Resource {
 						"scm_type": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  string(web.ScmTypeNone),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.ScmTypeNone),
 								string(web.ScmTypeLocalGit),
