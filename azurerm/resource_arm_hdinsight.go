@@ -27,18 +27,15 @@ func resourceArmHDInsight() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateAppServiceName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
 
-			// TODO: (tombuildsstuff) support Update once the API is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsSchema(),
 
 			"cluster_version": {
@@ -55,6 +52,7 @@ func resourceArmHDInsight() *schema.Resource {
 					string(hdinsight.Premium),
 					string(hdinsight.Standard),
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 			"kind": {
 				Type:     schema.TypeString,
@@ -65,7 +63,11 @@ func resourceArmHDInsight() *schema.Resource {
 					"hbase",
 					"storm",
 					"spark",
+					"rserver",
+					"kafka",
+					"interactivequery"
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 			"gateway": {
 				Type:     schema.TypeMap,
@@ -137,7 +139,7 @@ func resourceArmHDInsight() *schema.Resource {
 				},
 				Set: resourceArmHDInsightSecurityHash,
 			},
-			"node_role": {
+			"roles": {
 				Type:     schema.TypeSet,
 				Required: true,
 				ForceNew: true,
@@ -150,45 +152,52 @@ func resourceArmHDInsight() *schema.Resource {
 						},
 
 						"count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Default:      1,
-							ValidateFunc: validateArmContainerServiceAgentPoolProfileCount,
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  1,
 						},
 						"size": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"admin_username": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"admin_password": {
-							Type:      schema.TypeString,
-							Optional:  true,
-							Sensitive: true,
-						},
-						"ssh_key": {
+						"os_profile": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"key_data": {
+									"username": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"password": {
+										Type:      schema.TypeString,
+										Optional:  true,
+										Sensitive: true,
+									},
+									"ssh_public_key": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
+						},
+						"network_profile": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"virtual_network_id": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"subnet_name": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
 								},
 							},
-						},
-						"vnet_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"subnet_name": {
-							Type:     schema.TypeString,
-							Required: true,
 						},
 						"numberofdisks": {
 							Type:     schema.TypeInt,
@@ -229,7 +238,7 @@ func resourceArmHDInsight() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"isdefault": {
+						"is_default": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
@@ -262,16 +271,7 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 	RolesProfile, err := expandAzureHDInsightRoleProfile(d)
 	storageProfile := expandAzureHDInsightStorageProfile(d)
 
-	tier := hdinsight.Premium
-	switch d.Get("tier").(string) {
-	case "Prenium":
-		tier = hdinsight.Premium
-		break
-	case "Standard":
-		tier = hdinsight.Standard
-		break
-	}
-
+	tier := hdinsight.Tier(d.Get("tier").(string))
 	clusterDefinition, err := expandAzureHDInsightClusterDefinition(d)
 
 	clusterCreateProperties := hdinsight.ClusterCreateProperties{
@@ -313,7 +313,7 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 
 	err = createFuture.WaitForCompletion(ctx, hdiClusterClient.Client)
 	if err != nil {
-		if response.WasConflict(future.Response()) {
+		if response.WasConflict(createFuture.Response()) {
 			return fmt.Errorf("HDInsight Cluster name needs to be globally unique and %q is already in use.", name)
 		}
 		return err
@@ -386,35 +386,35 @@ func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	if resp.Properties != nil {
-		if resp.Properties.ClusterVersion != nil {
-			d.Set("cluster_version", resp.Properties.ClusterVersion)
+	if props := resp.Properties; props != nil {
+		if props.ClusterVersion != nil {
+			d.Set("cluster_version", props.ClusterVersion)
 		}
-		d.Set("tier", resp.Properties.Tier)
+		d.Set("tier", props.Tier)
 
-		if resp.Properties.ClusterDefinition != nil {
-			d.Set("kind", resp.Properties.ClusterDefinition.Kind)
+		if props.ClusterDefinition != nil {
+			d.Set("kind", props.ClusterDefinition.Kind)
 		}
 
-		if resp.Properties.SecurityProfile != nil {
-			if err := d.Set("security", schema.NewSet(resourceArmHDInsightSecurityHash, flattenHDInsightSecurityProfile(resp.Properties.SecurityProfile))); err != nil {
+		if props.SecurityProfile != nil {
+			if err := d.Set("security", schema.NewSet(resourceArmHDInsightSecurityHash, flattenHDInsightSecurityProfile(props.SecurityProfile))); err != nil {
 				//	return fmt.Errorf()
 			}
 		}
 
-		if resp.Properties.ComputeProfile != nil && len(*resp.Properties.ComputeProfile.Roles) > 0 {
-			if err := d.Set("role_node", schema.NewSet(resourceArmHDInsightnodeHash, flattenHDInsightRoleNode(resp.Properties.ComputeProfile.Roles))); err != nil {
+		if props.ComputeProfile != nil && len(*props.ComputeProfile.Roles) > 0 {
+			if err := d.Set("roles", schema.NewSet(resourceArmHDInsightnodeHash, flattenHDInsightRoleNode(props.ComputeProfile.Roles))); err != nil {
 				//	return fmt.Errorf()
 			}
 		}
 		// not implemented in azure-sdk
-		// if resp.Properties.StorageProfile != nil {
-		// 	if err := d.Set("storageaccount_profile", schema.NewSet(resourceArmHDInsightstorageaccountHash, flattenHDInsightStorageProfile(resp.Properties.StorageProfile))); err != nil {
+		// if props.StorageProfile != nil {
+		// 	if err := d.Set("storageaccount_profile", schema.NewSet(resourceArmHDInsightstorageaccountHash, flattenHDInsightStorageProfile(props.StorageProfile))); err != nil {
 		// 		//	return fmt.Errorf()
 		// 	}
 		// }
 	} else {
-		//return fmt.Errorf()
+		return fmt.Errorf("Unable to restrieve valide HDInsight cluster properties")
 	}
 	flattenAndSetTags(d, resp.Tags)
 
@@ -445,10 +445,6 @@ func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func validateHDInsightKind() {
-
-}
-
 func flattenHDInsightStorageProfile(storageProfile *hdinsight.StorageProfile) []interface{} {
 	result := make([]interface{}, 0, 1)
 	sp := make(map[string]interface{})
@@ -457,7 +453,7 @@ func flattenHDInsightStorageProfile(storageProfile *hdinsight.StorageProfile) []
 		for _, sto := range *storageProfile.Storageaccounts {
 			storage := make(map[string]interface{})
 			storage["name"] = sto.Name
-			storage["isdefault"] = sto.Name
+			storage["is_default"] = sto.Name
 			storage["container"] = sto.Container
 			storage["key"] = sto.Key
 			storageAccounts = append(storageAccounts, storage)
@@ -508,9 +504,12 @@ func flattenHDInsightRoleNode(roles *[]hdinsight.Role) []interface{} {
 		n["name"] = *role.Name
 		n["count"] = *role.TargetInstanceCount
 		n["size"] = *role.HardwareProfile.VMSize
+
 		if role.OsProfile != nil && role.OsProfile.LinuxOperatingSystemProfile != nil {
-			n["admin_username"] = *role.OsProfile.LinuxOperatingSystemProfile.Username
-			n["admin_password"] = *role.OsProfile.LinuxOperatingSystemProfile.Password
+			osProfile := make(map[string]interface{})
+
+			osProfile["username"] = *role.OsProfile.LinuxOperatingSystemProfile.Username
+			osProfile["password"] = *role.OsProfile.LinuxOperatingSystemProfile.Password
 
 			if role.OsProfile.LinuxOperatingSystemProfile.SSHProfile != nil && len(*role.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys) > 0 {
 
@@ -521,12 +520,15 @@ func flattenHDInsightRoleNode(roles *[]hdinsight.Role) []interface{} {
 					ssh_keys = append(ssh_keys, key)
 				}
 
-				n["ssh_key"] = ssh_keys
+				osProfile["ssh_key"] = ssh_keys
 			}
+			n["os_profile"] = osProfile
 		}
 		if role.VirtualNetworkProfile != nil {
-			n["vnet_id"] = *role.VirtualNetworkProfile.ID
-			n["subnet_name"] = *role.VirtualNetworkProfile.Subnet
+			network := make(map[string]interface{})
+			network["virtual_network_id"] = *role.VirtualNetworkProfile.ID
+			network["subnet_name"] = *role.VirtualNetworkProfile.Subnet
+			n["network_profile"] = network
 		}
 		if role.DataDisksGroups != nil && len((*role.DataDisksGroups)) > 0 {
 			n["numberofdisks"] = (*role.DataDisksGroups)[0].DisksPerNode
@@ -647,45 +649,27 @@ func expandAzureHDInsightConfiguration(d *schema.ResourceData) (*map[string]inte
 }
 
 func expandAzureHDInsightRoleProfile(d *schema.ResourceData) (*[]hdinsight.Role, error) {
-	configs := d.Get("node_role").(*schema.Set).List()
+	configs := d.Get("roles").(*schema.Set).List()
 	roleprofiles := make([]hdinsight.Role, 0, len(configs))
 
 	for _, roleconf := range configs {
 		config := roleconf.(map[string]interface{})
 
 		name := config["name"].(string)
-
-		linuxKeys := config["ssh_key"].(*schema.Set).List()
-		sshPublicKeys := []hdinsight.SSHPublicKey{}
-		if len(linuxKeys) > 0 {
-			key := linuxKeys[0].(map[string]interface{})
-			keyData := key["key_data"].(string)
-
-			sshPublicKey := hdinsight.SSHPublicKey{
-				CertificateData: &keyData,
-			}
-
-			sshPublicKeys = append(sshPublicKeys, sshPublicKey)
-		}
-
-		numberofdisks := int32(config["numberofdisks"].(int))
+		//TODO : Include in furure PR
+		/*numberofdisks := int32(config["numberofdisks"].(int))
 		dataDiskGroups := []hdinsight.DataDisksGroups{}
 		if numberofdisks > 0 {
 			dataDiskGroup := hdinsight.DataDisksGroups{
 				DisksPerNode: &numberofdisks,
 			}
 			dataDiskGroups = append(dataDiskGroups, dataDiskGroup)
-		}
+		} */
 		minInstance := int32(1)
 		targetInstance := int32(config["count"].(int))
 
-		vnetid := config["vnet_id"].(string)
-		fmt.Printf("----vnetid : %s", vnetid)
-		subnet := config["subnet_name"].(string)
-		fmt.Printf("----subnet : %s", subnet)
 		vmsize := config["size"].(string)
-		adminUsername := config["admin_username"].(string)
-		adminPassword := config["admin_password"].(string)
+
 		profile := hdinsight.Role{
 			Name:                &name,
 			MinInstanceCount:    &minInstance,
@@ -693,38 +677,83 @@ func expandAzureHDInsightRoleProfile(d *schema.ResourceData) (*[]hdinsight.Role,
 			HardwareProfile: &hdinsight.HardwareProfile{
 				VMSize: &vmsize,
 			},
-			OsProfile: &hdinsight.OsProfile{
+		}
+
+		print("network_profile")
+		if v := config["network_profile"]; v != nil {
+			networkConfigs := v.([]interface{})
+			networkConfig := networkConfigs[0].(map[string]interface{})
+			vnetID := networkConfig["virtual_network_id"].(string)
+			subnetID := networkConfig["subnet_name"].(string)
+			networkProfile := hdinsight.VirtualNetworkProfile{
+				ID:     &vnetID,
+				Subnet: &subnetID,
+			}
+			profile.VirtualNetworkProfile = &networkProfile
+		}
+
+		print("os_profile")
+		if o := config["os_profile"]; o != nil {
+			osProfileConfigs := o.(*schema.Set).List()
+			osProfileConfig := osProfileConfigs[0].(map[string]interface{})
+			adminUsername := osProfileConfig["username"].(string)
+			adminPassword := osProfileConfig["password"].(string)
+			osProfile := hdinsight.OsProfile{
 				LinuxOperatingSystemProfile: &hdinsight.LinuxOperatingSystemProfile{
 					Username: &adminUsername,
 					Password: &adminPassword,
 				},
-			},
-			VirtualNetworkProfile: &hdinsight.VirtualNetworkProfile{
-				ID:     &vnetid,
-				Subnet: &subnet,
-			},
-		}
-
-		if len(dataDiskGroups) > 0 {
-			profile.DataDisksGroups = &dataDiskGroups
-		}
-		if len(sshPublicKeys) > 0 {
-			profile.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{
-				PublicKeys: &sshPublicKeys,
 			}
-		}
+			pubickKeys := osProfileConfig["ssh_public_key"].(string)
+			if len(pubickKeys) > 0 {
+				sshPublicKeys := []hdinsight.SSHPublicKey{}
 
-		if _, ok := d.GetOk("scripts"); ok {
-			scriptactions, err := expandAzureRmHDInsightScriptAction(d)
-			if err != nil {
-				return nil, err
+				sshPublicKey := hdinsight.SSHPublicKey{
+					CertificateData: &pubickKeys,
+				}
+				sshPublicKeys = append(sshPublicKeys, sshPublicKey)
+				osProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{
+					PublicKeys: &sshPublicKeys,
+				}
 			}
-			profile.ScriptActions = &scriptactions
+			profile.OsProfile = &osProfile
 		}
+		//TODO : Include in furure PR
+		/*	if len(dataDiskGroups) > 0 {
+				profile.DataDisksGroups = &dataDiskGroups
+			}
+		*/
+		//TODO : Include in next PR
+		/*	if _, ok := d.GetOk("scripts"); ok {
+				scriptactions, err := expandAzureRmHDInsightScriptAction(d)
+				if err != nil {
+					return nil, err
+				}
+				profile.ScriptActions = &scriptactions
+			}
+		*/
+
 		roleprofiles = append(roleprofiles, profile)
 	}
 
 	return &roleprofiles, nil
+}
+
+func expandAzureHDInsightNetworkProfile(d *schema.ResourceData) (*hdinsight.VirtualNetworkProfile, error) {
+
+	print("retreive network_Profile")
+	configs := d.Get("network_profile").([]interface{})
+
+	fmt.Printf("configs network_profile : %+v\n", configs)
+	data := configs[0].(map[string]interface{})
+	vnetID := data["virtual_network_id"].(string)
+	subnetID := data["subnet_name"].(string)
+	networkProfile := hdinsight.VirtualNetworkProfile{
+		ID:     &vnetID,
+		Subnet: &subnetID,
+	}
+
+	return &networkProfile, nil
 }
 
 func expandAzureRmHDInsightUserGroupDNs(d *schema.ResourceData) (*[]string, error) {
@@ -776,7 +805,7 @@ func expandAzureHDInsightStorageProfile(d *schema.ResourceData) *hdinsight.Stora
 		name := config["name"].(string)
 		container := config["container"].(string)
 		key := config["key"].(string)
-		isdefault := bool(config["isdefault"].(bool))
+		isdefault := bool(config["is_default"].(bool))
 		storageAccountprofile := hdinsight.StorageAccount{
 			Container: &container,
 			Key:       &key,
@@ -795,30 +824,10 @@ func expandAzureHDInsightStorageProfile(d *schema.ResourceData) *hdinsight.Stora
 	return nil
 }
 
-/* func getBasicHDInsightAppSettings(d *schema.ResourceData) []web.NameValuePair {
-	dashboardPropName := "AzureWebJobsDashboard"
-	storagePropName := "AzureWebJobsStorage"
-	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
-	contentSharePropName := "WEBSITE_CONTENTSHARE"
-	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
-
-	storageConnection := d.Get("storage_connection_string").(string)
-	functionVersion := d.Get("version").(string)
-	contentShare := d.Get("name").(string) + "-content"
-
-	return []web.NameValuePair{
-		{Name: &dashboardPropName, Value: &storageConnection},
-		{Name: &storagePropName, Value: &storageConnection},
-		{Name: &functionVersionPropName, Value: &functionVersion},
-		{Name: &contentSharePropName, Value: &contentShare},
-		{Name: &contentFileConnStringPropName, Value: &storageConnection},
-	}
-}*/
-
 func resourceArmHDInsightvirtualnetworkprofileHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
-	vnetid := m["vnet_id"].(string)
+	vnetid := m["virtual_network_id"].(string)
 	subnetname := m["subnet_name"].(string)
 	buf.WriteString(fmt.Sprintf("%s-", vnetid))
 	buf.WriteString(fmt.Sprintf("%s-", subnetname))
@@ -855,7 +864,7 @@ func resourceArmHDInsightOSProfileHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	adminUsername := m["admin_username"].(string)
+	adminUsername := m["username"].(string)
 
 	buf.WriteString(fmt.Sprintf("%s-", adminUsername))
 

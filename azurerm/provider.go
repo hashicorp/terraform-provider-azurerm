@@ -83,6 +83,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_subnet":                  dataSourceArmSubnet(),
 			"azurerm_subscription":            dataSourceArmSubscription(),
 			"azurerm_virtual_network":         dataSourceArmVirtualNetwork(),
+			"azurerm_virtual_network_gateway": dataSourceArmVirtualNetworkGateway(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -286,6 +287,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ServiceBus":          {},
 		"Microsoft.Sql":                 {},
 		"Microsoft.Storage":             {},
+		"Microsoft.HDInsight":           {},
 	}
 
 	// filter out any providers already registered

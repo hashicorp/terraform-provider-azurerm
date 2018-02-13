@@ -55,7 +55,7 @@ func testCheckAzureRMHDInsigthClusterDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("CosmosDB Account still exists:\n%#v", resp)
+			return fmt.Errorf("HDI cluster already  exists:\n%#v", resp)
 		}
 	}
 
@@ -74,7 +74,7 @@ func testCheckAzureRMHDInsightClusterExist(name string) resource.TestCheckFunc {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for CosmosDB Account: '%s'", name)
+			return fmt.Errorf("Bad: no resource group found in state for HDI Cluster : '%s'", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).hdiClusterClient
@@ -83,11 +83,11 @@ func testCheckAzureRMHDInsightClusterExist(name string) resource.TestCheckFunc {
 		print("name %s", name)
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on cosmosDBClient: %+v", err)
+			return fmt.Errorf("Bad: Get on HDI ClusterClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: CosmosDB Account '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: HDI Cluster '%s' (resource group: '%s') does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -145,23 +145,31 @@ func testHDInsightClusterCreation(rInt int, storage string, location string) str
 				type = "hdisinght"
 			}			
 
-			node_role {
+			roles {
 				name 			= "headnode"
 				count 			= "2"
 				size 			= "Standard_D3_v2"
-				admin_username	= "adminjf"
-				admin_password	= "P&ssw0rd1234"
-				vnet_id			= "${azurerm_virtual_network.vnet.id}"
-				subnet_name		= "${azurerm_subnet.subnet.id}"
+				os_profile {
+					username	= "adminjf"
+					password	= "P&ssw0rd1234"
+				}  
+				network_profile {
+					virtual_network_id	= "${azurerm_virtual_network.vnet.id}"
+					subnet_name			= "${azurerm_subnet.subnet.id}"
+				}	
 			}
-			node_role {
+			roles {
 				name 			= "workernode"
 				count 			= "2"
 				size 			= "Standard_D3_v2"
-				admin_username	= "adminjf"
-				admin_password	= "P&ssw0rd1234"
-				vnet_id			= "${azurerm_virtual_network.vnet.id}"
-				subnet_name		= "${azurerm_subnet.subnet.id}"
+				os_profile {
+					username	= "adminjf"
+					password	= "P&ssw0rd1234"
+				}  
+				network_profile {
+					virtual_network_id	= "${azurerm_virtual_network.vnet.id}"
+					subnet_name			= "${azurerm_subnet.subnet.id}"
+				}	
 			}
 		}	
 		`, rInt, storage, location)

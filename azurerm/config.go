@@ -129,7 +129,6 @@ type ArmClient struct {
 
 	hdiClusterClient     hdinsight.ClustersClient
 	hdiApplicationClient hdinsight.ApplicationsClient
-	hdiExtentionClient   hdinsight.ExtensionClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -359,32 +358,30 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
-	client.registerHDIInsightClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerHDIInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 
 	return &client, nil
 }
 
-func (c *ArmClient) registerHDIInsightClients(endpoint, subscriptionID string, auth autorest.Authorizer, sender autorest.Sender) {
-	hdc := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionID)
-	setUserAgent(&hdc.Client)
-	hdc.Authorizer = auth
-	hdc.Sender = sender
-	hdc.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.hdiClusterClient = hdc
+func (c *ArmClient) registerHDIInsightsClients(endpoint, subscriptionID string, auth autorest.Authorizer, sender autorest.Sender) {
 
-	hda := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionID)
+	clustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionID)
+	c.configureClient(&clustersClient.Client, auth)
+	c.hdiClusterClient = clustersClient
+
+	/*hda := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionID)
 	setUserAgent(&hda.Client)
 	hda.Authorizer = auth
 	hda.Sender = sender
 	hda.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.hdiApplicationClient = hda
+	c.hdiApplicationClient = hda*/
 
-	hde := hdinsight.NewExtensionClientWithBaseURI(endpoint, subscriptionID)
+	/*hde := hdinsight.NewExtensionClientWithBaseURI(endpoint, subscriptionID)
 	setUserAgent(&hde.Client)
 	hde.Authorizer = auth
 	hde.Sender = sender
 	hde.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.hdiExtentionClient = hde
+	c.hdiExtentionClient = hde*/
 
 }
 
