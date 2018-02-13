@@ -31,6 +31,27 @@ func TestAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoleAssignment_roleName(t *testing.T) {
+	id := uuid.New().String()
+	resourceName := "azurerm_role_assignment.test"
+	config := testAccAzureRMRoleAssignment_roleName(id)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleAssignmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRoleAssignment_builtin(t *testing.T) {
 	id := uuid.New().String()
 	config := testAccAzureRMRoleAssignment_builtin(id)
@@ -139,6 +160,21 @@ resource "azurerm_role_assignment" "test" {
   principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
 `
+}
+
+func testAccAzureRMRoleAssignment_roleName(id string) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = "${data.azurerm_subscription.primary.id}"
+  role_definition_name = "Reader"
+  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+}
+`, id)
 }
 
 func testAccAzureRMRoleAssignment_builtin(id string) string {
