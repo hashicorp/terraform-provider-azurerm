@@ -49,4 +49,5 @@ The following arguments are supported:
 
 * `app_service_name` - (Required) The name of the App Service within which the Slot exists.  Changing this forces a new resource to be created.
 
-* `app_service_slot_name` - (Required) Source deployment slot for the swap operation.
+* `app_service_slot_name` - (Required) The name of the App Service Slot which should be promoted to the Production Slot within the App Service.
+
