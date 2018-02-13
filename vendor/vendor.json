@@ -43,12 +43,12 @@
 			"versionExact": "v12.4.0-beta"
 		},
 		{
-			"checksumSHA1": "8aXUcXxKoA/u68bZ+O7pHUYX98Y=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"checksumSHA1": "mCnH22sssytnBgmMtiOiZ1fiUAE=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-02-01-preview/containerinstance",
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
 			"checksumSHA1": "Ax3MQnKsWxTvQFa0PM1jGw4u6HU=",
