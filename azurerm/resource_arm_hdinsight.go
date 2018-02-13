@@ -65,7 +65,7 @@ func resourceArmHDInsight() *schema.Resource {
 					"spark",
 					"rserver",
 					"kafka",
-					"interactivequery"
+					"interactivequery",
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
