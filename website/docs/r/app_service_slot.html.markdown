@@ -211,5 +211,5 @@ The following attributes are exported:
 App Service Slots can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_slot.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/default/slots/instance1
+terraform import azurerm_app_service_slot.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/website1/slots/instance1
 ```
