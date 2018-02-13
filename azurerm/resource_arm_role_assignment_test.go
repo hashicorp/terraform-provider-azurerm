@@ -31,7 +31,7 @@ func TestAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleAssignment_roleyName(t *testing.T) {
+func TestAccAzureRMRoleAssignment_roleName(t *testing.T) {
 	id := uuid.New().String()
 	resourceName := "azurerm_role_assignment.test"
 	config := testAccAzureRMRoleAssignment_roleName(id)
