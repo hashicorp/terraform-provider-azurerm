@@ -176,6 +176,8 @@ The following attributes are exported:
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
+* `site_source_control_props` - (Optional) The default Git repo_url, branch information if `scm_type` is set to `LocalGit`.
+
 ## Import
 
 App Services can be imported using the `resource id`, e.g.

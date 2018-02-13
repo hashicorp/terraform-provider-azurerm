@@ -248,6 +248,23 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"site_source_control_props": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: map[string]*schema.Schema{
+					"repo_url": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"branch": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
 		},
 	}
 }
@@ -400,6 +417,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", name, err)
 	}
 
+	srcCtrlResp, err := client.GetSourceControl(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
@@ -421,6 +443,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
+		return err
+	}
+
+	siteSrcCtrlProps := flattenAppServiceSiteSourceControlProperties(srcCtrlResp.SiteSourceControlProperties)
+	if err := d.Set("site_source_control_props", siteSrcCtrlProps); err != nil {
 		return err
 	}
 
@@ -604,6 +631,27 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	result["scm_type"] = string(input.ScmType)
+
+	results = append(results, result)
+	return results
+}
+
+func flattenAppServiceSiteSourceControlProperties(input *web.SiteSourceControlProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
+		return results
+	}
+
+	if input.RepoURL != nil {
+		result["repo_url"] = *input.RepoURL
+	}
+
+	if input.Branch != nil {
+		result["branch"] = *input.Branch
+	}
 
 	results = append(results, result)
 	return results
