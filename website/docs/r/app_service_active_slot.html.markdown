@@ -37,7 +37,6 @@ resource "azurerm_app_service_slot" "test" {
 resource "azurerm_app_service_active_slot" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     app_service_name    = "${azurerm_app_service.test.name}"
-    preserve_vnet       = true
     source_slot_name    = "${azurerm_app_service_slot.test.name}"
 }
 ```
