@@ -48,6 +48,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     dotnet_framework_version = "v4.0"
+    scm_type                 = "LocalGit"
   }
 
   app_settings {
@@ -99,6 +100,7 @@ resource "azurerm_app_service" "test" {
     java_version           = "1.8"
     java_container         = "JETTY"
     java_container_version = "9.3"
+    scm_type               = "LocalGit"
   }
 }
 ```
@@ -161,6 +163,8 @@ The following arguments are supported:
 ~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
+* `scm_type` - (Optional) The Source Control Management Type. Possible values are `None` and `LocalGit`. Defaults to `None`.
 
 ## Attributes Reference
 

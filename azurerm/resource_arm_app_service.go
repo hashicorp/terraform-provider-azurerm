@@ -160,6 +160,14 @@ func resourceArmAppService() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"scm_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ScmTypeNone),
+								string(web.ScmTypeLocalGit),
+							}, false),
+						},
 					},
 				},
 			},
@@ -519,6 +527,10 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["scm_type"]; ok {
+		siteConfig.ScmType = web.ScmType(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -589,6 +601,8 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.WebSocketsEnabled != nil {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
+
+	result["scm_type"] = string(input.ScmType)
 
 	results = append(results, result)
 	return results
