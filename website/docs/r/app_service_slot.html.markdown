@@ -11,6 +11,9 @@ description: |-
 
 Manages an App Service Slot (within an App Service).
 
+-> **Note:** When using Slots - the `app_settings`, `connection_string` and `site_config` blocks on the `azurerm_app_service` resource will be overwritten when promoting a Slot using the `azurerm_app_service_active_slot` resource.
+
+
 ## Example Usage (.net 4.x)
 
 ```hcl
@@ -194,7 +197,7 @@ The following arguments are supported:
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
 * `use_32_bit_worker_process` - (Optional) Should the App Service Slot run in 32 bit mode, rather than 64 bit mode?
 
-~> **Note:** Deployment Slots are not supported in the `Free`, `Shared`, or `Basic` App Service Plans. 
+~> **Note:** Deployment Slots are not supported in the `Free`, `Shared`, or `Basic` App Service Plans.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
