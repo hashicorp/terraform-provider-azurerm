@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_active_slot"
 sidebar_current: "docs-azurerm-resource-app-service-active-slot"
 description: |-
-  Swaps an App Service Slot (within an App Service) with the Production slot.
+  Promotes an App Service Slot to Production within an App Service
 
 ---
 
-# azurerm_app_service_slot
+# azurerm_app_service_active_slot
 
-Swaps an App Service Slot (within an App Service) with the Production slot.
+Promotes an App Service Slot to Production within an App Service.
 
 ## Example Usage
 
@@ -46,10 +46,10 @@ resource "azurerm_app_service_active_slot" "test" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Slot component.
+* `resource_group_name` - (Required) The name of the resource group in which the App Service exists. Changing this forces a new resource to be created.
 
-* `app_service_name` - (Required) The name of the App Service within which to create the App Service Slot.  Changing this forces a new resource to be created.
+* `app_service_name` - (Required) The name of the App Service within which the Slot exists.  Changing this forces a new resource to be created.
 
 * `preserve_vnet` - (Required) `true` to preserve Virtual Network to the slot during swap; otherwise, `false`.
 
-* `source_slot_name` - (Required) Source deployment slot for the swap operation.
+* `app_service_slot_name` - (Required) Source deployment slot for the swap operation.
