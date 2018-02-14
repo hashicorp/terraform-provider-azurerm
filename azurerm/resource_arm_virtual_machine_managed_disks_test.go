@@ -251,7 +251,8 @@ func TestAccAzureRMVirtualMachine_attachSecondDataDiskWithAttachOption(t *testin
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(t, &afterCreate, &afterUpdate),
-					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.create_option", "Attach"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.create_option", "Empty"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.1.create_option", "Attach"),
 				),
 			},
 		},
