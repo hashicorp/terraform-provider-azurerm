@@ -1285,7 +1285,7 @@ resource "azurerm_app_service" "test" {
 func testAccAzureRMAppService_scmType(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1307,7 +1307,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   site_config {
-    scm_type          = "LocalGit"
+    scm_type = "LocalGit"
   }
 }
 `, rInt, location, rInt, rInt)
