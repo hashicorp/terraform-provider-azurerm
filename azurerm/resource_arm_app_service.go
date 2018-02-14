@@ -251,7 +251,6 @@ func resourceArmAppService() *schema.Resource {
 
 			"source_control": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: map[string]*schema.Schema{

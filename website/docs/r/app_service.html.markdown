@@ -182,8 +182,8 @@ The following attributes are exported:
 
 `source_control` supports the following:
 
-* `repo_url` - URL of the Git repo.
-* `branch` - Branch name of the Git repo.
+* `repo_url` - URL of the Git repository for this App Service.
+* `branch` - Branch name of the Git repository for this App Service.
 
 ## Import
 
