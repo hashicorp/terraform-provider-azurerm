@@ -249,7 +249,7 @@ func resourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"site_source_control_props": {
+			"source_control": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -417,7 +417,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", name, err)
 	}
 
-	srcCtrlResp, err := client.GetSourceControl(ctx, resGroup, name)
+	scmResp, err := client.GetSourceControl(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
 	}
@@ -446,8 +446,8 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	siteSrcCtrlProps := flattenAppServiceSiteSourceControlProperties(srcCtrlResp.SiteSourceControlProperties)
-	if err := d.Set("site_source_control_props", siteSrcCtrlProps); err != nil {
+	scmProps := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scmProps); err != nil {
 		return err
 	}
 
@@ -636,7 +636,7 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	return results
 }
 
-func flattenAppServiceSiteSourceControlProperties(input *web.SiteSourceControlProperties) []interface{} {
+func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{}, 0)
 

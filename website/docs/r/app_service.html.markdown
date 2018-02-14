@@ -158,11 +158,13 @@ The following arguments are supported:
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
 * `use_32_bit_worker_process` - (Optional) Should the App Service run in 32 bit mode, rather than 64 bit mode?
 
-~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-* `scm_type` - (Optional) The Source Control Management Type. Possible values are `None` and `LocalGit`. Defaults to `None`.
+* `scm_type` - (Optional) The type of Source Control enabled for this App Service. Possible values include `None` and `LocalGit`. Defaults to `None`.
+
+~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
 
 ## Attributes Reference
 
@@ -174,7 +176,14 @@ The following attributes are exported:
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
-* `site_source_control_props` - (Optional) The default Git repo_url, branch information if `scm_type` is set to `LocalGit`.
+* `source_control` - (Optional) The default local Git source control information if deployment option is set to `LocalGit`.
+
+---
+
+`source_control` supports the following:
+
+* `repo_url` - URL of the Git repo.
+* `branch` - Branch name of the Git repo.
 
 ## Import
 
