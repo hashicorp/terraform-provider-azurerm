@@ -3,44 +3,44 @@
 	"ignore": "test github.com/hashicorp/terraform/backend",
 	"package": [
 		{
-			"checksumSHA1": "BRUxlBgtgBMFXkblExJ5txPzaDc=",
+			"checksumSHA1": "04RpBRvxCFIrlZr4QGlWxEYu5jk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "k89BZmNzjRa4IlyXc/uuY9CJ580=",
+			"checksumSHA1": "lNNgGpjE0bFWk01GbinWzzrvYMg=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "1ot5A5n151vMXnk7pjc78AA6rWo=",
+			"checksumSHA1": "0SGJv3vkB3mDzm2fEqyRhGBL+b0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "XvC95CXg9KPaSRAyDErD+29IvGI=",
+			"checksumSHA1": "r5ng4N9t9KBcTLlcoJBus/Wt8G0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "cFeGHoxb12jrMi7InL5GtxWGJlA=",
+			"checksumSHA1": "OaJWyTycs9HCUx4mXO/8+cPn6Dc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
 			"checksumSHA1": "mCnH22sssytnBgmMtiOiZ1fiUAE=",
@@ -51,212 +51,212 @@
 			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "Ax3MQnKsWxTvQFa0PM1jGw4u6HU=",
+			"checksumSHA1": "WYjcCFUAHbnfCAYS7EO83a6FwSA=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "nSa++DYx6lfLyrPGHOp4ENPbR+A=",
+			"checksumSHA1": "2+Uo711eqenN0yATZUvyVur3BDo=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "3vxPs6bFZVvdbhA5yeILusAEqj8=",
+			"checksumSHA1": "E7FkdI3WlMLqnMoinimQQKH2yLA=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "l7/qNqmHyDpntrixI5BiY0HgzHY=",
+			"checksumSHA1": "uJCBS9ImFK2B54NzUEPMKdePuGI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "Ztgoo4Im5/6INnndejdL7FJelP0=",
+			"checksumSHA1": "QiY007vq22jp7uk7bDxEq1/YsYI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "WxilQy/t8UMEJjie/AwLK96HPeM=",
+			"checksumSHA1": "C3vT4FIPyBCkJ/DRPJGvA2kEV2A=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "MVrJUUnSkQxAgHOhZK5LZJheDik=",
+			"checksumSHA1": "Yy2uufjDcDOtCci5MoDEmmTsdfE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "Zw3fuuCyqY7LfYqCO4TRTDD03Do=",
+			"checksumSHA1": "Qyvr+VKOVBA9x/PYyaLBNaPD6CA=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "nidT56uMCD7yadNco0xj++alx64=",
+			"checksumSHA1": "wyP62ZVT4AV4hO/NBDh/uvVa6Zg=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "WRl5feRhLZqHyzyZ7vQXWTBb8hI=",
+			"checksumSHA1": "vGZFW297gcvEB3n5mkX60zDWPaY=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "voc+L2V2CaGR7uJ9jLV/yKbm21w=",
+			"checksumSHA1": "/bK6KPyxXraJOySSQUNP2Iezgrc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "xTAlDIKTjAH7EuYwCRg4bB4M3nY=",
+			"checksumSHA1": "UCsGrHob/smdv6NU0fCUrSJpQqE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "p8rLHcy6uQBG5h60BHZzprqbdWY=",
+			"checksumSHA1": "CeXlAup0Yf2Tw4UO7aDZDLI/wPI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "gQMaWPtKzbhq5gRhlpSVHDHOiEc=",
+			"checksumSHA1": "qOcKrxfayIRgAKlAZu9XYTSfeA0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "I/4HjzWoLGEX71CDAEP6Es3Lcfk=",
+			"checksumSHA1": "09i0LjiY4GkYSRNObda25c1hsos=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "AqpKCwsP1QJACsHTQcR3yRczss4=",
+			"checksumSHA1": "7f5Uqi6joNQQGO0D1fuLOH1vqwc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "oiyveK71KzwDk5m2gwVxqsYH26g=",
+			"checksumSHA1": "rnRxkR6w0aXOM0V9y3HTNz0+raQ=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "37XabEVTLnIr2cTX+4cjrosaea0=",
+			"checksumSHA1": "oNSB5LmmOu68djMmeORcCDYn/3o=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "nmpuM9FQmJpcDpqGwbZwGih6Wag=",
+			"checksumSHA1": "TO9sw/AzJ/PhTE5gO+3HYJfl7Lo=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "LbHjiAEMw86UJc7j8pQrcUwV+OE=",
+			"checksumSHA1": "FAgW0CqXXC9K8ScnAcoTb5nLBF0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "fyeOnQK7o/VdynKjmUo0S5vL+Q4=",
+			"checksumSHA1": "dHGgohlhfFkUPVcSkWFJnhwnkV8=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "YaIhmka+pgaDvu+uJ8sDGacwyd0=",
+			"checksumSHA1": "oZDb0i9D6dludQmrSGDFF3UeZHc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "xHPiMpQMWaAOOFnbWdvPh0ITlEQ=",
+			"checksumSHA1": "CK2X765PntCzKgkkM1pnwR9+coc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "0jkuvAxnHcmJSvPugtDMtlK0zGA=",
+			"checksumSHA1": "LApakbrvkkhEu3hJVuLkERdGrSk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "35dy7B2i/SJkRA4SRncjYNNHyXM=",
+			"checksumSHA1": "X56B9OyWsdOtpvblfATNgPB/xzI=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "9rVzyatzpDEQc/CQJjjdtldkER8=",
+			"checksumSHA1": "ySVXlzloGIus0rS4fpdN3hSOgz8=",
 			"path": "github.com/Azure/azure-sdk-for-go/storage",
-			"revision": "f111fc2fa3861c5fdced76cae4c9c71821969577",
-			"revisionTime": "2018-02-03T00:15:51Z",
-			"version": "v12.4.0-beta",
-			"versionExact": "v12.4.0-beta"
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
 		},
 		{
 			"checksumSHA1": "RzIYmvG1ReOud+kafFsZTDIZSK0=",

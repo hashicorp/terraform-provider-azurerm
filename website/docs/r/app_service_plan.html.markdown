@@ -6,7 +6,7 @@ description: |-
   Create an App Service Plan component.
 ---
 
-# azurerm\_app\_service\_plan
+# azurerm_app_service_plan
 
 Create an App Service Plan component.
 
