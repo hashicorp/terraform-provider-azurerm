@@ -597,7 +597,7 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.scm_type", "LocalGit"),
-					resource.TestCheckResourceAttr(resourceName, "site_source_control_props.0.branch", "master"),
+					resource.TestCheckResourceAttr(resourceName, "source_control.0.branch", "master"),
 				),
 			},
 		},
