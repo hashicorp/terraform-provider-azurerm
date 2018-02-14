@@ -248,19 +248,20 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"source_control": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
-				Elem: map[string]*schema.Schema{
-					"repo_url": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-					"branch": {
-						Type:     schema.TypeString,
-						Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"repo_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"branch": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
