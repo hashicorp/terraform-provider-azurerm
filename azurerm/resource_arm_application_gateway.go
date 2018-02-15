@@ -1357,10 +1357,12 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 }
 
 func flattenApplicationGatewaySslPolicy(policy *network.ApplicationGatewaySslPolicy) []interface{} {
-	result := make([]interface{}, 0, len(*policy.DisabledSslProtocols))
+	result := make([]interface{}, 0)
 
-	for _, proto := range *policy.DisabledSslProtocols {
-		result = append(result, string(proto))
+	if protocols := policy.DisabledSslProtocols; protocols != nil {
+		for _, proto := range *protocols {
+			result = append(result, string(proto))
+		}
 	}
 
 	return result
