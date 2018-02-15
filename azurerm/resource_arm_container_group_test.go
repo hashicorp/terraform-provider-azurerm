@@ -89,6 +89,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.read_only", "false"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
 				),
 			},
 		},
@@ -139,6 +140,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
 				),
 			},
 		},
@@ -252,6 +254,7 @@ resource "azurerm_container_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
   os_type             = "windows"
+  restart_policy      = "Never"
 
   container {
     name   = "windowsservercore"
@@ -303,6 +306,7 @@ resource "azurerm_container_group" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	ip_address_type     = "public"
 	os_type             = "linux"
+	restart_policy      = "OnFailure"
 
 	container {
 		name   = "hf"

@@ -42,9 +42,8 @@ func NewContainerGroupsClientWithBaseURI(baseURI string, subscriptionID string) 
 
 // CreateOrUpdate create or update container groups with specified configurations.
 //
-// resourceGroupName is the name of the resource group to contain the container group to be created or updated.
-// containerGroupName is the name of the container group to be created or updated. containerGroup is the properties of
-// the container group to be created or updated.
+// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
+// containerGroup is the properties of the container group to be created or updated.
 func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, containerGroupName string, containerGroup ContainerGroup) (result ContainerGroup, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: containerGroup,
@@ -87,7 +86,7 @@ func (client ContainerGroupsClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2018-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -125,8 +124,7 @@ func (client ContainerGroupsClient) CreateOrUpdateResponder(resp *http.Response)
 // Delete delete the specified container group in the specified subscription and resource group. The operation does not
 // delete other resources provided by the user, such as volumes.
 //
-// resourceGroupName is the name of the resource group that contains the container group. containerGroupName is the
-// name of the container group to be deleted.
+// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
 func (client ContainerGroupsClient) Delete(ctx context.Context, resourceGroupName string, containerGroupName string) (result ContainerGroup, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, containerGroupName)
 	if err != nil {
@@ -157,7 +155,7 @@ func (client ContainerGroupsClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2018-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -194,8 +192,7 @@ func (client ContainerGroupsClient) DeleteResponder(resp *http.Response) (result
 // operation returns the properties of each container group including containers, image registry credentials, restart
 // policy, IP address type, OS type, state, and volumes.
 //
-// resourceGroupName is the name of the resource group that contains the container group. containerGroupName is the
-// name of the container group.
+// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
 func (client ContainerGroupsClient) Get(ctx context.Context, resourceGroupName string, containerGroupName string) (result ContainerGroup, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, containerGroupName)
 	if err != nil {
@@ -226,7 +223,7 @@ func (client ContainerGroupsClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2018-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -291,7 +288,7 @@ func (client ContainerGroupsClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2018-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -355,7 +352,7 @@ func (client ContainerGroupsClient) ListComplete(ctx context.Context) (result Co
 // returns properties of each container group including containers, image registry credentials, restart policy, IP
 // address type, OS type, state, and volumes.
 //
-// resourceGroupName is the name of the resource group that contains the container group.
+// resourceGroupName is the name of the resource group.
 func (client ContainerGroupsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ContainerGroupListResultPage, err error) {
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
@@ -386,7 +383,7 @@ func (client ContainerGroupsClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2018-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -443,5 +440,77 @@ func (client ContainerGroupsClient) listByResourceGroupNextResults(lastResults C
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ContainerGroupsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result ContainerGroupListResultIterator, err error) {
 	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName)
+	return
+}
+
+// Update updates container group tags with specified values.
+//
+// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group. resource
+// is the container group resource with just the tags to be updated.
+func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupName string, containerGroupName string, resource *Resource) (result ContainerGroup, err error) {
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, containerGroupName, resource)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Update", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Update", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Update", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdatePreparer prepares the Update request.
+func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, containerGroupName string, resource *Resource) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"containerGroupName": autorest.Encode("path", containerGroupName),
+		"resourceGroupName":  autorest.Encode("path", resourceGroupName),
+		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsJSON(),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	if resource != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(resource))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSender sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (client ContainerGroupsClient) UpdateSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateResponder handles the response to the Update request. The method always
+// closes the http.Response Body.
+func (client ContainerGroupsClient) UpdateResponder(resp *http.Response) (result ContainerGroup, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

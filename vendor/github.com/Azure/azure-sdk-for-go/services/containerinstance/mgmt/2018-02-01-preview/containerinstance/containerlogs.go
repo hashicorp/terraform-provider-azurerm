@@ -41,12 +41,11 @@ func NewContainerLogsClientWithBaseURI(baseURI string, subscriptionID string) Co
 
 // List get the logs for a specified container instance in a specified resource group and container group.
 //
-// resourceGroupName is the name of the resource group that contains the container instance. containerName is the name
-// of the container instance. containerGroupName is the name of the container group the container instance belongs to.
-// tail is the number of lines to show from the tail of the container instance log. If not provided, all available logs
-// are shown up to 4mb.
-func (client ContainerLogsClient) List(ctx context.Context, resourceGroupName string, containerName string, containerGroupName string, tail *int32) (result Logs, err error) {
-	req, err := client.ListPreparer(ctx, resourceGroupName, containerName, containerGroupName, tail)
+// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
+// containerName is the name of the container instance. tail is the number of lines to show from the tail of the
+// container instance log. If not provided, all available logs are shown up to 4mb.
+func (client ContainerLogsClient) List(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (result Logs, err error) {
+	req, err := client.ListPreparer(ctx, resourceGroupName, containerGroupName, containerName, tail)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerLogsClient", "List", nil, "Failure preparing request")
 		return
@@ -68,7 +67,7 @@ func (client ContainerLogsClient) List(ctx context.Context, resourceGroupName st
 }
 
 // ListPreparer prepares the List request.
-func (client ContainerLogsClient) ListPreparer(ctx context.Context, resourceGroupName string, containerName string, containerGroupName string, tail *int32) (*http.Request, error) {
+func (client ContainerLogsClient) ListPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"containerGroupName": autorest.Encode("path", containerGroupName),
 		"containerName":      autorest.Encode("path", containerName),
@@ -76,7 +75,7 @@ func (client ContainerLogsClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2018-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
