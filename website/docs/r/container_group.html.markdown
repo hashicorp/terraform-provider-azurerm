@@ -41,7 +41,6 @@ resource "azurerm_container_group" "aci-helloworld" {
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type     = "public"
   os_type             = "linux"
-  restart_policy      = "Always"
 
   container {
     name = "hw"
