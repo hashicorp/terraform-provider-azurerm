@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_kubernetes_cluster` [GH-693]
 * **New Resource:** `azurerm_app_service_active_slot` [GH-818]
 * **New Resource:** `azurerm_app_service_slot` [GH-818]
+* authentication: pulling the `Environment` key from the Azure CLI Config [GH-842]
 * core: upgrading to `v12.5.0-beta` of the Azure SDK for Go [GH-830]
 * compute: upgrading to use the `2017-12-01` API Version [GH-797]
 * `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed [GH-800]
