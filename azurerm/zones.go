@@ -44,5 +44,9 @@ func expandZones(v []interface{}) *[]string {
 	for _, zone := range v {
 		zones = append(zones, zone.(string))
 	}
-	return &zones
+	if len(zones) > 0 {
+		return &zones
+	} else {
+		return nil
+	}
 }
