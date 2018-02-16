@@ -58,6 +58,8 @@ The following arguments are supported:
 
 `properties` supports the following:
 
+* `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
+
 * `maximum_number_of_workers` - (Optional) Maximum number of instances that can be assigned to this App Service plan.
 
 * `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.

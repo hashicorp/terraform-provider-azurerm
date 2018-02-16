@@ -75,6 +75,11 @@ func resourceArmAppServicePlan() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"app_service_environment_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+						},
 						"reserved": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -264,6 +269,11 @@ func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.Ap
 	}
 	config := configs[0].(map[string]interface{})
 
+	appServiceEnvironmentId := config["app_service_environment_id"].(string)
+	properties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+		ID: utils.String(appServiceEnvironmentId),
+	}
+
 	perSiteScaling := config["per_site_scaling"].(bool)
 	properties.PerSiteScaling = utils.Bool(perSiteScaling)
 
@@ -276,6 +286,10 @@ func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.Ap
 func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interface{} {
 	result := make([]interface{}, 0, 1)
 	properties := make(map[string]interface{}, 0)
+
+	if props.HostingEnvironmentProfile != nil {
+		properties["app_service_environment_id"] = *props.HostingEnvironmentProfile.ID
+	}
 
 	if props.PerSiteScaling != nil {
 		properties["per_site_scaling"] = *props.PerSiteScaling
