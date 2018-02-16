@@ -45,6 +45,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.StorageV2),
 				}, true),
 				Default: string(storage.Storage),
 			},
@@ -268,12 +269,15 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
 
-	// AccessTier is only valid for BlobStorage accounts
+	// BlobStorage does not support ZRS
 	if accountKind == string(storage.BlobStorage) {
 		if string(parameters.Sku.Name) == string(storage.StandardZRS) {
 			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
 		}
+	}
 
+	// AccessTier is only valid for BlobStorage and StorageV2 accounts
+	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) {
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
