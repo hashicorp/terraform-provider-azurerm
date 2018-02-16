@@ -15,6 +15,7 @@ FEATURES:
 * `azurerm_container_group` - adding `restart_policy` [GH-827]
 * `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed [GH-800]
 * `azurerm_role_assignment` - add `role_definition_name` [GH-775]
+* `azurerm_storage_container` - add a retry for creation [GH-846]
 * `azurerm_subnet` - add support for Service Endpoints [GH-786]
 * `azurerm_virtual_machine` - changing `managed_disk_id` and `create_option` to be not ForceNew [GH-813]
 
