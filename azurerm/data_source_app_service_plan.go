@@ -55,6 +55,10 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"app_service_environment_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"reserved": {
 							Type:     schema.TypeBool,
 							Computed: true,
