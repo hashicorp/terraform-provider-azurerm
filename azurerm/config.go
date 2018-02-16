@@ -37,7 +37,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -836,8 +836,7 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 	defer storageKeyCacheMu.Unlock()
 	key, ok = storageKeyCache[cacheIndex]
 	if !ok {
-		ctx := armClient.StopContext
-		accountKeys, err := armClient.storageServiceClient.ListKeys(ctx, resourceGroupName, storageAccountName)
+		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
 		if utils.ResponseWasNotFound(accountKeys.Response) {
 			return "", false, nil
 		}

@@ -227,8 +227,8 @@
 			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "CK2X765PntCzKgkkM1pnwR9+coc=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage",
+			"checksumSHA1": "UEgAKa3mlclVQ+TopgpxIkN/T9Y=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage",
 			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
 			"revisionTime": "2018-02-12T16:31:56Z",
 			"version": "v12.5.0-beta",

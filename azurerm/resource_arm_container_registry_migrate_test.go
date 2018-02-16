@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-06-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -119,23 +119,18 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 		},
 	}
 	ctx := client.StopContext
-	createFuture, err := storageClient.Create(ctx, resourceGroupName, storageAccountName, createParams)
-	if err != nil {
+	createFuture, createErr := storageClient.Create(resourceGroupName, storageAccountName, createParams, ctx.Done())
+
+	select {
+	case err := <-createErr:
 		return nil, fmt.Errorf("Error creating Storage Account %q: %+v", resourceGroupName, err)
+	case account := <-createFuture:
+		return &account, nil
 	}
-
-	err = createFuture.WaitForCompletion(ctx, client.searchServicesClient.Client)
-
-	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName)
-	if err != nil {
-		return nil, fmt.Errorf("Error retrieving Storage Account %q: %+v", resourceGroupName, err)
-	}
-
-	return &account, nil
 }
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
-	client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName)
+	client.storageServiceClient.Delete(resourceGroupName, storageAccountName)
 	client.resourceGroupsClient.Delete(ctx, resourceGroupName)
 }
