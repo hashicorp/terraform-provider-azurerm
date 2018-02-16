@@ -637,24 +637,24 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 }
 
 func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
-
 	if input == nil {
 		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
-		return results
+		return []interface{}{}
 	}
 
-	if input.RepoURL != nil {
-		result["repo_url"] = *input.RepoURL
+	if input.RepoURL == nil {
+		return []interface{}{}
 	}
 
-	if input.Branch != nil {
-		result["branch"] = *input.Branch
+	result := make(map[string]interface{}, 0)
+	if repoUrl := input.RepoURL; repoUrl != nil {
+		result["repo_url"] = *repoUrl
+	}
+	if branch := input.Branch; branch != nil {
+		result["branch"] = *branch
 	}
 
-	results = append(results, result)
-	return results
+	return []interface{}{result}
 }
 
 func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
