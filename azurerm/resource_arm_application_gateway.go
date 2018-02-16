@@ -1597,7 +1597,7 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 				}
 
 				if timeout := props.Timeout; timeout != nil {
-					settings["interval"] = int(*timeout)
+					settings["timeout"] = int(*timeout)
 				}
 
 				if threshold := props.UnhealthyThreshold; threshold != nil {
