@@ -1,24 +1,29 @@
 ## 1.1.2 (Unreleased)
 
-BUG FIXES:
-
-* **Data Source:** `azurerm_virtual_network` - Fixing a crash when the DhcpOptions aren't specified [GH-803]
-
 FEATURES:
 
 * **New Resource:** `azurerm_kubernetes_cluster` [GH-693]
 * **New Resource:** `azurerm_app_service_active_slot` [GH-818]
 * **New Resource:** `azurerm_app_service_slot` [GH-818]
+
+BUG FIXES:
+
+* **Data Source:** `azurerm_app_service_plan`: handling a 404 not being returned as an error [GH-849]
+* **Data Source:** `azurerm_virtual_network` - Fixing a crash when the DhcpOptions aren't specified [GH-803]
+* `azurerm_application_gateway` - fixing crashes due to schema mismatches for existing resources [GH-848]
+* `azurerm_storage_container` - add a retry for creation [GH-846]
+
+IMPROVEMENTS:
+
 * authentication: pulling the `Environment` key from the Azure CLI Config [GH-842]
 * core: upgrading to `v12.5.0-beta` of the Azure SDK for Go [GH-830]
 * compute: upgrading to use the `2017-12-01` API Version [GH-797]
-* Data Source `azurerm_app_service_plan`: handling a 404 not being returned as an error [GH-849]
 * `azurerm_container_group` - adding `restart_policy` [GH-827]
 * `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed [GH-800]
 * `azurerm_role_assignment` - add `role_definition_name` [GH-775]
-* `azurerm_storage_container` - add a retry for creation [GH-846]
 * `azurerm_subnet` - add support for Service Endpoints [GH-786]
 * `azurerm_virtual_machine` - changing `managed_disk_id` and `create_option` to be not ForceNew [GH-813]
+
 
 ## 1.1.1 (February 06, 2018)
 
