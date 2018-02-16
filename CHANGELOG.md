@@ -12,6 +12,7 @@ FEATURES:
 * authentication: pulling the `Environment` key from the Azure CLI Config [GH-842]
 * core: upgrading to `v12.5.0-beta` of the Azure SDK for Go [GH-830]
 * compute: upgrading to use the `2017-12-01` API Version [GH-797]
+* Data Source `azurerm_app_service_plan`: handling a 404 not being returned as an error [GH-849]
 * `azurerm_container_group` - adding `restart_policy` [GH-827]
 * `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed [GH-800]
 * `azurerm_role_assignment` - add `role_definition_name` [GH-775]
