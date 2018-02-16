@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -34,7 +34,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
@@ -46,7 +46,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "datadisk_existing"
-  location             = "West US 2"
+  location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
@@ -55,7 +55,7 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm"
-  location              = "West US 2"
+  location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
   vm_size               = "Standard_DS1_v2"
@@ -124,7 +124,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -137,7 +137,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
@@ -150,7 +150,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
   name                     = "accsa"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -168,10 +168,10 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm"
-  location              = "West US"
+  location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_A0"
+  vm_size               = "Standard_F2"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   # delete_os_disk_on_termination = true
@@ -338,6 +338,8 @@ resource "azurerm_virtual_machine" "test" {
 }
 resource "azurerm_virtual_machine_extension" "test" {
   name                 = "test"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
   virtual_machine_name = "${azurerm_virtual_machine.test.name}"
   publisher            = "Microsoft.ManagedIdentity"
   type                 = "ManagedIdentityExtensionForWindows"
