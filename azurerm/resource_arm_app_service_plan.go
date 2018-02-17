@@ -270,8 +270,10 @@ func expandAppServicePlanProperties(d *schema.ResourceData, name string) *web.Ap
 	config := configs[0].(map[string]interface{})
 
 	appServiceEnvironmentId := config["app_service_environment_id"].(string)
-	properties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
-		ID: utils.String(appServiceEnvironmentId),
+	if appServiceEnvironmentId != "" {
+		properties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+			ID: utils.String(appServiceEnvironmentId),
+		}
 	}
 
 	perSiteScaling := config["per_site_scaling"].(bool)
