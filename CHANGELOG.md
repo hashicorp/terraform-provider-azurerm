@@ -1,4 +1,10 @@
 ## 1.1.3 (Unreleased)
+
+FEATURES:
+
+* `azurerm_storage_account`: adding support for `account_kind` being `StorageV2` [GH-851]
+
+
 ## 1.1.2 (February 19, 2018)
 
 FEATURES:
