@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
-sidebar_current: "docs-azurerm-resource-kubernetes-cluster"
+sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
 description: |-
   Creates a managed Kubernetes Cluster (AKS)
 ---
