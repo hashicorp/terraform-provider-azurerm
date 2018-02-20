@@ -3,9 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,29 +22,23 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 
 			"location": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"network_security_group_id": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
 			"mac_address": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
 			"virtual_machine_id": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
@@ -57,40 +49,31 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 
 						"subnet_id": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Computed: true,
 						},
 
 						"private_ip_address": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Dynamic),
-								string(network.Static),
-							}, true),
-							StateFunc:        ignoreCaseStateFunc,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							Computed: true,
 						},
 
 						"public_ip_address_id": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 
 						"load_balancer_backend_address_pools_ids": {
 							Type:     schema.TypeSet,
-							Optional: true,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
@@ -98,7 +81,6 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 
 						"load_balancer_inbound_nat_rules_ids": {
 							Type:     schema.TypeSet,
-							Optional: true,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
@@ -106,7 +88,6 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 
 						"primary": {
 							Type:     schema.TypeBool,
-							Optional: true,
 							Computed: true,
 						},
 					},
@@ -115,7 +96,6 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 
 			"dns_servers": {
 				Type:     schema.TypeSet,
-				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -123,13 +103,11 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 
 			"internal_dns_name_label": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
 			"applied_dns_servers": {
 				Type:     schema.TypeSet,
-				Optional: true,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -137,7 +115,6 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 
 			"internal_fqdn": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
@@ -151,14 +128,12 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 			 */
 			"enable_accelerated_networking": {
 				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"enable_ip_forwarding": {
 				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"private_ip_address": {
@@ -174,7 +149,7 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tagsForDataSourceSchema(),
 		},
 	}
 }
