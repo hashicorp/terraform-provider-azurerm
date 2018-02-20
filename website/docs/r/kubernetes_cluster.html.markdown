@@ -91,7 +91,6 @@ The following arguments are supported:
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group.
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 50 (inclusive). Defaults to `1`.
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`).
-* `storage_profile` - (Optional) The kind of Storage to use. Possible values include `StorageAccount` and `ManagedDisks`.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned.
 
