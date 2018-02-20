@@ -322,8 +322,11 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 	}
 
 	if conn.IpsecPolicies != nil {
-		ipsec_policies := flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
-		d.Set("ipsec_policy", ipsec_policies)
+		ipsecPolicies := flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
+
+		if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
+			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -429,8 +432,8 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	}
 
 	if v, ok := d.GetOk("routing_weight"); ok {
-		routing_weight := int32(v.(int))
-		props.RoutingWeight = &routing_weight
+		routingWeight := int32(v.(int))
+		props.RoutingWeight = &routingWeight
 	}
 
 	if v, ok := d.GetOk("shared_key"); ok {
@@ -438,9 +441,8 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {
-		ipsec_policies := v.([]interface{})
-		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsec_policies)
-		log.Printf("Ipsec policies: %+q", props.IpsecPolicies)
+		ipsecPolicies := v.([]interface{})
+		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies)
 	}
 
 	if props.ConnectionType == network.ExpressRoute {
@@ -479,45 +481,45 @@ func resourceGroupAndVirtualNetworkGatewayConnectionFromId(virtualNetworkGateway
 	return resGroup, name, nil
 }
 
-func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsec_policies []interface{}) *[]network.IpsecPolicy {
-	ipsecPolicies := make([]network.IpsecPolicy, 0, len(ipsec_policies))
+func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []interface{}) *[]network.IpsecPolicy {
+	ipsecPolicies := make([]network.IpsecPolicy, 0, len(schemaIpsecPolicies))
 
-	for _, d := range ipsec_policies {
-		ipsec_policy := d.(map[string]interface{})
+	for _, d := range schemaIpsecPolicies {
+		schemaIpsecPolicy := d.(map[string]interface{})
 		ipsecPolicy := &network.IpsecPolicy{}
 
-		if dh_group, ok := ipsec_policy["dh_group"].(string); ok && dh_group != "" {
-			ipsecPolicy.DhGroup = network.DhGroup(dh_group)
+		if dhGroup, ok := schemaIpsecPolicy["dh_group"].(string); ok && dhGroup != "" {
+			ipsecPolicy.DhGroup = network.DhGroup(dhGroup)
 		}
 
-		if ike_encryption, ok := ipsec_policy["ike_encryption"].(string); ok && ike_encryption != "" {
-			ipsecPolicy.IkeEncryption = network.IkeEncryption(ike_encryption)
+		if ikeEncryption, ok := schemaIpsecPolicy["ike_encryption"].(string); ok && ikeEncryption != "" {
+			ipsecPolicy.IkeEncryption = network.IkeEncryption(ikeEncryption)
 		}
 
-		if ike_integrity, ok := ipsec_policy["ike_integrity"].(string); ok && ike_integrity != "" {
-			ipsecPolicy.IkeIntegrity = network.IkeIntegrity(ike_integrity)
+		if ikeIntegrity, ok := schemaIpsecPolicy["ike_integrity"].(string); ok && ikeIntegrity != "" {
+			ipsecPolicy.IkeIntegrity = network.IkeIntegrity(ikeIntegrity)
 		}
 
-		if ipsec_encryption, ok := ipsec_policy["ipsec_encryption"].(string); ok && ipsec_encryption != "" {
-			ipsecPolicy.IpsecEncryption = network.IpsecEncryption(ipsec_encryption)
+		if ipsecEncryption, ok := schemaIpsecPolicy["ipsec_encryption"].(string); ok && ipsecEncryption != "" {
+			ipsecPolicy.IpsecEncryption = network.IpsecEncryption(ipsecEncryption)
 		}
 
-		if ipsec_integrity, ok := ipsec_policy["ipsec_integrity"].(string); ok && ipsec_integrity != "" {
-			ipsecPolicy.IpsecIntegrity = network.IpsecIntegrity(ipsec_integrity)
+		if ipsecIntegrity, ok := schemaIpsecPolicy["ipsec_integrity"].(string); ok && ipsecIntegrity != "" {
+			ipsecPolicy.IpsecIntegrity = network.IpsecIntegrity(ipsecIntegrity)
 		}
 
-		if pfs_group, ok := ipsec_policy["pfs_group"].(string); ok && pfs_group != "" {
-			ipsecPolicy.PfsGroup = network.PfsGroup(pfs_group)
+		if pfsGroup, ok := schemaIpsecPolicy["pfs_group"].(string); ok && pfsGroup != "" {
+			ipsecPolicy.PfsGroup = network.PfsGroup(pfsGroup)
 		}
 
-		if v, ok := ipsec_policy["sa_datasize"].(int); ok {
-			sa_datasize := int32(v)
-			ipsecPolicy.SaDataSizeKilobytes = &sa_datasize
+		if v, ok := schemaIpsecPolicy["sa_datasize"].(int); ok {
+			saDatasize := int32(v)
+			ipsecPolicy.SaDataSizeKilobytes = &saDatasize
 		}
 
-		if v, ok := ipsec_policy["sa_lifetime"].(int); ok {
-			sa_lifetime := int32(v)
-			ipsecPolicy.SaLifeTimeSeconds = &sa_lifetime
+		if v, ok := schemaIpsecPolicy["sa_lifetime"].(int); ok {
+			saLifetime := int32(v)
+			ipsecPolicy.SaLifeTimeSeconds = &saLifetime
 		}
 
 		ipsecPolicies = append(ipsecPolicies, *ipsecPolicy)
@@ -527,28 +529,30 @@ func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsec_policies []inte
 }
 
 func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
-	ipsec_policies := make([]interface{}, 0, len(*ipsecPolicies))
+	schemaIpsecPolicies := make([]interface{}, 0)
 
-	for _, ipsecPolicy := range *ipsecPolicies {
-		ipsec_policy := make(map[string]interface{})
+	if ipsecPolicies != nil {
+		for _, ipsecPolicy := range *ipsecPolicies {
+			schemaIpsecPolicy := make(map[string]interface{})
 
-		ipsec_policy["dh_group"] = string(ipsecPolicy.DhGroup)
-		ipsec_policy["ike_encryption"] = string(ipsecPolicy.IkeEncryption)
-		ipsec_policy["ike_integrity"] = string(ipsecPolicy.IkeIntegrity)
-		ipsec_policy["ipsec_encryption"] = string(ipsecPolicy.IpsecEncryption)
-		ipsec_policy["ipsec_integrity"] = string(ipsecPolicy.IpsecIntegrity)
-		ipsec_policy["pfs_group"] = string(ipsecPolicy.PfsGroup)
+			schemaIpsecPolicy["dh_group"] = string(ipsecPolicy.DhGroup)
+			schemaIpsecPolicy["ike_encryption"] = string(ipsecPolicy.IkeEncryption)
+			schemaIpsecPolicy["ike_integrity"] = string(ipsecPolicy.IkeIntegrity)
+			schemaIpsecPolicy["ipsec_encryption"] = string(ipsecPolicy.IpsecEncryption)
+			schemaIpsecPolicy["ipsec_integrity"] = string(ipsecPolicy.IpsecIntegrity)
+			schemaIpsecPolicy["pfs_group"] = string(ipsecPolicy.PfsGroup)
 
-		if ipsecPolicy.SaDataSizeKilobytes != nil {
-			ipsec_policy["sa_datasize"] = int(*ipsecPolicy.SaDataSizeKilobytes)
+			if ipsecPolicy.SaDataSizeKilobytes != nil {
+				schemaIpsecPolicy["sa_datasize"] = int(*ipsecPolicy.SaDataSizeKilobytes)
+			}
+
+			if ipsecPolicy.SaLifeTimeSeconds != nil {
+				schemaIpsecPolicy["sa_lifetime"] = int(*ipsecPolicy.SaLifeTimeSeconds)
+			}
+
+			schemaIpsecPolicies = append(schemaIpsecPolicies, schemaIpsecPolicy)
 		}
-
-		if ipsecPolicy.SaLifeTimeSeconds != nil {
-			ipsec_policy["sa_lifetime"] = int(*ipsecPolicy.SaLifeTimeSeconds)
-		}
-
-		ipsec_policies = append(ipsec_policies, ipsec_policy)
 	}
 
-	return ipsec_policies
+	return schemaIpsecPolicies
 }

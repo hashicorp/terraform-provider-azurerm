@@ -175,7 +175,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "test-${var.random}"
+  name = "acctestvn-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
@@ -189,14 +189,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -213,7 +213,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 resource "azurerm_local_network_gateway" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -222,7 +222,7 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -255,7 +255,7 @@ resource "azurerm_resource_group" "test_1" {
 }
 
 resource "azurerm_virtual_network" "test_1" {
-  name = "acctest-${var.random1}"
+  name = "acctestvn-${var.random1}"
   location = "${azurerm_resource_group.test_1.location}"
   resource_group_name = "${azurerm_resource_group.test_1.name}"
   address_space = ["10.0.0.0/16"]
@@ -373,7 +373,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "test-${var.random}"
+  name = "acctestvn-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   address_space = ["10.0.0.0/16"]
@@ -387,14 +387,14 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -411,7 +411,7 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 resource "azurerm_local_network_gateway" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -420,7 +420,7 @@ resource "azurerm_local_network_gateway" "test" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "test" {
-  name = "test-${var.random}"
+  name = "acctest-${var.random}"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
