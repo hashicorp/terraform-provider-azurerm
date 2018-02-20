@@ -2,8 +2,11 @@
 
 FEATURES:
 
-* `azurerm_storage_account`: adding support for `account_kind` being `StorageV2` [GH-851]
+* `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` [GH-851]
 
+BUG FIXES:
+
+* `azurerm_network_interface` - the `subnet_id` field is now case insensitive [GH-866]
 
 ## 1.1.2 (February 19, 2018)
 
