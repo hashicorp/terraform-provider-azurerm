@@ -8,5 +8,5 @@ variable "location" {
 }
 
 variable "unique" {
-  description = "a unique string that will be used to comprise the names of the Service Bus, Topic, and Subscription name spaces"
+  description = "A unique string that will be used to comprise the names of the Service Bus, Topic, and Subscription name spaces"
 }

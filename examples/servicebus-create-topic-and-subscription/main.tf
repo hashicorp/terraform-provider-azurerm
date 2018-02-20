@@ -32,6 +32,15 @@ resource "azurerm_servicebus_subscription" "test" {
   resource_group_name = "${var.resource_group}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   topic_name          = "${azurerm_servicebus_topic.test.name}"
+  forward_to          = "${azurerm_servicebus_topic.forward_to.name}"
   max_delivery_count  = 1
 }
 
+
+resource "azurerm_servicebus_topic" "forward_to" {
+  name                = "${var.unique}Topic-forward_to"
+  resource_group_name = "${var.resource_group}"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+
+  enable_partitioning = true
+}

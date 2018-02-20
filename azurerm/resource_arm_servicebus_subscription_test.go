@@ -173,9 +173,18 @@ resource "azurerm_servicebus_subscription" "test" {
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
     topic_name = "${azurerm_servicebus_topic.test.name}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+    forward_to = "${azurerm_servicebus_topic.forward_to.name}"
     max_delivery_count = 10
 }
-`, rInt, location, rInt, rInt, rInt)
+
+resource "azurerm_servicebus_topic" "forward_to" {
+    name = "acctestservicebustopic-forward_to-%d"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMServiceBusSubscription_update(rInt int, location string) string {
