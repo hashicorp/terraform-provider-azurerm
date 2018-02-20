@@ -60,8 +60,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"private_ip_address": {
