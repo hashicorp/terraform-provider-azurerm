@@ -18,9 +18,9 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                 = "standard"
 }
 
+
 resource "azurerm_servicebus_topic" "test" {
   name                = "${var.unique}Topic"
-  location            = "${var.location}"
   resource_group_name = "${var.resource_group}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 
@@ -29,9 +29,9 @@ resource "azurerm_servicebus_topic" "test" {
 
 resource "azurerm_servicebus_subscription" "test" {
   name                = "${var.unique}Subscription"
-  location            = "${var.location}"
   resource_group_name = "${var.resource_group}"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   max_delivery_count  = 1
 }
+
