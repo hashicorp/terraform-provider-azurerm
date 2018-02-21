@@ -99,7 +99,7 @@ The following arguments are supported:
     new resource to be created.
 
 * `forward_to` - (Optional) The name of a Queue or Topic to automatically forward 
-    messages to. Defaults to none.
+    messages to.
     
 ### TimeSpan Format
 

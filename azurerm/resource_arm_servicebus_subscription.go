@@ -85,7 +85,6 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 			"forward_to": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The name of a Queue or Topic to automatically forward messages to.",
 			},
 
 			// TODO: remove in the next major version
