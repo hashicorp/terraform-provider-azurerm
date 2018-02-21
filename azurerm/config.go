@@ -182,8 +182,9 @@ type ArmClient struct {
 	trafficManagerEndpointsClient trafficmanager.EndpointsClient
 
 	// Web
-	appServicePlansClient web.AppServicePlansClient
-	appServicesClient     web.AppsClient
+	appServiceEnvironmentsClient web.AppServiceEnvironmentsClient
+	appServicePlansClient        web.AppServicePlansClient
+	appServicesClient            web.AppsClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -191,7 +192,7 @@ func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Autho
 	client.Authorizer = auth
 	client.Sender = autorest.CreateSender(withRequestLogging())
 	client.SkipResourceProviderRegistration = c.skipProviderRegistration
-	client.PollingDuration = 60 * time.Minute
+	client.PollingDuration = 1 * time.Hour
 }
 
 func withRequestLogging() autorest.SendDecorator {
@@ -828,6 +829,16 @@ func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId strin
 }
 
 func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	appServiceEnvironmentsClient := web.NewAppServiceEnvironmentsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&appServiceEnvironmentsClient.Client, auth)
+	// App Service Environments are s-l-o-w.
+	// "It takes a minimum of 2-3 hours, and a maximum of 20-30 hours to perform any scaling operation on App Service Environments"
+	// https://feedback.azure.com/forums/169385-web-apps/suggestions/15907903-app-service-environment-scaling-time-is-too-long
+	appServiceEnvironmentsClient.Client.RetryAttempts = 1800
+	appServiceEnvironmentsClient.Client.RetryDuration = 60 * time.Second
+	appServiceEnvironmentsClient.Client.PollingDuration = 30 * time.Hour
+	c.appServiceEnvironmentsClient = appServiceEnvironmentsClient
+
 	appServicePlansClient := web.NewAppServicePlansClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appServicePlansClient.Client, auth)
 	c.appServicePlansClient = appServicePlansClient
