@@ -145,10 +145,10 @@ resource "azurerm_sql_server" "test" {
     administrator_login_password = "thisIsDog11"
 }
 
-resource "azurerm_sql_administrator" "test" {
-	server_name = "${azurerm_sql_server.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	login = "sqladmin"
+resource "azurerm_sql_active_directory_administrator" "test" {
+    server_name = "${azurerm_sql_server.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    login = "sqladmin"
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
     object_id = "${data.azurerm_client_config.current.client_id}"
 }
@@ -173,10 +173,10 @@ resource "azurerm_sql_server" "test" {
     administrator_login_password = "thisIsDog11"
 }
 
-resource "azurerm_sql_administrator" "test" {
-	server_name = "${azurerm_sql_server.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	login = "sqladmin2"
+resource "azurerm_sql_active_directory_administrator" "test" {
+    server_name = "${azurerm_sql_server.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    login = "sqladmin2"
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
     object_id = "${data.azurerm_client_config.current.client_id}"
 }

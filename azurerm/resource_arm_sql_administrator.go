@@ -8,16 +8,14 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	//"github.com/hashicorp/terraform/helper/validation"
-	//"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 )
 
 func resourceArmSqlAdministrator() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlAdministratorCreateUpdate,
-		Read:   resourceArmSqlAdministratorRead,
-		Update: resourceArmSqlAdministratorCreateUpdate,
-		Delete: resourceArmSqlAdministratorDelete,
+		Create: resourceArmSqlActiveDirectoryAdministratorCreateUpdate,
+		Read:   resourceArmSqlActiveDirectoryAdministratorRead,
+		Update: resourceArmSqlActiveDirectoryAdministratorCreateUpdate,
+		Delete: resourceArmSqlActiveDirectoryAdministratorDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -37,19 +35,21 @@ func resourceArmSqlAdministrator() *schema.Resource {
 			},
 
 			"object_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateUUID,
 			},
 
 			"tenant_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateUUID,
 			},
 		},
 	}
 }
 
-func resourceArmSqlAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -68,19 +68,19 @@ func resourceArmSqlAdministratorCreateUpdate(d *schema.ResourceData, meta interf
 		},
 	}
 
-	future, error := client.CreateOrUpdate(ctx, resGroup, serverName, administratorName, parameters)
-	if error != nil {
-		return error
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, administratorName, parameters)
+	if err != nil {
+		return err
 	}
 
-	error = future.WaitForCompletion(ctx, client.Client)
-	if error != nil {
-		return error
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
 	}
 
-	resp, error := client.Get(ctx, resGroup, serverName, administratorName)
-	if error != nil {
-		return error
+	resp, err := client.Get(ctx, resGroup, serverName, administratorName)
+	if err != nil {
+		return err
 	}
 
 	d.SetId(*resp.ID)
@@ -88,7 +88,7 @@ func resourceArmSqlAdministratorCreateUpdate(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceArmSqlAdministratorRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -121,7 +121,7 @@ func resourceArmSqlAdministratorRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceArmSqlAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).sqlServerAzureADAdministratorsClient
 	ctx := meta.(*ArmClient).StopContext
 
