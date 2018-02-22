@@ -83,8 +83,8 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 			},
 
 			"forward_to": {
-				Type:        schema.TypeString,
-				Optional:    true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			// TODO: remove in the next major version
