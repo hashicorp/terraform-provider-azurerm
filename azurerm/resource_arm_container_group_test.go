@@ -253,6 +253,7 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
+  dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "windows"
   restart_policy      = "Never"
 
@@ -262,8 +263,9 @@ resource "azurerm_container_group" "test" {
     cpu    = "2.0"
     memory = "3.5"
     port   = "80"
+
 	environment_variables {
-		"foo" = "bar"
+		"foo"  = "bar"
 		"foo1" = "bar1"
 	}
 	command = "cmd.exe echo hi"
@@ -273,7 +275,7 @@ resource "azurerm_container_group" "test" {
     environment = "Testing"
   }
 }
-`, ri, location, ri)
+`, ri, location, ri, ri)
 }
 
 func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
@@ -305,6 +307,7 @@ resource "azurerm_container_group" "test" {
 	location            = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	ip_address_type     = "public"
+	dns_name_label      = "acctestcontainergroup-%d"
 	os_type             = "linux"
 	restart_policy      = "OnFailure"
 
@@ -313,14 +316,16 @@ resource "azurerm_container_group" "test" {
 		image  = "seanmckenna/aci-hellofiles"
 		cpu    = "1"
 		memory = "1.5"
-		port   = "80"
+
+		port     = "80"
 		protocol = "TCP"
 
 		volume {
-			name = "logs"
+			name       = "logs"
 			mount_path = "/aci/logs"
-			read_only = false
+			read_only  = false
 			share_name = "${azurerm_storage_share.test.name}"
+
 			storage_account_name = "${azurerm_storage_account.test.name}"
 			storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
 		}
@@ -337,7 +342,7 @@ resource "azurerm_container_group" "test" {
 		environment = "Testing"
 	}
 }
-`, ri, location, ri, ri, ri)
+`, ri, location, ri, ri, ri, ri)
 }
 
 func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
