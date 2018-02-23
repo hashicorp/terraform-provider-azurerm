@@ -37,9 +37,9 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 resource "azurerm_app_service_active_slot" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  source_slot_name    = "${azurerm_app_service_slot.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  app_service_name      = "${azurerm_app_service.test.name}"
+  app_service_slot_name = "${azurerm_app_service_slot.test.name}"
 }
 ```
 
