@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Function App enabled? Changing this forces a new resource to be created.
 
+* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
+
 * `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
@@ -87,7 +89,12 @@ The following arguments are supported:
 
 `site_config` supports the following:
 
-* `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
+* `always_on` - (Optional) Should the Function App be loaded at all times? Defaults to `false`.
+* `use_32_bit_worker_process` - (Optional) Should the Function App run in 32 bit mode, rather than 64 bit mode? Defaults to `true`.
+
+~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+
+* `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
 ## Attributes Reference
 
