@@ -308,6 +308,18 @@ resource "azurerm_network_security_group" "test" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
+
+  security_rule {
+    name                       = "testDeny"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Udp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["53", "113"]
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
 }
 `, rInt, location)
 }

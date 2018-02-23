@@ -53,30 +53,67 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 						},
 
 						"protocol": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateNetworkSecurityRuleProtocol,
-							StateFunc:    ignoreCaseStateFunc,
+							Type:             schema.TypeString,
+							Required:         true,
+							ValidateFunc:     validateNetworkSecurityRuleProtocol,
+							StateFunc:        ignoreCaseStateFunc,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"source_port_range": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"security_rule.source_port_ranges"},
+						},
+
+						"source_port_ranges": {
+							Type:          schema.TypeSet,
+							Optional:      true,
+							Elem:          &schema.Schema{Type: schema.TypeString},
+							Set:           schema.HashString,
+							ConflictsWith: []string{"security_rule.source_port_range"},
 						},
 
 						"destination_port_range": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"security_rule.destination_port_ranges"},
+						},
+
+						"destination_port_ranges": {
+							Type:          schema.TypeSet,
+							Optional:      true,
+							Elem:          &schema.Schema{Type: schema.TypeString},
+							Set:           schema.HashString,
+							ConflictsWith: []string{"security_rule.destination_port_range"},
 						},
 
 						"source_address_prefix": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"security_rule.source_address_prefixes"},
+						},
+
+						"source_address_prefixes": {
+							Type:          schema.TypeSet,
+							Optional:      true,
+							Elem:          &schema.Schema{Type: schema.TypeString},
+							Set:           schema.HashString,
+							ConflictsWith: []string{"security_rule.source_address_prefix"},
 						},
 
 						"destination_address_prefix": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"security_rule.destination_address_prefixes"},
+						},
+
+						"destination_address_prefixes": {
+							Type:          schema.TypeSet,
+							Optional:      true,
+							Elem:          &schema.Schema{Type: schema.TypeString},
+							Set:           schema.HashString,
+							ConflictsWith: []string{"security_rule.destination_address_prefix"},
 						},
 
 						"access": {
@@ -229,14 +266,26 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []interface{} {
 				if props.DestinationAddressPrefix != nil {
 					sgRule["destination_address_prefix"] = *props.DestinationAddressPrefix
 				}
+				if props.DestinationAddressPrefixes != nil {
+					sgRule["destination_address_prefixes"] = *props.DestinationAddressPrefixes
+				}
 				if props.DestinationPortRange != nil {
 					sgRule["destination_port_range"] = *props.DestinationPortRange
+				}
+				if props.DestinationPortRanges != nil {
+					sgRule["destination_port_ranges"] = *props.DestinationPortRanges
 				}
 				if props.SourceAddressPrefix != nil {
 					sgRule["source_address_prefix"] = *props.SourceAddressPrefix
 				}
+				if props.SourceAddressPrefixes != nil {
+					sgRule["source_address_prefixes"] = *props.SourceAddressPrefixes
+				}
 				if props.SourcePortRange != nil {
 					sgRule["source_port_range"] = *props.SourcePortRange
+				}
+				if props.SourcePortRanges != nil {
+					sgRule["source_port_ranges"] = *props.SourcePortRanges
 				}
 				sgRule["priority"] = int(*props.Priority)
 				sgRule["access"] = string(props.Access)
@@ -264,23 +313,55 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 
 		name := data["name"].(string)
 		source_port_range := data["source_port_range"].(string)
+		source_port_ranges := data["source_port_ranges"].(*schema.Set).List()
+
+		source_port_ranges_outputs := make([]string, 0)
+		for _, sourcePortRange := range source_port_ranges {
+			source_port_ranges_outputs = append(source_port_ranges_outputs, sourcePortRange.(string))
+		}
+
 		destination_port_range := data["destination_port_range"].(string)
+		destination_port_ranges := data["destination_port_ranges"].(*schema.Set).List()
+
+		destination_port_ranges_outputs := make([]string, 0)
+		for _, destinationPortRange := range destination_port_ranges {
+			destination_port_ranges_outputs = append(destination_port_ranges_outputs, destinationPortRange.(string))
+		}
+
 		source_address_prefix := data["source_address_prefix"].(string)
+		source_address_prefixes := data["source_address_prefixes"].(*schema.Set).List()
+
+		source_address_prefixes_outputs := make([]string, 0)
+		for _, sourceAddressPrefix := range source_address_prefixes {
+			source_address_prefixes_outputs = append(source_address_prefixes_outputs, sourceAddressPrefix.(string))
+		}
+
 		destination_address_prefix := data["destination_address_prefix"].(string)
+		destination_address_prefixes := data["destination_address_prefixes"].(*schema.Set).List()
+
+		destination_address_prefixes_outputs := make([]string, 0)
+		for _, destinationAddressPrefix := range destination_address_prefixes {
+			destination_address_prefixes_outputs = append(destination_address_prefixes_outputs, destinationAddressPrefix.(string))
+		}
+
 		priority := int32(data["priority"].(int))
 		access := data["access"].(string)
 		direction := data["direction"].(string)
 		protocol := data["protocol"].(string)
 
 		properties := network.SecurityRulePropertiesFormat{
-			SourcePortRange:          &source_port_range,
-			DestinationPortRange:     &destination_port_range,
-			SourceAddressPrefix:      &source_address_prefix,
-			DestinationAddressPrefix: &destination_address_prefix,
-			Priority:                 &priority,
-			Access:                   network.SecurityRuleAccess(access),
-			Direction:                network.SecurityRuleDirection(direction),
-			Protocol:                 network.SecurityRuleProtocol(protocol),
+			SourcePortRange:            &source_port_range,
+			SourcePortRanges:           &source_port_ranges_outputs,
+			DestinationPortRange:       &destination_port_range,
+			DestinationPortRanges:      &destination_port_ranges_outputs,
+			SourceAddressPrefix:        &source_address_prefix,
+			SourceAddressPrefixes:      &source_address_prefixes_outputs,
+			DestinationAddressPrefix:   &destination_address_prefix,
+			DestinationAddressPrefixes: &destination_address_prefixes_outputs,
+			Priority:                   &priority,
+			Access:                     network.SecurityRuleAccess(access),
+			Direction:                  network.SecurityRuleDirection(direction),
+			Protocol:                   network.SecurityRuleProtocol(protocol),
 		}
 
 		if v := data["description"].(string); v != "" {
