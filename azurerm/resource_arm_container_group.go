@@ -73,6 +73,17 @@ func resourceArmContainerGroup() *schema.Resource {
 				Computed: true,
 			},
 
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"dns_name_label": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"container": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -216,6 +227,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
+	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
+		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+	}
+
 	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
 		return err
@@ -268,6 +283,8 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	if address := resp.IPAddress; address != nil {
 		d.Set("ip_address_type", address.Type)
 		d.Set("ip_address", address.IP)
+		d.Set("dns_name_label", address.DNSNameLabel)
+		d.Set("fqdn", address.Fqdn)
 	}
 	d.Set("restart_policy", string(resp.RestartPolicy))
 
