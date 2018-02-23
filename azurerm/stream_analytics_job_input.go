@@ -180,6 +180,10 @@ func streamAnalyticsInputSchema() *schema.Schema {
 											Type:     schema.TypeString,
 											Optional: true,
 										},
+										"endpoint": &schema.Schema{
+											Type:     schema.TypeString,
+											Required: true,
+										},
 									},
 								},
 							},
@@ -307,11 +311,14 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 		namespace := iothubMap["namespace"].(string)
 		sharedPolicyName := iothubMap["shared_access_policy_name"].(string)
 		sharedPolicyKey := iothubMap["shared_access_policy_key"].(string)
+		eventHubEndpoint := iothubMap["endpoint"].(string)
+		log.Printf("[INFO] Creating IotHub input source with endpoint %s", eventHubEndpoint)
 
 		iothubStreamProps := streamanalytics.IoTHubStreamInputDataSourceProperties{
 			IotHubNamespace:        &namespace,
 			SharedAccessPolicyName: &sharedPolicyName,
 			SharedAccessPolicyKey:  &sharedPolicyKey,
+			Endpoint:               &eventHubEndpoint,
 		}
 
 		if consumerGroup, ok := iothubMap["consumer_group_name"].(string); ok && consumerGroup != "" {
