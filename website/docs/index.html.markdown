@@ -4,7 +4,6 @@ page_title: "Provider: Azure"
 sidebar_current: "docs-azurerm-index"
 description: |-
   The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through it's API's.
-
 ---
 
 # Azure Provider
@@ -75,6 +74,7 @@ The following arguments are supported:
 
 * `environment` - (Optional) The cloud environment to use. It can also be sourced
   from the `ARM_ENVIRONMENT` environment variable. Supported values are:
+
   * `public` (default)
   * `usgovernment`
   * `german`
