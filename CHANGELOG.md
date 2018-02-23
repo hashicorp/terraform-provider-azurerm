@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* `azurerm_container_group` - added `dns_name_label` and `FQDN` properties [GH-877]
 * `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` [GH-851]
 
 BUG FIXES:
