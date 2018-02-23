@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
@@ -179,6 +180,9 @@ type ArmClient struct {
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
+
+	// HDInsight
+	hdInsightClient hdinsight.ClustersClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -815,6 +819,12 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
+}
+
+func (c *ArmClient) registerHDInsightClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	hdInsightClient := hdinsight.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&hdInsightClient, auth)
+	c.hdInsightClient = hdInsightClient
 }
 
 var (
