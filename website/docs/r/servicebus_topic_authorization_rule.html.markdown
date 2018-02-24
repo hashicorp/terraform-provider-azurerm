@@ -6,7 +6,7 @@ description: |-
   Creates a new ServiceBus Topic authorization Rule within a ServiceBus Topic.
 ---
 
-# azurerm\_servicebus\_topic\_authorization\_rule
+# azurerm_servicebus_topic_authorization_rule
 
 Creates a new ServiceBus Topic authorization Rule within a ServiceBus Topic.
 
@@ -41,7 +41,7 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "navi"
+  name                = "examplerule"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   topic_name          = "${azurerm_servicebus_topic.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"

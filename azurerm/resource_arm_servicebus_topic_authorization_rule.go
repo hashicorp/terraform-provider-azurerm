@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -180,8 +179,8 @@ func resourceArmServiceBusTopicAuthorizationRuleDelete(d *schema.ResourceData, m
 
 	resp, err := client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, topicName, name)
 
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Topic Authorization Rule '%s': %+v", name, err)
+	if err != nil {
+		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Topic Authorization Rule %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
