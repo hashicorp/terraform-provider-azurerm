@@ -17,7 +17,7 @@ Creates a new connection in an existing Virtual Network Gateway.
 The following example shows a connection between an Azure virtual network
 and an on-premises VPN device and network.
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
   name = "test"
   location = "West US"
@@ -89,7 +89,7 @@ resource "azurerm_virtual_network_gateway_connection" "onpremise" {
 The following example shows a connection between two Azure virtual network
 in different locations/regions.
 
-```
+```hcl
 resource "azurerm_resource_group" "us" {
     name = "us"
     location = "East US"

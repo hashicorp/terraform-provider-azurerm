@@ -54,12 +54,12 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		}
 	}
 
-	// find the Tenant ID and Environment for that subscription if they're not specified
-	if c.TenantID == "" || c.Environment == "" {
-		err := c.populateTenantAndEnvironmentFromCLIProfile(cliProfile)
+	// find the Tenant ID for that subscription if they're not specified
+	if c.TenantID == "" {
+		err := c.populateTenantFromCLIProfile(cliProfile)
 		if err != nil {
 			// we want to expose a more friendly error to the user, but this is useful for debug purposes
-			log.Printf("Error Populating the Tenant and Environment from the CLI Profile: %s", err)
+			log.Printf("Error Populating the Tenant from the CLI Profile: %s", err)
 		}
 	}
 
@@ -89,6 +89,13 @@ func (c *Config) LoadTokensFromAzureCLI() error {
 		return fmt.Errorf("No valid (unexpired) Azure CLI Auth Tokens found. Please run `az login`.")
 	}
 
+	// always pull the Environment from the CLI
+	err = c.populateEnvironmentFromCLIProfile(cliProfile)
+	if err != nil {
+		// we want to expose a more friendly error to the user, but this is useful for debug purposes
+		log.Printf("Error Populating the Environment from the CLI Profile: %s", err)
+	}
+
 	return nil
 }
 
@@ -102,7 +109,7 @@ func (c *Config) populateSubscriptionFromCLIProfile(cliProfile AzureCLIProfile) 
 	return nil
 }
 
-func (c *Config) populateTenantAndEnvironmentFromCLIProfile(cliProfile AzureCLIProfile) error {
+func (c *Config) populateTenantFromCLIProfile(cliProfile AzureCLIProfile) error {
 	subscription, err := cliProfile.FindSubscription(c.SubscriptionID)
 	if err != nil {
 		return err
@@ -112,9 +119,16 @@ func (c *Config) populateTenantAndEnvironmentFromCLIProfile(cliProfile AzureCLIP
 		c.TenantID = subscription.TenantID
 	}
 
-	if c.Environment == "" {
-		c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
+	return nil
+}
+
+func (c *Config) populateEnvironmentFromCLIProfile(cliProfile AzureCLIProfile) error {
+	subscription, err := cliProfile.FindSubscription(c.SubscriptionID)
+	if err != nil {
+		return err
 	}
+
+	c.Environment = normalizeEnvironmentName(subscription.EnvironmentName)
 
 	return nil
 }

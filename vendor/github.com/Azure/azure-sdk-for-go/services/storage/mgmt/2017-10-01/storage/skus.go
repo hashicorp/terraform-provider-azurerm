@@ -18,57 +18,56 @@ package storage
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
-	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"net/http"
 )
 
-// UsageClient is the the Azure Storage Management API.
-type UsageClient struct {
-	BaseClient
+// SkusClient is the the Azure Storage Management API.
+type SkusClient struct {
+	ManagementClient
 }
 
-// NewUsageClient creates an instance of the UsageClient client.
-func NewUsageClient(subscriptionID string) UsageClient {
-	return NewUsageClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewSkusClient creates an instance of the SkusClient client.
+func NewSkusClient(subscriptionID string) SkusClient {
+	return NewSkusClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewUsageClientWithBaseURI creates an instance of the UsageClient client.
-func NewUsageClientWithBaseURI(baseURI string, subscriptionID string) UsageClient {
-	return UsageClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewSkusClientWithBaseURI creates an instance of the SkusClient client.
+func NewSkusClientWithBaseURI(baseURI string, subscriptionID string) SkusClient {
+	return SkusClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List gets the current usage count and the limit for the resources under the subscription.
-func (client UsageClient) List(ctx context.Context) (result UsageListResult, err error) {
-	req, err := client.ListPreparer(ctx)
+// List lists the available SKUs supported by Microsoft.Storage for given subscription.
+func (client SkusClient) List() (result SkuListResult, err error) {
+	req, err := client.ListPreparer()
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.UsageClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.SkusClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.UsageClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.SkusClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.UsageClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.SkusClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client UsageClient) ListPreparer(ctx context.Context) (*http.Request, error) {
+func (client SkusClient) ListPreparer() (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-06-01"
+	const APIVersion = "2017-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -76,21 +75,22 @@ func (client UsageClient) ListPreparer(ctx context.Context) (*http.Request, erro
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Storage/usages", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Storage/skus", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+	return preparer.Prepare(&http.Request{})
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client UsageClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
+func (client SkusClient) ListSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client,
+		req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client UsageClient) ListResponder(resp *http.Response) (result UsageListResult, err error) {
+func (client SkusClient) ListResponder(resp *http.Response) (result SkuListResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

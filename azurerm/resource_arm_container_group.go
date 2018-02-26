@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2017-08-01-preview/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-02-01-preview/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -55,9 +55,33 @@ func resourceArmContainerGroup() *schema.Resource {
 
 			"tags": tagsForceNewSchema(),
 
+			"restart_policy": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          string(containerinstance.Always),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerinstance.Always),
+					string(containerinstance.Never),
+					string(containerinstance.OnFailure),
+				}, true),
+			},
+
 			"ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"dns_name_label": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"container": {
@@ -184,6 +208,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
+	restartPolicy := d.Get("restart_policy").(string)
 
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
@@ -191,7 +216,8 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     expandTags(tags),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			Containers: containers,
+			Containers:    containers,
+			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
 				Type:  &IPAddressType,
 				Ports: containerGroupPorts,
@@ -199,6 +225,10 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			OsType:  containerinstance.OperatingSystemTypes(OSType),
 			Volumes: containerGroupVolumes,
 		},
+	}
+
+	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
+		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
 	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
@@ -253,7 +283,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	if address := resp.IPAddress; address != nil {
 		d.Set("ip_address_type", address.Type)
 		d.Set("ip_address", address.IP)
+		d.Set("dns_name_label", address.DNSNameLabel)
+		d.Set("fqdn", address.Fqdn)
 	}
+	d.Set("restart_policy", string(resp.RestartPolicy))
 
 	if props := resp.ContainerGroupProperties; props != nil {
 		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress.Ports, props.Volumes)

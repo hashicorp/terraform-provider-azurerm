@@ -11,6 +11,8 @@ description: |-
 
 Promotes an App Service Slot to Production within an App Service.
 
+-> **Note:** When using Slots - the `app_settings`, `connection_string` and `site_config` blocks on the `azurerm_app_service` resource will be overwritten when promoting a Slot using the `azurerm_app_service_active_slot` resource.
+
 ## Example Usage
 
 ```hcl
@@ -35,9 +37,9 @@ resource "azurerm_app_service_slot" "test" {
 }
 
 resource "azurerm_app_service_active_slot" "test" {
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    app_service_name    = "${azurerm_app_service.test.name}"
-    source_slot_name    = "${azurerm_app_service_slot.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  app_service_name      = "${azurerm_app_service.test.name}"
+  app_service_slot_name = "${azurerm_app_service_slot.test.name}"
 }
 ```
 
@@ -50,4 +52,3 @@ The following arguments are supported:
 * `app_service_name` - (Required) The name of the App Service within which the Slot exists.  Changing this forces a new resource to be created.
 
 * `app_service_slot_name` - (Required) The name of the App Service Slot which should be promoted to the Production Slot within the App Service.
-

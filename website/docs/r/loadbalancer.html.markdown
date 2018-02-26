@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
-sidebar_current: "docs-azurerm-resource-loadbalancer"
+sidebar_current: "docs-azurerm-resource-loadbalancer-x"
 description: |-
   Create a LoadBalancer Resource.
 ---

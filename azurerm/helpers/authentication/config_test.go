@@ -64,7 +64,7 @@ func TestAzurePopulateSubscriptionFromCLIProfile_Default(t *testing.T) {
 	}
 }
 
-func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_Empty(t *testing.T) {
+func TestAzurePopulateTenantFromCLIProfile_Empty(t *testing.T) {
 	config := Config{}
 	profiles := AzureCLIProfile{
 		Profile: cli.Profile{
@@ -72,13 +72,13 @@ func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_Empty(t *testing.T) {
 		},
 	}
 
-	err := config.populateTenantAndEnvironmentFromCLIProfile(profiles)
+	err := config.populateEnvironmentFromCLIProfile(profiles)
 	if err == nil {
 		t.Fatalf("Expected an error to be returned - but didn't get one")
 	}
 }
 
-func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_MissingSubscription(t *testing.T) {
+func TestAzurePopulateTenantFromCLIProfile_MissingSubscription(t *testing.T) {
 	config := Config{
 		SubscriptionID: "bcd234",
 	}
@@ -93,85 +93,15 @@ func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_MissingSubscription(t *
 		},
 	}
 
-	err := config.populateTenantAndEnvironmentFromCLIProfile(profiles)
+	err := config.populateTenantFromCLIProfile(profiles)
 	if err == nil {
 		t.Fatalf("Expected an error to be returned - but didn't get one")
 	}
 }
 
-func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_PopulateEnvironment(t *testing.T) {
+func TestAzurePopulateTenantFromCLIProfile_PopulateTenantId(t *testing.T) {
 	config := Config{
 		SubscriptionID: "abc123",
-		TenantID:       "bcd234",
-	}
-	profiles := AzureCLIProfile{
-		Profile: cli.Profile{
-			Subscriptions: []cli.Subscription{
-				{
-					IsDefault:       false,
-					ID:              "abc123",
-					EnvironmentName: "public",
-				},
-			},
-		},
-	}
-
-	err := config.populateTenantAndEnvironmentFromCLIProfile(profiles)
-	if err != nil {
-		t.Fatalf("Expected no error to be returned - but got: %+v", err)
-	}
-
-	if config.SubscriptionID != "abc123" {
-		t.Fatalf("Expected Subscription ID to be 'abc123' - got %q", config.SubscriptionID)
-	}
-
-	if config.TenantID != "bcd234" {
-		t.Fatalf("Expected Tenant ID to be 'bcd234' - got %q", config.TenantID)
-	}
-
-	if config.Environment != "public" {
-		t.Fatalf("Expected Tenant ID to be 'public' - got %q", config.Environment)
-	}
-}
-
-func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_NormaliseAndPopulateEnvironment(t *testing.T) {
-	config := Config{
-		SubscriptionID: "abc123",
-		TenantID:       "bcd234",
-	}
-	profiles := AzureCLIProfile{
-		Profile: cli.Profile{
-			Subscriptions: []cli.Subscription{
-				{
-					IsDefault: false,
-					ID:        "abc123",
-				},
-			},
-		},
-	}
-
-	err := config.populateTenantAndEnvironmentFromCLIProfile(profiles)
-	if err != nil {
-		t.Fatalf("Expected no error to be returned - but got: %+v", err)
-	}
-
-	if config.SubscriptionID != "abc123" {
-		t.Fatalf("Expected Subscription ID to be 'abc123' - got %q", config.SubscriptionID)
-	}
-
-	if config.TenantID != "bcd234" {
-		t.Fatalf("Expected Tenant ID to be 'bcd234' - got %q", config.TenantID)
-	}
-
-	if config.Environment != "public" {
-		t.Fatalf("Expected Tenant ID to be 'public' - got %q", config.Environment)
-	}
-}
-
-func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_PopulateTenantId(t *testing.T) {
-	config := Config{
-		SubscriptionID: "abc123",
-		Environment:    "public",
 	}
 	profiles := AzureCLIProfile{
 		Profile: cli.Profile{
@@ -185,7 +115,7 @@ func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_PopulateTenantId(t *tes
 		},
 	}
 
-	err := config.populateTenantAndEnvironmentFromCLIProfile(profiles)
+	err := config.populateTenantFromCLIProfile(profiles)
 	if err != nil {
 		t.Fatalf("Expected no error to be returned - but got: %+v", err)
 	}
@@ -197,17 +127,12 @@ func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_PopulateTenantId(t *tes
 	if config.TenantID != "bcd234" {
 		t.Fatalf("Expected Tenant ID to be 'bcd234' - got %q", config.TenantID)
 	}
-
-	if config.Environment != "public" {
-		t.Fatalf("Expected Tenant ID to be 'public' - got %q", config.Environment)
-	}
 }
 
-func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_Complete(t *testing.T) {
+func TestAzurePopulateTenantFromCLIProfile_Complete(t *testing.T) {
 	config := Config{
 		SubscriptionID: "abc123",
 		TenantID:       "bcd234",
-		Environment:    "public",
 	}
 	profiles := AzureCLIProfile{
 		Profile: cli.Profile{
@@ -220,7 +145,7 @@ func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_Complete(t *testing.T) 
 		},
 	}
 
-	err := config.populateTenantAndEnvironmentFromCLIProfile(profiles)
+	err := config.populateTenantFromCLIProfile(profiles)
 	if err != nil {
 		t.Fatalf("Expected no error to be returned - but got: %+v", err)
 	}
@@ -231,10 +156,6 @@ func TestAzurePopulateTenantAndEnvironmentFromCLIProfile_Complete(t *testing.T) 
 
 	if config.TenantID != "bcd234" {
 		t.Fatalf("Expected Tenant ID to be 'bcd234' - got %q", config.TenantID)
-	}
-
-	if config.Environment != "public" {
-		t.Fatalf("Expected Tenant ID to be 'public' - got %q", config.Environment)
 	}
 }
 

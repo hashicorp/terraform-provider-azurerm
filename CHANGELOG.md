@@ -1,19 +1,42 @@
-## 1.1.2 (Unreleased)
-
-BUG FIXES:
-
-* **Data Source:** `azurerm_virtual_network` - Fixing a crash when the DhcpOptions aren't specified [GH-803]
+## 1.1.3 (Unreleased)
 
 FEATURES:
 
-* **New Resource:** `azurerm_kubernetes_cluster` [GH-693]
-* **New Resource:** `azurerm_app_service_active_slot` [GH-818]
-* **New Resource:** `azurerm_app_service_slot` [GH-818]
-* core: upgrading to `v12.4.0` of the Azure SDK for Go [GH-797]
-* compute: upgrading to use the `2017-12-01` API Version [GH-797]
-* `azurerm_role_assignment` - add `role_definition_name` [GH-775]
-* `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed [GH-800]
-* `azurerm_subnet` - add support for Service Endpoints [GH-786]
+* `azurerm_container_group` - added `dns_name_label` and `FQDN` properties [GH-877]
+* `azurerm_servicebus_subscription` - added support for the `forward_to` property [GH-861]
+* `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` [GH-851]
+
+BUG FIXES:
+
+* `azurerm_network_interface` - the `subnet_id` field is now case insensitive [GH-866]
+
+## 1.1.2 (February 19, 2018)
+
+FEATURES:
+
+* **New Resource:** `azurerm_kubernetes_cluster` ([#693](https://github.com/terraform-providers/terraform-provider-azurerm/issues/693))
+* **New Resource:** `azurerm_app_service_active_slot` ([#818](https://github.com/terraform-providers/terraform-provider-azurerm/issues/818))
+* **New Resource:** `azurerm_app_service_slot` ([#818](https://github.com/terraform-providers/terraform-provider-azurerm/issues/818))
+
+BUG FIXES:
+
+* **Data Source:** `azurerm_app_service_plan`: handling a 404 not being returned as an error ([#849](https://github.com/terraform-providers/terraform-provider-azurerm/issues/849))
+* **Data Source:** `azurerm_virtual_network` - Fixing a crash when the DhcpOptions aren't specified ([#803](https://github.com/terraform-providers/terraform-provider-azurerm/issues/803))
+* `azurerm_application_gateway` - fixing crashes due to schema mismatches for existing resources ([#848](https://github.com/terraform-providers/terraform-provider-azurerm/issues/848))
+* `azurerm_storage_container` - add a retry for creation ([#846](https://github.com/terraform-providers/terraform-provider-azurerm/issues/846))
+
+IMPROVEMENTS:
+
+* authentication: pulling the `Environment` key from the Azure CLI Config ([#842](https://github.com/terraform-providers/terraform-provider-azurerm/issues/842))
+* core: upgrading to `v12.5.0-beta` of the Azure SDK for Go ([#830](https://github.com/terraform-providers/terraform-provider-azurerm/issues/830))
+* compute: upgrading to use the `2017-12-01` API Version ([#797](https://github.com/terraform-providers/terraform-provider-azurerm/issues/797))
+* `azurerm_app_service_plan`: support for attaching to an App Service Environment ([#850](https://github.com/terraform-providers/terraform-provider-azurerm/issues/850))
+* `azurerm_container_group` - adding `restart_policy` ([#827](https://github.com/terraform-providers/terraform-provider-azurerm/issues/827))
+* `azurerm_managed_disk` - updated the validation on `disk_size_gb` / made it computed ([#800](https://github.com/terraform-providers/terraform-provider-azurerm/issues/800))
+* `azurerm_role_assignment` - add `role_definition_name` ([#775](https://github.com/terraform-providers/terraform-provider-azurerm/issues/775))
+* `azurerm_subnet` - add support for Service Endpoints ([#786](https://github.com/terraform-providers/terraform-provider-azurerm/issues/786))
+* `azurerm_virtual_machine` - changing `managed_disk_id` and `create_option` to be not ForceNew ([#813](https://github.com/terraform-providers/terraform-provider-azurerm/issues/813))
+
 
 ## 1.1.1 (February 06, 2018)
 

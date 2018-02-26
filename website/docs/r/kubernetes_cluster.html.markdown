@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
-sidebar_current: "docs-azurerm-resource-kubernetes-cluster"
+sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
 description: |-
   Creates a managed Kubernetes Cluster (AKS)
 ---
@@ -27,7 +27,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   location               = "${azurerm_resource_group.test.location}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   kubernetes_version     = "1.8.2"
-
+  dns_prefix             = "acctestagent1"
+  
   linux_profile {
     admin_username = "acctestuser1"
 
@@ -35,13 +36,11 @@ resource "azurerm_kubernetes_cluster" "test" {
       key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
     }
   }
-
+  
   agent_pool_profile {
     name            = "default"
     count           = 1
-    dns_prefix      = "acctestagent1"
     vm_size         = "Standard_A0"
-    storage_profile = "ManagedDisks"
     os_type         = "Linux"
   }
 
@@ -92,7 +91,6 @@ The following arguments are supported:
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group.
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 50 (inclusive). Defaults to `1`.
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`).
-* `storage_profile` - (Optional) The kind of Storage to use. Possible values include `StorageAccount` and `ManagedDisks`.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned.
 

@@ -227,7 +227,7 @@ func TestAccAzureRMVirtualMachine_bugAzureRM33(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualMachine_changeStorageDataDiskCreationOption(t *testing.T) {
+func TestAccAzureRMVirtualMachine_attachSecondDataDiskWithAttachOption(t *testing.T) {
 	var afterCreate, afterUpdate compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
@@ -251,7 +251,8 @@ func TestAccAzureRMVirtualMachine_changeStorageDataDiskCreationOption(t *testing
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &afterUpdate),
 					testAccCheckVirtualMachineRecreated(t, &afterCreate, &afterUpdate),
-					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.create_option", "Attach"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.create_option", "Empty"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.1.create_option", "Attach"),
 				),
 			},
 		},
@@ -619,7 +620,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-    name = "acctmd-%d"
+    name = "acctmd2-%d"
     location = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     storage_account_type = "Standard_LRS"
@@ -649,11 +650,19 @@ resource "azurerm_virtual_machine" "test" {
         managed_disk_type = "Standard_LRS"
     }
 
+	storage_data_disk {
+        name = "acctmd-%d"
+    	create_option = "Empty"
+    	disk_size_gb = "1"
+    	lun = 0
+        managed_disk_type = "Standard_LRS"
+    }
+
     storage_data_disk {
         name = "${azurerm_managed_disk.test.name}"
     	create_option = "Attach"
     	disk_size_gb = "1"
-    	lun = 0
+    	lun = 1
         managed_disk_id = "${azurerm_managed_disk.test.id}"
     }
 
@@ -672,7 +681,7 @@ resource "azurerm_virtual_machine" "test" {
     	cost-center = "Ops"
     }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_empty(rInt int, location string) string {

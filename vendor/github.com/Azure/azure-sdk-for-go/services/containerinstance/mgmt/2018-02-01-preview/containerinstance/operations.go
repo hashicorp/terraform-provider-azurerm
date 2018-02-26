@@ -1,4 +1,4 @@
-package storage
+package containerinstance
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -24,7 +24,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the the Azure Storage Management API.
+// OperationsClient is the client for the Operations methods of the Containerinstance service.
 type OperationsClient struct {
 	BaseClient
 }
@@ -39,24 +39,24 @@ func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string) Opera
 	return OperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List lists all of the available Storage Rest API operations.
+// List list the operations for Azure Container Instance service.
 func (client OperationsClient) List(ctx context.Context) (result OperationListResult, err error) {
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.OperationsClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerinstance.OperationsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.OperationsClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.OperationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.OperationsClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "containerinstance.OperationsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
@@ -64,7 +64,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2017-06-01"
+	const APIVersion = "2018-02-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -72,7 +72,7 @@ func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request,
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.Storage/operations"),
+		autorest.WithPath("/providers/Microsoft.ContainerInstance/operations"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
