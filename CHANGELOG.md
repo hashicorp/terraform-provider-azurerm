@@ -8,6 +8,7 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_virtual_machine_scale_set` - the `computer_name_prefix` field now forces a new resource [GH-871]
 * `azurerm_network_interface` - the `subnet_id` field is now case insensitive [GH-866]
 
 ## 1.1.2 (February 19, 2018)
