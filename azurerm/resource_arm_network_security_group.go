@@ -1,9 +1,11 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -33,7 +35,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"security_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -103,6 +105,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 						},
 					},
 				},
+				Set: resourceArmNetworkSecurityGroupRuleHash,
 			},
 
 			"tags": tagsSchema(),
@@ -216,8 +219,23 @@ func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interfac
 	return err
 }
 
-func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []interface{} {
-	result := make([]interface{}, 0)
+func resourceArmNetworkSecurityGroupRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%s-", m["protocol"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["source_port_range"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["destination_port_range"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["source_address_prefix"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["destination_address_prefix"].(string)))
+	buf.WriteString(fmt.Sprintf("%s-", m["access"].(string)))
+	buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
+	buf.WriteString(fmt.Sprintf("%s-", m["direction"].(string)))
+
+	return hashcode.String(buf.String())
+}
+
+func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(*rules))
 
 	if rules != nil {
 		for _, rule := range *rules {
@@ -255,8 +273,8 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []interface{} {
 }
 
 func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule, error) {
-	sgRules := d.Get("security_rule").([]interface{})
-	rules := make([]network.SecurityRule, 0)
+	sgRules := d.Get("security_rule").(*schema.Set).List()
+	rules := make([]network.SecurityRule, 0, len(sgRules))
 
 	for _, sgRaw := range sgRules {
 		data := sgRaw.(map[string]interface{})
