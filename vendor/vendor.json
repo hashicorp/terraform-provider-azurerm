@@ -107,10 +107,10 @@
 			"versionExact": "v12.5.0-beta"
 		},
 		{
-			"checksumSHA1": "k5TL+xzgmiKBQpMOdb/PMe7DetA=",
+			"checksumSHA1": "OXG8AijhiNimr1zNSJ85SnfcrI8=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight",
-			"revision": "6bad82d0242e5af7b9cce57fad13d9d44eadc465",
-			"revisionTime": "2018-02-12T22:42:14Z"
+			"revision": "7b986a3a0511159a0a7877f0d7d775bdfe916d29",
+			"revisionTime": "2017-12-16T00:10:16Z"
 		},
 		{
 			"checksumSHA1": "Qyvr+VKOVBA9x/PYyaLBNaPD6CA=",

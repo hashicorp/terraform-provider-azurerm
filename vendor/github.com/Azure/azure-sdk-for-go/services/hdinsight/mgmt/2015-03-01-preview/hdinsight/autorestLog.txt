@@ -1,0 +1,10 @@
+Executing Command: "autorest D:/git/Azure/azure-rest-api-specs/specification/hdinsight/resource-manager/readme.md --go --go-sdk-folder='d:/work/src/github.com/Azure/azure-sdk-for-go' --verbose --tag=package-2015-03-preview --use=@microsoft.azure/autorest.go@v2.1.62 --package-version='v12.0.0-beta' --user-agent='Azure-SDK-For-Go/v12.0.0-beta services'"
+AutoRest code generation utility [version: 2.0.4204]
+(C) 2017 Microsoft Corporation.
+https://aka.ms/autorest
+
+There is a new version of AutoRest available (2.0.4215).
+ > You can install the newer version with with npm install -g autorest@latest
+
+   Loading AutoRest extension '@microsoft.azure/autorest.go' (v2.1.62)
+   Loading AutoRest extension '@microsoft.azure/autorest.modeler' (2.3.38)

@@ -182,7 +182,7 @@ type ArmClient struct {
 	appServicesClient     web.AppsClient
 
 	// HDInsight
-	hdInsightClient hdinsight.ClustersClient
+	hdInsightClustersClient hdinsight.ClustersClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -821,10 +821,10 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	c.appServicesClient = appsClient
 }
 
-func (c *ArmClient) registerHDInsightClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	hdInsightClient := hdinsight.NewClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&hdInsightClient, auth)
-	c.hdInsightClient = hdInsightClient
+func (c *ArmClient) registerHDInsightClustersClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	hdInsightClustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&hdInsightClustersClient.Client, auth)
+	c.hdInsightClustersClient = hdInsightClustersClient
 }
 
 var (
