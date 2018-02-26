@@ -423,13 +423,9 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		}
 	}
 
-	if v, ok := d.GetOk("enable_bgp"); ok {
-		props.EnableBgp = utils.Bool(v.(bool))
-	}
+	props.EnableBgp = utils.Bool(d.Get("enable_bgp").(bool))
 
-	if v, ok := d.GetOk("use_policy_based_traffic_selectors"); ok {
-		props.UsePolicyBasedTrafficSelectors = utils.Bool(v.(bool))
-	}
+	props.UsePolicyBasedTrafficSelectors = utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool))
 
 	if v, ok := d.GetOk("routing_weight"); ok {
 		routingWeight := int32(v.(int))
