@@ -61,65 +61,65 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 						},
 
 						"source_port_range": {
-							Type:          schema.TypeString,
-							Optional:      true,
+							Type:     schema.TypeString,
+							Optional: true,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.source_port_ranges"},
 						},
 
 						"source_port_ranges": {
-							Type:          schema.TypeSet,
-							Optional:      true,
-							Elem:          &schema.Schema{Type: schema.TypeString},
-							Set:           schema.HashString,
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.source_port_range"},
 						},
 
 						"destination_port_range": {
-							Type:          schema.TypeString,
-							Optional:      true,
+							Type:     schema.TypeString,
+							Optional: true,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.destination_port_ranges"},
 						},
 
 						"destination_port_ranges": {
-							Type:          schema.TypeSet,
-							Optional:      true,
-							Elem:          &schema.Schema{Type: schema.TypeString},
-							Set:           schema.HashString,
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.destination_port_range"},
 						},
 
 						"source_address_prefix": {
-							Type:          schema.TypeString,
-							Optional:      true,
+							Type:     schema.TypeString,
+							Optional: true,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.source_address_prefixes"},
 						},
 
 						"source_address_prefixes": {
-							Type:          schema.TypeSet,
-							Optional:      true,
-							Elem:          &schema.Schema{Type: schema.TypeString},
-							Set:           schema.HashString,
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.source_address_prefix"},
 						},
 
 						"destination_address_prefix": {
-							Type:          schema.TypeString,
-							Optional:      true,
+							Type:     schema.TypeString,
+							Optional: true,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.destination_address_prefixes"},
 						},
 
 						"destination_address_prefixes": {
-							Type:          schema.TypeSet,
-							Optional:      true,
-							Elem:          &schema.Schema{Type: schema.TypeString},
-							Set:           schema.HashString,
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 							// ConflictsWith is not yet impletement is an array context
 							//ConflictsWith: []string{"security_rule.#.destination_address_prefix"},
 						},
