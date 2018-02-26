@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/hashicorp/go-uuid"
@@ -47,6 +48,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"role_definition_id"},
+				ValidateFunc:  validateRoleDefinitionName,
 			},
 
 			"principal_id": {
@@ -70,13 +72,14 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("role_definition_id"); ok {
 		roleDefinitionId = v.(string)
 	} else if v, ok := d.GetOk("role_definition_name"); ok {
-		filter := fmt.Sprintf("roleName eq '%s'", v.(string))
+		value := v.(string)
+		filter := fmt.Sprintf("roleName eq '%s'", value)
 		roleDefinitions, err := roleDefinitionsClient.List(ctx, "", filter)
 		if err != nil {
 			return fmt.Errorf("Error loading Role Definition List: %+v", err)
 		}
 		if len(roleDefinitions.Values()) != 1 {
-			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", name)
+			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", value)
 		}
 		roleDefinitionId = *roleDefinitions.Values()[0].ID
 	} else {
@@ -160,4 +163,16 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
+	}
+
+	if ok := strings.Contains(v, "(Preview)"); ok {
+		return nil, []error{fmt.Errorf("Preview roles are not supported")}
+	}
+	return nil, nil
 }
