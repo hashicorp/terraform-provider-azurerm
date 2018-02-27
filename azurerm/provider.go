@@ -122,7 +122,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_express_route_circuit":              resourceArmExpressRouteCircuit(),
 			"azurerm_function_app":                       resourceArmFunctionApp(),
 			"azurerm_image":                              resourceArmImage(),
-			"azurerm_iothub":                      				resourceArmIotHub(),
+			"azurerm_iothub":                             resourceArmIotHub(),
 			"azurerm_key_vault":                          resourceArmKeyVault(),
 			"azurerm_key_vault_certificate":              resourceArmKeyVaultCertificate(),
 			"azurerm_key_vault_key":                      resourceArmKeyVaultKey(),

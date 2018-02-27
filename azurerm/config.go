@@ -18,12 +18,12 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-02-01-preview/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
-	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
@@ -113,7 +113,7 @@ type ArmClient struct {
 	vmClient               compute.VirtualMachinesClient
 
 	// Devices
-	iothubResourceClient           iothub.ResourceClient
+	iothubResourceClient devices.IotHubResourceClient
 
 	// Databases
 	mysqlConfigurationsClient      mysql.ConfigurationsClient
@@ -590,12 +590,12 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlServersClient = sqlSrvClient
 }
 
-func (c *ArmClient) registerDeviceClienrs(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	ihrc := iothub.NewResourceClientWithBaseURI(endpoint, c.SubscriptionID)
-		setUserAgent(&ihrc.Client)
-		ihrc.Authorizer = auth
-		ihrc.Sender = autorest.CreateSender(withRequestLogging())
-		client.iothubResourceClient = ihrc
+func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	ihrc := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&ihrc.Client)
+	ihrc.Authorizer = auth
+	ihrc.Sender = autorest.CreateSender(withRequestLogging())
+	c.iothubResourceClient = ihrc
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
