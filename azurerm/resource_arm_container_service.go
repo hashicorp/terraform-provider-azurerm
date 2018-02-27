@@ -595,9 +595,13 @@ func resourceAzureRMContainerServiceMasterProfileHash(v interface{}) int {
 
 	count := m["count"].(int)
 	dnsPrefix := m["dns_prefix"].(string)
+	vmSize := m["vm_size"].(string)
+	osDiskSizeGB := m["os_disk_size_gb"].(int)
 
 	buf.WriteString(fmt.Sprintf("%d-", count))
 	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
+	buf.WriteString(fmt.Sprintf("%s-", vmSize))
+	buf.WriteString(fmt.Sprintf("%d-", osDiskSizeGB))
 
 	return hashcode.String(buf.String())
 }
