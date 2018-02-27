@@ -7,10 +7,12 @@ description: |-
     configuration and run automated tasks.
 ---
 
-# azurerm\_virtual\_machine\_extension
+# azurerm_virtual_machine_extension
 
 Creates a new Virtual Machine Extension to provide post deployment configuration
 and run automated tasks.
+
+~> **Please Note:** The CustomScript extensions for Linux & Windows require that the `commandToExecute` returns a `0` exit code to be classified as successfully deployed. You can achieve this by appending `exit 0` to the end of your `commandToExecute`.
 
 ## Example Usage
 
@@ -159,8 +161,12 @@ $ az vm extension image list --location westus -o table
 * `settings` - (Required) The settings passed to the extension, these are
     specified as a JSON object in a string.
 
+~> **Please Note:** Certain VM Extensions require that the keys in the `settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
+
 * `protected_settings` - (Optional) The protected_settings passed to the
     extension, like settings, these are specified as a JSON object in a string.
+
+~> **Please Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
 
 ## Attributes Reference
 
