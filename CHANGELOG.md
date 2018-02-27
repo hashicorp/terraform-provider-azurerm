@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_servicebus_topic_authorization_rule` [GH-736]
 * `azurerm_container_group` - added `dns_name_label` and `FQDN` properties [GH-877]
 * `azurerm_servicebus_subscription` - added support for the `forward_to` property [GH-861]
 * `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` [GH-851]
