@@ -12,7 +12,6 @@ import (
 
 func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 	name := acctest.RandString(6)
-	rgname := acctest.RandString(5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -20,7 +19,7 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_basicStandard(name, rgname),
+				Config: testAccAzureRMIotHub_basicStandard(name),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
 				),
@@ -31,6 +30,7 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	conn := testAccProvider.Meta().(*ArmClient).expressRouteCircuitClient
 
@@ -42,7 +42,7 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -56,6 +56,8 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 }
 func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
@@ -68,7 +70,7 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 
 		conn := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 
-		resp, err := conn.Get(resourceGroup, iothubName)
+		resp, err := conn.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return fmt.Errorf("Bad: IotHub %q (resource group: %q) does not exist", iothubName, resourceGroup)
@@ -82,16 +84,11 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMIotHub_basicStandard(name, rgname string) string {
+func testAccAzureRMIotHub_basicStandard(name string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "foo" {
-	name = "acctestRG-%s"
-	location = "East Us"
-}
-
 resource "azurerm_iothub" "test" {
 	name                             = "%s"
-	resource_group_name              = "${azurerm_resource_group.foo.name}"
+	resource_group_name              = "shelley.bess"
 	location                         = "eastus"
 		sku {
 			name = "S1"
@@ -103,5 +100,5 @@ resource "azurerm_iothub" "test" {
 			"purpose" = "testing"
 		}
 }
-`, rgname, name)
+`, name)
 }

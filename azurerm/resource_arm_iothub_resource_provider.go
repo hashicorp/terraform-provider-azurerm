@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -38,10 +39,10 @@ func resourceArmIotHub() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(iothub.F1),
-								string(iothub.S1),
-								string(iothub.S2),
-								string(iothub.S3),
+								string(devices.F1),
+								string(devices.S1),
+								string(devices.S2),
+								string(devices.S3),
 							}, true),
 						},
 
@@ -49,8 +50,8 @@ func resourceArmIotHub() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(iothub.Free),
-								string(iothub.Standard),
+								string(devices.Free),
+								string(devices.Standard),
 							}, true),
 						},
 
@@ -112,11 +113,12 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
+	ctx := armClient.StopContext
 
 	rg := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	res, err := iothubClient.CheckNameAvailability(iothub.OperationInputs{
+	res, err := iothubClient.CheckNameAvailability(ctx, devices.OperationInputs{
 		Name: &name,
 	})
 
@@ -133,7 +135,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	subscriptionID := armClient.subscriptionId
 	skuInfo := expandAzureRmIotHubSku(d)
 
-	desc := iothub.Description{
+	desc := devices.IotHubDescription{
 		Resourcegroup:  &rg,
 		Name:           &name,
 		Location:       &location,
@@ -143,24 +145,28 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if tagsI, ok := d.GetOk("tags"); ok {
 		tags := tagsI.(map[string]interface{})
-		desc.Tags = expandTags(tags)
+		desc.Tags = *expandTags(tags)
 	}
+
+	match := ""
 
 	if etagI, ok := d.GetOk("etag"); ok {
 		etag := etagI.(string)
 		desc.Etag = &etag
+		match = etag
 	}
 
-	cancel := make(chan struct{})
-
-	_, errChan := iothubClient.CreateOrUpdate(rg, name, desc, cancel)
-	err = <-errChan
-
+	future, err := iothubClient.CreateOrUpdate(ctx, rg, name, desc, match)
 	if err != nil {
 		return err
 	}
 
-	desc, err = iothubClient.Get(rg, name)
+	err = future.WaitForCompletion(ctx, iothubClient.Client)
+	if err != nil {
+		return fmt.Errorf("Error creating or updating IotHub %q (Resource Group %q): %+v", name, rg, err)
+	}
+
+	desc, err = iothubClient.Get(ctx, rg, name)
 	if err != nil {
 		return err
 	}
@@ -170,20 +176,23 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 
 }
 
-func expandAzureRmIotHubSku(d *schema.ResourceData) iothub.SkuInfo {
+func expandAzureRmIotHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 	skuList := d.Get("sku").([]interface{})
 	skuMap := skuList[0].(map[string]interface{})
 	cap := int64(skuMap["capacity"].(int))
 
-	return iothub.SkuInfo{
-		Name:     iothub.Sku(skuMap["name"].(string)),
-		Tier:     iothub.SkuTier(skuMap["tier"].(string)),
+	return devices.IotHubSkuInfo{
+		Name:     devices.IotHubSku(skuMap["name"].(string)),
+		Tier:     devices.IotHubSkuTier(skuMap["tier"].(string)),
 		Capacity: &cap,
 	}
 
 }
 
 func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
+	armClient := meta.(*ArmClient)
+	iothubClient := armClient.iothubResourceClient
+	ctx := armClient.StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 
@@ -191,10 +200,8 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	armClient := meta.(*ArmClient)
-	iothubClient := armClient.iothubResourceClient
 	iothubName := id.Path["IotHubs"]
-	desc, err := iothubClient.Get(id.ResourceGroup, iothubName)
+	desc, err := iothubClient.Get(ctx, id.ResourceGroup, iothubName)
 
 	if err != nil {
 		return err
@@ -202,10 +209,11 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 
 	properties := desc.Properties
 
-	keysResp, err := iothubClient.ListKeys(id.ResourceGroup, iothubName)
+	keysResp, err := iothubClient.ListKeys(ctx, id.ResourceGroup, iothubName)
+	keyList := keysResp.Response()
 
 	var keys []map[string]interface{}
-	for _, key := range *keysResp.Value {
+	for _, key := range *keyList.Value {
 		keyMap := make(map[string]interface{})
 		keyMap["key_name"] = *key.KeyName
 		keyMap["primary_key"] = *key.PrimaryKey
@@ -222,7 +230,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("hostname", *properties.HostName)
 	d.Set("etag", *desc.Etag)
 	d.Set("type", *desc.Type)
-	flattenAndSetTags(d, desc.Tags)
+	flattenAndSetTags(d, &desc.Tags)
 
 	return nil
 }
@@ -237,8 +245,17 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 
 	armClient := meta.(*ArmClient)
 	iothubClient := armClient.iothubResourceClient
+	ctx := armClient.StopContext
 
-	_, errChan := iothubClient.Delete(id.ResourceGroup, id.Path["IotHubs"], make(chan struct{}))
-	err = <-errChan
-	return err
+	future, err := iothubClient.Delete(ctx, id.ResourceGroup, id.Path["IotHubs"])
+	if err != nil {
+		return err
+	}
+
+	status := future.Status()
+	if status == "unkown" {
+		return fmt.Errorf("Error Waiting for the deletion of IoTHub %q (Resource Group %q): %+v", id.Path["IotHubs"], id.ResourceGroup, err)
+	}
+
+	return nil
 }
