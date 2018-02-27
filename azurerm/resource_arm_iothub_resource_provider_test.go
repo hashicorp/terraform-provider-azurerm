@@ -12,6 +12,7 @@ import (
 
 func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 	name := acctest.RandString(6)
+	rgname := acctest.RandString(5)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -19,7 +20,7 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_basicStandard(name),
+				Config: testAccAzureRMIotHub_basicStandard(name, rgname),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists("azurerm_iothub.test"),
 				),
@@ -84,11 +85,16 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMIotHub_basicStandard(name string) string {
+func testAccAzureRMIotHub_basicStandard(name, rgname string) string {
 	return fmt.Sprintf(`
+resource "azurerm_resource_group" "foo" {
+	name = "acctestRG-%s"
+	location = "East Us"
+}
+		
 resource "azurerm_iothub" "test" {
 	name                             = "%s"
-	resource_group_name              = "shelley.bess"
+	resource_group_name              = "${azurerm_resource_group.foo.name}"
 	location                         = "eastus"
 		sku {
 			name = "S1"
@@ -100,5 +106,5 @@ resource "azurerm_iothub" "test" {
 			"purpose" = "testing"
 		}
 }
-`, name)
+`, rgname, name)
 }
