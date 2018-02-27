@@ -88,6 +88,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"computer_name_prefix": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"admin_username": {

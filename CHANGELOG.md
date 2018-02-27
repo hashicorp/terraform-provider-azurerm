@@ -2,12 +2,14 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_servicebus_topic_authorization_rule` [GH-736]
 * `azurerm_container_group` - added `dns_name_label` and `FQDN` properties [GH-877]
 * `azurerm_servicebus_subscription` - added support for the `forward_to` property [GH-861]
 * `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` [GH-851]
 
 BUG FIXES:
 
+* `azurerm_virtual_machine_scale_set` - the `computer_name_prefix` field now forces a new resource [GH-871]
 * `azurerm_network_interface` - the `subnet_id` field is now case insensitive [GH-866]
 
 ## 1.1.2 (February 19, 2018)
