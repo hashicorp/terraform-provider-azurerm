@@ -54,10 +54,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"admin_username": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"ssh_key": {
 							Type:     schema.TypeList,
 							Required: true,
+							ForceNew: true,
+
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"key_data": {
@@ -376,9 +379,10 @@ func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containe
 	adminUsername := config["admin_username"].(string)
 	linuxKeys := config["ssh_key"].([]interface{})
 
-	key := linuxKeys[0].(map[string]interface{})
-	keyData := key["key_data"].(string)
-
+	keyData := ""
+	if key, ok := linuxKeys[0].(map[string]interface{}); ok {
+		keyData = key["key_data"].(string)
+	}
 	sshPublicKey := containerservice.SSHPublicKey{
 		KeyData: &keyData,
 	}
