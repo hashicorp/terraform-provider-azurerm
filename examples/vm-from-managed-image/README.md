@@ -1,4 +1,3 @@
-# Project Title
+# Virtual Machine from a Managed Image
 
-Create 3 Virtual Machines form an Azure Managed Image (Golden Image)
-
+Creates a Virtual Machine from an Azure Managed Image (Golden Image)

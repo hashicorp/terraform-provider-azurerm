@@ -1,33 +1,23 @@
-variable "subscription_id" {}
-variable "client_id" {}
-variable "client_secret" {}
-variable "tenant_id" {}
-
-
-variable "GoldenImage" {
-  description ="name of the existing Golden Image"
+variable "image_name" {
+  description = "The name of the existing Golden Image"
 }
 
-variable "RgOfGoldenImage" {
-  description = "name of the existing RG where the Image is - must be in the same region!!!"
+variable "image_resource_group" {
+  description = "The name of the Resource Group where the Golden Image is located."
 }
 
-variable "resource_group" {
-  description = "The name of the resource group in which to create the virtual network."
+variable "prefix" {
+  description = "The prefix used for any resources used, must be an alphanumberic string"
 }
 
 variable "location" {
-  description = "The location/region where the virtual network is created. Changing this forces a new resource to be created."
-}
-
-variable "customer_name" {
-  description = "The name of the customer. will be the name of the vNet."
+  description = "The location where the Resources will be provisioned. This needs to be the same as where the Image exists."
 }
 
 variable "admin_username" {
-  description = "the local user name of the VM"
+  description = "The username associated with the local administrator account on the Virtual Machine"
 }
 
 variable "admin_password" {
-  description = "the local password name of the VM"
+  description = "The password associated with the local administrator account on the Virtual Machine"
 }
