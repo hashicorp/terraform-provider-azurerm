@@ -72,12 +72,6 @@ func resourceArmIotHub() *schema.Resource {
 				Computed: true,
 			},
 
-			"etag": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
 			"hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -121,6 +115,8 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	rg := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
+	updateIoT := ""
+
 	res, err := iothubClient.CheckNameAvailability(ctx, devices.OperationInputs{
 		Name: &name,
 	})
@@ -130,7 +126,11 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if !*res.NameAvailable {
-		return errors.New(string(res.Reason))
+		getETag, err := iothubClient.Get(ctx, rg, name)
+		if err != nil {
+			return errors.New(string(res.Reason))
+		}
+		updateIoT = *getETag.Etag
 	}
 
 	location := d.Get("location").(string)
@@ -151,15 +151,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 		desc.Tags = *expandTags(tags)
 	}
 
-	match := ""
-
-	if etagI, ok := d.GetOk("etag"); ok {
-		etag := etagI.(string)
-		desc.Etag = &etag
-		match = etag
-	}
-
-	future, err := iothubClient.CreateOrUpdate(ctx, rg, name, desc, match)
+	future, err := iothubClient.CreateOrUpdate(ctx, rg, name, desc, updateIoT)
 	if err != nil {
 		return err
 	}
@@ -233,9 +225,8 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("shared_access_policy", keys)
-	d.Set("hostname", *properties.HostName)
-	d.Set("etag", *desc.Etag)
-	d.Set("type", *desc.Type)
+	d.Set("hostname", properties.HostName)
+	d.Set("type", desc.Type)
 	flattenAndSetTags(d, &desc.Tags)
 
 	return nil
