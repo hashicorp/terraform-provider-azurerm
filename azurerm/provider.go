@@ -280,6 +280,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ContainerService":    {},
 		"Microsoft.DBforMySQL":          {},
 		"Microsoft.DBforPostgreSQL":     {},
+		"Microsoft.Devices":             {},
 		"Microsoft.DocumentDB":          {},
 		"Microsoft.EventGrid":           {},
 		"Microsoft.EventHub":            {},
@@ -292,7 +293,6 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ServiceBus":          {},
 		"Microsoft.Sql":                 {},
 		"Microsoft.Storage":             {},
-		"Microsoft.Devices":             {},
 	}
 
 	// filter out any providers already registered
