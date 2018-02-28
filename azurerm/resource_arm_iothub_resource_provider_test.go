@@ -90,7 +90,7 @@ resource "azurerm_resource_group" "foo" {
 	name = "acctestRG-%d"
 	location = "%s"
 }
-		
+
 resource "azurerm_iothub" "test" {
 	name                             = "acctestIoTHub-%d"
 	resource_group_name              = "${azurerm_resource_group.foo.name}"
