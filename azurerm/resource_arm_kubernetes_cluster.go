@@ -39,6 +39,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"kubernetes_version": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -99,8 +104,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"fqdn": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:       schema.TypeString,
+							Computed:   true,
+							Deprecated: "This field has been deprecated. Use the parent `fqdn` instead",
 						},
 
 						"vm_size": {
@@ -246,6 +252,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	}
 	d.Set("resource_group_name", resGroup)
 	d.Set("dns_prefix", resp.DNSPrefix)
+	d.Set("fqdn", resp.Fqdn)
 	d.Set("kubernetes_version", resp.KubernetesVersion)
 
 	linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(*resp.ManagedClusterProperties.LinuxProfile)
