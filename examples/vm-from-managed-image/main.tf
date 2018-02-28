@@ -1,59 +1,59 @@
-provider "azurerm" {
-   subscription_id = "${var.subscription_id}"
-   client_id       = "${var.client_id}"
-   client_secret   = "${var.client_secret}"
-   tenant_id       = "${var.tenant_id}"
- }
+# provider "azurerm" {
+#   subscription_id = "REPLACE-WITH-YOUR-SUBSCRIPTION-ID"
+#   client_id       = "REPLACE-WITH-YOUR-CLIENT-ID"
+#   client_secret   = "REPLACE-WITH-YOUR-CLIENT-SECRET"
+#   tenant_id       = "REPLACE-WITH-YOUR-TENANT-ID"
+# }
 
-#take a pointer to the custom image from our subscription
+locals {
+  virtual_machine_name = "${var.prefix}vm"
+}
+
+# Locate the existing custom/golden image
 data "azurerm_image" "search" {
-        #name of the existing Image
-  name                = "${var.GoldenImage}"   
-        #name of the existing RG where the Image is - must be in the same region!!!
-  resource_group_name = "${var.RgOfGoldenImage}" 
+  name                = "${var.image_name}"
+  resource_group_name = "${var.image_resource_group}"
 }
 
 output "image_id" {
   value = "${data.azurerm_image.search.id}"
 }
 
-
-# Create an Azure resource group
-resource "azurerm_resource_group" "rg" {
-  name     = "${var.resource_group}"
+# Create a Resource Group for the new Virtual Machine.
+resource "azurerm_resource_group" "main" {
+  name     = "${var.prefix}-resources"
   location = "${var.location}"
 }
 
-# Create a virtual network in the resource group
-resource "azurerm_virtual_network" "vNet" {
-  name                = "${var.customer_name}"
+# Create a Virtual Network within the Resource Group
+resource "azurerm_virtual_network" "main" {
+  name                = "${var.prefix}-network"
   address_space       = ["172.16.0.0/16"]
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location = "${azurerm_resource_group.rg.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+  location            = "${azurerm_resource_group.main.location}"
 }
 
-# Create Subnet 
-resource "azurerm_subnet" "Subnet" {
-  name                 = "Subnet"
-  virtual_network_name = "${azurerm_virtual_network.vNet.name}"
-  resource_group_name  = "${azurerm_resource_group.rg.name}"
+# Create a Subnet within the Virtual Network
+resource "azurerm_subnet" "internal" {
+  name                 = "internal"
+  virtual_network_name = "${azurerm_virtual_network.main.name}"
+  resource_group_name  = "${azurerm_resource_group.main.name}"
   address_prefix       = "172.16.1.0/24"
-}  
-    
-# Create a public IP resource for VMs
-resource "azurerm_public_ip" "vm-pip" {
-  count 					   = 3
-  name                         = "VM-PIP-${count.index}"
-  location                     = "${azurerm_resource_group.rg.location}"
-  resource_group_name          = "${azurerm_resource_group.rg.name}"
-  public_ip_address_allocation = "dynamic" 
-} 
+}
 
-# Create a network secuirty group with some rules
-resource "azurerm_network_security_group" "nsg" {
-  name                = "${var.customer_name}-NSG"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+# Create a Public IP for the Virtual Machine
+resource "azurerm_public_ip" "main" {
+  name                         = "${var.prefix}-pip"
+  location                     = "${azurerm_resource_group.main.location}"
+  resource_group_name          = "${azurerm_resource_group.main.name}"
+  public_ip_address_allocation = "dynamic"
+}
+
+# Create a Network Security Group with some rules
+resource "azurerm_network_security_group" "main" {
+  name                = "${var.prefix}-nsg"
+  location            = "${azurerm_resource_group.main.location}"
+  resource_group_name = "${azurerm_resource_group.main.name}"
 
   security_rule {
     name                       = "allow_SSH"
@@ -67,8 +67,8 @@ resource "azurerm_network_security_group" "nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-  
-    security_rule {
+
+  security_rule {
     name                       = "allow_RDP"
     description                = "Allow RDP access"
     priority                   = 110
@@ -83,55 +83,52 @@ resource "azurerm_network_security_group" "nsg" {
 }
 
 # Create a network interface for VMs and attach the PIP and the NSG
-resource "azurerm_network_interface" "vm-Nic" {
-  count				  = 3
-  name                = "vm-Nic-${count.index}"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  network_security_group_id     = "${azurerm_network_security_group.nsg.id}"
-  
+resource "azurerm_network_interface" "main" {
+  name                      = "${var.prefix}-nic"
+  location                  = "${azurerm_resource_group.main.location}"
+  resource_group_name       = "${azurerm_resource_group.main.name}"
+  network_security_group_id = "${azurerm_network_security_group.main.id}"
+
   ip_configuration {
-    name                          = "Nic-config-${count.index}"
-    subnet_id                     = "${azurerm_subnet.Subnet.id}"
+    name                          = "primary"
+    subnet_id                     = "${azurerm_subnet.internal.id}"
     private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = "${element(azurerm_public_ip.vm-pip.*.id, count.index)}"
-	}
+    public_ip_address_id          = "${azurerm_public_ip.main.id}"
+  }
 }
 
-
-##### Create new virtual machine - 3 vms 
+# Create a new Virtual Machine based on the Golden Image
 resource "azurerm_virtual_machine" "vm" {
-  count 			        	= 3
-  name                  = "VM-${count.index}"
-  location              = "${azurerm_resource_group.rg.location}"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
-  network_interface_ids = ["${element(azurerm_network_interface.vm-Nic.*.id, count.index)}"]
-  vm_size               = "Standard_E32s_v3"
-  delete_os_disk_on_termination = true
+  name                             = "${local.virtual_machine_name}"
+  location                         = "${azurerm_resource_group.main.location}"
+  resource_group_name              = "${azurerm_resource_group.main.name}"
+  network_interface_ids            = ["${azurerm_network_interface.main.id}"]
+  vm_size                          = "Standard_F2"
+  delete_os_disk_on_termination    = true
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    id = "${data.azurerm_image.search.id}" 
+    id = "${data.azurerm_image.search.id}"
   }
 
   storage_os_disk {
-    name              = "vm-OS-${count.index}"
+    name              = "${local.virtual_machine_name}-osdisk"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Premium_LRS"
-    disk_size_gb = "40"
+    disk_size_gb      = "40"
   }
 
   storage_data_disk {
-	name = "vm-Data-Disk-${count.index}"
-	managed_disk_type = "Premium_LRS"
-	create_option = "Empty"
-	lun = 0
-	disk_size_gb = "1024"
-} 
+    name              = "${local.virtual_machine_name}-data1"
+    managed_disk_type = "Premium_LRS"
+    create_option     = "Empty"
+    lun               = 0
+    disk_size_gb      = "1024"
+  }
 
   os_profile {
-    computer_name  = "VM-${count.index}"
+    computer_name  = "${local.virtual_machine_name}"
     admin_username = "${var.admin_username}"
     admin_password = "${var.admin_password}"
   }
