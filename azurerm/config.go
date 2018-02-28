@@ -133,23 +133,24 @@ type ArmClient struct {
 	monitorAlertRulesClient insights.AlertRulesClient
 
 	// Networking
-	applicationGatewayClient     network.ApplicationGatewaysClient
-	expressRouteCircuitClient    network.ExpressRouteCircuitsClient
-	ifaceClient                  network.InterfacesClient
-	loadBalancerClient           network.LoadBalancersClient
-	localNetConnClient           network.LocalNetworkGatewaysClient
-	publicIPClient               network.PublicIPAddressesClient
-	routesClient                 network.RoutesClient
-	routeTablesClient            network.RouteTablesClient
-	secGroupClient               network.SecurityGroupsClient
-	secRuleClient                network.SecurityRulesClient
-	subnetClient                 network.SubnetsClient
-	netUsageClient               network.UsagesClient
-	vnetGatewayConnectionsClient network.VirtualNetworkGatewayConnectionsClient
-	vnetGatewayClient            network.VirtualNetworkGatewaysClient
-	vnetClient                   network.VirtualNetworksClient
-	vnetPeeringsClient           network.VirtualNetworkPeeringsClient
-	watcherClient                network.WatchersClient
+	applicationGatewayClient        network.ApplicationGatewaysClient
+	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
+	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
+	ifaceClient                     network.InterfacesClient
+	loadBalancerClient              network.LoadBalancersClient
+	localNetConnClient              network.LocalNetworkGatewaysClient
+	publicIPClient                  network.PublicIPAddressesClient
+	routesClient                    network.RoutesClient
+	routeTablesClient               network.RouteTablesClient
+	secGroupClient                  network.SecurityGroupsClient
+	secRuleClient                   network.SecurityRulesClient
+	subnetClient                    network.SubnetsClient
+	netUsageClient                  network.UsagesClient
+	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
+	vnetGatewayClient               network.VirtualNetworkGatewaysClient
+	vnetClient                      network.VirtualNetworksClient
+	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
+	watcherClient                   network.WatchersClient
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
@@ -323,18 +324,63 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return keyVaultSpt, nil
 	})
 
-	csc := containerservice.NewContainerServicesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&csc.Client)
-	csc.Authorizer = auth
-	csc.Sender = sender
-	csc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.containerServicesClient = csc
+	// NOTE: these declarations should be left separate for clarity should the
+	// clients be wished to be configured with custom Responders/PollingModes etc...
+	asc := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&asc.Client)
+	asc.Authorizer = auth
+	asc.Sender = sender
+	client.availSetClient = asc
+
+	uoc := compute.NewUsageClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&uoc.Client)
+	uoc.Authorizer = auth
+	uoc.Sender = sender
+	client.usageOpsClient = uoc
+
+	vmeic := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&vmeic.Client)
+	vmeic.Authorizer = auth
+	vmeic.Sender = sender
+	client.vmExtensionImageClient = vmeic
+
+	vmec := compute.NewVirtualMachineExtensionsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&vmec.Client)
+	vmec.Authorizer = auth
+	vmec.Sender = sender
+	client.vmExtensionClient = vmec
+
+	vmic := compute.NewVirtualMachineImagesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&vmic.Client)
+	vmic.Authorizer = auth
+	vmic.Sender = sender
+	client.vmImageClient = vmic
+
+	vmssc := compute.NewVirtualMachineScaleSetsClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&vmssc.Client)
+	vmssc.Authorizer = auth
+	vmssc.Sender = sender
+	client.vmScaleSetClient = vmssc
+
+	vmc := compute.NewVirtualMachinesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&vmc.Client)
+	vmc.Authorizer = auth
+	vmc.Sender = sender
+	client.vmClient = vmc
+
+	crc := containerregistry.NewRegistriesClientWithBaseURI(endpoint, c.SubscriptionID)
+	setUserAgent(&crc.Client)
+	crc.Authorizer = auth
+	crc.Sender = sender
+	client.containerRegistryClient = crc
 
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
@@ -721,6 +767,104 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 	opwc := operationalinsights.NewWorkspacesClient(subscriptionId)
 	c.configureClient(&opwc.Client, auth)
 	c.workspacesClient = opwc
+}
+
+func (c *ArmClient) registerNetworkClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	appGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&appGatewaysClient.Client)
+	appGatewaysClient.Authorizer = auth
+	appGatewaysClient.Sender = sender
+	c.applicationGatewayClient = appGatewaysClient
+
+	appSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&appSecurityGroupsClient.Client)
+	appSecurityGroupsClient.Authorizer = auth
+	appSecurityGroupsClient.Sender = sender
+	c.applicationSecurityGroupsClient = appSecurityGroupsClient
+
+	ercClient := network.NewExpressRouteCircuitsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&ercClient.Client)
+	ercClient.Authorizer = auth
+	ercClient.Sender = sender
+	c.expressRouteCircuitClient = ercClient
+
+	nicClient := network.NewInterfacesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&nicClient.Client)
+	nicClient.Authorizer = auth
+	nicClient.Sender = sender
+	c.ifaceClient = nicClient
+
+	lbClient := network.NewLoadBalancersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&lbClient.Client)
+	lbClient.Authorizer = auth
+	lbClient.Sender = sender
+	c.loadBalancerClient = lbClient
+
+	lngClient := network.NewLocalNetworkGatewaysClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&lngClient.Client)
+	lngClient.Authorizer = auth
+	lngClient.Sender = sender
+	c.localNetConnClient = lngClient
+
+	pipClient := network.NewPublicIPAddressesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&pipClient.Client)
+	pipClient.Authorizer = auth
+	pipClient.Sender = sender
+	c.publicIPClient = pipClient
+
+	nsgClient := network.NewSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&nsgClient.Client)
+	nsgClient.Authorizer = auth
+	nsgClient.Sender = sender
+	c.secGroupClient = nsgClient
+
+	src := network.NewSecurityRulesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&src.Client)
+	src.Authorizer = auth
+	src.Sender = sender
+	c.secRuleClient = src
+
+	subnetsClient := network.NewSubnetsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&subnetsClient.Client)
+	subnetsClient.Authorizer = auth
+	subnetsClient.Sender = sender
+	c.subnetClient = subnetsClient
+
+	vncCClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&vncCClient.Client)
+	vncCClient.Authorizer = auth
+	vncCClient.Sender = sender
+	c.vnetGatewayConnectionsClient = vncCClient
+
+	vngClient := network.NewVirtualNetworkGatewaysClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&vngClient.Client)
+	vngClient.Authorizer = auth
+	vngClient.Sender = sender
+	c.vnetGatewayClient = vngClient
+
+	virtualNetworksClient := network.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&virtualNetworksClient.Client)
+	virtualNetworksClient.Authorizer = auth
+	virtualNetworksClient.Sender = sender
+	c.vnetClient = virtualNetworksClient
+
+	vnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&vnetPeeringsClient.Client)
+	vnetPeeringsClient.Authorizer = auth
+	vnetPeeringsClient.Sender = sender
+	c.vnetPeeringsClient = vnetPeeringsClient
+
+	routeTablesClient := network.NewRouteTablesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&routeTablesClient.Client)
+	routeTablesClient.Authorizer = auth
+	routeTablesClient.Sender = sender
+	c.routeTablesClient = routeTablesClient
+
+	routesClient := network.NewRoutesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&routesClient.Client)
+	routesClient.Authorizer = auth
+	routesClient.Sender = sender
+	c.routesClient = routesClient
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
