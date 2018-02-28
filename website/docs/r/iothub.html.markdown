@@ -6,7 +6,7 @@ description: |-
   Creates a new IotHub resource 
 ---
 
-# azurerm\_iothub
+# azurerm_iothub
 
 Creates a new IotHub
 
@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_iothub" "test" {
 	name                             = "test"
 	resource_group_name              = "${azurerm_resource_group.test.name}"
-	location                         = "westus"
+	location                         = "${azurerm_resource_group.test.location}"
 	sku {
 		name = "S1"
 		tier = "Standard"
@@ -47,9 +47,19 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be createc. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies the capacity and tier of the IotHub. 
+* `sku` - (Required) A `sku` block as defined below. 
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `sku` block supports the following:
+
+* `name` - (Required) The name of the sku. Supports `F1`, `S1`, `S2`, and `S3`.
+
+* `tier` - (Required) The billing tier for the IoT Hub. `Free` or `Standard`.
+
+* `capacity` - (Required) The number of provisioned IoT Hub units. 
 
 ## Attributes Reference
 
@@ -61,6 +71,24 @@ The following attributes are exported:
 
 * `hostname` - The hostname of the IotHub Resource.
 
-* `shared_access_policy` - The list of access policy which contain access keys and permissions.
+* `shared_access_policy` - A list of `shared_access_policy` blocks as defined below.
 
+---
 
+A `shared access policy` block contains the following:
+
+* `key_name` - The name of the shared access policy.
+
+* `primary_key` - The primary key.
+
+* `secondary_key` - The secondary key.
+
+* `permissions` - The permissions assigned to the shared access policy.
+
+## Import
+
+IoTHubs can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_iothub.hub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/IotHubs/hub1
+```
