@@ -31,94 +31,88 @@ func TestAccAzureRMHDInsightCluster_basic(t *testing.T) {
 
 func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-	name	= "acctesthdinsight%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	location = "${azurerm_resource_group.test.location}"
-	account_tier = "Standard"
-	account_replication_type = "GRS"
-}
-
-resource "azurerm_storage_container" "test" {
-	name                  = "acctesthdinsight%d"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	storage_account_name  = "${azurerm_storage_account.test.name}"
-	container_access_type = "public"
-}
-
-resource "azurerm_hdinsight_cluster" "test" {
-  name                = "acctesthdinsight%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  cluster_version  = "3.6"
-  os_type  = "Linux"
-  tier  = "Standard"
-
-  cluster_definition {
-		kind = "hbase"
-  }
-
-  "storage_profile": {
-    storage_accounts: [
-			{
-				"name": "${azurerm_storage_account.test.name}",
-				"is_default": true,
-				"container": "${azurerm_storage_container.test.name}",
-				"key": "${azurerm_storage_account.test.primary_access_key}"
+		resource "azurerm_resource_group" "resource_group" {
+			name     = "hdinsight-cluster-%d"
+			location = "%s"
+		  
+			tags {
+			  Source = "Azure Quickstarts for Terraform"
 			}
-		]
-  }
-
-  "compute_profile": {
-	  "roles": [
-		  {
-			  "name": "headnode",
-			  "target_instance_count": 2,
-			  "hardware_profile": {
-				  "vm_size": "Small"
-			  },
-			  "os_profile": {
-				  linux_operating_system_profile": {
-					  "username": "testhbaselogin",
-					  "password": "testhbasepass123"
-				  }
-			  }
-		  },
-		  {
-			  "name": "workernode",
-			  "target_instance_count": 2,
-			  "hardware_profile": {
-				  "vm_size": "Small"
-			  },
-			  "os_profile": {
-				  "linux_operation_system_profile": {
-					"username": "testhbaselogin",
-					"password": "testhbasepass123"
-				  }
-			  }
-		  },
-		  {
-			  "name": "zookeepernode",
-			  "target_instance_count": 3,
-			  "hardware_profile": {
-				  "vm_size": "Small"
-			  },
-			  "os_profile": {
-				  "linux_operation_system_profile": {
-					"username": "testhbaselogin",
-					"password": "testhbasepass123"
-				  }
-			  }
 		  }
-	  ]
-  }
-}
-`, rInt, location, rInt, rInt, rInt)
+		  
+		  resource "azurerm_storage_account" "storage_account" {
+			  name	= "hdi%d"
+			  resource_group_name = "${azurerm_resource_group.resource_group.name}"
+			  location = "${azurerm_resource_group.resource_group.location}"
+			  account_tier = "Standard"
+			  account_replication_type = "GRS"
+		  }
+		  
+		  resource "azurerm_hdinsight_cluster" "hdinsight" {
+			name                = "hdi%d"
+			resource_group_name = "${azurerm_resource_group.resource_group.name}"
+			location            = "${azurerm_resource_group.resource_group.location}"
+			cluster_version  = "3.6"
+			os_type  = "Linux"
+			tier  = "Standard"
+		  
+			cluster_definition {
+				  kind = "spark"
+				  configurations {
+					  gateway {
+						  rest_auth_credential__is_enabled = true
+						  rest_auth_credential__username = "http-user"
+						  rest_auth_credential__password = "AbcAbc123123!"
+					  }
+				  }
+			}
+		  
+			compute_profile {
+				roles = [
+					{
+						name = "headnode"
+						target_instance_count = 2,
+						hardware_profile {
+							vm_size = "Standard_D12_v2"
+						},
+						os_profile {
+							linux_operating_system_profile {
+								username = "username",
+								password = "testPass123!"
+							}
+						}
+					},
+					{
+						name = "workernode"
+						target_instance_count = 2
+						hardware_profile {
+							vm_size = "Standard_D13_v2"
+						},
+						os_profile {
+							linux_operating_system_profile {
+								username = "username"
+								ssh_key {
+									key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+								}
+							}
+						}
+					}
+				]
+			}
+
+			storage_profile {
+				storage_accounts = [
+					{
+						name = "${azurerm_storage_account.storage_account.primary_blob_endpoint}"
+						is_default = true
+						container = "${azurerm_resource_group.resource_group.name}"
+						key = "${azurerm_storage_account.storage_account.primary_access_key}"
+					}
+				]
+			}
+
+		  }
+`, rInt, location, rInt, rInt)
 }
 
 func testCheckAzureRMHDInsightClusterExists(name string) resource.TestCheckFunc {
@@ -135,7 +129,7 @@ func testCheckAzureRMHDInsightClusterExists(name string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for HDInsight cluster instance: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).hdinsightClustersClient
+		client := testAccProvider.Meta().(*ArmClient).hdInsightClustersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		hdinsight, err := client.Get(ctx, resourceGroup, resourceName)
@@ -152,7 +146,7 @@ func testCheckAzureRMHDInsightClusterExists(name string) resource.TestCheckFunc 
 }
 
 func testCheckAzureRMHDInsightClusterDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).hdinsightClustersClient
+	conn := testAccProvider.Meta().(*ArmClient).hdInsightClustersClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_hdinsight_cluster" {

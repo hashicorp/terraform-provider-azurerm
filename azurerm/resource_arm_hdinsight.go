@@ -3,11 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
+	"unicode"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	strcase "github.com/stoewer/go-strcase"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,6 +41,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 				Default:  "~3.6",
 				ValidateFunc: validation.StringInSlice([]string{
 					"~3.6",
+					"3.6",
 					"3.5",
 					"3.4",
 					"3.3",
@@ -67,7 +71,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 				}, false),
 			},
 
-			//TODO: add support for configurations
+			//TODO: add support for more configurations i.e. core-site
 			"cluster_definition": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -84,16 +88,49 @@ func resourceArmHDInsightCluster() *schema.Resource {
 							Required: true,
 						},
 						"component_version": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{},
-							},
-						},
-						"configurations": {
 							Type:     schema.TypeMap,
 							Optional: true,
+						},
+						"configurations": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"gateway": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"rest_auth_credential__is_enabled": {
+													Type:     schema.TypeBool,
+													Optional: true,
+												},
+												"rest_auth_credential__username": {
+													Type:     schema.TypeString,
+													Optional: true,
+												},
+												"rest_auth_credential__password": {
+													Type:         schema.TypeString,
+													Optional:     true,
+													ValidateFunc: validateRestAuthCredentialPassword,
+												},
+											},
+										},
+									},
+									"rserver": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"rstudio": {
+													Type:     schema.TypeBool,
+													Optional: true,
+												},
+											},
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -102,7 +139,6 @@ func resourceArmHDInsightCluster() *schema.Resource {
 			"security_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"directory_type": {
@@ -148,7 +184,6 @@ func resourceArmHDInsightCluster() *schema.Resource {
 						"roles": {
 							Type:     schema.TypeList,
 							Required: true,
-							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -182,7 +217,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
-												"linux_operation_system_profile": {
+												"linux_operating_system_profile": {
 													Type:     schema.TypeList,
 													Required: true,
 													Elem: &schema.Resource{
@@ -195,7 +230,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 																Type:     schema.TypeString,
 																Optional: true,
 															},
-															"ssh_keys": {
+															"ssh_key": {
 																Type:     schema.TypeList,
 																Optional: true,
 																Elem: &schema.Resource{
@@ -215,7 +250,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 									},
 									"virtual_network_profile": {
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -232,7 +267,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 									},
 									"data_disks_group": {
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"disks_per_node": {
@@ -252,7 +287,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 									},
 									"script_actions": {
 										Type:     schema.TypeList,
-										Required: true,
+										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"name": {
@@ -279,7 +314,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 
 			"storage_profile": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_accounts": {
@@ -316,6 +351,47 @@ func resourceArmHDInsightCluster() *schema.Resource {
 	}
 }
 
+func validateRestAuthCredentialPassword(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	var hasNumber bool
+	var hasUpper bool
+	var hasSpecial bool
+	var unsupportedChars []string
+	var count int
+	for _, c := range value {
+		switch {
+		case unicode.IsNumber(c):
+			hasNumber = true
+		case unicode.IsUpper(c):
+			hasUpper = true
+		case unicode.IsPunct(c) || unicode.IsSymbol(c):
+			hasSpecial = true
+		case unicode.IsLetter(c) || c == ' ':
+			//noop
+		default:
+			unsupportedChars = append(unsupportedChars, string(c))
+		}
+		count++
+	}
+
+	if len(unsupportedChars) > 0 {
+		errors = append(errors, fmt.Errorf("Unsupported character(s) %v", unsupportedChars))
+	}
+	if count < 8 {
+		errors = append(errors, fmt.Errorf("Password must be atleast 8 characters long"))
+	}
+	if !hasNumber {
+		errors = append(errors, fmt.Errorf("Password must contain atleast 1 number"))
+	}
+	if !hasUpper {
+		errors = append(errors, fmt.Errorf("Password must contain atleast 1 uppercase letter"))
+	}
+	if !hasSpecial {
+		errors = append(errors, fmt.Errorf("Password must contain atleast 1 special character"))
+	}
+	return
+}
+
 func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).hdInsightClustersClient
 	ctx := meta.(*ArmClient).StopContext
@@ -326,8 +402,10 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	clusterVersion := d.Get("cluster_version").(string)
-	osType := d.Get("os_type").(hdinsight.OSType)
-	tier := d.Get("tier").(hdinsight.Tier)
+	osTypeStr := d.Get("os_type").(string)
+	tierStr := d.Get("tier").(string)
+	osType := hdinsight.OSType(osTypeStr)
+	tier := hdinsight.Tier(tierStr)
 
 	clusterDefinition := expandAzureRmHDInsightClusterDefinition(d)
 	securityProfile := expandAzureRmHDInsightSecurityProfile(d)
@@ -428,7 +506,7 @@ func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	hdInsightClient := meta.(*ArmClient).hdInsightClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -436,14 +514,14 @@ func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{})
 		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["hdinsight"]
+	name := id.Path["clusters"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := hdInsightClient.Delete(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error deleting HDInsight cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletion(ctx, hdInsightClient.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the deleting HDInsight cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -452,7 +530,7 @@ func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdInsightClustersClient
+	hdInsightClient := meta.(*ArmClient).hdInsightClustersClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM HDInsight update.")
 
@@ -465,12 +543,12 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	//TODO: Does not return future - do we need to wait for the update?
-	_, err := client.Update(ctx, resourceGroup, name, parameters)
+	_, err := hdInsightClient.Update(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	read, err := hdInsightClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -484,7 +562,7 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 	return resourceArmContainerRegistryRead(d, meta)
 }
 
-func flattenList(interfaceList []interface{}) (map[string]interface{}, error) {
+func expandList(interfaceList []interface{}) (map[string]interface{}, error) {
 	listLength := len(interfaceList)
 	if listLength != 1 {
 		return nil, fmt.Errorf("All lists should contain 1 item")
@@ -501,9 +579,9 @@ func expandAzureRmHDInsightClusterDefinition(d *schema.ResourceData) *hdinsight.
 	clusterDefinitionInterfaceList := d.Get("cluster_definition").([]interface{})
 	clusterDefinition := &hdinsight.ClusterDefinition{}
 
-	clusterDefinitionFlatMap, err := flattenList(clusterDefinitionInterfaceList)
+	clusterDefinitionFlatMap, err := expandList(clusterDefinitionInterfaceList)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	if v := clusterDefinitionFlatMap["blueprint"].(string); v != "" {
@@ -513,12 +591,60 @@ func expandAzureRmHDInsightClusterDefinition(d *schema.ResourceData) *hdinsight.
 		clusterDefinition.Kind = &v
 	}
 
-	componentVersion := make(map[string]*string)
-	componentVersionsFlatMap := clusterDefinitionFlatMap["component_version"].(map[string]string)
-	for k, v := range componentVersionsFlatMap {
-		componentVersion[k] = &v
+	if clusterDefinitionFlatMap["component_version"] != nil {
+		componentVersion := make(map[string]*string)
+		if componentVersionFlatMap := clusterDefinitionFlatMap["component_version"].(map[string]interface{}); len(componentVersionFlatMap) != 0 {
+			for k, i := range componentVersionFlatMap {
+				if v := i.(string); v != "" {
+					componentVersion[k] = &v
+				}
+			}
+			clusterDefinition.ComponentVersion = &componentVersion
+		}
 	}
-	clusterDefinition.ComponentVersion = &componentVersion
+
+	if clusterDefinitionFlatMap["configurations"] != nil {
+		configurations := make(map[string]interface{})
+
+		configurationsInterfaceList := clusterDefinitionFlatMap["configurations"].([]interface{})
+		configurationsFlatMap, err := expandList(configurationsInterfaceList)
+		if err == nil {
+			gatewayInterfaceList := configurationsFlatMap["gateway"].([]interface{})
+			gatewayFlatMap, err := expandList(gatewayInterfaceList)
+			if err == nil {
+				gateway := make(map[string]interface{})
+
+				dotKey := "restAuthCredential.isEnabled"
+				flatKey := flattenDotKey(dotKey)
+				if v := gatewayFlatMap[flatKey].(bool); v != false {
+					gateway[dotKey] = v
+				}
+
+				dotKey = "restAuthCredential.username"
+				flatKey = flattenDotKey(dotKey)
+				if v := gatewayFlatMap[flatKey].(string); v != "" {
+					gateway[dotKey] = v
+				}
+
+				dotKey = "restAuthCredential.password"
+				flatKey = flattenDotKey(dotKey)
+				if v := gatewayFlatMap[flatKey].(string); v != "" {
+					gateway[dotKey] = v
+				}
+				configurations["gateway"] = &gateway
+			}
+			rserverInterfaceList := configurationsFlatMap["rserver"].([]interface{})
+			rserverFlatMap, err := expandList(rserverInterfaceList)
+			if err == nil {
+				rserver := make(map[string]interface{})
+				if v := rserverFlatMap["rstudio"].(bool); v != false {
+					rserver["rstudio"] = v
+				}
+				configurations["rstudio"] = &rserver
+			}
+			clusterDefinition.Configurations = &configurations
+		}
+	}
 
 	return clusterDefinition
 }
@@ -527,10 +653,11 @@ func expandAzureRmHDInsightSecurityProfile(d *schema.ResourceData) *hdinsight.Se
 	securityProfileInterfaceList := d.Get("security_profile").([]interface{})
 	securityProfile := &hdinsight.SecurityProfile{}
 
-	securityProfileFlatMap, err := flattenList(securityProfileInterfaceList)
+	securityProfileFlatMap, err := expandList(securityProfileInterfaceList)
 	if err != nil {
-		panic(err)
+		return nil
 	}
+
 	if v := securityProfileFlatMap["directory_type"].(hdinsight.DirectoryType); v != "" {
 		securityProfile.DirectoryType = v
 	}
@@ -576,9 +703,9 @@ func expandAzureRmHDInsightStorageProfile(d *schema.ResourceData) *hdinsight.Sto
 	storageProfileInterfaceList := d.Get("storage_profile").([]interface{})
 	storageProfile := &hdinsight.StorageProfile{}
 
-	storageProfileFlatMap, err := flattenList(storageProfileInterfaceList)
+	storageProfileFlatMap, err := expandList(storageProfileInterfaceList)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	storageAccounts := []hdinsight.StorageAccount{}
@@ -588,9 +715,10 @@ func expandAzureRmHDInsightStorageProfile(d *schema.ResourceData) *hdinsight.Sto
 		storageAccountFlatMap := storageAccountInterface.(map[string]interface{})
 		var storageAccount hdinsight.StorageAccount
 		if v := storageAccountFlatMap["name"].(string); v != "" {
-			storageAccount.Name = &v
+			endpoint := strings.Replace(strings.Replace(v, "https://", "", 1), "/", "", 1)
+			storageAccount.Name = &endpoint
 		}
-		if v := storageAccountFlatMap["is_default"].(bool); true {
+		if v := storageAccountFlatMap["is_default"].(bool); v != false {
 			storageAccount.IsDefault = &v
 		}
 		if v := storageAccountFlatMap["container"].(string); v != "" {
@@ -610,9 +738,9 @@ func expandAzureRmHDInsightComputeProfile(d *schema.ResourceData) *hdinsight.Com
 	computeProfileInterfaceList := d.Get("compute_profile").([]interface{})
 	computeProfile := &hdinsight.ComputeProfile{}
 
-	computeProfileFlatMap, err := flattenList(computeProfileInterfaceList)
+	computeProfileFlatMap, err := expandList(computeProfileInterfaceList)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
 	roles := []hdinsight.Role{}
@@ -623,21 +751,27 @@ func expandAzureRmHDInsightComputeProfile(d *schema.ResourceData) *hdinsight.Com
 		if v := roleFlatMap["name"].(string); v != "" {
 			role.Name = &v
 		}
-		if v := roleFlatMap["min_instance_count"].(int32); v != 0 {
-			role.MinInstanceCount = &v
+		if v := roleFlatMap["min_instance_count"].(int); v != 0 {
+			mic := int32(v)
+			role.MinInstanceCount = &mic
 		}
-		if v := roleFlatMap["target_instance_count"].(int32); v != 0 {
-			role.TargetInstanceCount = &v
+		if v := roleFlatMap["target_instance_count"].(int); v != 0 {
+			tic := int32(v)
+			role.TargetInstanceCount = &tic
 		}
-		hardwareProfileInterfaceList := roleFlatMap["hardware_profile"].([]interface{})
-		for _, hardwareProfileInterface := range hardwareProfileInterfaceList {
-			hardwareProfileFlatMap := hardwareProfileInterface.(map[string]interface{})
-			if v := hardwareProfileFlatMap["vm_size"].(string); v != "" {
-				role.HardwareProfile = &hdinsight.HardwareProfile{
-					VMSize: &v,
+
+		if roleFlatMap["hardware_profile"] != nil {
+			hardwareProfileInterfaceList := roleFlatMap["hardware_profile"].([]interface{})
+			for _, hardwareProfileInterface := range hardwareProfileInterfaceList {
+				hardwareProfileFlatMap := hardwareProfileInterface.(map[string]interface{})
+				if v := hardwareProfileFlatMap["vm_size"].(string); v != "" {
+					role.HardwareProfile = &hdinsight.HardwareProfile{
+						VMSize: &v,
+					}
 				}
 			}
 		}
+
 		osProfileInterfaceList := roleFlatMap["os_profile"].([]interface{})
 		for _, osProfileInterface := range osProfileInterfaceList {
 			osProfileFlatMap := osProfileInterface.(map[string]interface{})
@@ -650,25 +784,31 @@ func expandAzureRmHDInsightComputeProfile(d *schema.ResourceData) *hdinsight.Com
 				if v := linuxOperatingSystemProfileFlatMap["username"].(string); v != "" {
 					linuxOperatingSystemProfile.Username = &v
 				}
-				if v := linuxOperatingSystemProfileFlatMap["password"].(string); v != "" {
-					linuxOperatingSystemProfile.Password = &v
-				}
-				var sshPublicKeys []hdinsight.SSHPublicKey
-
-				sshProfileInterfaceList := linuxOperatingSystemProfileFlatMap["ssh_key"].([]interface{})
-				for _, sshProfileInterface := range sshProfileInterfaceList {
-					sshProfileFlatMap := sshProfileInterface.(map[string]interface{})
-					if v := sshProfileFlatMap["key_data"].(string); v != "" {
-						key := &hdinsight.SSHPublicKey{
-							CertificateData: &v,
-						}
-						sshPublicKeys = append(sshPublicKeys, *key)
+				if linuxOperatingSystemProfileFlatMap["password"] != nil {
+					if v := linuxOperatingSystemProfileFlatMap["password"].(string); v != "" {
+						linuxOperatingSystemProfile.Password = &v
 					}
 				}
-				sshProfile := &hdinsight.SSHProfile{
-					PublicKeys: &sshPublicKeys,
+
+				if linuxOperatingSystemProfileFlatMap["ssh_key"] != nil {
+					var sshPublicKeys []hdinsight.SSHPublicKey
+					sshProfileInterfaceList := linuxOperatingSystemProfileFlatMap["ssh_key"].([]interface{})
+					for _, sshProfileInterface := range sshProfileInterfaceList {
+						sshProfileFlatMap := sshProfileInterface.(map[string]interface{})
+						if v := sshProfileFlatMap["key_data"].(string); v != "" {
+							key := &hdinsight.SSHPublicKey{
+								CertificateData: &v,
+							}
+							sshPublicKeys = append(sshPublicKeys, *key)
+						}
+					}
+					if len(sshPublicKeys) > 0 {
+						sshProfile := &hdinsight.SSHProfile{
+							PublicKeys: &sshPublicKeys,
+						}
+						linuxOperatingSystemProfile.SSHProfile = sshProfile
+					}
 				}
-				linuxOperatingSystemProfile.SSHProfile = sshProfile
 			}
 			osProfile := &hdinsight.OsProfile{
 				LinuxOperatingSystemProfile: linuxOperatingSystemProfile,
@@ -676,59 +816,67 @@ func expandAzureRmHDInsightComputeProfile(d *schema.ResourceData) *hdinsight.Com
 			role.OsProfile = osProfile
 		}
 
-		virtualNetworkProfileInterfaceList := roleFlatMap["virtual_network_profile"].([]interface{})
-		for _, virtualNetworkProfileInterface := range virtualNetworkProfileInterfaceList {
-			virtualNetworkProfile := &hdinsight.VirtualNetworkProfile{}
+		if roleFlatMap["virtual_network_profile"] != nil {
+			virtualNetworkProfileInterfaceList := roleFlatMap["virtual_network_profile"].([]interface{})
+			for _, virtualNetworkProfileInterface := range virtualNetworkProfileInterfaceList {
+				virtualNetworkProfile := &hdinsight.VirtualNetworkProfile{}
 
-			virtualNetworkProfileFlatMap := virtualNetworkProfileInterface.(map[string]interface{})
-			if v := virtualNetworkProfileFlatMap["id"].(string); v != "" {
-				virtualNetworkProfile.ID = &v
+				virtualNetworkProfileFlatMap := virtualNetworkProfileInterface.(map[string]interface{})
+				if v := virtualNetworkProfileFlatMap["id"].(string); v != "" {
+					virtualNetworkProfile.ID = &v
+				}
+				if v := virtualNetworkProfileFlatMap["subnet"].(string); v != "" {
+					virtualNetworkProfile.Subnet = &v
+				}
+				role.VirtualNetworkProfile = virtualNetworkProfile
 			}
-			if v := virtualNetworkProfileFlatMap["subnet"].(string); v != "" {
-				virtualNetworkProfile.Subnet = &v
-			}
-			role.VirtualNetworkProfile = virtualNetworkProfile
 		}
 
-		var dataDisksGroups []hdinsight.DataDisksGroups
+		if roleFlatMap["data_disk_group"] != nil {
+			var dataDisksGroups []hdinsight.DataDisksGroups
 
-		dataDisksGroupsInterfaceList := roleFlatMap["data_disk_group"].([]interface{})
-		for _, dataDisksGroupsInterface := range dataDisksGroupsInterfaceList {
-			dataDisksGroupsItem := &hdinsight.DataDisksGroups{}
+			dataDisksGroupsInterfaceList := roleFlatMap["data_disk_group"].([]interface{})
+			for _, dataDisksGroupsInterface := range dataDisksGroupsInterfaceList {
+				dataDisksGroupsItem := &hdinsight.DataDisksGroups{}
 
-			dataDisksGroupsFlatMap := dataDisksGroupsInterface.(map[string]interface{})
-			if v := dataDisksGroupsFlatMap["disks_per_node"].(int32); v != 0 {
-				dataDisksGroupsItem.DisksPerNode = &v
+				dataDisksGroupsFlatMap := dataDisksGroupsInterface.(map[string]interface{})
+				if v := dataDisksGroupsFlatMap["disks_per_node"].(int); v != 0 {
+					dpn := int32(v)
+					dataDisksGroupsItem.DisksPerNode = &dpn
+				}
+				if v := dataDisksGroupsFlatMap["storage_account_type"].(string); v != "" {
+					dataDisksGroupsItem.StorageAccountType = &v
+				}
+				if v := dataDisksGroupsFlatMap["data_size_gb"].(int); v != 0 {
+					dsgb := int32(v)
+					dataDisksGroupsItem.DiskSizeGB = &dsgb
+				}
+				dataDisksGroups = append(dataDisksGroups, *dataDisksGroupsItem)
 			}
-			if v := dataDisksGroupsFlatMap["storage_account_type"].(string); v != "" {
-				dataDisksGroupsItem.StorageAccountType = &v
-			}
-			if v := dataDisksGroupsFlatMap["data_size_gb"].(int32); v != 0 {
-				dataDisksGroupsItem.DiskSizeGB = &v
-			}
-			dataDisksGroups = append(dataDisksGroups, *dataDisksGroupsItem)
+			role.DataDisksGroups = &dataDisksGroups
 		}
-		role.DataDisksGroups = &dataDisksGroups
 
-		var scriptActions []hdinsight.ScriptAction
+		scriptActions := make([]hdinsight.ScriptAction, 0)
+		if roleFlatMap["script_actions"] != nil {
 
-		scriptActionsInterfaceList := roleFlatMap["script_actions"].([]interface{})
-		for _, scriptActionInterface := range scriptActionsInterfaceList {
-			var scriptAction hdinsight.ScriptAction
+			scriptActionsInterfaceList := roleFlatMap["script_actions"].([]interface{})
+			for _, scriptActionInterface := range scriptActionsInterfaceList {
+				var scriptAction hdinsight.ScriptAction
 
-			scriptActionFlatMap := scriptActionInterface.(map[string]interface{})
-			if v := scriptActionFlatMap["name"].(string); v != "" {
-				scriptAction.Name = &v
+				scriptActionFlatMap := scriptActionInterface.(map[string]interface{})
+				if v := scriptActionFlatMap["name"].(string); v != "" {
+					scriptAction.Name = &v
+				}
+				if v := scriptActionFlatMap["uri"].(string); v != "" {
+					scriptAction.URI = &v
+				}
+				if v := scriptActionFlatMap["parameters"].(string); v != "" {
+					scriptAction.Parameters = &v
+				}
+				scriptActions = append(scriptActions, scriptAction)
 			}
-			if v := scriptActionFlatMap["uri"].(string); v != "" {
-				scriptAction.URI = &v
-			}
-			if v := scriptActionFlatMap["parameters"].(string); v != "" {
-				scriptAction.Parameters = &v
-			}
-			scriptActions = append(scriptActions, scriptAction)
 		}
-		role.ScriptActions = &scriptActions
+		role.ScriptActions = &scriptActions // Add atleast an empty slice of script actions
 
 		roles = append(roles, role)
 	}
@@ -756,6 +904,29 @@ func flattenAzureRmHDinsightClusterDefinition(clusterDefinition *hdinsight.Clust
 			componentVersionFlat[k] = v
 		}
 		clusterDefinitionFlat["component_version"] = componentVersionFlat
+	}
+	if configurations := *clusterDefinition.Configurations; configurations != nil {
+		configurationsFlat := make(map[string]interface{})
+
+		gatewayFlat := make(map[string]interface{})
+		gateway := configurations["gateway"].(map[string]interface{})
+
+		for k, v := range gateway {
+			dotKey := expandDotKey(k)
+			gatewayFlat[dotKey] = &v
+		}
+		configurationsFlat["gateway"] = &gatewayFlat
+
+		rserverFlat := make(map[string]interface{})
+		rserver := configurations["rserver"].(map[string]interface{})
+
+		for k, v := range rserver {
+			dotKey := expandDotKey(k)
+			rserverFlat[dotKey] = &v
+		}
+		configurationsFlat["rserver"] = &rserverFlat
+
+		//TODO: support other configuration values i.e. core-site?
 	}
 
 	clusterDefinitionList = append(clusterDefinitionList, clusterDefinitionFlat)
@@ -942,4 +1113,24 @@ func flattenAzureRmHDinsightStorageProfile(storageProfile *hdinsight.StorageProf
 		storageProfileList = append(storageProfileList, storageProfileFlat)
 	}
 	return storageProfileList
+}
+
+func flattenDotKey(dotKey string) string {
+	segs := strings.Split(dotKey, ".")
+	var transformedSegs []string
+	for _, seg := range segs {
+		transformedSegs = append(transformedSegs, strcase.SnakeCase(seg))
+	}
+	flattened := strings.Join(transformedSegs, "__")
+	return flattened
+}
+
+func expandDotKey(flatDotKey string) string {
+	segs := strings.Split(flatDotKey, "__")
+	var transformedSegs []string
+	for _, seg := range segs {
+		transformedSegs = append(transformedSegs, strcase.LowerCamelCase(seg))
+	}
+	expanded := strings.Join(transformedSegs, ".")
+	return expanded
 }

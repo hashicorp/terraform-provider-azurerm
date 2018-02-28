@@ -1048,6 +1048,12 @@
 			"revisionTime": "2016-09-27T10:08:44Z"
 		},
 		{
+			"checksumSHA1": "t/Hcc8jNXkH58QfnotLNtpLh+qc=",
+			"path": "github.com/stoewer/go-strcase",
+			"revision": "c8136b55823dc6af966d084a06056c5575f6400f",
+			"revisionTime": "2017-04-24T18:08:47Z"
+		},
+		{
 			"checksumSHA1": "vE43s37+4CJ2CDU6TlOUOYE0K9c=",
 			"path": "golang.org/x/crypto/bcrypt",
 			"revision": "9477e0b78b9ac3d0b03822fd95422e2fe07627cd",

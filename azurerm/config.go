@@ -126,6 +126,9 @@ type ArmClient struct {
 	sqlFirewallRulesClient         sql.FirewallRulesClient
 	sqlServersClient               sql.ServersClient
 
+	// HDInsight
+	hdInsightClustersClient hdinsight.ClustersClient
+
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.BaseClient
@@ -180,9 +183,6 @@ type ArmClient struct {
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
-
-	// HDInsight
-	hdInsightClustersClient hdinsight.ClustersClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -347,6 +347,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerHDInsightClusterClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
@@ -629,6 +630,15 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	ehnc.Sender = sender
 	ehnc.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.eventHubNamespacesClient = ehnc
+}
+
+func (c *ArmClient) registerHDInsightClusterClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	hdInsightClusterClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&hdInsightClusterClient.Client)
+	hdInsightClusterClient.Authorizer = auth
+	hdInsightClusterClient.Sender = sender
+	hdInsightClusterClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.hdInsightClustersClient = hdInsightClusterClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {

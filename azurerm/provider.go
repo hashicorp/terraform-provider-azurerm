@@ -282,6 +282,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.DocumentDB":          {},
 		"Microsoft.EventGrid":           {},
 		"Microsoft.EventHub":            {},
+		"Microsoft.HDInsight":           {},
 		"Microsoft.KeyVault":            {},
 		"microsoft.insights":            {},
 		"Microsoft.Network":             {},

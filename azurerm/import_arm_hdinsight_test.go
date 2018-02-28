@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,8 +11,6 @@ func TestAccAzureRMHDInsightCluster_importBasic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_cluster.test"
 
 	ri := acctest.RandInt()
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	config := testAccAzureRMHDInsightCluster_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
