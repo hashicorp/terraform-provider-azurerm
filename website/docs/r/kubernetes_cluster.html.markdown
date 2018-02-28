@@ -19,7 +19,7 @@ Creates a managed Kubernetes Cluster (AKS)
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG1"
-  location = "West US"
+  location = "East US"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
