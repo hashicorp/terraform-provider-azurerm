@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 )
 
 func resourceArmIotHub() *schema.Resource {
@@ -36,8 +37,9 @@ func resourceArmIotHub() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.F1),
 								string(devices.S1),
@@ -47,8 +49,9 @@ func resourceArmIotHub() *schema.Resource {
 						},
 
 						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(devices.Free),
 								string(devices.Standard),
@@ -181,9 +184,12 @@ func expandAzureRmIotHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
 	skuMap := skuList[0].(map[string]interface{})
 	cap := int64(skuMap["capacity"].(int))
 
+	name := skuMap["name"].(string)
+	tier := skuMap["tier"].(string)
+
 	return devices.IotHubSkuInfo{
-		Name:     devices.IotHubSku(skuMap["name"].(string)),
-		Tier:     devices.IotHubSkuTier(skuMap["tier"].(string)),
+		Name:     devices.IotHubSku(name),
+		Tier:     devices.IotHubSkuTier(tier),
 		Capacity: &cap,
 	}
 
@@ -223,7 +229,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Error flattening `shared_access_policy` in IoTHub %q: %+v", iothubName, err)
 	}
 
 	d.Set("shared_access_policy", keys)
@@ -247,14 +253,20 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	iothubClient := armClient.iothubResourceClient
 	ctx := armClient.StopContext
 
-	future, err := iothubClient.Delete(ctx, id.ResourceGroup, id.Path["IotHubs"])
+	iotHubName := id.Path["IotHubs"]
+
+	future, err := iothubClient.Delete(ctx, id.ResourceGroup, iotHubName)
 	if err != nil {
 		return err
 	}
 
-	status := future.Status()
-	if status == "unkown" {
-		return fmt.Errorf("Error Waiting for the deletion of IoTHub %q (Resource Group %q): %+v", id.Path["IotHubs"], id.ResourceGroup, err)
+	err = future.WaitForCompletion(ctx, iothubClient.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+
+		return fmt.Errorf("Error waiting for the deletion of IoTHub %q", iotHubName)
 	}
 
 	return nil
