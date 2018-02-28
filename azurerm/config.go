@@ -133,23 +133,24 @@ type ArmClient struct {
 	monitorAlertRulesClient insights.AlertRulesClient
 
 	// Networking
-	applicationGatewayClient     network.ApplicationGatewaysClient
-	expressRouteCircuitClient    network.ExpressRouteCircuitsClient
-	ifaceClient                  network.InterfacesClient
-	loadBalancerClient           network.LoadBalancersClient
-	localNetConnClient           network.LocalNetworkGatewaysClient
-	publicIPClient               network.PublicIPAddressesClient
-	routesClient                 network.RoutesClient
-	routeTablesClient            network.RouteTablesClient
-	secGroupClient               network.SecurityGroupsClient
-	secRuleClient                network.SecurityRulesClient
-	subnetClient                 network.SubnetsClient
-	netUsageClient               network.UsagesClient
-	vnetGatewayConnectionsClient network.VirtualNetworkGatewayConnectionsClient
-	vnetGatewayClient            network.VirtualNetworkGatewaysClient
-	vnetClient                   network.VirtualNetworksClient
-	vnetPeeringsClient           network.VirtualNetworkPeeringsClient
-	watcherClient                network.WatchersClient
+	applicationGatewayClient        network.ApplicationGatewaysClient
+	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
+	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
+	ifaceClient                     network.InterfacesClient
+	loadBalancerClient              network.LoadBalancersClient
+	localNetConnClient              network.LocalNetworkGatewaysClient
+	publicIPClient                  network.PublicIPAddressesClient
+	routesClient                    network.RoutesClient
+	routeTablesClient               network.RouteTablesClient
+	secGroupClient                  network.SecurityGroupsClient
+	secRuleClient                   network.SecurityRulesClient
+	subnetClient                    network.SubnetsClient
+	netUsageClient                  network.UsagesClient
+	vnetGatewayConnectionsClient    network.VirtualNetworkGatewayConnectionsClient
+	vnetGatewayClient               network.VirtualNetworkGatewaysClient
+	vnetClient                      network.VirtualNetworksClient
+	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
+	watcherClient                   network.WatchersClient
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
@@ -323,22 +324,15 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return keyVaultSpt, nil
 	})
 
-	csc := containerservice.NewContainerServicesClientWithBaseURI(endpoint, c.SubscriptionID)
-	setUserAgent(&csc.Client)
-	csc.Authorizer = auth
-	csc.Sender = sender
-	csc.SkipResourceProviderRegistration = c.SkipProviderRegistration
-	client.containerServicesClient = csc
-
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
 	client.registerCDNClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerComputeClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
-	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
+	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
@@ -655,6 +649,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	applicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&applicationGatewaysClient.Client, auth)
 	c.applicationGatewayClient = applicationGatewaysClient
+
+	appSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&appSecurityGroupsClient.Client, auth)
+	c.applicationSecurityGroupsClient = appSecurityGroupsClient
 
 	expressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&expressRouteCircuitsClient.Client, auth)
