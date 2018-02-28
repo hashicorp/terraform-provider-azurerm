@@ -82,8 +82,13 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckOutput("tfIntOutput", "-123"),
 					resource.TestCheckOutput("tfStringOutput", "Standard_GRS"),
-					resource.TestCheckOutput("tfFalseOutput", "false"),
-					resource.TestCheckOutput("tfTrueOutput", "true"),
+
+					// these values *should* be 'true' and 'false' but,
+					// due to a bug in the way terraform represents bools at various times these are for now 0 and 1
+					// see https://github.com/hashicorp/terraform/issues/13512#issuecomment-295389523
+					// at a later date these may return the expected 'true' / 'false' and should be changed back
+					resource.TestCheckOutput("tfFalseOutput", "0"),
+					resource.TestCheckOutput("tfTrueOutput", "1"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.stringOutput", "Standard_GRS"),
 				),
 			},
@@ -400,19 +405,19 @@ func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) str
   }
 
   output "tfStringOutput" {
-    value = "${azurerm_template_deployment.test.outputs.stringOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "stringOutput")}"
   }
 
   output "tfIntOutput" {
-    value = "${azurerm_template_deployment.test.outputs.intOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "intOutput")}"
   }
 
   output "tfFalseOutput" {
-    value = "${azurerm_template_deployment.test.outputs.falseOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "falseOutput")}"
   }
 
   output "tfTrueOutput" {
-    value = "${azurerm_template_deployment.test.outputs.trueOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "trueOutput")}"
   }
 
   resource "azurerm_template_deployment" "test" {
@@ -522,7 +527,7 @@ resource "azurerm_resource_group" "test" {
   }
 
   output "test" {
-    value = "${azurerm_template_deployment.test.outputs.testOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "testOutput")}"
   }
 
   resource "azurerm_template_deployment" "test" {
