@@ -31,7 +31,7 @@ func TestAccAzureRMHDInsightCluster_basic(t *testing.T) {
 
 func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-		resource "azurerm_resource_group" "resource_group" {
+		resource "azurerm_resource_group" "test" {
 			name     = "hdinsight-cluster-%d"
 			location = "%s"
 		  
@@ -40,18 +40,18 @@ func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 			}
 		  }
 		  
-		  resource "azurerm_storage_account" "storage_account" {
+		  resource "azurerm_storage_account" "test" {
 			  name	= "hdi%d"
-			  resource_group_name = "${azurerm_resource_group.resource_group.name}"
-			  location = "${azurerm_resource_group.resource_group.location}"
+			  resource_group_name = "${azurerm_resource_group.test.name}"
+			  location = "${azurerm_resource_group.test.location}"
 			  account_tier = "Standard"
 			  account_replication_type = "GRS"
 		  }
 		  
-		  resource "azurerm_hdinsight_cluster" "hdinsight" {
+		  resource "azurerm_hdinsight_cluster" "test" {
 			name                = "hdi%d"
-			resource_group_name = "${azurerm_resource_group.resource_group.name}"
-			location            = "${azurerm_resource_group.resource_group.location}"
+			resource_group_name = "${azurerm_resource_group.test.name}"
+			location            = "${azurerm_resource_group.test.location}"
 			cluster_version  = "3.6"
 			os_type  = "Linux"
 			tier  = "Standard"
@@ -103,10 +103,10 @@ func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 			storage_profile {
 				storage_accounts = [
 					{
-						name = "${azurerm_storage_account.storage_account.primary_blob_endpoint}"
+						name = "${azurerm_storage_account.test.primary_blob_endpoint}"
 						is_default = true
-						container = "${azurerm_resource_group.resource_group.name}"
-						key = "${azurerm_storage_account.storage_account.primary_access_key}"
+						container = "${azurerm_resource_group.test.name}"
+						key = "${azurerm_storage_account.test.primary_access_key}"
 					}
 				]
 			}

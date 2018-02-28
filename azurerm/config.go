@@ -347,7 +347,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerHDInsightClusterClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerHDInsightClustersClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
@@ -632,13 +632,13 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	c.eventHubNamespacesClient = ehnc
 }
 
-func (c *ArmClient) registerHDInsightClusterClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	hdInsightClusterClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&hdInsightClusterClient.Client)
-	hdInsightClusterClient.Authorizer = auth
-	hdInsightClusterClient.Sender = sender
-	hdInsightClusterClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.hdInsightClustersClient = hdInsightClusterClient
+func (c *ArmClient) registerHDInsightClustersClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	hdInsightClustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&hdInsightClustersClient.Client)
+	hdInsightClustersClient.Authorizer = auth
+	hdInsightClustersClient.Sender = sender
+	hdInsightClustersClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.hdInsightClustersClient = hdInsightClustersClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
@@ -829,12 +829,6 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
-}
-
-func (c *ArmClient) registerHDInsightClustersClient(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	hdInsightClustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&hdInsightClustersClient.Client, auth)
-	c.hdInsightClustersClient = hdInsightClustersClient
 }
 
 var (
