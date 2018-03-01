@@ -263,19 +263,19 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 	d.Set("resource_group_name", resGroup)
 
 	if props := resp.SecurityRulePropertiesFormat; props != nil {
-		d.Set("access", string(props.Access))
-		d.Set("destination_address_prefix", props.DestinationAddressPrefix)
-		d.Set("destination_port_range", props.DestinationPortRange)
-		d.Set("direction", string(props.Direction))
 		d.Set("description", props.Description)
-		d.Set("priority", int(*props.Priority))
 		d.Set("protocol", string(props.Protocol))
-		d.Set("source_address_prefix", props.SourceAddressPrefix)
-		d.Set("source_port_range", props.SourcePortRange)
-		d.Set("source_address_prefixes", props.SourceAddressPrefixes)
+		d.Set("destination_address_prefix", props.DestinationAddressPrefix)
 		d.Set("destination_address_prefixes", props.DestinationAddressPrefixes)
-		d.Set("source_port_ranges", props.SourcePortRanges)
+		d.Set("destination_port_range", props.DestinationPortRange)
 		d.Set("destination_port_ranges", props.DestinationPortRanges)
+		d.Set("source_address_prefix", props.SourceAddressPrefix)
+		d.Set("source_address_prefixes", props.SourceAddressPrefixes)
+		d.Set("source_port_range", props.SourcePortRange)
+		d.Set("source_port_ranges", props.SourcePortRanges)
+		d.Set("access", string(props.Access))
+		d.Set("priority", int(*props.Priority))
+		d.Set("direction", string(props.Direction))
 	}
 
 	return nil
