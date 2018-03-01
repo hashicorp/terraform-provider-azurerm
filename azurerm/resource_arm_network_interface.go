@@ -104,6 +104,14 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Set:      schema.HashString,
 						},
 
+						"application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"primary": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -329,7 +337,10 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if iface.IPConfigurations != nil {
-		d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations))
+		configs := flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)
+		if err := d.Set("ip_configuration", configs); err != nil {
+			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+		}
 	}
 
 	if iface.VirtualMachine != nil {
@@ -480,6 +491,14 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 		}
 		niIPConfig["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, rules)
 
+		securityGroups := make([]interface{}, 0)
+		if sgs := props.ApplicationSecurityGroups; sgs != nil {
+			for _, sg := range *sgs {
+				securityGroups = append(securityGroups, *sg.ID)
+			}
+		}
+		niIPConfig["application_security_group_ids"] = schema.NewSet(schema.HashString, securityGroups)
+
 		result = append(result, niIPConfig)
 	}
 	return result
@@ -564,6 +583,21 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 			}
 
 			properties.LoadBalancerInboundNatRules = &natRules
+		}
+
+		if v, ok := data["application_security_group_ids"]; ok {
+			var securityGroups []network.ApplicationSecurityGroup
+			rules := v.(*schema.Set).List()
+			for _, r := range rules {
+				groupId := r.(string)
+				group := network.ApplicationSecurityGroup{
+					ID: &groupId,
+				}
+
+				securityGroups = append(securityGroups, group)
+			}
+
+			properties.ApplicationSecurityGroups = &securityGroups
 		}
 
 		name := data["name"].(string)
