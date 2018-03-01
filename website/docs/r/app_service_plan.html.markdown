@@ -6,7 +6,7 @@ description: |-
   Create an App Service Plan component.
 ---
 
-# azurerm\_app\_service\_plan
+# azurerm_app_service_plan
 
 Create an App Service Plan component.
 
@@ -58,6 +58,10 @@ The following arguments are supported:
 
 `properties` supports the following:
 
+* `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
+
+~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU.
+
 * `maximum_number_of_workers` - (Optional) Maximum number of instances that can be assigned to this App Service plan.
 
 * `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
@@ -75,6 +79,6 @@ The following attributes are exported:
 
 App Service Plan instances can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_app_service_plan.instance1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/instance1
 ```

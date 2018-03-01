@@ -13,13 +13,21 @@ Creates a new CosmosDB (formally DocumentDB) Account.
 ## Example Usage
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
     name = "resourceGroup1"
     location = "West Europe"
 }
 
 resource "azurerm_cosmosdb_account" "test" {
-  name                = "cosmos-db-account1"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   offer_type          = "Standard"
@@ -97,6 +105,6 @@ The following attributes are exported:
 
 CosmosDB Accounts can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_cosmosdb_account.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1
 ```

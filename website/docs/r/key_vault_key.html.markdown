@@ -21,8 +21,15 @@ resource "azurerm_resource_group" "test" {
   location = "West US"
 }
 
+resource "random_id" "server" {
+  keepers = {
+    ami_id = 1
+  }
+  byte_length = 8
+}
+
 resource "azurerm_key_vault" "test" {
-  name                = "my-key-vault"
+  name                = "${format("%s%s", "kv", random_id.server.hex)}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
@@ -41,7 +48,6 @@ resource "azurerm_key_vault" "test" {
     ]
 
     secret_permissions = [
-      "create",
       "set",
     ]
   }
@@ -98,6 +104,6 @@ The following attributes are exported:
 
 Key Vault Key which is Enabled can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_key_vault_key.test https://example-keyvault.vault.azure.net/keys/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

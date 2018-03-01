@@ -145,8 +145,9 @@ func testCheckAzureRMPostgreSQLServerExists(name string) resource.TestCheckFunc 
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).postgresqlServersClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: PostgreSQL Server %q (resource group: %q) does not exist", name, resourceGroup)
@@ -161,6 +162,7 @@ func testCheckAzureRMPostgreSQLServerExists(name string) resource.TestCheckFunc 
 
 func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).postgresqlServersClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_postgresql_server" {
@@ -170,7 +172,7 @@ func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {

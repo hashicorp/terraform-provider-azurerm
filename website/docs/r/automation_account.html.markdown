@@ -12,7 +12,7 @@ Creates a new Automation Account.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "example" {
  name = "resourceGroup1"
  location = "West Europe"
@@ -61,6 +61,6 @@ The following attributes are exported:
 
 Automation Accounts can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_automation_account.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1
 ```

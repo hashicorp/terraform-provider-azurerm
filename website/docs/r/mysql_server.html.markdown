@@ -42,7 +42,7 @@ resource "azurerm_mysql_server" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the MySQL Server. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the MySQL Server. Changing this forces a new resource to be created. This needs to be globally unique within Azure.
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the MySQL Server.
 
@@ -102,6 +102,6 @@ The following attributes are exported:
 
 MySQL Server's can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_mysql_server.server1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforMySQL/servers/server1
 ```

@@ -90,6 +90,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 
 func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).workspacesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_log_analytics_workspace" {
@@ -99,7 +100,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -128,8 +129,9 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheck
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).workspacesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Workspace Client: %+v", err)
 		}

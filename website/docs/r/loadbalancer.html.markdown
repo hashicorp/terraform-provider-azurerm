@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
-sidebar_current: "docs-azurerm-resource-loadbalancer"
+sidebar_current: "docs-azurerm-resource-loadbalancer-x"
 description: |-
   Create a LoadBalancer Resource.
 ---
@@ -45,6 +45,10 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the LoadBalancer.
 * `location` - (Required) Specifies the supported Azure location where the resource exists.
 * `frontend_ip_configuration` - (Optional) A frontend ip configuration block as documented below.
+* `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
+
+-> **Note:** The `Standard` SKU is currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions `Standard` SKU's are available in are available here](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-overview)
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `frontend_ip_configuration` supports the following:
@@ -60,13 +64,13 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The LoadBalancer ID.
-* `private_ip_address` - The private IP address assigned to the load balancer, if any.
+* `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
+* `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 
 ## Import
 
 Load Balancers can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_lb.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1
 ```
-

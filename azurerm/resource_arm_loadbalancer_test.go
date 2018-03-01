@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -58,6 +58,25 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancer_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_standard(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
@@ -141,18 +160,19 @@ func testCheckAzureRMLoadBalancerExists(name string, lb *network.LoadBalancer) r
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		loadbalancerName := rs.Primary.Attributes["name"]
+		loadBalancerName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", loadbalancerName)
+			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", loadBalancerName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, loadbalancerName, "")
+		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: LoadBalancer %q (resource group: %q) does not exist", loadbalancerName, resourceGroup)
+				return fmt.Errorf("Bad: LoadBalancer %q (resource group: %q) does not exist", loadBalancerName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on loadBalancerClient: %+v", err)
@@ -165,7 +185,8 @@ func testCheckAzureRMLoadBalancerExists(name string, lb *network.LoadBalancer) r
 }
 
 func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+	client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_lb" {
@@ -175,7 +196,7 @@ func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name, "")
+		resp, err := client.Get(ctx, resourceGroup, name, "")
 
 		if err != nil {
 			return nil
@@ -204,6 +225,27 @@ resource "azurerm_lb" "test" {
     tags {
     	Environment = "production"
     	Purpose = "AcceptanceTests"
+    }
+
+}`, rInt, location, rInt)
+}
+
+func testAccAzureRMLoadBalancer_standard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestrg-%d"
+    location = "%s"
+}
+
+resource "azurerm_lb" "test" {
+    name = "acctest-loadbalancer-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    sku = "Standard"
+
+    tags {
+      Environment = "production"
+      Purpose = "AcceptanceTests"
     }
 
 }`, rInt, location, rInt)

@@ -6,7 +6,7 @@ description: |-
   Get information about the specified managed disk.
 ---
 
-# azurerm\_managed\_disk
+# Data Source: azurerm_managed_disk
 
 Use this data source to access the properties of an existing Azure Managed Disk.
 

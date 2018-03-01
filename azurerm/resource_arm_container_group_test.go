@@ -89,6 +89,7 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.name", "logs"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.volume.0.read_only", "false"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "restart_policy", "OnFailure"),
 				),
 			},
 		},
@@ -139,6 +140,7 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.environment_variables.foo1", "bar1"),
 					resource.TestCheckResourceAttr(resourceName, "os_type", "Windows"),
+					resource.TestCheckResourceAttr(resourceName, "restart_policy", "Never"),
 				),
 			},
 		},
@@ -225,8 +227,8 @@ resource "azurerm_container_group" "test" {
   os_type             = "windows"
 
   container {
-    name   = "winapp"
-    image  = "winappimage:latest"
+    name   = "windowsservercore"
+    image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
     port   = "80"
@@ -251,16 +253,19 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
+  dns_name_label      = "acctestcontainergroup-%d"
   os_type             = "windows"
+  restart_policy      = "Never"
 
   container {
-    name   = "winapp"
-    image  = "winappimage:latest"
+    name   = "windowsservercore"
+    image  = "microsoft/windowsservercore:latest"
     cpu    = "2.0"
     memory = "3.5"
     port   = "80"
+
 	environment_variables {
-		"foo" = "bar"
+		"foo"  = "bar"
 		"foo1" = "bar1"
 	}
 	command = "cmd.exe echo hi"
@@ -270,7 +275,7 @@ resource "azurerm_container_group" "test" {
     environment = "Testing"
   }
 }
-`, ri, location, ri)
+`, ri, location, ri, ri)
 }
 
 func testAccAzureRMContainerGroup_linuxComplete(ri int, location string) string {
@@ -287,7 +292,7 @@ resource "azurerm_storage_account" "test" {
 	account_tier             = "Standard"
 	account_replication_type = "LRS"
 }
-	
+
 resource "azurerm_storage_share" "test" {
 	name = "acctestss-%d"
 
@@ -296,27 +301,31 @@ resource "azurerm_storage_share" "test" {
 
 	quota = 50
 }
-	
+
 resource "azurerm_container_group" "test" {
 	name                = "acctestcontainergroup-%d"
 	location            = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	ip_address_type     = "public"
+	dns_name_label      = "acctestcontainergroup-%d"
 	os_type             = "linux"
+	restart_policy      = "OnFailure"
 
 	container {
 		name   = "hf"
 		image  = "seanmckenna/aci-hellofiles"
 		cpu    = "1"
 		memory = "1.5"
-		port   = "80"
+
+		port     = "80"
 		protocol = "TCP"
 
 		volume {
-			name = "logs"
+			name       = "logs"
 			mount_path = "/aci/logs"
-			read_only = false
+			read_only  = false
 			share_name = "${azurerm_storage_share.test.name}"
+
 			storage_account_name = "${azurerm_storage_account.test.name}"
 			storage_account_key = "${azurerm_storage_account.test.primary_access_key}"
 		}
@@ -333,7 +342,7 @@ resource "azurerm_container_group" "test" {
 		environment = "Testing"
 	}
 }
-`, ri, location, ri, ri, ri)
+`, ri, location, ri, ri, ri, ri)
 }
 
 func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
@@ -351,8 +360,9 @@ func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Container Group %q (resource group: %q) does not exist", name, resourceGroup)
@@ -366,6 +376,7 @@ func testCheckAzureRMContainerGroupExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).containerGroupsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_group" {
@@ -375,7 +386,7 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, name)
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if resp.StatusCode != http.StatusNotFound {

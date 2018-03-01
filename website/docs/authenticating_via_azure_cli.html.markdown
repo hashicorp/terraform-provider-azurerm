@@ -1,13 +1,13 @@
 ---
 layout: "azurerm"
-page_title: "AzureRM: Authenticating via the Azure CLI"
+page_title: "Azure Provider: Authenticating via the Azure CLI"
 sidebar_current: "docs-azurerm-index-authentication-azure-cli"
 description: |-
-  The Azure Resource Manager provider supports authenticating via multiple means. This guide will cover using the Azure CLI to authenticate to Azure Resource Manager.
+  This guide will cover how to use the Azure CLI provide authentication for the Azure Provider.
 
 ---
 
-# Authenticating to Azure Resource Manager using the Azure CLI
+# Azure Provider: Authenticating using the Azure CLI
 
 Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
@@ -23,7 +23,7 @@ This guide assumes that you have [the Azure CLI 2.0 (Python)](https://github.com
 
 ~> **Note:** if you're using the **China**, **German** or **Government** Azure Clouds - you'll need to first configure the Azure CLI to work with that Cloud.  You can do this by running:
 
-```
+```shell
 $ az cloud set --name AzureChinaCloud|AzureGermanCloud|AzureUSGovernment
 ```
 
@@ -71,3 +71,5 @@ The output (similar to below) will display one or more Subscriptions - with the 
 ```shell
 $ az account set --subscription="SUBSCRIPTION_ID"
 ```
+
+Also, if you have been authenticating with a service principal and you switch to Azure CLI, you must null out the ARM_* environment variables. Failure to do so causes errors to be thrown.

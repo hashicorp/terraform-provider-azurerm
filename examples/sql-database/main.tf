@@ -30,6 +30,8 @@ resource "azurerm_sql_server" "server" {
   administrator_login_password = "${var.sql_password}"
 }
 
+# Enables the "Allow Access to Azure services" box as described in the API docs 
+# https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate
 resource "azurerm_sql_firewall_rule" "fw" {
   name                = "firewallrules"
   resource_group_name = "${azurerm_resource_group.rg.name}"

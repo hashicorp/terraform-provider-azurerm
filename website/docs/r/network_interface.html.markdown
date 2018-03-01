@@ -66,6 +66,10 @@ The following arguments are supported:
 
 * `enable_ip_forwarding` - (Optional) Enables IP Forwarding on the NIC. Defaults to `false`.
 
+* `enable_accelerated_networking` - (Optional) Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Refer to [Create a Virtual Machine with Accelerated Networking](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli). Defaults to `false`.
+
+~> **NOTE:** when using Accelerated Networking in an Availability Set - the Availability Set must be deployed on an Accelerated Networking enabled cluster.
+
 * `dns_servers` - (Optional) List of DNS servers IP addresses to use for this NIC, overrides the VNet-level server list
 
 * `ip_configuration` - (Required) One or more `ip_configuration` associated with this NIC as documented below.
@@ -105,6 +109,6 @@ The following attributes are exported:
 
 Network Interfaces can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_network_interface.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1
 ```

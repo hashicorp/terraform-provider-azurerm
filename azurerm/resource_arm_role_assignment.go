@@ -2,10 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,7 +22,8 @@ func resourceArmRoleAssignment() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
@@ -34,9 +35,18 @@ func resourceArmRoleAssignment() *schema.Resource {
 
 			"role_definition_id": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Computed:         true,
 				ForceNew:         true,
+				ConflictsWith:    []string{"role_definition_name"},
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"role_definition_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"role_definition_id"},
 			},
 
 			"principal_id": {
@@ -49,12 +59,41 @@ func resourceArmRoleAssignment() *schema.Resource {
 }
 
 func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleAssignmentsClient
+	roleAssignmentsClient := meta.(*ArmClient).roleAssignmentsClient
+	roleDefinitionsClient := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
-	roleDefinitionId := d.Get("role_definition_id").(string)
+
+	var roleDefinitionId string
+	if v, ok := d.GetOk("role_definition_id"); ok {
+		roleDefinitionId = v.(string)
+	} else if v, ok := d.GetOk("role_definition_name"); ok {
+		filter := fmt.Sprintf("roleName eq '%s'", v.(string))
+		roleDefinitions, err := roleDefinitionsClient.List(ctx, "", filter)
+		if err != nil {
+			return fmt.Errorf("Error loading Role Definition List: %+v", err)
+		}
+		if len(roleDefinitions.Values()) != 1 {
+			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", name)
+		}
+		roleDefinitionId = *roleDefinitions.Values()[0].ID
+	} else {
+		return fmt.Errorf("Error: either role_definition_id or role_definition_name needs to be set")
+	}
+	d.Set("role_definition_id", roleDefinitionId)
+
 	principalId := d.Get("principal_id").(string)
+
+	if name == "" {
+		uuid, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+		}
+
+		name = uuid
+	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
 		Properties: &authorization.RoleAssignmentProperties{
@@ -63,12 +102,12 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	_, err := client.Create(scope, name, properties)
+	_, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(scope, name)
+	read, err := roleAssignmentsClient.Get(ctx, scope, name)
 	if err != nil {
 		return err
 	}
@@ -82,8 +121,9 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleAssignmentsClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.GetByID(d.Id())
+	resp, err := client.GetByID(ctx, d.Id())
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Role Assignment ID %q was not found - removing from state", d.Id())
@@ -107,11 +147,12 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleAssignmentsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	scope := d.Get("scope").(string)
 	name := d.Get("name").(string)
 
-	resp, err := client.Delete(scope, name)
+	resp, err := client.Delete(ctx, scope, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err

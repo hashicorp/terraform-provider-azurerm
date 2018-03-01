@@ -22,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "storageAccount1"
+  name                     = "storageaccount1"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -35,11 +35,7 @@ resource "azurerm_container_registry" "test" {
   location            = "${azurerm_resource_group.test.location}"
   admin_enabled       = true
   sku                 = "Classic"
-
-  storage_account {
-    name       = "${azurerm_storage_account.test.name}"
-    access_key = "${azurerm_storage_account.test.primary_access_key}"
-  }
+  storage_account_id  = "${azurerm_storage_account.test.id}"
 }
 ```
 
@@ -79,6 +75,6 @@ The following attributes are exported:
 
 Container Registries can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_container_registry.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```

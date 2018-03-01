@@ -5,9 +5,10 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/arm/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -149,6 +150,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
 
@@ -180,13 +182,17 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, error := client.Create(resGroup, name, properties, make(chan struct{}))
-	err := <-error
+	future, err := client.Create(ctx, resGroup, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -201,6 +207,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 
 func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
 
@@ -226,13 +233,17 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	_, error := client.Update(resGroup, name, properties, make(chan struct{}))
-	err := <-error
+	future, err := client.Update(ctx, resGroup, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -247,6 +258,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -255,7 +267,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] PostgreSQL Server '%s' was not found (resource group '%s')", name, resGroup)
@@ -286,6 +298,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).postgresqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -294,10 +307,23 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 	resGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
 
 func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData, storageMB int) *postgresql.Sku {

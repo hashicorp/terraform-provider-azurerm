@@ -12,14 +12,27 @@ Creates a Traffic Manager Profile to which multiple endpoints can be attached.
 
 ## Example Usage
 
+
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+  byte_length = 8
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "trafficmanagerProfile"
+  location = "West US"
+}
+
 resource "azurerm_traffic_manager_profile" "test" {
-  name                   = "profile1"
+  name                   = "${random_id.server.hex}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "profile1"
+    relative_name = "${random_id.server.hex}"
     ttl           = 100
   }
 
@@ -75,12 +88,12 @@ The `dns_config` block supports:
 
 The `monitor_config` block supports:
 
-* `http` - (Required) The protocol used by the monitoring checks, supported
-    values are `http` or `https`.
+* `protocol` - (Required) The protocol used by the monitoring checks, supported
+    values are `HTTP`, `HTTPS` and `TCP``.
 
 * `port` - (Required) The port number used by the monitoring checks.
 
-* `path` - (Required) The path used by the monitoring checks.
+* `path` - (Optional) The path used by the monitoring checks. Required when `protocol` is set to `HTTP` or `HTTPS` - cannot be set when `protocol` is set to `TCP`.
 
 ## Attributes Reference
 
@@ -97,6 +110,6 @@ The Traffic Manager is created with the location `global`.
 
 Traffic Manager Profiles can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_traffic_manager_profile.testProfile /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1
 ```

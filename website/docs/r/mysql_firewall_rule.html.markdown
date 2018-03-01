@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the MySQL Server exists. Changing this forces a new resource to be created.
 
-* `start_ip_address` - (Required) Specifies the Charset for the MySQL Database. Changing this forces a new resource to be created.
+* `start_ip_address` - (Required) Specifies the Start IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
 
 * `end_ip_address` - (Required) Specifies the End IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
 
@@ -76,6 +76,6 @@ The following attributes are exported:
 
 MySQL Firewall Rule's can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_mysql_firewall_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DBforMySQL/servers/server1/firewallRules/rule1
 ```

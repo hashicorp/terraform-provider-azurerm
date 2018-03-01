@@ -18,6 +18,17 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "acceptanceTestResourceGroup1"
+  location = "West US"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "virtualNetwork1"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -99,6 +110,6 @@ The following attributes are exported:
 
 Virtual Networks can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_virtual_network.testNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1
 ```

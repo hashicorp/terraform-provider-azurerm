@@ -13,6 +13,12 @@ Creates a new local network gateway connection over which specific connections c
 ## Example Usage
 
 ```hcl
+
+resource "azurerm_resource_group" "test" {
+  name     = "localNetworkGWTest"
+  location = "West US"
+}
+
 resource "azurerm_local_network_gateway" "home" {
   name                = "backHome"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -41,6 +47,23 @@ The following arguments are supported:
 * `address_space` - (Required) The list of string CIDRs representing the
     address spaces the gateway exposes.
 
+* `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
+    Local Network Gateway's BGP speaker settings.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+`bgp_settings` supports the following:
+
+* `asn` - (Required) The BGP speaker's ASN.
+
+* `bgp_peering_address` - (Required) The BGP peering address and BGP identifier
+    of this BGP speaker.
+
+* `peer_weight` - (Optional) The weight added to routes learned from this
+    BGP speaker.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -51,6 +74,6 @@ The following attributes are exported:
 
 Local Network Gateways can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_local_network_gateway.lng1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/localNetworkGateways/lng1
 ```

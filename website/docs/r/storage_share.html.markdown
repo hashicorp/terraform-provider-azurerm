@@ -14,12 +14,12 @@ Create an Azure Storage File Share.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "azuretest"
   location = "westus"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
+  name                     = "azureteststorage"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "westus"
   account_tier             = "Standard"

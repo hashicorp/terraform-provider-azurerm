@@ -13,13 +13,21 @@ Creates a new Redis Cache Resource
 ## Example Usage (Basic)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "test"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 0
@@ -36,13 +44,21 @@ resource "azurerm_redis_cache" "test" {
 ## Example Usage (Standard)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "test"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 2
@@ -59,13 +75,21 @@ resource "azurerm_redis_cache" "test" {
 ## Example Usage (Premium with Clustering)
 
 ```hcl
+resource "random_id" "server" {
+  keepers = {
+    azi_id = 1
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "clustered-test"
+  name                = "${random_id.server.hex}"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 1
@@ -87,9 +111,10 @@ resource "azurerm_redis_cache" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-    name     = "redisrg"
-    location = "West US"
+  name     = "redisrg"
+  location = "West US"
 }
+
 resource "azurerm_storage_account" "test" {
   name                     = "redissa"
   resource_group_name      = "${azurerm_resource_group.test.name}"
@@ -97,21 +122,22 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
+
 resource "azurerm_redis_cache" "test" {
-    name                = "example-redis"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    capacity            = 3
-    family              = "P"
-    sku_name            = "Premium"
-    enable_non_ssl_port = false
-    redis_configuration {
-      maxclients                    = 256
-      rdb_backup_enabled            = true
-      rdb_backup_frequency          = 60
-      rdb_backup_max_snapshot_count = 1
-      rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
-    }
+  name                = "example-redis"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 3
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  redis_configuration {
+    maxclients                    = 256
+    rdb_backup_enabled            = true
+    rdb_backup_frequency          = 60
+    rdb_backup_max_snapshot_count = 1
+    rdb_storage_connection_string = "DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}"
+  }
 }
 ```
 
@@ -140,6 +166,8 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
 * `redis_configuration` - (Required) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
+
+* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
 
 ---
 
@@ -173,6 +201,13 @@ redis_configuration {
 | maxmemory_policy   | volatile-lru | volatile-lru | volatile-lru |
 
 _*Important*: The maxmemory_reserved setting is only available for Standard and Premium caches. More details are available in the Relevant Links section below._
+
+* `patch_schedule` supports the following:
+
+* `day_of_week` (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
+* `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
+
+~> **Note:** The Patch Window lasts for 5 hours from the `start_hour_utc`.
 
 ## Attributes Reference
 

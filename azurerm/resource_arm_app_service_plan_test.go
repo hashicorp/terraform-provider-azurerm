@@ -10,6 +10,46 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestAzureRMAppServicePlanName_validation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		{
+			Value:    "ab",
+			ErrCount: 0,
+		},
+		{
+			Value:    "abc",
+			ErrCount: 0,
+		},
+		{
+			Value:    "webapp1",
+			ErrCount: 0,
+		},
+		{
+			Value:    "hello-world",
+			ErrCount: 0,
+		},
+		{
+			Value:    "hello_world",
+			ErrCount: 1,
+		},
+		{
+			Value:    "helloworld21!",
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateAppServicePlanName(tc.Value, "azurerm_app_service_plan")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the App Service Plan Name to trigger a validation error for '%s'", tc.Value)
+		}
+	}
+}
+
 func TestAccAzureRMAppServicePlan_basicWindows(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppServicePlan_basicWindows(ri, testLocation())
@@ -148,8 +188,8 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -159,7 +199,7 @@ func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("App Service Plan still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil
@@ -180,8 +220,8 @@ func testCheckAzureRMAppServicePlanExists(name string) resource.TestCheckFunc {
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
-
-		resp, err := conn.Get(resourceGroup, appServicePlanName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Service Plan %q (resource group: %q) does not exist", appServicePlanName, resourceGroup)

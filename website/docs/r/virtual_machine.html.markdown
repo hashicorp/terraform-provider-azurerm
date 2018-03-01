@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -34,7 +34,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
@@ -46,7 +46,7 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "datadisk_existing"
-  location             = "West US 2"
+  location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
@@ -55,7 +55,7 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm"
-  location              = "West US 2"
+  location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
   vm_size               = "Standard_DS1_v2"
@@ -124,7 +124,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -137,7 +137,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
@@ -150,7 +150,7 @@ resource "azurerm_network_interface" "test" {
 resource "azurerm_storage_account" "test" {
   name                     = "accsa"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -168,10 +168,10 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm"
-  location              = "West US"
+  location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_A0"
+  vm_size               = "Standard_F2"
 
   # Uncomment this line to delete the OS disk automatically when deleting the VM
   # delete_os_disk_on_termination = true
@@ -237,6 +237,7 @@ The following arguments are supported:
 * `storage_data_disk` - (Optional) A list of Storage Data disk blocks as referenced below.
 * `delete_data_disks_on_termination` - (Optional) Flag to enable deletion of storage data disk VHD blobs or managed disks when the VM is deleted, defaults to `false`
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
+* `identity` - (Optional) An identity block as documented below.
 
 * `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. The only allowable value, if supplied, is `Windows_Server`.
 * `os_profile_windows_config` - (Required, when a Windows machine) A Windows config block as documented below.
@@ -322,6 +323,38 @@ resource "azurerm_virtual_machine" "test" {
 2. Contains a lowercase character
 3. Contains a numeric digit
 4. Contains a special character
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the virtual machine. The only allowable value is `SystemAssigned`. To enable Managed Service Identity the virtual machine extension "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added to the virtual machine. The Principal ID can be retrieved after the virtual machine has been created, e.g.
+
+```hcl
+resource "azurerm_virtual_machine" "test" {
+  name                = "test"
+
+  identity = {
+    type = "SystemAssigned"
+  }
+}
+resource "azurerm_virtual_machine_extension" "test" {
+  name                 = "test"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  virtual_machine_name = "${azurerm_virtual_machine.test.name}"
+  publisher            = "Microsoft.ManagedIdentity"
+  type                 = "ManagedIdentityExtensionForWindows"
+  type_handler_version = "1.0"
+
+  settings = <<SETTINGS
+    {
+        "port": 50342
+    }
+SETTINGS
+}
+output "principal_id" {
+  value = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
+}
+```
 
 `os_profile_windows_config` supports the following:
 

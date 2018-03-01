@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `route_table_id` - (Optional) The ID of the Route Table to associate with the subnet.
 
+* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -69,6 +71,6 @@ The following attributes are exported:
 
 Subnets can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_subnet.testSubnet /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1
 ```

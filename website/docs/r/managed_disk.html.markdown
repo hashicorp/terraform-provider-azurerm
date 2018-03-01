@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `source_resource_id` - (Optional) ID of an existing managed disk to copy when `create_option` is `Copy`.
 
-* `image_reference_id` - (Optional) ID of an existing platform disk image to copy when `create_option` is `FromImage`.
+* `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
 
 * `os_type` - (Optional) Specify a value when the source of an `Import` or `Copy`
     operation targets a source that contains an operating system. Valid values are `Linux` or `Windows`
@@ -136,6 +136,6 @@ The following attributes are exported:
 
 Managed Disks can be imported using the `resource id`, e.g.
 
-```
+```shell
 terraform import azurerm_managed_disk.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/disks/manageddisk1
 ```

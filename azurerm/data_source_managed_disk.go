@@ -50,12 +50,13 @@ func dataSourceArmManagedDisk() *schema.Resource {
 }
 
 func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	diskClient := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	resp, err := diskClient.Get(resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			d.SetId("")
@@ -65,8 +66,18 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(*resp.ID)
-	if resp.Properties != nil {
-		flattenAzureRmManagedDiskProperties(d, resp.Properties)
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("storage_account_type", string(sku.Name))
+	}
+
+	if props := resp.DiskProperties; props != nil {
+		if diskSize := props.DiskSizeGB; diskSize != nil {
+			d.Set("disk_size_gb", *diskSize)
+		}
+		if osType := props.OsType; osType != "" {
+			d.Set("os_type", string(osType))
+		}
 	}
 
 	if resp.CreationData != nil {
