@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_application_security_group` [GH-914]
 * **New Resource:** `azurerm_application_security_group` [GH-905]
 * **New Resource:** `azurerm_servicebus_topic_authorization_rule` [GH-736]
 
