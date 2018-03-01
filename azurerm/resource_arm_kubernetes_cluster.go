@@ -260,7 +260,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error setting `linux_profile`: %+v", err)
 	}
 
-	agentPoolProfiles := flattenAzureRmKubernetesClusterAgentPoolProfiles(resp.ManagedClusterProperties.AgentPoolProfiles)
+	agentPoolProfiles := flattenAzureRmKubernetesClusterAgentPoolProfiles(resp.ManagedClusterProperties.AgentPoolProfiles, resp.Fqdn)
 	if err := d.Set("agent_pool_profile", &agentPoolProfiles); err != nil {
 		return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 	}
@@ -314,7 +314,7 @@ func flattenAzureRmKubernetesClusterLinuxProfile(profile containerservice.LinuxP
 	return profiles
 }
 
-func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile) []interface{} {
+func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile, fqdn *string) []interface{} {
 	agentPoolProfiles := make([]interface{}, 0, len(*profiles))
 
 	for _, profile := range *profiles {
@@ -328,8 +328,9 @@ func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservi
 			agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
 		}
 
-		if profile.Fqdn != nil {
-			agentPoolProfile["fqdn"] = *profile.Fqdn
+		if fqdn != nil {
+			// temporarily persist the parent FQDN here until `fqdn` is removed from the `agent_pool_profile`
+			agentPoolProfile["fqdn"] = *fqdn
 		}
 
 		if profile.Name != nil {
