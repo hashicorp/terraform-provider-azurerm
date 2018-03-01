@@ -110,7 +110,6 @@ func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 					}
 				]
 			}
-
 		  }
 `, rInt, location, rInt, rInt)
 }

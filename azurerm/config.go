@@ -638,6 +638,7 @@ func (c *ArmClient) registerHDInsightClustersClients(endpoint, subscriptionId st
 	hdInsightClustersClient.Authorizer = auth
 	hdInsightClustersClient.Sender = sender
 	hdInsightClustersClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	hdInsightClustersClient.PollingDuration = 2 * time.Hour
 	c.hdInsightClustersClient = hdInsightClustersClient
 }
 

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"unicode"
 
@@ -59,6 +60,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"Linux",
 				}, false),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"tier": {
@@ -67,8 +69,8 @@ func resourceArmHDInsightCluster() *schema.Resource {
 				Default:  "Standard",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
-					"Premium",
 				}, false),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			//TODO: add support for more configurations i.e. core-site
@@ -81,7 +83,6 @@ func resourceArmHDInsightCluster() *schema.Resource {
 						"blueprint": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 						"kind": {
 							Type:     schema.TypeString,
@@ -89,7 +90,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 						},
 						"component_version": {
 							Type:     schema.TypeMap,
-							Optional: true,
+							Computed: true,
 						},
 						"configurations": {
 							Type:     schema.TypeList,
@@ -188,7 +189,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 									},
 									"min_instance_count": {
 										Type:     schema.TypeInt,
@@ -196,7 +197,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 									},
 									"target_instance_count": {
 										Type:     schema.TypeInt,
-										Required: true,
+										Optional: true,
 									},
 									"hardware_profile": {
 										Type:     schema.TypeList,
@@ -206,7 +207,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"vm_size": {
 													Type:     schema.TypeString,
-													Required: true,
+													Optional: true,
 												},
 											},
 										},
@@ -393,8 +394,8 @@ func validateRestAuthCredentialPassword(v interface{}, k string) (ws []string, e
 }
 
 func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdInsightClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient)
+	hdInsightClustersClient := client.hdInsightClustersClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM HDInsight creation.")
 
@@ -430,17 +431,18 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 		Properties: clusterCreateProperties,
 	}
 
-	future, err := client.Create(ctx, resGroup, name, clusterCreateParametersExtended)
+	ctx := client.StopContext
+	future, err := hdInsightClustersClient.Create(ctx, resGroup, name, clusterCreateParametersExtended)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating HDInsight cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletion(ctx, hdInsightClustersClient.Client)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating HDInsight cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := hdInsightClustersClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error Retrieving HDInsight cluster %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -463,11 +465,11 @@ func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	resGroup := id.ResourceGroup
-	name := id.Path["hdinsight"]
+	name := id.Path["clusters"]
 
 	ctx := client.StopContext
 	resp, err := hdinsightClustersClient.Get(ctx, resGroup, name)
-	if err != nil {
+	if err != nil && resp.Response.StatusCode == http.StatusOK {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
@@ -898,14 +900,16 @@ func flattenAzureRmHDinsightClusterDefinition(clusterDefinition *hdinsight.Clust
 	if kind := clusterDefinition.Kind; kind != nil {
 		clusterDefinitionFlat["kind"] = *kind
 	}
-	if componentVersion := clusterDefinition.ComponentVersion; componentVersion != nil {
-		componentVersionFlat := make(map[string]*string)
-		for k, v := range *componentVersion {
-			componentVersionFlat[k] = v
+	if clusterDefinition.ComponentVersion != nil {
+		componentVersion := *clusterDefinition.ComponentVersion
+		componentVersionFlat := make(map[string]string)
+		for k, v := range componentVersion {
+			componentVersionFlat[k] = *v
 		}
 		clusterDefinitionFlat["component_version"] = componentVersionFlat
 	}
-	if configurations := *clusterDefinition.Configurations; configurations != nil {
+	if clusterDefinition.Configurations != nil {
+		configurations := *clusterDefinition.Configurations
 		configurationsFlat := make(map[string]interface{})
 
 		gatewayFlat := make(map[string]interface{})
@@ -1005,14 +1009,15 @@ func flattenAzureRmHDinsightComputeProfile(computeProfile *hdinsight.ComputeProf
 			if osProfile := role.OsProfile; osProfile != nil {
 				osProfileList := make([]interface{}, 0)
 				osProfileFlat := make(map[string]interface{})
-				linuxOperatingSystemProfileList := make([]interface{}, 0)
-				if linuxOperatinSystemProfile := osProfile.LinuxOperatingSystemProfile; linuxOperatinSystemProfile != nil {
-					linuxOperationSystemProfile := make(map[string]interface{})
+				if osProfile.LinuxOperatingSystemProfile != nil {
+					linuxOperatingSystemProfileList := make([]interface{}, 0)
+					linuxOperatingSystemProfileFlat := make(map[string]interface{})
+
 					if username := osProfile.LinuxOperatingSystemProfile.Username; username != nil {
-						linuxOperationSystemProfile["username"] = *username
+						linuxOperatingSystemProfileFlat["username"] = *username
 					}
 					if password := osProfile.LinuxOperatingSystemProfile.Password; password != nil {
-						linuxOperationSystemProfile["password"] = *password
+						linuxOperatingSystemProfileFlat["password"] = *password
 					}
 					if sshProfile := osProfile.LinuxOperatingSystemProfile.SSHProfile; sshProfile != nil {
 						sshKeysList := make([]interface{}, 0, len(*sshProfile.PublicKeys))
@@ -1021,11 +1026,11 @@ func flattenAzureRmHDinsightComputeProfile(computeProfile *hdinsight.ComputeProf
 							key["key_data"] = *ssh.CertificateData
 							sshKeysList = append(sshKeysList, key)
 						}
-						linuxOperationSystemProfile["ssh_key"] = sshKeysList
+						linuxOperatingSystemProfileFlat["ssh_key"] = sshKeysList
 					}
-					linuxOperatingSystemProfileList = append(linuxOperatingSystemProfileList, linuxOperationSystemProfile)
+					linuxOperatingSystemProfileList = append(linuxOperatingSystemProfileList, linuxOperatingSystemProfileFlat)
+					osProfileFlat["linux_operating_system_profile"] = linuxOperatingSystemProfileList
 				}
-				osProfileFlat["linux_operation_system_profile"] = linuxOperatingSystemProfileList
 				osProfileList = append(osProfileList, osProfileFlat)
 				roleFlat["os_profile"] = osProfileList
 			}
@@ -1077,7 +1082,7 @@ func flattenAzureRmHDinsightComputeProfile(computeProfile *hdinsight.ComputeProf
 			}
 			rolesList = append(rolesList, roleFlat)
 		}
-		rolesFlat := make(map[string]interface{})
+		rolesFlat := make(map[string][]interface{})
 		rolesFlat["roles"] = rolesList
 		computeProfileList = append(computeProfileList, rolesFlat)
 	}
