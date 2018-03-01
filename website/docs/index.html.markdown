@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Provider: Azure"
 sidebar_current: "docs-azurerm-index"
 description: |-
-  The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through it's API's.
+  The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through its APIs.
 
 ---
 
@@ -19,7 +19,7 @@ Use the navigation to the left to read about the available resources.
 
 Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
-We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
+We recommend [using a Service Principal when running in a shared environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
 
 ## Example Usage
 
