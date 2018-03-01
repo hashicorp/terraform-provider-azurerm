@@ -105,7 +105,10 @@ func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interfac
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
-		d.Set("security_rule", flattenNetworkSecurityRules(props.SecurityRules))
+		flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
+		if err := d.Set("security_rule", flattenedRules); err != nil {
+			return fmt.Errorf("Error flattening `security_rule`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)

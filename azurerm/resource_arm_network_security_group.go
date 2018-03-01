@@ -217,7 +217,10 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
-		d.Set("security_rule", flattenNetworkSecurityRules(props.SecurityRules))
+		flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
+		if err := d.Set("security_rule", flattenedRules); err != nil {
+			return fmt.Errorf("Error flattening `security_rule`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -250,10 +253,10 @@ func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interfac
 }
 
 func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule, error) {
-	sgRules := d.Get("security_rule").(*schema.Set)
+	sgRules := d.Get("security_rule").(*schema.Set).List()
 	rules := make([]network.SecurityRule, 0)
 
-	for _, sgRaw := range sgRules.List() {
+	for _, sgRaw := range sgRules {
 		sgRule := sgRaw.(map[string]interface{})
 
 		if err := validateSecurityRule(sgRule); err != nil {
@@ -330,8 +333,8 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 	return rules, nil
 }
 
-func flattenNetworkSecurityRules(rules *[]network.SecurityRule) *schema.Set {
-	result := resourceArmNetworkSecurityGroup().Schema["security_rule"].ZeroValue().(*schema.Set)
+func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
 
 	if rules != nil {
 		for _, rule := range *rules {
@@ -374,7 +377,7 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) *schema.Set {
 				sgRule["direction"] = string(props.Direction)
 			}
 
-			result.Add(sgRule)
+			result = append(result, sgRule)
 		}
 	}
 
