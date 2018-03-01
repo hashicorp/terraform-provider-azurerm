@@ -67,8 +67,6 @@ The following attributes are exported:
 
 * `id` - The IotHub ID.
 
-* `etag` - The etag of IotHub Resource.
-
 * `hostname` - The hostname of the IotHub Resource.
 
 * `shared_access_policy` - A list of `shared_access_policy` blocks as defined below.

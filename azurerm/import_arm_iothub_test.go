@@ -16,7 +16,7 @@ func TestAccAzureRMIotHub_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSubnetDestroy,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,

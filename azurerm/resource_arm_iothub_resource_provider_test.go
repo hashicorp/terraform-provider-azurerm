@@ -32,7 +32,7 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	conn := testAccProvider.Meta().(*ArmClient).expressRouteCircuitClient
+	conn := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub" {
@@ -49,7 +49,7 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("IotHub still exists:\n%#v", resp.ExpressRouteCircuitPropertiesFormat)
+			return fmt.Errorf("IotHub %s still exists in resource group %s", name, resourceGroup)
 		}
 	}
 	return nil
@@ -95,15 +95,16 @@ resource "azurerm_iothub" "test" {
 	name                             = "acctestIoTHub-%d"
 	resource_group_name              = "${azurerm_resource_group.foo.name}"
 	location                         = "${azurerm_resource_group.foo.location}"
-		sku {
-			name = "S1"
-			tier = "Standard"
-			capacity = "1"
-		}
+	sku {
+		name = "S1"
+		tier = "Standard"
+		capacity = "1"
+	}
 
-		tags {
-			"purpose" = "testing"
-		}
+	tags {
+		"purpose" = "testing"
+	}
 }
+
 `, rInt, location, rInt)
 }

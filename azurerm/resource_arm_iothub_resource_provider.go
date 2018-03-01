@@ -220,11 +220,10 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		keys = append(keys, keyMap)
 	}
 
-	if err != nil {
+	if err := d.Set("shared_access_policy", keys); err != nil {
 		return fmt.Errorf("Error flattening `shared_access_policy` in IoTHub %q: %+v", iothubName, err)
 	}
 
-	d.Set("shared_access_policy", keys)
 	d.Set("hostname", properties.HostName)
 	d.Set("type", desc.Type)
 	flattenAndSetTags(d, &desc.Tags)
