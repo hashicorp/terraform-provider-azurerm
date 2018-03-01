@@ -16,6 +16,7 @@ IMPROVEMENTS:
 
 * authentication: adding support for Managed Service Identity [GH-639]
 * `azurerm_container_group` - added `dns_name_label` and `FQDN` properties [GH-877]
+* `azurerm_network_interface` - support for attaching to Application Security Groups [GH-911]
 * `azurerm_network_security_group` - support for augmented security rules [GH-781]
 * `azurerm_servicebus_subscription` - added support for the `forward_to` property [GH-861]
 * `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` [GH-851]
