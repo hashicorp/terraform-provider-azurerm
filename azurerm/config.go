@@ -343,8 +343,8 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerInstanceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
@@ -594,7 +594,8 @@ func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth 
 	ihrc := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&ihrc.Client)
 	ihrc.Authorizer = auth
-	ihrc.Sender = autorest.CreateSender(withRequestLogging())
+	ihrc.Sender = sender
+	ihrc.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.iothubResourceClient = ihrc
 }
 

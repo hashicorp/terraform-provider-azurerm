@@ -115,8 +115,6 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	rg := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	updateIoT := ""
-
 	res, err := iothubClient.CheckNameAvailability(ctx, devices.OperationInputs{
 		Name: &name,
 	})
@@ -126,11 +124,10 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if !*res.NameAvailable {
-		getETag, err := iothubClient.Get(ctx, rg, name)
+		_, err := iothubClient.Get(ctx, rg, name)
 		if err != nil {
 			return errors.New(string(res.Reason))
 		}
-		updateIoT = *getETag.Etag
 	}
 
 	location := d.Get("location").(string)
@@ -151,7 +148,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 		desc.Tags = *expandTags(tags)
 	}
 
-	future, err := iothubClient.CreateOrUpdate(ctx, rg, name, desc, updateIoT)
+	future, err := iothubClient.CreateOrUpdate(ctx, rg, name, desc, "")
 	if err != nil {
 		return err
 	}
@@ -205,17 +202,25 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	properties := desc.Properties
-
 	keysResp, err := iothubClient.ListKeys(ctx, id.ResourceGroup, iothubName)
 	keyList := keysResp.Response()
 
 	var keys []map[string]interface{}
 	for _, key := range *keyList.Value {
 		keyMap := make(map[string]interface{})
-		keyMap["key_name"] = *key.KeyName
-		keyMap["primary_key"] = *key.PrimaryKey
-		keyMap["secondary_key"] = *key.SecondaryKey
+
+		if keyName := key.KeyName; keyName != nil {
+			keyMap["key_name"] = *keyName
+		}
+
+		if primaryKey := key.KeyName; primaryKey != nil {
+			keyMap["primary_key"] = *primaryKey
+		}
+
+		if secondaryKey := key.SecondaryKey; secondaryKey != nil {
+			keyMap["secondary_key"] = *secondaryKey
+		}
+
 		keyMap["permissions"] = string(key.Rights)
 		keys = append(keys, keyMap)
 	}
@@ -224,7 +229,10 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error flattening `shared_access_policy` in IoTHub %q: %+v", iothubName, err)
 	}
 
-	d.Set("hostname", properties.HostName)
+	if properties := desc.Properties; properties != nil {
+		d.Set("hostname", properties.HostName)
+	}
+
 	d.Set("type", desc.Type)
 	flattenAndSetTags(d, &desc.Tags)
 
@@ -234,19 +242,20 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 
 	id, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
 
-	armClient := meta.(*ArmClient)
-	iothubClient := armClient.iothubResourceClient
-	ctx := armClient.StopContext
+	iothubClient := meta.(*ArmClient).iothubResourceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	iotHubName := id.Path["IotHubs"]
 
 	future, err := iothubClient.Delete(ctx, id.ResourceGroup, iotHubName)
 	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
 		return err
 	}
 
@@ -255,7 +264,6 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-
 		return fmt.Errorf("Error waiting for the deletion of IoTHub %q", iotHubName)
 	}
 
