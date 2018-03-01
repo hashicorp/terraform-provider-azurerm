@@ -28,6 +28,8 @@ type Config struct {
 	// Bearer Auth
 	AccessToken  *adal.Token
 	IsCloudShell bool
+	UseMsi       bool
+	MsiEndpoint  string
 }
 
 func (c *Config) LoadTokensFromAzureCLI() error {

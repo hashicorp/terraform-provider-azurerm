@@ -247,6 +247,15 @@ func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConf
 		return auth, nil
 	}
 
+	if c.UseMsi {
+		spt, err := adal.NewServicePrincipalTokenFromMSI(c.MsiEndpoint, endpoint)
+		if err != nil {
+			return nil, err
+		}
+		auth := autorest.NewBearerAuthorizer(spt)
+		return auth, nil
+	}
+
 	if c.IsCloudShell {
 		// load the refreshed tokens from the Azure CLI
 		err := c.LoadTokensFromAzureCLI()

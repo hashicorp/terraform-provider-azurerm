@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -62,6 +63,16 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
+			},
+			"use_msi": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
+			},
+			"msi_endpoint": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
 			},
 		},
 
@@ -203,11 +214,27 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			ClientSecret:              d.Get("client_secret").(string),
 			TenantID:                  d.Get("tenant_id").(string),
 			Environment:               d.Get("environment").(string),
+			UseMsi:                    d.Get("use_msi").(bool),
+			MsiEndpoint:               d.Get("msi_endpoint").(string),
 			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
 			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
 		}
 
-		if config.ClientSecret != "" {
+		if config.UseMsi {
+			log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
+			if config.MsiEndpoint == "" {
+				msiEndpoint, err := adal.GetMSIVMEndpoint()
+				if err != nil {
+					return nil, fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
+						"Ensure the VM has MSI enabled, or try setting msi_endpoint. Error: %s", err)
+				}
+				config.MsiEndpoint = msiEndpoint
+			}
+			log.Printf("[DEBUG] Using MSI endpoint %s", config.MsiEndpoint)
+			if err := config.ValidateMsi(); err != nil {
+				return nil, err
+			}
+		} else if config.ClientSecret != "" {
 			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
 			if err := config.ValidateServicePrincipal(); err != nil {
 				return nil, err
