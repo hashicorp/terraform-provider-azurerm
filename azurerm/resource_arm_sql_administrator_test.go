@@ -131,18 +131,18 @@ func testAccAzureRMSqlAdministrator_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
-resource "azure_resource_group" "test" {
-	name = "acctestRG_%d"
-	location = "%s"
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-	name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
@@ -159,26 +159,26 @@ func testAccAzureRMSqlAdministrator_withUpdates(rInt int, location string) strin
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
-resource "azure_resource_group" "test" {
-	name = "acctestRG_%d"
-	location = "%s"
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_sql_server" "test" {
-	name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "mradministrator"
-    administrator_login_password = "thisIsDog11"
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "mradministrator"
+  administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-    server_name = "${azurerm_sql_server.test.name}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    login = "sqladmin2"
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.client_id}"
+  server_name = "${azurerm_sql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  login = "sqladmin2"
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.client_id}"
 }
 `, rInt, location, rInt)
 }
