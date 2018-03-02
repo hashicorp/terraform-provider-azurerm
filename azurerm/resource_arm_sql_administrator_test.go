@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
-	resourceName := "azurerm_sql_administrator.test"
+	resourceName := "azurerm_sql_active_directory_administrator.test"
 	ri := acctest.RandInt()
 	preConfig := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 	postConfig := testAccAzureRMSqlAdministrator_withUpdates(ri, testLocation())
@@ -39,7 +39,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSqlAdministrator_disappears(t *testing.T) {
-	resourceName := "azurerm_sql_administrator.test"
+	resourceName := "azurerm_sql_active_directory_administrator.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlAdministrator_basic(ri, testLocation())
 
@@ -106,7 +106,7 @@ func testCheckAzureRMSqlAdministratorDisappears(name string) resource.TestCheckF
 
 func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sql_administrator" {
+		if rs.Type != "azurerm_sql_active_directory_administrator" {
 			continue
 		}
 
