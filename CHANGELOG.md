@@ -1,4 +1,9 @@
 ## 1.3.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_network_interface` [GH-854]
+
 ## 1.2.0 (March 02, 2018)
 
 FEATURES:
