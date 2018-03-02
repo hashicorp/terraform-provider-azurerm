@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Data Source:** `azurerm_network_interface` [GH-854]
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - exporting the FQDN [GH-907]
+
 ## 1.2.0 (March 02, 2018)
 
 FEATURES:
