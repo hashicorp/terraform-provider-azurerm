@@ -8,6 +8,11 @@ variable "azure_resource_group_location" {
   description = "Location of the azure resource group."
 }
 
+variable "azure_storage_account_name" {
+  type = "string"
+  description = "Name of the storage account"
+}
+
 variable "azure_hdinsight_cluster_name" {
   type        = "string"
   description = "HDInsight cluster name"
@@ -33,7 +38,7 @@ variable "azure_hdinsight_cluster_headnode_instance_count" {
   description = "HDInsight cluster headnode instance count"
 }
 
-variable "azure_hdinsight_cluster_headnode_instance_vmsize" {
+variable "azure_hdinsight_cluster_headnode_vmsize" {
   type        = "string"
   description = "HDInsight cluster headnode vm size"
 }

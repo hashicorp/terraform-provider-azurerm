@@ -2,6 +2,8 @@ azure_resource_group_name = "hdinsight-terraform"
 
 azure_resource_group_location = "West Europe"
 
+azure_storage_account_name = "hdi987654321"
+
 azure_hdinsight_cluster_name = "hdi987654321"
 
 azure_hdinsight_cluster_version = "3.6"
@@ -12,7 +14,7 @@ azure_hdinsight_cluster_rest_password = "AbcAbc123123!"
 
 azure_hdinsight_cluster_headnode_instance_count = 2
 
-azure_hdinsight_cluster_headnode_instance_vmsize = "Standard_D12_v2"
+azure_hdinsight_cluster_headnode_vmsize = "Standard_D12_v2"
 
 azure_hdinsight_cluster_headnode_username = "username"
 
