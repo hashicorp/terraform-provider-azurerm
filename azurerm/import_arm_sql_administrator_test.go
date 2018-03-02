@@ -22,10 +22,9 @@ func TestAccAzureRMSqlAdministrator_importBasic(t *testing.T) {
 				Config: config,
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
