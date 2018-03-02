@@ -1,28 +1,28 @@
-## 1.2.0 (Unreleased)
+## 1.2.0 (March 02, 2018)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_application_security_group` [GH-914]
-* **New Resource:** `azurerm_application_security_group` [GH-905]
-* **New Resource:** `azurerm_servicebus_topic_authorization_rule` [GH-736]
+* **New Data Source:** `azurerm_application_security_group` ([#914](https://github.com/terraform-providers/terraform-provider-azurerm/issues/914))
+* **New Resource:** `azurerm_application_security_group` ([#905](https://github.com/terraform-providers/terraform-provider-azurerm/issues/905))
+* **New Resource:** `azurerm_servicebus_topic_authorization_rule` ([#736](https://github.com/terraform-providers/terraform-provider-azurerm/issues/736))
 
 BUG FIXES:
 
-* `azurerm_kubernetes_cluster` - an empty `linux_profile.ssh_key.keydata` no longer causes a crash [GH-903]
-* `azurerm_kubernetes_cluster` - the `linux_profile.admin_username` and `linux_profile.ssh_key.keydata` fields now force a new resource [GH-895]
-* `azurerm_network_interface` - the `subnet_id` field is now case insensitive [GH-866]
-* `azurerm_network_security_group` - reverting `security_rules` to a set to fix an ordering issue [GH-893]
-* `azurerm_virtual_machine_scale_set` - the `computer_name_prefix` field now forces a new resource [GH-871]
+* `azurerm_kubernetes_cluster` - an empty `linux_profile.ssh_key.keydata` no longer causes a crash ([#903](https://github.com/terraform-providers/terraform-provider-azurerm/issues/903))
+* `azurerm_kubernetes_cluster` - the `linux_profile.admin_username` and `linux_profile.ssh_key.keydata` fields now force a new resource ([#895](https://github.com/terraform-providers/terraform-provider-azurerm/issues/895))
+* `azurerm_network_interface` - the `subnet_id` field is now case insensitive ([#866](https://github.com/terraform-providers/terraform-provider-azurerm/issues/866))
+* `azurerm_network_security_group` - reverting `security_rules` to a set to fix an ordering issue ([#893](https://github.com/terraform-providers/terraform-provider-azurerm/issues/893))
+* `azurerm_virtual_machine_scale_set` - the `computer_name_prefix` field now forces a new resource ([#871](https://github.com/terraform-providers/terraform-provider-azurerm/issues/871))
 
 IMPROVEMENTS:
 
-* authentication: adding support for Managed Service Identity [GH-639]
-* `azurerm_container_group` - added `dns_name_label` and `FQDN` properties [GH-877]
-* `azurerm_network_interface` - support for attaching to Application Security Groups [GH-911]
-* `azurerm_network_security_group` - support for augmented security rules [GH-781]
-* `azurerm_servicebus_subscription` - added support for the `forward_to` property [GH-861]
-* `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` [GH-851]
-* `azurerm_virtual_network_gateway_connection` - support for IPsec/IKE Policies [GH-834]
+* authentication: adding support for Managed Service Identity ([#639](https://github.com/terraform-providers/terraform-provider-azurerm/issues/639))
+* `azurerm_container_group` - added `dns_name_label` and `FQDN` properties ([#877](https://github.com/terraform-providers/terraform-provider-azurerm/issues/877))
+* `azurerm_network_interface` - support for attaching to Application Security Groups ([#911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/911))
+* `azurerm_network_security_group` - support for augmented security rules ([#781](https://github.com/terraform-providers/terraform-provider-azurerm/issues/781))
+* `azurerm_servicebus_subscription` - added support for the `forward_to` property ([#861](https://github.com/terraform-providers/terraform-provider-azurerm/issues/861))
+* `azurerm_storage_account` - adding support for `account_kind` being `StorageV2` ([#851](https://github.com/terraform-providers/terraform-provider-azurerm/issues/851))
+* `azurerm_virtual_network_gateway_connection` - support for IPsec/IKE Policies ([#834](https://github.com/terraform-providers/terraform-provider-azurerm/issues/834))
 
 ## 1.1.2 (February 19, 2018)
 
