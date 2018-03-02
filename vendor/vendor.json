@@ -289,13 +289,13 @@
 			"versionExact": "v9.7.0"
 		},
 		{
-			"checksumSHA1": "PwTnRhiCu8p2D1M2nsM0ADL4FM0=",
+			"checksumSHA1": "KFHzaLA4zo34W0FJ5ah/1WBbB9Q=",
 			"comment": "v9.7.0",
 			"path": "github.com/Azure/go-autorest/autorest/azure",
-			"revision": "8c58b4788dedd95779efe0ac2055bb6a1b9b8e01",
-			"revisionTime": "2018-01-06T16:29:27Z",
-			"version": "v9.7.0",
-			"versionExact": "v9.7.0"
+			"revision": "1e3943ee722538420f21945f4bc820347abe433d",
+			"revisionTime": "2018-02-15T17:42:55Z",
+			"version": "v10.1.1",
+			"versionExact": "v10.1.1"
 		},
 		{
 			"checksumSHA1": "+nXRwVB/JVEGe+oLsFhCmSkKPuI=",
