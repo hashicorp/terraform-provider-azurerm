@@ -11,9 +11,9 @@ BUG FIXES:
 
 IMPROVEMENTS:
 
-* d/`azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
-* r/`azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
-* r/`azurerm_network_security_rule` - support for security rules including Application Security Groups [GH-925]
+* Data Source: `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
+* `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
+* `azurerm_network_security_rule` - support for security rules including Application Security Groups [GH-925]
 
 ## 1.2.0 (March 02, 2018)
 
