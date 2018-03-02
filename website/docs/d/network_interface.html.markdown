@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
-sidebar_current: "docs-azurerm-datasource-network-interface-x"
+sidebar_current: "docs-azurerm-datasource-network-interface"
 description: |-
   Get information about the specified Network Interface.
 ---
