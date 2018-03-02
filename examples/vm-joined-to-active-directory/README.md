@@ -6,7 +6,7 @@ This example is built around [the Virtual Machine Extension](https://www.terrafo
 
 ## Notes
 
-- This is intended as an example of binding machines to an Active Directory Domain, and **we'd not recommend using it in production as-is** as the configuration has been simplified for example purposes, e.g.:
+- This is intended as an example of binding machines to an Active Directory Domain, and **it is not recommended for production use** as the configuration has been simplified for example purposes, e.g.:
   - The Active Directory Forest has a single node, for demonstration purposes
   - There's no security rules configured on the network, so everything's open internally etc.
 - The numbering on the files within the modules below have no effect on which order the resources are created in - it's purely to make the examples easier to understand.
@@ -29,12 +29,13 @@ $ terraform apply
 
 This will take around 20m to provision - once completed you should see the Public IP Address of the Windows Client machine (which is bound to the Active Directory Domain):
 
-```
+```bash
+windows_client_public_ip = 0.0.0.0
 ```
 
 ## Variables
 
- * `prefix` - The prefix used for all resources in this example. Needs to be a short (6 characters) alphanumeric string. Example: `myprefix`.
+ * `prefix` - The prefix used for all resources in this example. Needs to be a short (6 characters) alphanumeric string. Example: `addemo`.
  * `admin_username` - The username of the administrator account for both the local accounts, and Active Directory accounts. Example: `myexampleadmin`
  * `admin_password` - The password of the administrator account for both the local accounts, and Active Directory accounts. Needs to comply with the Windows Password Policy. Example: `PassW0rd1234!`
 
