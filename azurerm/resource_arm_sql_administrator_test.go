@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
@@ -118,6 +119,10 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, "activeDirectory")
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
 			return err
 		}
 
