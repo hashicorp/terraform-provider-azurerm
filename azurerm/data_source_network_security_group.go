@@ -76,6 +76,13 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 							Set:      schema.HashString,
 						},
 
+						"source_application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"destination_address_prefix": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -84,6 +91,13 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 						"destination_address_prefixes": {
 							Type:     schema.TypeSet,
 							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"destination_application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
