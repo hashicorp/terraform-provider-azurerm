@@ -105,7 +105,7 @@ The following attributes are exported:
 
 * `id` - The Kubernetes Managed Cluster ID.
 
-* `agent_pool_profile.#.fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+* `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
 ## Import
 
