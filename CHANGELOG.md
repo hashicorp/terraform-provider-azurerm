@@ -8,6 +8,12 @@ BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - exporting the FQDN [GH-907]
 
+IMPROVEMENTS:
+
+* d/`azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
+* r/`azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
+* r/`azurerm_network_security_rule` - support for security rules including Application Security Groups [GH-925]
+
 ## 1.2.0 (March 02, 2018)
 
 FEATURES:
