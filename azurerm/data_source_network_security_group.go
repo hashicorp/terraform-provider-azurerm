@@ -45,9 +45,23 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 							Computed: true,
 						},
 
+						"source_port_ranges": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"destination_port_range": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+
+						"destination_port_ranges": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 						},
 
 						"source_address_prefix": {
@@ -55,9 +69,23 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 							Computed: true,
 						},
 
+						"source_address_prefixes": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"destination_address_prefix": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+
+						"destination_address_prefixes": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 						},
 
 						"access": {
