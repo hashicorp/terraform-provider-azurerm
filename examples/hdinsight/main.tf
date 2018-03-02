@@ -24,7 +24,7 @@ resource "azurerm_hdinsight_cluster" "hdinsight" {
   tier                = "Standard"
 
   cluster_definition {
-    kind = "spark"
+    kind = "${var.azure_hdinsight_cluster_type}"
 
     configurations {
       gateway {

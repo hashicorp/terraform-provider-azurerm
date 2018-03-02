@@ -4,6 +4,8 @@ azure_resource_group_location = "West Europe"
 
 azure_storage_account_name = "hdi987654321"
 
+azure_hdinsight_cluster_type = "spark"
+
 azure_hdinsight_cluster_name = "hdi987654321"
 
 azure_hdinsight_cluster_version = "3.6"

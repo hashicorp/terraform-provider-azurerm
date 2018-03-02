@@ -23,6 +23,11 @@ variable "azure_hdinsight_cluster_version" {
   description = "HDInsight cluster version"
 }
 
+variable "azure_hdinsight_cluster_type" {
+  type = "string"
+  description = "Type of HDInsight cluster"
+}
+
 variable "azure_hdinsight_cluster_rest_username" {
   type        = "string"
   description = "HDInsight gateway REST username"
