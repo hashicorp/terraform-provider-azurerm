@@ -107,6 +107,20 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
+			"source_application_security_group_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
+
+			"destination_application_security_group_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
+
 			"access": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -215,6 +229,28 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		rule.SecurityRulePropertiesFormat.DestinationAddressPrefixes = &destinationAddressPrefixes
 	}
 
+	if r, ok := d.GetOk("source_application_security_group_ids"); ok {
+		var sourceApplicationSecurityGroups []network.ApplicationSecurityGroup
+		for _, v := range r.(*schema.Set).List() {
+			sg := network.ApplicationSecurityGroup{
+				ID: utils.String(v.(string)),
+			}
+			sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, sg)
+		}
+		rule.SourceApplicationSecurityGroups = &sourceApplicationSecurityGroups
+	}
+
+	if r, ok := d.GetOk("destination_application_security_group_ids"); ok {
+		var destinationApplicationSecurityGroups []network.ApplicationSecurityGroup
+		for _, v := range r.(*schema.Set).List() {
+			sg := network.ApplicationSecurityGroup{
+				ID: utils.String(v.(string)),
+			}
+			destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, sg)
+		}
+		rule.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, nsgName, name, rule)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
@@ -261,6 +297,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("network_security_group_name", networkSGName)
 
 	if props := resp.SecurityRulePropertiesFormat; props != nil {
 		d.Set("description", props.Description)

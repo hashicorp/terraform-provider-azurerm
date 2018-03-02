@@ -109,6 +109,20 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 							Set:      schema.HashString,
 						},
 
+						"destination_application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"source_application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"access": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -324,6 +338,28 @@ func expandAzureRmSecurityRules(d *schema.ResourceData) ([]network.SecurityRule,
 			properties.DestinationAddressPrefixes = &destinationAddressPrefixes
 		}
 
+		if r, ok := sgRule["source_application_security_group_ids"].(*schema.Set); ok && r.Len() > 0 {
+			var sourceApplicationSecurityGroups []network.ApplicationSecurityGroup
+			for _, v := range r.List() {
+				sg := network.ApplicationSecurityGroup{
+					ID: utils.String(v.(string)),
+				}
+				sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, sg)
+			}
+			properties.SourceApplicationSecurityGroups = &sourceApplicationSecurityGroups
+		}
+
+		if r, ok := sgRule["destination_application_security_group_ids"].(*schema.Set); ok && r.Len() > 0 {
+			var destinationApplicationSecurityGroups []network.ApplicationSecurityGroup
+			for _, v := range r.List() {
+				sg := network.ApplicationSecurityGroup{
+					ID: utils.String(v.(string)),
+				}
+				destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, sg)
+			}
+			properties.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
+		}
+
 		rules = append(rules, network.SecurityRule{
 			Name: &name,
 			SecurityRulePropertiesFormat: &properties,
@@ -358,12 +394,30 @@ func flattenNetworkSecurityRules(rules *[]network.SecurityRule) []map[string]int
 				if props.DestinationPortRanges != nil {
 					sgRule["destination_port_ranges"] = sliceToSet(*props.DestinationPortRanges)
 				}
+
+				destinationApplicationSecurityGroups := make([]string, 0)
+				if props.DestinationApplicationSecurityGroups != nil {
+					for _, g := range *props.DestinationApplicationSecurityGroups {
+						destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, *g.ID)
+					}
+				}
+				sgRule["destination_application_security_group_ids"] = sliceToSet(destinationApplicationSecurityGroups)
+
 				if props.SourceAddressPrefix != nil {
 					sgRule["source_address_prefix"] = *props.SourceAddressPrefix
 				}
 				if props.SourceAddressPrefixes != nil {
 					sgRule["source_address_prefixes"] = sliceToSet(*props.SourceAddressPrefixes)
 				}
+
+				sourceApplicationSecurityGroups := make([]string, 0)
+				if props.SourceApplicationSecurityGroups != nil {
+					for _, g := range *props.SourceApplicationSecurityGroups {
+						sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, *g.ID)
+					}
+				}
+				sgRule["source_application_security_group_ids"] = sliceToSet(sourceApplicationSecurityGroups)
+
 				if props.SourcePortRange != nil {
 					sgRule["source_port_range"] = *props.SourcePortRange
 				}
