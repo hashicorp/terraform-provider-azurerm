@@ -10,9 +10,9 @@ BUG FIXES:
 
 * `azurerm_kubernetes_cluster` - an empty `linux_profile.ssh_key.keydata` no longer causes a crash [GH-903]
 * `azurerm_kubernetes_cluster` - the `linux_profile.admin_username` and `linux_profile.ssh_key.keydata` fields now force a new resource [GH-895]
+* `azurerm_network_interface` - the `subnet_id` field is now case insensitive [GH-866]
 * `azurerm_network_security_group` - reverting `security_rules` to a set to fix an ordering issue [GH-893]
 * `azurerm_virtual_machine_scale_set` - the `computer_name_prefix` field now forces a new resource [GH-871]
-* `azurerm_network_interface` - the `subnet_id` field is now case insensitive [GH-866]
 
 IMPROVEMENTS:
 
