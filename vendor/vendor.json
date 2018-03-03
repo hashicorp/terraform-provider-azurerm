@@ -27,6 +27,14 @@
 			"versionExact": "v21.1.0"
 		},
 		{
+			"checksumSHA1": "aWRle6uvrmNNv+Awt3+Ymr0DDhQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices",
+			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
+			"revisionTime": "2018-08-31T14:25:13Z",
+			"version": "v20.1.0",
+			"versionExact": "v20.1.0"
+		},
+		{
 			"checksumSHA1": "iS3V1RJwe8QKQ8k+IdX6MRxFjjs=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
