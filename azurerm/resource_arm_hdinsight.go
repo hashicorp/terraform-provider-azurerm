@@ -65,7 +65,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 
 			"tier": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				Default:  "Standard",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
@@ -76,7 +76,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 			//TODO: add support for more configurations i.e. core-site
 			"cluster_definition": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -87,6 +87,17 @@ func resourceArmHDInsightCluster() *schema.Resource {
 						"kind": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"hadoop",
+								"spark",
+								"storm",
+								"hbase",
+								"rserver",
+								"kafka",
+								"interactivequery",
+								"interactivehive",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"component_version": {
 							Type:     schema.TypeMap,
@@ -257,11 +268,11 @@ func resourceArmHDInsightCluster() *schema.Resource {
 											Schema: map[string]*schema.Schema{
 												"id": {
 													Type:     schema.TypeString,
-													Optional: true,
+													Required: true,
 												},
 												"subnet": {
 													Type:     schema.TypeString,
-													Optional: true,
+													Required: true,
 												},
 											},
 										},
@@ -544,7 +555,6 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 		Tags: expandTags(tags),
 	}
 
-	//TODO: Does not return future - do we need to wait for the update?
 	_, err := hdInsightClient.Update(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
