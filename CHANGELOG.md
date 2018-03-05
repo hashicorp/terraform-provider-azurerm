@@ -7,6 +7,7 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_application_gateway` - fixes a crash where `ssl_policy` isn't returned from the Azure API when importing existing resources [GH-935]
 * `azurerm_kubernetes_cluster` - exporting the FQDN [GH-907]
 
 IMPROVEMENTS:
