@@ -89,11 +89,11 @@ type ArmClient struct {
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// Analytics
-	streamAnalyticsJobsClient           streamanalytics.StreamingJobsClient
-	streamAnalyticsInputsClient         streamanalytics.InputsClient
-	streamAnalyticsOutputsClient        streamanalytics.OutputsClient
-	streamAnalyticsTrasformationsClient streamanalytics.TransformationsClient
-	streamAnalyticsFunctionsClient      streamanalytics.FunctionsClient
+	streamAnalyticsJobsClient            streamanalytics.StreamingJobsClient
+	streamAnalyticsInputsClient          streamanalytics.InputsClient
+	streamAnalyticsOutputsClient         streamanalytics.OutputsClient
+	streamAnalyticsTransformationsClient streamanalytics.TransformationsClient
+	streamAnalyticsFunctionsClient       streamanalytics.FunctionsClient
 
 	// Application Insights
 	appInsightsClient appinsights.ComponentsClient
@@ -840,7 +840,7 @@ func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId stri
 	stc.Authorizer = auth
 	stc.Sender = sender
 	stc.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.streamAnalyticsFunctionsClient = stc
+	c.streamAnalyticsTransformationsClient = stc
 }
 
 func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

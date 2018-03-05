@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
@@ -65,12 +66,13 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 }
 
 func setFunctions(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	ctx := client.StopContext
 	if functions, ok := d.GetOk("function"); ok {
 		functionList := functions.([]interface{})
 		for _, functionSchema := range functionList {
 			function := streamAnalyticsFunctionFromSchema(functionSchema)
 
-			result, err := client.functionClient.CreateOrReplace(function, rg, jobName, *function.Name, "", "")
+			result, err := client.streamAnalyticsFunctionsClient.CreateOrReplace(ctx, function, rg, jobName, *function.Name, "", "")
 			if err != nil {
 				return err
 			}
@@ -82,6 +84,7 @@ func setFunctions(d *schema.ResourceData, client *ArmClient, rg, jobName string)
 }
 
 func setInputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	ctx := client.StopContext
 	if inputs, ok := d.GetOk("job_input"); ok {
 		inputList := inputs.([]interface{})
 		for _, inputSchema := range inputList {
@@ -89,7 +92,7 @@ func setInputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) er
 			if err != nil {
 				return err
 			}
-			result, err := client.inputsClient.CreateOrReplace(*input, rg, jobName, *input.Name, "", "")
+			result, err := client.streamAnalyticsInputsClient.CreateOrReplace(ctx, *input, rg, jobName, *input.Name, "", "")
 			if err != nil {
 				return err
 			}
@@ -103,7 +106,7 @@ func setInputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) er
 
 }
 func setOutputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
-
+	ctx := client.StopContext
 	if outputs, ok := d.GetOk("job_output"); ok {
 		outputList := outputs.([]interface{})
 		for _, outputSchema := range outputList {
@@ -111,7 +114,7 @@ func setOutputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) e
 			if err != nil {
 				return err
 			}
-			result, err := client.outputsClient.CreateOrReplace(*output, rg, jobName, *output.Name, "", "")
+			result, err := client.streamAnalyticsOutputsClient.CreateOrReplace(ctx, *output, rg, jobName, *output.Name, "", "")
 			if err != nil {
 				return err
 			}
@@ -123,12 +126,12 @@ func setOutputs(d *schema.ResourceData, client *ArmClient, rg, jobName string) e
 }
 
 func setTransformation(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
-
+	ctx := client.StopContext
 	if transformationI, ok := d.GetOk("transformation"); ok {
 		transformationList := transformationI.([]interface{})
 		transformationMap := transformationList[0].(map[string]interface{})
 		transformation := streamAnalyticsTransformationFromSchema(transformationMap)
-		result, err := client.trasformationsClient.CreateOrReplace(*transformation, rg, jobName, *transformation.Name, "", "")
+		result, err := client.streamAnalyticsTransformationsClient.CreateOrReplace(ctx, *transformation, rg, jobName, *transformation.Name, "", "")
 		if err != nil {
 			return err
 		}
@@ -147,26 +150,33 @@ func setJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 }
 
 func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	ctx := client.StopContext
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
-		cancelChan := make(chan struct{})
-		defer close(cancelChan)
+		job, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
+		if err != nil {
+			return err
+		}
+
+		jobParams := &streamanalytics.StartStreamingJobParameters{
+			OutputStartMode: job.OutputStartMode,
+			OutputStartTime: job.OutputStartTime,
+		}
 
 		switch jobStateStr {
 		case "Running":
-			respChan, errChan := client.streamingJobClient.Start(rg, jobName, nil, cancelChan)
-			err := <-errChan
+			future, err := client.streamAnalyticsJobsClient.Start(ctx, rg, jobName, jobParams)
 			if err != nil {
 				return err
 			}
-			<-respChan
 		}
 	}
 	return nil
 }
 
 func handleStoppedJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	ctx := client.StopContext
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
@@ -175,12 +185,10 @@ func handleStoppedJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 
 		switch jobStateStr {
 		case "Stopped":
-			respChan, errChan := client.streamingJobClient.Stop(rg, jobName, cancelChan)
-			err := <-errChan
+			future, err := client.streamAnalyticsJobsClient.Stop(ctx, rg, jobName)
 			if err != nil {
 				return err
 			}
-			<-respChan
 		}
 	}
 	return nil
@@ -189,6 +197,8 @@ func handleStoppedJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*ArmClient)
+	streamClient := client.streamAnalyticsJobsClient
+	ctx := client.StopContext
 
 	jobName := d.Get("name").(string)
 	sku := d.Get("sku").(string)
@@ -217,16 +227,24 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	}
 
 	if tagsInf, ok := d.GetOk("tags"); ok {
-		job.Tags = expandTags(tagsInf.(map[string]interface{}))
+		job.Tags = *expandTags(tagsInf.(map[string]interface{}))
 	}
 
 	// TODO: try to make this whole creation as atomic as possible
-	jobChan, errChan := client.streamingJobClient.CreateOrReplace(job, rg, jobName, "", "", nil)
-	err := <-errChan
+	future, err := client.streamAnalyticsJobsClient.CreateOrReplace(ctx, job, rg, jobName, "", "")
 	if err != nil {
 		return err
 	}
-	jobResp := <-jobChan
+
+	err = future.WaitForCompletion(ctx, streamClient.Client)
+	if err != nil {
+		return fmt.Errorf("Error creating or updating Stream Analytics %q (Resource Group %q): %+v", jobName, rg, err)
+	}
+
+	jobResp, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
+	if err != nil {
+		return err
+	}
 
 	// The reason that we set the id of the job here i.e. before creation of the related resource
 	// is because if any of the child resource creation fail then the delete lifecycle method will
@@ -325,6 +343,7 @@ func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{
 }
 
 func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	ctx := client.StopContext
 	jobProps := &streamanalytics.StreamingJobProperties{}
 
 	if sec, ok := d.GetOk("events_out_of_order_max_delay_in_seconds"); ok {
@@ -341,16 +360,17 @@ func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 	}
 
 	if tagsInf, ok := d.GetOk("tags"); ok {
-		job.Tags = expandTags(tagsInf.(map[string]interface{}))
+		job.Tags = *expandTags(tagsInf.(map[string]interface{}))
 	}
 
-	_, err := client.streamingJobClient.Update(job, rg, jobName, "")
+	_, err := client.streamAnalyticsJobsClient.Update(ctx, job, rg, jobName, "")
 	return err
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*ArmClient)
+	ctx := client.StopContext
 
 	streamID := d.Id()
 	resourceID, err := parseAzureResourceID(streamID)
@@ -358,13 +378,13 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
-	job, err := client.streamingJobClient.Get(resourceID.ResourceGroup, resourceID.Path["streamingjobs"], "")
+	job, err := client.streamAnalyticsJobsClient.Get(ctx, resourceID.ResourceGroup, resourceID.Path["streamingjobs"], "")
 
 	if err != nil {
 		return err
 	}
 
-	flattenAndSetTags(d, job.Tags)
+	flattenAndSetTags(d, &job.Tags)
 
 	d.Set("job_state", *job.JobState)
 	return nil
@@ -373,15 +393,14 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
 
 	client := meta.(*ArmClient)
+	ctx := client.StopContext
 
 	// TODO check if job exists or not in the first place
 
 	jobName := d.Get("name").(string)
 	rg := d.Get("resource_group_name").(string)
 
-	_, errChan := client.streamingJobClient.Delete(rg, jobName, nil)
-	err := <-errChan
-
+	_, err := client.streamAnalyticsJobsClient.Delete(ctx, rg, jobName)
 	if err != nil {
 		return err
 	}
