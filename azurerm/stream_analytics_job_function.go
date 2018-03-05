@@ -166,7 +166,7 @@ func extractFunctionBinding(funcMap map[string]interface{}) streamanalytics.Func
 		}
 	}
 
-	return functionBinding  // TODO: Issue may exist here; Test
+	return functionBinding // TODO: Issue may exist here; Test
 }
 
 func streamAnalyticsFunctionFromSchema(funcSchema interface{}) streamanalytics.Function {

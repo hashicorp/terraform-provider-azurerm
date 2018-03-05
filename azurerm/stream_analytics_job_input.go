@@ -232,7 +232,7 @@ func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics
 	}
 
 	datasource := streamanalytics.BlobReferenceInputDataSource{
-		Type: streamanalytics.TypeReferenceInputDataSourceTypeMicrosoftStorageBlob,
+		Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob,
 		BlobReferenceInputDataSourceProperties: datasourceProperties,
 	}
 
@@ -278,7 +278,7 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 			datasourceProperties.SourcePartitionCount = &sourceCount32
 		}
 		streamInputSource = streamanalytics.BlobStreamInputDataSource{
-			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftStorageBlob,
+			Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftStorageBlob,
 			BlobStreamInputDataSourceProperties: datasourceProperties,
 		}
 
@@ -303,7 +303,7 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 		}
 
 		streamInputSource = streamanalytics.EventHubStreamInputDataSource{
-			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
+			Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftServiceBusEventHub,
 			EventHubStreamInputDataSourceProperties: &eventhubStreamProps,
 		}
 	} else if iothubList, ok := datasourceMap["iot_hub"].([]interface{}); ok && len(iothubList) != 0 {
@@ -326,7 +326,7 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 		}
 
 		streamInputSource = streamanalytics.IoTHubStreamInputDataSource{
-			Type: streamanalytics.TypeStreamInputDataSourceTypeMicrosoftDevicesIotHubs,
+			Type: streamanalytics.TypeBasicStreamInputDataSourceTypeMicrosoftDevicesIotHubs,
 			IoTHubStreamInputDataSourceProperties: &iothubStreamProps,
 		}
 
