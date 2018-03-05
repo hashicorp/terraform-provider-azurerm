@@ -19,7 +19,7 @@ Creates a managed Kubernetes Cluster (AKS)
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG1"
-  location = "West US"
+  location = "East US"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -79,12 +79,12 @@ The following arguments are supported:
 
 `linux_profile` supports the following:
 
-* `admin_username` - (Required) The Admin Username for the Cluster.
+* `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 * `ssh_key` - (Required) An SSH Key block as documented below.
 
 `ssh_key` supports the following:
 
-* `key_data` - (Required) The Public SSH Key used to access the cluster.
+* `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
 
 `agent_pool_profile` supports the following:
 

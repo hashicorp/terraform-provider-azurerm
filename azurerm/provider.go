@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/hashicorp/terraform/helper/mutexkv"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
@@ -63,33 +64,46 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
 			},
+			"use_msi": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
+			},
+			"msi_endpoint": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"azurerm_app_service_plan":        dataSourceAppServicePlan(),
-			"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
-			"azurerm_client_config":           dataSourceArmClientConfig(),
-			"azurerm_dns_zone":                dataSourceArmDnsZone(),
-			"azurerm_eventhub_namespace":      dataSourceEventHubNamespace(),
-			"azurerm_image":                   dataSourceArmImage(),
-			"azurerm_key_vault_access_policy": dataSourceArmKeyVaultAccessPolicy(),
-			"azurerm_managed_disk":            dataSourceArmManagedDisk(),
-			"azurerm_network_security_group":  dataSourceArmNetworkSecurityGroup(),
-			"azurerm_platform_image":          dataSourceArmPlatformImage(),
-			"azurerm_public_ip":               dataSourceArmPublicIP(),
-			"azurerm_resource_group":          dataSourceArmResourceGroup(),
-			"azurerm_role_definition":         dataSourceArmRoleDefinition(),
-			"azurerm_storage_account":         dataSourceArmStorageAccount(),
-			"azurerm_snapshot":                dataSourceArmSnapshot(),
-			"azurerm_subnet":                  dataSourceArmSubnet(),
-			"azurerm_subscription":            dataSourceArmSubscription(),
-			"azurerm_virtual_network":         dataSourceArmVirtualNetwork(),
-			"azurerm_virtual_network_gateway": dataSourceArmVirtualNetworkGateway(),
+			"azurerm_application_security_group": dataSourceArmApplicationSecurityGroup(),
+			"azurerm_app_service_plan":           dataSourceAppServicePlan(),
+			"azurerm_builtin_role_definition":    dataSourceArmBuiltInRoleDefinition(),
+			"azurerm_client_config":              dataSourceArmClientConfig(),
+			"azurerm_dns_zone":                   dataSourceArmDnsZone(),
+			"azurerm_eventhub_namespace":         dataSourceEventHubNamespace(),
+			"azurerm_image":                      dataSourceArmImage(),
+			"azurerm_key_vault_access_policy":    dataSourceArmKeyVaultAccessPolicy(),
+			"azurerm_managed_disk":               dataSourceArmManagedDisk(),
+			"azurerm_network_interface":          dataSourceArmNetworkInterface(),
+			"azurerm_network_security_group":     dataSourceArmNetworkSecurityGroup(),
+			"azurerm_platform_image":             dataSourceArmPlatformImage(),
+			"azurerm_public_ip":                  dataSourceArmPublicIP(),
+			"azurerm_resource_group":             dataSourceArmResourceGroup(),
+			"azurerm_role_definition":            dataSourceArmRoleDefinition(),
+			"azurerm_storage_account":            dataSourceArmStorageAccount(),
+			"azurerm_snapshot":                   dataSourceArmSnapshot(),
+			"azurerm_subnet":                     dataSourceArmSubnet(),
+			"azurerm_subscription":               dataSourceArmSubscription(),
+			"azurerm_virtual_network":            dataSourceArmVirtualNetwork(),
+			"azurerm_virtual_network_gateway":    dataSourceArmVirtualNetworkGateway(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
 			"azurerm_application_gateway":                 resourceArmApplicationGateway(),
 			"azurerm_application_insights":                resourceArmApplicationInsights(),
+			"azurerm_application_security_group":          resourceArmApplicationSecurityGroup(),
 			"azurerm_app_service":                         resourceArmAppService(),
 			"azurerm_app_service_plan":                    resourceArmAppServicePlan(),
 			"azurerm_app_service_active_slot":             resourceArmAppServiceActiveSlot(),
@@ -168,6 +182,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_sql_database":                        resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":                     resourceArmSqlElasticPool(),
 			"azurerm_sql_firewall_rule":                   resourceArmSqlFirewallRule(),
+			"azurerm_sql_active_directory_administrator":  resourceArmSqlAdministrator(),
 			"azurerm_sql_server":                          resourceArmSqlServer(),
 			"azurerm_storage_account":                     resourceArmStorageAccount(),
 			"azurerm_storage_blob":                        resourceArmStorageBlob(),
@@ -202,11 +217,27 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			ClientSecret:              d.Get("client_secret").(string),
 			TenantID:                  d.Get("tenant_id").(string),
 			Environment:               d.Get("environment").(string),
+			UseMsi:                    d.Get("use_msi").(bool),
+			MsiEndpoint:               d.Get("msi_endpoint").(string),
 			SkipCredentialsValidation: d.Get("skip_credentials_validation").(bool),
 			SkipProviderRegistration:  d.Get("skip_provider_registration").(bool),
 		}
 
-		if config.ClientSecret != "" {
+		if config.UseMsi {
+			log.Printf("[DEBUG] use_msi specified - using MSI Authentication")
+			if config.MsiEndpoint == "" {
+				msiEndpoint, err := adal.GetMSIVMEndpoint()
+				if err != nil {
+					return nil, fmt.Errorf("Could not retrieve MSI endpoint from VM settings."+
+						"Ensure the VM has MSI enabled, or try setting msi_endpoint. Error: %s", err)
+				}
+				config.MsiEndpoint = msiEndpoint
+			}
+			log.Printf("[DEBUG] Using MSI endpoint %s", config.MsiEndpoint)
+			if err := config.ValidateMsi(); err != nil {
+				return nil, err
+			}
+		} else if config.ClientSecret != "" {
 			log.Printf("[DEBUG] Client Secret specified - using Service Principal for Authentication")
 			if err := config.ValidateServicePrincipal(); err != nil {
 				return nil, err

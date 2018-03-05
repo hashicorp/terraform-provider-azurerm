@@ -3,7 +3,7 @@ resource "azurerm_resource_group" "aci-rg" {
     location = "${var.resource_group_location}"
 }
 
-#an attempt to keep the aci container group name (an dns label) somewhat omunique
+#an attempt to keep the aci container group name (and dns label) somewhat unique
 resource "random_integer" "random_int" {
     min = 100
     max = 999
