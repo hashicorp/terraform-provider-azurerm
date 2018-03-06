@@ -15,11 +15,12 @@ func dataSourceArmPublicIPs() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+
 			"attached": {
 				Type:     schema.TypeBool,
 				Required: true,
-				ForceNew: true,
 			},
+
 			"public_ips": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -27,27 +28,22 @@ func dataSourceArmPublicIPs() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"name": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"fqdn": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"domain_name_label": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 						"ip_address": {
 							Type:     schema.TypeString,
-							Optional: true,
 							Computed: true,
 						},
 					},
@@ -58,12 +54,12 @@ func dataSourceArmPublicIPs() *schema.Resource {
 }
 
 func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error {
-	publicIPClient := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).publicIPClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
 	attachedOnly := d.Get("attached").(bool)
-	resp, err := publicIPClient.List(ctx, resGroup)
+	resp, err := client.List(ctx, resGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response().Response) {
 			d.SetId("")
@@ -71,38 +67,54 @@ func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		return fmt.Errorf("Error making Read request on Azure resource group %q: %v", resGroup, err)
 	}
+
 	var filteredIps []network.PublicIPAddress
 	for _, element := range resp.Values() {
-		if (element.IPConfiguration != nil) == attachedOnly {
+		nicIsAttached := element.IPConfiguration != nil
+
+		if attachedOnly && nicIsAttached {
 			filteredIps = append(filteredIps, element)
 		}
 	}
+
 	var results []map[string]string
 	for _, element := range filteredIps {
-		m := make(map[string]string)
-		if element.ID != nil && *element.ID != "" {
-			m["id"] = *element.ID
-		}
-		if element.Name != nil && *element.Name != "" {
-			m["name"] = *element.Name
-		}
-		if element.PublicIPAddressPropertiesFormat.DNSSettings != nil {
-			if element.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != nil && *element.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn != "" {
-				m["fqdn"] = *element.PublicIPAddressPropertiesFormat.DNSSettings.Fqdn
-			}
-			if element.PublicIPAddressPropertiesFormat.DNSSettings.DomainNameLabel != nil && *element.PublicIPAddressPropertiesFormat.DNSSettings.DomainNameLabel != "" {
-				m["domain_name_label"] = *element.PublicIPAddressPropertiesFormat.DNSSettings.DomainNameLabel
-			}
-		}
-		if element.PublicIPAddressPropertiesFormat.IPAddress != nil && *element.PublicIPAddressPropertiesFormat.IPAddress != "" {
-			m["ip_address"] = *element.PublicIPAddressPropertiesFormat.IPAddress
-		}
-
-		results = append(results, m)
+		flattenedIPAddress := flattenDataSourcePublicIP(element)
+		results = append(results, flattenedIPAddress)
 	}
 
 	d.SetId(time.Now().UTC().String())
 	d.Set("public_ips", results)
 
 	return nil
+}
+
+func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string {
+	output := make(map[string]string, 0)
+
+	if input.ID != nil {
+		output["id"] = *input.ID
+	}
+
+	if input.Name != nil {
+		output["name"] = *input.Name
+	}
+
+	if props := input.PublicIPAddressPropertiesFormat; props != nil {
+		if dns := props.DNSSettings; dns != nil {
+			if fqdn := dns.Fqdn; fqdn != nil {
+				output["fqdn"] = *fqdn
+			}
+
+			if label := dns.DomainNameLabel; label != nil {
+				output["domain_name_label"] = *label
+			}
+		}
+
+		if ip := props.IPAddress; ip != nil {
+			output["ip_address"] = *ip
+		}
+	}
+
+	return output
 }
