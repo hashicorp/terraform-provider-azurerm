@@ -224,6 +224,37 @@ func TestAccAzureRMFunctionApp_updateVersion(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
+	resourceName := "azurerm_function_app.test"
+	ri := acctest.RandInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	config := testAccAzureRMFunctionApp_basic(ri, rs, location)
+	updatedConfig := testAccAzureRMFunctionApp_64bit(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "true"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.use_32_bit_worker_process", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -588,4 +619,43 @@ resource "azurerm_function_app" "test" {
   }
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMFunctionApp_64bit(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+	name                     = "acctestsa%s"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  site_config {
+    use_32_bit_worker_process = false
+  }
+}
+`, rInt, location, rString, rInt, rInt)
 }
