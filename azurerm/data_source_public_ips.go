@@ -2,10 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,9 +19,23 @@ func dataSourceArmPublicIPs() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
+			"name_prefix": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"attached": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+			},
+
+			"allocation_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.Dynamic),
+					string(network.Static),
+				}, false),
 			},
 
 			"public_ips": {
@@ -58,7 +75,8 @@ func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error 
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
-	attachedOnly := d.Get("attached").(bool)
+
+	log.Printf("[DEBUG] Reading Public IP's in Resource Group %q", resourceGroup)
 	resp, err := client.List(ctx, resourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response().Response) {
@@ -69,17 +87,44 @@ func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
 	}
 
-	var filteredIps []network.PublicIPAddress
+	filteredIPAddresses := make([]network.PublicIPAddress, 0)
 	for _, element := range resp.Values() {
 		nicIsAttached := element.IPConfiguration != nil
+		shouldInclude := true
 
-		if attachedOnly == nicIsAttached {
-			filteredIps = append(filteredIps, element)
+		if v, ok := d.GetOkExists("name_prefix"); ok {
+			if prefix := v.(string); prefix != "" {
+				if !strings.HasPrefix(*element.Name, prefix) {
+					shouldInclude = false
+				}
+			}
+		}
+
+		if v, ok := d.GetOkExists("attached"); ok {
+			attachedOnly := v.(bool)
+
+			if attachedOnly != nicIsAttached {
+				shouldInclude = false
+			}
+		}
+
+		if v, ok := d.GetOkExists("allocation_type"); ok {
+			if allocationType := v.(string); allocationType != "" {
+				allocation := network.IPAllocationMethod(allocationType)
+				if element.PublicIPAllocationMethod != allocation {
+					shouldInclude = false
+				}
+			}
+		}
+
+		if shouldInclude {
+			filteredIPAddresses = append(filteredIPAddresses, element)
 		}
 	}
 
 	d.SetId(time.Now().UTC().String())
-	results := flattenDataSourcePublicIPs(filteredIps)
+
+	results := flattenDataSourcePublicIPs(filteredIPAddresses)
 	if err := d.Set("public_ips", results); err != nil {
 		return fmt.Errorf("Error setting `public_ips`: %+v", err)
 	}
@@ -88,7 +133,7 @@ func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
-	results := make([]map[string]string, 0)
+	results := make([]interface{}, 0)
 
 	for _, element := range input {
 		flattenedIPAddress := flattenDataSourcePublicIP(element)
