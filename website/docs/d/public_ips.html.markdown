@@ -6,10 +6,9 @@ description: |-
   Provides a list of public IP addresses.
 ---
 
-# azurerm\_public\_ips
+# azurerm_public_ips
 
-Use this data source to get a list of associated or unassociated public IP addresses
-in a resource group, optionally specifying a minimum required number.
+Use this data source to access a filtered list of Public IP Addresses
 
 ## Example Usage
 
@@ -18,28 +17,22 @@ data "azurerm_public_ips" "test" {
   resource_group_name = "pip-test"
   attached            = false
 }
-
-resource "azurerm_lb" "load_balancer" {
-  count               = 2
-  name                = "load_balancer-${count.index}"
-  location            = "northeurope"
-  resource_group_name = "acctestRG"
-
-  frontend_ip_configuration {
-    name                 = "frontend"
-    public_ip_address_id = "${lookup(data.azurerm_public_ips.test.public_ips[count.index], "id")}"
-  }
-}
 ```
 
 ## Argument Reference
 
 * `resource_group_name` - (Required) Specifies the name of the resource group.
-* `attached` - (Required) Whether to return public IPs that are attached or not.
-
+* `attached` - (Optional) Should we only return IP Addresses which are attached to a device (VM/LB) etc?
+* `name_prefix` - (Optional) A prefix match used for the IP Addresses `name` field, case sensitive.
+* `allocation_type` - (Optional) The Allocation Type for the Public IP Address. Possible values include `Static` or `Dynamic`.
 
 ## Attributes Reference
 
-* `public_ips` - A list of public IP addresses. Each public IP is represented by a
-map containing the following keys; public_ip_address_id, name, fqdn, domain_name_label,
-ip_address. Note that if the public IP is unassigned then some values may be empty.
+* `public_ips` - A List of `public_ips` blocks as defined below filtered by the criteria above.
+
+A `public_ips` block contains:
+
+* `id` - The ID of the Public IP Address
+* `domain_name_label` - The Domain Name Label of the Public IP Address
+* `fqdn` - The FQDN of the Public IP Address
+* `name` - The Name of the Public IP Address
