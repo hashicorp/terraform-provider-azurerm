@@ -28,7 +28,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name    = "${azurerm_resource_group.test.name}"
   kubernetes_version     = "1.8.2"
   dns_prefix             = "acctestagent1"
-  
+
   linux_profile {
     admin_username = "acctestuser1"
 
@@ -36,7 +36,7 @@ resource "azurerm_kubernetes_cluster" "test" {
       key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
     }
   }
-  
+
   agent_pool_profile {
     name              = "default"
     count             = 1
@@ -89,12 +89,12 @@ The following arguments are supported:
 
 `agent_pool_profile` supports the following:
 
-* `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group.
+* `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 50 (inclusive). Defaults to `1`.
-* `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`).
-* `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB.
-* `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
-* `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned.
+* `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
+* `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
+* `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
+* `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
 `service_principal` supports the following:
 
