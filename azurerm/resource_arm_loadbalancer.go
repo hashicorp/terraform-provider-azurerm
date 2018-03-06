@@ -310,7 +310,14 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 	for _, config := range *ipConfigs {
 		ipConfig := make(map[string]interface{})
 		ipConfig["name"] = *config.Name
-		ipConfig["zones"] = *config.Zones
+
+		zones := make([]string, 0)
+		if zs := config.Zones; zs != nil {
+			for _, zone := range *zs {
+				zones = append(zones, zone)
+			}
+		}
+		ipConfig["zones"] = zones
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod
