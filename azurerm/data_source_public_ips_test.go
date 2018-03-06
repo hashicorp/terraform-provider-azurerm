@@ -12,8 +12,10 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 	dataSourceName := "data.azurerm_public_ips.test"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(5)
+	location := testLocation()
 
-	config := testAccDataSourceAzureRMPublicIPs_prefix(ri, rs, testLocation())
+	resourceConfig := testAccDataSourceAzureRMPublicIPs_prefix(ri, rs, location)
+	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_prefixDataSource(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,7 +23,11 @@ func TestAccDataSourceAzureRMPublicIPs_namePrefix(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: resourceConfig,
+				Check:  resource.ComposeTestCheckFunc(),
+			},
+			{
+				Config: dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "public_ips.#", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpipa%s-0", rs)),
@@ -36,8 +42,10 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 	unattachedDataSourceName := "data.azurerm_public_ips.unattached"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(5)
+	location := testLocation()
 
-	config := testAccDataSourceAzureRMPublicIPs_attached(ri, rs, testLocation())
+	resourceConfig := testAccDataSourceAzureRMPublicIPs_attached(ri, rs, location)
+	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_attachedDataSource(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,7 +53,11 @@ func TestAccDataSourceAzureRMPublicIPs_assigned(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: resourceConfig,
+				Check:  resource.ComposeTestCheckFunc(),
+			},
+			{
+				Config: dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(attachedDataSourceName, "public_ips.#", "3"),
 					resource.TestCheckResourceAttr(attachedDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpip%s-0", rs)),
@@ -62,8 +74,10 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 	dynamicDataSourceName := "data.azurerm_public_ips.dynamic"
 	ri := acctest.RandInt()
 	rs := acctest.RandString(5)
+	location := testLocation()
 
-	config := testAccDataSourceAzureRMPublicIPs_allocationType(ri, rs, testLocation())
+	resourceConfig := testAccDataSourceAzureRMPublicIPs_allocationType(ri, rs, location)
+	dataSourceConfig := testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -71,7 +85,11 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: resourceConfig,
+				Check:  resource.ComposeTestCheckFunc(),
+			},
+			{
+				Config: dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(staticDataSourceName, "public_ips.#", "3"),
 					resource.TestCheckResourceAttr(staticDataSourceName, "public_ips.0.name", fmt.Sprintf("acctestpips%s-0", rs)),
@@ -114,19 +132,24 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = "${element(azurerm_public_ip.test.*.id, count.index)}"
   }
 }
+`, rInt, location, rString)
+}
+
+func testAccDataSourceAzureRMPublicIPs_attachedDataSource(rInt int, rString string, location string) string {
+	resources := testAccDataSourceAzureRMPublicIPs_attached(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_public_ips" "unattached" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   attached            = false
-  depends_on          = ["azurerm_lb.test"]
 }
 
 data "azurerm_public_ips" "attached" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   attached            = true
-  depends_on          = ["azurerm_lb.test"]
 }
-`, rInt, location, rString)
+`, resources)
 }
 
 func testAccDataSourceAzureRMPublicIPs_prefix(rInt int, rString string, location string) string {
@@ -161,13 +184,19 @@ resource "azurerm_public_ip" "test2" {
     environment = "test"
   }
 }
+`, rInt, location, rString, rString)
+}
+
+func testAccDataSourceAzureRMPublicIPs_prefixDataSource(rInt int, rString string, location string) string {
+	prefixed := testAccDataSourceAzureRMPublicIPs_prefix(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_public_ips" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name_prefix         = "acctestpipa"
-  depends_on          = ["azurerm_public_ip.test", "azurerm_public_ip.test2"]
 }
-`, rInt, location, rString, rString)
+`, prefixed)
 }
 
 func testAccDataSourceAzureRMPublicIPs_allocationType(rInt int, rString string, location string) string {
@@ -202,17 +231,22 @@ resource "azurerm_public_ip" "static" {
     environment = "test"
   }
 }
+`, rInt, location, rString, rString)
+}
+
+func testAccDataSourceAzureRMPublicIPs_allocationTypeDataSources(rInt int, rString string, location string) string {
+	allocationType := testAccDataSourceAzureRMPublicIPs_allocationType(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_public_ips" "dynamic" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_type     = "Dynamic"
-  depends_on          = ["azurerm_public_ip.dynamic"]
 }
 
 data "azurerm_public_ips" "static" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_type     = "Static"
-  depends_on          = ["azurerm_public_ip.static"]
 }
-`, rInt, location, rString, rString)
+`, allocationType)
 }
