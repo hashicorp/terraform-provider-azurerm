@@ -13,7 +13,7 @@ build: fmtcheck
 		-output "dist/$(NAME)-v$(VERSION)-{{.OS}}_{{.Arch}}/$(NAME)_v$(VERSION)"
 
 dist:
-	cd dist &&\
+	cd dist && \
 	find * -type d -exec tar --mtime 1970-01-01 -zcf {}.tar.gz {} \;
 
 test: fmtcheck
@@ -53,4 +53,4 @@ test-compile:
 	fi
 	go test -c $(TEST) $(TESTARGS)
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile
+.PHONY: build dist test testacc vet fmt fmtcheck errcheck vendor-status test-compile
