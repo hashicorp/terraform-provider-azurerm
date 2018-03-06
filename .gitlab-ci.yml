@@ -11,8 +11,8 @@ before_script:
 check:
   stage: check
   script:
-    - make --file=Makefile vet
-    - make --file=Makefile test
+    - make vet -f Makefile
+    - make test -f Makefile
   except:
     - master
     - tags
@@ -22,7 +22,7 @@ build:
   variables:
     VERSION: $CI_COMMIT_TAG
   script:
-    - make --file=Makefile build
+    - make build -f Makefile
   artifacts:
     name: terraform-provider-azurerm
     paths:
@@ -39,7 +39,7 @@ release:
     - apk --update add make
   script:
     - mc config host add vertiv https://s3.vertiv.life vertivart "${ACCOUNT_KEY}"
-    - make --file=Makefile dist
+    - make dist -f Makefile
     - mc cp dist/*.tar.gz vertiv/${CI_PROJECT_NAME}/
   only:
     - tags
