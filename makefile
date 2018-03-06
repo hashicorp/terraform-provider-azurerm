@@ -10,7 +10,7 @@ build: fmtcheck
 		-ldflags "-X main.version=${VERSION}" \
 		-os "linux darwin" \
 		-arch "amd64" \
-		-output "dist/$(NAME)-v$(VERSION)-{{.os}}_{{.ARCH}}/$(NAME)_v$(VERSION)"
+		-output "dist/$(NAME)-v$(VERSION)-{{.OS}}_{{.Arch}}/$(NAME)_v$(VERSION)"
 
 dist:
 	cd dist &&\
