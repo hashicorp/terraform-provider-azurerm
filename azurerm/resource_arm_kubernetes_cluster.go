@@ -71,6 +71,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"key_data": {
 										Type:     schema.TypeString,
 										Required: true,
+										ForceNew: true,
 									},
 								},
 							},
