@@ -57,36 +57,45 @@ func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error 
 	client := meta.(*ArmClient).publicIPClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	attachedOnly := d.Get("attached").(bool)
-	resp, err := client.List(ctx, resGroup)
+	resp, err := client.List(ctx, resourceGroup)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response().Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure resource group %q: %v", resGroup, err)
+
+		return fmt.Errorf("Error listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
 	}
 
 	var filteredIps []network.PublicIPAddress
 	for _, element := range resp.Values() {
 		nicIsAttached := element.IPConfiguration != nil
 
-		if attachedOnly && nicIsAttached {
+		if attachedOnly == nicIsAttached {
 			filteredIps = append(filteredIps, element)
 		}
 	}
 
-	var results []map[string]string
-	for _, element := range filteredIps {
+	d.SetId(time.Now().UTC().String())
+	results := flattenDataSourcePublicIPs(filteredIps)
+	if err := d.Set("public_ips", results); err != nil {
+		return fmt.Errorf("Error setting `public_ips`: %+v", err)
+	}
+
+	return nil
+}
+
+func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
+	results := make([]map[string]string, 0)
+
+	for _, element := range input {
 		flattenedIPAddress := flattenDataSourcePublicIP(element)
 		results = append(results, flattenedIPAddress)
 	}
 
-	d.SetId(time.Now().UTC().String())
-	d.Set("public_ips", results)
-
-	return nil
+	return results
 }
 
 func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string {
