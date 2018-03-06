@@ -85,6 +85,8 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
+						"zones": singleZonesSchema(),
 					},
 				},
 			},
@@ -290,9 +292,11 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
+		zones := expandZones(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name: &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
+			Zones: zones,
 		}
 
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
@@ -306,6 +310,14 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 	for _, config := range *ipConfigs {
 		ipConfig := make(map[string]interface{})
 		ipConfig["name"] = *config.Name
+
+		zones := make([]string, 0)
+		if zs := config.Zones; zs != nil {
+			for _, zone := range *zs {
+				zones = append(zones, zone)
+			}
+		}
+		ipConfig["zones"] = zones
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod

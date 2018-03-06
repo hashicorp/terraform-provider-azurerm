@@ -36,6 +36,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zones": singleZonesSchema(),
+
 			"plan": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -508,6 +510,7 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	osDisk, err := expandAzureRmVirtualMachineOsDisk(d)
 	if err != nil {
@@ -576,7 +579,8 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                     &name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
-		Tags: expandedTags,
+		Tags:  expandedTags,
+		Zones: zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -639,6 +643,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("zones", resp.Zones)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if resp.Plan != nil {

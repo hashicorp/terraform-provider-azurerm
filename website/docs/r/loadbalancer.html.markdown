@@ -58,6 +58,9 @@ The following arguments are supported:
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
 * `private_ip_address_allocation` - (Optional) Defines how a private IP address is assigned. Options are Static or Dynamic.
 * `public_ip_address_id` - (Optional) Reference to Public IP address to be associated with the Load Balancer.
+* `zones` - (Optional) A collection containing the availability zone to allocate the IP in.
+
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 
 ## Attributes Reference
 
