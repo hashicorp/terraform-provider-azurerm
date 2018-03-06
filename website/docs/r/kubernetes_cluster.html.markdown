@@ -38,10 +38,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   
   agent_pool_profile {
-    name            = "default"
-    count           = 1
-    vm_size         = "Standard_A0"
-    os_type         = "Linux"
+    name              = "default"
+    count             = 1
+    vm_size           = "Standard_A0"
+    os_type           = "Linux"
+    os_disk_size_gb   = 30
   }
 
   service_principal {
@@ -91,6 +92,7 @@ The following arguments are supported:
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group.
 * `count` - (Required) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 50 (inclusive). Defaults to `1`.
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`).
+* `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned.
 
