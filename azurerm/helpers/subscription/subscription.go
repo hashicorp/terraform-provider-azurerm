@@ -4,11 +4,11 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func SubscriptionSchema(subscriptionIdOptional bool) map[string]*schema.Schema {
+func SubscriptionSchema(subscriptionIDOptional bool) map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
 		"subscription_id": {
 			Type:     schema.TypeString,
-			Optional: subscriptionIdOptional,
+			Optional: subscriptionIDOptional,
 			Computed: true,
 		},
 
