@@ -16,7 +16,7 @@ func dataSourceArmSubscriptions() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: subscription.SubscriptionSchema(),
+					Schema: subscription.SubscriptionSchema(false),
 				},
 			},
 		},
@@ -41,15 +41,24 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 
 		s := make(map[string]interface{})
 
-		s["subscription_id"] = *val.SubscriptionID
-		s["display_name"] = *val.DisplayName
-		s["state"] = val.State
-		if policies := val.SubscriptionPolicies; policies != nil {
-			s["location_placement_id"] = *policies.LocationPlacementID
-			s["quota_id"] = *policies.QuotaID
-			s["spending_limit"] = policies.SpendingLimit
+		if v := val.SubscriptionID; v != nil {
+			s["subscription_id"] = *v
 		}
-		
+		if v := val.DisplayName; v != nil {
+			s["display_name"] = *v
+		}
+		s["state"] = string(val.State)
+
+		if policies := val.SubscriptionPolicies; policies != nil {
+			if v := policies.LocationPlacementID; v != nil {
+				s["location_placement_id"] = *v
+			}
+			if v := policies.QuotaID; v != nil {
+				s["quota_id"] = *v
+			}
+			s["spending_limit"] = string(policies.SpendingLimit)
+		}
+
 		subscriptions = append(subscriptions, s)
 	}
 

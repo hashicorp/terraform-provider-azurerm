@@ -10,7 +10,7 @@ import (
 func dataSourceArmSubscription() *schema.Resource {
 	return &schema.Resource{
 		Read:   dataSourceArmSubscriptionRead,
-		Schema: subscription.SubscriptionSchema(),
+		Schema: subscription.SubscriptionSchema(true),
 	}
 }
 
