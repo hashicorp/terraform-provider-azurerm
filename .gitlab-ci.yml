@@ -7,7 +7,6 @@ image: cr.vertiv.life/library/golang:1.9-alpine
 
 before_script:
   - CI_PROJECT_URL=github.com/terraform-providers/terraform-provider-azurerm/azurerm setup-project
-  - dep ensure
 
 check:
   stage: check
