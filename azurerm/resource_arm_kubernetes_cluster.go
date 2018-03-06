@@ -35,7 +35,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"dns_prefix": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				Computed: true,
 			},
 
@@ -45,6 +45,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"kubernetes_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"kube_config": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -271,6 +277,15 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 	if servicePrincipal != nil {
 		d.Set("service_principal", servicePrincipal)
+	}
+
+	credentials, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
+	if err != nil {
+		return fmt.Errorf("Error fetch credentials while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+	}
+
+	if credentials.KubeConfig != nil {
+		d.Set("kube_config", credentials.KubeConfig)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
