@@ -96,6 +96,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_snapshot":                   dataSourceArmSnapshot(),
 			"azurerm_subnet":                     dataSourceArmSubnet(),
 			"azurerm_subscription":               dataSourceArmSubscription(),
+			"azurerm_subscriptions":              dataSourceArmSubscriptions(),
 			"azurerm_virtual_network":            dataSourceArmVirtualNetwork(),
 			"azurerm_virtual_network_gateway":    dataSourceArmVirtualNetworkGateway(),
 		},
