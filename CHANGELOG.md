@@ -13,6 +13,7 @@ BUG FIXES:
 IMPROVEMENTS:
 
 * Data Source: `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
+* `azurerm_function_app` - adding `client_affinity_enabled`, `use_32_bit_worker_process` and `websockets_enabled` [GH-886]
 * `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
 * `azurerm_network_security_rule` - support for security rules including Application Security Groups [GH-925]
 
