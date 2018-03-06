@@ -7,7 +7,7 @@ default: build
 
 build: fmtcheck
 	gox -verbose \
-		-ldflags "-X main.version=${VERSION}" \
+		-ldflags "-X main.version=$(VERSION)" \
 		-os "linux darwin" \
 		-arch "amd64" \
 		-output "dist/$(NAME)-v$(VERSION)-{{.OS}}_{{.Arch}}/$(NAME)_v$(VERSION)"
