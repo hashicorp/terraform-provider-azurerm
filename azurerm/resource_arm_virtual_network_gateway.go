@@ -137,9 +137,20 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"vpn_client_protocol": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 						"root_certificate": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -157,6 +168,10 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						"revoked_certificate": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -170,6 +185,28 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								},
 							},
 							Set: hashVirtualNetworkGatewayRevokedCert,
+						},
+						"radius_server_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"radius_server_secret": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -491,12 +528,24 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 		revokedCerts = append(revokedCerts, r)
 	}
 
+	confVpnClientProtocol := conf["vpn_client_protocol"].([]interface{})
+	vpnClientProtocols := make([]network.VpnClientProtocol, 0, len(confVpnClientProtocol))
+	for _, protocol := range confVpnClientProtocol {
+		vpnClientProtocols = append(vpnClientProtocols, network.VpnClientProtocol(protocol.(string)))
+	}
+
+	confRadiusServerAddress := conf["radius_server_address"].(string)
+	confRadiusServerSecret := conf["radius_server_secret"].(string)
+
 	return &network.VpnClientConfiguration{
 		VpnClientAddressPool: &network.AddressSpace{
 			AddressPrefixes: &addresses,
 		},
 		VpnClientRootCertificates:    &rootCerts,
 		VpnClientRevokedCertificates: &revokedCerts,
+		VpnClientProtocols:           &vpnClientProtocols,
+		RadiusServerAddress:          &confRadiusServerAddress,
+		RadiusServerSecret:           &confRadiusServerSecret,
 	}
 }
 
@@ -573,6 +622,14 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 		}
 	}
 	flat["revoked_certificate"] = schema.NewSet(hashVirtualNetworkGatewayRevokedCert, revokedCerts)
+
+	vpnClientProtocol := make([]interface{}, 0)
+	if vpnProtocols := cfg.VpnClientProtocols; vpnProtocols != nil {
+		for _, vpnProtocol := range *vpnProtocols {
+			vpnClientProtocol = append(vpnClientProtocol, vpnProtocol)
+		}
+	}
+	flat["vpn_client_protocol"] = vpnClientProtocol
 
 	return []interface{}{flat}
 }
