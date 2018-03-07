@@ -40,18 +40,22 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"publisher": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"promotion_code": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 						},
 						"product": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -86,10 +90,14 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 		},
 	}
 
-	solution, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
-	if err != nil {
+	res, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	//Currently this is required to work around successful creation resulting in an error
+	// being returned
+	if err != nil && res.StatusCode != 201 {
 		return err
 	}
+
+	solution, _ := client.Get(ctx, resGroup, name)
 
 	if solution.ID == nil {
 		return fmt.Errorf("Cannot read Log Analytics Solution '%s' (resource group %s) ID", name, resGroup)

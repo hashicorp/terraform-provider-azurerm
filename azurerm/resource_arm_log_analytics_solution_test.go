@@ -12,17 +12,16 @@ import (
 
 func TestAccAzureRMLogAnalyticsSolution(t *testing.T) {
 	ri := acctest.RandInt()
-	// config := testAccAzureRMLogAnalyticsSolution(ri, testLocation())
 	config := testAccAzureRMLogAnalyticsSolution(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics_workspace.test"),
+					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.solution"),
 				),
 			},
 		},
@@ -114,20 +113,19 @@ resource "azurerm_log_analytics_solution" "solution" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMLogAnalyticsSolution_Temp(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_log_analytics_solution" "solution" {
-	name                  = "acctest"
-	location              = "westeurope"
-	resource_group_name   = "lg-terraformtest"
-	workspace_resource_id = "/subscriptions/5774ad8f-d51e-4456-a72e-0447910568d3/resourcegroups/acctestrg-8930075193794579467/providers/microsoft.operationalinsights/workspaces/acctest-dep-8930075193794579467"
-  
-	plan {
-	  name           = "Containers"
-	  publisher      = "Microsoft"
-	  promotion_code = ""
-	  product        = "OMSGallery/Containers"
-	}
-}
-`)
-}
+// func testAccAzureRMLogAnalyticsSolution_Temp(rInt int, location string) string {
+// 	return fmt.Sprintf(`
+// resource "azurerm_log_analytics_solution" "solution" {
+// 	name                  = "acctest"
+// 	location              = "westeurope"
+// 	resource_group_name   = "lg-terraformtest"
+// 	workspace_resource_id = "/subscriptions/5774ad8f-d51e-4456-a72e-0447910568d3/resourcegroups/lg-terraformtest/providers/microsoft.operationalinsights/workspaces/lg-testoms"
+
+// 	plan {
+// 	  name           = "Containers"
+// 	  publisher      = "Microsoft"
+// 	  product        = "OMSGallery/Containers"
+// 	}
+// }
+// `)
+// }

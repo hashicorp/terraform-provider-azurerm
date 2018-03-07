@@ -63,19 +63,6 @@ func (client SolutionsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 		return
 	}
 
-	// dump, err := httputil.DumpRequest(req, true)
-	// log.Println(string(dump))
-
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// bytes, _ := ioutil.ReadAll(req.Body)
-
-	// stringLength := len(string(bytes))
-	// log.Println(stringLength)
-	// log.Println(string(bytes))
-	// log.Println(err)
-
 	resp, err := client.CreateOrUpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
