@@ -195,7 +195,7 @@ func streamAnalyticsInputSchema() *schema.Schema {
 	}
 }
 
-func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics.ReferenceInputDataSource, error) {
+func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics.BasicReferenceInputDataSource, error) {
 
 	datasourceList := dataMap["datasource"].([]interface{})
 	datasourceMap := datasourceList[0].(map[string]interface{})
@@ -239,11 +239,11 @@ func extractReferenceDataSource(dataMap map[string]interface{}) (streamanalytics
 	return datasource, nil
 }
 
-func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.StreamInputDataSource, error) {
+func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.BasicStreamInputDataSource, error) {
 	datasourceList := dataMap["datasource"].([]interface{})
 	datasourceMap := datasourceList[0].(map[string]interface{})
 
-	var streamInputSource streamanalytics.StreamInputDataSource
+	var streamInputSource streamanalytics.BasicStreamInputDataSource
 
 	if blobsourceList, ok := datasourceMap["blob"].([]interface{}); ok && len(blobsourceList) != 0 {
 
@@ -339,9 +339,9 @@ func extractStreamDataSource(dataMap map[string]interface{}) (streamanalytics.St
 
 }
 
-func extractSerialization(dataMap map[string]interface{}, output bool) streamanalytics.Serialization {
+func extractSerialization(dataMap map[string]interface{}, output bool) streamanalytics.BasicSerialization {
 
-	var serialization streamanalytics.Serialization
+	var serialization streamanalytics.BasicSerialization
 	serializationList := dataMap["serialization"].([]interface{})
 	serial := serializationList[0].(map[string]interface{})
 	serialType := serial["type"].(string)
