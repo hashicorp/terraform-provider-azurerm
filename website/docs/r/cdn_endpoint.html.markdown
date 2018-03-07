@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm\_cdn\_endpoint
+# azurerm_cdn_endpoint
 
 A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviors and origins. The CDN Endpoint is exposed using the URL format <endpointname>.azureedge.net by default, but custom domains can also be created.
 
@@ -71,6 +71,8 @@ The following arguments are supported:
 Each `origin` block supports fields documented below.
 
 * `origin_path` - (Optional) The path used at for origin requests.
+
+* `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
 
 * `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. Defaults to `IgnoreQueryString`.
 

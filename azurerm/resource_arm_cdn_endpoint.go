@@ -124,6 +124,12 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Default:  false,
 			},
 
+			"probe_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"host_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -150,6 +156,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
 	originHostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
+	probePath := d.Get("probe_path").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	endpoint := cdn.Endpoint{
@@ -161,12 +168,12 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
 			OriginPath:                 utils.String(originPath),
+			ProbePath:                  utils.String(probePath),
 			//GeoFilters: []cdn.GeoFilter{{
 			//  Action: cdn.Allow || cdn.Block
 			//  CountryCodes: []string{}
 			//  RelativePath: ""
 			//}}
-			//ProbePath: ""
 		},
 		Tags: expandTags(tags),
 	}
@@ -217,16 +224,18 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
 	hostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
+	probePath := d.Get("probe_path").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	endpoint := cdn.EndpointUpdateParameters{
 		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
-			IsHTTPAllowed:              &httpAllowed,
-			IsHTTPSAllowed:             &httpsAllowed,
-			IsCompressionEnabled:       &compressionEnabled,
+			IsHTTPAllowed:              utils.Bool(httpAllowed),
+			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
+			IsCompressionEnabled:       utils.Bool(compressionEnabled),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
-			OriginHostHeader:           &hostHeader,
-			OriginPath:                 &originPath,
+			OriginHostHeader:           utils.String(hostHeader),
+			OriginPath:                 utils.String(originPath),
+			ProbePath:                  utils.String(probePath),
 		},
 		Tags: expandTags(tags),
 	}
@@ -291,6 +300,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)
 		d.Set("origin_host_header", props.OriginHostHeader)
 		d.Set("origin_path", props.OriginPath)
+		d.Set("probe_path", props.ProbePath)
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
