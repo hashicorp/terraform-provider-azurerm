@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -97,10 +97,15 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			},
 
 			"querystring_caching_behaviour": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "IgnoreQueryString",
-				ValidateFunc: validateCdnEndpointQuerystringCachingBehaviour,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(cdn.IgnoreQueryString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.BypassCaching),
+					string(cdn.IgnoreQueryString),
+					string(cdn.NotSet),
+					string(cdn.UseQueryString),
+				}, false),
 			},
 
 			"content_types_to_compress": {
@@ -137,75 +142,110 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	profileName := d.Get("profile_name").(string)
-	http_allowed := d.Get("is_http_allowed").(bool)
-	https_allowed := d.Get("is_https_allowed").(bool)
-	compression_enabled := d.Get("is_compression_enabled").(bool)
-	caching_behaviour := d.Get("querystring_caching_behaviour").(string)
+	httpAllowed := d.Get("is_http_allowed").(bool)
+	httpsAllowed := d.Get("is_https_allowed").(bool)
+	compressionEnabled := d.Get("is_compression_enabled").(bool)
+	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
+	originHostHeader := d.Get("origin_host_header").(string)
+	originPath := d.Get("origin_path").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	properties := cdn.EndpointProperties{
-		IsHTTPAllowed:              &http_allowed,
-		IsHTTPSAllowed:             &https_allowed,
-		IsCompressionEnabled:       &compression_enabled,
-		QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(caching_behaviour),
+	endpoint := cdn.Endpoint{
+		Location: &location,
+		EndpointProperties: &cdn.EndpointProperties{
+			IsHTTPAllowed:              &httpAllowed,
+			IsHTTPSAllowed:             &httpsAllowed,
+			IsCompressionEnabled:       &compressionEnabled,
+			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
+			OriginHostHeader:           utils.String(originHostHeader),
+			OriginPath:                 utils.String(originPath),
+			//GeoFilters: []cdn.GeoFilter{{
+			//  Action: cdn.Allow || cdn.Block
+			//  CountryCodes: []string{}
+			//  RelativePath: ""
+			//}}
+			//ProbePath: ""
+		},
+		Tags: expandTags(tags),
 	}
 
-	origins, originsErr := expandAzureRmCdnEndpointOrigins(d)
-	if originsErr != nil {
-		return fmt.Errorf("Error Building list of CDN Endpoint Origins: %s", originsErr)
+	origins, err := expandAzureRmCdnEndpointOrigins(d)
+	if err != nil {
+		return fmt.Errorf("Error Building list of CDN Endpoint Origins: %s", err)
 	}
 	if len(origins) > 0 {
-		properties.Origins = &origins
-	}
-
-	if v, ok := d.GetOk("origin_host_header"); ok {
-		host_header := v.(string)
-		properties.OriginHostHeader = &host_header
-	}
-
-	if v, ok := d.GetOk("origin_path"); ok {
-		origin_path := v.(string)
-		properties.OriginPath = &origin_path
+		endpoint.EndpointProperties.Origins = &origins
 	}
 
 	if v, ok := d.GetOk("content_types_to_compress"); ok {
-		var content_types []string
-		ctypes := v.(*schema.Set).List()
-		for _, ct := range ctypes {
-			str := ct.(string)
-			content_types = append(content_types, str)
-		}
-
-		properties.ContentTypesToCompress = &content_types
+		contentTypes := expandArmCdnEndpointContentTypesToCompress(v)
+		endpoint.EndpointProperties.ContentTypesToCompress = &contentTypes
 	}
 
-	cdnEndpoint := cdn.Endpoint{
-		Location:           &location,
-		EndpointProperties: &properties,
-		Tags:               expandTags(tags),
-	}
-
-	future, err := client.Create(ctx, resGroup, profileName, name, cdnEndpoint)
+	future, err := client.Create(ctx, resourceGroup, profileName, name, endpoint)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, profileName, name)
+	read, err := client.Get(ctx, resourceGroup, profileName, name)
 	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read CND Endpoint %s/%s (resource group %s) ID", profileName, name, resGroup)
+		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
 	d.SetId(*read.ID)
+
+	return resourceArmCdnEndpointRead(d, meta)
+}
+
+func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).cdnEndpointsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	name := d.Get("name").(string)
+	resGroup := d.Get("resource_group_name").(string)
+	profileName := d.Get("profile_name").(string)
+	httpAllowed := d.Get("is_http_allowed").(bool)
+	httpsAllowed := d.Get("is_https_allowed").(bool)
+	compressionEnabled := d.Get("is_compression_enabled").(bool)
+	cachingBehaviour := d.Get("querystring_caching_behaviour").(string)
+	hostHeader := d.Get("origin_host_header").(string)
+	originPath := d.Get("origin_path").(string)
+	tags := d.Get("tags").(map[string]interface{})
+
+	endpoint := cdn.EndpointUpdateParameters{
+		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
+			IsHTTPAllowed:              &httpAllowed,
+			IsHTTPSAllowed:             &httpsAllowed,
+			IsCompressionEnabled:       &compressionEnabled,
+			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
+			OriginHostHeader:           &hostHeader,
+			OriginPath:                 &originPath,
+		},
+		Tags: expandTags(tags),
+	}
+
+	if d.HasChange("content_types_to_compress") {
+		v := d.Get("content_types_to_compress")
+		contentTypes := expandArmCdnEndpointContentTypesToCompress(v)
+		endpoint.EndpointPropertiesUpdateParameters.ContentTypesToCompress = &contentTypes
+	}
+
+	future, err := client.Update(ctx, resGroup, profileName, name, endpoint)
+	if err != nil {
+		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resGroup, err)
+	}
 
 	return resourceArmCdnEndpointRead(d, meta)
 }
@@ -218,104 +258,53 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["endpoints"]
 	profileName := id.Path["profiles"]
 	if profileName == "" {
 		profileName = id.Path["Profiles"]
 	}
-	log.Printf("[INFO] Trying to find the AzureRM CDN Endpoint %s (Profile: %s, RG: %s)", name, profileName, resGroup)
-	resp, err := client.Get(ctx, resGroup, profileName, name)
+	log.Printf("[INFO] Retrieving CDN Endpoint %q (Profile %q / Resource Group %q)", name, profileName, resourceGroup)
+	resp, err := client.Get(ctx, resourceGroup, profileName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure CDN Endpoint %s: %s", name, err)
+
+		return fmt.Errorf("Error making Read request on Azure CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("profile_name", profileName)
-	d.Set("host_name", resp.EndpointProperties.HostName)
-	d.Set("is_compression_enabled", resp.EndpointProperties.IsCompressionEnabled)
-	d.Set("is_http_allowed", resp.EndpointProperties.IsHTTPAllowed)
-	d.Set("is_https_allowed", resp.EndpointProperties.IsHTTPSAllowed)
-	d.Set("querystring_caching_behaviour", resp.EndpointProperties.QueryStringCachingBehavior)
-	if resp.EndpointProperties.OriginHostHeader != nil && *resp.EndpointProperties.OriginHostHeader != "" {
-		d.Set("origin_host_header", resp.EndpointProperties.OriginHostHeader)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	if resp.EndpointProperties.OriginPath != nil && *resp.EndpointProperties.OriginPath != "" {
-		d.Set("origin_path", resp.EndpointProperties.OriginPath)
+
+	if props := resp.EndpointProperties; props != nil {
+		d.Set("host_name", props.HostName)
+		d.Set("is_compression_enabled", props.IsCompressionEnabled)
+		d.Set("is_http_allowed", props.IsHTTPAllowed)
+		d.Set("is_https_allowed", props.IsHTTPSAllowed)
+		d.Set("querystring_caching_behaviour", props.QueryStringCachingBehavior)
+		d.Set("origin_host_header", props.OriginHostHeader)
+		d.Set("origin_path", props.OriginPath)
+
+		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
+		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
+			return fmt.Errorf("Error flattening `content_types_to_compress`: %+v", err)
+		}
+		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
+		if err := d.Set("origin", origins); err != nil {
+			return fmt.Errorf("Error flattening `origin`: %+v", err)
+		}
 	}
-	if resp.EndpointProperties.ContentTypesToCompress != nil {
-		d.Set("content_types_to_compress", flattenAzureRMCdnEndpointContentTypes(resp.EndpointProperties.ContentTypesToCompress))
-	}
-	d.Set("origin", flattenAzureRMCdnEndpointOrigin(resp.EndpointProperties.Origins))
 
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
-}
-
-func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
-	ctx := meta.(*ArmClient).StopContext
-
-	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	profileName := d.Get("profile_name").(string)
-	http_allowed := d.Get("is_http_allowed").(bool)
-	https_allowed := d.Get("is_https_allowed").(bool)
-	compression_enabled := d.Get("is_compression_enabled").(bool)
-	caching_behaviour := d.Get("querystring_caching_behaviour").(string)
-	newTags := d.Get("tags").(map[string]interface{})
-
-	properties := cdn.EndpointPropertiesUpdateParameters{
-		IsHTTPAllowed:              &http_allowed,
-		IsHTTPSAllowed:             &https_allowed,
-		IsCompressionEnabled:       &compression_enabled,
-		QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(caching_behaviour),
-	}
-
-	if d.HasChange("origin_host_header") {
-		host_header := d.Get("origin_host_header").(string)
-		properties.OriginHostHeader = &host_header
-	}
-
-	if d.HasChange("origin_path") {
-		origin_path := d.Get("origin_path").(string)
-		properties.OriginPath = &origin_path
-	}
-
-	if d.HasChange("content_types_to_compress") {
-		var content_types []string
-		ctypes := d.Get("content_types_to_compress").(*schema.Set).List()
-		for _, ct := range ctypes {
-			str := ct.(string)
-			content_types = append(content_types, str)
-		}
-
-		properties.ContentTypesToCompress = &content_types
-	}
-
-	updateProps := cdn.EndpointUpdateParameters{
-		Tags: expandTags(newTags),
-		EndpointPropertiesUpdateParameters: &properties,
-	}
-
-	future, err := client.Update(ctx, resGroup, profileName, name, updateProps)
-	if err != nil {
-		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Endpoint %q: %s", name, err)
-	}
-
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return fmt.Errorf("Error issuing Azure ARM update request to update CDN Endpoint %q: %s", name, err)
-	}
-
-	return resourceArmCdnEndpointRead(d, meta)
 }
 
 func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
@@ -326,19 +315,19 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	profileName := id.Path["profiles"]
 	if profileName == "" {
 		profileName = id.Path["Profiles"]
 	}
 	name := id.Path["endpoints"]
 
-	future, err := client.Delete(ctx, resGroup, profileName, name)
+	future, err := client.Delete(ctx, resourceGroup, profileName, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for CDN Endpoint %q: %s", name, err)
+		return fmt.Errorf("Error deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
@@ -346,24 +335,18 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for CDN Endpoint %q: %s", name, err)
+		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to be deleted: %+v", name, profileName, resourceGroup, err)
 	}
 
 	return nil
 }
-
-func validateCdnEndpointQuerystringCachingBehaviour(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	cachingTypes := map[string]bool{
-		"ignorequerystring": true,
-		"bypasscaching":     true,
-		"usequerystring":    true,
+func expandArmCdnEndpointContentTypesToCompress(v interface{}) []string {
+	var contentTypes []string
+	inputContentTypes := v.(*schema.Set).List()
+	for _, ct := range inputContentTypes {
+		str := ct.(string)
+		contentTypes = append(contentTypes, str)
 	}
-
-	if !cachingTypes[value] {
-		errors = append(errors, fmt.Errorf("CDN Endpoint querystringCachingBehaviours can only be IgnoreQueryString, BypassCaching or UseQueryString"))
-	}
-	return
 }
 
 func resourceArmCdnEndpointOriginHash(v interface{}) int {
@@ -372,37 +355,37 @@ func resourceArmCdnEndpointOriginHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	buf.WriteString(fmt.Sprintf("%s-", m["host_name"].(string)))
 
+	// TODO: can we remove this; and do we need a state migration?
+
 	return hashcode.String(buf.String())
 }
 
 func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedOrigin, error) {
 	configs := d.Get("origin").(*schema.Set).List()
-	origins := make([]cdn.DeepCreatedOrigin, 0, len(configs))
+	origins := make([]cdn.DeepCreatedOrigin, 0)
 
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
-		host_name := data["host_name"].(string)
-
+		hostName := data["host_name"].(string)
 		properties := cdn.DeepCreatedOriginProperties{
-			HostName: &host_name,
+			HostName: utils.String(hostName),
 		}
 
 		if v, ok := data["https_port"]; ok {
-			https_port := int32(v.(int))
-			properties.HTTPSPort = &https_port
-
+			port := v.(int)
+			properties.HTTPSPort = utils.Int32(int32(port))
 		}
 
 		if v, ok := data["http_port"]; ok {
-			http_port := int32(v.(int))
-			properties.HTTPPort = &http_port
+			port := v.(int)
+			properties.HTTPPort = utils.Int32(int32(port))
 		}
 
 		name := data["name"].(string)
 
 		origin := cdn.DeepCreatedOrigin{
-			Name: &name,
+			Name: utils.String(name),
 			DeepCreatedOriginProperties: &properties,
 		}
 
@@ -412,22 +395,33 @@ func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedO
 	return origins, nil
 }
 
-func flattenAzureRMCdnEndpointOrigin(list *[]cdn.DeepCreatedOrigin) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, len(*list))
-	for _, i := range *list {
-		l := map[string]interface{}{
-			"name":      *i.Name,
-			"host_name": *i.DeepCreatedOriginProperties.HostName,
-		}
+func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
 
-		if i.DeepCreatedOriginProperties.HTTPPort != nil {
-			l["http_port"] = *i.DeepCreatedOriginProperties.HTTPPort
+	if list := input; list != nil {
+		for _, i := range *list {
+			l := map[string]interface{}{}
+
+			if name := i.Name; name != nil {
+				l["name"] = *name
+			}
+
+			if props := i.DeepCreatedOriginProperties; props != nil {
+				if hostName := props.HostName; hostName != nil {
+					l["host_name"] = *hostName
+				}
+				if port := props.HTTPPort; port != nil {
+					l["http_port"] = int(*port)
+				}
+				if port := props.HTTPSPort; port != nil {
+					l["https_port"] = int(*port)
+				}
+			}
+
+			result = append(result, l)
 		}
-		if i.DeepCreatedOriginProperties.HTTPSPort != nil {
-			l["https_port"] = *i.DeepCreatedOriginProperties.HTTPSPort
-		}
-		result = append(result, l)
 	}
+
 	return result
 }
 
