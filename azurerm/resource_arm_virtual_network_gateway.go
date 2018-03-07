@@ -140,6 +140,10 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						"vpn_client_protocol": {
 							Type:     schema.TypeList,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SSTP",
+								"IkeV2",
+							}, false),
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
