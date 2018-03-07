@@ -356,9 +356,9 @@ func streamAnalyticsOutputFromSchema(outputSchema interface{}) (*streamanalytics
 	return output, nil
 }
 
-func extractOutputDatasource(outputMap map[string]interface{}) (streamanalytics.OutputDataSource, error) {
+func extractOutputDatasource(outputMap map[string]interface{}) (streamanalytics.BasicOutputDataSource, error) {
 
-	var outputDatasource streamanalytics.OutputDataSource
+	var outputDatasource streamanalytics.BasicOutputDataSource
 
 	if blobSchema := outputMap["blob"].([]interface{}); len(blobSchema) != 0 {
 		blobMap := blobSchema[0].(map[string]interface{})

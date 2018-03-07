@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
@@ -151,6 +152,7 @@ func setJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 
 func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
 	ctx := client.StopContext
+	streamClient := client.streamAnalyticsJobsClient
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
@@ -168,7 +170,17 @@ func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 		case "Running":
 			future, err := client.streamAnalyticsJobsClient.Start(ctx, rg, jobName, jobParams)
 			if err != nil {
+				if response.WasNotFound(future.Response()) {
+					return nil
+				}
 				return err
+			}
+			err = future.WaitForCompletion(ctx, streamClient.Client)
+			if err != nil {
+				if response.WasNotFound(future.Response()) {
+					return nil
+				}
+				return fmt.Errorf("Error starting job %q", jobName)
 			}
 		}
 	}
@@ -177,6 +189,7 @@ func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 
 func handleStoppedJobState(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
 	ctx := client.StopContext
+	streamClient := client.streamAnalyticsJobsClient
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
@@ -187,7 +200,17 @@ func handleStoppedJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 		case "Stopped":
 			future, err := client.streamAnalyticsJobsClient.Stop(ctx, rg, jobName)
 			if err != nil {
+				if response.WasNotFound(future.Response()) {
+					return nil
+				}
 				return err
+			}
+			err = future.WaitForCompletion(ctx, streamClient.Client)
+			if err != nil {
+				if response.WasNotFound(future.Response()) {
+					return nil
+				}
+				return fmt.Errorf("Error stopping job %q", jobName)
 			}
 		}
 	}

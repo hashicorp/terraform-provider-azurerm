@@ -113,14 +113,15 @@ func extractColumnName(columnSchema interface{}) streamanalytics.AzureMachineLea
 		MapTo:    &mapTo32,
 	}
 }
-func extractFunctionBinding(funcMap map[string]interface{}) streamanalytics.FunctionBinding {
 
-	var functionBinding streamanalytics.FunctionBinding
+func extractFunctionBinding(funcMap map[string]interface{}) streamanalytics.BasicFunctionBinding {
+
+	var functionBinding streamanalytics.BasicFunctionBinding
 
 	if udfSchema, ok := funcMap["user_defined"].([]interface{}); ok && len(udfSchema) != 0 {
 		udfMap := udfSchema[0].(map[string]interface{})
 		script := udfMap["script"].(string)
-		functionBinding := streamanalytics.JavaScriptFunctionBinding{
+		functionBinding = streamanalytics.JavaScriptFunctionBinding{
 			Type: streamanalytics.TypeMicrosoftStreamAnalyticsJavascriptUdf,
 			JavaScriptFunctionBindingProperties: &streamanalytics.JavaScriptFunctionBindingProperties{
 				Script: &script,
@@ -151,7 +152,7 @@ func extractFunctionBinding(funcMap map[string]interface{}) streamanalytics.Func
 			outputMapping = append(outputMapping, outputColumn)
 		}
 
-		functionBinding := streamanalytics.AzureMachineLearningWebServiceFunctionBinding{
+		functionBinding = streamanalytics.AzureMachineLearningWebServiceFunctionBinding{
 			Type: streamanalytics.TypeMicrosoftMachineLearningWebService,
 			AzureMachineLearningWebServiceFunctionBindingProperties: &streamanalytics.AzureMachineLearningWebServiceFunctionBindingProperties{
 				Endpoint:  &endpoint,
@@ -166,7 +167,7 @@ func extractFunctionBinding(funcMap map[string]interface{}) streamanalytics.Func
 		}
 	}
 
-	return functionBinding // TODO: Issue may exist here; Test
+	return functionBinding
 }
 
 func streamAnalyticsFunctionFromSchema(funcSchema interface{}) streamanalytics.Function {

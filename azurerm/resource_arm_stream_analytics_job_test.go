@@ -53,7 +53,9 @@ func testCheckAzureRMStreamAnalyticsExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for storage queue: %s", name)
 		}
 		armClient := testAccProvider.Meta().(*ArmClient)
-		result, err := armClient.streamingJobClient.Get(resourceGroup, jobName, "")
+		ctx := armClient.StopContext
+
+		result, err := armClient.streamAnalyticsJobsClient.Get(ctx, resourceGroup, jobName, "")
 		if err != nil {
 			return err
 		}
