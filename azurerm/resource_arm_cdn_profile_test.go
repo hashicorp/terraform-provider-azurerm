@@ -61,46 +61,6 @@ func testSweepCDNProfiles(region string) error {
 	return nil
 }
 
-func TestResourceAzureRMCdnProfileSKU_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Standard_Verizon",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Premium_Verizon",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Standard_Akamai",
-			ErrCount: 0,
-		},
-		{
-			Value:    "STANDARD_AKAMAI",
-			ErrCount: 0,
-		},
-		{
-			Value:    "standard_akamai",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateCdnProfileSku(tc.Value, "azurerm_cdn_profile")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM CDN Profile SKU to trigger a validation error for '%s'", tc.Value)
-		}
-	}
-}
-
 func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMCdnProfile_basic(ri, testLocation())
