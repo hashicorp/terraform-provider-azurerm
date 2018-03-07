@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip"
-sidebar_current: "docs-azurerm-datasource-public-ip"
+sidebar_current: "docs-azurerm-datasource-public-ip-x"
 description: |-
   Retrieves information about the specified public IP address.
 
