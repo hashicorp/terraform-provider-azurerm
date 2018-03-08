@@ -22,6 +22,7 @@ IMPROVEMENTS:
 * `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
 * `azurerm_network_security_rule` - support for security rules including Application Security Groups [GH-925]
 * `azurerm_public_ip` - adding support for Availability Zones [GH-811]
+* `azurerm_redis_cache` - add support for `notify-keyspace-events` [GH-949]
 * `azurerm_virtual_machine` - adding support for Availability Zones [GH-811]
 * `azurerm_virtual_machine_scale_set` - adding support for Availability Zones [GH-811]
 
