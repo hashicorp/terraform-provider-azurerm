@@ -742,37 +742,7 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 	solutionsClient := operationsmanagement.NewSolutionsClient(subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
 	c.configureClient(&solutionsClient.Client, auth)
 	c.solutionsClient = solutionsClient
-	// c.solutionsClient.RequestInspector = LogRequestPreparer()
-	// c.solutionsClient.ResponseInspector = LogResponseDecorator()
 }
-
-// func LogRequestPreparer() autorest.PrepareDecorator {
-// 	return func(p autorest.Preparer) autorest.Preparer {
-// 		return autorest.PreparerFunc(func(r *http.Request) (*http.Request, error) {
-// 			// resDump, _ := httputil.DumpRequestOut(r, true)
-// 			// log.Println(string(resDump))
-// 			// return r, nil
-
-// 			r, err := p.Prepare(r)
-// 			if err == nil {
-// 				resDump, _ := httputil.DumpRequestOut(r, true)
-// 				log.Println(string(resDump))
-// 			}
-// 			return r, err
-// 		})
-// 	}
-// }
-
-// func LogResponseDecorator() autorest.RespondDecorator {
-// 	return func(p autorest.Responder) autorest.Responder {
-// 		return autorest.ResponderFunc(func(r *http.Response) error {
-// 			_ = p.Respond(r)
-// 			dump, _ := httputil.DumpResponse(r, true)
-// 			log.Println(string(dump))
-// 			return nil
-// 		})
-// 	}
-// }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	redisClient := redis.NewClientWithBaseURI(endpoint, subscriptionId)
