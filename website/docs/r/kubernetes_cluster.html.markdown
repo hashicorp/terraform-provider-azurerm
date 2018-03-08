@@ -108,6 +108,18 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
+* `kube_config.0.client_key` - The client key used to authenticate to the Kubernetes cluster
+
+* `kube_config.0.client_certificate` - The client certificate used to authenticate to the Kubernetes cluster
+
+* `kube_config.0.cluster_ca_certificate` - The cluster CA certificate used to authenticate to the Kubernetes cluster
+
+* `kube_config.0.hostname` - The Kubernetes cluster hostname
+
+* `kube_config.0.username` - The username used to authenticate to the Kubernetes cluster
+
+* `kube_config.0.password` - The password or token used to authenticate to the Kubernetes cluster
+
 ## Import
 
 Kubernetes Managed Clusters can be imported using the `resource id`, e.g.
