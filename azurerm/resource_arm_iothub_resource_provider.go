@@ -213,7 +213,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 			keyMap["key_name"] = *keyName
 		}
 
-		if primaryKey := key.KeyName; primaryKey != nil {
+		if primaryKey := key.PrimaryKey; primaryKey != nil {
 			keyMap["primary_key"] = *primaryKey
 		}
 
