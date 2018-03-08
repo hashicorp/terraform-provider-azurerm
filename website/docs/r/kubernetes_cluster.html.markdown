@@ -114,7 +114,7 @@ The following attributes are exported:
 
 * `kube_config.0.cluster_ca_certificate` - The cluster CA certificate used to authenticate to the Kubernetes cluster
 
-* `kube_config.0.hostname` - The Kubernetes cluster hostname
+* `kube_config.0.host` - The Kubernetes cluster server host
 
 * `kube_config.0.username` - The username used to authenticate to the Kubernetes cluster
 
