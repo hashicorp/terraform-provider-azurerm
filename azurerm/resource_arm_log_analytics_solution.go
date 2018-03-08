@@ -29,6 +29,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 			"solution_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"location": locationSchema(),
