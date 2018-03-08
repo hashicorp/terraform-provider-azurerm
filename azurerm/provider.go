@@ -176,6 +176,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_storage_share":                       resourceArmStorageShare(),
 			"azurerm_storage_queue":                       resourceArmStorageQueue(),
 			"azurerm_storage_table":                       resourceArmStorageTable(),
+			"azurerm_stream_analytics_job":                resourceArmStreamAnalyticsJob(),
 			"azurerm_subnet":                              resourceArmSubnet(),
 			"azurerm_template_deployment":                 resourceArmTemplateDeployment(),
 			"azurerm_traffic_manager_endpoint":            resourceArmTrafficManagerEndpoint(),
@@ -293,6 +294,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ServiceBus":          {},
 		"Microsoft.Sql":                 {},
 		"Microsoft.Storage":             {},
+		"Microsoft.StreamAnalytics":     {},
 	}
 
 	// filter out any providers already registered

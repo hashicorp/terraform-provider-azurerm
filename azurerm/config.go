@@ -39,6 +39,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	mainStorage "github.com/Azure/azure-sdk-for-go/storage"
@@ -87,6 +88,13 @@ type ArmClient struct {
 	redisClient               redis.Client
 	redisFirewallClient       redis.FirewallRuleClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
+
+	// Analytics
+	streamAnalyticsJobsClient            streamanalytics.StreamingJobsClient
+	streamAnalyticsInputsClient          streamanalytics.InputsClient
+	streamAnalyticsOutputsClient         streamanalytics.OutputsClient
+	streamAnalyticsTransformationsClient streamanalytics.TransformationsClient
+	streamAnalyticsFunctionsClient       streamanalytics.FunctionsClient
 
 	// Application Insights
 	appInsightsClient appinsights.ComponentsClient
@@ -357,6 +365,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
+	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
@@ -809,6 +818,43 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	usageClient := storage.NewUsageClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
+}
+
+func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	sjc := streamanalytics.NewStreamingJobsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sjc.Client)
+	sjc.Authorizer = auth
+	sjc.Sender = sender
+	sjc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.streamAnalyticsJobsClient = sjc
+
+	sic := streamanalytics.NewInputsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sic.Client)
+	sic.Authorizer = auth
+	sic.Sender = sender
+	sic.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.streamAnalyticsInputsClient = sic
+
+	soc := streamanalytics.NewOutputsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&soc.Client)
+	soc.Authorizer = auth
+	soc.Sender = sender
+	soc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.streamAnalyticsOutputsClient = soc
+
+	sfc := streamanalytics.NewFunctionsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&sfc.Client)
+	sfc.Authorizer = auth
+	sfc.Sender = sender
+	sfc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.streamAnalyticsFunctionsClient = sfc
+
+	stc := streamanalytics.NewTransformationsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&stc.Client)
+	stc.Authorizer = auth
+	stc.Sender = sender
+	stc.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.streamAnalyticsTransformationsClient = stc
 }
 
 func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

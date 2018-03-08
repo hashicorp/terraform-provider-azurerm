@@ -241,6 +241,12 @@
 			"versionExact": "v12.5.0-beta"
 		},
 		{
+			"checksumSHA1": "gr5HZTRxc3JX8PXeq+98c++pKY0=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics",
+			"revision": "1e334c402ea1460704b0263e5d188f28ad946ce1",
+			"revisionTime": "2018-02-16T17:41:56Z"
+		},
+		{
 			"checksumSHA1": "LApakbrvkkhEu3hJVuLkERdGrSk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2017-05-01/trafficmanager",
 			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
@@ -294,8 +300,8 @@
 			"path": "github.com/Azure/go-autorest/autorest/azure",
 			"revision": "1e3943ee722538420f21945f4bc820347abe433d",
 			"revisionTime": "2018-02-15T17:42:55Z",
-			"version": "v9.7.0",
-			"versionExact": "v9.7.0"
+			"version": "v10.1.1",
+			"versionExact": "v10.1.1"
 		},
 		{
 			"checksumSHA1": "+nXRwVB/JVEGe+oLsFhCmSkKPuI=",
