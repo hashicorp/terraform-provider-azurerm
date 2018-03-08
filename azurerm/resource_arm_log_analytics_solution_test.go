@@ -21,7 +21,7 @@ func TestAccAzureRMLogAnalyticsSolution(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.solution"),
+					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.test"),
 				),
 			},
 		},
@@ -91,26 +91,26 @@ resource "azurerm_resource_group" "test" {
 	location = "%s"
 }
   
-resource "azurerm_log_analytics_workspace" "workspace" {
+resource "azurerm_log_analytics_workspace" "test" {
 	name                = "acctest-dep-%d"
 	location            = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	sku                 = "Free"
 }
   
-resource "azurerm_log_analytics_solution" "solution" {
-	name                  = "acctest-%d"
+resource "azurerm_log_analytics_solution" "test" {
+	solution_name         = "Containers"
 	location              = "${azurerm_resource_group.test.location}"
 	resource_group_name   = "${azurerm_resource_group.test.name}"
-	workspace_resource_id = "${azurerm_log_analytics_workspace.workspace.id}"
-  
+	workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+	workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+	
 	plan {
-	  name           = "Containers"
 	  publisher      = "Microsoft"
 	  product        = "OMSGallery/Containers"
 	}
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt)
 }
 
 // func testAccAzureRMLogAnalyticsSolution_Temp(rInt int, location string) string {

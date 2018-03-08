@@ -23,8 +23,12 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"solution_name": {
+				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"location": locationSchema(),
@@ -39,8 +43,7 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Computed: true,
 						},
 						"publisher": {
 							Type:     schema.TypeString,
@@ -61,6 +64,11 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 				},
 			},
 
+			"workspace_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+
 			"workspace_resource_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -74,12 +82,15 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics solution creation.")
 
-	name := d.Get("name").(string)
+	// The resource requires both .name and .plan.name are set in the format
+	// "SolutionName(WorkspaceName)". Feedback will be submitted to the OMS team as IMO this isn't ideal.
+	name := fmt.Sprintf("%s(%s)", d.Get("solution_name").(string), d.Get("workspace_name").(string))
+	solutionPlan := expandAzureRmLogAnalyticsSolutionPlan(d)
+	solutionPlan.Name = &name
+
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	workspaceID := d.Get("workspace_resource_id").(string)
-
-	solutionPlan := expandAzureRmLogAnalyticsSolutionPlan(d)
 
 	parameters := operationsmanagement.Solution{
 		Name:     &name,
@@ -135,7 +146,6 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 	d.Set("name", resp.Name)
 	d.Set("location", resp.Location)
 	d.Set("resource_group_name", resGroup)
-	d.Set("workspace_resource_id", resp.ID)
 	d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(*resp.Plan))
 	return nil
 }
@@ -195,7 +205,6 @@ func flattenAzureRmLogAnalyticsSolutionPlan(plan operationsmanagement.SolutionPl
 	plans := make([]interface{}, 0)
 	values := make(map[string]interface{})
 
-	values["name"] = *plan.Name
 	values["product"] = *plan.Product
 	values["promotion_code"] = *plan.PromotionCode
 	values["publisher"] = *plan.Publisher
