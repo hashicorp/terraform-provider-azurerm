@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"log"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	yaml "gopkg.in/yaml.v2"
 )
 
 func resourceArmKubernetesCluster() *schema.Resource {
@@ -35,7 +37,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"dns_prefix": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				Computed: true,
 			},
 
@@ -51,9 +53,37 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:     schema.TypeList,
 				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"host": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"cluster_ca_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"linux_profile": {
@@ -279,13 +309,16 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("service_principal", servicePrincipal)
 	}
 
-	credentials, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
+	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("Error fetch credentials while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
 
-	if credentials.KubeConfig != nil {
-		d.Set("kube_config", credentials.KubeConfig)
+	kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
+	if kubeConfig != nil {
+		if err := d.Set("kube_config", &kubeConfig); err != nil {
+			return fmt.Errorf("Error setting `kube_config`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -398,6 +431,43 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	return servicePrincipalProfiles
 }
 
+func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.ManagedClusterAccessProfile) []interface{} {
+	if profile != nil {
+		accessProfile := profile.AccessProfile
+		if accessProfile != nil {
+			if accessProfile.KubeConfig != nil {
+				kubeConfig := getKubeConfig(accessProfile.KubeConfig)
+				if kubeConfig != nil {
+					kubeConfigFlat := flattenKubeConfig(kubeConfig)
+					return kubeConfigFlat
+				}
+			}
+		}
+	}
+	return nil
+}
+
+func flattenKubeConfig(config *KubeConfig) []interface{} {
+	if config == nil {
+		return nil
+	}
+
+	profiles := make([]interface{}, 0)
+	values := make(map[string]interface{})
+	cluster := config.Clusters[0].Cluster
+	user := config.Users[0].User
+	name := config.Users[0].Name
+	values["host"] = cluster.Server
+	values["username"] = name
+	values["password"] = user.Token
+	values["client_certificate"] = user.ClientCertificteData
+	values["client_key"] = user.ClientKeyData
+	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
+
+	profiles = append(profiles, values)
+	return profiles
+}
+
 func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
 	profiles := d.Get("linux_profile").([]interface{})
 	config := profiles[0].(map[string]interface{})
@@ -486,4 +556,74 @@ func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) 
 	buf.WriteString(fmt.Sprintf("%s-", clientId))
 
 	return hashcode.String(buf.String())
+}
+
+func base64Decode(str string) (string, bool) {
+	data, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return "", true
+	}
+	return string(data), false
+}
+
+func getKubeConfig(config *string) *KubeConfig {
+	if config == nil {
+		return nil
+	}
+
+	configStr, error := base64Decode(*config)
+	if error == false && configStr != "" {
+		log.Println(config)
+		var kubeConfig KubeConfig
+		err := yaml.Unmarshal([]byte(configStr), &kubeConfig)
+		if err == nil && len(kubeConfig.Clusters) > 0 && len(kubeConfig.Users) > 0 {
+			return &kubeConfig
+		}
+	}
+
+	return nil
+}
+
+//TODO: Hide these
+type ClusterItem struct {
+	Name    string  `yaml:"name"`
+	Cluster Cluster `yaml:"cluster"`
+}
+
+type Cluster struct {
+	ClusterAuthorityData string `yaml:"certificate-authority-data"`
+	Server               string `yaml:"server"`
+}
+
+type UserItem struct {
+	Name string `yaml:"name"`
+	User User   `yaml:"user"`
+}
+
+type User struct {
+	ClientCertificteData string `yaml:"client-certificate-data"`
+	Token                string `yaml:"token"`
+	ClientKeyData        string `yaml:"client-key-data"`
+}
+
+type ContextItem struct {
+	Name    string  `yaml:"name"`
+	Context Context `yaml:"context"`
+}
+
+type Context struct {
+	Cluster   string `yaml:"cluster"`
+	User      string `yaml:"user"`
+	Name      string `yaml:"name"`
+	Namespace string `yaml:"namespace,omitempty"`
+}
+
+type KubeConfig struct {
+	APIVersion     string                 `yaml:"apiVersion"`
+	Clusters       []ClusterItem          `yaml:"clusters"`
+	Users          []UserItem             `yaml:"users"`
+	Contexts       []ContextItem          `yaml:"contexts,omitempty"`
+	CurrentContext string                 `yaml:"current-context,omitempty"`
+	Kind           string                 `yaml:"kind,omitempty"`
+	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
 }
