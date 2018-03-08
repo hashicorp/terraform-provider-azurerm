@@ -108,11 +108,11 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
-* `kube_config.0.client_key` - The client key used to authenticate to the Kubernetes cluster
+* `kube_config.0.client_key` - Base64 encoded client key used to authenticate to the Kubernetes cluster
 
-* `kube_config.0.client_certificate` - The client certificate used to authenticate to the Kubernetes cluster
+* `kube_config.0.client_certificate` - Base64 encoded client certificate used to authenticate to the Kubernetes cluster
 
-* `kube_config.0.cluster_ca_certificate` - The cluster CA certificate used to authenticate to the Kubernetes cluster
+* `kube_config.0.cluster_ca_certificate` - Base64 encoded cluster CA certificate used to authenticate to the Kubernetes cluster
 
 * `kube_config.0.host` - The Kubernetes cluster server host
 
