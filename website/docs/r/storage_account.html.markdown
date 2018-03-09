@@ -45,7 +45,7 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the
     resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`, `StorageV2`
     and `BlobStorage`. Changing this forces a new resource to be created. Defaults
     to `Storage`.
 
