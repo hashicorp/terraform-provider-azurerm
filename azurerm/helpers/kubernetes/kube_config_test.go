@@ -14,18 +14,18 @@ func TestParseKubeConfig(t *testing.T) {
 			`YXBpVmVyc2lvbjogdjEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIHNlcnZlcjogaHR0cHM6Ly90ZXN0Y2x1c3Rlci5uZXQ6ODA4MAogIG5hbWU6IHRlc3QtY2x1c3Rlcgp1c2VyczoKLSBuYW1lOiB0ZXN0LXVzZXIKICB1c2VyOgogICAgdG9rZW46IHRlc3QtdG9rZW4Ka2luZDogQ29uZmln`,
 			KubeConfig{
 				APIVersion: "v1",
-				Clusters: []ClusterItem{
+				Clusters: []clusterItem{
 					{
 						Name: "test-cluster",
-						Cluster: Cluster{
+						Cluster: cluster{
 							Server: "https://testcluster.net:8080",
 						},
 					},
 				},
-				Users: []UserItem{
+				Users: []userItem{
 					{
 						Name: "test-user",
-						User: User{
+						User: user{
 							Token: "test-token",
 						},
 					},
@@ -36,28 +36,28 @@ func TestParseKubeConfig(t *testing.T) {
 			`YXBpVmVyc2lvbjogdjEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIGNlcnRpZmljYXRlLWF1dGhvcml0eS1kYXRhOiB0ZXN0LWNsdXN0ZXItYXV0aG9yaXR5LWRhdGEKICAgIHNlcnZlcjogaHR0cHM6Ly90ZXN0Y2x1c3Rlci5vcmc6NDQzCiAgbmFtZTogdGVzdC1jbHVzdGVyCmNvbnRleHRzOgotIGNvbnRleHQ6CiAgICBjbHVzdGVyOiB0ZXN0LWNsdXN0ZXIKICAgIHVzZXI6IHRlc3QtdXNlcgogICAgbmFtZXNwYWNlOiB0ZXN0LW5hbWVzcGFjZQogIG5hbWU6IHRlc3QtY2x1c3RlcgpjdXJyZW50LWNvbnRleHQ6IHRlc3QtY2x1c3Rlcgp1c2VyczoKLSBuYW1lOiB0ZXN0LXVzZXIKICB1c2VyOgogICAgY2xpZW50LWNlcnRpZmljYXRlLWRhdGE6IHRlc3QtY2xpZW50LWNlcnRpZmljYXRlLWRhdGEKICAgIGNsaWVudC1rZXktZGF0YTogdGVzdC1jbGllbnQta2V5LWRhdGEKa2luZDogQ29uZmln`,
 			KubeConfig{
 				APIVersion: "v1",
-				Clusters: []ClusterItem{
+				Clusters: []clusterItem{
 					{
 						Name: "test-cluster",
-						Cluster: Cluster{
+						Cluster: cluster{
 							ClusterAuthorityData: "test-cluster-authority-data",
 							Server:               "https://testcluster.org:443",
 						},
 					},
 				},
-				Users: []UserItem{
+				Users: []userItem{
 					{
 						Name: "test-user",
-						User: User{
+						User: user{
 							ClientCertificteData: "test-client-certificate-data",
 							ClientKeyData:        "test-client-key-data",
 						},
 					},
 				},
-				Contexts: []ContextItem{
+				Contexts: []contextItem{
 					{
 						Name: "test-cluster",
-						Context: Context{
+						Context: context{
 							Cluster:   "test-cluster",
 							User:      "test-user",
 							Namespace: "test-namespace",
@@ -72,29 +72,29 @@ func TestParseKubeConfig(t *testing.T) {
 			`YXBpVmVyc2lvbjogdjEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIGNlcnRpZmljYXRlLWF1dGhvcml0eS1kYXRhOiB0ZXN0LWNsdXN0ZXItYXV0aG9yaXR5LWRhdGEKICAgIHNlcnZlcjogaHR0cHM6Ly90ZXN0Y2x1c3Rlci5vcmc6NDQzCiAgbmFtZTogdGVzdC1jbHVzdGVyCmNvbnRleHRzOgotIGNvbnRleHQ6CiAgICBjbHVzdGVyOiB0ZXN0LWNsdXN0ZXIKICAgIHVzZXI6IHRlc3QtdXNlcgogICAgbmFtZXNwYWNlOiB0ZXN0LW5hbWVzcGFjZQogIG5hbWU6IHRlc3QtY2x1c3RlcgpjdXJyZW50LWNvbnRleHQ6IHRlc3QtY2x1c3Rlcgp1c2VyczoKLSBuYW1lOiB0ZXN0LXVzZXIKICB1c2VyOgogICAgY2xpZW50LWNlcnRpZmljYXRlLWRhdGE6IHRlc3QtY2xpZW50LWNlcnRpZmljYXRlLWRhdGEKICAgIGNsaWVudC1rZXktZGF0YTogdGVzdC1jbGllbnQta2V5LWRhdGEKICAgIHRva2VuOiB0ZXN0LXRva2VuCmtpbmQ6IENvbmZpZwpwcmVmZXJlbmNlczoKICBjb2xvcnM6IHRydWU=`,
 			KubeConfig{
 				APIVersion: "v1",
-				Clusters: []ClusterItem{
+				Clusters: []clusterItem{
 					{
 						Name: "test-cluster",
-						Cluster: Cluster{
+						Cluster: cluster{
 							ClusterAuthorityData: "test-cluster-authority-data",
 							Server:               "https://testcluster.org:443",
 						},
 					},
 				},
-				Users: []UserItem{
+				Users: []userItem{
 					{
 						Name: "test-user",
-						User: User{
+						User: user{
 							ClientCertificteData: "test-client-certificate-data",
 							ClientKeyData:        "test-client-key-data",
 							Token:                "test-token",
 						},
 					},
 				},
-				Contexts: []ContextItem{
+				Contexts: []contextItem{
 					{
 						Name: "test-cluster",
-						Context: Context{
+						Context: context{
 							Cluster:   "test-cluster",
 							User:      "test-user",
 							Namespace: "test-namespace",

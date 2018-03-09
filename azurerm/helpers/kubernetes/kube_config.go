@@ -7,33 +7,33 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-type ClusterItem struct {
+type clusterItem struct {
 	Name    string  `yaml:"name"`
-	Cluster Cluster `yaml:"cluster"`
+	Cluster cluster `yaml:"cluster"`
 }
 
-type Cluster struct {
+type cluster struct {
 	ClusterAuthorityData string `yaml:"certificate-authority-data"`
 	Server               string `yaml:"server"`
 }
 
-type UserItem struct {
+type userItem struct {
 	Name string `yaml:"name"`
-	User User   `yaml:"user"`
+	User user   `yaml:"user"`
 }
 
-type User struct {
+type user struct {
 	ClientCertificteData string `yaml:"client-certificate-data"`
 	Token                string `yaml:"token"`
 	ClientKeyData        string `yaml:"client-key-data"`
 }
 
-type ContextItem struct {
+type contextItem struct {
 	Name    string  `yaml:"name"`
-	Context Context `yaml:"context"`
+	Context context `yaml:"context"`
 }
 
-type Context struct {
+type context struct {
 	Cluster   string `yaml:"cluster"`
 	User      string `yaml:"user"`
 	Namespace string `yaml:"namespace,omitempty"`
@@ -41,9 +41,9 @@ type Context struct {
 
 type KubeConfig struct {
 	APIVersion     string                 `yaml:"apiVersion"`
-	Clusters       []ClusterItem          `yaml:"clusters"`
-	Users          []UserItem             `yaml:"users"`
-	Contexts       []ContextItem          `yaml:"contexts,omitempty"`
+	Clusters       []clusterItem          `yaml:"clusters"`
+	Users          []userItem             `yaml:"users"`
+	Contexts       []contextItem          `yaml:"contexts,omitempty"`
 	CurrentContext string                 `yaml:"current-context,omitempty"`
 	Kind           string                 `yaml:"kind,omitempty"`
 	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
