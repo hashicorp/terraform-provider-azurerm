@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 
@@ -21,11 +22,6 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"solution_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -68,11 +64,19 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 			"workspace_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"workspace_resource_id": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if strings.ToLower(old) == strings.ToLower(new) {
+						return true
+					}
+					return false
+				},
 			},
 		},
 	}
@@ -141,13 +145,33 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 	}
 
 	if resp.Plan == nil {
-		return fmt.Errorf("Error making Read request on AzureRM Log Analytics solutions '%s': %+v Plan was nil", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Log Analytics solutions '%s': Plan was nil", name)
 	}
 
-	d.Set("name", resp.Name)
 	d.Set("location", resp.Location)
 	d.Set("resource_group_name", resGroup)
-	d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(*resp.Plan))
+
+	// Reversing the mapping used to get .solution_name
+	// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
+	if resp.Name != nil && strings.Contains(*resp.Name, "(") {
+		if parts := strings.Split(*resp.Name, "("); len(parts) == 2 {
+			d.Set("solution_name", parts[0])
+			workspaceName := strings.TrimPrefix(parts[1], "(")
+			workspaceName = strings.TrimSuffix(workspaceName, ")")
+			d.Set("workspace_name", workspaceName)
+		} else {
+			return fmt.Errorf("Error making Read request on AzureRM Log Analytics solutions '%v': isn't in expected format 'Solution(WorkspaceName)'", resp.Name)
+		}
+	} else {
+		return fmt.Errorf("Error making Read request on AzureRM Log Analytics solutions '%v': isn't in expected format 'Solution(WorkspaceName)'", resp.Name)
+	}
+
+	if props := resp.Properties; props != nil {
+		d.Set("workspace_resource_id", props.WorkspaceResourceID)
+	}
+	if plan := resp.Plan; plan != nil {
+		d.Set("plan", flattenAzureRmLogAnalyticsSolutionPlan(*resp.Plan))
+	}
 	return nil
 }
 
@@ -178,25 +202,16 @@ func expandAzureRmLogAnalyticsSolutionPlan(d *schema.ResourceData) operationsman
 	plans := d.Get("plan").([]interface{})
 	plan := plans[0].(map[string]interface{})
 
-	expandedPlan := operationsmanagement.SolutionPlan{}
+	name := plan["name"].(string)
+	publisher := plan["publisher"].(string)
+	promotionCode := plan["promotion_code"].(string)
+	product := plan["product"].(string)
 
-	if name := plan["name"].(string); len(name) > 0 {
-		expandedPlan.Name = &name
-	}
-
-	if publisher := plan["publisher"].(string); len(publisher) > 0 {
-		expandedPlan.Publisher = &publisher
-	}
-
-	if promotionCode := plan["promotion_code"].(string); len(promotionCode) > 0 {
-		expandedPlan.PromotionCode = &promotionCode
-	} else {
-		blankString := ""
-		expandedPlan.PromotionCode = &blankString
-	}
-
-	if product := plan["product"].(string); len(product) > 0 {
-		expandedPlan.Product = &product
+	expandedPlan := operationsmanagement.SolutionPlan{
+		Name:          utils.String(name),
+		PromotionCode: utils.String(promotionCode),
+		Publisher:     utils.String(publisher),
+		Product:       utils.String(product),
 	}
 
 	return expandedPlan
@@ -206,6 +221,7 @@ func flattenAzureRmLogAnalyticsSolutionPlan(plan operationsmanagement.SolutionPl
 	plans := make([]interface{}, 0)
 	values := make(map[string]interface{})
 
+	values["name"] = plan.Name
 	values["product"] = *plan.Product
 	values["promotion_code"] = *plan.PromotionCode
 	values["publisher"] = *plan.Publisher

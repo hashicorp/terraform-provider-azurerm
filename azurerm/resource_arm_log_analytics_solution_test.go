@@ -10,9 +10,27 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMLogAnalyticsSolution(t *testing.T) {
+func TestAccAzureRMLogAnalyticsSolution_basic_containerMonitoring(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogAnalyticsSolution(ri, testLocation())
+	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsSolutionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsSolutionExists("azurerm_log_analytics_solution.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLogAnalyticsSolution_basic_security(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		Providers:    testAccProviders,
@@ -84,7 +102,7 @@ func testCheckAzureRMLogAnalyticsSolutionExists(name string) resource.TestCheckF
 	}
 }
 
-func testAccAzureRMLogAnalyticsSolution(rInt int, location string) string {
+func testAccAzureRMLogAnalyticsSolution_containerMonitoring(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
 	name     = "oms-acctestRG-%d"
@@ -113,19 +131,31 @@ resource "azurerm_log_analytics_solution" "test" {
 `, rInt, location, rInt)
 }
 
-// func testAccAzureRMLogAnalyticsSolution_Temp(rInt int, location string) string {
-// 	return fmt.Sprintf(`
-// resource "azurerm_log_analytics_solution" "solution" {
-// 	name                  = "acctest"
-// 	location              = "westeurope"
-// 	resource_group_name   = "lg-terraformtest"
-// 	workspace_resource_id = "/subscriptions/5774ad8f-d51e-4456-a72e-0447910568d3/resourcegroups/lg-terraformtest/providers/microsoft.operationalinsights/workspaces/lg-testoms"
-
-// 	plan {
-// 	  name           = "Containers"
-// 	  publisher      = "Microsoft"
-// 	  product        = "OMSGallery/Containers"
-// 	}
-// }
-// `)
-// }
+func testAccAzureRMLogAnalyticsSolution_security(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "oms-acctestRG-%d"
+	location = "%s"
+}
+  
+resource "azurerm_log_analytics_workspace" "test" {
+	name                = "acctest-dep-%d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	sku                 = "Free"
+}
+  
+resource "azurerm_log_analytics_solution" "test" {
+	solution_name         = "Security"
+	location              = "${azurerm_resource_group.test.location}"
+	resource_group_name   = "${azurerm_resource_group.test.name}"
+	workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+	workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+	
+	plan {
+	  publisher      = "Microsoft"
+	  product        = "OMSGallery/Security"
+	}
+}
+`, rInt, location, rInt)
+}
