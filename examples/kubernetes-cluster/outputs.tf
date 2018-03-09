@@ -1,6 +1,5 @@
-
 output "id" {
-    value = "${azurerm_kubernetes_cluster.aks_container.id}"
+  value = "${azurerm_kubernetes_cluster.aks_container.id}"
 }
 
 output "client_key" {

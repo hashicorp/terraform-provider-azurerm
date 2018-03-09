@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"log"
 
@@ -10,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	yaml "gopkg.in/yaml.v2"
 )
 
 func resourceArmKubernetesCluster() *schema.Resource {
@@ -433,13 +432,10 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 
 func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.ManagedClusterAccessProfile) []interface{} {
 	if profile != nil {
-		accessProfile := profile.AccessProfile
-		if accessProfile != nil {
-			if accessProfile.KubeConfig != nil {
-				kubeConfig := getKubeConfig(accessProfile.KubeConfig)
-				if kubeConfig != nil {
-					kubeConfigFlat := flattenKubeConfig(kubeConfig)
-					return kubeConfigFlat
+		if accessProfile := profile.AccessProfile; accessProfile != nil {
+			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
+				if kubeConfig, err := kubernetes.ParseKubeConfig(kubeConfigRaw); err == nil && kubeConfig != nil {
+					return flattenKubeConfig(kubeConfig)
 				}
 			}
 		}
@@ -447,16 +443,18 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	return nil
 }
 
-func flattenKubeConfig(config *KubeConfig) []interface{} {
+func flattenKubeConfig(config *kubernetes.KubeConfig) []interface{} {
 	if config == nil {
 		return nil
 	}
 
 	profiles := make([]interface{}, 0)
 	values := make(map[string]interface{})
+
 	cluster := config.Clusters[0].Cluster
 	user := config.Users[0].User
 	name := config.Users[0].Name
+
 	values["host"] = cluster.Server
 	values["username"] = name
 	values["password"] = user.Token
@@ -556,74 +554,4 @@ func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) 
 	buf.WriteString(fmt.Sprintf("%s-", clientId))
 
 	return hashcode.String(buf.String())
-}
-
-func base64Decode(str string) (string, bool) {
-	data, err := base64.StdEncoding.DecodeString(str)
-	if err != nil {
-		return "", true
-	}
-	return string(data), false
-}
-
-func getKubeConfig(config *string) *KubeConfig {
-	if config == nil {
-		return nil
-	}
-
-	configStr, error := base64Decode(*config)
-	if error == false && configStr != "" {
-		log.Println(config)
-		var kubeConfig KubeConfig
-		err := yaml.Unmarshal([]byte(configStr), &kubeConfig)
-		if err == nil && len(kubeConfig.Clusters) > 0 && len(kubeConfig.Users) > 0 {
-			return &kubeConfig
-		}
-	}
-
-	return nil
-}
-
-//TODO: Hide these
-type ClusterItem struct {
-	Name    string  `yaml:"name"`
-	Cluster Cluster `yaml:"cluster"`
-}
-
-type Cluster struct {
-	ClusterAuthorityData string `yaml:"certificate-authority-data"`
-	Server               string `yaml:"server"`
-}
-
-type UserItem struct {
-	Name string `yaml:"name"`
-	User User   `yaml:"user"`
-}
-
-type User struct {
-	ClientCertificteData string `yaml:"client-certificate-data"`
-	Token                string `yaml:"token"`
-	ClientKeyData        string `yaml:"client-key-data"`
-}
-
-type ContextItem struct {
-	Name    string  `yaml:"name"`
-	Context Context `yaml:"context"`
-}
-
-type Context struct {
-	Cluster   string `yaml:"cluster"`
-	User      string `yaml:"user"`
-	Name      string `yaml:"name"`
-	Namespace string `yaml:"namespace,omitempty"`
-}
-
-type KubeConfig struct {
-	APIVersion     string                 `yaml:"apiVersion"`
-	Clusters       []ClusterItem          `yaml:"clusters"`
-	Users          []UserItem             `yaml:"users"`
-	Contexts       []ContextItem          `yaml:"contexts,omitempty"`
-	CurrentContext string                 `yaml:"current-context,omitempty"`
-	Kind           string                 `yaml:"kind,omitempty"`
-	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
 }

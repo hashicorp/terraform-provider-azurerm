@@ -53,6 +53,26 @@ resource "azurerm_kubernetes_cluster" "test" {
     Environment = "Production"
   }
 }
+
+output "id" {
+    value = "${azurerm_kubernetes_cluster.test.id}"
+}
+
+output "client_key" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_key}"
+}
+
+output "client_certificate" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_certificate}"
+}
+
+output "cluster_ca_certificate" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.cluster_ca_certificate}"
+}
+
+output "host" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.host}"
+}
 ```
 
 ## Argument Reference
@@ -108,17 +128,19 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
-* `kube_config.0.client_key` - Base64 encoded client key used to authenticate to the Kubernetes cluster
+* `kube_config` - Kubernetes configuration, sub-attributes defined below:
 
-* `kube_config.0.client_certificate` - Base64 encoded client certificate used to authenticate to the Kubernetes cluster
+  * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
 
-* `kube_config.0.cluster_ca_certificate` - Base64 encoded cluster CA certificate used to authenticate to the Kubernetes cluster
+  * `client_certificate` - Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.
 
-* `kube_config.0.host` - The Kubernetes cluster server host
+  * `cluster_ca_certificate` - Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.
 
-* `kube_config.0.username` - The username used to authenticate to the Kubernetes cluster
+  * `host` - The Kubernetes cluster server host.
 
-* `kube_config.0.password` - The password or token used to authenticate to the Kubernetes cluster
+  * `username` - A username used to authenticate to the Kubernetes cluster.
+
+  * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
 ## Import
 
