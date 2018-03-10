@@ -104,6 +104,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"azurerm_ad_application":                      resourceArmAdApplication(),
 			"azurerm_application_gateway":                 resourceArmApplicationGateway(),
 			"azurerm_application_insights":                resourceArmApplicationInsights(),
 			"azurerm_application_security_group":          resourceArmApplicationSecurityGroup(),
@@ -181,6 +182,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_subscription":             resourceArmServiceBusSubscription(),
 			"azurerm_servicebus_topic":                    resourceArmServiceBusTopic(),
 			"azurerm_servicebus_topic_authorization_rule": resourceArmServiceBusTopicAuthorizationRule(),
+			"azurerm_service_principal":                   resourceArmServicePrincipal(),
 			"azurerm_snapshot":                            resourceArmSnapshot(),
 			"azurerm_sql_database":                        resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":                     resourceArmSqlElasticPool(),
