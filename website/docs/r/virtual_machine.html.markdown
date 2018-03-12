@@ -412,6 +412,7 @@ resource "azurerm_virtual_machine" "test" {
 * `image_uri` - (Optional) Specifies the image_uri in the form publisherName:offer:skus:version. `image_uri` can also specify the [VHD uri](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-linux-cli-deploy-templates/#create-a-custom-vm-image) of a custom VM image to clone. When cloning a custom disk image the `os_type` documented below becomes required.
 * `os_type` - (Optional) Specifies the operating system Type, valid values are windows, linux.
 * `disk_size_gb` - (Optional) Specifies the size of the os disk in gigabytes.
+* `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the disk.
 
 `storage_data_disk` supports the following:
 
@@ -423,6 +424,7 @@ resource "azurerm_virtual_machine" "test" {
 * `disk_size_gb` - (Required) Specifies the size of the data disk in gigabytes.
 * `caching` - (Optional) Specifies the caching requirements.
 * `lun` - (Required) Specifies the logical unit number of the data disk.
+* `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the disk.
 
 `os_profile` supports the following:
 

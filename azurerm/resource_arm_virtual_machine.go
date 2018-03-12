@@ -293,6 +293,11 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+
+						"write_accelerator_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -971,6 +976,10 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk) interface{}
 		}
 		l["lun"] = *disk.Lun
 
+		if v := disk.WriteAcceleratorEnabled; v != nil {
+			l["write_accelerator_enabled"] = *disk.WriteAcceleratorEnabled
+		}
+
 		result[i] = l
 	}
 	return result
@@ -1359,9 +1368,12 @@ func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.Data
 			data_disk.Caching = compute.CachingTypes(v)
 		}
 
-		if v := config["disk_size_gb"]; v != nil {
-			diskSize := int32(config["disk_size_gb"].(int))
-			data_disk.DiskSizeGB = &diskSize
+		if v, ok := config["disk_size_gb"].(int); ok {
+			data_disk.DiskSizeGB = utils.Int32(int32(v))
+		}
+
+		if v, ok := config["write_accelerator_enabled"].(bool); ok {
+			data_disk.WriteAcceleratorEnabled = utils.Bool(v)
 		}
 
 		data_disks = append(data_disks, data_disk)
@@ -1508,8 +1520,7 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 	}
 
 	if v := config["disk_size_gb"].(int); v != 0 {
-		diskSize := int32(v)
-		osDisk.DiskSizeGB = &diskSize
+		osDisk.DiskSizeGB = utils.Int32(int32(v))
 	}
 
 	return osDisk, nil
