@@ -82,6 +82,8 @@ Each `origin` block supports fields documented below.
 
 * `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
 
+* `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The `origin` block supports:

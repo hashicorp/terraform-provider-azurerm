@@ -116,6 +116,27 @@ func TestAccAzureRMCdnEndpoint_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCdnEndpoint_optimized(t *testing.T) {
+	resourceName := "azurerm_cdn_endpoint.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMCdnEndpoint_optimized(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "optimization_type", "GeneralWebDelivery"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 	resourceName := "azurerm_cdn_endpoint.test"
 	ri := acctest.RandInt()
@@ -382,7 +403,7 @@ resource "azurerm_cdn_endpoint" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   is_http_allowed     = false
   is_https_allowed    = true
-  origin_path          = "/origin-path"
+  origin_path         = "/origin-path"
   probe_path          = "/origin-path/probe"
 
   origin {
@@ -402,6 +423,38 @@ resource "azurerm_cdn_endpoint" "test" {
     relative_path = "/some-other-endpoint"
     action = "Block"
     country_codes = [ "US" ]
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+func testAccAzureRMCdnEndpoint_optimized(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Verizon"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = "${azurerm_cdn_profile.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  is_http_allowed     = false
+  is_https_allowed    = true
+  optimization_type   = "GeneralWebDelivery"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
   }
 }
 `, rInt, location, rInt, rInt)

@@ -159,6 +159,19 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				},
 			},
 
+			"optimization_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.DynamicSiteAcceleration),
+					string(cdn.GeneralMediaStreaming),
+					string(cdn.GeneralWebDelivery),
+					string(cdn.LargeFileDownload),
+					string(cdn.VideoOnDemandMediaStreaming),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			// TODO: custom_domain within this resource?
 			// 	https://docs.microsoft.com/en-us/azure/templates/microsoft.cdn/profiles/endpoints/customdomains
 
@@ -189,6 +202,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	originHostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
+	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -211,6 +225,9 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		Tags: expandTags(tags),
 	}
 
+	if optimizationType != "" {
+		endpoint.EndpointProperties.OptimizationType = cdn.OptimizationType(optimizationType)
+	}
 	if originPath != "" {
 		endpoint.EndpointProperties.OriginPath = utils.String(originPath)
 	}
@@ -260,6 +277,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	hostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
+	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -281,6 +299,9 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		Tags: expandTags(tags),
 	}
 
+	if optimizationType != "" {
+		endpoint.EndpointPropertiesUpdateParameters.OptimizationType = cdn.OptimizationType(optimizationType)
+	}
 	if originPath != "" {
 		endpoint.EndpointPropertiesUpdateParameters.OriginPath = utils.String(originPath)
 	}
@@ -343,6 +364,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("origin_host_header", props.OriginHostHeader)
 		d.Set("origin_path", props.OriginPath)
 		d.Set("probe_path", props.ProbePath)
+		d.Set("optimization_type", string(props.OptimizationType))
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
