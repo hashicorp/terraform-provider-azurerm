@@ -135,6 +135,9 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
+	if name == "VirtualMachineContributor" {
+		name = "Virtual Machine Contributor"
+	}
 	filter := fmt.Sprintf("roleName eq '%s'", name)
 	roleDefinitions, err := client.List(ctx, "", filter)
 	if err != nil {
