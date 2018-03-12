@@ -29,6 +29,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
@@ -82,6 +83,7 @@ type ArmClient struct {
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
 	workspacesClient operationalinsights.WorkspacesClient
+	solutionsClient  operationsmanagement.SolutionsClient
 
 	redisClient               redis.Client
 	redisFirewallClient       redis.FirewallRuleClient
@@ -736,6 +738,10 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 	opwc := operationalinsights.NewWorkspacesClient(subscriptionId)
 	c.configureClient(&opwc.Client, auth)
 	c.workspacesClient = opwc
+
+	solutionsClient := operationsmanagement.NewSolutionsClient(subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
+	c.configureClient(&solutionsClient.Client, auth)
+	c.solutionsClient = solutionsClient
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
