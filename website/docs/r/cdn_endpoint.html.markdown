@@ -85,13 +85,13 @@ The following arguments are supported:
 
 The `origin` block supports:
 
-* `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under endpoint.
+* `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under endpoint. Changing this forces a new resource to be created.
 
-* `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string can be a domain name, Storage Account endpoint, Web App endpoint, IPv4 address or IPv6 address.
+* `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string can be a domain name, Storage Account endpoint, Web App endpoint, IPv4 address or IPv6 address. Changing this forces a new resource to be created.
 
-* `http_port` - (Optional) The HTTP port of the origin. Defaults to `80`.
+* `http_port` - (Optional) The HTTP port of the origin. Defaults to `80`. Changing this forces a new resource to be created.
 
-* `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`.
+* `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`. Changing this forces a new resource to be created.
 
 The `geo_filter` block supports:
 

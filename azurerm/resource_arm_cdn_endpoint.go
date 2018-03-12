@@ -1,12 +1,10 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -67,27 +65,30 @@ func resourceArmCdnEndpoint() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"host_name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"http_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							ForceNew: true,
 							Default:  80,
 						},
 
 						"https_port": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							ForceNew: true,
 							Default:  443,
 						},
 					},
 				},
-				Set: resourceArmCdnEndpointOriginHash,
 			},
 
 			"origin_path": {
@@ -499,17 +500,6 @@ func flattenAzureRMCdnEndpointContentTypes(input *[]string) []interface{} {
 	return output
 }
 
-func resourceArmCdnEndpointOriginHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["host_name"].(string)))
-
-	// TODO: can we remove this; and do we need a state migration?
-
-	return hashcode.String(buf.String())
-}
-
 func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedOrigin, error) {
 	configs := d.Get("origin").(*schema.Set).List()
 	origins := make([]cdn.DeepCreatedOrigin, 0)
@@ -543,8 +533,8 @@ func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedO
 	return origins, nil
 }
 
-func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0)
+func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []interface{} {
+	results := make([]interface{}, 0)
 
 	if list := input; list != nil {
 		for _, i := range *list {
