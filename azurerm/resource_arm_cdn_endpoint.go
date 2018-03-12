@@ -130,6 +130,38 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
+			"geo_filter": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"relative_path": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.Allow),
+								string(cdn.Block),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+						"country_codes": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			// TODO: custom_domain within this resource?
+			// 	https://docs.microsoft.com/en-us/azure/templates/microsoft.cdn/profiles/endpoints/customdomains
+
 			"host_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -157,25 +189,33 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	originHostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
+	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
 	tags := d.Get("tags").(map[string]interface{})
+
+	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
+	}
 
 	endpoint := cdn.Endpoint{
 		Location: &location,
 		EndpointProperties: &cdn.EndpointProperties{
+			ContentTypesToCompress:     &contentTypes,
+			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              &httpAllowed,
 			IsHTTPSAllowed:             &httpsAllowed,
 			IsCompressionEnabled:       &compressionEnabled,
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
-			OriginPath:                 utils.String(originPath),
-			ProbePath:                  utils.String(probePath),
-			//GeoFilters: []cdn.GeoFilter{{
-			//  Action: cdn.Allow || cdn.Block
-			//  CountryCodes: []string{}
-			//  RelativePath: ""
-			//}}
 		},
 		Tags: expandTags(tags),
+	}
+
+	if originPath != "" {
+		endpoint.EndpointProperties.OriginPath = utils.String(originPath)
+	}
+	if probePath != "" {
+		endpoint.EndpointProperties.ProbePath = utils.String(probePath)
 	}
 
 	origins, err := expandAzureRmCdnEndpointOrigins(d)
@@ -184,11 +224,6 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 	if len(origins) > 0 {
 		endpoint.EndpointProperties.Origins = &origins
-	}
-
-	if v, ok := d.GetOk("content_types_to_compress"); ok {
-		contentTypes := expandArmCdnEndpointContentTypesToCompress(v)
-		endpoint.EndpointProperties.ContentTypesToCompress = &contentTypes
 	}
 
 	future, err := client.Create(ctx, resourceGroup, profileName, name, endpoint)
@@ -225,25 +260,32 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	hostHeader := d.Get("origin_host_header").(string)
 	originPath := d.Get("origin_path").(string)
 	probePath := d.Get("probe_path").(string)
+	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
 	tags := d.Get("tags").(map[string]interface{})
+
+	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `geo_filter`: %s", err)
+	}
 
 	endpoint := cdn.EndpointUpdateParameters{
 		EndpointPropertiesUpdateParameters: &cdn.EndpointPropertiesUpdateParameters{
+			ContentTypesToCompress:     &contentTypes,
+			GeoFilters:                 geoFilters,
 			IsHTTPAllowed:              utils.Bool(httpAllowed),
 			IsHTTPSAllowed:             utils.Bool(httpsAllowed),
 			IsCompressionEnabled:       utils.Bool(compressionEnabled),
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(hostHeader),
-			OriginPath:                 utils.String(originPath),
-			ProbePath:                  utils.String(probePath),
 		},
 		Tags: expandTags(tags),
 	}
 
-	if d.HasChange("content_types_to_compress") {
-		v := d.Get("content_types_to_compress")
-		contentTypes := expandArmCdnEndpointContentTypesToCompress(v)
-		endpoint.EndpointPropertiesUpdateParameters.ContentTypesToCompress = &contentTypes
+	if originPath != "" {
+		endpoint.EndpointPropertiesUpdateParameters.OriginPath = utils.String(originPath)
+	}
+	if probePath != "" {
+		endpoint.EndpointPropertiesUpdateParameters.ProbePath = utils.String(probePath)
 	}
 
 	future, err := client.Update(ctx, resGroup, profileName, name, endpoint)
@@ -306,6 +348,12 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
 			return fmt.Errorf("Error flattening `content_types_to_compress`: %+v", err)
 		}
+
+		geoFilters := flattenCdnEndpointGeoFilters(props.GeoFilters)
+		if err := d.Set("geo_filter", geoFilters); err != nil {
+			return fmt.Errorf("Error flattening `geo_filter`: %+v", err)
+		}
+
 		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
 		if err := d.Set("origin", origins); err != nil {
 			return fmt.Errorf("Error flattening `origin`: %+v", err)
@@ -350,13 +398,86 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 
 	return nil
 }
-func expandArmCdnEndpointContentTypesToCompress(v interface{}) []string {
-	var contentTypes []string
-	inputContentTypes := v.(*schema.Set).List()
-	for _, ct := range inputContentTypes {
-		str := ct.(string)
-		contentTypes = append(contentTypes, str)
+
+func expandArmCdnEndpointGeoFilters(d *schema.ResourceData) (*[]cdn.GeoFilter, error) {
+	filters := make([]cdn.GeoFilter, 0)
+
+	inputFilters := d.Get("geo_filter").([]interface{})
+	if inputFilters != nil {
+		for _, v := range inputFilters {
+			input := v.(map[string]interface{})
+			action := input["action"].(string)
+			relativePath := input["relative_path"].(string)
+
+			inputCountryCodes := input["country_codes"].([]interface{})
+			countryCodes := make([]string, 0)
+
+			for _, v := range inputCountryCodes {
+				countryCode := v.(string)
+				countryCodes = append(countryCodes, countryCode)
+			}
+
+			filter := cdn.GeoFilter{
+				Action:       cdn.GeoFilterActions(action),
+				RelativePath: utils.String(relativePath),
+				CountryCodes: &countryCodes,
+			}
+			filters = append(filters, filter)
+		}
 	}
+
+	return &filters, nil
+}
+
+func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
+	results := make([]interface{}, 0)
+
+	if filters := input; filters != nil {
+		for _, filter := range *filters {
+			output := make(map[string]interface{}, 0)
+
+			output["action"] = string(filter.Action)
+			if path := filter.RelativePath; path != nil {
+				output["relative_path"] = *path
+			}
+
+			outputCodes := make([]interface{}, 0)
+			if codes := filter.CountryCodes; codes != nil {
+				for _, code := range *codes {
+					outputCodes = append(outputCodes, code)
+				}
+			}
+			output["country_codes"] = outputCodes
+
+			results = append(results, output)
+		}
+	}
+
+	return results
+}
+
+func expandArmCdnEndpointContentTypesToCompress(d *schema.ResourceData) []string {
+	results := make([]string, 0)
+	input := d.Get("content_types_to_compress").(*schema.Set).List()
+
+	for _, v := range input {
+		contentType := v.(string)
+		results = append(results, contentType)
+	}
+
+	return results
+}
+
+func flattenAzureRMCdnEndpointContentTypes(input *[]string) []interface{} {
+	output := make([]interface{}, 0)
+
+	if input != nil {
+		for _, v := range *input {
+			output = append(output, v)
+		}
+	}
+
+	return output
 }
 
 func resourceArmCdnEndpointOriginHash(v interface{}) int {
@@ -377,26 +498,24 @@ func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedO
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 
+		name := data["name"].(string)
 		hostName := data["host_name"].(string)
-		properties := cdn.DeepCreatedOriginProperties{
-			HostName: utils.String(hostName),
+
+		origin := cdn.DeepCreatedOrigin{
+			Name: utils.String(name),
+			DeepCreatedOriginProperties: &cdn.DeepCreatedOriginProperties{
+				HostName: utils.String(hostName),
+			},
 		}
 
 		if v, ok := data["https_port"]; ok {
 			port := v.(int)
-			properties.HTTPSPort = utils.Int32(int32(port))
+			origin.DeepCreatedOriginProperties.HTTPSPort = utils.Int32(int32(port))
 		}
 
 		if v, ok := data["http_port"]; ok {
 			port := v.(int)
-			properties.HTTPPort = utils.Int32(int32(port))
-		}
-
-		name := data["name"].(string)
-
-		origin := cdn.DeepCreatedOrigin{
-			Name: utils.String(name),
-			DeepCreatedOriginProperties: &properties,
+			origin.DeepCreatedOriginProperties.HTTPPort = utils.Int32(int32(port))
 		}
 
 		origins = append(origins, origin)
@@ -406,39 +525,31 @@ func expandAzureRmCdnEndpointOrigins(d *schema.ResourceData) ([]cdn.DeepCreatedO
 }
 
 func flattenAzureRMCdnEndpointOrigin(input *[]cdn.DeepCreatedOrigin) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+	results := make([]map[string]interface{}, 0)
 
 	if list := input; list != nil {
 		for _, i := range *list {
-			l := map[string]interface{}{}
+			output := map[string]interface{}{}
 
 			if name := i.Name; name != nil {
-				l["name"] = *name
+				output["name"] = *name
 			}
 
 			if props := i.DeepCreatedOriginProperties; props != nil {
 				if hostName := props.HostName; hostName != nil {
-					l["host_name"] = *hostName
+					output["host_name"] = *hostName
 				}
 				if port := props.HTTPPort; port != nil {
-					l["http_port"] = int(*port)
+					output["http_port"] = int(*port)
 				}
 				if port := props.HTTPSPort; port != nil {
-					l["https_port"] = int(*port)
+					output["https_port"] = int(*port)
 				}
 			}
 
-			result = append(result, l)
+			results = append(results, output)
 		}
 	}
 
-	return result
-}
-
-func flattenAzureRMCdnEndpointContentTypes(list *[]string) []interface{} {
-	vs := make([]interface{}, 0, len(*list))
-	for _, v := range *list {
-		vs = append(vs, v)
-	}
-	return vs
+	return results
 }

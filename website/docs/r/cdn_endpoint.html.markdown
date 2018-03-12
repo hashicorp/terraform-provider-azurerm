@@ -80,6 +80,8 @@ Each `origin` block supports fields documented below.
 
 * `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled. Defaults to false.
 
+* `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The `origin` block supports:
@@ -91,6 +93,14 @@ The `origin` block supports:
 * `http_port` - (Optional) The HTTP port of the origin. Defaults to `80`.
 
 * `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`.
+
+The `geo_filter` block supports:
+
+* `relative_path` - (Required) The relative path applicable to geo filter.
+
+* `action` - (Required) The Action of the Geo Filter. Possible values include `Allow` and `Block`.
+
+* `country_codes` - (Required) A List of two letter country codes (e.g. `US`, `GB`) to be associated with this Geo Filter.
 
 ## Attributes Reference
 
