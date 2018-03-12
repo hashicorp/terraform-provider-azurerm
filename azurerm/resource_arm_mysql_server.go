@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/arm/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -149,12 +149,13 @@ func resourceArmMySqlServer() *schema.Resource {
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mysqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLogin := d.Get("administrator_login").(string)
 	adminLoginPassword := d.Get("administrator_login_password").(string)
@@ -179,18 +180,22 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		Tags: expandTags(tags),
 	}
 
-	_, error := client.CreateOrUpdate(resGroup, name, properties, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Server %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read MySQL Server %q (resource group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -200,11 +205,12 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mysqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
@@ -225,18 +231,22 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 		Tags: expandTags(tags),
 	}
 
-	_, createErr := client.Update(resGroup, name, properties, make(chan struct{}))
-	err := <-createErr
+	future, err := client.Update(ctx, resourceGroup, name, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Server %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read MySQL Server %q (resource group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -246,26 +256,30 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mysqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	resp, err := client.Get(resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure MySQL Server %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	d.Set("resource_group_name", resourceGroup)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
@@ -286,18 +300,26 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).mysqlServersClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func expandMySQLServerSku(d *schema.ResourceData, storageMB int) *mysql.Sku {

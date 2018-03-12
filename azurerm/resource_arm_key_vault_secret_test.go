@@ -84,6 +84,7 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 
 func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_key_vault_secret" {
@@ -94,7 +95,7 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 
 		// get the latest version
-		resp, err := client.GetSecret(vaultBaseUrl, name, "")
+		resp, err := client.GetSecret(ctx, vaultBaseUrl, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -119,8 +120,9 @@ func testCheckAzureRMKeyVaultSecretExists(name string) resource.TestCheckFunc {
 		vaultBaseUrl := rs.Primary.Attributes["vault_uri"]
 
 		client := testAccProvider.Meta().(*ArmClient).keyVaultManagementClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.GetSecret(vaultBaseUrl, name, "")
+		resp, err := client.GetSecret(ctx, vaultBaseUrl, name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Key Vault Secret %q (resource group: %q) does not exist", name, vaultBaseUrl)

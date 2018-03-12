@@ -53,12 +53,13 @@ func dataSourceArmSubnet() *schema.Resource {
 
 func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).subnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	virtualNetworkName := d.Get("virtual_network_name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(resourceGroupName, virtualNetworkName, name, "")
+	resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, name, "")
 	if err != nil {
 		return fmt.Errorf("Error reading Subnet: %+v", err)
 	}

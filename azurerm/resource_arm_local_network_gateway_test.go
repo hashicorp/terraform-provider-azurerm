@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -49,6 +50,27 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 					testCheckAzureRMLocalNetworkGatewayDisappears(name),
 				),
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLocalNetworkGateway_tags(t *testing.T) {
+	resourceName := "azurerm_local_network_gateway.test"
+
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_tags(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "acctest"),
+				),
 			},
 		},
 	})
@@ -192,8 +214,9 @@ func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFu
 
 		// and finally, check that it exists on Azure:
 		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(resGrp, localNetName)
+		resp, err := client.Get(ctx, resGrp, localNetName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resGrp)
@@ -220,19 +243,23 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(name string) resource.TestChe
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
-		resGrp := id.ResourceGroup
+		resourceGroup := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
 		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		deleteResp, error := client.Delete(resGrp, localNetName, make(chan struct{}))
-		resp := <-deleteResp
-		err = <-error
+		future, err := client.Delete(ctx, resourceGroup, localNetName)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resGrp)
+			if response.WasNotFound(future.Response()) {
+				return fmt.Errorf("Local network gateway %q (resource group %q) does not exist on Azure.", localNetName, resourceGroup)
 			}
 			return fmt.Errorf("Error deleting the state of local network gateway %q: %+v", localNetName, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for deletion of the local network gateway %q to complete: %+v", localNetName, err)
 		}
 
 		return nil
@@ -250,10 +277,11 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 			return err
 		}
 		localNetName := id.Path["localNetworkGateways"]
-		resGrp := id.ResourceGroup
+		resourceGroup := id.ResourceGroup
 
 		client := testAccProvider.Meta().(*ArmClient).localNetConnClient
-		resp, err := client.Get(resGrp, localNetName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, localNetName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -282,6 +310,28 @@ resource "azurerm_local_network_gateway" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   gateway_address     = "127.0.0.1"
   address_space       = ["127.0.0.0/8"]
+}
+
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_tags(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/8"]
+
+  tags {
+    environment = "acctest"
+  }
 }
 
 `, rInt, location, rInt)

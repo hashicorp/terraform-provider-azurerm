@@ -35,7 +35,7 @@ func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 	preConfig := testAccAzureRMDnsZone_withTags(ri, location)
-	postConfig := testAccAzureRMDnsZone_withTagsUupdate(ri, location)
+	postConfig := testAccAzureRMDnsZone_withTagsUpdate(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -75,7 +75,8 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).zonesClient
-		resp, err := client.Get(resourceGroup, zoneName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			return fmt.Errorf("Bad: Get DNS zone: %+v", err)
 		}
@@ -90,6 +91,7 @@ func testCheckAzureRMDnsZoneExists(name string) resource.TestCheckFunc {
 
 func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).zonesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_dns_zone" {
@@ -99,7 +101,7 @@ func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
 		zoneName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(resourceGroup, zoneName)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return nil
@@ -139,14 +141,14 @@ resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
     tags {
-	environment = "Production"
-	cost_center = "MSFT"
+        environment = "Production"
+        cost_center = "MSFT"
     }
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMDnsZone_withTagsUupdate(rInt int, location string) string {
+func testAccAzureRMDnsZone_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
@@ -157,7 +159,7 @@ resource "azurerm_dns_zone" "test" {
     name = "acctestzone%d.com"
     resource_group_name = "${azurerm_resource_group.test.name}"
     tags {
-	environment = "staging"
+        environment = "staging"
     }
 }
 `, rInt, location, rInt)

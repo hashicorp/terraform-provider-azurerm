@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/automation"
+	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -104,10 +104,12 @@ func validateStartTime(v interface{}, k string) (ws []string, errors []error) {
 
 func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationScheduleClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	client.ResourceGroupName = resGroup
 
 	accName := d.Get("account_name").(string)
 	freqstr := d.Get("frequency").(string)
@@ -141,12 +143,12 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
-	_, err := client.CreateOrUpdate(resGroup, accName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, accName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, accName, name)
+	read, err := client.Get(ctx, accName, name)
 	if err != nil {
 		return err
 	}
@@ -162,15 +164,17 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationScheduleClient
+	ctx := meta.(*ArmClient).StopContext
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["schedules"]
 
-	resp, err := client.Get(resGroup, accName, name)
+	resp, err := client.Get(ctx, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -193,16 +197,18 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationScheduleClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
+	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["schedules"]
 
-	resp, err := client.Delete(resGroup, accName, name)
+	resp, err := client.Delete(ctx, accName, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {

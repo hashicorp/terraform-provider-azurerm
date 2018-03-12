@@ -4,57 +4,27 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/subscription"
 )
 
 func dataSourceArmSubscription() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmSubscriptionRead,
-		Schema: map[string]*schema.Schema{
-
-			"subscription_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"display_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"location_placement_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"quota_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"spending_limit": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-		},
+		Read:   dataSourceArmSubscriptionRead,
+		Schema: subscription.SubscriptionSchema(true),
 	}
 }
 
 func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	groupClient := client.subscriptionsGroupClient
+	groupClient := client.subscriptionsClient
+	ctx := client.StopContext
 
 	subscriptionId := d.Get("subscription_id").(string)
 	if subscriptionId == "" {
 		subscriptionId = client.subscriptionId
 	}
 
-	resp, err := groupClient.Get(subscriptionId)
+	resp, err := groupClient.Get(ctx, subscriptionId)
 	if err != nil {
 		return fmt.Errorf("Error reading subscription: %+v", err)
 	}

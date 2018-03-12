@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `route_table_id` - (Optional) The ID of the Route Table to associate with the subnet.
 
+* `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.Storage`, `Microsoft.Sql`.
+
 ## Attributes Reference
 
 The following attributes are exported:

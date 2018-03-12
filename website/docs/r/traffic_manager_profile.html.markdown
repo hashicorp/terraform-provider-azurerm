@@ -88,12 +88,12 @@ The `dns_config` block supports:
 
 The `monitor_config` block supports:
 
-* `http` - (Required) The protocol used by the monitoring checks, supported
-    values are `http` or `https`.
+* `protocol` - (Required) The protocol used by the monitoring checks, supported
+    values are `HTTP`, `HTTPS` and `TCP``.
 
 * `port` - (Required) The port number used by the monitoring checks.
 
-* `path` - (Required) The path used by the monitoring checks.
+* `path` - (Optional) The path used by the monitoring checks. Required when `protocol` is set to `HTTP` or `HTTPS` - cannot be set when `protocol` is set to `TCP`.
 
 ## Attributes Reference
 

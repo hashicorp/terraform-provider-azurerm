@@ -2,11 +2,12 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -80,8 +81,8 @@ func resourceArmVirtualNetwork() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	vnetClient := client.vnetClient
+	client := meta.(*ArmClient).vnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
 
@@ -89,7 +90,7 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	vnetProperties, vnetPropsErr := getVirtualNetworkProperties(d, meta)
+	vnetProperties, vnetPropsErr := getVirtualNetworkProperties(ctx, d, meta)
 	if vnetPropsErr != nil {
 		return vnetPropsErr
 	}
@@ -118,18 +119,22 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 	azureRMLockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 	defer azureRMUnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 
-	_, error := vnetClient.CreateOrUpdate(resGroup, name, vnet, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, vnet)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Creating/Updating Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := vnetClient.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for completion of Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Virtual Network %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Virtual Network %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -138,7 +143,8 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	vnetClient := meta.(*ArmClient).vnetClient
+	client := meta.(*ArmClient).vnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -147,13 +153,13 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualNetworks"]
 
-	resp, err := vnetClient.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure virtual network %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	vnet := *resp.VirtualNetworkPropertiesFormat
@@ -161,8 +167,11 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 	// update appropriate values
 	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("address_space", vnet.AddressSpace.AddressPrefixes)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	subnets := &schema.Set{
 		F: resourceAzureSubnetHash,
@@ -195,7 +204,8 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	vnetClient := meta.(*ArmClient).vnetClient
+	client := meta.(*ArmClient).vnetClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -212,13 +222,20 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 	azureRMLockMultipleByName(&nsgNames, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(&nsgNames, virtualNetworkResourceName)
 
-	_, error := vnetClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
+	}
 
-	return err
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for deletion of Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	return nil
 }
 
-func getVirtualNetworkProperties(d *schema.ResourceData, meta interface{}) (*network.VirtualNetworkPropertiesFormat, error) {
+func getVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData, meta interface{}) (*network.VirtualNetworkPropertiesFormat, error) {
 	// first; get address space prefixes:
 	prefixes := []string{}
 	for _, prefix := range d.Get("address_space").([]interface{}) {
@@ -243,7 +260,7 @@ func getVirtualNetworkProperties(d *schema.ResourceData, meta interface{}) (*net
 			// do a GET on subnet properties from the server before setting them
 			resGroup := d.Get("resource_group_name").(string)
 			vnetName := d.Get("name").(string)
-			subnetObj, err := getExistingSubnet(resGroup, vnetName, name, meta)
+			subnetObj, err := getExistingSubnet(ctx, resGroup, vnetName, name, meta)
 			if err != nil {
 				return nil, err
 			}
@@ -296,11 +313,11 @@ func resourceAzureSubnetHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func getExistingSubnet(resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
+func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
 	//attempt to retrieve existing subnet from the server
 	existingSubnet := network.Subnet{}
 	subnetClient := meta.(*ArmClient).subnetClient
-	resp, err := subnetClient.Get(resGroup, vnetName, subnetName, "")
+	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
 
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {

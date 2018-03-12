@@ -50,6 +50,8 @@ The following arguments are supported:
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below containing the
     Local Network Gateway's BGP speaker settings.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 `bgp_settings` supports the following:

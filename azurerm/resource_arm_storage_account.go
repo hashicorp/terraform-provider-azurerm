@@ -5,10 +5,8 @@ import (
 	"log"
 	"regexp"
 	"strings"
-	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/storage"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2017-10-01/storage"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -47,6 +45,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.StorageV2),
 				}, true),
 				Default: string(storage.Storage),
 			},
@@ -198,6 +197,16 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_connection_string": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_connection_string": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_blob_connection_string": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -215,8 +224,7 @@ func resourceArmStorageAccount() *schema.Resource {
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	storageClient := client.storageServiceClient
+	client := meta.(*ArmClient).storageServiceClient
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("name").(string)
@@ -261,12 +269,15 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
 
-	// AccessTier is only valid for BlobStorage accounts
+	// BlobStorage does not support ZRS
 	if accountKind == string(storage.BlobStorage) {
 		if string(parameters.Sku.Name) == string(storage.StandardZRS) {
 			return fmt.Errorf("A `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts.")
 		}
+	}
 
+	// AccessTier is only valid for BlobStorage and StorageV2 accounts
+	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) {
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
@@ -277,47 +288,21 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Create
-	_, createError := storageClient.Create(resourceGroupName, storageAccountName, parameters, make(chan struct{}))
-	createErr := <-createError
+	ctx := meta.(*ArmClient).StopContext
+	createFuture, createErr := client.Create(resourceGroupName, storageAccountName, parameters, ctx.Done())
 
-	// The only way to get the ID back apparently is to read the resource again
-	read, err := storageClient.GetProperties(resourceGroupName, storageAccountName)
-
-	// Set the ID right away if we have one
-	if err == nil && read.ID != nil {
-		log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *read.ID)
-		d.SetId(*read.ID)
-	}
-
-	// If we had a create error earlier then we return with that error now.
-	// We do this later here so that we can grab the ID above is possible.
-	if createErr != nil {
+	select {
+	case err := <-createErr:
 		return fmt.Errorf(
 			"Error creating Azure Storage Account %q: %+v",
-			storageAccountName, createErr)
-	}
-
-	// Check the read error now that we know it would exist without a create err
-	if err != nil {
-		return err
-	}
-
-	// If we got no ID then the resource group doesn't yet exist
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Storage Account %q (resource group %q) ID",
-			storageAccountName, resourceGroupName)
-	}
-
-	log.Printf("[DEBUG] Waiting for Storage Account (%s) to become available", storageAccountName)
-	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating"},
-		Target:     []string{"Succeeded"},
-		Refresh:    storageAccountStateRefreshFunc(client, resourceGroupName, storageAccountName),
-		Timeout:    30 * time.Minute,
-		MinTimeout: 15 * time.Second,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Storage Account (%s) to become available: %s", storageAccountName, err)
+			storageAccountName, err)
+	case account := <-createFuture:
+		if account.ID == nil {
+			return fmt.Errorf("Cannot read Storage Account %q (resource group %q) ID",
+				storageAccountName, resourceGroupName)
+		}
+		log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
+		d.SetId(*account.ID)
 	}
 
 	return resourceArmStorageAccountRead(d, meta)
@@ -466,6 +451,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).storageServiceClient
+	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -525,6 +511,16 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		// Computed
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
+
+		if len(accessKeys) > 0 {
+			pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[0].Value, endpointSuffix)
+			d.Set("primary_connection_string", pcs)
+		}
+
+		if len(accessKeys) > 1 {
+			scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[1].Value, endpointSuffix)
+			d.Set("secondary_connection_string", scs)
+		}
 
 		if endpoints := props.PrimaryEndpoints; endpoints != nil {
 			d.Set("primary_blob_endpoint", endpoints.Blob)
@@ -590,6 +586,12 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 
 func expandStorageAccountCustomDomain(d *schema.ResourceData) *storage.CustomDomain {
 	domains := d.Get("custom_domain").([]interface{})
+	if domains == nil || len(domains) == 0 {
+		return &storage.CustomDomain{
+			Name: utils.String(""),
+		}
+	}
+
 	domain := domains[0].(map[string]interface{})
 	name := domain["name"].(string)
 	useSubDomain := domain["use_subdomain"].(bool)
@@ -632,15 +634,4 @@ func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []e
 
 	es = append(es, fmt.Errorf("Invalid storage account type %q", input))
 	return
-}
-
-func storageAccountStateRefreshFunc(client *ArmClient, resourceGroupName string, storageAccountName string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.storageServiceClient.GetProperties(resourceGroupName, storageAccountName)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error issuing read request in storageAccountStateRefreshFunc to Azure ARM for Storage Account '%s' (RG: '%s'): %s", storageAccountName, resourceGroupName, err)
-		}
-
-		return res, string(res.AccountProperties.ProvisioningState), nil
-	}
 }

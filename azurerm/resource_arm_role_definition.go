@@ -5,7 +5,7 @@ import (
 
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -79,6 +79,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
 	name := d.Get("name").(string)
@@ -98,12 +99,12 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	_, err := client.CreateOrUpdate(scope, roleDefinitionId, properties)
+	_, err := client.CreateOrUpdate(ctx, scope, roleDefinitionId, properties)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(scope, roleDefinitionId)
+	read, err := client.Get(ctx, scope, roleDefinitionId)
 	if err != nil {
 		return err
 	}
@@ -117,8 +118,9 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resp, err := client.GetByID(d.Id())
+	resp, err := client.GetByID(ctx, d.Id())
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Role Definition %q was not found - removing from state", d.Id())
@@ -149,11 +151,12 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).roleDefinitionsClient
+	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
 	scope := d.Get("scope").(string)
 
-	resp, err := client.Delete(scope, roleDefinitionId)
+	resp, err := client.Delete(ctx, scope, roleDefinitionId)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil
