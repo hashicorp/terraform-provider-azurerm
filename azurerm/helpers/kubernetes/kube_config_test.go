@@ -1,17 +1,20 @@
 package kubernetes
 
 import (
+	"encoding/base64"
+	"io/ioutil"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
 
 func TestParseKubeConfig(t *testing.T) {
 	testCases := []struct {
-		encoded  string
-		expected KubeConfig
+		sourceFile string
+		expected   KubeConfig
 	}{
 		{
-			`YXBpVmVyc2lvbjogdjEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIHNlcnZlcjogaHR0cHM6Ly90ZXN0Y2x1c3Rlci5uZXQ6ODA4MAogIG5hbWU6IHRlc3QtY2x1c3Rlcgp1c2VyczoKLSBuYW1lOiB0ZXN0LXVzZXIKICB1c2VyOgogICAgdG9rZW46IHRlc3QtdG9rZW4Ka2luZDogQ29uZmln`,
+			"user_token_valid.yml",
 			KubeConfig{
 				APIVersion: "v1",
 				Clusters: []clusterItem{
@@ -31,9 +34,10 @@ func TestParseKubeConfig(t *testing.T) {
 					},
 				},
 				Kind: "Config",
-			}},
+			},
+		},
 		{
-			`YXBpVmVyc2lvbjogdjEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIGNlcnRpZmljYXRlLWF1dGhvcml0eS1kYXRhOiB0ZXN0LWNsdXN0ZXItYXV0aG9yaXR5LWRhdGEKICAgIHNlcnZlcjogaHR0cHM6Ly90ZXN0Y2x1c3Rlci5vcmc6NDQzCiAgbmFtZTogdGVzdC1jbHVzdGVyCmNvbnRleHRzOgotIGNvbnRleHQ6CiAgICBjbHVzdGVyOiB0ZXN0LWNsdXN0ZXIKICAgIHVzZXI6IHRlc3QtdXNlcgogICAgbmFtZXNwYWNlOiB0ZXN0LW5hbWVzcGFjZQogIG5hbWU6IHRlc3QtY2x1c3RlcgpjdXJyZW50LWNvbnRleHQ6IHRlc3QtY2x1c3Rlcgp1c2VyczoKLSBuYW1lOiB0ZXN0LXVzZXIKICB1c2VyOgogICAgY2xpZW50LWNlcnRpZmljYXRlLWRhdGE6IHRlc3QtY2xpZW50LWNlcnRpZmljYXRlLWRhdGEKICAgIGNsaWVudC1rZXktZGF0YTogdGVzdC1jbGllbnQta2V5LWRhdGEKa2luZDogQ29uZmln`,
+			"user_certs_valid.yml",
 			KubeConfig{
 				APIVersion: "v1",
 				Clusters: []clusterItem{
@@ -67,9 +71,10 @@ func TestParseKubeConfig(t *testing.T) {
 				CurrentContext: "test-cluster",
 				Kind:           "Config",
 				Preferences:    nil,
-			}},
+			},
+		},
 		{
-			`YXBpVmVyc2lvbjogdjEKY2x1c3RlcnM6Ci0gY2x1c3RlcjoKICAgIGNlcnRpZmljYXRlLWF1dGhvcml0eS1kYXRhOiB0ZXN0LWNsdXN0ZXItYXV0aG9yaXR5LWRhdGEKICAgIHNlcnZlcjogaHR0cHM6Ly90ZXN0Y2x1c3Rlci5vcmc6NDQzCiAgbmFtZTogdGVzdC1jbHVzdGVyCmNvbnRleHRzOgotIGNvbnRleHQ6CiAgICBjbHVzdGVyOiB0ZXN0LWNsdXN0ZXIKICAgIHVzZXI6IHRlc3QtdXNlcgogICAgbmFtZXNwYWNlOiB0ZXN0LW5hbWVzcGFjZQogIG5hbWU6IHRlc3QtY2x1c3RlcgpjdXJyZW50LWNvbnRleHQ6IHRlc3QtY2x1c3Rlcgp1c2VyczoKLSBuYW1lOiB0ZXN0LXVzZXIKICB1c2VyOgogICAgY2xpZW50LWNlcnRpZmljYXRlLWRhdGE6IHRlc3QtY2xpZW50LWNlcnRpZmljYXRlLWRhdGEKICAgIGNsaWVudC1rZXktZGF0YTogdGVzdC1jbGllbnQta2V5LWRhdGEKICAgIHRva2VuOiB0ZXN0LXRva2VuCmtpbmQ6IENvbmZpZwpwcmVmZXJlbmNlczoKICBjb2xvcnM6IHRydWU=`,
+			"user_both_valid.yml",
 			KubeConfig{
 				APIVersion: "v1",
 				Clusters: []clusterItem{
@@ -106,18 +111,33 @@ func TestParseKubeConfig(t *testing.T) {
 				Preferences: map[string]interface{}{
 					"colors": true,
 				},
-			}},
+			},
+		},
 	}
 
 	for i, test := range testCases {
-		result, err := ParseKubeConfig(&test.encoded)
+		encodedConfig := LoadConfig(test.sourceFile)
+		if len(encodedConfig) <= 0 {
+			t.Fatalf("Test case [%d]: Failed to read config from file %+v",
+				i, test.sourceFile)
+		}
+		result, err := ParseKubeConfig(&encodedConfig)
 		if err != nil {
-			t.Fatalf("Error thrown calling ParseKubeConfig in test case %d error: '%+v'",
+			t.Fatalf("Test case [%d]: Error thrown calling ParseKubeConfig error: '%+v'",
 				i, err)
 		}
 		if !reflect.DeepEqual(test.expected, *result) {
 			t.Fatalf("Test case [%d]: Expected '%+v' for config '%+v' - got '%+v'",
-				i, test.expected, test.encoded, *result)
+				i, test.expected, encodedConfig, *result)
 		}
 	}
+}
+
+func LoadConfig(fileName string) string {
+	filePath := filepath.Join("testdata", fileName)
+	bytes, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(bytes)
 }
