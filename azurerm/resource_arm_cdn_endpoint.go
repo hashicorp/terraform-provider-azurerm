@@ -172,9 +172,6 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			// TODO: custom_domain within this resource?
-			// 	https://docs.microsoft.com/en-us/azure/templates/microsoft.cdn/profiles/endpoints/customdomains
-
 			"host_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -264,7 +261,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
+	endpointsClient := meta.(*ArmClient).cdnEndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -309,12 +306,12 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		endpoint.EndpointPropertiesUpdateParameters.ProbePath = utils.String(probePath)
 	}
 
-	future, err := client.Update(ctx, resGroup, profileName, name, endpoint)
+	future, err := endpointsClient.Update(ctx, resGroup, profileName, name, endpoint)
 	if err != nil {
 		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletion(ctx, endpointsClient.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resGroup, err)
 	}
