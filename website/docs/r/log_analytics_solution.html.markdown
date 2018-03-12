@@ -73,3 +73,12 @@ A `plan` block includes:
 * `product` - (Required) The product name of the solution. For example `OMSGallery/Containers`. Changing this forces a new resource to be created.
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution.
+
+
+## Import
+
+Log Analytics Solutions can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_log_analytics_solution.solution1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationsManagement/solutions/solution1
+```
