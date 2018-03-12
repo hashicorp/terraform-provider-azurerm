@@ -6,6 +6,7 @@ FEATURES:
 * **New Data Source:** `azurerm_network_interface` [GH-854]
 * **New Data Source:** `azurerm_public_ips` [GH-304]
 * **New Data Source:** `azurerm_subscriptions` [GH-940]
+* **New Resource:** `azurerm_log_analytics_solution` [GH-952]
 * **New Resource:** `azurerm_sql_active_directory_administrator` [GH-765]
 
 BUG FIXES:
