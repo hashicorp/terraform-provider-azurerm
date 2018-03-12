@@ -51,38 +51,35 @@ resource "azurerm_cdn_endpoint" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CDN Endpoint. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the CDN Endpoint.
+* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint.
 
 * `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins. Defaults to the host name of the origin.
-
 * `is_http_allowed` - (Optional) Defaults to `true`.
 
 * `is_https_allowed` - (Optional) Defaults to `true`.
 
-* `origin` - (Optional) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options.
-Each `origin` block supports fields documented below.
+* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
+
+* `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
+
+* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled. Defaults to false.
+
+* `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. Defaults to `IgnoreQueryString`.
+
+* `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
+
+* `origin` - (Optional) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below.
+
+* `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins. Defaults to the host name of the origin.
 
 * `origin_path` - (Optional) The path used at for origin requests.
 
 * `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
-
-* `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. Defaults to `IgnoreQueryString`.
-
-* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
-
-* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled. Defaults to false.
-
-* `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
-
-* `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
