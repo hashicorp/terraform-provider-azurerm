@@ -174,6 +174,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"vhd_uri": {
@@ -246,6 +247,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"vhd_uri": {
