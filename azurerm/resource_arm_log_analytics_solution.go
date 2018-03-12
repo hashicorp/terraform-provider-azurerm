@@ -68,15 +68,10 @@ func resourceArmLogAnalyticsSolution() *schema.Resource {
 			},
 
 			"workspace_resource_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if strings.ToLower(old) == strings.ToLower(new) {
-						return true
-					}
-					return false
-				},
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 		},
 	}
@@ -221,7 +216,7 @@ func flattenAzureRmLogAnalyticsSolutionPlan(plan operationsmanagement.SolutionPl
 	plans := make([]interface{}, 0)
 	values := make(map[string]interface{})
 
-	values["name"] = plan.Name
+	values["name"] = *plan.Name
 	values["product"] = *plan.Product
 	values["promotion_code"] = *plan.PromotionCode
 	values["publisher"] = *plan.Publisher

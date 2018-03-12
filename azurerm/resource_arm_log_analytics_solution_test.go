@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMLogAnalyticsSolution_basic_containerMonitoring(t *testing.T) {
+func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_containerMonitoring(ri, testLocation())
 
@@ -28,7 +28,7 @@ func TestAccAzureRMLogAnalyticsSolution_basic_containerMonitoring(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMLogAnalyticsSolution_basic_security(t *testing.T) {
+func TestAccAzureRMLogAnalyticsSolution_basicSecurity(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsSolution_security(ri, testLocation())
 
@@ -83,7 +83,7 @@ func testCheckAzureRMLogAnalyticsSolutionExists(name string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: '%s'", name)
+			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: %q", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).solutionsClient
@@ -95,7 +95,7 @@ func testCheckAzureRMLogAnalyticsSolutionExists(name string) resource.TestCheckF
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Solutions '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Log Analytics Solutions %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -105,28 +105,28 @@ func testCheckAzureRMLogAnalyticsSolutionExists(name string) resource.TestCheckF
 func testAccAzureRMLogAnalyticsSolution_containerMonitoring(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "oms-acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
   
 resource "azurerm_log_analytics_workspace" "test" {
-	name                = "acctest-dep-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku                 = "Free"
+  name                = "acctest-dep-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Free"
 }
   
 resource "azurerm_log_analytics_solution" "test" {
-	solution_name         = "Containers"
-	location              = "${azurerm_resource_group.test.location}"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-	workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
-	
-	plan {
-	  publisher      = "Microsoft"
-	  product        = "OMSGallery/Containers"
-	}
+  solution_name         = "Containers"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher      = "Microsoft"
+    product        = "OMSGallery/Containers"
+  }
 }
 `, rInt, location, rInt)
 }
@@ -134,28 +134,28 @@ resource "azurerm_log_analytics_solution" "test" {
 func testAccAzureRMLogAnalyticsSolution_security(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "oms-acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
-  
+
 resource "azurerm_log_analytics_workspace" "test" {
-	name                = "acctest-dep-%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	sku                 = "Free"
+  name                = "acctest-dep-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Free"
 }
-  
+
 resource "azurerm_log_analytics_solution" "test" {
-	solution_name         = "Security"
-	location              = "${azurerm_resource_group.test.location}"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-	workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
-	
-	plan {
-	  publisher      = "Microsoft"
-	  product        = "OMSGallery/Security"
-	}
+  solution_name         = "Security"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher      = "Microsoft"
+    product        = "OMSGallery/Security"
+  }
 }
 `, rInt, location, rInt)
 }
