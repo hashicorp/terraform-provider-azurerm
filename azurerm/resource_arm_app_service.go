@@ -39,6 +39,7 @@ func resourceArmAppService() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: reusable schema
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -248,20 +249,20 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"source_control": {
 				Type:     schema.TypeList,
-				Optional: true,
 				Computed: true,
 				MaxItems: 1,
-				Elem: map[string]*schema.Schema{
-					"repo_url": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-					"branch": {
-						Type:     schema.TypeString,
-						Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"repo_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"branch": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -637,24 +638,24 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 }
 
 func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
-
 	if input == nil {
 		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
-		return results
+		return []interface{}{}
 	}
 
-	if input.RepoURL != nil {
-		result["repo_url"] = *input.RepoURL
+	if input.RepoURL == nil {
+		return []interface{}{}
 	}
 
-	if input.Branch != nil {
-		result["branch"] = *input.Branch
+	result := make(map[string]interface{}, 0)
+	if repoUrl := input.RepoURL; repoUrl != nil {
+		result["repo_url"] = *repoUrl
+	}
+	if branch := input.Branch; branch != nil {
+		result["branch"] = *branch
 	}
 
-	results = append(results, result)
-	return results
+	return []interface{}{result}
 }
 
 func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
