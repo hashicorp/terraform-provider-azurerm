@@ -8,6 +8,7 @@ FEATURES:
 * **New Data Source:** `azurerm_subscriptions` [GH-940]
 * **New Resource:** `azurerm_log_analytics_solution` [GH-952]
 * **New Resource:** `azurerm_sql_active_directory_administrator` [GH-765]
+* **New Resource:** `azurerm_scheduler_job_collection` [GH-963]
 
 BUG FIXES:
 
