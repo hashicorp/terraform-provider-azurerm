@@ -14,7 +14,6 @@ BUG FIXES:
 * `azurerm_application_gateway` - fixes a crash where `ssl_policy` isn't returned from the Azure API when importing existing resources [GH-935]
 * `azurerm_app_service` - supporting `client_affinity_enabled` being `false` [GH-973]
 * `azurerm_kubernetes_cluster` - exporting the FQDN [GH-907]
-* `azurerm_virtual_machine` - changing the storage_os_disk or storage_data_disk fields now force a new resource [GH-965]
 
 IMPROVEMENTS:
 
