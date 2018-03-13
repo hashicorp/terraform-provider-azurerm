@@ -26,8 +26,8 @@ resource "azurerm_scheduler_job_collection" "jobs" {
     state               = "enabled"
 
     quota {
-        max_job_count       = 5
-        max_retry_interval  = 24
+        max_job_count            = 5
+        max_retry_interval       = 24
         max_recurrence_frequency = "hour"
     }
 }
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `sku` - (Required) Sets the Job Collection's pricing level's SKU. Possible values include: `Standard`, `Free`, `P10Premium`, `P20Premium`.
 
-* `state` - (Optional) Sets Job Collection's state. Possible values include: `Enabled`, `Disabled`, `Suspended`, `Deleted`.
+* `state` - (Optional) Sets Job Collection's state. Possible values include: `Enabled`, `Disabled`, `Suspended`.
 
 * `quota` - (Optional) Configures the Job collection quotas as documented in the `quota` block below. 
 
