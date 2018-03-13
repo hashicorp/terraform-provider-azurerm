@@ -57,6 +57,53 @@ func resourceArmSqlDatabase() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
+			"database_import": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"storage_key": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"storage_key_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"StorageAccessKey", "SharedAccessKey",
+							}, true),
+						},
+						"administrator_login": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"administrator_login_password": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"authentication_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SQL", "ADPassword",
+							}, true),
+						},
+						"operation_mode": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Import",
+							}, true),
+						},
+					},
+				},
+			},
+
 			"source_database_id": {
 				Type:     schema.TypeString,
 				Optional: true,
