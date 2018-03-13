@@ -338,14 +338,14 @@ The following arguments are supported:
     create the virtual machine.
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 * `plan` - (Optional) A plan block as documented below.
-* `availability_set_id` - (Optional) The Id of the Availability Set in which to create the virtual machine. Changing this forces a new resource to be created.
+* `availability_set_id` - (Optional) The Id of the Availability Set in which to create the virtual machine
 * `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
 * `vm_size` - (Required) Specifies the [size of the virtual machine](https://azure.microsoft.com/en-us/documentation/articles/virtual-machines-size-specs/).
-* `storage_image_reference` - (Optional) A Storage Image Reference block as documented below. Changing this forces a new resource to be created.
+* `storage_image_reference` - (Optional) A Storage Image Reference block as documented below.
 * `storage_os_disk` - (Required) A Storage OS Disk block as referenced below.
-* `delete_os_disk_on_termination` - (Optional) Flag to enable deletion of the OS disk VHD blob or managed disk when the VM is deleted, defaults to `false`.
+* `delete_os_disk_on_termination` - (Optional) Flag to enable deletion of the OS disk VHD blob or managed disk when the VM is deleted, defaults to `false`
 * `storage_data_disk` - (Optional) A list of Storage Data disk blocks as referenced below.
-* `delete_data_disks_on_termination` - (Optional) Flag to enable deletion of storage data disk VHD blobs or managed disks when the VM is deleted, defaults to `false`.
+* `delete_data_disks_on_termination` - (Optional) Flag to enable deletion of storage data disk VHD blobs or managed disks when the VM is deleted, defaults to `false`
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 * `identity` - (Optional) An identity block as documented below.
 
@@ -403,7 +403,7 @@ resource "azurerm_virtual_machine" "test" {
 
 `storage_os_disk` supports the following:
 
-* `name` - (Required) Specifies the disk name. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the disk name.
 * `vhd_uri` - (Optional) Specifies the vhd uri. Changing this forces a new resource to be created. Cannot be used with managed disks.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS` or `Premium_LRS`. Cannot be used when `vhd_uri` is specified.
 * `managed_disk_id` - (Optional) Specifies an existing managed disk to use by id. Can only be used when `create_option` is `Attach`. Cannot be used when `vhd_uri` is specified.
@@ -415,7 +415,7 @@ resource "azurerm_virtual_machine" "test" {
 
 `storage_data_disk` supports the following:
 
-* `name` - (Required) Specifies the name of the data disk. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the data disk.
 * `vhd_uri` - (Optional) Specifies the uri of the location in storage where the vhd for the virtual machine should be placed. Cannot be used with managed disks.
 * `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS` or `Premium_LRS`. Cannot be used when `vhd_uri` is specified.
 * `managed_disk_id` - (Optional) Specifies an existing managed disk to use by id. Can only be used when `create_option` is `Attach`. Cannot be used when `vhd_uri` is specified.
@@ -426,10 +426,10 @@ resource "azurerm_virtual_machine" "test" {
 
 `os_profile` supports the following:
 
-* `computer_name` - (Required) Specifies the name of the virtual machine. Changing this forces a new resource to be created.
+* `computer_name` - (Required) Specifies the name of the virtual machine.
 * `admin_username` - (Required) Specifies the name of the administrator account.
 * `admin_password` - (Required for Windows, Optional for Linux) Specifies the password of the administrator account.
-* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes. Changing this forces a new resource to be created.
+* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 ~> **NOTE:** `admin_password` must be between 6-72 characters long and must satisfy at least 3 of password complexity requirements from the following:
 1. Contains an uppercase character
