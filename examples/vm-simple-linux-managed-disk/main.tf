@@ -84,7 +84,7 @@ resource "azurerm_virtual_machine" "vm" {
   }
 
   storage_data_disk {
-    name              = "${azurerm_managed_disk.datadisk.name}"
+    name              = "${var.hostname}-datadisk"
     managed_disk_id   = "${azurerm_managed_disk.datadisk.id}"
     managed_disk_type = "Standard_LRS"
     disk_size_gb      = "1023"
