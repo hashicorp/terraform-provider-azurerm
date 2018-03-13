@@ -9,12 +9,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlVnetRule() *schema.Resource {
+func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlVnetRuleCreateUpdate,
-		Read:   resourceArmSqlVnetRuleRead,
-		Update: resourceArmSqlVnetRuleCreateUpdate,
-		Delete: resourceArmSqlVnetRuleDelete,
+		Create: resourceArmSqlVirtualNetworkRuleCreateUpdate,
+		Read:   resourceArmSqlVirtualNetworkRuleRead,
+		Update: resourceArmSqlVirtualNetworkRuleCreateUpdate,
+		Delete: resourceArmSqlVirtualNetworkRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,8 +49,8 @@ func resourceArmSqlVnetRule() *schema.Resource {
 	}
 }
 
-func resourceArmSqlVnetRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlVnetRulesClient
+func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).sqlVirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -59,10 +59,10 @@ func resourceArmSqlVnetRuleCreateUpdate(d *schema.ResourceData, meta interface{}
 	virtualNetworkSubnetId := d.Get("virtual_network_subnet_id").(string)
 	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
 
-	parameters := sql.VnetRule{
-		VnetRuleProperties: &sql.VnetRuleProperties{
-			virtualNetworkSubnetId: utils.String(virtualNetworkSubnetId),
-			ignoreMissingVnetServiceEndpoint: utils.String(ignoreMissingVnetServiceEndpoint),
+	parameters := sql.VirtualNetworkRule{
+		VirtualNetworkRuleProperties: &sql.VirtualNetworkRuleProperties{
+			VirtualNetworkSubnetID:           utils.String(virtualNetworkSubnetId),
+			IgnoreMissingVnetServiceEndpoint: utils.Bool(ignoreMissingVnetServiceEndpoint),
 		},
 	}
 
@@ -78,11 +78,11 @@ func resourceArmSqlVnetRuleCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSqlVnetRuleRead(d, meta)
+	return resourceArmSqlVirtualNetworkRuleRead(d, meta)
 }
 
-func resourceArmSqlVnetRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlVnetRulesClient
+func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).sqlVirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -108,14 +108,14 @@ func resourceArmSqlVnetRuleRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("server_name", serverName)
-	d.Set("virtual_network_subnet_id", resp.virtualNetworkSubnetId)
-	d.Set("ignore_missing_vnet_service_endpoint", resp.ignoreMissingVnetServiceEndpoint)
+	d.Set("virtual_network_subnet_id", resp.VirtualNetworkSubnetID)
+	d.Set("ignore_missing_vnet_service_endpoint", resp.IgnoreMissingVnetServiceEndpoint)
 
 	return nil
 }
 
-func resourceArmSqlVnetRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlVnetRulesClient
+func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).sqlVirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -127,13 +127,14 @@ func resourceArmSqlVnetRuleDelete(d *schema.ResourceData, meta interface{}) erro
 	serverName := id.Path["servers"]
 	name := id.Path["virtualNetworkRules"]
 
-	resp, err := client.Delete(ctx, resourceGroup, serverName, name)
+	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
-
 		return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
 	}
 
 	return nil
