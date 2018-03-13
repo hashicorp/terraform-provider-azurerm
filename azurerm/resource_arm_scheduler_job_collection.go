@@ -52,13 +52,12 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 			"state": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "enabled",
+				Default:          string(scheduler.Enabled),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(scheduler.Enabled),
 					string(scheduler.Suspended),
 					string(scheduler.Disabled),
-					string(scheduler.Deleted),
 				}, true),
 			},
 
@@ -90,8 +89,9 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 							}, true),
 						},
 
-						//should this be max_retry_interval ? given that is what the documentation implies
-						"max_recurrence_interval": {
+						//this sets MaxRecurrance.Interval, and the documentation in the api states:
+						//  Gets or sets the interval between retries.
+						"max_retry_interval": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(1), //changes depending on the frequency, unknown maximums
@@ -114,44 +114,20 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 
 	log.Printf("[DEBUG] Creating/updating Scheduler Job Collection %q (resource group %q)", name, resourceGroup)
 
-	sku := scheduler.Sku{
-		Name: scheduler.SkuDefinition(d.Get("sku").(string)),
-	}
-
-	properties := scheduler.JobCollectionProperties{
-		Sku: &sku,
-	}
-	if state, ok := d.Get("state").(string); ok {
-		properties.State = scheduler.JobCollectionState(state)
-	}
-
-	if qb, ok := d.Get("quota").([]interface{}); ok && len(qb) > 0 {
-		recurrence := scheduler.JobMaxRecurrence{}
-		quota := scheduler.JobCollectionQuota{
-			MaxRecurrence: &recurrence,
-		}
-
-		quotaBlock := qb[0].(map[string]interface{})
-
-		if v, ok := quotaBlock["max_job_count"].(int); ok {
-			quota.MaxJobCount = utils.Int32(int32(v))
-		}
-
-		if v, ok := quotaBlock["max_recurrence_frequency"].(string); ok {
-			recurrence.Frequency = scheduler.RecurrenceFrequency(v)
-		}
-		if v, ok := quotaBlock["max_recurrence_interval"].(int); ok {
-			recurrence.Interval = utils.Int32(int32(v))
-		}
-
-		properties.Quota = &quota
-	}
-
 	collection := scheduler.JobCollectionDefinition{
-		Location:   utils.String(location),
-		Tags:       expandTags(tags),
-		Properties: &properties,
+		Location: utils.String(location),
+		Tags:     expandTags(tags),
+		Properties: &scheduler.JobCollectionProperties{
+			Sku: &scheduler.Sku{
+				Name: scheduler.SkuDefinition(d.Get("sku").(string)),
+			},
+		},
 	}
+
+	if state, ok := d.Get("state").(string); ok {
+		collection.Properties.State = scheduler.JobCollectionState(state)
+	}
+	collection.Properties.Quota = expandAzureArmSchedulerJobCollectionQuota(d)
 
 	//create job collection
 	collection, err := client.CreateOrUpdate(ctx, resourceGroup, name, collection)
@@ -162,7 +138,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 	//ensure collection actually exists and we have the correct ID
 	collection, err = client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error reading Scheduler Job Collection %q after create/update (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*collection.ID)
@@ -186,13 +162,12 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 
 	collection, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		//TODO why is this in utils not response?
 		if utils.ResponseWasNotFound(collection.Response) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Scheduler Job Collection Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Scheduler Job Collection %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmSchedulerJobCollectionPopulate(d, resourceGroup, &collection)
@@ -213,22 +188,8 @@ func resourceArmSchedulerJobCollectionPopulate(d *schema.ResourceData, resourceG
 		}
 		d.Set("state", string(properties.State))
 
-		if quota := properties.Quota; quota != nil {
-			quotaBlock := make(map[string]interface{})
-
-			if v := quota.MaxJobCount; v != nil {
-				quotaBlock["max_job_count"] = *v
-			}
-
-			if recurrence := quota.MaxRecurrence; recurrence != nil {
-				if v := recurrence.Interval; v != nil {
-					quotaBlock["max_recurrence_interval"] = *v
-				}
-
-				quotaBlock["max_recurrence_frequency"] = string(recurrence.Frequency)
-			}
-
-			d.Set("quota", []interface{}{quotaBlock})
+		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
+			return fmt.Errorf("Error flattening quoto for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
 		}
 	}
 
@@ -264,4 +225,50 @@ func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func expandAzureArmSchedulerJobCollectionQuota(d *schema.ResourceData) *scheduler.JobCollectionQuota {
+	if qb, ok := d.Get("quota").([]interface{}); ok && len(qb) > 0 {
+		quota := scheduler.JobCollectionQuota{
+			MaxRecurrence: &scheduler.JobMaxRecurrence{},
+		}
+
+		quotaBlock := qb[0].(map[string]interface{})
+
+		if v, ok := quotaBlock["max_job_count"].(int); ok {
+			quota.MaxJobCount = utils.Int32(int32(v))
+		}
+		if v, ok := quotaBlock["max_recurrence_frequency"].(string); ok {
+			quota.MaxRecurrence.Frequency = scheduler.RecurrenceFrequency(v)
+		}
+		if v, ok := quotaBlock["max_retry_interval"].(int); ok {
+			quota.MaxRecurrence.Interval = utils.Int32(int32(v))
+		}
+
+		return &quota
+	}
+
+	return nil
+}
+
+func flattenAzureArmSchedulerJobCollectionQuota(quota *scheduler.JobCollectionQuota) []interface{} {
+
+	if quota == nil {
+		return nil
+	}
+
+	quotaBlock := make(map[string]interface{})
+
+	if v := quota.MaxJobCount; v != nil {
+		quotaBlock["max_job_count"] = *v
+	}
+	if recurrence := quota.MaxRecurrence; recurrence != nil {
+		if v := recurrence.Interval; v != nil {
+			quotaBlock["max_retry_interval"] = *v
+		}
+
+		quotaBlock["max_recurrence_frequency"] = string(recurrence.Frequency)
+	}
+
+	return []interface{}{quotaBlock}
 }

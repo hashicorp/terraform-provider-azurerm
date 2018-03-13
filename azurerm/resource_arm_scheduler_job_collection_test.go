@@ -13,7 +13,7 @@ import (
 func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
-	config := testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), "")
+	config := testAccAzureRMSchedulerJobCollection(ri, testLocation(), "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,7 +34,14 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
-	config := testAccAzureRMSchedulerJobCollection_complete(ri, testLocation())
+	config := testAccAzureRMSchedulerJobCollection(ri, testLocation(), `
+  state = "disabled"
+  quota {
+    max_recurrence_frequency = "hour"
+    max_retry_interval       = 10
+    max_job_count            = 10
+  }
+`)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -61,7 +68,7 @@ func testCheckAzureRMSchedulerJobCollectionDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).applicationSecurityGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).schedulerJobCollectionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -110,7 +117,7 @@ func testCheckAzureRMSchedulerJobCollectionExists(name string) resource.TestChec
 	}
 }
 
-func testAccAzureRMSchedulerJobCollection_basic(rInt int, location string, additional string) string {
+func testAccAzureRMSchedulerJobCollection(rInt int, location string, additional string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -125,15 +132,4 @@ resource "azurerm_scheduler_job_collection" "test" {
 %s
 }
 `, rInt, location, rInt, additional)
-}
-
-func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) string {
-	return testAccAzureRMSchedulerJobCollection_basic(rInt, location, `
-  state = "disabled"
-  quota {
-    max_recurrence_frequency = "hour"
-    max_recurrence_interval  = 10
-    max_job_count            = 10
-  }
-`)
 }

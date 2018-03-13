@@ -27,8 +27,8 @@ resource "azurerm_scheduler_job_collection" "jobs" {
 
     quota {
         max_job_count       = 5
+        max_retry_interval  = 24
         max_recurrence_frequency = "hour"
-        max_recurrence_interval  = 24
     }
 }
 
@@ -58,7 +58,7 @@ The `quota` block supports:
 
 * `max_recurrence_frequency` - (Required) The maximum frequency of recurrence. Possible values include: `Minute`, `Hour`, `Day`, `Week`, `Month`
 
-* `max_recurrence_interval` - (Optional) The maximum interval between retries.
+* `max_retry_interval` - (Optional) The maximum interval between retries.
 
 ## Attributes Reference
 
@@ -68,7 +68,7 @@ The following attributes are exported:
 
 ## Import
 
-Application Security Groups can be imported using the `resource id`, e.g.
+Scheduler Job Collections can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_scheduler_job_collection.jobcollection1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Scheduler/jobCollections/jobcollection1

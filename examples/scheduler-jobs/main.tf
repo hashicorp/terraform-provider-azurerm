@@ -13,7 +13,7 @@ resource "azurerm_scheduler_job_collection" "jobs" {
 
     quota {
         max_job_count       = 5
+        max_retry_interval  = 24
         max_recurrence_frequency = "hour"
-        max_recurrence_interval  = 24
     }
 }
