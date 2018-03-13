@@ -266,7 +266,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	profileName := d.Get("profile_name").(string)
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
@@ -307,14 +307,14 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		endpoint.EndpointPropertiesUpdateParameters.ProbePath = utils.String(probePath)
 	}
 
-	future, err := endpointsClient.Update(ctx, resGroup, profileName, name, endpoint)
+	future, err := endpointsClient.Update(ctx, resourceGroup, profileName, name, endpoint)
 	if err != nil {
-		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resGroup, err)
+		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, endpointsClient.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resGroup, err)
+		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resourceGroup, err)
 	}
 
 	return resourceArmCdnEndpointRead(d, meta)

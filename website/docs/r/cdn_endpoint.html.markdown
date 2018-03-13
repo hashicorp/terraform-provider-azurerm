@@ -85,7 +85,7 @@ The following arguments are supported:
 
 The `origin` block supports:
 
-* `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under endpoint. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under the endpoint. Changing this forces a new resource to be created.
 
 * `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string can be a domain name, Storage Account endpoint, Web App endpoint, IPv4 address or IPv6 address. Changing this forces a new resource to be created.
 
