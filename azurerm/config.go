@@ -98,8 +98,9 @@ type ArmClient struct {
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// CDN
-	cdnProfilesClient  cdn.ProfilesClient
-	cdnEndpointsClient cdn.EndpointsClient
+	cdnCustomDomainsClient cdn.CustomDomainsClient
+	cdnEndpointsClient     cdn.EndpointsClient
+	cdnProfilesClient      cdn.ProfilesClient
 
 	// Compute
 	availSetClient         compute.AvailabilitySetsClient
@@ -427,18 +428,16 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 }
 
 func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&customDomainsClient.Client, auth)
+	c.cdnCustomDomainsClient = customDomainsClient
+
 	endpointsClient := cdn.NewEndpointsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&endpointsClient.Client)
-	endpointsClient.Authorizer = auth
-	endpointsClient.Sender = sender
-	endpointsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&endpointsClient.Client, auth)
 	c.cdnEndpointsClient = endpointsClient
 
 	profilesClient := cdn.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&profilesClient.Client)
-	profilesClient.Authorizer = auth
-	profilesClient.Sender = sender
-	profilesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&profilesClient.Client, auth)
 	c.cdnProfilesClient = profilesClient
 }
 
