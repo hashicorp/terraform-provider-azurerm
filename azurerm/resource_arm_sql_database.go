@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
@@ -284,6 +285,27 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
+	if _, ok := d.GetOk("database_import"); ok {
+		if !strings.EqualFold(createMode, "default") {
+			return fmt.Errorf("database_import can only be used when create_mode is Default")
+		}
+		importParameters := expandAzureRmSqlDatabaseImport(d)
+		importFuture, err := client.CreateImportOperation(ctx, resourceGroup, serverName, name, "terraform", importParameters)
+		if err != nil {
+			return err
+		}
+
+		// this is set in config.go, but something sets
+		// it back to 15 minutes, which isn't long enough
+		// for most imports
+		client.Client.PollingDuration = 60 * time.Minute
+
+		err = importFuture.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return err
+		}
+	}
+
 	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
 	if err != nil {
 		return err
@@ -398,4 +420,22 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 	}
 
 	return ""
+}
+
+func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionRequest {
+	v := d.Get("database_import")
+	dbimportRefs := v.([]interface{})
+	dbimportRef := dbimportRefs[0].(map[string]interface{})
+	return sql.ImportExtensionRequest{
+		Name: utils.String("terraform"),
+		ImportExtensionProperties: &sql.ImportExtensionProperties{
+			StorageKeyType:             sql.StorageKeyType(dbimportRef["storage_key_type"].(string)),
+			StorageKey:                 utils.String(dbimportRef["storage_key"].(string)),
+			StorageURI:                 utils.String(dbimportRef["storage_uri"].(string)),
+			AdministratorLogin:         utils.String(dbimportRef["administrator_login"].(string)),
+			AdministratorLoginPassword: utils.String(dbimportRef["administrator_login_password"].(string)),
+			AuthenticationType:         sql.AuthenticationType(dbimportRef["authentication_type"].(string)),
+			OperationMode:              utils.String(dbimportRef["operation_mode"].(string)),
+		},
+	}
 }
