@@ -69,13 +69,25 @@ The `security_rule` block supports:
 
 * `protocol` - (Required) Network protocol this rule applies to. Can be `Tcp`, `Udp` or `*` to match both.
 
-* `source_port_range` - (Required) Source Port or Range. Integer or range between `0` and `65535` or `*` to match any.
+* `source_port_range` - (Optional) Source Port or Range. Integer or range between `0` and `65535` or `*` to match any. This is required if `source_port_ranges` is not specified.
 
-* `destination_port_range` - (Required) Destination Port or Range. Integer or range between `0` and `65535` or `*` to match any.
+* `source_port_ranges` - (Optional) List of source ports or port ranges. This is required if `source_port_range` is not specified.
 
-* `source_address_prefix` - (Required) CIDR or source IP range or * to match any IP. Tags such as `VirtualNetwork`, `AzureLoadBalancer` and `Internet` can also be used.
+* `destination_port_range` - (Optional) Destination Port or Range. Integer or range between `0` and `65535` or `*` to match any. This is required if `destination_port_ranges` is not specified.
 
-* `destination_address_prefix` - (Required) CIDR or destination IP range or * to match any IP. Tags such as `VirtualNetwork`, `AzureLoadBalancer` and `Internet` can also be used.
+* `destination_port_ranges` - (Optional) List of destination ports or port ranges. This is required if `destination_port_range` is not specified.
+
+* `source_address_prefix` - (Optional) CIDR or source IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. This is required if `source_address_prefixes` is not specified.
+
+* `source_address_prefixes` - (Optional) List of source address prefixes. Tags may not be used. This is required if `source_address_prefix` is not specified.
+
+* `source_application_security_group_ids` - (Optional) A List of source Application Security Group ID's
+
+* `destination_address_prefix` - (Optional) CIDR or destination IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. This is required if `destination_address_prefixes` is not specified.
+
+* `destination_address_prefixes` - (Optional) List of destination address prefixes. Tags may not be used. This is required if `destination_address_prefix` is not specified.
+
+* `destination_application_security_group_ids` - (Optional) A List of destination Application Security Group ID's
 
 * `access` - (Required) Specifies whether network traffic is allowed or denied. Possible values are `Allow` and `Deny`.
 

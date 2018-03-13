@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -105,8 +107,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] Creating container %q in storage account %q.", name, storageAccountName)
 	reference := blobClient.GetContainerReference(name)
 
-	createOptions := &storage.CreateContainerOptions{}
-	_, err = reference.CreateIfNotExists(createOptions)
+	err = resource.Retry(120*time.Second, checkContainerIsCreated(reference))
 	if err != nil {
 		return fmt.Errorf("Error creating container %q in storage account %q: %s", name, storageAccountName, err)
 	}
@@ -122,6 +123,18 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(name)
 	return resourceArmStorageContainerRead(d, meta)
+}
+
+func checkContainerIsCreated(reference *storage.Container) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		createOptions := &storage.CreateContainerOptions{}
+		_, err := reference.CreateIfNotExists(createOptions)
+		if err != nil {
+			return resource.RetryableError(err)
+		}
+
+		return nil
+	}
 }
 
 // resourceAzureStorageContainerRead does all the necessary API calls to

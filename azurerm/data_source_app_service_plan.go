@@ -55,6 +55,10 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"app_service_environment_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"reserved": {
 							Type:     schema.TypeBool,
 							Computed: true,
@@ -86,20 +90,23 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
-
 		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if utils.ResponseWasNotFound(resp.Response) {
+		d.SetId("")
+		return nil
 	}
 
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("kind", resp.Kind)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.AppServicePlanProperties; props != nil {
 		d.Set("properties", flattenAppServiceProperties(props))

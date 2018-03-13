@@ -56,6 +56,10 @@ The `security_rule` block supports:
 
 * `destination_address_prefix` - CIDR or destination IP range or * to match any IP.
 
+* `source_application_security_group_ids` - A List of source Application Security Group ID's
+
+* `destination_application_security_group_ids` - A List of destination Application Security Group ID's
+
 * `access` - Is network traffic is allowed or denied?
 
 * `priority` - The priority of the rule

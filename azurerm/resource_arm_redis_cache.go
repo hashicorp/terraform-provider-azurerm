@@ -121,6 +121,10 @@ func resourceArmRedisCache() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"notify_keyspace_events": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -509,6 +513,10 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 		output["rdb-storage-connection-string"] = utils.String(v.(string))
 	}
 
+	if v, ok := d.GetOk("redis_configuration.0.notify_keyspace_events"); ok {
+		output["notify-keyspace-events"] = utils.String(v.(string))
+	}
+
 	return &output
 }
 
@@ -553,6 +561,7 @@ func flattenRedisConfiguration(configuration *map[string]*string) map[string]*st
 	redisConfiguration["rdb_backup_frequency"] = config["rdb-backup-frequency"]
 	redisConfiguration["rdb_backup_max_snapshot_count"] = config["rdb-backup-max-snapshot-count"]
 	redisConfiguration["rdb_storage_connection_string"] = config["rdb-storage-connection-string"]
+	redisConfiguration["notify_keyspace_events"] = config["notify-keyspace-events"]
 
 	return redisConfiguration
 }

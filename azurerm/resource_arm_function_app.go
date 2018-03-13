@@ -122,6 +122,16 @@ func resourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"client_affinity_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+
+				// TODO: (tombuildsstuff) support Update once the API is fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/1697
+				ForceNew: true,
+			},
+
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -130,6 +140,16 @@ func resourceArmFunctionApp() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"always_on": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"use_32_bit_worker_process": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"websockets_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -152,6 +172,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	kind := "functionapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
+	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	siteConfig := expandFunctionAppSiteConfig(d)
@@ -162,9 +183,10 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanID),
-			Enabled:      utils.Bool(enabled),
-			SiteConfig:   &siteConfig,
+			ServerFarmID:          utils.String(appServicePlanID),
+			Enabled:               utils.Bool(enabled),
+			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			SiteConfig:            &siteConfig,
 		},
 	}
 
@@ -288,6 +310,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
@@ -394,6 +417,14 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.AlwaysOn = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["use_32_bit_worker_process"]; ok {
+		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["websockets_enabled"]; ok {
+		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig
 }
 
@@ -408,6 +439,14 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.AlwaysOn != nil {
 		result["always_on"] = *input.AlwaysOn
+	}
+
+	if input.Use32BitWorkerProcess != nil {
+		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
+	}
+
+	if input.WebSocketsEnabled != nil {
+		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
 
 	results = append(results, result)

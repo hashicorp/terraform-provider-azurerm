@@ -19,6 +19,8 @@ func dataSourceArmManagedDisk() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
+			"zones": zonesSchemaComputed(),
+
 			"storage_account_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -83,6 +85,8 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 	if resp.CreationData != nil {
 		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
 	}
+
+	d.Set("zones", resp.Zones)
 
 	flattenAndSetTags(d, resp.Tags)
 

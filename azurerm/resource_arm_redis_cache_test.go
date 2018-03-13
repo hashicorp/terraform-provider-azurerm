@@ -374,6 +374,26 @@ func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
 	return nil
 }
 
+func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMRedisCacheSubscribeAllEvents(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMRedisCache_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -563,7 +583,6 @@ resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
     location = "%s"
 }
-
 resource "azurerm_redis_cache" "test" {
     name                = "acctestRedis-%d"
     location            = "${azurerm_resource_group.test.location}"
@@ -578,11 +597,41 @@ resource "azurerm_redis_cache" "test" {
       maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
-
     patch_schedule {
       day_of_week    = "Tuesday"
       start_hour_utc = 8
     }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMRedisCacheSubscribeAllEvents(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location     = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+  tags {
+    environment = "staging"
+  }
+}
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 3
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  redis_configuration {
+    notify_keyspace_events = "KAE"
+  }
+}
+`, rInt, location, rString, rInt)
 }

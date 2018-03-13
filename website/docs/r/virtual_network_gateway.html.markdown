@@ -14,7 +14,7 @@ Creates a new Virtual Network Gateway to establish secure, cross-premises connec
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
   name = "test"
   location = "West US"

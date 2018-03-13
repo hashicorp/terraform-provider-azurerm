@@ -23,6 +23,7 @@ resource "azurerm_storage_account" "aci-sa" {
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   location            = "${azurerm_resource_group.aci-rg.location}"
   account_tier        = "Standard"
+  
   account_replication_type = "LRS"
 }
 
@@ -40,28 +41,30 @@ resource "azurerm_container_group" "aci-helloworld" {
   location            = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type     = "public"
+  dns_label_name      = "aci-label"
   os_type             = "linux"
 
   container {
-    name = "hw"
-    image = "seanmckenna/aci-hellofiles"
-    cpu ="0.5"
+    name   = "hw"
+    image  = "seanmckenna/aci-hellofiles"
+    cpu    ="0.5"
     memory =  "1.5"
-    port = "80"
+    port   = "80"
 
     environment_variables {
-        "NODE_ENV"="testing"
+      "NODE_ENV" = "testing"
     }
 
     command = "/bin/bash -c '/path to/myscript.sh'"
 
     volume {
-      name = "logs"
+      name       = "logs"
       mount_path = "/aci/logs"
-      read_only = false
+      read_only  = false
       share_name = "${azurerm_storage_share.aci-share.name}"
-      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key = "${azurerm_storage_account.aci-sa.primary_access_key}"
+      
+      storage_account_name  = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key   = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
   }
 
@@ -90,7 +93,11 @@ The following arguments are supported:
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
+* `dns_label_name` - (Optional) The DNS label/name for the container groups IP.
+
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+
+* `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`.
 
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
@@ -135,3 +142,5 @@ The following attributes are exported:
 * `id` - The container group ID.
 
 * `ip_address` - The IP address allocated to the container group.
+
+* `fqdn` - The FQDN of the container group derived from `dns_name_label`.

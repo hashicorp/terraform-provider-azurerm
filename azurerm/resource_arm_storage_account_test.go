@@ -287,6 +287,38 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_storageV2(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_storageV2Update(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "StorageV2"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Hot"),
+				),
+			},
+
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists("azurerm_storage_account.testsa"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", "Cool"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
@@ -326,9 +358,8 @@ func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 
 		// Ensure resource group exists in API
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount)
+		resp, err := conn.GetProperties(resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 		}
@@ -354,9 +385,8 @@ func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFun
 
 		// Ensure resource group exists in API
 		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := conn.Delete(ctx, resourceGroup, storageAccount)
+		_, err := conn.Delete(resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
 		}
@@ -375,9 +405,8 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.GetProperties(ctx, resourceGroup, name)
+		resp, err := conn.GetProperties(resourceGroup, name)
 		if err != nil {
 			return nil
 		}
@@ -630,6 +659,53 @@ resource "azurerm_storage_account" "testsa" {
 
     location = "${azurerm_resource_group.testrg.location}"
     account_kind = "BlobStorage"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+    access_tier = "Cool"
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_storageV2(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_kind = "StorageV2"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_storageV2Update(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_kind = "StorageV2"
     account_tier = "Standard"
     account_replication_type = "LRS"
     access_tier = "Cool"

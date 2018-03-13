@@ -6,7 +6,7 @@ description: |-
   Creates a new application gateway based on a previously created virtual network with configured subnets.
 ---
 
-# azurerm\_application\_gateway
+# azurerm_application_gateway
 
 Creates a new application gateway based on a previously created virtual network with configured subnets.
 
@@ -71,7 +71,7 @@ resource "azurerm_application_gateway" "network" {
   }
 
   frontend_ip_configuration {
-      name         = "${azurerm_virtual_network.vnet.name}-feip"  
+      name         = "${azurerm_virtual_network.vnet.name}-feip"
       public_ip_address_id = "${azurerm_public_ip.pip.id}"
   }
 
@@ -109,35 +109,35 @@ resource "azurerm_application_gateway" "network" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the application gateway. Changing this forces a
-    new resource to be created.
+  new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
-    create the application gateway.
+  create the application gateway.
 
 * `location` - (Required) The location/region where the application gateway is
-    created. Changing this forces a new resource to be created.
+  created. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Specifies size, tier and capacity of the application gateway.  Must be specified once.  The `sku` block fields documented below.
+* `sku` - (Required) Specifies size, tier and capacity of the application gateway. Must be specified once. The `sku` block fields documented below.
 
-* `gateway_ip_configuration` - (Required) List of subnets that the application gateway is deployed into.  The application gateway must be deployed into an existing virtual network/subnet.  No other resource can be deployed in a subnet where application gateway is deployed.  The `gateway_ip_configuration` block supports fields documented below.
+* `gateway_ip_configuration` - (Required) List of subnets that the application gateway is deployed into. The application gateway must be deployed into an existing virtual network/subnet. No other resource can be deployed in a subnet where application gateway is deployed. The `gateway_ip_configuration` block supports fields documented below.
 
-* `frontend_port` - (Required) Front-end port for the application gateway.  The `frontend_port` block supports fields documented below.
+* `frontend_port` - (Required) Front-end port for the application gateway. The `frontend_port` block supports fields documented below.
 
-* `frontend_ip_configuration` - (Required) Specifies lists of frontend IP configurations. Currently only one Public and/or one Private IP address can be specified. Also one frontendIpConfiguration element can specify either Public or Private IP address, not both.  The `frontend_ip_configuration` block supports fields documented below.
+* `frontend_ip_configuration` - (Required) Specifies lists of frontend IP configurations. Currently only one Public and/or one Private IP address can be specified. Also one frontendIpConfiguration element can specify either Public or Private IP address, not both. The `frontend_ip_configuration` block supports fields documented below.
 
-* `backend_address_pool` - (Required) Backend pools can be composed of NICs, virtual machine scale sets, public IPs, internal IPs, fully qualified domain names (FQDN), and multi-tenant back-ends like Azure Web Apps. Application Gateway backend pool members are not tied to an availability set. Members of backend pools can be across clusters, data centers, or outside of Azure as long as they have IP connectivity.  The `backend_address_pool` block supports fields documented below.
+* `backend_address_pool` - (Required) Backend pools can be composed of NICs, virtual machine scale sets, public IPs, internal IPs, fully qualified domain names (FQDN), and multi-tenant back-ends like Azure Web Apps. Application Gateway backend pool members are not tied to an availability set. Members of backend pools can be across clusters, data centers, or outside of Azure as long as they have IP connectivity. The `backend_address_pool` block supports fields documented below.
 
-* `backend_http_settings` - (Required) Related group of backend http and/or https features to be applied when routing to backend address pools.  The `backend_http_settings` block supports fields documented below.
+* `backend_http_settings` - (Required) Related group of backend http and/or https features to be applied when routing to backend address pools. The `backend_http_settings` block supports fields documented below.
 
-* `http_listener` - (Required) 1 or more listeners specifying port, http or https and SSL certificate (if configuring SSL offload)  Each `http_listener` is attached to a `frontend_ip_configuration`.  The `http_listener` block supports fields documented below.
+* `http_listener` - (Required) 1 or more listeners specifying port, http or https and SSL certificate (if configuring SSL offload) Each `http_listener` is attached to a `frontend_ip_configuration`. The `http_listener` block supports fields documented below.
 
 * `probe` - (Optional) Specifies list of URL probes. The `probe` block supports fields documented below.
 
-* `request_routing_rule` - (Required) Request routing rules can be either Basic or Path Based.  Request routing rules are order sensitive.  The `request_routing_rule` block supports fields documented below.
+* `request_routing_rule` - (Required) Request routing rules can be either Basic or Path Based. Request routing rules are order sensitive. The `request_routing_rule` block supports fields documented below.
 
-* `url_path_map` - (Optional) UrlPathMaps give url Path to backend mapping information for PathBasedRouting specified in `request_routing_rule`.  The `url_path_map` block supports fields documented below.
+* `url_path_map` - (Optional) UrlPathMaps give url Path to backend mapping information for PathBasedRouting specified in `request_routing_rule`. The `url_path_map` block supports fields documented below.
 
-* `authentication_certificate` - (Optional) List of authentication certificates.  The `authentication_certificate` block supports fields documented below.
+* `authentication_certificate` - (Optional) List of authentication certificates. The `authentication_certificate` block supports fields documented below.
 
 * `ssl_certificate` - (Optional) List of ssl certificates. The `ssl_certificate` block supports fields documented below.
 
@@ -148,6 +148,7 @@ The following arguments are supported:
 The `sku` block supports:
 
 * `name` - (Required) Supported values are:
+
   * `Standard_Small`
   * `Standard_Medium`
   * `Standard_Large`
@@ -155,6 +156,7 @@ The `sku` block supports:
   * `WAF_Large`
 
 * `tier` - (Required) Supported values are:
+
   * `Standard`
   * `WAF`
 
@@ -201,10 +203,12 @@ The `backend_http_settings` block supports:
 * `port` - (Required) Backend port for backend address pool.
 
 * `protocol` - (Required) Valid values are:
+
   * `Http`
   * `Https`
 
 * `cookie_based_affinity` - (Required) Valid values are:
+
   * `Enabled`
   * `Disabled`
 
@@ -223,6 +227,7 @@ The `http_listener` block supports:
 * `frontend_port_name` - (Required) Reference to frontend port.
 
 * `protocol` - (Required) Valid values are:
+
   * `Http`
   * `Https`
 
@@ -231,7 +236,7 @@ The `http_listener` block supports:
 * `ssl_certificate_name` - (Optional) Reference to ssl certificate. Valid only if protocol is https.
 
 * `require_sni` - (Optional) Applicable only if protocol is https. Enables SNI for multi-hosting.
-Valid values are:
+  Valid values are:
 * true
 * false
 
@@ -239,13 +244,14 @@ The `probe` block supports:
 
 * `name` - (Required) User defined name for a probe.
 
-* `protocol` - (Required) Protocol used to send probe.  Valid values are:
+* `protocol` - (Required) Protocol used to send probe. Valid values are:
+
   * `Http`
   * `Https`
 
-* `path` - (Required) Relative path of probe. Valid path starts from '/'. Probe is sent to \{Protocol}://\{host}:\{port}\{path}
+* `path` - (Required) Relative path of probe. Valid path starts from '/'. Probe is sent to \{Protocol}://\{host}:\{port}\{path}. The port used will be the same port as defined in the `backend_http_settings`.
 
-* `host` - (Required) Host name to send probe to.
+* `host` - (Required) Host name to send probe to. If Application Gateway is configured for a single site, by default the Host name should be specified as ‘127.0.0.1’, unless otherwise configured in custom probe.
 
 * `interval` - (Required) Probe interval in seconds. This is the time interval between two consecutive probes. Minimum 1 second and Maximum 86,400 secs.
 
@@ -253,12 +259,12 @@ The `probe` block supports:
 
 * `unhealthy_threshold` - (Required) Probe retry count. Backend server is marked down after consecutive probe failure count reaches UnhealthyThreshold. Minimum 1 second and Maximum 20.
 
-
 The `request_routing_rule` block supports:
 
 * `name` - (Required) User defined name for a request routing rule.
 
 * `rule_type' - (Required) Routing rule type. Valid values are:
+
   * `Basic`
   * `PathBasedRouting`
 
@@ -284,7 +290,7 @@ The `path_rule` block supports:
 
 * `name` - (Required) User defined name for a path rule.
 
-* `paths` - (Required) The list of path patterns to match. Each must start with / and the only place a * is allowed is at the end following a /. The string fed to the path matcher does not include any text after the first ? or #, and those chars are not allowed here.
+* `paths` - (Required) The list of path patterns to match. Each must start with / and the only place a \* is allowed is at the end following a /. The string fed to the path matcher does not include any text after the first ? or #, and those chars are not allowed here.
 
 * `backend_address_pool_name` - (Required) Reference to `backend_address_pool_name`.
 
@@ -308,16 +314,16 @@ The `waf_configuration` block supports:
 
 * `name` - (Required) User defined name for a web application firewall.
 
-* `firewall_mode` - (Required) Firewall mode.  Valid values are:
+* `firewall_mode` - (Required) Firewall mode. Valid values are:
+
   * `Detection`
   * `Prevention`
 
-* `rule_set_type` - (Required) Rule set type.  Must be set to `OWASP`
+* `rule_set_type` - (Required) Rule set type. Must be set to `OWASP`
 
 * `rule_set_version` - (Required) Ruleset version. Supported values:
   * `2.2.9`
   * `3.0`
-
 
 ## Attributes Reference
 
@@ -331,13 +337,10 @@ The following attributes are exported:
 
 * `location` - The location/region where the application gateway is created
 
-
-
 ## Import
 
 application gateways can be imported using the `resource id`, e.g.
 
-```shell 
+```shell
 terraform import azurerm_application_gateway.testApplicationGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
-
 ```
