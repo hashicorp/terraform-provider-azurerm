@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -13,7 +14,7 @@ import (
 func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
-	config := testAccAzureRMSchedulerJobCollection(ri, testLocation(), "")
+	config := testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,6 +26,7 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSchedulerJobCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Enabled)),
 				),
 			},
 		},
@@ -34,14 +36,8 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
-	config := testAccAzureRMSchedulerJobCollection(ri, testLocation(), `
-  state = "disabled"
-  quota {
-    max_recurrence_frequency = "hour"
-    max_retry_interval       = 10
-    max_job_count            = 10
-  }
-`)
+	preConfig := testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), "")
+	config := testAccAzureRMSchedulerJobCollection_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -49,10 +45,22 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSchedulerJobCollectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Enabled)),
+				),
+			},
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSchedulerJobCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Disabled)),
+					resource.TestCheckResourceAttr(resourceName, "quota.0.max_job_count", "10"),
+					resource.TestCheckResourceAttr(resourceName, "quota.0.max_retry_interval", "10"),
+					resource.TestCheckResourceAttr(resourceName, "quota.0.max_recurrence_frequency", "hour"),
 				),
 			},
 		},
@@ -117,19 +125,30 @@ func testCheckAzureRMSchedulerJobCollectionExists(name string) resource.TestChec
 	}
 }
 
-func testAccAzureRMSchedulerJobCollection(rInt int, location string, additional string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+func testAccAzureRMSchedulerJobCollection_basic(rInt int, location string, additional string) string {
+	return fmt.Sprintf(` 
+resource "azurerm_resource_group" "test" { 
+  name     = "acctestRG-%d" 
+  location = "%s" 
+} 
+ 
+resource "azurerm_scheduler_job_collection" "test" { 
+  name                = "acctest-%d" 
+  location            = "${azurerm_resource_group.test.location}" 
+  resource_group_name = "${azurerm_resource_group.test.name}" 
+  sku                 = "Standard" 
+%s 
+} 
+`, rInt, location, rInt, additional)
 }
 
-resource "azurerm_scheduler_job_collection" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-%s
-}
-`, rInt, location, rInt, additional)
+func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) string {
+	return testAccAzureRMSchedulerJobCollection_basic(rInt, location, ` 
+  state = "disabled" 
+  quota { 
+    max_recurrence_frequency = "Hour" 
+    max_retry_interval       = 10 
+    max_job_count            = 10 
+  } 
+`)
 }
