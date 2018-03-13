@@ -349,7 +349,7 @@ The following arguments are supported:
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 * `identity` - (Optional) An identity block as documented below.
 
-* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. The only allowable value, if supplied, is `Windows_Server`.
+* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 * `os_profile_windows_config` - (Required, when a Windows machine) A Windows config block as documented below.
 * `os_profile_linux_config` - (Required, when a Linux machine) A Linux config block as documented below.
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
