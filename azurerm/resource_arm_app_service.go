@@ -267,7 +267,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
-	if v, ok := d.GetOk("client_affinity_enabled"); ok {
+	if v, ok := d.GetOkExists("client_affinity_enabled"); ok {
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
