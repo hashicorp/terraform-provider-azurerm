@@ -1,10 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -218,18 +222,18 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
-
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	iothubClient := meta.(*ArmClient).iothubResourceClient
+	client := meta.(*ArmClient).iothubResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	iotHubName := id.Path["IotHubs"]
+	name := id.Path["IotHubs"]
+	resourceGroup := id.ResourceGroup
 
-	future, err := iothubClient.Delete(ctx, id.ResourceGroup, iotHubName)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -237,15 +241,40 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, iothubClient.Client)
-	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("Error waiting for the deletion of IoTHub %q", iotHubName)
+	return waitForIotHubToBeDeleted(ctx, client, resourceGroup, name)
+}
+
+func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) error {
+	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
+	log.Printf("[DEBUG] Waiting for IotHub (%q in Resource Group %q) to be deleted", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"200"},
+		Target:  []string{"404"},
+		Refresh: iothubStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout: 40 * time.Minute,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for IotHub (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil
+}
+
+func iothubStateStatusCodeRefreshFunc(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+
+		log.Printf("Retrieving IoTHub %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, strconv.Itoa(res.StatusCode), nil
+			}
+			return nil, "", fmt.Errorf("Error polling for the status of the IotHub %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }
 
 func expandIoTHubSku(d *schema.ResourceData) devices.IotHubSkuInfo {
