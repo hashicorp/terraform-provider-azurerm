@@ -308,16 +308,11 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error making Read request on Azure Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	iface := *resp.InterfacePropertiesFormat
+	props := *resp.InterfacePropertiesFormat
 
-	if iface.MacAddress != nil {
-		if *iface.MacAddress != "" {
-			d.Set("mac_address", iface.MacAddress)
-		}
-	}
-
-	if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
-		configs := *iface.IPConfigurations
+	d.Set("mac_address", props.MacAddress)
+	if props.IPConfigurations != nil && len(*props.IPConfigurations) > 0 {
+		configs := *props.IPConfigurations
 
 		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
 			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
@@ -336,48 +331,49 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if iface.IPConfigurations != nil {
-		configs := flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)
+	if props.IPConfigurations != nil {
+		configs := flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)
 		if err := d.Set("ip_configuration", configs); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 	}
 
-	if iface.VirtualMachine != nil {
-		d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
+	if vm := props.VirtualMachine; vm != nil {
+		d.Set("virtual_machine_id", *vm.ID)
 	}
 
 	var appliedDNSServers []string
 	var dnsServers []string
-	if iface.DNSSettings != nil {
-		if iface.DNSSettings.AppliedDNSServers != nil && len(*iface.DNSSettings.AppliedDNSServers) > 0 {
-			for _, applied := range *iface.DNSSettings.AppliedDNSServers {
+	if dns := props.DNSSettings; dns != nil {
+		if appliedServers := dns.AppliedDNSServers; appliedServers != nil && len(appliedDNSServers) > 0 {
+			for _, applied := range appliedDNSServers {
 				appliedDNSServers = append(appliedDNSServers, applied)
 			}
 		}
 
-		if iface.DNSSettings.DNSServers != nil && len(*iface.DNSSettings.DNSServers) > 0 {
-			for _, dns := range *iface.DNSSettings.DNSServers {
+		if servers := dns.DNSServers; servers != nil && len(*servers) > 0 {
+			for _, dns := range *servers {
 				dnsServers = append(dnsServers, dns)
 			}
 		}
 
-		if iface.DNSSettings.InternalFqdn != nil && *iface.DNSSettings.InternalFqdn != "" {
-			d.Set("internal_fqdn", iface.DNSSettings.InternalFqdn)
-		}
-
-		d.Set("internal_dns_name_label", iface.DNSSettings.InternalDNSNameLabel)
+		d.Set("internal_fqdn", props.DNSSettings.InternalFqdn)
+		d.Set("internal_dns_name_label", props.DNSSettings.InternalDNSNameLabel)
 	}
 
-	if iface.NetworkSecurityGroup != nil {
-		d.Set("network_security_group_id", resp.NetworkSecurityGroup.ID)
+	if nsg := props.NetworkSecurityGroup; nsg != nil {
+		d.Set("network_security_group_id", nsg.ID)
 	} else {
 		d.Set("network_security_group_id", "")
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
