@@ -24,7 +24,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlVirtualNetworkExists(resourceName),
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
 				),
 			},
@@ -171,7 +171,7 @@ resource "azurerm_sql_server" "test" {
     location = "${azurerm_resource_group.test.location}"
     version = "12.0"
     administrator_login = "missadmin"
-    administrator_login_password = "${md5(%s)}!"
+    administrator_login_password = "${md5(%d)}!"
 }
 resource "azurerm_sql_virtual_network_rule" "test" {
     name = "acctestsqlvnetrule%d"
@@ -180,7 +180,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
     virtual_network_subnet_id = "${azurerm_subnet.test.id}"
     ignore_missing_vnet_service_endpoint = false
 }
-`, rInt, location, rInt, rInt, rInt, location, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMSqlVirtualNetworkRule_withUpdates(rInt int, location string) string {
@@ -208,7 +208,7 @@ resource "azurerm_sql_server" "test" {
     location = "${azurerm_resource_group.test.location}"
     version = "12.0"
     administrator_login = "missadmin"
-    administrator_login_password = "${md5(%s)}!"
+    administrator_login_password = "${md5(%d)}!"
 }
 resource "azurerm_sql_virtual_network_rule" "test" {
     name = "acctestsqlvnetrule%d"
@@ -217,5 +217,5 @@ resource "azurerm_sql_virtual_network_rule" "test" {
     virtual_network_subnet_id = "${azurerm_subnet.test.id}"
     ignore_missing_vnet_service_endpoint = true
 }
-`, rInt, location, rInt, rInt, rInt, location, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
