@@ -240,6 +240,27 @@ func resourceArmAppService() *schema.Resource {
 			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsForceNewSchema(),
 
+			"publishing_users": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"publishing_user_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"publishing_password": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"default_site_hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
