@@ -26,6 +26,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - adding `client_affinity_enabled`, `use_32_bit_worker_process` and `websockets_enabled` [GH-886]
 * `azurerm_load_balancer` - adding support for Availability Zones [GH-811]
 * `azurerm_managed_disk` - adding support for Availability Zones [GH-811]
+* `azurerm_network_interface` - setting `internal_fqdn` if it's not nil [GH-977]
 * `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
 * `azurerm_network_security_rule` - support for security rules including Application Security Groups [GH-925]
 * `azurerm_public_ip` - adding support for Availability Zones [GH-811]
