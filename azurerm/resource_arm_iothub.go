@@ -139,6 +139,7 @@ func resourceArmIotHubCreateAndUpdate(d *schema.ResourceData, meta interface{}) 
 	properties := devices.IotHubDescription{
 		Name:           utils.String(name),
 		Location:       utils.String(location),
+		Resourcegroup:  utils.String(resourceGroup),
 		Subscriptionid: utils.String(subscriptionID),
 		Sku:            &skuInfo,
 		Tags:           expandTags(tags),
