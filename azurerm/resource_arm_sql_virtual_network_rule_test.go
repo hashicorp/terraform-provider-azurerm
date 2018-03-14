@@ -64,7 +64,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 
 /*
 	--Testing for Success--
-	Test if we are able to create a vnet with out the SQL endpoint, but SQL rule
+	Test if we are able to create a vnet without the SQL endpoint, but SQL rule
 	is still applied since the endpoint validation will be set to false.
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
@@ -110,6 +110,33 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
+	resourceName1 := "azurerm_sql_virtual_network_rule.rule1"
+	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
+	resourceName3 := "azurerm_sql_virtual_network_rule.rule3"
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName1),
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName2),
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName3),
+				),
+			},
+		},
+	})
+}
+
+/*
+	Function to assert if a rule exists or not.
+*/
 func testCheckAzureRMSqlVirtualNetworkRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -137,6 +164,9 @@ func testCheckAzureRMSqlVirtualNetworkRuleExists(name string) resource.TestCheck
 	}
 }
 
+/*
+	Function to delete a rule.
+*/
 func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_sql_virtual_network_rule" {
@@ -165,6 +195,9 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
+/*
+	Function to assert if that a rule gets deleted.
+*/
 func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -195,6 +228,10 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestC
 	}
 }
 
+/*
+	This test configuration is intended to succeed.
+	Basic Provisioning Configuration
+*/
 func testAccAzureRMSqlVirtualNetworkRule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -232,6 +269,11 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
+/*
+	This test configuration is intended to succeed.
+	Basic Provisioning Update Configuration (all other properties would recreate the rule)
+	ignore_missing_vnet_service_endpoint (false ==> true)
+*/
 func testAccAzureRMSqlVirtualNetworkRule_withUpdates(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -352,4 +394,80 @@ resource "azurerm_sql_virtual_network_rule" "test" {
     ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+/*
+	This configuration sets up 3 subnets in 2 different virtual networks, and adds
+	SQL virtual network rules for all 3 subnets to the SQL server.
+	(This test configuration is intended to succeed.)
+*/
+func testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG_%d"
+    location = "%s"
+}
+resource "azurerm_virtual_network" "vnet1" {
+  name                = "acctestvnet1%d"
+  address_space       = ["10.7.29.0/24"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+resource "azurerm_virtual_network" "vnet2" {
+  name                = "acctestvnet2%d"
+  address_space       = ["10.1.29.0/29"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+resource "azurerm_subnet" "vnet1_subnet1" {
+  name = "acctestsubnet1%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  address_prefix = "10.7.29.0/29"
+  service_endpoints = ["Microsoft.Sql"]
+}
+resource "azurerm_subnet" "vnet1_subnet2" {
+  name = "acctestsubnet2%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.vnet1.name}"
+  address_prefix = "10.7.29.128/29"
+  service_endpoints = ["Microsoft.Sql"]
+}
+resource "azurerm_subnet" "vnet2_subnet1" {
+  name = "acctestsubnet3%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.vnet2.name}"
+  address_prefix = "10.1.29.0/29"
+  service_endpoints = ["Microsoft.Sql"]
+}
+resource "azurerm_sql_server" "test" {
+    name = "acctestsqlserver1%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "${azurerm_resource_group.test.location}"
+    version = "12.0"
+    administrator_login = "missadmin"
+    administrator_login_password = "${md5(%d)}!"
+}
+resource "azurerm_sql_virtual_network_rule" "rule1" {
+    name = "acctestsqlvnetrule1%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    server_name = "${azurerm_sql_server.test.name}"
+    virtual_network_subnet_id = "${azurerm_subnet.vnet1_subnet1.id}"
+    ignore_missing_vnet_service_endpoint = false
+}
+resource "azurerm_sql_virtual_network_rule" "rule2" {
+    name = "acctestsqlvnetrule2%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    server_name = "${azurerm_sql_server.test.name}"
+    virtual_network_subnet_id = "${azurerm_subnet.vnet1_subnet2.id}"
+    ignore_missing_vnet_service_endpoint = false
+}
+resource "azurerm_sql_virtual_network_rule" "rule3" {
+    name = "acctestsqlvnetrule3%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    server_name = "${azurerm_sql_server.test.name}"
+    virtual_network_subnet_id = "${azurerm_subnet.vnet2_subnet1.id}"
+    ignore_missing_vnet_service_endpoint = false
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
