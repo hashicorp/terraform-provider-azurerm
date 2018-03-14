@@ -25,7 +25,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlVirtualNetworkExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "start_ip_address", "0.0.0.0"),
 					resource.TestCheckResourceAttr(resourceName, "ignore_missing_vnet_service_endpoint", "false"),
 				),
 			},
