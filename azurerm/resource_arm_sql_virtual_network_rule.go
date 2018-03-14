@@ -24,6 +24,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				//TODO: Validation (invalid if non-numeric characters)
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -37,13 +38,12 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 			"virtual_network_subnet_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				// TODO: validation?
 			},
 
 			"ignore_missing_vnet_service_endpoint": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				// TODO: validation?
+				Default:  false, //UI Default is false
 			},
 		},
 	}
