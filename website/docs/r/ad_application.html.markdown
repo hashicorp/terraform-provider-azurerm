@@ -137,3 +137,11 @@ The following attributes are exported:
 * `app_id` - The Application ID.
 
 * `object_id` - The Application Object ID.
+
+## Import
+
+Azure Active Directory Applications can be imported using the `object id`, e.g.
+
+```shell
+terraform import azurerm_ad_application.test 00000000-0000-0000-0000-000000000000
+```

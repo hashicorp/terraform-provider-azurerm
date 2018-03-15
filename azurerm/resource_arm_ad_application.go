@@ -140,7 +140,7 @@ func resourceArmAdApplicationRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error loading Application %q: %+v", d.Id(), err)
 	}
 
-	d.Set("name", resp.DisplayName)
+	d.Set("display_name", resp.DisplayName)
 	d.Set("app_id", resp.AppID)
 	d.Set("object_id", resp.ObjectID)
 	d.Set("homepage", resp.Homepage)
