@@ -591,12 +591,9 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 }
 
 func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	ihrc := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&ihrc.Client)
-	ihrc.Authorizer = auth
-	ihrc.Sender = sender
-	ihrc.SkipResourceProviderRegistration = c.skipProviderRegistration
-	c.iothubResourceClient = ihrc
+	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&iotClient.Client, auth)
+	c.iothubResourceClient = iotClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
