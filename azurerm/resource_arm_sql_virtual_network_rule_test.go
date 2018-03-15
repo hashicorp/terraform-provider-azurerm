@@ -93,7 +93,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointValid(t *testing.T) {
 	is still applied since the endpoint validation will be set to false.
 */
 func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
-	//resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(ri, testLocation())
 
@@ -235,8 +234,8 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestC
 func testAccAzureRMSqlVirtualNetworkRule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
@@ -252,19 +251,19 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "missadmin"
-    administrator_login_password = "${md5(%d)}!"
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "missadmin"
+  administrator_login_password = "${md5(%d)}!"
 }
 resource "azurerm_sql_virtual_network_rule" "test" {
-    name = "acctestsqlvnetrule%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    virtual_network_subnet_id = "${azurerm_subnet.test.id}"
-    ignore_missing_vnet_service_endpoint = false
+  name = "acctestsqlvnetrule%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
@@ -277,8 +276,8 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_withUpdates(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
@@ -294,19 +293,19 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "missadmin"
-    administrator_login_password = "${md5(%d)}!"
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "missadmin"
+  administrator_login_password = "${md5(%d)}!"
 }
 resource "azurerm_sql_virtual_network_rule" "test" {
-    name = "acctestsqlvnetrule%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    virtual_network_subnet_id = "${azurerm_subnet.test.id}"
-    ignore_missing_vnet_service_endpoint = true
+  name = "acctestsqlvnetrule%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+  ignore_missing_vnet_service_endpoint = true
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
@@ -320,8 +319,8 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
@@ -337,19 +336,19 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Storage"]
 }
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "missadmin"
-    administrator_login_password = "${md5(%d)}!"
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "missadmin"
+  administrator_login_password = "${md5(%d)}!"
 }
 resource "azurerm_sql_virtual_network_rule" "test" {
-    name = "acctestsqlvnetrule%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    virtual_network_subnet_id = "${azurerm_subnet.test.id}"
-    ignore_missing_vnet_service_endpoint = true
+  name = "acctestsqlvnetrule%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+  ignore_missing_vnet_service_endpoint = true
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
@@ -362,8 +361,8 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvnet%d"
@@ -379,19 +378,19 @@ resource "azurerm_subnet" "test" {
   service_endpoints = ["Microsoft.Storage"]
 }
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "missadmin"
-    administrator_login_password = "${md5(%d)}!"
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "missadmin"
+  administrator_login_password = "${md5(%d)}!"
 }
 resource "azurerm_sql_virtual_network_rule" "test" {
-    name = "acctestsqlvnetrule%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    virtual_network_subnet_id = "${azurerm_subnet.test.id}"
-    ignore_missing_vnet_service_endpoint = false
+  name = "acctestsqlvnetrule%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
@@ -404,8 +403,8 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 resource "azurerm_virtual_network" "vnet1" {
   name                = "acctestvnet1%d"
@@ -441,33 +440,33 @@ resource "azurerm_subnet" "vnet2_subnet1" {
   service_endpoints = ["Microsoft.Sql"]
 }
 resource "azurerm_sql_server" "test" {
-    name = "acctestsqlserver1%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "${azurerm_resource_group.test.location}"
-    version = "12.0"
-    administrator_login = "missadmin"
-    administrator_login_password = "${md5(%d)}!"
+  name = "acctestsqlserver1%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "missadmin"
+  administrator_login_password = "${md5(%d)}!"
 }
 resource "azurerm_sql_virtual_network_rule" "rule1" {
-    name = "acctestsqlvnetrule1%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    virtual_network_subnet_id = "${azurerm_subnet.vnet1_subnet1.id}"
-    ignore_missing_vnet_service_endpoint = false
+  name = "acctestsqlvnetrule1%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  virtual_network_subnet_id = "${azurerm_subnet.vnet1_subnet1.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 resource "azurerm_sql_virtual_network_rule" "rule2" {
-    name = "acctestsqlvnetrule2%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    virtual_network_subnet_id = "${azurerm_subnet.vnet1_subnet2.id}"
-    ignore_missing_vnet_service_endpoint = false
+  name = "acctestsqlvnetrule2%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  virtual_network_subnet_id = "${azurerm_subnet.vnet1_subnet2.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 resource "azurerm_sql_virtual_network_rule" "rule3" {
-    name = "acctestsqlvnetrule3%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    server_name = "${azurerm_sql_server.test.name}"
-    virtual_network_subnet_id = "${azurerm_subnet.vnet2_subnet1.id}"
-    ignore_missing_vnet_service_endpoint = false
+  name = "acctestsqlvnetrule3%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  virtual_network_subnet_id = "${azurerm_subnet.vnet2_subnet1.id}"
+  ignore_missing_vnet_service_endpoint = false
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
