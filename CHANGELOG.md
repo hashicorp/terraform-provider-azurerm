@@ -1,4 +1,9 @@
 ## 1.3.1 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_iothub` [GH-887]
+
 ## 1.3.0 (March 15, 2018)
 
 FEATURES:
