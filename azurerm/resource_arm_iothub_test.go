@@ -30,9 +30,8 @@ func TestAccAzureRMIotHub_basicStandard(t *testing.T) {
 }
 
 func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-	conn := testAccProvider.Meta().(*ArmClient).iothubResourceClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_iothub" {
@@ -42,7 +41,7 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
@@ -54,6 +53,7 @@ func testCheckAzureRMIotHubDestroy(s *terraform.State) error {
 	}
 	return nil
 }
+
 func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -68,9 +68,8 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IotHub: %s", iothubName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).iothubResourceClient
-
-		resp, err := conn.Get(ctx, resourceGroup, iothubName)
+		client := testAccProvider.Meta().(*ArmClient).iothubResourceClient
+		resp, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
 				return fmt.Errorf("Bad: IotHub %q (resource group: %q) does not exist", iothubName, resourceGroup)
@@ -87,24 +86,23 @@ func testCheckAzureRMIotHubExists(name string) resource.TestCheckFunc {
 func testAccAzureRMIotHub_basicStandard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "foo" {
-	name = "acctestRG-%d"
-	location = "%s"
+  name = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_iothub" "test" {
-	name                             = "acctestIoTHub-%d"
-	resource_group_name              = "${azurerm_resource_group.foo.name}"
-	location                         = "${azurerm_resource_group.foo.location}"
-	sku {
-		name = "S1"
-		tier = "Standard"
-		capacity = "1"
-	}
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.foo.name}"
+  location            = "${azurerm_resource_group.foo.location}"
+  sku {
+    name = "S1"
+    tier = "Standard"
+    capacity = "1"
+  }
 
-	tags {
-		"purpose" = "testing"
-	}
+  tags {
+    "purpose" = "testing"
+  }
 }
-
 `, rInt, location, rInt)
 }
