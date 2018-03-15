@@ -10,7 +10,7 @@ description: |-
 
 Create an App Service Plan component.
 
-## Example Usage
+## Example Usage (Dedicated)
 
 ```hcl
 resource "azurerm_resource_group" "test" {
@@ -20,12 +20,33 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "api-appserviceplan-pro"
-  location            = "West Europe"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
     tier = "Standard"
     size = "S1"
+  }
+}
+```
+
+## Example Usage (Shared / Consumption Plan)
+
+```hcl
+resource "azurerm_resource_group" "test" {
+  name     = "api-rg-pro"
+  location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "api-appserviceplan-pro"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "FunctionApp"
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
   }
 }
 ```
@@ -40,7 +61,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` and `Linux`. Defaults to `Windows`. Changing this forces a new resource to be created.
+* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows`, `Linux` and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as documented below.
 
