@@ -178,6 +178,28 @@ func TestAccAzureRMAppServicePlan_completeWindows(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServicePlan_consumptionPlan(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Dynamic"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "Y1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
 
@@ -361,6 +383,27 @@ resource "azurerm_app_service_plan" "test" {
 
   tags {
     environment = "Test"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_consumptionPlan(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "FunctionApp"
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
   }
 }
 `, rInt, location, rInt)
