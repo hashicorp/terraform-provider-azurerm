@@ -103,6 +103,11 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
+
+			"endpoint_monitor_status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
