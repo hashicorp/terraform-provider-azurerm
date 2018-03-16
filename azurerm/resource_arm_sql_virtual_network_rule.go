@@ -35,7 +35,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"virtual_network_subnet_id": {
+			"subnet_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -56,7 +56,7 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	virtualNetworkSubnetId := d.Get("virtual_network_subnet_id").(string)
+	virtualNetworkSubnetId := d.Get("subnet_id").(string)
 	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
 
 	parameters := sql.VirtualNetworkRule{
@@ -108,7 +108,7 @@ func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("server_name", serverName)
-	d.Set("virtual_network_subnet_id", resp.VirtualNetworkSubnetID)
+	d.Set("subnet_id", resp.VirtualNetworkSubnetID)
 	d.Set("ignore_missing_vnet_service_endpoint", resp.IgnoreMissingVnetServiceEndpoint)
 
 	return nil
