@@ -110,8 +110,11 @@ func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("server_name", serverName)
-	d.Set("subnet_id", resp.VirtualNetworkSubnetID)
-	d.Set("ignore_missing_vnet_service_endpoint", resp.IgnoreMissingVnetServiceEndpoint)
+
+	if props := resp.VirtualNetworkRuleProperties; props != nil {
+		d.Set("subnet_id", props.VirtualNetworkSubnetID)
+		d.Set("ignore_missing_vnet_service_endpoint", props.IgnoreMissingVnetServiceEndpoint)
+	}
 
 	return nil
 }
