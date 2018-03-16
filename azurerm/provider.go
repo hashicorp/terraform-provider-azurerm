@@ -94,6 +94,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_public_ips":                 dataSourceArmPublicIPs(),
 			"azurerm_resource_group":             dataSourceArmResourceGroup(),
 			"azurerm_role_definition":            dataSourceArmRoleDefinition(),
+			"azurerm_scheduler_job_collection":   dataSourceArmSchedulerJobCollection(),
 			"azurerm_storage_account":            dataSourceArmStorageAccount(),
 			"azurerm_snapshot":                   dataSourceArmSnapshot(),
 			"azurerm_subnet":                     dataSourceArmSubnet(),
