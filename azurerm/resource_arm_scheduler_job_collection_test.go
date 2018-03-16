@@ -139,33 +139,27 @@ func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) st
 `)
 }
 
-func checkAccAzureRMSchedulerJobCollection_base(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJobCollection_basic(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeTestCheckFunc(
 		testCheckAzureRMSchedulerJobCollectionExists(resourceName),
 		resource.TestCheckResourceAttrSet(resourceName, "name"),
 		resource.TestCheckResourceAttrSet(resourceName, "location"),
 		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-	)
-}
-
-func checkAccAzureRMSchedulerJobCollection_basic(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		checkAccAzureRMSchedulerJobCollection_base(resourceName),
-		resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Enabled)),
-		),
+		resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Enabled)),
 	)
 }
 
 func checkAccAzureRMSchedulerJobCollection_complete(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		checkAccAzureRMSchedulerJobCollection_base(resourceName),
-		resource.ComposeTestCheckFunc(
-			resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Disabled)),
-			resource.TestCheckResourceAttr(resourceName, "quota.0.max_job_count", "10"),
-			resource.TestCheckResourceAttr(resourceName, "quota.0.max_retry_interval", "10"),
-			resource.TestCheckResourceAttr(resourceName, "quota.0.max_recurrence_frequency", "hour"),
-		),
+		testCheckAzureRMSchedulerJobCollectionExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "name"),
+		resource.TestCheckResourceAttrSet(resourceName, "location"),
+		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+		resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Disabled)),
+		resource.TestCheckResourceAttr(resourceName, "quota.0.max_job_count", "10"),
+		resource.TestCheckResourceAttr(resourceName, "quota.0.max_retry_interval", "10"),
+		resource.TestCheckResourceAttr(resourceName, "quota.0.max_recurrence_frequency", "hour"),
 	)
 }
