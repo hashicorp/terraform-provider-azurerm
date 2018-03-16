@@ -137,6 +137,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_consumer_group":             resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":                  resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":               resourceArmExpressRouteCircuit(),
+			"azurerm_express_route_circuit_authorization": resourceArmExpressRouteCircuitAuthorization(),
 			"azurerm_function_app":                        resourceArmFunctionApp(),
 			"azurerm_image":                               resourceArmImage(),
 			"azurerm_iothub":                              resourceArmIotHub(),

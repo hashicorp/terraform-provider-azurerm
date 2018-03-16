@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-resource-network-express-route-circuit"
+sidebar_current: "docs-azurerm-resource-network-express-route-circuit-x"
 description: |-
   Creates an ExpressRoute circuit.
 ---
 
-# azurerm\_express\_route\_circuit
+# azurerm_express_route_circuit
 
 Creates an ExpressRoute circuit.
 
@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_express_route_circuit" "test" {
   name                     = "expressRoute1"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "West US"
+  location                 = "${azurerm_resource_group.test.location}"
   service_provider_name    = "Equinix"
   peering_location         = "Silicon Valley"
   bandwidth_in_mbps        = 50

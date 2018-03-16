@@ -144,6 +144,7 @@ type ArmClient struct {
 	// Networking
 	applicationGatewayClient        network.ApplicationGatewaysClient
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
+	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
 	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
 	ifaceClient                     network.InterfacesClient
 	loadBalancerClient              network.LoadBalancersClient
@@ -687,6 +688,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	appSecurityGroupsClient := network.NewApplicationSecurityGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appSecurityGroupsClient.Client, auth)
 	c.applicationSecurityGroupsClient = appSecurityGroupsClient
+
+	expressRouteAuthsClient := network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&expressRouteAuthsClient.Client, auth)
+	c.expressRouteAuthsClient = expressRouteAuthsClient
 
 	expressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&expressRouteCircuitsClient.Client, auth)
