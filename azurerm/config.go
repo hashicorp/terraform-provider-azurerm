@@ -598,10 +598,7 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlServerAzureADAdministratorsClient = sqlADClient
 
 	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&sqlVNRClient.Client)
-	sqlVNRClient.Authorizer = auth
-	sqlVNRClient.Sender = sender
-	sqlVNRClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&sqlVNRClient.Client, auth)
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
 }
 
