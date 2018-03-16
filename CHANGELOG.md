@@ -5,6 +5,11 @@ FEATURES:
 * **New Data Source:** `azurerm_traffic_manager_geographical_location` [GH-987]
 * **New Resource:** `azurerm_iothub` [GH-887]
 
+IMPROVEMENTS:
+
+* `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` [GH-986]
+* `azurerm_traffic_manager_profile` - adding support for the `traffic_routing_method` `Geographic` [GH-986]
+
 ## 1.3.0 (March 15, 2018)
 
 FEATURES:
