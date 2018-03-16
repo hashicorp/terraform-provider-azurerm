@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	//"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
-	//"github.com/hashicorp/terraform/helper/validation"
-
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -133,17 +131,33 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
+		//If the error is that the resource we want to delete does not exist in the first
+		//place (404), then just return with no error.
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+
 		return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
+
+		//Same deal as before. Just in case.
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+
 		return err
 	}
 
 	return nil
 }
 
+/*
+	This function checks the format of the SQL Virtual Network Rule Name to make sure that
+	it does not contain any potentially invalid values.
+*/
 func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 

@@ -138,7 +138,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	})
 }
 
-/* 
+/*
 	Validation Function Tests - Invalid Name Validation
 */
 func TestResourceAzureRMSqlVirtualNetworkRule_invalidNameValidation(t *testing.T) {
@@ -376,9 +376,10 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 }
 
 /*
-	This test configuration is intended to succeed.
-	* Succeeds because subnet's service_endpoints does not include 'Microsoft.Sql' and the
-    sql vnet rule is set to *not* validate that the service_endpoint includes that value.
+	(This test configuration is intended to succeed.)
+	Succeeds because subnet's service_endpoints does not include 'Microsoft.Sql' and the SQL
+    virtual network rule is set to *not* validate that the service_endpoint includes that value.
+    The endpoint is purposefully set to Microsoft.Storage.
 */
 
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(rInt int, location string) string {
@@ -419,9 +420,10 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 }
 
 /*
-	This test configuration is intended to fail.
-	* Fails because subnet's service_endpoints does not include 'Microsoft.Sql' and
-    the sql vnet rule is set to validate that the service_endpoint includes that value.
+	(This test configuration is intended to fail.)
+	Fails because subnet's service_endpoints does not include 'Microsoft.Sql' and the SQL
+    virtual network rule is set to validate that the service_endpoint includes that value.
+    The endpoint is purposefully set to Microsoft.Storage.
 */
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(rInt int, location string) string {
 	return fmt.Sprintf(`
@@ -461,9 +463,9 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 }
 
 /*
+	(This test configuration is intended to succeed.)
 	This configuration sets up 3 subnets in 2 different virtual networks, and adds
 	SQL virtual network rules for all 3 subnets to the SQL server.
-	(This test configuration is intended to succeed.)
 */
 func testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(rInt int, location string) string {
 	return fmt.Sprintf(`
