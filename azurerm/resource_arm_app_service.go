@@ -168,10 +168,6 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"enabled": {
@@ -322,6 +318,32 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		_, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource)
 		if err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", name, err)
+		}
+	}
+
+	if d.HasChange("client_affinity_enabled") {
+
+		affinity := d.Get("client_affinity_enabled").(bool)
+
+		sitePatchResource := web.SitePatchResource{
+			ID: utils.String(d.Id()),
+			SitePatchResourceProperties: &web.SitePatchResourceProperties{
+				ClientAffinityEnabled: &affinity,
+			},
+		}
+
+		_, err := client.Update(
+			ctx,
+			resGroup,
+			name,
+			sitePatchResource,
+			nil,
+			nil,
+			nil,
+			"")
+
+		if err != nil {
+			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", name, err)
 		}
 	}
 

@@ -215,6 +215,35 @@ func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_clientAffinity(ri, testLocation(), true)
+	updatedConfig := testAccAzureRMAppService_clientAffinity(ri, testLocation(), false)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
@@ -840,34 +869,14 @@ resource "azurerm_app_service" "test" {
 }
 
 func testAccAzureRMAppService_clientAffinityEnabled(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                    = "acctestAS-%d"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
-  client_affinity_enabled = true
-}
-`, rInt, location, rInt, rInt)
+	return testAccAzureRMAppService_clientAffinity(rInt, location, true)
 }
 
 func testAccAzureRMAppService_clientAffinityDisabled(rInt int, location string) string {
+	return testAccAzureRMAppService_clientAffinity(rInt, location, false)
+}
+
+func testAccAzureRMAppService_clientAffinity(rInt int, location string, clientAffinity bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
@@ -890,9 +899,9 @@ resource "azurerm_app_service" "test" {
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
-  client_affinity_enabled = false
+  client_affinity_enabled = %t
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, clientAffinity)
 }
 
 func testAccAzureRMAppService_connectionStrings(rInt int, location string) string {
