@@ -40,6 +40,40 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
+	resourceName := "azurerm_sql_virtual_network_rule.test"
+	ri := acctest.RandInt()
+
+	preConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(ri, testLocation())
+	postConfig := testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(ri, testLocation())
+
+	// Create regex strings that will ensure that one subnet name exists, but not the other
+	preConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet1%d)$|(subnet[^2]%d)$", ri, ri))  //subnet 1 but not 2
+	postConfigRegex := regexp.MustCompile(fmt.Sprintf("(subnet2%d)$|(subnet[^1]%d)$", ri, ri)) //subnet 2 but not 1
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlVirtualNetworkRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "subnet_id", preConfigRegex),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlVirtualNetworkRuleExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "subnet_id", postConfigRegex),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := acctest.RandInt()
@@ -293,7 +327,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestC
 }
 
 /*
-	This test configuration is intended to succeed.
+	(This test configuration is intended to succeed.)
 	Basic Provisioning Configuration
 */
 func testAccAzureRMSqlVirtualNetworkRule_basic(rInt int, location string) string {
@@ -334,7 +368,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 }
 
 /*
-	This test configuration is intended to succeed.
+	(This test configuration is intended to succeed.)
 	Basic Provisioning Update Configuration (all other properties would recreate the rule)
 	ignore_missing_vnet_service_endpoint (false ==> true)
 */
@@ -375,13 +409,98 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
+func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG_%d"
+  location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%d"
+  address_space       = ["10.7.29.0/24"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+resource "azurerm_subnet" "test1" {
+  name = "subnet1%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.7.29.0/25"
+  service_endpoints = ["Microsoft.Sql"]
+}
+resource "azurerm_subnet" "test2" {
+  name = "subnet2%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.7.29.128/25"
+  service_endpoints = ["Microsoft.Sql"]
+}
+resource "azurerm_sql_server" "test" {
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "missadmin"
+  administrator_login_password = "${md5(%d)}!"
+}
+resource "azurerm_sql_virtual_network_rule" "test" {
+  name = "acctestsqlvnetrule%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  subnet_id = "${azurerm_subnet.test1.id}"
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG_%d"
+  location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet%d"
+  address_space       = ["10.7.29.0/24"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+resource "azurerm_subnet" "test1" {
+  name = "subnet1%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.7.29.0/25"
+  service_endpoints = ["Microsoft.Sql"]
+}
+resource "azurerm_subnet" "test2" {
+  name = "subnet2%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.7.29.128/25"
+  service_endpoints = ["Microsoft.Sql"]
+}
+resource "azurerm_sql_server" "test" {
+  name = "acctestsqlserver%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "${azurerm_resource_group.test.location}"
+  version = "12.0"
+  administrator_login = "missadmin"
+  administrator_login_password = "${md5(%d)}!"
+}
+resource "azurerm_sql_virtual_network_rule" "test" {
+  name = "acctestsqlvnetrule%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name = "${azurerm_sql_server.test.name}"
+  subnet_id = "${azurerm_subnet.test2.id}"
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
 /*
 	(This test configuration is intended to succeed.)
 	Succeeds because subnet's service_endpoints does not include 'Microsoft.Sql' and the SQL
     virtual network rule is set to *not* validate that the service_endpoint includes that value.
     The endpoint is purposefully set to Microsoft.Storage.
 */
-
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
