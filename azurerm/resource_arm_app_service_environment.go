@@ -175,7 +175,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 	envelope := web.AppServiceEnvironmentResource{
 		Location: utils.String(location),
 		// TODO: work out how's best to handle ASEV2 support
-		Kind: utils.String("ASEV1"),
+		Kind: utils.String("ASEV2"),
 		Tags: expandTags(tags),
 		AppServiceEnvironment: &web.AppServiceEnvironment{
 			// this is one of the older API's where name + location are required in this block
