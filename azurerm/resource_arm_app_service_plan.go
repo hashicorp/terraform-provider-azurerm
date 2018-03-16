@@ -39,6 +39,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Default:  "Windows",
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"FunctionApp",
 					"Linux",
 					"Windows",
 				}, true),

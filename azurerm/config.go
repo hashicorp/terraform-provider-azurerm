@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
@@ -115,6 +116,9 @@ type ArmClient struct {
 	vmImageClient          compute.VirtualMachineImagesClient
 	vmClient               compute.VirtualMachinesClient
 
+	// Devices
+	iothubResourceClient devices.IotHubResourceClient
+
 	// Databases
 	mysqlConfigurationsClient            mysql.ConfigurationsClient
 	mysqlDatabasesClient                 mysql.DatabasesClient
@@ -182,8 +186,9 @@ type ArmClient struct {
 	storageUsageClient   storage.UsageClient
 
 	// Traffic Manager
-	trafficManagerProfilesClient  trafficmanager.ProfilesClient
-	trafficManagerEndpointsClient trafficmanager.EndpointsClient
+	trafficManagerGeographialHierarchiesClient trafficmanager.GeographicHierarchiesClient
+	trafficManagerProfilesClient               trafficmanager.ProfilesClient
+	trafficManagerEndpointsClient              trafficmanager.EndpointsClient
 
 	// Web
 	appServicePlansClient web.AppServicePlansClient
@@ -351,6 +356,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
@@ -602,6 +608,12 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlServerAzureADAdministratorsClient = sqlADClient
 }
 
+func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&iotClient.Client, auth)
+	c.iothubResourceClient = iotClient
+}
+
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dn.Client, auth)
@@ -832,6 +844,10 @@ func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId strin
 	endpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
 	c.configureClient(&endpointsClient.Client, auth)
 	c.trafficManagerEndpointsClient = endpointsClient
+
+	geographicalHierarchiesClient := trafficmanager.NewGeographicHierarchiesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&geographicalHierarchiesClient.Client, auth)
+	c.trafficManagerGeographialHierarchiesClient = geographicalHierarchiesClient
 
 	profilesClient := trafficmanager.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&profilesClient.Client, auth)

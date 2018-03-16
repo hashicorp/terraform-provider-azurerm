@@ -1,39 +1,53 @@
-## 1.3.0 (Unreleased)
+## 1.3.1 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_cdn_profile` [GH-950]
-* **New Data Source:** `azurerm_network_interface` [GH-854]
-* **New Data Source:** `azurerm_public_ips` [GH-304]
-* **New Data Source:** `azurerm_subscriptions` [GH-940]
-* **New Resource:** `azurerm_log_analytics_solution` [GH-952]
-* **New Resource:** `azurerm_sql_active_directory_administrator` [GH-765]
-* **New Resource:** `azurerm_scheduler_job_collection` [GH-963]
-
-BUG FIXES:
-
-* `azurerm_application_gateway` - fixes a crash where `ssl_policy` isn't returned from the Azure API when importing existing resources [GH-935]
-* `azurerm_app_service` - supporting `client_affinity_enabled` being `false` [GH-973]
-* `azurerm_kubernetes_cluster` - exporting the FQDN [GH-907]
+* **New Data Source:** `azurerm_traffic_manager_geographical_location` [GH-987]
+* **New Resource:** `azurerm_iothub` [GH-887]
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_builtin_role_definition` - loading available role definitions from Azure [GH-770]
-* Data Source: `azurerm_managed_disk` - adding support for Availability Zones [GH-811]
-* Data Source: `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
-* `azurerm_cdn_endpoint` - adding support for GeoFilters, ProbePaths [GH-967]
-* `azurerm_cdn_endpoint` - making the `origin` block ForceNew to match Azure [GH-967]
-* `azurerm_function_app` - adding `client_affinity_enabled`, `use_32_bit_worker_process` and `websockets_enabled` [GH-886]
-* `azurerm_load_balancer` - adding support for Availability Zones [GH-811]
-* `azurerm_managed_disk` - adding support for Availability Zones [GH-811]
-* `azurerm_network_interface` - setting `internal_fqdn` if it's not nil [GH-977]
-* `azurerm_network_security_group` - support for security rules including Application Security Groups [GH-925]
-* `azurerm_network_security_rule` - support for security rules including Application Security Groups [GH-925]
-* `azurerm_public_ip` - adding support for Availability Zones [GH-811]
-* `azurerm_redis_cache` - add support for `notify-keyspace-events` [GH-949]
-* `azurerm_template_deployment` - support for specifying parameters via `parameters_body` [GH-404]
-* `azurerm_virtual_machine` - adding support for Availability Zones [GH-811]
-* `azurerm_virtual_machine_scale_set` - adding support for Availability Zones [GH-811]
+* `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` [GH-986]
+* `azurerm_traffic_manager_profile` - adding support for the `traffic_routing_method` `Geographic` [GH-986]
+
+## 1.3.0 (March 15, 2018)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_cdn_profile` ([#950](https://github.com/terraform-providers/terraform-provider-azurerm/issues/950))
+* **New Data Source:** `azurerm_network_interface` ([#854](https://github.com/terraform-providers/terraform-provider-azurerm/issues/854))
+* **New Data Source:** `azurerm_public_ips` ([#304](https://github.com/terraform-providers/terraform-provider-azurerm/issues/304))
+* **New Data Source:** `azurerm_subscriptions` ([#940](https://github.com/terraform-providers/terraform-provider-azurerm/issues/940))
+* **New Resource:** `azurerm_log_analytics_solution` ([#952](https://github.com/terraform-providers/terraform-provider-azurerm/issues/952))
+* **New Resource:** `azurerm_sql_active_directory_administrator` ([#765](https://github.com/terraform-providers/terraform-provider-azurerm/issues/765))
+* **New Resource:** `azurerm_scheduler_job_collection` ([#963](https://github.com/terraform-providers/terraform-provider-azurerm/issues/963))
+
+BUG FIXES:
+
+* `azurerm_application_gateway` - fixes a crash where `ssl_policy` isn't returned from the Azure API when importing existing resources ([#935](https://github.com/terraform-providers/terraform-provider-azurerm/issues/935))
+* `azurerm_app_service` - supporting `client_affinity_enabled` being `false` ([#973](https://github.com/terraform-providers/terraform-provider-azurerm/issues/973))
+* `azurerm_kubernetes_cluster` - exporting the FQDN ([#907](https://github.com/terraform-providers/terraform-provider-azurerm/issues/907))
+* `azurerm_sql_elasticpool` - fixing a crash where `location` isn't returned for legacy resources ([#982](https://github.com/terraform-providers/terraform-provider-azurerm/issues/982))
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_builtin_role_definition` - loading available role definitions from Azure ([#770](https://github.com/terraform-providers/terraform-provider-azurerm/issues/770))
+* Data Source: `azurerm_managed_disk` - adding support for Availability Zones ([#811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/811))
+* Data Source: `azurerm_network_security_group` - support for security rules including Application Security Groups ([#925](https://github.com/terraform-providers/terraform-provider-azurerm/issues/925))
+* `azurerm_app_service_plan` -  support for provisioning Consumption Plans ([#981](https://github.com/terraform-providers/terraform-provider-azurerm/issues/981))
+* `azurerm_cdn_endpoint` - adding support for GeoFilters, ProbePaths ([#967](https://github.com/terraform-providers/terraform-provider-azurerm/issues/967))
+* `azurerm_cdn_endpoint` - making the `origin` block ForceNew to match Azure ([#967](https://github.com/terraform-providers/terraform-provider-azurerm/issues/967))
+* `azurerm_function_app` - adding `client_affinity_enabled`, `use_32_bit_worker_process` and `websockets_enabled` ([#886](https://github.com/terraform-providers/terraform-provider-azurerm/issues/886))
+* `azurerm_load_balancer` - adding support for Availability Zones ([#811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/811))
+* `azurerm_managed_disk` - adding support for Availability Zones ([#811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/811))
+* `azurerm_network_interface` - setting `internal_fqdn` if it's not nil ([#977](https://github.com/terraform-providers/terraform-provider-azurerm/issues/977))
+* `azurerm_network_security_group` - support for security rules including Application Security Groups ([#925](https://github.com/terraform-providers/terraform-provider-azurerm/issues/925))
+* `azurerm_network_security_rule` - support for security rules including Application Security Groups ([#925](https://github.com/terraform-providers/terraform-provider-azurerm/issues/925))
+* `azurerm_public_ip` - adding support for Availability Zones ([#811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/811))
+* `azurerm_redis_cache` - add support for `notify-keyspace-events` ([#949](https://github.com/terraform-providers/terraform-provider-azurerm/issues/949))
+* `azurerm_template_deployment` - support for specifying parameters via `parameters_body` ([#404](https://github.com/terraform-providers/terraform-provider-azurerm/issues/404))
+* `azurerm_virtual_machine` - adding support for Availability Zones ([#811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/811))
+* `azurerm_virtual_machine_scale_set` - adding support for Availability Zones ([#811](https://github.com/terraform-providers/terraform-provider-azurerm/issues/811))
 
 ## 1.2.0 (March 02, 2018)
 
