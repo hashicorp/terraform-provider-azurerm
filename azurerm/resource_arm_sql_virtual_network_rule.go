@@ -164,14 +164,6 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
-	// Must only contain alphanumeric characters or hyphens
-	if !regexp.MustCompile(`^[A-Za-z0-9-]+$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf(
-			"only alphanumeric characters and hyphens allowed in %q: %q",
-			k, value))
-		return
-	}
-
 	// Cannot be more than 128 characters
 	if len(value) > 128 {
 		errors = append(errors, fmt.Errorf(
@@ -183,6 +175,14 @@ func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, er
 	if len(value) == 0 {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be an empty string: %q", k, value))
+		return
+	}
+
+	// Must only contain alphanumeric characters or hyphens
+	if !regexp.MustCompile(`^[A-Za-z0-9-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only alphanumeric characters and hyphens allowed in %q: %q",
+			k, value))
 		return
 	}
 
