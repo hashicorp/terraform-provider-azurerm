@@ -173,6 +173,10 @@ type ArmClient struct {
 	resourceGroupsClient  resources.GroupsClient
 	subscriptionsClient   subscriptions.Client
 
+	//Scheduler
+	schedulerJobCollectionsClient scheduler.JobCollectionsClient
+	schedulerJobsClient           scheduler.JobsClient
+
 	// Search
 	searchServicesClient search.ServicesClient
 
@@ -181,9 +185,6 @@ type ArmClient struct {
 	serviceBusNamespacesClient    servicebus.NamespacesClient
 	serviceBusTopicsClient        servicebus.TopicsClient
 	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
-
-	//Scheduler
-	schedulerJobCollectionsClient scheduler.JobCollectionsClient
 
 	// Storage
 	storageServiceClient storage.AccountsClient
@@ -821,6 +822,16 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.subscriptionsClient = subscriptionsClient
 }
 
+func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	jobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&jobCollectionsClient.Client, auth)
+	c.schedulerJobCollectionsClient = jobCollectionsClient
+
+	jobsClient := scheduler.NewJobsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&jobsClient.Client, auth)
+	c.schedulerJobsClient = jobsClient
+}
+
 func (c *ArmClient) registerSearchClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	searchClient := search.NewServicesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&searchClient.Client, auth)
@@ -843,12 +854,6 @@ func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, a
 	subscriptionsClient := servicebus.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.serviceBusSubscriptionsClient = subscriptionsClient
-}
-
-func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	jobsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&jobsClient.Client, auth)
-	c.schedulerJobCollectionsClient = jobsClient
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

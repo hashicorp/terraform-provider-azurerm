@@ -191,6 +191,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_topic_authorization_rule": resourceArmServiceBusTopicAuthorizationRule(),
 			"azurerm_snapshot":                            resourceArmSnapshot(),
 			"azurerm_scheduler_job_collection":            resourceArmSchedulerJobCollection(),
+			"azurerm_scheduler_job":                       resourceArmSchedulerJob(),
 			"azurerm_sql_database":                        resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":                     resourceArmSqlElasticPool(),
 			"azurerm_sql_firewall_rule":                   resourceArmSqlFirewallRule(),
@@ -384,6 +385,7 @@ var armMutexKV = mutexkv.NewMutexKV()
 
 // Resource group names can be capitalised, but we store them in lowercase.
 // Use a custom diff function to avoid creation of new resources.
+// todo move to the file its used in (the only one)
 func resourceAzurermResourceGroupNameDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
 	return strings.ToLower(old) == strings.ToLower(new)
 }

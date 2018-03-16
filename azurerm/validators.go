@@ -10,6 +10,8 @@ import (
 	"github.com/satori/uuid"
 )
 
+//move to package!
+
 func validateRFC3339Date(v interface{}, k string) (ws []string, errors []error) {
 	dateString := v.(string)
 
@@ -48,6 +50,7 @@ func validateUUID(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
+//todo move to where it is used, simplify to basic regex
 func validateDBAccountName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
@@ -64,6 +67,7 @@ func validateDBAccountName(v interface{}, k string) (ws []string, errors []error
 	return
 }
 
+//what is?
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) {
 	_, es := validateFunc(i, k)
 
@@ -74,6 +78,7 @@ func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.Sch
 	return true, nil
 }
 
+//replace with built in TODO
 func validateStringLength(maxLength int) schema.SchemaValidateFunc {
 	return func(v interface{}, k string) (ws []string, errors []error) {
 		value := v.(string)
