@@ -109,6 +109,11 @@ func TestAccAzureRMSqlVirtualNetworkRule_IgnoreEndpointInvalid(t *testing.T) {
 	})
 }
 
+/*
+	--Testing for Success--
+	Test if we are able to create multiple subnets and connect multiple subnets to the
+	SQL server.
+*/
 func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resourceName1 := "azurerm_sql_virtual_network_rule.rule1"
 	resourceName2 := "azurerm_sql_virtual_network_rule.rule2"
@@ -131,6 +136,66 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 			},
 		},
 	})
+}
+
+/* 
+	Validation Function Tests - Invalid Name Validation
+*/
+func TestResourceAzureRMSqlVirtualNetworkRule_invalidNameValidation(t *testing.T) {
+	cases := []struct {
+		Value    string
+		ErrCount int
+	}{
+		// Must only contain alphanumeric characters or hyphens (4 cases)
+		{
+			Value:    "test!Rule",
+			ErrCount: 1,
+		},
+		{
+			Value:    "test_Rule",
+			ErrCount: 1,
+		},
+		{
+			Value:    "test:Rule",
+			ErrCount: 1,
+		},
+		{
+			Value:    "test'Rule",
+			ErrCount: 1,
+		},
+		// Cannot be more than 128 characters (1 case)
+		{
+			Value:    acctest.RandString(129),
+			ErrCount: 1,
+		},
+		// Cannot be empty (1 case)
+		{
+			Value:    "",
+			ErrCount: 1,
+		},
+		// Cannot end in a hyphen (1 case)
+		{
+			Value:    "testRule-",
+			ErrCount: 1,
+		},
+		// Cannot start with a number or hyphen (2 cases)
+		{
+			Value:    "7testRule",
+			ErrCount: 1,
+		},
+		{
+			Value:    "-testRule",
+			ErrCount: 1,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateSqlVirtualNetworkRuleName(tc.Value, "azurerm_sql_virtual_network_rule")
+
+		if len(errors) != tc.ErrCount {
+			t.Fatalf("Expected the Azure RM SQL Virtual Network Rule Name to trigger a validation error.")
+		}
+	}
 }
 
 /*

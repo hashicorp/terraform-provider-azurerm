@@ -3,9 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
+	//"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
+	//"github.com/hashicorp/terraform/helper/validation"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +25,10 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				//TODO: Validation (invalid if non-numeric characters)
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateSqlVirtualNetworkRuleName,
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -43,7 +47,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 			"ignore_missing_vnet_service_endpoint": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false, //UI Default is false
+				Default:  false, //When not provided, Azure defaults to false
 			},
 		},
 	}
@@ -138,4 +142,48 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+
+	// Must only contain alphanumeric characters or hyphens
+	if !regexp.MustCompile(`^[A-Za-z0-9-]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"only alphanumeric characters and hyphens allowed in %q: %q",
+			k, value))
+		return
+	}
+
+	// Cannot be more than 128 characters
+	if len(value) > 128 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be longer than 128 characters: %q", k, value))
+		return
+	}
+
+	// Cannot be empty
+	if len(value) == 0 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be an empty string: %q", k, value))
+		return
+	}
+
+	// Cannot end in a hyphen
+	if regexp.MustCompile(`-$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot end with a hyphen: %q", k, value))
+		return
+	}
+
+	// Cannot start with a number or hyphen
+	if regexp.MustCompile(`^[0-9-]`).MatchString(value) {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot start with a number or hyphen: %q", k, value))
+		return
+	}
+
+	// There are multiple returns in the case that there is more than one invalid
+	// case applied to the name.
+	return
 }
