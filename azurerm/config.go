@@ -186,8 +186,9 @@ type ArmClient struct {
 	storageUsageClient   storage.UsageClient
 
 	// Traffic Manager
-	trafficManagerProfilesClient  trafficmanager.ProfilesClient
-	trafficManagerEndpointsClient trafficmanager.EndpointsClient
+	trafficManagerGeographialHierarchiesClient trafficmanager.GeographicHierarchiesClient
+	trafficManagerProfilesClient               trafficmanager.ProfilesClient
+	trafficManagerEndpointsClient              trafficmanager.EndpointsClient
 
 	// Web
 	appServicePlansClient web.AppServicePlansClient
@@ -843,6 +844,10 @@ func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId strin
 	endpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(endpoint, c.subscriptionId)
 	c.configureClient(&endpointsClient.Client, auth)
 	c.trafficManagerEndpointsClient = endpointsClient
+
+	geographicalHierarchiesClient := trafficmanager.NewGeographicHierarchiesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&geographicalHierarchiesClient.Client, auth)
+	c.trafficManagerGeographialHierarchiesClient = geographicalHierarchiesClient
 
 	profilesClient := trafficmanager.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&profilesClient.Client, auth)
