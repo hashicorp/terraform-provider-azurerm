@@ -47,8 +47,9 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(trafficmanager.Performance),
+					string(trafficmanager.Geographic),
 					string(trafficmanager.Weighted),
+					string(trafficmanager.Performance),
 					string(trafficmanager.Priority),
 				}, false),
 			},
