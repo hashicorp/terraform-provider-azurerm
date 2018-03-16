@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMExpressRouteCircuit_basic(t *testing.T) {
+func TestAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
@@ -22,9 +22,56 @@ func TestAccAzureRMExpressRouteCircuit_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basic(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicMetered(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
+	var erc network.ExpressRouteCircuit
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuit_basicUnlimited(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMExpressRouteCircuit_update(t *testing.T) {
+	resourceName := "azurerm_express_route_circuit.test"
+	var erc network.ExpressRouteCircuit
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuit_basicMetered(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "MeteredData"),
+				),
+			},
+			{
+				Config: testAccAzureRMExpressRouteCircuit_basicUnlimited(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "UnlimitedData"),
 				),
 			},
 		},
@@ -88,7 +135,7 @@ func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMExpressRouteCircuit_basic(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuit_basicMetered(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -106,6 +153,35 @@ resource "azurerm_express_route_circuit" "test" {
   sku {
     tier   = "Standard"
     family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, rInt, location, rInt)
+}
+func testAccAzureRMExpressRouteCircuit_basicUnlimited(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "UnlimitedData"
   }
 
   allow_classic_operations = false
