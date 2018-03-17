@@ -56,6 +56,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the SQL virtual network rule. Changing this forces a new resource to be created. Cannot be empty and must only contain alphanumeric characters and hyphens. Cannot start with a number, and cannot start or end with a hyphen.
 
+~> **NOTE:** `name` must be between 1-128 characters long and must satisfy all of the requirements below:
+1. Contains only alphanumeric and hyphen characters
+2. Cannot start with a number or hyphen
+3. Cannot end with a hyphen
+
 * `resource_group_name` - (Required) The name of the resource group where the SQL server resides. Changing this forces a new resource to be created.
 
 * `server_name` - (Required) The name of the SQL Server to which this SQL virtual network rule will be applied to. Changing this forces a new resource to be created.
@@ -69,6 +74,16 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the SQL virtual network rule.
+
+* `endpoint_state` - The provisioning status of the endpoint.
+
+
+=> Possible values for `endpoint_state` are:
+* Ready - Indicates that the endpoint was provisioned successfully.
+* Initializing - Indicates that the endpoint provisioning is in the initialization stage.
+* InProgress - Indicates that the endpoint is still bring provisioned.
+* Deleting - Indicates that the endpoint is currently being deleted.
+* Unknown - Indicates that the state of the endpoint is unknown.
 
 ## Import
 

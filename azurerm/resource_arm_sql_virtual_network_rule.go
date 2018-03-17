@@ -47,6 +47,11 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 				Optional: true,
 				Default:  false, //When not provided, Azure defaults to false
 			},
+
+			"endpoint_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -114,6 +119,7 @@ func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface
 	if props := resp.VirtualNetworkRuleProperties; props != nil {
 		d.Set("subnet_id", props.VirtualNetworkSubnetID)
 		d.Set("ignore_missing_vnet_service_endpoint", props.IgnoreMissingVnetServiceEndpoint)
+		d.Set("endpoint_state", props.State)
 	}
 
 	return nil
