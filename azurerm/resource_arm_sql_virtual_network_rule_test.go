@@ -8,9 +8,15 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+/*
+	---Testing for Success---
+	Test a basic SQL virtual network rule configuration setup and update scenario, and
+	validate that new property is set correctly.
+*/
 func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := acctest.RandInt()
@@ -40,6 +46,11 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 	})
 }
 
+/*
+	---Testing for Success---
+	Test an update to the SQL Virtual Network Rule to connect to a different subnet, and
+	validate that new subnet is set correctly.
+*/
 func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := acctest.RandInt()
@@ -74,6 +85,9 @@ func TestAccAzureRMSqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	})
 }
 
+/*
+	---Testing for Success---
+*/
 func TestAccAzureRMSqlVirtualNetworkRule_disappears(t *testing.T) {
 	resourceName := "azurerm_sql_virtual_network_rule.test"
 	ri := acctest.RandInt()
@@ -173,6 +187,7 @@ func TestAccAzureRMSqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 }
 
 /*
+	--Testing for Failure--
 	Validation Function Tests - Invalid Name Validations
 */
 func TestResourceAzureRMSqlVirtualNetworkRule_invalidNameValidation(t *testing.T) {
@@ -233,6 +248,7 @@ func TestResourceAzureRMSqlVirtualNetworkRule_invalidNameValidation(t *testing.T
 }
 
 /*
+	--Testing for Success--
 	Validation Function Tests - (Barely) Valid Name Validations
 */
 func TestResourceAzureRMSqlVirtualNetworkRule_validNameValidation(t *testing.T) {
@@ -297,7 +313,7 @@ func TestResourceAzureRMSqlVirtualNetworkRule_validNameValidation(t *testing.T) 
 }
 
 /*
-	Function to assert if a rule exists or not.
+	Test Check function to assert if a rule exists or not.
 */
 func testCheckAzureRMSqlVirtualNetworkRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -327,7 +343,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleExists(name string) resource.TestCheck
 }
 
 /*
-	Function to delete a rule.
+	Test Check function to delete a rule.
 */
 func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
@@ -358,7 +374,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 }
 
 /*
-	Function to assert if that a rule gets deleted.
+	Test Check function to assert if that a rule gets deleted.
 */
 func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -377,16 +393,26 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestC
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)
 		if err != nil {
-			return fmt.Errorf("Bad: Error deleting SQL Virtual Network Rule: %+v", err)
+			//If the error is that the resource we want to delete does not exist in the first
+			//place (404), then just return with no error.
+			if response.WasNotFound(future.Response()) {
+				return nil
+			}
+
+			return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
 		}
 
 		err = future.WaitForCompletion(ctx, client.Client)
 		if err != nil {
-			return nil // we are expecting the rule to not be there
+			//Same deal as before. Just in case.
+			if response.WasNotFound(future.Response()) {
+				return nil
+			}
+
+			return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
 		}
 
-		//if the rule is still there, something
-		return fmt.Errorf("Bad: Delete on sqlVirtualNetworkRulesClient: %+v", err)
+		return nil
 	}
 }
 
@@ -473,6 +499,11 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
+/*
+	(This test configuration is intended to succeed.)
+	This test is designed to set up a scenario where a user would want to update the subnet
+	on a given SQL virtual network rule. This configuration sets up the resources initially.
+*/
 func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -516,6 +547,12 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
+/*
+	(This test configuration is intended to succeed.)
+	This test is designed to set up a scenario where a user would want to update the subnet
+	on a given SQL virtual network rule. This configuration contains the update from
+	azurerm_subnet.test1 to azurerm_subnet.test2.
+*/
 func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {

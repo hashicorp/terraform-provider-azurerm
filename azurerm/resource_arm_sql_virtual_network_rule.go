@@ -134,8 +134,6 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 
 	future, err := client.Delete(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		//If the error is that the resource we want to delete does not exist in the first
-		//place (404), then just return with no error.
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -145,13 +143,11 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-
-		//Same deal as before. Just in case.
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return err
+		return fmt.Errorf("Error deleting SQL Virtual Network Rule: %+v", err)
 	}
 
 	return nil
@@ -164,40 +160,35 @@ func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interfa
 func validateSqlVirtualNetworkRuleName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 
-	// Cannot be more than 128 characters
-	if len(value) > 128 {
-		errors = append(errors, fmt.Errorf(
-			"%q cannot be longer than 128 characters: %q", k, value))
-		return
-	}
-
 	// Cannot be empty
 	if len(value) == 0 {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be an empty string: %q", k, value))
-		return
+	}
+
+	// Cannot be more than 128 characters
+	if len(value) > 128 {
+		errors = append(errors, fmt.Errorf(
+			"%q cannot be longer than 128 characters: %q", k, value))
 	}
 
 	// Must only contain alphanumeric characters or hyphens
-	if !regexp.MustCompile(`^[A-Za-z0-9-]+$`).MatchString(value) {
+	if !regexp.MustCompile(`^[A-Za-z0-9-]*$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
-			"only alphanumeric characters and hyphens allowed in %q: %q",
+			"%q can only contain alphanumeric characters and hyphens: %q",
 			k, value))
-		return
 	}
 
 	// Cannot end in a hyphen
 	if regexp.MustCompile(`-$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot end with a hyphen: %q", k, value))
-		return
 	}
 
 	// Cannot start with a number or hyphen
 	if regexp.MustCompile(`^[0-9-]`).MatchString(value) {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot start with a number or hyphen: %q", k, value))
-		return
 	}
 
 	// There are multiple returns in the case that there is more than one invalid
