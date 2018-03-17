@@ -252,7 +252,7 @@ func resourceArmAppService() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"publishing_password": {
+						"publishing_user_password": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -319,6 +319,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
+
 
 	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
 	skipDNSRegistration := false
@@ -741,4 +742,46 @@ func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
 	}
 
 	return
+}
+
+func expandPublishingUser(d *schema.ResourceData) web.UserProperties {
+	propsList := d.Get("publishing_user").([]interface{})
+	userProps := web.UserProperties{}
+
+	if len(propsList) == 0 {
+		return userProps
+	}
+
+	props := propsList[0].(map[string]interface{})
+
+	if v, ok := props["publishing_user_name"]; ok {
+		userProps.PublishingUserName = utils.String(v.(string))
+	}
+
+	if v, ok := props["publishing_user_password"]; ok {
+		userProps.PublishingPassword = utils.String(v.(string))
+	}
+
+	return userProps
+}
+
+func flattenPublishingUser(input *web.UserProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	if input.PublishingUserName != nil {
+		result["publishing_user_name"] = *input.PublishingUserName
+	}
+
+	if input.PublishingPassword != nil {
+		result["publishing_user_password"] = *input.PublishingPassword
+	}
+
+	results = append(results, result)
+	return results
 }
