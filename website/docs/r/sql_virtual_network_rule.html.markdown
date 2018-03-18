@@ -67,7 +67,9 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet that the SQL server will be connected to.
 
-* `ignore_missing_vnet_service_endpoint` - (Optional - Default: false) Create the virtual network rule before the subnet has the virtual network service endpoint enabled. If this is set to false, and the target subnet does not contain the Microsoft.SQL endpoint in the `service_endpoints` array, the deployment will fail.
+* `ignore_missing_vnet_service_endpoint` - (Optional) Create the virtual network rule before the subnet has the virtual network service endpoint enabled. The default value is false.
+
+~> **NOTE:** If `ignore_missing_vnet_service_endpoint` is false, and the target subnet does not contain the `Microsoft.SQL` endpoint in the `service_endpoints` array, the deployment will fail when it tries to create the SQL virtual network rule.
 
 ## Attributes Reference
 
