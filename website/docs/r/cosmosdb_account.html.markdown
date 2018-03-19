@@ -76,7 +76,7 @@ The following arguments are supported:
 `consistency_policy` supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session` or `Strong`.
-* `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is 1 - 100. Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
+* `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is 1 - 86400 (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
 * `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. Accepted range for this value is 1 – 2,147,483,647. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
 
 ~> **Note**: `max_interval_in_seconds` and `max_staleness_prefix` can only be set to custom values when `consistency_level` is set to `BoundedStaleness` - otherwise they will return the default values shown above.
