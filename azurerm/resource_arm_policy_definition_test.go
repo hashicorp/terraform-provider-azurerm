@@ -2,11 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"net/http"
 	"testing"
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestPolicyDefinitionCreate(t *testing.T) {
@@ -112,5 +112,5 @@ resource "azurerm_policy_definition" "test" {
     }
   }
 	PARAMETERS
-}`,  ri, ri)
+}`, ri, ri)
 }
