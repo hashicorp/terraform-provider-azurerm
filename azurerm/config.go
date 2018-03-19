@@ -35,6 +35,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
@@ -193,6 +194,9 @@ type ArmClient struct {
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
+
+	// Policy
+	policyDefinitionsClient policy.DefinitionsClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -372,6 +376,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerPolicyDefinitionsClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -862,6 +867,12 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
+}
+
+func (c *ArmClient) registerPolicyDefinitionsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	policyDefinitionsClient := policy.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&policyDefinitionsClient.Client, auth)
+	c.policyDefinitionsClient = policyDefinitionsClient
 }
 
 var (
