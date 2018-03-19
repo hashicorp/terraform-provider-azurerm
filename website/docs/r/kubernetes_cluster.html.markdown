@@ -58,6 +58,10 @@ output "id" {
     value = "${azurerm_kubernetes_cluster.test.id}"
 }
 
+output "kube_config" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config_raw}"
+}
+
 output "client_key" {
   value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_key}"
 }
@@ -127,6 +131,8 @@ The following attributes are exported:
 * `id` - The Kubernetes Managed Cluster ID.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+* `kube_config_raw` - Base64 encoded Kubernetes configuration
 
 * `kube_config` - Kubernetes configuration, sub-attributes defined below:
 

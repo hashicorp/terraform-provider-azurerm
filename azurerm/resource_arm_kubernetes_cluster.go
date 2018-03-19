@@ -85,6 +85,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"kube_config_raw": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"linux_profile": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -313,7 +318,12 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
 
-	kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
+	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
+	if kubeConfigRaw != nil {
+		if err := d.Set("kube_config_raw", *kubeConfigRaw); err != nil {
+			return fmt.Errorf("Error setting `kube_config_raw`: %+v", err)
+		}
+	}
 	if kubeConfig != nil {
 		if err := d.Set("kube_config", &kubeConfig); err != nil {
 			return fmt.Errorf("Error setting `kube_config`: %+v", err)
@@ -430,17 +440,18 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	return servicePrincipalProfiles
 }
 
-func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.ManagedClusterAccessProfile) []interface{} {
+func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
 	if profile != nil {
 		if accessProfile := profile.AccessProfile; accessProfile != nil {
 			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
-				if kubeConfig, err := kubernetes.ParseKubeConfig(kubeConfigRaw); err == nil && kubeConfig != nil {
-					return flattenKubeConfig(kubeConfig)
+				config := utils.String(string(*kubeConfigRaw))
+				if kubeConfig, err := kubernetes.ParseKubeConfig(config); err == nil && kubeConfig != nil {
+					return config, flattenKubeConfig(kubeConfig)
 				}
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }
 
 func flattenKubeConfig(config *kubernetes.KubeConfig) []interface{} {
