@@ -11,7 +11,8 @@ func TestAccAzureRMHDInsightCluster_importBasic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_cluster.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMHDInsightCluster_basic(ri, testLocation())
+	rStr := acctest.RandStringFromCharSet(5, "abcdefghijklmnopqrstuvwxyz")
+	config := testAccAzureRMHDInsightCluster_basic(ri, rStr, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

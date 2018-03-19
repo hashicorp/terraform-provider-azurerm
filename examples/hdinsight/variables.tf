@@ -9,7 +9,7 @@ variable "azure_resource_group_location" {
 }
 
 variable "azure_storage_account_name" {
-  type = "string"
+  type        = "string"
   description = "Name of the storage account"
 }
 
@@ -24,7 +24,7 @@ variable "azure_hdinsight_cluster_version" {
 }
 
 variable "azure_hdinsight_cluster_type" {
-  type = "string"
+  type        = "string"
   description = "Type of HDInsight cluster"
 }
 

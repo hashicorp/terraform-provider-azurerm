@@ -12,7 +12,8 @@ import (
 
 func TestAccAzureRMHDInsightCluster_basic(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMHDInsightCluster_basic(ri, testLocation())
+	rStr := acctest.RandStringFromCharSet(5, "abcdefghijklmnopqrstuvwxyz")
+	config := testAccAzureRMHDInsightCluster_basic(ri, rStr, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -29,19 +30,19 @@ func TestAccAzureRMHDInsightCluster_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
+func testAccAzureRMHDInsightCluster_basic(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 		resource "azurerm_resource_group" "test" {
-			name     = "hdinsight-cluster-%d"
+			name     = "acctestrg-%d"
 			location = "%s"
 		  
 			tags {
-			  Source = "Azure Quickstarts for Terraform"
+			  Source = "testAccAzureRMHDInsightCluster_basic"
 			}
 		  }
 		  
 		  resource "azurerm_storage_account" "test" {
-			  name	= "hdi%d"
+			  name	= "acctestsa%s"
 			  resource_group_name = "${azurerm_resource_group.test.name}"
 			  location = "${azurerm_resource_group.test.location}"
 			  account_tier = "Standard"
@@ -49,20 +50,18 @@ func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 		  }
 		  
 		  resource "azurerm_hdinsight_cluster" "test" {
-			name                = "hdi%d"
+			name                = "acctesthdi%d"
 			resource_group_name = "${azurerm_resource_group.test.name}"
 			location            = "${azurerm_resource_group.test.location}"
 			cluster_version  = "3.6"
-			os_type  = "Linux"
-			tier  = "Standard"
 		  
 			cluster_definition {
 				  kind = "spark"
 				  configurations {
 					  gateway {
-						  rest_auth_credential__is_enabled = true
-						  rest_auth_credential__username = "http-user"
-						  rest_auth_credential__password = "AbcAbc123123!"
+						  rest_auth_credential_is_enabled = true
+						  rest_auth_credential_username = "http-user"
+						  rest_auth_credential_password = "AbcAbc123123!"
 					  }
 				  }
 			}
@@ -77,14 +76,16 @@ func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 						},
 						os_profile {
 							linux_operating_system_profile {
-								username = "username",
+								username = "username"
 								password = "testPass123!"
+								ssh_key {
+									key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+								}
 							}
 						}
 					},
 					{
 						name = "workernode"
-						target_instance_count = 2
 						hardware_profile {
 							vm_size = "Standard_D13_v2"
 						},
@@ -110,8 +111,8 @@ func testAccAzureRMHDInsightCluster_basic(rInt int, location string) string {
 					}
 				]
 			}
-		  }
-`, rInt, location, rInt, rInt)
+		}
+`, rInt, location, rString, rInt)
 }
 
 func testCheckAzureRMHDInsightClusterExists(name string) resource.TestCheckFunc {

@@ -634,10 +634,7 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 
 func (c *ArmClient) registerHDInsightClustersClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	hdInsightClustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&hdInsightClustersClient.Client)
-	hdInsightClustersClient.Authorizer = auth
-	hdInsightClustersClient.Sender = sender
-	hdInsightClustersClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&hdInsightClustersClient.Client, auth)
 	c.hdInsightClustersClient = hdInsightClustersClient
 }
 

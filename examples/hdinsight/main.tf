@@ -3,7 +3,7 @@ resource "azurerm_resource_group" "resource_group" {
   location = "${var.azure_resource_group_location}"
 
   tags {
-    Source = "Azure Quickstarts for Terraform"
+    Source = "HDInsight Terraform example"
   }
 }
 
@@ -20,17 +20,15 @@ resource "azurerm_hdinsight_cluster" "hdinsight" {
   resource_group_name = "${azurerm_resource_group.resource_group.name}"
   location            = "${azurerm_resource_group.resource_group.location}"
   cluster_version     = "${var.azure_hdinsight_cluster_version}"
-  os_type             = "Linux"
-  tier                = "Standard"
 
   cluster_definition {
     kind = "${var.azure_hdinsight_cluster_type}"
 
     configurations {
       gateway {
-        rest_auth_credential__is_enabled = true
-        rest_auth_credential__username   = "${var.azure_hdinsight_cluster_rest_username}"
-        rest_auth_credential__password   = "${var.azure_hdinsight_cluster_rest_password}"
+        rest_auth_credential_is_enabled = true
+        rest_auth_credential_username   = "${var.azure_hdinsight_cluster_rest_username}"
+        rest_auth_credential_password   = "${var.azure_hdinsight_cluster_rest_password}"
       }
     }
   }
@@ -49,6 +47,10 @@ resource "azurerm_hdinsight_cluster" "hdinsight" {
           linux_operating_system_profile {
             username = "${var.azure_hdinsight_cluster_headnode_username}"
             password = "${var.azure_hdinsight_cluster_headnode_password}"
+
+            ssh_key {
+              key_data = "${var.azure_hdinsight_cluster_workernode_sshkey}"
+            }
           }
         }
       },
