@@ -86,5 +86,23 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 
 	d.SetId(*collection.ID)
 
-	return resourceArmSchedulerJobCollectionPopulate(d, resourceGroup, &collection)
+	//standard properties
+	d.Set("name", collection.Name)
+	d.Set("location", azureRMNormalizeLocation(*collection.Location))
+	d.Set("resource_group_name", resourceGroup)
+	flattenAndSetTags(d, collection.Tags)
+
+	//resource specific
+	if properties := collection.Properties; properties != nil {
+		if sku := properties.Sku; sku != nil {
+			d.Set("sku", sku.Name)
+		}
+		d.Set("state", string(properties.State))
+
+		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
+			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
+		}
+	}
+
+	return nil
 }
