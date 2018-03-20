@@ -203,6 +203,12 @@
 			"versionExact": "v12.5.0-beta"
 		},
 		{
+			"checksumSHA1": "uiqNCbLggCPjMdYZ8cB5vNeeDmw=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy",
+			"revision": "e67cd39e942c417ae5e9ae1165f778d9fe8996e0",
+			"revisionTime": "2018-03-16T20:43:19Z"
+		},
+		{
 			"checksumSHA1": "oNSB5LmmOu68djMmeORcCDYn/3o=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources",
 			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
@@ -335,13 +341,10 @@
 			"versionExact": "v9.7.0"
 		},
 		{
-			"checksumSHA1": "HfqZyKllcHQDvTwgCaYL1jUPmW0=",
-			"comment": "v9.7.0",
+			"checksumSHA1": "5UH4IFIB/98iowPCzzVs4M4MXiQ=",
 			"path": "github.com/Azure/go-autorest/autorest/validation",
-			"revision": "8c58b4788dedd95779efe0ac2055bb6a1b9b8e01",
-			"revisionTime": "2018-01-06T16:29:27Z",
-			"version": "v9.7.0",
-			"versionExact": "v9.7.0"
+			"revision": "05cc91b23cb791df3737aa915d76c76d216ea732",
+			"revisionTime": "2018-03-09T19:05:52Z"
 		},
 		{
 			"checksumSHA1": "jQh1fnoKPKMURvKkpdRjN695nAQ=",
