@@ -27,6 +27,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -244,13 +245,14 @@ func (secret *ServicePrincipalCertificateSecret) SetAuthenticationValues(spt *Se
 type ServicePrincipalToken struct {
 	Token
 
-	secret        ServicePrincipalSecret
-	oauthConfig   OAuthConfig
-	clientID      string
-	resource      string
-	autoRefresh   bool
-	refreshWithin time.Duration
-	sender        Sender
+	secret          ServicePrincipalSecret
+	oauthConfig     OAuthConfig
+	clientID        string
+	resource        string
+	autoRefresh     bool
+	autoRefreshLock *sync.Mutex
+	refreshWithin   time.Duration
+	sender          Sender
 
 	refreshCallbacks []TokenRefreshCallback
 }
@@ -282,6 +284,7 @@ func NewServicePrincipalTokenWithSecret(oauthConfig OAuthConfig, id string, reso
 		clientID:         id,
 		resource:         resource,
 		autoRefresh:      true,
+		autoRefreshLock:  &sync.Mutex{},
 		refreshWithin:    defaultRefresh,
 		sender:           &http.Client{},
 		refreshCallbacks: callbacks,
@@ -499,6 +502,7 @@ func newServicePrincipalTokenFromMSI(msiEndpoint, resource string, userAssignedI
 		secret:           &ServicePrincipalMSISecret{},
 		resource:         resource,
 		autoRefresh:      true,
+		autoRefreshLock:  &sync.Mutex{},
 		refreshWithin:    defaultRefresh,
 		sender:           &http.Client{},
 		refreshCallbacks: callbacks,
@@ -532,10 +536,15 @@ func newTokenRefreshError(message string, resp *http.Response) TokenRefreshError
 }
 
 // EnsureFresh will refresh the token if it will expire within the refresh window (as set by
-// RefreshWithin) and autoRefresh flag is on.
+// RefreshWithin) and autoRefresh flag is on.  This method is safe for concurrent use.
 func (spt *ServicePrincipalToken) EnsureFresh() error {
 	if spt.autoRefresh && spt.WillExpireIn(spt.refreshWithin) {
-		return spt.Refresh()
+		// take the lock then check to see if the token was already refreshed
+		spt.autoRefreshLock.Lock()
+		defer spt.autoRefreshLock.Unlock()
+		if spt.WillExpireIn(spt.refreshWithin) {
+			return spt.Refresh()
+		}
 	}
 	return nil
 }
@@ -554,11 +563,13 @@ func (spt *ServicePrincipalToken) InvokeRefreshCallbacks(token Token) error {
 }
 
 // Refresh obtains a fresh token for the Service Principal.
+// This method is not safe for concurrent use and should be syncrhonized.
 func (spt *ServicePrincipalToken) Refresh() error {
 	return spt.refreshInternal(spt.resource)
 }
 
 // RefreshExchange refreshes the token, but for a different resource.
+// This method is not safe for concurrent use and should be syncrhonized.
 func (spt *ServicePrincipalToken) RefreshExchange(resource string) error {
 	return spt.refreshInternal(resource)
 }

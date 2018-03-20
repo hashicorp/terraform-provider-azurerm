@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"strings"
 )
 
 // The Permissions type holds fine-grained permissions that are
@@ -189,7 +188,7 @@ func (s *connection) serverHandshake(config *ServerConfig) (*Permissions, error)
 	tr := newTransport(s.sshConn.conn, config.Rand, false /* not client */)
 	s.transport = newServerTransport(tr, s.clientVersion, s.serverVersion, config)
 
-	if err := s.transport.waitSession(); err != nil {
+	if err := s.transport.requestInitialKeyChange(); err != nil {
 		return nil, err
 	}
 
@@ -232,7 +231,7 @@ func isAcceptableAlgo(algo string) bool {
 	return false
 }
 
-func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
+func checkSourceAddress(addr net.Addr, sourceAddr string) error {
 	if addr == nil {
 		return errors.New("ssh: no address known for client, but source-address match required")
 	}
@@ -242,20 +241,18 @@ func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
 		return fmt.Errorf("ssh: remote address %v is not an TCP address when checking source-address match", addr)
 	}
 
-	for _, sourceAddr := range strings.Split(sourceAddrs, ",") {
-		if allowedIP := net.ParseIP(sourceAddr); allowedIP != nil {
-			if allowedIP.Equal(tcpAddr.IP) {
-				return nil
-			}
-		} else {
-			_, ipNet, err := net.ParseCIDR(sourceAddr)
-			if err != nil {
-				return fmt.Errorf("ssh: error parsing source-address restriction %q: %v", sourceAddr, err)
-			}
+	if allowedIP := net.ParseIP(sourceAddr); allowedIP != nil {
+		if bytes.Equal(allowedIP, tcpAddr.IP) {
+			return nil
+		}
+	} else {
+		_, ipNet, err := net.ParseCIDR(sourceAddr)
+		if err != nil {
+			return fmt.Errorf("ssh: error parsing source-address restriction %q: %v", sourceAddr, err)
+		}
 
-			if ipNet.Contains(tcpAddr.IP) {
-				return nil
-			}
+		if ipNet.Contains(tcpAddr.IP) {
+			return nil
 		}
 	}
 
@@ -263,7 +260,7 @@ func checkSourceAddress(addr net.Addr, sourceAddrs string) error {
 }
 
 func (s *connection) serverAuthenticate(config *ServerConfig) (*Permissions, error) {
-	sessionID := s.transport.getSessionID()
+	var err error
 	var cache pubKeyCache
 	var perms *Permissions
 
@@ -388,7 +385,7 @@ userAuthLoop:
 				if !isAcceptableAlgo(sig.Format) {
 					break
 				}
-				signedData := buildDataSignedForAuth(sessionID, userAuthReq, algoBytes, pubKeyData)
+				signedData := buildDataSignedForAuth(s.transport.getSessionID(), userAuthReq, algoBytes, pubKeyData)
 
 				if err := pubKey.Verify(signedData, sig); err != nil {
 					return nil, err
@@ -424,12 +421,12 @@ userAuthLoop:
 			return nil, errors.New("ssh: no authentication methods configured but NoClientAuth is also false")
 		}
 
-		if err := s.transport.writePacket(Marshal(&failureMsg)); err != nil {
+		if err = s.transport.writePacket(Marshal(&failureMsg)); err != nil {
 			return nil, err
 		}
 	}
 
-	if err := s.transport.writePacket([]byte{msgUserAuthSuccess}); err != nil {
+	if err = s.transport.writePacket([]byte{msgUserAuthSuccess}); err != nil {
 		return nil, err
 	}
 	return perms, nil
