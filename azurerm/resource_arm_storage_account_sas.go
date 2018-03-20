@@ -3,7 +3,9 @@ package azurerm
 import "github.com/hashicorp/terraform/helper/schema"
 
 import (
+	"encoding/base64"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -109,8 +111,11 @@ func resourceArmStorageAccountSasCreate(d *schema.ResourceData, meta interface{}
 	signedIp := ""
 	signedVersion := sasSignedVersion
 
-	sasToken := computeAzureStorageAccountSas(accountName, accountKey, permissions, services, resourceTypes,
+	sasToken, err := computeAzureStorageAccountSas(accountName, accountKey, permissions, services, resourceTypes,
 		start, expiry, signedProtocol, signedIp, signedVersion)
+	if err != nil {
+		return err
+	}
 
 	d.Set("sas", sasToken)
 
@@ -142,26 +147,43 @@ func computeAzureStorageAccountSas(accountName string,
 	accountKey string,
 	permissions string, services string,
 	resourceTypes string, start string, expiry string,
-	signedProtocol string, signedIp string, signedVersion string) string {
+	signedProtocol string, signedIp string, signedVersion string) (string, error) {
 
 	// UTF-8 by default...
-	stringToSign := accountName + "\n" + permissions + "\n" + services + "\n" + resourceTypes + "\n" + start + "\n" +
-		expiry + "\n" + signedIp + "\n" + signedProtocol + "\n" + signedVersion + "\n"
+	stringToSign := accountName + "\n"
+	stringToSign += permissions + "\n"
+	stringToSign += services + "\n"
+	stringToSign += resourceTypes + "\n"
+	stringToSign += start + "\n"
+	stringToSign += expiry + "\n"
+	stringToSign += signedIp + "\n"
+	stringToSign += signedProtocol + "\n"
+	stringToSign += signedVersion + "\n"
 
-	hasher := hmac.New(sha256.New, []byte(accountKey))
-	signature := hasher.Sum([]byte(stringToSign))
+	binaryKey, err := base64.StdEncoding.DecodeString(accountKey)
+	if err != nil {
+		return "", err
+	}
+	hasher := hmac.New(sha256.New, binaryKey)
+	hasher.Write([]byte(stringToSign))
+	signature := hasher.Sum(nil)
 
-	sasToken := "?sv=" + signedVersion + "&ss=" + services + "&srt=" + resourceTypes + "&sp=" + permissions +
-		"&st=" + start + "&se=" + expiry + "&spr=" + signedProtocol
+	sasToken := "?sv=" + url.QueryEscape(signedVersion)
+	sasToken += "&ss=" + url.QueryEscape(services)
+	sasToken += "&srt=" + url.QueryEscape(resourceTypes)
+	sasToken += "&sp=" + url.QueryEscape(permissions)
+	sasToken += "&se=" + (expiry)
+	sasToken += "&st=" + (start)
+	sasToken += "&spr=" + url.QueryEscape(signedProtocol)
 
 	// this is consistent with how the Azure portal builds these.
 	if len(signedIp) > 0 {
 		sasToken += "&sip=" + signedIp
 	}
 
-	sasToken += "&sig=" + string(signature)
+	sasToken += "&sig=" + url.QueryEscape(base64.StdEncoding.EncodeToString(signature))
 
-	return sasToken
+	return sasToken, nil
 }
 
 // This connection string was for a real storage account which has been deleted
