@@ -193,6 +193,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_sql_active_directory_administrator":  resourceArmSqlAdministrator(),
 			"azurerm_sql_server":                          resourceArmSqlServer(),
 			"azurerm_storage_account":                     resourceArmStorageAccount(),
+			"azurerm_storage_account_sas":                 resourceArmStorageAccountSharedAccessSignature(),
 			"azurerm_storage_blob":                        resourceArmStorageBlob(),
 			"azurerm_storage_container":                   resourceArmStorageContainer(),
 			"azurerm_storage_share":                       resourceArmStorageShare(),

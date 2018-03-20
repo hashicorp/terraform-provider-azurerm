@@ -145,9 +145,14 @@ func validateArmStorageAccountSasResourceTypes(v interface{}, k string) (ws []st
 
 func computeAzureStorageAccountSas(accountName string,
 	accountKey string,
-	permissions string, services string,
-	resourceTypes string, start string, expiry string,
-	signedProtocol string, signedIp string, signedVersion string) (string, error) {
+	permissions string,
+	services string,
+	resourceTypes string,
+	start string,
+	expiry string,
+	signedProtocol string,
+	signedIp string,
+	signedVersion string) (string, error) {
 
 	// UTF-8 by default...
 	stringToSign := accountName + "\n"
@@ -168,13 +173,15 @@ func computeAzureStorageAccountSas(accountName string,
 	hasher.Write([]byte(stringToSign))
 	signature := hasher.Sum(nil)
 
+	// Trial and error to determine which fields the Azure portal
+	// URL encodes for a query string and which it does not.
 	sasToken := "?sv=" + url.QueryEscape(signedVersion)
 	sasToken += "&ss=" + url.QueryEscape(services)
 	sasToken += "&srt=" + url.QueryEscape(resourceTypes)
 	sasToken += "&sp=" + url.QueryEscape(permissions)
 	sasToken += "&se=" + (expiry)
 	sasToken += "&st=" + (start)
-	sasToken += "&spr=" + url.QueryEscape(signedProtocol)
+	sasToken += "&spr=" + (signedProtocol)
 
 	// this is consistent with how the Azure portal builds these.
 	if len(signedIp) > 0 {
