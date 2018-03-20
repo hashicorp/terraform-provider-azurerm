@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 
+	"strconv"
+
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -104,8 +106,8 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
-	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
+	d.Set("number_of_record_sets", strconv.Itoa(int(*resp.NumberOfRecordSets)))
+	d.Set("max_number_of_record_sets", strconv.Itoa(int(*resp.MaxNumberOfRecordSets)))
 
 	nameServers := make([]string, 0, len(*resp.NameServers))
 	for _, ns := range *resp.NameServers {
