@@ -240,19 +240,19 @@ func resourceArmAppService() *schema.Resource {
 			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsForceNewSchema(),
 
-			"publishing_users": {
+			"publishing_user": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"publishing_user_name": {
+						"name": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
 						},
-						"publishing_user_password": {
+						"password": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
@@ -319,7 +319,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
-
 
 	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
 	skipDNSRegistration := false
@@ -400,6 +399,14 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	if d.HasChange("publishing_user") {
+		pubUser := expandPublishingUser(d)
+
+		if _, err := client.UpdatePublishingUser(ctx, pubUser); err != nil {
+			return fmt.Errorf("Error updating publishing user for App Service %q: %+v", name, err)
+		}
+	}
+
 	return resourceArmAppServiceRead(d, meta)
 }
 
@@ -445,6 +452,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
 	}
 
+	userResp, err := client.GetPublishingUser(ctx)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Publishing User %q: %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
@@ -471,6 +483,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	scmProps := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scmProps); err != nil {
+		return err
+	}
+
+	user := flattenPublishingUser(&userResp)
+	if err := d.Set("publishing_user", user); err != nil {
 		return err
 	}
 
@@ -744,42 +761,51 @@ func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
 	return
 }
 
-func expandPublishingUser(d *schema.ResourceData) web.UserProperties {
-	propsList := d.Get("publishing_user").([]interface{})
-	userProps := web.UserProperties{}
-
-	if len(propsList) == 0 {
-		return userProps
+func expandPublishingUser(d *schema.ResourceData) web.User {
+	userList := d.Get("publishing_user").([]interface{})
+	user := web.User{
+		UserProperties: &web.UserProperties{},
 	}
 
-	props := propsList[0].(map[string]interface{})
-
-	if v, ok := props["publishing_user_name"]; ok {
-		userProps.PublishingUserName = utils.String(v.(string))
+	if len(userList) == 0 {
+		return user
 	}
 
-	if v, ok := props["publishing_user_password"]; ok {
-		userProps.PublishingPassword = utils.String(v.(string))
+	props := userList[0].(map[string]interface{})
+
+	if v, ok := props["name"]; ok {
+		user.UserProperties.PublishingUserName = utils.String(v.(string))
 	}
 
-	return userProps
+	if v, ok := props["password"]; ok {
+		user.UserProperties.PublishingPassword = utils.String(v.(string))
+	}
+
+	return user
 }
 
-func flattenPublishingUser(input *web.UserProperties) []interface{} {
+func flattenPublishingUser(input *web.User) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{}, 0)
 
 	if input == nil {
+		log.Printf("[DEBUG] User is nil")
+		return results
+	}
+
+	userProps := input.UserProperties
+
+	if userProps == nil {
 		log.Printf("[DEBUG] UserProperties is nil")
 		return results
 	}
 
-	if input.PublishingUserName != nil {
-		result["publishing_user_name"] = *input.PublishingUserName
+	if userProps.PublishingUserName != nil {
+		result["name"] = *input.PublishingUserName
 	}
 
-	if input.PublishingPassword != nil {
-		result["publishing_user_password"] = *input.PublishingPassword
+	if userProps.PublishingPassword != nil {
+		result["password"] = *input.PublishingPassword
 	}
 
 	results = append(results, result)
