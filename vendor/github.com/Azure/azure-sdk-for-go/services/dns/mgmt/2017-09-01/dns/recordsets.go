@@ -80,7 +80,7 @@ func (client RecordSetsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -162,7 +162,7 @@ func (client RecordSetsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -235,7 +235,7 @@ func (client RecordSetsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -306,7 +306,7 @@ func (client RecordSetsClient) ListByDNSZonePreparer(ctx context.Context, resour
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -411,7 +411,7 @@ func (client RecordSetsClient) ListByTypePreparer(ctx context.Context, resourceG
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -516,7 +516,7 @@ func (client RecordSetsClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

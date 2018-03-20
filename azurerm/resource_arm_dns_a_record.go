@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-09-01/dns"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -115,14 +115,17 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zone_name", zoneName)
-	d.Set("ttl", resp.TTL)
 
-	if err := d.Set("records", flattenAzureRmDnsARecords(resp.ARecords)); err != nil {
-		return err
-	}
+	if props := resp.RecordSetProperties; props != nil {
+		d.Set("ttl", props.TTL)
 
-	if err := flattenAndSetTags(d, &resp.Metadata); err != nil {
-		return fmt.Errorf("Error flattening `tags`: %+v", err)
+		if err := d.Set("records", flattenAzureRmDnsARecords(*props.ARecords)); err != nil {
+			return err
+		}
+
+		if err := flattenAndSetTags(d, &props.Metadata); err != nil {
+			return fmt.Errorf("Error flattening `tags`: %+v", err)
+		}
 	}
 
 	return nil
@@ -149,11 +152,11 @@ func resourceArmDnsARecordDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func flattenAzureRmDnsARecords(records *[]dns.ARecord) []string {
-	results := make([]string, 0, len(*records))
+func flattenAzureRmDnsARecords(records []dns.ARecord) []string {
+	results := make([]string, 0)
 
 	if records != nil {
-		for _, record := range *records {
+		for _, record := range records {
 			results = append(results, *record.Ipv4Address)
 		}
 	}

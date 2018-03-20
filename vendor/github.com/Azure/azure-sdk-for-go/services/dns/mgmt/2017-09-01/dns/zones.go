@@ -76,7 +76,7 @@ func (client ZonesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -149,7 +149,7 @@ func (client ZonesClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -183,14 +183,13 @@ func (client ZonesClient) DeleteSender(req *http.Request) (future ZonesDeleteFut
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client ZonesClient) DeleteResponder(resp *http.Response) (result ZoneDeleteResult, err error) {
+func (client ZonesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
@@ -228,7 +227,7 @@ func (client ZonesClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -293,7 +292,7 @@ func (client ZonesClient) ListPreparer(ctx context.Context, top *int32) (*http.R
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -390,7 +389,7 @@ func (client ZonesClient) ListByResourceGroupPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

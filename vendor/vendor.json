@@ -75,8 +75,8 @@
 			"versionExact": "v14.5.0"
 		},
 		{
-			"checksumSHA1": "XbYMPhtv5x54bymsb3pBows4TsY=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns",
+			"checksumSHA1": "ZZASjHYIpHX9Nq3phdWAZx4EHZU=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-09-01/dns",
 			"revision": "e67cd39e942c417ae5e9ae1165f778d9fe8996e0",
 			"revisionTime": "2018-03-16T20:43:19Z",
 			"version": "=v14.5.0",
