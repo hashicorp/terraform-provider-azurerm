@@ -281,10 +281,10 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	cert, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := client.GetCertificate(ctx, id.KeyVaultBaseUrl, id.Name, "")
 
 	if err != nil {
-		if utils.ResponseWasNotFound(cert.Response) {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -295,14 +295,16 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", id.Name)
 	d.Set("vault_uri", id.KeyVaultBaseUrl)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
+	certificatePolicy := flattenKeyVaultCertificatePolicy(resp.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error flattening Key Vault Certificate Policy: %+v", err)
 	}
 
 	// Computed
 	d.Set("version", id.Version)
-	flattenAndSetTags(d, cert.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

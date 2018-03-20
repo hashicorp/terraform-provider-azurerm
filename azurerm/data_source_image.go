@@ -196,7 +196,9 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, img.Tags)
+	if err := flattenAndSetTags(d, &img.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

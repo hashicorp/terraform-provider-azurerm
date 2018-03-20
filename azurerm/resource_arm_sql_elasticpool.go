@@ -39,9 +39,10 @@ func resourceArmSqlElasticPool() *schema.Resource {
 			},
 
 			"edition": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				// TODO: switch this to an inline function
 				ValidateFunc: validateSqlElasticPoolEdition(),
 			},
 
@@ -157,7 +158,9 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

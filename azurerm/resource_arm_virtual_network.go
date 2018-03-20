@@ -198,7 +198,9 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("dns_servers", dnses)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

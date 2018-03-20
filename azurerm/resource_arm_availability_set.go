@@ -132,7 +132,9 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

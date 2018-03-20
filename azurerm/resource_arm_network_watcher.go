@@ -90,7 +90,9 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

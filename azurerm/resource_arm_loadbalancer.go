@@ -190,7 +190,7 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d.Id(), meta)
+	resp, exists, err := retrieveLoadBalancerById(d.Id(), meta)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID %q: %+v", d.Id(), err)
 	}
@@ -200,18 +200,18 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		return nil
 	}
 
-	d.Set("name", loadBalancer.Name)
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := loadBalancer.Location; location != nil {
+	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if sku := loadBalancer.Sku; sku != nil {
+	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
-	if props := loadBalancer.LoadBalancerPropertiesFormat; props != nil {
+	if props := resp.LoadBalancerPropertiesFormat; props != nil {
 		if feipConfigs := props.FrontendIPConfigurations; feipConfigs != nil {
 			d.Set("frontend_ip_configuration", flattenLoadBalancerFrontendIpConfiguration(feipConfigs))
 
@@ -234,7 +234,9 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	flattenAndSetTags(d, loadBalancer.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

@@ -127,7 +127,9 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Metadata)
+	if err := flattenAndSetTags(d, &resp.Metadata); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

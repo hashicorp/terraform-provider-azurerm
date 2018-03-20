@@ -194,7 +194,9 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 	// Computed
 	d.Set("version", id.Version)
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

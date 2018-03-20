@@ -173,7 +173,10 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
+
 	return nil
 }
 

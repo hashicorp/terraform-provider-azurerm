@@ -288,7 +288,9 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 	d.Set("sku", flattenPostgreSQLServerSku(resp.Sku))
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)

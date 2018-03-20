@@ -135,7 +135,10 @@ func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error 
 	if err := d.Set("record", flattenAzureRmDnsMxRecords(resp.MxRecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
+
+	if err := flattenAndSetTags(d, &resp.Metadata); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

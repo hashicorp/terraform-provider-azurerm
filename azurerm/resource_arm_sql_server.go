@@ -147,7 +147,9 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

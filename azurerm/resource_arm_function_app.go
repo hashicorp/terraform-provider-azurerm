@@ -341,7 +341,9 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }
@@ -392,12 +394,12 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair 
 	}
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData) *map[string]*string {
+func expandFunctionAppAppSettings(d *schema.ResourceData) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
 	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	for _, p := range basicAppSettings {
-		(*output)[*p.Name] = p.Value
+		(output)[*p.Name] = p.Value
 	}
 
 	return output
@@ -453,7 +455,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	return results
 }
 
-func expandFunctionAppConnectionStrings(d *schema.ResourceData) *map[string]*web.ConnStringValueTypePair {
+func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").([]interface{})
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -470,13 +472,13 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) *map[string]*web
 		}
 	}
 
-	return &output
+	return output
 }
 
-func flattenFunctionAppConnectionStrings(input *map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range *input {
+	for k, v := range input {
 		result := make(map[string]interface{}, 0)
 		result["name"] = k
 		result["type"] = string(v.Type)

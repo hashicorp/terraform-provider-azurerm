@@ -168,44 +168,16 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	var outputs map[string]string
-	if resp.Properties.Outputs != nil && len(*resp.Properties.Outputs) > 0 {
-		outputs = make(map[string]string)
-		for key, output := range *resp.Properties.Outputs {
-			log.Printf("[DEBUG] Processing deployment output %s", key)
-			outputMap := output.(map[string]interface{})
-			outputValue, ok := outputMap["value"]
-			if !ok {
-				log.Printf("[DEBUG] No value - skipping")
-				continue
-			}
-			outputType, ok := outputMap["type"]
-			if !ok {
-				log.Printf("[DEBUG] No type - skipping")
-				continue
-			}
+	// TODO: pull ths out into a
 
-			var outputValueString string
-			switch strings.ToLower(outputType.(string)) {
-			case "bool":
-				outputValueString = strconv.FormatBool(outputValue.(bool))
-
-			case "string":
-				outputValueString = outputValue.(string)
-
-			case "int":
-				outputValueString = fmt.Sprint(outputValue)
-
-			default:
-				log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
-					key, outputType)
-				continue
-			}
-			outputs[key] = outputValueString
+	if props := resp.Properties; props != nil {
+		outputs := flattenTemplateDeploymentOutputs(props.Outputs)
+		if err := d.Set("outputs", outputs); err != nil {
+			return fmt.Errorf("Error flattening `outputs`: %+v", err)
 		}
 	}
 
-	return d.Set("outputs", outputs)
+	return nil
 }
 
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
@@ -294,4 +266,47 @@ func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client re
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
+}
+
+func flattenTemplateDeploymentOutputs(input interface{}) interface{} {
+	results := make(map[string]string, 0)
+
+	if input != nil {
+		if outputs := input.(map[string]interface{}); outputs != nil {
+			for key, output := range outputs {
+				log.Printf("[DEBUG] Processing deployment output %q", key)
+				outputMap := output.(map[string]interface{})
+				outputValue, ok := outputMap["value"]
+				if !ok {
+					log.Printf("[DEBUG] No value - skipping")
+					continue
+				}
+				outputType, ok := outputMap["type"]
+				if !ok {
+					log.Printf("[DEBUG] No type - skipping")
+					continue
+				}
+
+				var outputValueString string
+				switch strings.ToLower(outputType.(string)) {
+				case "bool":
+					outputValueString = strconv.FormatBool(outputValue.(bool))
+
+				case "string":
+					outputValueString = outputValue.(string)
+
+				case "int":
+					outputValueString = fmt.Sprint(outputValue)
+
+				default:
+					log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
+						key, outputType)
+					continue
+				}
+				outputs[key] = outputValueString
+			}
+		}
+	}
+
+	return results
 }

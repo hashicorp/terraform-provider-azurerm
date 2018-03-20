@@ -70,16 +70,14 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
-		ApplicationID:   &name,
-		ApplicationType: insights.ApplicationType(applicationType),
-	}
-
 	insightProperties := insights.ApplicationInsightsComponent{
 		Name:     &name,
 		Location: &location,
 		Kind:     &applicationType,
-		ApplicationInsightsComponentProperties: &applicationInsightsComponentProperties,
+		ApplicationInsightsComponentProperties: &insights.ApplicationInsightsComponentProperties{
+			ApplicationID:   &name,
+			ApplicationType: insights.ApplicationType(applicationType),
+		},
 		Tags: expandTags(tags),
 	}
 
@@ -134,7 +132,9 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("instrumentation_key", props.InstrumentationKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

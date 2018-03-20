@@ -173,24 +173,27 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 	return resourceArmSchedulerJobCollectionPopulate(d, resourceGroup, &collection)
 }
 
-func resourceArmSchedulerJobCollectionPopulate(d *schema.ResourceData, resourceGroup string, collection *scheduler.JobCollectionDefinition) error {
+func resourceArmSchedulerJobCollectionPopulate(d *schema.ResourceData, resourceGroup string, resp *scheduler.JobCollectionDefinition) error {
 
 	//standard properties
-	d.Set("name", collection.Name)
-	d.Set("location", azureRMNormalizeLocation(*collection.Location))
+	d.Set("name", resp.Name)
+	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resourceGroup)
-	flattenAndSetTags(d, collection.Tags)
 
 	//resource specific
-	if properties := collection.Properties; properties != nil {
+	if properties := resp.Properties; properties != nil {
 		if sku := properties.Sku; sku != nil {
 			d.Set("sku", sku.Name)
 		}
 		d.Set("state", string(properties.State))
 
 		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
-			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
+			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", resp.Name, resourceGroup, err)
 		}
+	}
+
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
 	}
 
 	return nil
@@ -252,7 +255,6 @@ func expandAzureArmSchedulerJobCollectionQuota(d *schema.ResourceData) *schedule
 }
 
 func flattenAzureArmSchedulerJobCollectionQuota(quota *scheduler.JobCollectionQuota) []interface{} {
-
 	if quota == nil {
 		return nil
 	}

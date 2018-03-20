@@ -190,7 +190,9 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	d.Set("service_key", resp.ServiceKey)
 	d.Set("allow_classic_operations", resp.AllowClassicOperations)
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

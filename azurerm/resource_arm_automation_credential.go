@@ -25,7 +25,9 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"account_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -42,6 +44,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Required:  true,
 				Sensitive: true,
 			},
+
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,

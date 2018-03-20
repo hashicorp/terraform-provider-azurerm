@@ -169,20 +169,26 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("virtual_machine_name", vmName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("publisher", resp.VirtualMachineExtensionProperties.Publisher)
-	d.Set("type", resp.VirtualMachineExtensionProperties.Type)
-	d.Set("type_handler_version", resp.VirtualMachineExtensionProperties.TypeHandlerVersion)
-	d.Set("auto_upgrade_minor_version", resp.VirtualMachineExtensionProperties.AutoUpgradeMinorVersion)
 
-	if resp.VirtualMachineExtensionProperties.Settings != nil {
-		settings, err := structure.FlattenJsonToString(*resp.VirtualMachineExtensionProperties.Settings)
-		if err != nil {
-			return fmt.Errorf("unable to parse settings from response: %s", err)
+	if props := resp.VirtualMachineExtensionProperties; props != nil {
+		d.Set("publisher", props.Publisher)
+		d.Set("type", props.Type)
+		d.Set("type_handler_version", props.TypeHandlerVersion)
+		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
+
+		if props.Settings != nil {
+			settingsMap := props.Settings.(map[string]interface{})
+			settings, err := structure.FlattenJsonToString(settingsMap)
+			if err != nil {
+				return fmt.Errorf("unable to parse settings from response: %s", err)
+			}
+			d.Set("settings", settings)
 		}
-		d.Set("settings", settings)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

@@ -81,7 +81,10 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("name", resp.Name)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	flattenAndSetTags(d, resp.Tags)
+
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

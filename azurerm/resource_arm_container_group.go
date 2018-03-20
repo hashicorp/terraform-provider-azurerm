@@ -277,7 +277,9 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	d.Set("os_type", string(resp.OsType))
 	if address := resp.IPAddress; address != nil {
