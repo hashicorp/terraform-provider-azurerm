@@ -41,4 +41,4 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Application Security Group exists.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.
