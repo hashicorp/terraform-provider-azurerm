@@ -180,12 +180,19 @@ The following attributes are exported:
 
 * `source_control` - (Optional) The default local Git source control information if deployment option is set to `LocalGit`.
 
+* `site_credential` - (Optional) The site-level credential used to publish files to Azure Web App.
+
 ---
 
 `source_control` supports the following:
 
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
+
+`site_credential` supports the following:
+
+* `user_name` - If your site is named 'MySite', the user name will be '$MySite'.
+* `password` - Some long random string.
 
 ## Import
 

@@ -619,6 +619,7 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.scm_type", "LocalGit"),
 					resource.TestCheckResourceAttr(resourceName, "source_control.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "site_credential.#", "1"),
 				),
 			},
 		},
