@@ -218,35 +218,35 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, meta interface{}
 func buildPermissionsString(perms map[string]interface{}) string {
 	retVal := ""
 
-	if val := perms["read"].(bool); val {
+	if val, pres := perms["read"].(bool); pres && val {
 		retVal += "r"
 	}
 
-	if val := perms["write"].(bool); val {
+	if val, pres := perms["write"].(bool); pres && val {
 		retVal += "w"
 	}
 
-	if val := perms["delete"].(bool); val {
+	if val, pres := perms["delete"].(bool); pres && val {
 		retVal += "d"
 	}
 
-	if val := perms["list"].(bool); val {
+	if val, pres := perms["list"].(bool); pres && val {
 		retVal += "l"
 	}
 
-	if val := perms["add"].(bool); val {
+	if val, pres := perms["add"].(bool); pres && val {
 		retVal += "a"
 	}
 
-	if val := perms["create"].(bool); val {
+	if val, pres := perms["create"].(bool); pres && val {
 		retVal += "c"
 	}
 
-	if val := perms["update"].(bool); val {
+	if val, pres := perms["update"].(bool); pres && val {
 		retVal += "u"
 	}
 
-	if val := perms["process"].(bool); val {
+	if val, pres := perms["process"].(bool); pres && val {
 		retVal += "p"
 	}
 
@@ -256,19 +256,19 @@ func buildPermissionsString(perms map[string]interface{}) string {
 func buildServicesString(services map[string]interface{}) string {
 	retVal := ""
 
-	if val := services["blob"].(bool); val {
+	if val, pres := services["blob"].(bool); pres && val {
 		retVal += "b"
 	}
 
-	if val := services["queue"].(bool); val {
+	if val, pres := services["queue"].(bool); pres && val {
 		retVal += "q"
 	}
 
-	if val := services["table"].(bool); val {
+	if val, pres := services["table"].(bool); pres && val {
 		retVal += "t"
 	}
 
-	if val := services["file"].(bool); val {
+	if val, pres := services["file"].(bool); pres && val {
 		retVal += "f"
 	}
 
@@ -278,15 +278,15 @@ func buildServicesString(services map[string]interface{}) string {
 func buildResourceTypesString(resTypes map[string]interface{}) string {
 	retVal := ""
 
-	if val := resTypes["service"].(bool); val {
+	if val, pres := resTypes["service"].(bool); pres && val {
 		retVal += "s"
 	}
 
-	if val := resTypes["container"].(bool); val {
+	if val, pres := resTypes["container"].(bool); pres && val {
 		retVal += "c"
 	}
 
-	if val := resTypes["object"].(bool); val {
+	if val, pres := resTypes["object"].(bool); pres && val {
 		retVal += "o"
 	}
 
