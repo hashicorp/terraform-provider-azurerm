@@ -45,7 +45,6 @@ type Environment struct {
 	KeyVaultEndpoint             string `json:"keyVaultEndpoint"`
 	GraphEndpoint                string `json:"graphEndpoint"`
 	ServiceBusEndpoint           string `json:"serviceBusEndpoint"`
-	BatchManagementEndpoint      string `json:"batchManagementEndpoint"`
 	StorageEndpointSuffix        string `json:"storageEndpointSuffix"`
 	SQLDatabaseDNSSuffix         string `json:"sqlDatabaseDNSSuffix"`
 	TrafficManagerDNSSuffix      string `json:"trafficManagerDNSSuffix"`
@@ -69,7 +68,6 @@ var (
 		KeyVaultEndpoint:             "https://vault.azure.net/",
 		GraphEndpoint:                "https://graph.windows.net/",
 		ServiceBusEndpoint:           "https://servicebus.windows.net/",
-		BatchManagementEndpoint:      "https://batch.core.windows.net/",
 		StorageEndpointSuffix:        "core.windows.net",
 		SQLDatabaseDNSSuffix:         "database.windows.net",
 		TrafficManagerDNSSuffix:      "trafficmanager.net",
@@ -92,7 +90,6 @@ var (
 		KeyVaultEndpoint:             "https://vault.usgovcloudapi.net/",
 		GraphEndpoint:                "https://graph.windows.net/",
 		ServiceBusEndpoint:           "https://servicebus.usgovcloudapi.net/",
-		BatchManagementEndpoint:      "https://batch.core.usgovcloudapi.net/",
 		StorageEndpointSuffix:        "core.usgovcloudapi.net",
 		SQLDatabaseDNSSuffix:         "database.usgovcloudapi.net",
 		TrafficManagerDNSSuffix:      "usgovtrafficmanager.net",
@@ -115,7 +112,6 @@ var (
 		KeyVaultEndpoint:             "https://vault.azure.cn/",
 		GraphEndpoint:                "https://graph.chinacloudapi.cn/",
 		ServiceBusEndpoint:           "https://servicebus.chinacloudapi.cn/",
-		BatchManagementEndpoint:      "https://batch.chinacloudapi.cn/",
 		StorageEndpointSuffix:        "core.chinacloudapi.cn",
 		SQLDatabaseDNSSuffix:         "database.chinacloudapi.cn",
 		TrafficManagerDNSSuffix:      "trafficmanager.cn",
@@ -138,7 +134,6 @@ var (
 		KeyVaultEndpoint:             "https://vault.microsoftazure.de/",
 		GraphEndpoint:                "https://graph.cloudapi.de/",
 		ServiceBusEndpoint:           "https://servicebus.cloudapi.de/",
-		BatchManagementEndpoint:      "https://batch.cloudapi.de/",
 		StorageEndpointSuffix:        "core.cloudapi.de",
 		SQLDatabaseDNSSuffix:         "database.cloudapi.de",
 		TrafficManagerDNSSuffix:      "azuretrafficmanager.de",
