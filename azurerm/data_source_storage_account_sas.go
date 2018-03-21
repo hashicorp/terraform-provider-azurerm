@@ -180,7 +180,7 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	services := buildServicesString(servicesIface[0].(map[string]interface{}))
 	permissions := buildPermissionsString(permissionsIface[0].(map[string]interface{}))
 
-	_, svcErr := validateArmStorageAccountSasResourceTypes(services, "")
+	_, svcErr := validateArmStorageAccountSasResourceTypes(resourceTypes, "")
 	if svcErr != nil {
 		return svcErr[0]
 	}
@@ -297,7 +297,7 @@ func validateArmStorageAccountSasResourceTypes(v interface{}, _ string) (ws []st
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([cos]{1,3})\z`).MatchString(input) {
-		es = append(es, fmt.Errorf("resource Types can only consist of 's', 'c', 'o', and must be between 1 and 3 characters long"))
+		es = append(es, fmt.Errorf("resource types can only consist of 's', 'c', 'o', and must be between 1 and 3 characters long: found: %s", input))
 	}
 
 	return
@@ -357,11 +357,13 @@ func computeAzureStorageAccountSas(accountName string,
 // so its safe to include here for reference to understand the format.
 // DefaultEndpointsProtocol=https;AccountName=azurermtestsa0;AccountKey=2vJrjEyL4re2nxCEg590wJUUC7PiqqrDHjAN5RU304FNUQieiEwS2bfp83O0v28iSfWjvYhkGmjYQAdd9x+6nw==;EndpointSuffix=core.windows.net
 
-func parseAzureStorageAccountConnectionString(connString string) (kvp map[string]string, err error) {
+func parseAzureStorageAccountConnectionString(connString string) (map[string]string, error) {
 	validKeys := map[string]bool{"DefaultEndpointsProtocol": true, "BlobEndpoint": true,
 		"AccountName": true, "AccountKey": true, "EndpointSuffix": true}
 	// The k-v pairs are separated with semi-colons
 	tokens := strings.Split(connString, ";")
+
+	kvp := make(map[string]string)
 
 	for _, atoken := range tokens {
 		// The individual k-v are separated by an equals sign.

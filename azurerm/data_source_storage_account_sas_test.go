@@ -10,6 +10,8 @@ func TestDataSourceArmStorageAccountSasRead(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMStorageAccountSas_basic(rInt int, rString string, location string) string {
+	startDate := ""
+	endDate := ""
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestsa-%d"
@@ -43,8 +45,8 @@ data "azurerm_storage_account_sas" "test" {
     table = false
 	file  = false
   }
-  start   = ""
-  expirty = ""
+  start   = "%s"
+  expiry  = "%s"
   permissions {
 	read    = true
 	write   = true
@@ -56,7 +58,36 @@ data "azurerm_storage_account_sas" "test" {
 	process = false
   }
 }
-`, rInt, location, rString)
+`, rInt, location, rString, startDate, endDate)
+}
+
+func TestParseAzureStorageAccountConnectionString(t *testing.T) {
+	testCases := []struct {
+		input               string
+		expectedAccountName string
+		expectedAccountKey  string
+	}{
+		{
+			"DefaultEndpointsProtocol=https;AccountName=azurermtestsa0;AccountKey=2vJrjEyL4re2nxCEg590wJUUC7PiqqrDHjAN5RU304FNUQieiEwS2bfp83O0v28iSfWjvYhkGmjYQAdd9x+6nw==;EndpointSuffix=core.windows.net",
+			"azurermtestsa0",
+			"2vJrjEyL4re2nxCEg590wJUUC7PiqqrDHjAN5RU304FNUQieiEwS2bfp83O0v28iSfWjvYhkGmjYQAdd9x+6nw==",
+		},
+	}
+
+	for _, test := range testCases {
+		result, err := parseAzureStorageAccountConnectionString(test.input)
+		if err != nil {
+			t.Fatalf("Failed to parse resource type string: %s, %q", test.input, result)
+		} else {
+			if val, pres := result[connStringAccountKeyKey]; !pres || val != test.expectedAccountKey {
+				t.Fatalf("Failed to parse Account Key: Expected: %s, Found: %s", test.expectedAccountKey, val)
+			}
+			if val, pres := result[connStringAccountNameKey]; !pres || val != test.expectedAccountName {
+				t.Fatalf("Failed to parse Account Name: Expected: %s, Found: %s", test.expectedAccountName, val)
+			}
+		}
+	}
+
 }
 
 func TestBuildResourceTypesString(t *testing.T) {
