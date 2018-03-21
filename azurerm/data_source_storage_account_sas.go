@@ -166,7 +166,7 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 
 }
 
-func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
 
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
@@ -293,7 +293,7 @@ func buildResourceTypesString(resTypes map[string]interface{}) string {
 	return retVal
 }
 
-func validateArmStorageAccountSasResourceTypes(v interface{}, k string) (ws []string, es []error) {
+func validateArmStorageAccountSasResourceTypes(v interface{}, _ string) (ws []string, es []error) {
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([cos]{1,3})\z`).MatchString(input) {
