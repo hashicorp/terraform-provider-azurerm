@@ -11,6 +11,7 @@ import (
 
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/hex"
 )
 
 const (
@@ -27,9 +28,10 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"connection_string": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				ForceNew:  true,
+				Sensitive: true,
 			},
 
 			"https_only": {
@@ -158,8 +160,9 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 
 			"sas": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -211,6 +214,8 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	}
 
 	d.Set("sas", sasToken)
+	tokenHash := sha256.Sum256([]byte(sasToken))
+	d.SetId(hex.EncodeToString(tokenHash[:]))
 
 	return nil
 }
