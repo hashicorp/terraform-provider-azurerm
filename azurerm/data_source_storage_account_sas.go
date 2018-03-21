@@ -21,11 +21,9 @@ const (
 
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
-func resourceArmStorageAccountSharedAccessSignature() *schema.Resource {
+func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageAccountSasCreate,
-		Read:   resourceArmStorageAccountSasRead,
-		Delete: resourceArmStorageAccountSasDelete,
+		Read: dataSourceArmStorageAccountSasRead,
 
 		Schema: map[string]*schema.Schema{
 			"connection_string": {
@@ -41,16 +39,58 @@ func resourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 
 			"resource_types": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateArmStorageAccountSasResourceTypes,
+				Type:     schema.TypeList,
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"service": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"container": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"object": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
 			},
 
 			"services": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"blob": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"queue": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"table": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"file": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
 			},
 
 			// Always in UTC and must be ISO-8601 format
@@ -68,9 +108,53 @@ func resourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 
 			"permissions": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeList,
 				Required: true,
 				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"read": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"write": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"delete": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"list": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"add": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"create": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"update": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"process": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
 			},
 
 			"sas": {
@@ -82,15 +166,24 @@ func resourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 
 }
 
-func resourceArmStorageAccountSasCreate(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, meta interface{}) error {
 
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
-	resourceTypes := d.Get("resource_types").(string)
-	services := d.Get("services").(string)
+	resourceTypesIface := d.Get("resource_types").([]interface{})
+	servicesIface := d.Get("services").([]interface{})
 	start := d.Get("start").(string)
 	expiry := d.Get("expiry").(string)
-	permissions := d.Get("permissions").(string)
+	permissionsIface := d.Get("permissions").([]interface{})
+
+	resourceTypes := buildResourceTypesString(resourceTypesIface[0].(map[string]interface{}))
+	services := buildServicesString(servicesIface[0].(map[string]interface{}))
+	permissions := buildPermissionsString(permissionsIface[0].(map[string]interface{}))
+
+	_, svcErr := validateArmStorageAccountSasResourceTypes(services, "")
+	if svcErr != nil {
+		return svcErr[0]
+	}
 
 	// Parse the connection string
 	kvp, err := parseAzureStorageAccountConnectionString(connString)
@@ -122,15 +215,82 @@ func resourceArmStorageAccountSasCreate(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceArmStorageAccountSasRead(d *schema.ResourceData, meta interface{}) error {
-	// There really isn't anything to read
-	// The computed SAS element stores what it needs.
-	return nil
+func buildPermissionsString(perms map[string]interface{}) string {
+	retVal := ""
+
+	if val := perms["read"].(bool); val {
+		retVal += "r"
+	}
+
+	if val := perms["write"].(bool); val {
+		retVal += "w"
+	}
+
+	if val := perms["delete"].(bool); val {
+		retVal += "d"
+	}
+
+	if val := perms["list"].(bool); val {
+		retVal += "l"
+	}
+
+	if val := perms["add"].(bool); val {
+		retVal += "a"
+	}
+
+	if val := perms["create"].(bool); val {
+		retVal += "c"
+	}
+
+	if val := perms["update"].(bool); val {
+		retVal += "u"
+	}
+
+	if val := perms["process"].(bool); val {
+		retVal += "p"
+	}
+
+	return retVal
 }
 
-func resourceArmStorageAccountSasDelete(d *schema.ResourceData, meta interface{}) error {
-	// Nothing to delete...
-	return nil
+func buildServicesString(services map[string]interface{}) string {
+	retVal := ""
+
+	if val := services["blob"].(bool); val {
+		retVal += "b"
+	}
+
+	if val := services["queue"].(bool); val {
+		retVal += "q"
+	}
+
+	if val := services["table"].(bool); val {
+		retVal += "t"
+	}
+
+	if val := services["file"].(bool); val {
+		retVal += "f"
+	}
+
+	return retVal
+}
+
+func buildResourceTypesString(resTypes map[string]interface{}) string {
+	retVal := ""
+
+	if val := resTypes["service"].(bool); val {
+		retVal += "s"
+	}
+
+	if val := resTypes["container"].(bool); val {
+		retVal += "c"
+	}
+
+	if val := resTypes["object"].(bool); val {
+		retVal += "o"
+	}
+
+	return retVal
 }
 
 func validateArmStorageAccountSasResourceTypes(v interface{}, k string) (ws []string, es []error) {
