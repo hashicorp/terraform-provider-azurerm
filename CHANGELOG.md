@@ -7,7 +7,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) 
+* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [GH-1000] 
 * `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` [GH-986]
 * `azurerm_traffic_manager_profile` - adding support for the `traffic_routing_method` `Geographic` [GH-986]
 
