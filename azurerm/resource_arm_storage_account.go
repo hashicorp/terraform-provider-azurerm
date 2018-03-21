@@ -251,7 +251,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				Services: &storage.EncryptionServices{
 					Blob: &storage.EncryptionService{
 						Enabled: utils.Bool(enableBlobEncryption),
-					}},
+					},
+				},
 				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
