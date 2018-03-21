@@ -87,7 +87,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      5,
-							ValidateFunc: validation.IntBetween(1, 100),
+							ValidateFunc: validation.IntBetween(1, 86400),
 						},
 
 						"max_staleness_prefix": {

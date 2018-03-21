@@ -1,6 +1,6 @@
 {
 	"comment": "",
-	"ignore": "test github.com/hashicorp/terraform/backend",
+	"ignore": "test",
 	"package": [
 		{
 			"checksumSHA1": "04RpBRvxCFIrlZr4QGlWxEYu5jk=",
@@ -101,6 +101,14 @@
 		{
 			"checksumSHA1": "Yy2uufjDcDOtCci5MoDEmmTsdfE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac",
+			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
+			"revisionTime": "2018-02-12T16:31:56Z",
+			"version": "v12.5.0-beta",
+			"versionExact": "v12.5.0-beta"
+		},
+		{
+			"checksumSHA1": "7mrCMBhJ0IdK1u7tBX3LDxmohxc=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices",
 			"revision": "21b68149ccf7c16b3f028bb4c7fd0ab458fe308f",
 			"revisionTime": "2018-02-12T16:31:56Z",
 			"version": "v12.5.0-beta",
@@ -265,6 +273,12 @@
 			"revisionTime": "2018-02-12T16:31:56Z",
 			"version": "v12.5.0-beta",
 			"versionExact": "v12.5.0-beta"
+		},
+		{
+			"checksumSHA1": "0f2bCAIQjO9op810x5LnuZnAmM0=",
+			"path": "github.com/Azure/azure-sdk-for-go/version",
+			"revision": "1e334c402ea1460704b0263e5d188f28ad946ce1",
+			"revisionTime": "2018-02-16T17:41:56Z"
 		},
 		{
 			"checksumSHA1": "RzIYmvG1ReOud+kafFsZTDIZSK0=",

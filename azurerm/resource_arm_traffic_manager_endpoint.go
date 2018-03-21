@@ -28,6 +28,14 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"profile_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+
 			"type": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -37,12 +45,6 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 					"nestedEndpoints",
 					"externalEndpoints",
 				}, false),
-			},
-
-			"profile_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
 			},
 
 			"target": {
@@ -96,7 +98,16 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Optional: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"geo_mappings": {
+				Type:     schema.TypeList,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+			},
+
+			"endpoint_monitor_status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -104,13 +115,13 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManagerEndpointsClient
 
-	log.Printf("[INFO] preparing arguments for ARM TrafficManager Endpoint creation.")
+	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
 
 	name := d.Get("name").(string)
 	endpointType := d.Get("type").(string)
 	fullEndpointType := fmt.Sprintf("Microsoft.Network/TrafficManagerProfiles/%s", endpointType)
 	profileName := d.Get("profile_name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	params := trafficmanager.Endpoint{
 		Name:               &name,
@@ -119,17 +130,17 @@ func resourceArmTrafficManagerEndpointCreate(d *schema.ResourceData, meta interf
 	}
 
 	ctx := meta.(*ArmClient).StopContext
-	_, err := client.CreateOrUpdate(ctx, resGroup, profileName, endpointType, name, params)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, profileName, endpointType, name, params)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, profileName, endpointType, name)
+	read, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read TrafficManager endpoint %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Traffic Manager Endpoint %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -155,8 +166,6 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		}
 	}
 	profileName := id.Path["trafficManagerProfiles"]
-
-	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
 
 	ctx := meta.(*ArmClient).StopContext
@@ -166,23 +175,25 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on TrafficManager Endpoint %q (Resource Group %q): %+v", name, resGroup, err)
 	}
-
-	endpoint := *resp.EndpointProperties
 
 	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
 	d.Set("type", endpointType)
 	d.Set("profile_name", profileName)
-	d.Set("endpoint_status", string(endpoint.EndpointStatus))
-	d.Set("target_resource_id", endpoint.TargetResourceID)
-	d.Set("target", endpoint.Target)
-	d.Set("weight", endpoint.Weight)
-	d.Set("priority", endpoint.Priority)
-	d.Set("endpoint_location", endpoint.EndpointLocation)
-	d.Set("endpoint_monitor_status", endpoint.EndpointMonitorStatus)
-	d.Set("min_child_endpoints", endpoint.MinChildEndpoints)
+
+	if props := resp.EndpointProperties; props != nil {
+		d.Set("endpoint_status", string(props.EndpointStatus))
+		d.Set("target_resource_id", props.TargetResourceID)
+		d.Set("target", props.Target)
+		d.Set("weight", props.Weight)
+		d.Set("priority", props.Priority)
+		d.Set("endpoint_location", props.EndpointLocation)
+		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
+		d.Set("min_child_endpoints", props.MinChildEndpoints)
+		d.Set("geo_mappings", props.GeoMapping)
+	}
 
 	return nil
 }
@@ -214,32 +225,37 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 }
 
 func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmanager.EndpointProperties {
-	var endpointProps trafficmanager.EndpointProperties
+	target := d.Get("target").(string)
+	status := d.Get("endpoint_status").(string)
 
-	if targetResID := d.Get("target_resource_id").(string); targetResID != "" {
-		endpointProps.TargetResourceID = &targetResID
+	endpointProps := trafficmanager.EndpointProperties{
+		Target:         &target,
+		EndpointStatus: trafficmanager.EndpointStatus(status),
 	}
 
-	if target := d.Get("target").(string); target != "" {
-		endpointProps.Target = &target
-	}
-
-	if status := d.Get("endpoint_status").(string); status != "" {
-		endpointProps.EndpointStatus = trafficmanager.EndpointStatus(status)
-	}
-
-	if weight := d.Get("weight").(int); weight != 0 {
-		w64 := int64(weight)
-		endpointProps.Weight = &w64
-	}
-
-	if priority := d.Get("priority").(int); priority != 0 {
-		p64 := int64(priority)
-		endpointProps.Priority = &p64
+	if resourceId := d.Get("target_resource_id").(string); resourceId != "" {
+		endpointProps.TargetResourceID = utils.String(resourceId)
 	}
 
 	if location := d.Get("endpoint_location").(string); location != "" {
-		endpointProps.EndpointLocation = &location
+		endpointProps.EndpointLocation = utils.String(location)
+	}
+
+	inputMappings := d.Get("geo_mappings").([]interface{})
+	geoMappings := make([]string, 0)
+	for _, v := range inputMappings {
+		geoMappings = append(geoMappings, v.(string))
+	}
+	if len(geoMappings) > 0 {
+		endpointProps.GeoMapping = &geoMappings
+	}
+
+	if weight := d.Get("weight").(int); weight != 0 {
+		endpointProps.Weight = utils.Int64(int64(weight))
+	}
+
+	if priority := d.Get("priority").(int); priority != 0 {
+		endpointProps.Priority = utils.Int64(int64(priority))
 	}
 
 	if minChildEndpoints := d.Get("min_child_endpoints").(int); minChildEndpoints != 0 {
