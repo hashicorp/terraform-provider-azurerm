@@ -2,16 +2,39 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform/helper/resource"
 	"testing"
+	"time"
 )
 
-func TestDataSourceArmStorageAccountSasRead(t *testing.T) {
+func TestAccDataSourceArmStorageAccountSasRead(t *testing.T) {
+	dataSourceName := "data.azurerm_storage_account_sas.test"
+	rInt := acctest.RandInt()
+	rString := acctest.RandString(4)
+	location := testLocation()
+	utcNow := time.Now().UTC()
+	startDate := utcNow.Format(time.RFC3339)
+	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMStorageAccountSas_basic(rInt, rString, location, startDate, endDate),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "https_only", "true"),
+					resource.TestCheckResourceAttr(dataSourceName, "start", startDate),
+					resource.TestCheckResourceAttr(dataSourceName, "expiry", endDate),
+					resource.TestCheckResourceAttrSet(dataSourceName, "sas"),
+				),
+			},
+		},
+	})
 }
 
-func testAccDataSourceAzureRMStorageAccountSas_basic(rInt int, rString string, location string) string {
-	startDate := ""
-	endDate := ""
+func testAccDataSourceAzureRMStorageAccountSas_basic(rInt int, rString string, location string, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestsa-%d"
