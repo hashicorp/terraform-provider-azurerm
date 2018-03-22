@@ -376,7 +376,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
-	client.registerPolicyDefinitionsClients(endpoint, c.SubscriptionID, auth)
+	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -869,7 +869,7 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	c.appServicesClient = appsClient
 }
 
-func (c *ArmClient) registerPolicyDefinitionsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	policyDefinitionsClient := policy.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&policyDefinitionsClient.Client, auth)
 	c.policyDefinitionsClient = policyDefinitionsClient

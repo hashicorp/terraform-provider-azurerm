@@ -2,14 +2,15 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"net/http"
-	"testing"
 )
 
-func TestPolicyDefinitionCreate(t *testing.T) {
+func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	resourceName := "azurerm_policy_definition.test"
 
 	ri := acctest.RandInt()
@@ -18,7 +19,7 @@ func TestPolicyDefinitionCreate(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: checkIfPolicyDestroyed,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -54,7 +55,7 @@ func testCheckAzureRMPolicyDefinitionExists(name string) resource.TestCheckFunc 
 	}
 }
 
-func checkIfPolicyDestroyed(s *terraform.State) error {
+func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).policyDefinitionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -82,10 +83,10 @@ func checkIfPolicyDestroyed(s *terraform.State) error {
 func testAzureRMPolicyDefinition(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
-  name                = "acctestRG-%d"
+  name                = "acctestpol-%d"
   policy_type            = "Custom"
   mode                 = "All"
-  display_name       = "acctestRG-%d"
+  display_name       = "acctestpol-%d"
   policy_rule =<<POLICY_RULE
 	{
     "if": {

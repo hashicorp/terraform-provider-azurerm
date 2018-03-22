@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+
 	"net/url"
 	"path"
 
@@ -168,13 +169,15 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("id", resp.ID)
 	d.Set("name", resp.Name)
-	d.Set("policy_type", resp.PolicyType)
-	d.Set("mode", resp.Mode)
-	d.Set("display_name", resp.DisplayName)
-	d.Set("description", resp.Description)
-	d.Set("policy_rule", resp.PolicyRule)
-	d.Set("meta_data", resp.Metadata)
-	d.Set("parameters", resp.Parameters)
+	if props := resp.DefinitionProperties; props != nil {
+		d.Set("policy_type", props.PolicyType)
+		d.Set("mode", props.Mode)
+		d.Set("display_name", props.DisplayName)
+		d.Set("description", props.Description)
+		d.Set("policy_rule", props.PolicyRule)
+		d.Set("meta_data", props.Metadata)
+		d.Set("parameters", props.Parameters)
+	}
 
 	return nil
 }
