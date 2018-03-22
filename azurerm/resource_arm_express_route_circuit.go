@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
+var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
+
 func resourceArmExpressRouteCircuit() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmExpressRouteCircuitCreateOrUpdate,
@@ -131,6 +133,9 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 		Tags: expandedTags,
 	}
 
+	azureRMLockByName(name, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
@@ -203,6 +208,9 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
+
+	azureRMLockByName(name, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
