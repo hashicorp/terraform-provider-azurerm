@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -23,11 +24,7 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSchedulerJobCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Enabled)),
-				),
+				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 		},
 	})
@@ -46,22 +43,11 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSchedulerJobCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Enabled)),
-				),
+				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSchedulerJobCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Disabled)),
-					resource.TestCheckResourceAttr(resourceName, "quota.0.max_job_count", "10"),
-					resource.TestCheckResourceAttr(resourceName, "quota.0.max_retry_interval", "10"),
-					resource.TestCheckResourceAttr(resourceName, "quota.0.max_recurrence_frequency", "hour"),
-				),
+				Check:  checkAccAzureRMSchedulerJobCollection_complete(resourceName),
 			},
 		},
 	})
@@ -151,4 +137,29 @@ func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) st
     max_job_count            = 10 
   } 
 `)
+}
+
+func checkAccAzureRMSchedulerJobCollection_basic(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeTestCheckFunc(
+		testCheckAzureRMSchedulerJobCollectionExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "name"),
+		resource.TestCheckResourceAttrSet(resourceName, "location"),
+		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+		resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Enabled)),
+	)
+}
+
+func checkAccAzureRMSchedulerJobCollection_complete(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobCollectionExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "name"),
+		resource.TestCheckResourceAttrSet(resourceName, "location"),
+		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+		resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Disabled)),
+		resource.TestCheckResourceAttr(resourceName, "quota.0.max_job_count", "10"),
+		resource.TestCheckResourceAttr(resourceName, "quota.0.max_retry_interval", "10"),
+		resource.TestCheckResourceAttr(resourceName, "quota.0.max_recurrence_frequency", "hour"),
+	)
 }
