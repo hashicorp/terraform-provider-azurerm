@@ -34,7 +34,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			"location": locationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
-q
+
 			"zones": zonesSchema(),
 
 			"identity": {
