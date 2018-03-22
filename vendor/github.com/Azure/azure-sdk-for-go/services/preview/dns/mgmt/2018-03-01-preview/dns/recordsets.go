@@ -80,13 +80,13 @@ func (client RecordSetsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}/{recordType}/{relativeRecordSetName}", pathParameters),
@@ -162,7 +162,7 @@ func (client RecordSetsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -235,7 +235,7 @@ func (client RecordSetsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -265,6 +265,110 @@ func (client RecordSetsClient) GetResponder(resp *http.Response) (result RecordS
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListAllByDNSZone lists all record sets in a DNS zone.
+//
+// resourceGroupName is the name of the resource group. zoneName is the name of the DNS zone (without a terminating
+// dot). top is the maximum number of record sets to return. If not specified, returns up to 100 record sets.
+// recordSetNameSuffix is the suffix label of the record set name that has to be used to filter the record set
+// enumerations. If this parameter is specified, Enumeration will return only records that end with
+// .<recordSetNameSuffix>
+func (client RecordSetsClient) ListAllByDNSZone(ctx context.Context, resourceGroupName string, zoneName string, top *int32, recordSetNameSuffix string) (result RecordSetListResultPage, err error) {
+	result.fn = client.listAllByDNSZoneNextResults
+	req, err := client.ListAllByDNSZonePreparer(ctx, resourceGroupName, zoneName, top, recordSetNameSuffix)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "ListAllByDNSZone", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListAllByDNSZoneSender(req)
+	if err != nil {
+		result.rslr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "ListAllByDNSZone", resp, "Failure sending request")
+		return
+	}
+
+	result.rslr, err = client.ListAllByDNSZoneResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "ListAllByDNSZone", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListAllByDNSZonePreparer prepares the ListAllByDNSZone request.
+func (client RecordSetsClient) ListAllByDNSZonePreparer(ctx context.Context, resourceGroupName string, zoneName string, top *int32, recordSetNameSuffix string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"zoneName":          autorest.Encode("path", zoneName),
+	}
+
+	const APIVersion = "2018-03-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
+	}
+	if len(recordSetNameSuffix) > 0 {
+		queryParameters["$recordsetnamesuffix"] = autorest.Encode("query", recordSetNameSuffix)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}/all", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListAllByDNSZoneSender sends the ListAllByDNSZone request. The method will close the
+// http.Response Body if it receives an error.
+func (client RecordSetsClient) ListAllByDNSZoneSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListAllByDNSZoneResponder handles the response to the ListAllByDNSZone request. The method always
+// closes the http.Response Body.
+func (client RecordSetsClient) ListAllByDNSZoneResponder(resp *http.Response) (result RecordSetListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listAllByDNSZoneNextResults retrieves the next set of results, if any.
+func (client RecordSetsClient) listAllByDNSZoneNextResults(lastResults RecordSetListResult) (result RecordSetListResult, err error) {
+	req, err := lastResults.recordSetListResultPreparer()
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "dns.RecordSetsClient", "listAllByDNSZoneNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListAllByDNSZoneSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "dns.RecordSetsClient", "listAllByDNSZoneNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListAllByDNSZoneResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "listAllByDNSZoneNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListAllByDNSZoneComplete enumerates all values, automatically crossing page boundaries as required.
+func (client RecordSetsClient) ListAllByDNSZoneComplete(ctx context.Context, resourceGroupName string, zoneName string, top *int32, recordSetNameSuffix string) (result RecordSetListResultIterator, err error) {
+	result.page, err = client.ListAllByDNSZone(ctx, resourceGroupName, zoneName, top, recordSetNameSuffix)
 	return
 }
 
@@ -306,7 +410,7 @@ func (client RecordSetsClient) ListByDNSZonePreparer(ctx context.Context, resour
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -411,7 +515,7 @@ func (client RecordSetsClient) ListByTypePreparer(ctx context.Context, resourceG
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -516,13 +620,13 @@ func (client RecordSetsClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2017-09-01"
+	const APIVersion = "2018-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}/{recordType}/{relativeRecordSetName}", pathParameters),
