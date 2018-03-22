@@ -34,8 +34,31 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			"location": locationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
-
+q
 			"zones": zonesSchema(),
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"sku": {
 				Type:     schema.TypeSet,
@@ -639,6 +662,13 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		Zones: zones,
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		log.Printf("[DEBUG] attempting to enable MSI")
+		scaleSetParams.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
+	} else {
+		log.Printf("[DEBUG] MSI failed")
+	}
+
 	if _, ok := d.GetOk("plan"); ok {
 		plan, err := expandAzureRmVirtualMachineScaleSetPlan(d)
 		if err != nil {
@@ -700,6 +730,8 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	if err := d.Set("sku", flattenAzureRmVirtualMachineScaleSetSku(resp.Sku)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Sku error: %#v", err)
 	}
+
+	d.Set("identity", flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity))
 
 	properties := resp.VirtualMachineScaleSetProperties
 
@@ -801,6 +833,22 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachineScaleSetIdentity) []interface{} {
+	log.Printf("[DEBUG] entered flattenAzureRmVirtualMachineScaleSetIdentity")
+
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	return []interface{}{result}
 }
 
 func flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(config *compute.LinuxConfiguration) []interface{} {
@@ -1420,6 +1468,16 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceDat
 	}
 
 	return diagnosticsProfile
+}
+
+func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *compute.VirtualMachineScaleSetIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &compute.VirtualMachineScaleSetIdentity{
+		Type: compute.ResourceIdentityType(identityType),
+	}
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {
