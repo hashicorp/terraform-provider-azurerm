@@ -31,6 +31,29 @@ func TestAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
+	firstResourceName := "azurerm_express_route_circuit_authorization.test1"
+	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuitAuthorization_multiple(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitAuthorizationExists(firstResourceName),
+					resource.TestCheckResourceAttrSet(firstResourceName, "authorization_key"),
+					testCheckAzureRMExpressRouteCircuitAuthorizationExists(secondResourceName),
+					resource.TestCheckResourceAttrSet(secondResourceName, "authorization_key"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMExpressRouteCircuitAuthorizationExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -122,4 +145,46 @@ resource "azurerm_express_route_circuit_authorization" "test" {
   resource_group_name        = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMExpressRouteCircuitAuthorization_multiple(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+
+resource "azurerm_express_route_circuit_authorization" "test1" {
+  name                       = "acctestauth1%d"
+  express_route_circuit_name = "${azurerm_express_route_circuit.test.name}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_express_route_circuit_authorization" "test2" {
+  name                       = "acctestauth2%d"
+  express_route_circuit_name = "${azurerm_express_route_circuit.test.name}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt, rInt, rInt)
 }

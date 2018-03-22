@@ -58,6 +58,9 @@ func resourceArmExpressRouteCircuitAuthorizationCreateUpdate(d *schema.ResourceD
 		AuthorizationPropertiesFormat: &network.AuthorizationPropertiesFormat{},
 	}
 
+	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, name, properties)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating Express Route Circuit Authorization %q (Circuit %q / Resource Group %q): %+v", name, circuitName, resourceGroup, err)
@@ -124,6 +127,9 @@ func resourceArmExpressRouteCircuitAuthorizationDelete(d *schema.ResourceData, m
 	resourceGroup := id.ResourceGroup
 	circuitName := id.Path["expressRouteCircuits"]
 	name := id.Path["authorizations"]
+
+	azureRMLockByName(circuitName, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(circuitName, expressRouteCircuitResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, circuitName, name)
 	if err != nil {
