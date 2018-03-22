@@ -36,7 +36,8 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 
 			"https_only": {
 				Type:     schema.TypeBool,
-				Required: true,
+				Optional: true,
+				Default:  true,
 				ForceNew: true,
 			},
 
