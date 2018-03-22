@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_policy_definition"
+page_title: "Azure Resource Manager: azurerm_policy_definition"
 sidebar_current: "docs-azurerm-resource-policy-definition"
 description: |-
   Creates a policy for all of the resource groups under the subscription.
