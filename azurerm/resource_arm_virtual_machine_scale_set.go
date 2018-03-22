@@ -836,8 +836,6 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 }
 
 func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachineScaleSetIdentity) []interface{} {
-	log.Printf("[DEBUG] entered flattenAzureRmVirtualMachineScaleSetIdentity")
-
 	if identity == nil {
 		return make([]interface{}, 0)
 	}
