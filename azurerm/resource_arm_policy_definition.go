@@ -3,9 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
-	"net/url"
-	"path"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -167,7 +165,6 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error reading Policy Definition %+v", err)
 	}
 
-	d.Set("id", resp.ID)
 	d.Set("name", resp.Name)
 	if props := resp.DefinitionProperties; props != nil {
 		d.Set("policy_type", props.PolicyType)
@@ -205,14 +202,15 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 }
 
 func parsePolicyDefinitionNameFromId(id string) (string, error) {
-	idURL, err := url.ParseRequestURI(id)
-	if err != nil {
-		return "", err
-	}
-	name := path.Base(idURL.Path)
-	if name == "." || name == "/" {
-		return "", fmt.Errorf("Couldn't parse Policy Definition name")
+	components := strings.Split(id, "/")
+
+	if len(components) == 0 {
+		return "", fmt.Errorf("Azure Policy Definition Id is empty or not formatted correctly: %s", id)
 	}
 
-	return name, nil
+	if len(components) != 7 {
+		return "", fmt.Errorf("Azure Policy Definition Id should have 6 segments, got %d: '%s'", len(components)-1, id)
+	}
+
+	return components[6], nil
 }
