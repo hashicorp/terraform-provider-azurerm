@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -60,49 +61,11 @@ func testSweepCosmosDBAccount(region string) error {
 	return nil
 }
 
-func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
-	resourceName := "azurerm_cosmosdb_account.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_boundedStaleness(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMCosmosDBAccount_boundedStalenessComplete(t *testing.T) {
-
-	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_boundedStalenessComplete(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
-				),
-			},
-		},
-	})
-}
+//basic? complete, custom-id?
 
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
 	config := testAccAzureRMCosmosDBAccount_eventualConsistency(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -112,29 +75,8 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
-	resourceName := "azurerm_cosmosdb_account.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_mongoDB(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Eventual)),
 				),
 			},
 		},
@@ -143,6 +85,7 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 
 func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
 	config := testAccAzureRMCosmosDBAccount_session(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -152,8 +95,8 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session)),
 				),
 			},
 		},
@@ -162,6 +105,7 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 
 func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
 	config := testAccAzureRMCosmosDBAccount_strong(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -171,18 +115,18 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Strong)),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMCosmosDBAccount_geoReplicated(t *testing.T) {
-
+func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_geoReplicated(ri, testLocation(), testAltLocation())
+	resourceName := "azurerm_cosmosdb_account.test"
+	config := testAccAzureRMCosmosDBAccount_consistentPrefix(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -191,8 +135,124 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCosmosDBAccountExists("azurerm_cosmosdb_account.test"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.ConsistentPrefix)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+	config := testAccAzureRMCosmosDBAccount_boundedStaleness(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+	config := testAccAzureRMCosmosDBAccount_boundedStaleness_complete(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness)),
+					resource.TestCheckResourceAttr(resourceName, "consistency_policy.258236697.max_interval_in_seconds", "10"),
+					resource.TestCheckResourceAttr(resourceName, "consistency_policy.258236697.max_staleness_prefix", "200"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+	config := testAccAzureRMCosmosDBAccount_mongoDB(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness)),
+					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+	config := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness)),
+					//resource.TestCheckResourceAttrSet(resourceName, "geo_location.1.id"),
+					//resource.TestCheckResourceAttr(resourceName, "geo_location.1.location", testAltLocation()),
+					//resource.TestCheckResourceAttr(resourceName, "geo_location.1.failover_priority", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+	configBasic := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "")
+	configComplete := testAccAzureRMCosmosDBAccount_complete(ri, testLocation(), testAltLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: configBasic,
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session)),
+			},
+			{
+				Config: configComplete,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness)),
+					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"),
+					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "1"),
+					//resource.TestCheckResourceAttrSet(resourceName, "geo_location.1.id"),
+					//resource.TestCheckResourceAttr(resourceName, "geo_location.1.location", testAltLocation()),
+					//resource.TestCheckResourceAttr(resourceName, "geo_location.1.failover_priority", "1"),
 				),
 			},
 		},
@@ -255,7 +315,7 @@ func testCheckAzureRMCosmosDBAccountExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMCosmosDBAccount_boundedStaleness(rInt int, location string) string {
+func testAccAzureRMCosmosDBAccount_basic(rInt int, location string, consistency string, addtional string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -269,121 +329,41 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
 
   consistency_policy {
-    consistency_level = "BoundedStaleness"
+    consistency_level = "%s"
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMCosmosDBAccount_boundedStalenessComplete(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  offer_type          = "Standard"
-
-  consistency_policy {
-    consistency_level       = "BoundedStaleness"
-    max_interval_in_seconds = 10
-    max_staleness_prefix    = 200
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
-  }
+%s
+
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, consistency, addtional)
 }
 
 func testAccAzureRMCosmosDBAccount_eventualConsistency(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  offer_type          = "Standard"
-
-  consistency_policy {
-    consistency_level = "Eventual"
-  }
-
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
-  }
-}
-`, rInt, location, rInt)
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "Eventual", "")
 }
 
 func testAccAzureRMCosmosDBAccount_session(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  offer_type          = "Standard"
-
-  consistency_policy {
-    consistency_level = "Session"
-  }
-
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMCosmosDBAccount_mongoDB(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "MongoDB"
-  offer_type          = "Standard"
-
-  consistency_policy {
-    consistency_level = "BoundedStaleness"
-  }
-
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
-  }
-}
-`, rInt, location, rInt)
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "Session", "")
 }
 
 func testAccAzureRMCosmosDBAccount_strong(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "Strong", "")
+}
+
+func testAccAzureRMCosmosDBAccount_consistentPrefix(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "ConsistentPrefix", "")
+}
+
+func testAccAzureRMCosmosDBAccount_boundedStaleness(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "BoundedStaleness", "")
+}
+
+func testAccAzureRMCosmosDBAccount_boundedStaleness_complete(rInt int, location string, consistency string, addtional string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -397,45 +377,62 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
 
   consistency_policy {
-    consistency_level = "Strong"
-  }
-
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altLocation string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  offer_type          = "Standard"
-
-  consistency_policy {
-    consistency_level       = "BoundedStaleness"
-    max_interval_in_seconds = 10
+    consistency_level = "%s"
+	max_interval_in_seconds = 10
     max_staleness_prefix    = 200
   }
 
-  failover_policy {
-    location = "${azurerm_resource_group.test.location}"
-    priority = 0
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
   }
 
-  failover_policy {
-    location = "%s"
-    priority = 1
-  }
+%s
+
 }
-`, rInt, location, rInt, altLocation)
+`, rInt, location, rInt, consistency, addtional)
+}
+
+func testAccAzureRMCosmosDBAccount_mongoDB(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "BoundedStaleness", `
+        kind = "MongoDB"
+    `)
+}
+
+func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location string, altLocation string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "BoundedStaleness", fmt.Sprintf(`
+        geo_location {
+            id                = "acctest-%d-custom-id"
+            location          = "%s"
+            failover_priority = 1
+        }
+
+    `, rInt, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, "BoundedStaleness", fmt.Sprintf(`
+		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
+		enable_automatic_failover	= true
+
+        geo_location {
+            id                = "acctest-%d-custom-id"
+            location          = "%s"
+            failover_priority = 1
+        }
+    `, rInt, altLocation))
+}
+
+func checkAccAzureRMCosmosDBAccount_basic(resourceName string, location string, consistency string) resource.TestCheckFunc {
+	return resource.ComposeTestCheckFunc(
+		testCheckAzureRMCosmosDBAccountExists(resourceName),
+		resource.TestCheckResourceAttrSet(resourceName, "name"),
+		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+		resource.TestCheckResourceAttr(resourceName, "location", location),
+		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+		resource.TestCheckResourceAttr(resourceName, "offer_type", string(documentdb.Standard)),
+		resource.TestCheckResourceAttr(resourceName, "consistency_policy.258236697.consistency_level", consistency),
+		//resource.TestCheckResourceAttr(resourceName, "geo_location.0.location", location),
+		//resource.TestCheckResourceAttr(resourceName, "geo_location.0.failover_priority", "0"),
+	)
 }

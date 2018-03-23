@@ -35,7 +35,7 @@ func TestAccAzureRMCosmosDBAccount_importBoundedStalenessComplete(t *testing.T) 
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_boundedStalenessComplete(ri, testLocation())
+	config := testAccAzureRMCosmosDBAccount_boundedStaleness_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -155,7 +155,7 @@ func TestAccAzureRMCosmosDBAccount_importGeoReplicated(t *testing.T) {
 	resourceName := "azurerm_cosmosdb_account.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMCosmosDBAccount_geoReplicated(ri, testLocation(), testAltLocation())
+	config := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
