@@ -797,7 +797,7 @@ func testCheckAzureRMVirtualMachineScaleSetMSI(name string) resource.TestCheckFu
 			return fmt.Errorf("Bad: Identity Type is not SystemAssigned for scale set %v", name)
 		}
 
-    principalID := *resp.Identity.PrincipalID
+		principalID := *resp.Identity.PrincipalID
 		if len(principalID) == 0 {
 			return fmt.Errorf("Bad: Could not get principal_id for scale set %v", name)
 		}
