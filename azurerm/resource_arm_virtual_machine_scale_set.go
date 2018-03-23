@@ -663,10 +663,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		log.Printf("[DEBUG] attempting to enable MSI")
 		scaleSetParams.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
-	} else {
-		log.Printf("[DEBUG] MSI failed")
 	}
 
 	if _, ok := d.GetOk("plan"); ok {

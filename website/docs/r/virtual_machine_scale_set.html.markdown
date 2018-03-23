@@ -272,13 +272,13 @@ The following arguments are supported:
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type of the virtual machine. The only allowable value is `SystemAssigned`. To enable Managed Service Identity (MSI) on all machines in the scale set, an extension with the type "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added. The scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created.
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. The only allowable value is `SystemAssigned`. To enable Managed Service Identity (MSI) on all machines in the scale set, an extension with the type "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added. The scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created.
 
 ```hcl
-resource "azurerm_virtual_machine_scale_set" "vmss_test" {
+resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "vm-scaleset"
-  resource_group_name = "${azurerm_resource_group.vmss_test.name}"
-  location            = "${azurerm_resource_group.vmss_test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "${var.vm_sku}"
@@ -295,13 +295,11 @@ resource "azurerm_virtual_machine_scale_set" "vmss_test" {
     publisher                  = "Microsoft.ManagedIdentity"
     type                       = "ManagedIdentityExtensionForLinux"
     type_handler_version       = "1.0"
-    auto_upgrade_minor_version = true
     settings                   = "{\"port\": 50342}"
-    protected_settings         = "{}"
   }
 
   output "principal_id" {
-    value = "${lookup(azurerm_virtual_machine.vmss_test.identity[0], "principal_id")}"
+    value = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
   }
 ```
 
