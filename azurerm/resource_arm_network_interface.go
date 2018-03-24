@@ -88,6 +88,14 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
+						"application_gateway_backend_address_pools_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"load_balancer_backend_address_pools_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
@@ -471,6 +479,14 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 			niIPConfig["primary"] = *props.Primary
 		}
 
+		var poolsAG []interface{}
+		if props.ApplicationGatewayBackendAddressPools != nil {
+			for _, pool := range *props.ApplicationGatewayBackendAddressPools {
+				poolsAG = append(poolsAG, *pool.ID)
+			}
+		}
+		niIPConfig["application_gateway_backend_address_pools_ids"] = schema.NewSet(schema.HashString, poolsAG)
+
 		var pools []interface{}
 		if props.LoadBalancerBackendAddressPools != nil {
 			for _, pool := range *props.LoadBalancerBackendAddressPools {
@@ -549,6 +565,21 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 		if v, ok := data["primary"]; ok {
 			b := v.(bool)
 			properties.Primary = &b
+		}
+
+		if v, ok := data["application_gateway_backend_address_pools_ids"]; ok {
+			var ids []network.ApplicationGatewayBackendAddressPool
+			pools := v.(*schema.Set).List()
+			for _, p := range pools {
+				pool_id := p.(string)
+				id := network.ApplicationGatewayBackendAddressPool{
+					ID: &pool_id,
+				}
+
+				ids = append(ids, id)
+			}
+
+			properties.ApplicationGatewayBackendAddressPools = &ids
 		}
 
 		if v, ok := data["load_balancer_backend_address_pools_ids"]; ok {

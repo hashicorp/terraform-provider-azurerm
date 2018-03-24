@@ -72,6 +72,13 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
+						"application_gateway_backend_address_pools_ids": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"load_balancer_backend_address_pools_ids": {
 							Type:     schema.TypeSet,
 							Computed: true,
