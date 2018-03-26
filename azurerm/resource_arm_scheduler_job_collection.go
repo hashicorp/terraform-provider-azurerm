@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
@@ -28,6 +29,10 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z][-_a-zA-Z0-9]{0,99}$"),
+					"Job Collection Name name must be 1 - 100 characters long, start with a letter and contain only letters, numbers, hyphens and underscores.",
+				),
 			},
 
 			"location": locationSchema(),
@@ -89,7 +94,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 							}, true),
 						},
 
-						//this sets MaxRecurrance.Interval, and the documentation in the api states:
+						//this is MaxRecurrance.Interval, property is named this as the documentation in the api states:
 						//  Gets or sets the interval between retries.
 						"max_retry_interval": {
 							Type:         schema.TypeInt,
