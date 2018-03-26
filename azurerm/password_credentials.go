@@ -60,54 +60,76 @@ func resourcePasswordCredentialHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
+func flattenAzureRmPasswordCredential(cred *graphrbac.PasswordCredential) interface{} {
+	l := make(map[string]interface{})
+	l["key_id"] = *cred.KeyID
+	l["start_date"] = string((*cred.StartDate).Format(time.RFC3339))
+	l["end_date"] = string((*cred.EndDate).Format(time.RFC3339))
+
+	return l
+}
+
 func flattenAzureRmPasswordCredentials(creds *[]graphrbac.PasswordCredential) []interface{} {
 	result := make([]interface{}, 0, len(*creds))
 	for _, cred := range *creds {
-		l := make(map[string]interface{})
-		l["key_id"] = *cred.KeyID
-		l["start_date"] = string((*cred.StartDate).Format(time.RFC3339))
-		l["end_date"] = string((*cred.EndDate).Format(time.RFC3339))
-
-		result = append(result, l)
+		result = append(result, flattenAzureRmPasswordCredential(&cred))
 	}
 	return result
 }
 
-func expandAzureRmPasswordCredentials(d *schema.ResourceData) (*[]graphrbac.PasswordCredential, error) {
+func expandAzureRmPasswordCredential(d *map[string]interface{}) (*graphrbac.PasswordCredential, error) {
+	keyId := (*d)["key_id"].(string)
+	startDate := (*d)["start_date"].(string)
+	endDate := (*d)["end_date"].(string)
+	value := (*d)["value"].(string)
+
+	pc := graphrbac.PasswordCredential{
+		KeyID: &keyId,
+		Value: &value,
+	}
+
+	if startDate != "" {
+		starttime, sterr := time.Parse(time.RFC3339, startDate)
+		if sterr != nil {
+			return nil, fmt.Errorf("Cannot parse start_date: %q", startDate)
+		}
+		stdt := date.Time{Time: starttime}
+		pc.StartDate = &stdt
+	}
+
+	if endDate != "" {
+		endtime, eterr := time.Parse(time.RFC3339, endDate)
+		if eterr != nil {
+			return nil, fmt.Errorf("Cannot parse end_date: %q", endDate)
+		}
+		etdt := date.Time{Time: endtime}
+		pc.EndDate = &etdt
+	}
+
+	return &pc, nil
+}
+
+func expandAzureRmPasswordCredentials(d *schema.ResourceData, o *schema.Set) (*[]graphrbac.PasswordCredential, error) {
 	creds := d.Get("password_credential").(*schema.Set).List()
 	passCreds := make([]graphrbac.PasswordCredential, 0, len(creds))
-	for _, credsConfig := range creds {
-		config := credsConfig.(map[string]interface{})
 
-		keyId := config["key_id"].(string)
-		startDate := config["start_date"].(string)
-		endDate := config["end_date"].(string)
-		value := config["value"].(string)
-
-		passCred := graphrbac.PasswordCredential{
-			KeyID: &keyId,
-			Value: &value,
+	for _, v := range creds {
+		cfg := v.(map[string]interface{})
+		cred, err := expandAzureRmPasswordCredential(&cfg)
+		if err != nil {
+			return nil, err
 		}
 
-		if startDate != "" {
-			starttime, sterr := time.Parse(time.RFC3339, startDate)
-			if sterr != nil {
-				return nil, fmt.Errorf("Cannot parse start_date: %q", startDate)
-			}
-			stdt := date.Time{Time: starttime}
-			passCred.StartDate = &stdt
+		// Azure only allows an in-place update of the Password Credentials list.
+		// Existing keys, matched by their KeyID, must be sent back with their
+		// Value attribute set to nil. New keys need to provide a Value.
+		// By referencing the existing schema (o), we can determine which
+		// entries in the list are existing keys.
+		if o != nil && o.Contains(v) {
+			cred.Value = nil
 		}
 
-		if endDate != "" {
-			endtime, eterr := time.Parse(time.RFC3339, endDate)
-			if eterr != nil {
-				return nil, fmt.Errorf("Cannot parse end_date: %q", endDate)
-			}
-			etdt := date.Time{Time: endtime}
-			passCred.EndDate = &etdt
-		}
-
-		passCreds = append(passCreds, passCred)
+		passCreds = append(passCreds, *cred)
 	}
 
 	return &passCreds, nil

@@ -100,7 +100,7 @@ func resourceArmAdApplicationCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if _, ok := d.GetOk("key_credential"); ok {
-		keyCreds, err := expandAzureRmKeyCredentials(d)
+		keyCreds, err := expandAzureRmKeyCredentials(d, nil)
 		if err != nil {
 			return err
 		}
@@ -108,7 +108,7 @@ func resourceArmAdApplicationCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if _, ok := d.GetOk("password_credential"); ok {
-		passCreds, err := expandAzureRmPasswordCredentials(d)
+		passCreds, err := expandAzureRmPasswordCredentials(d, nil)
 		if err != nil {
 			return err
 		}
@@ -175,56 +175,92 @@ func resourceArmAdApplicationUpdate(d *schema.ResourceData, meta interface{}) er
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("display_name").(string)
-	multitenant := d.Get("available_to_other_tenants").(bool)
 
-	properties := graphrbac.ApplicationUpdateParameters{
-		DisplayName:             &name,
-		Homepage:                expandAzureRmAdApplicationHomepage(d, name),
-		IdentifierUris:          expandAzureRmAdApplicationIdentifierUris(d, name),
-		ReplyUrls:               expandAzureRmAdApplicationReplyUrls(d, name),
-		AvailableToOtherTenants: utils.Bool(multitenant),
+	var properties graphrbac.ApplicationUpdateParameters
+
+	if d.HasChange("display_name") {
+		properties.DisplayName = &name
 	}
 
-	if v, ok := d.GetOk("oauth2_allow_implicit_flow"); ok {
-		properties.Oauth2AllowImplicitFlow = utils.Bool(v.(bool))
+	if d.HasChange("homepage") {
+		properties.Homepage = expandAzureRmAdApplicationHomepage(d, name)
 	}
 
-	keyCreds, keyErr := expandAzureRmKeyCredentials(d)
-	if keyErr != nil {
-		return keyErr
+	if d.HasChange("identifier_uris") {
+		properties.IdentifierUris = expandAzureRmAdApplicationIdentifierUris(d, name)
 	}
 
-	passCreds, passErr := expandAzureRmPasswordCredentials(d)
-	if passErr != nil {
-		return passErr
+	if d.HasChange("reply_urls") {
+		properties.ReplyUrls = expandAzureRmAdApplicationReplyUrls(d, name)
 	}
+
+	if d.HasChange("available_to_other_tenants") {
+		multitenant := d.Get("available_to_other_tenants").(bool)
+		properties.AvailableToOtherTenants = utils.Bool(multitenant)
+	}
+
+	if d.HasChange("oauth2_allow_implicit_flow") {
+		oauth := d.Get("oauth2_allow_implicit_flow").(bool)
+		properties.Oauth2AllowImplicitFlow = utils.Bool(oauth)
+	}
+
+	d.Partial(true)
 
 	_, err := client.Patch(ctx, d.Id(), properties)
 	if err != nil {
 		return err
 	}
 
+	d.SetPartial("display_name")
+	d.SetPartial("homepage")
+	d.SetPartial("identifier_uris")
+	d.SetPartial("reply_urls")
+	d.SetPartial("available_to_other_tenants")
+	d.SetPartial("oauth2_allow_implicit_flow")
+	d.SetPartial("app_id")
+	d.SetPartial("object_id")
+
 	if d.HasChange("key_credential") {
+		o, _ := d.GetChange("key_credential")
+
+		kc, kcErr := expandAzureRmKeyCredentials(d, o.(*schema.Set))
+		if kcErr != nil {
+			return kcErr
+		}
+
 		keyUpdate := graphrbac.KeyCredentialsUpdateParameters{
-			Value: keyCreds,
+			Value: kc,
 		}
 
 		_, err := client.UpdateKeyCredentials(ctx, d.Id(), keyUpdate)
 		if err != nil {
 			return err
 		}
+
+		d.SetPartial("key_credential")
 	}
 
 	if d.HasChange("password_credential") {
+		o, _ := d.GetChange("password_credential")
+
+		pc, pcErr := expandAzureRmPasswordCredentials(d, o.(*schema.Set))
+		if pcErr != nil {
+			return pcErr
+		}
+
 		passUpdate := graphrbac.PasswordCredentialsUpdateParameters{
-			Value: passCreds,
+			Value: pc,
 		}
 
 		_, err := client.UpdatePasswordCredentials(ctx, d.Id(), passUpdate)
 		if err != nil {
 			return err
 		}
+
+		d.SetPartial("password_credential")
 	}
+
+	d.Partial(false)
 
 	return resourceArmAdApplicationRead(d, meta)
 }

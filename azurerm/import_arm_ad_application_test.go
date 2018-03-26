@@ -59,7 +59,7 @@ func TestAccAzureRMAdApplication_importKeyCredential(t *testing.T) {
 
 	id := uuid.New().String()
 	keyId := uuid.New().String()
-	config := testAccAzureRMAdApplication_keyCredential(id, keyId)
+	config := testAccAzureRMAdApplication_keyCredential_single(id, keyId)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -85,7 +85,7 @@ func TestAccAzureRMAdApplication_importPasswordCredential(t *testing.T) {
 	keyId := uuid.New().String()
 	timeStart := string(time.Now().UTC().Format(time.RFC3339))
 	timeEnd := string(time.Now().UTC().Add(time.Duration(1) * time.Hour).Format(time.RFC3339))
-	config := testAccAzureRMAdApplication_passwordCredential(id, keyId, timeStart, timeEnd)
+	config := testAccAzureRMAdApplication_passwordCredential_single(id, keyId, timeStart, timeEnd)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
