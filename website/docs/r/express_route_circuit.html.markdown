@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the ExpressRoute circuit. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the ExpressRoute circuit. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `tier` - (Required) The service tier. Possible values are `Standard` or `Premium``.
+* `tier` - (Required) The service tier. Possible values are `Standard` or `Premium`.
 
 * `family` - (Required) The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
 
