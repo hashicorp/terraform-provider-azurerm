@@ -160,12 +160,13 @@ func dataSourceArmStorageAccount() *schema.Resource {
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).storageServiceClient
+	ctx := meta.(*ArmClient).StopContext
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.GetProperties(resourceGroup, name)
+	resp, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -176,7 +177,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*resp.ID)
 
-	keys, err := client.ListKeys(resourceGroup, name)
+	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -268,7 +269,9 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("primary_access_key", accessKeys[0].Value)
 	d.Set("secondary_access_key", accessKeys[1].Value)
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

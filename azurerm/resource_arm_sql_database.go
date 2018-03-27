@@ -306,7 +306,9 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

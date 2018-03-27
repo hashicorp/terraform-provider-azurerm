@@ -96,7 +96,10 @@ func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interf
 	d.Set("name", resp.Name)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resourceGroup)
-	flattenAndSetTags(d, resp.Tags)
+
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

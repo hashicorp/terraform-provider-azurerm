@@ -120,7 +120,9 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("sku", flattenAppServicePlanSku(sku))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

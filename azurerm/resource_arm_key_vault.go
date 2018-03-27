@@ -272,7 +272,9 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("access_policy", flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
 	d.Set("vault_uri", resp.Properties.VaultURI)
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

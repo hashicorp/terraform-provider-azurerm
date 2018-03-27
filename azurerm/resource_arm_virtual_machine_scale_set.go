@@ -774,7 +774,9 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }
@@ -1100,17 +1102,17 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 	for _, extension := range *profile.Extensions {
 		e := make(map[string]interface{})
 		e["name"] = *extension.Name
-		properties := extension.VirtualMachineScaleSetExtensionProperties
-		if properties != nil {
-			e["publisher"] = *properties.Publisher
-			e["type"] = *properties.Type
-			e["type_handler_version"] = *properties.TypeHandlerVersion
-			if properties.AutoUpgradeMinorVersion != nil {
-				e["auto_upgrade_minor_version"] = *properties.AutoUpgradeMinorVersion
+		if props := extension.VirtualMachineScaleSetExtensionProperties; props != nil {
+			e["publisher"] = *props.Publisher
+			e["type"] = *props.Type
+			e["type_handler_version"] = *props.TypeHandlerVersion
+			if props.AutoUpgradeMinorVersion != nil {
+				e["auto_upgrade_minor_version"] = *props.AutoUpgradeMinorVersion
 			}
 
-			if properties.Settings != nil {
-				settings, err := structure.FlattenJsonToString(*properties.Settings)
+			if props.Settings != nil {
+				settingsMap := props.Settings.(map[string]interface{})
+				settings, err := structure.FlattenJsonToString(settingsMap)
 				if err != nil {
 					return nil, err
 				}

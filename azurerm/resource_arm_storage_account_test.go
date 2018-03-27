@@ -357,9 +357,9 @@ func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
-
-		resp, err := conn.GetProperties(resourceGroup, storageAccount)
+		client := testAccProvider.Meta().(*ArmClient).storageServiceClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.GetProperties(ctx, resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
 		}
@@ -384,9 +384,10 @@ func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFun
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		// Ensure resource group exists in API
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+		client := testAccProvider.Meta().(*ArmClient).storageServiceClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := conn.Delete(resourceGroup, storageAccount)
+		_, err := client.Delete(ctx, resourceGroup, storageAccount)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
 		}
@@ -396,7 +397,8 @@ func testCheckAzureRMStorageAccountDisappears(name string) resource.TestCheckFun
 }
 
 func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+	client := testAccProvider.Meta().(*ArmClient).storageServiceClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_account" {
@@ -406,7 +408,7 @@ func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.GetProperties(resourceGroup, name)
+		resp, err := client.GetProperties(ctx, resourceGroup, name)
 		if err != nil {
 			return nil
 		}

@@ -437,7 +437,9 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }
@@ -616,7 +618,7 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	return results
 }
 
-func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
+func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
 	input := d.Get("app_settings").(map[string]interface{})
 	output := make(map[string]*string, len(input))
 
@@ -624,10 +626,10 @@ func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
 		output[k] = utils.String(v.(string))
 	}
 
-	return &output
+	return output
 }
 
-func expandAppServiceConnectionStrings(d *schema.ResourceData) *map[string]*web.ConnStringValueTypePair {
+func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").([]interface{})
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -644,13 +646,13 @@ func expandAppServiceConnectionStrings(d *schema.ResourceData) *map[string]*web.
 		}
 	}
 
-	return &output
+	return output
 }
 
-func flattenAppServiceConnectionStrings(input *map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range *input {
+	for k, v := range input {
 		result := make(map[string]interface{}, 0)
 		result["name"] = k
 		result["type"] = string(v.Type)
@@ -661,9 +663,9 @@ func flattenAppServiceConnectionStrings(input *map[string]*web.ConnStringValueTy
 	return results
 }
 
-func flattenAppServiceAppSettings(input *map[string]*string) map[string]string {
+func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	output := make(map[string]string, 0)
-	for k, v := range *input {
+	for k, v := range input {
 		output[k] = *v
 	}
 

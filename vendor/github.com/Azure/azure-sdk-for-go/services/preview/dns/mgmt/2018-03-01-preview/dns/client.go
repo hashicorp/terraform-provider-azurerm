@@ -1,4 +1,4 @@
-// Package dns implements the Azure ARM Dns service API version 2016-04-01.
+// Package dns implements the Azure ARM Dns service API version 2018-03-01-preview.
 //
 // The DNS Management Client.
 package dns

@@ -19,7 +19,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -32,6 +31,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
@@ -454,7 +454,7 @@ func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId, "", "", "", "", "")
+	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDBClient = cdb
 }
@@ -888,7 +888,8 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 	defer storageKeyCacheMu.Unlock()
 	key, ok = storageKeyCache[cacheIndex]
 	if !ok {
-		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
+		ctx := armClient.StopContext
+		accountKeys, err := armClient.storageServiceClient.ListKeys(ctx, resourceGroupName, storageAccountName)
 		if utils.ResponseWasNotFound(accountKeys.Response) {
 			return "", false, nil
 		}

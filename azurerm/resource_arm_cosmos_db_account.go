@@ -252,7 +252,9 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

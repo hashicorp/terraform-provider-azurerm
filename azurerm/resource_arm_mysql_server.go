@@ -290,7 +290,9 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)

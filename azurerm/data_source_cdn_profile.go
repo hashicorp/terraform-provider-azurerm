@@ -57,7 +57,9 @@ func dataSourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

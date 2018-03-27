@@ -153,6 +153,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := d.Get("location").(string)
 	tags := d.Get("tags").(map[string]interface{})
+	expandedTags := expandTags(tags)
 
 	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
 	if err != nil {
@@ -162,7 +163,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 	alertRuleResource := insights.AlertRuleResource{
 		Name:      &name,
 		Location:  &location,
-		Tags:      expandTags(tags),
+		Tags:      &expandedTags,
 		AlertRule: alertRule,
 	}
 

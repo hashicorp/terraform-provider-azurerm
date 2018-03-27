@@ -131,7 +131,9 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

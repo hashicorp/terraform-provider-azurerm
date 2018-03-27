@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -135,7 +135,10 @@ func resourceArmDnsMxRecordRead(d *schema.ResourceData, meta interface{}) error 
 	if err := d.Set("record", flattenAzureRmDnsMxRecords(resp.MxRecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
+
+	if err := flattenAndSetTags(d, &resp.Metadata); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

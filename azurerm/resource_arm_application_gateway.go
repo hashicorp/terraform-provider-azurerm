@@ -804,7 +804,9 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 			flattenApplicationGatewayWafConfig(applicationGateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration)))
 	}
 
-	flattenAndSetTags(d, applicationGateway.Tags)
+	if err := flattenAndSetTags(d, &applicationGateway.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }

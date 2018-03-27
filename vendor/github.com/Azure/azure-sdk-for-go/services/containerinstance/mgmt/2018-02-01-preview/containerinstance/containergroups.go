@@ -54,7 +54,7 @@ func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resource
 							{Target: "containerGroup.ContainerGroupProperties.IPAddress.Type", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerinstance.ContainerGroupsClient", "CreateOrUpdate")
+		return result, validation.NewError("containerinstance.ContainerGroupsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, containerGroupName, containerGroup)
@@ -445,8 +445,8 @@ func (client ContainerGroupsClient) ListByResourceGroupComplete(ctx context.Cont
 
 // Update updates container group tags with specified values.
 //
-// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group. resource
-// is the container group resource with just the tags to be updated.
+// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
+// resource is the container group resource with just the tags to be updated.
 func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupName string, containerGroupName string, resource *Resource) (result ContainerGroup, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, containerGroupName, resource)
 	if err != nil {

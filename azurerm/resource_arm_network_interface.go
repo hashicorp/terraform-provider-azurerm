@@ -379,7 +379,9 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
 	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := flattenAndSetTags(d, &resp.Tags); err != nil {
+		return fmt.Errorf("Error flattening `tags`: %+v", err)
+	}
 
 	return nil
 }
