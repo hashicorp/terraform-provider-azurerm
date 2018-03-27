@@ -14,7 +14,6 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 	resourceName := "azurerm_policy_definition.test"
 
 	ri := acctest.RandInt()
-	config := testAzureRMPolicyDefinition(ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,9 +21,10 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAzureRMPolicyDefinition_basic(ri),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(resourceName)),
+					testCheckAzureRMPolicyDefinitionExists(resourceName),
+				),
 			},
 		},
 	})
@@ -80,14 +80,14 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMPolicyDefinition(ri int) string {
+func testAzureRMPolicyDefinition_basic(ri int) string {
 	return fmt.Sprintf(`
 resource "azurerm_policy_definition" "test" {
-  name                = "acctestpol-%d"
-  policy_type            = "Custom"
-  mode                 = "All"
-  display_name       = "acctestpol-%d"
-  policy_rule =<<POLICY_RULE
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+  policy_rule  = <<POLICY_RULE
 	{
     "if": {
       "not": {
@@ -99,9 +99,9 @@ resource "azurerm_policy_definition" "test" {
       "effect": "audit"
     }
   }
-	POLICY_RULE
+POLICY_RULE
 
-  parameters =<<PARAMETERS
+  parameters = <<PARAMETERS
 	{
     "allowedLocations": {
       "type": "Array",
@@ -112,6 +112,7 @@ resource "azurerm_policy_definition" "test" {
       }
     }
   }
-	PARAMETERS
-}`, ri, ri)
+PARAMETERS
+}
+`, ri, ri)
 }
