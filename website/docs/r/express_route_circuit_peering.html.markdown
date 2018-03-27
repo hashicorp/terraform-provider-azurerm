@@ -83,7 +83,11 @@ The following attributes are exported:
 
 * `id` - The Resource ID of the ExpressRoute Circuit Peering.
 
-* `azure_asn` - (Optional) The ASN used by Azure.
+* `azure_asn` - The ASN used by Azure.
+
+* `primary_azure_port` - The Primary Port used by Azure for this Peering.
+
+* `secondary_azure_port` - The Secondary Port used by Azure for this Peering.
 
 ## Import
 
