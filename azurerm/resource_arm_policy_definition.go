@@ -67,7 +67,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
-			"meta_data": {
+			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ValidateFunc:     validation.ValidateJsonString,
@@ -109,10 +109,10 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		properties.PolicyRule = &policyRule
 	}
 
-	if metaDataString := d.Get("meta_data").(string); metaDataString != "" {
+	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
 		metaData, err := structure.ExpandJsonFromString(metaDataString)
 		if err != nil {
-			return fmt.Errorf("unable to parse meta_data: %s", err)
+			return fmt.Errorf("unable to parse metadata: %s", err)
 		}
 		properties.Metadata = &metaData
 	}
@@ -166,14 +166,39 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", resp.Name)
+
 	if props := resp.DefinitionProperties; props != nil {
 		d.Set("policy_type", props.PolicyType)
 		d.Set("mode", props.Mode)
 		d.Set("display_name", props.DisplayName)
 		d.Set("description", props.Description)
-		d.Set("policy_rule", props.PolicyRule)
-		d.Set("meta_data", props.Metadata)
-		d.Set("parameters", props.Parameters)
+
+		if policyRule := props.PolicyRule; policyRule != nil {
+			policyRuleStr, err := structure.FlattenJsonToString(*policyRule)
+			if err != nil {
+				return fmt.Errorf("unable to flatten JSON for `policy_rule`: %s", err)
+			}
+
+			d.Set("policy_rule", policyRuleStr)
+		}
+
+		if metadata := props.Metadata; metadata != nil {
+			metadataStr, err := structure.FlattenJsonToString(*metadata)
+			if err != nil {
+				return fmt.Errorf("unable to flatten JSON for `metadata`: %s", err)
+			}
+
+			d.Set("metadata", metadataStr)
+		}
+
+		if parameters := props.Parameters; parameters != nil {
+			parametersStr, err := structure.FlattenJsonToString(*props.Parameters)
+			if err != nil {
+				return fmt.Errorf("unable to flatten JSON for `parameters`: %s", err)
+			}
+
+			d.Set("parameters", parametersStr)
+		}
 	}
 
 	return nil
