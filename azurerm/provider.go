@@ -168,6 +168,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_network_security_group":              resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":               resourceArmNetworkSecurityRule(),
 			"azurerm_network_watcher":                     resourceArmNetworkWatcher(),
+			"azurerm_policy_definition":                   resourceArmPolicyDefinition(),
 			"azurerm_postgresql_configuration":            resourceArmPostgreSQLConfiguration(),
 			"azurerm_postgresql_database":                 resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":            resourceArmPostgreSQLFirewallRule(),
