@@ -55,12 +55,12 @@ The following arguments are supported:
 * `name` - (Required) The name of the policy definition. Changing this forces a
     new resource to be created.
 
-* `policy_type` - (Required) The policy type.  The value can be BuiltIn, Custom 
-    or NotSpecified. Changing this forces a new resource to be created.
+* `policy_type` - (Required) The policy type.  The value can be "BuiltIn", "Custom" 
+    or "NotSpecified". Changing this forces a new resource to be created.
 
 * `mode` - (Required) The policy mode that allows you to specify which resource
-    types will be evaluated.  The value can be All, Indexed or
-    NotSpecified. Changing this resource forces a new resource to be
+    types will be evaluated.  The value can be "All", "Indexed" or
+    "NotSpecified". Changing this resource forces a new resource to be
     created.
 
 * `display_name` - (Required) The display name of the policy definition.
@@ -78,12 +78,12 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The policy defenition id.
+* `id` - The policy definition id.
 
 ## Import
 
 Policy Definitions can be imported using the `policy name`, e.g.
 
 ```shell
-terraform import azurerm_policy_definition.testPolict  /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
+terraform import azurerm_policy_definition.testPolicy  /subscriptions/<SUBSCRIPTION_ID>/providers/Microsoft.Authorization/policyDefinitions/<POLICY_NAME>
 ```
