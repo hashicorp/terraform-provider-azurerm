@@ -89,7 +89,7 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 		Refresh:                   sqlVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, resourceGroup, serverName, name),
 		Timeout:                   10 * time.Minute,
 		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 2,
+		ContinuousTargetOccurence: 5,
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
