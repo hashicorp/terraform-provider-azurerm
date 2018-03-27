@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 	resourceName := "azurerm_express_route_circuit_peering.test"
@@ -18,7 +18,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering(t *testi
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(rInt, location),
+				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(rInt, location),
 			},
 			{
 				ResourceName:            resourceName,
@@ -30,7 +30,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering(t *testi
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 	resourceName := "azurerm_express_route_circuit_peering.test"
@@ -41,7 +41,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering(t *testin
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(rInt, location),
+				Config: testAccAzureRMExpressRouteCircuitPeering_publicPeering(rInt, location),
 			},
 			{
 				ResourceName:            resourceName,
@@ -53,7 +53,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering(t *testin
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()
 	resourceName := "azurerm_express_route_circuit_peering.test"
@@ -64,7 +64,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering(t *testing.
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(rInt, location),
+				Config: testAccAzureRMExpressRouteCircuitPeering_msPeering(rInt, location),
 			},
 			{
 				ResourceName:      resourceName,

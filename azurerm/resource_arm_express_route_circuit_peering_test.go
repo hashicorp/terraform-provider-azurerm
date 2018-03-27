@@ -11,7 +11,39 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
+func TestAccAzureRMExpressRouteCircuitPeering(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being happy about provisioning one at once
+	// (which our test suite can't easily workaround)
+	testCases := map[string]map[string]func(t *testing.T){
+		"PrivatePeering": {
+			"azurePrivatePeering":  testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
+			"importPrivatePeering": testAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering,
+		},
+		"PublicPeering": {
+			"azurePublicPeering":  testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering,
+			"importPublicPeering": testAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering,
+		},
+		"MicrosoftPeering": {
+			"microsoftPeering":       testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
+			"importMicrosoftPeering": testAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := acctest.RandInt()
 	location := testLocation()
@@ -22,7 +54,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(ri, location),
+				Config: testAccAzureRMExpressRouteCircuitPeering_privatePeering(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "peering_type", "AzurePrivatePeering"),
@@ -33,7 +65,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := acctest.RandInt()
 	location := testLocation()
@@ -44,7 +76,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(ri, location),
+				Config: testAccAzureRMExpressRouteCircuitPeering_publicPeering(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "peering_type", "AzurePublicPeering"),
@@ -55,7 +87,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := acctest.RandInt()
 	location := testLocation()
@@ -66,7 +98,7 @@ func TestAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(ri, location),
+				Config: testAccAzureRMExpressRouteCircuitPeering_msPeering(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "peering_type", "MicrosoftPeering"),
@@ -134,7 +166,7 @@ func testCheckAzureRMExpressRouteCircuitPeeringDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuitPeering_privatePeering(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -173,7 +205,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuitPeering_publicPeering(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -212,7 +244,7 @@ resource "azurerm_express_route_circuit_peering" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuitPeering_msPeering(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
