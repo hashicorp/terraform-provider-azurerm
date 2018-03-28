@@ -25,13 +25,15 @@ resource "azurerm_cosmosdb_account" "db" {
     }
 
     geo_location {
+      id                = "tfex-cosmos-db-${random_integer.ri.result}-customid"
+      location          = "${azurerm_resource_group.rg.location}"
+      failover_priority = 0
+    }
+
+    geo_location {
         location          = "${var.failover_location}"
         failover_priority = 1
     }
 
-    geo_location {
-        id                = "tfex-cosmos-db-${random_integer.ri.result}-customid"
-        location          = "${azurerm_resource_group.rg.location}"
-        failover_priority = 0
-    }
+
 }

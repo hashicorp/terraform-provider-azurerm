@@ -8,10 +8,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 
 	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"regexp"
+	"time"
 )
 
 func resourceArmCosmosDBAccount() *schema.Resource {
@@ -24,12 +27,57 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			if diff.Id() == "" {
+				// Now we only care about updates, not creation
+				return nil
+			}
+
+			ov, nv := diff.GetChange("geo_location")
+
+			//map old locations and then compare each one to its new ID to detect the change
+			oldLocationMap := map[string]interface{}{}
+			for _, l := range ov.(*schema.Set).List() {
+				location := l.(map[string]interface{})
+				oldLocationMap[location["id"].(string)] = location
+			}
+			oldLocationSet := ov.(*schema.Set)
+			newLocationSet := nv.(*schema.Set)
+
+			/*			location := documentdb.Location{
+							LocationName:     utils.String(azureRMNormalizeLocation(data["location"].(string))),
+							FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
+						}
+
+						if v, ok := data["id"].(string); ok {*/
+
+			//old generated ID:
+			//new genereated ID
+
+			//has set changed?
+			if setDifference := oldLocationSet.Difference(newLocationSet); setDifference.Len() != 0 {
+				log.Printf("KTKT diff: %v", setDifference)
+				//set changed, do we need to do something?
+			}
+
+			/*if ov.(map[string]interface{})["id"].(string) != nv.(map[string]interface{})["id"].(string) {
+				diff.ForceNew("geo_location")
+			}*/
+			log.Printf("KTKT old: %v", oldLocationSet)
+			log.Printf("KTKT new: %v", newLocationSet)
+
+			return nil
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateDBAccountName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-z0-9]{3,31}$"),
+					"Cosmos DB Account Name name must be 3 - 31 characters long, contain only letters, numbers and hyphens.",
+				),
 			},
 
 			"location": locationSchema(),
@@ -120,6 +168,10 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^[-a-z0-9]{3,31}$"),
+								"Cosmos DB location ID must be 3 - 31 characters long, contain only letters, numbers and hyphens.",
+							),
 						},
 
 						"location": {
@@ -142,15 +194,15 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Type: schema.TypeSet,
 				//Required:     true, //todo needs to be required when failover_policy is removed
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"failover_policy"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 
 						"id": {
 							Type:     schema.TypeString,
-							Optional: true, //TODO try and set this?
+							Optional: true,
 							Computed: true,
-							ForceNew: true,
 						},
 
 						"location": {
@@ -256,6 +308,9 @@ func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interfa
 		Tags: expandTags(tags),
 	}
 
+	//TODO properties cannot be changed at the same time locations are added or removed.
+	// This should be handled at some point
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -266,17 +321,43 @@ func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to finish creating: %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	//if a replication location is added or removed it can take some time to provision
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Updating", "Creating", "Deleting"},
+		Target:     []string{"Succeeded"},
+		Timeout:    60 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
+		Refresh: func() (interface{}, string, error) {
+
+			resp, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			status := "Succeeded"
+			for _, l := range append(*resp.ReadLocations, *resp.WriteLocations...) {
+				if status = *l.ProvisioningState; status != "Succeeded" {
+					break //return the first non successful status
+				}
+			}
+
+			return resp, status, nil
+		},
+	}
+
+	resp, err := stateConf.WaitForState()
 	if err != nil {
-		return fmt.Errorf("Error reading Scheduler Job Collection %q after create/update (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
 	}
 
 	//todo is this still required?
-	if read.ID == nil {
+	id := resp.(documentdb.DatabaseAccount).ID
+	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(*id)
 
 	return resourceArmCosmosDBAccountRead(d, meta)
 }
@@ -396,6 +477,10 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *docu
 	return &policy
 }
 
+func resourceArmCosmosDBAccountGenerateDefaultId(databaseName string, location string) string {
+	return fmt.Sprintf("%s-%s", databaseName, location)
+}
+
 func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
 
 	locations := make([]documentdb.Location, 0)
@@ -410,7 +495,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 		if v, ok := data["id"].(string); ok {
 			location.ID = utils.String(v)
 		} else {
-			location.ID = utils.String(fmt.Sprintf("%s-%s", databaseName, *location.DocumentEndpoint))
+			location.ID = utils.String(resourceArmCosmosDBAccountGenerateDefaultId(databaseName, *location.LocationName))
 		}
 
 		locations = append(locations, location)
@@ -418,19 +503,28 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 
 	//TODO maybe this should be in a CustomizeDiff
 
-	// all priorities must be unique
-	priorities := make(map[int]struct{}, len(locations))
+	// all priorities & locations must be unique
+	byPriorities := make(map[int]interface{}, len(locations))
+	byName := make(map[string]interface{}, len(locations))
 	for _, location := range locations {
+
 		priority := int(*location.FailoverPriority)
-		if _, ok := priorities[priority]; ok {
-			return nil, fmt.Errorf("Each `geo_location` needs to have a unique failover_prioroty")
+		name := string(*location.LocationName)
+
+		if _, ok := byPriorities[priority]; ok {
+			return nil, fmt.Errorf("Each `geo_location` needs to have a unique failover_prioroty. Multiple instances of '%d' found", priority)
 		}
 
-		priorities[priority] = struct{}{}
+		if _, ok := byName[name]; ok {
+			return nil, fmt.Errorf("Each `geo_location` needs to be in unique location. Multiple instances of '%s' found", name)
+		}
+
+		byPriorities[priority] = location
+		byName[name] = location
 	}
 
-	//and we have one of 0 priority
-	if _, ok := priorities[0]; !ok {
+	//and must have one of 0 priority
+	if _, ok := byPriorities[0]; !ok {
 		return nil, fmt.Errorf("There needs to be a `geo_location` with a failover_priority of 0")
 	}
 
@@ -575,7 +669,7 @@ func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	location := azureRMNormalizeLocation(m["location"].(string))
 	priority := int32(m["priority"].(int))
 
-	buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
+	buf.WriteString(fmt.Sprintf("-%s-%d", location, priority))
 
 	return hashcode.String(buf.String())
 }
@@ -584,9 +678,6 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	var buf bytes.Buffer
 	m := v.(map[string]interface{})
 
-	if id, ok := m["id"].(string); ok {
-		buf.WriteString(id)
-	}
 	location := azureRMNormalizeLocation(m["location"].(string))
 	priority := int32(m["failover_priority"].(int))
 

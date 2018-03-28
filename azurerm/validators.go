@@ -58,7 +58,7 @@ func validateDBAccountName(v interface{}, k string) (ws []string, errors []error
 
 	length := len(value)
 	if length > 50 || 3 > length {
-		errors = append(errors, fmt.Errorf("Account Name can only be between 3 and 50 seconds."))
+		errors = append(errors, fmt.Errorf("Account Name can only be between 3 and 50 characters."))
 	}
 
 	return
