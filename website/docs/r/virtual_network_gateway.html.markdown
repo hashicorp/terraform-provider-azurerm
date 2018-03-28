@@ -188,6 +188,7 @@ The `bgp_settings` block supports:
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.
+    Changing this forces a new resource to be created.
 
 The `root_certificate` block supports:
 
