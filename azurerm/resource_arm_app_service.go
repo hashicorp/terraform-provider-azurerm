@@ -39,6 +39,7 @@ func resourceArmAppService() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: reusable schema
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -160,6 +161,15 @@ func resourceArmAppService() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"scm_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(web.ScmTypeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ScmTypeNone),
+								string(web.ScmTypeLocalGit),
+							}, false),
+						},
 					},
 				},
 			},
@@ -226,6 +236,25 @@ func resourceArmAppService() *schema.Resource {
 			// https://github.com/Azure/azure-rest-api-specs/issues/1697
 			"tags": tagsForceNewSchema(),
 
+			"site_credential": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
 			"default_site_hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -234,6 +263,23 @@ func resourceArmAppService() *schema.Resource {
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"source_control": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"repo_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"branch": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -413,6 +459,24 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on AzureRM App Service ConnectionStrings %q: %+v", name, err)
 	}
 
+	scmResp, err := client.GetSourceControl(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
+	}
+
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
+	err = siteCredFuture.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+	siteCredResp, err := siteCredFuture.Result(client)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
@@ -434,6 +498,16 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
+		return err
+	}
+
+	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scm); err != nil {
+		return err
+	}
+
+	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
+	if err := d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
 
@@ -541,6 +615,10 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["scm_type"]; ok {
+		siteConfig.ScmType = web.ScmType(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -612,8 +690,30 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
 
-	results = append(results, result)
-	return results
+	result["scm_type"] = string(input.ScmType)
+
+	return append(results, result)
+}
+
+func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
+		return results
+	}
+
+	if input.RepoURL != nil {
+		result["repo_url"] = *input.RepoURL
+	}
+	if input.Branch != nil && *input.Branch != "" {
+		result["branch"] = *input.Branch
+	} else {
+		result["branch"] = "master"
+	}
+
+	return append(results, result)
 }
 
 func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
@@ -678,4 +778,24 @@ func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
 	}
 
 	return
+}
+
+func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	if input.PublishingUserName != nil {
+		result["username"] = *input.PublishingUserName
+	}
+
+	if input.PublishingPassword != nil {
+		result["password"] = *input.PublishingPassword
+	}
+
+	return append(results, result)
 }

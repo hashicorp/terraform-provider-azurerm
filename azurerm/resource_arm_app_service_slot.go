@@ -44,6 +44,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: reusable schema
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -164,6 +165,16 @@ func resourceArmAppServiceSlot() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
+						},
+
+						"scm_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(web.ScmTypeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ScmTypeNone),
+								string(web.ScmTypeLocalGit),
+							}, false),
 						},
 					},
 				},
