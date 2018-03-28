@@ -277,6 +277,13 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 										Required: true,
 									},
 
+									"application_gateway_backend_address_pool_ids": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+										Set:      schema.HashString,
+									},
+
 									"load_balancer_backend_address_pool_ids": {
 										Type:     schema.TypeSet,
 										Optional: true,
@@ -940,6 +947,14 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 					config["subnet_id"] = *properties.Subnet.ID
 				}
 
+				addressPools := make([]interface{}, 0)
+				if properties.ApplicationGatewayBackendAddressPools != nil {
+					for _, pool := range *properties.ApplicationGatewayBackendAddressPools {
+						addressPools = append(addressPools, *pool.ID)
+					}
+				}
+				config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
+
 				if properties.LoadBalancerBackendAddressPools != nil {
 					addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
 					for _, pool := range *properties.LoadBalancerBackendAddressPools {
@@ -1269,6 +1284,18 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 						ID: &subnetId,
 					},
 				},
+			}
+
+			if v := ipconfig["application_gateway_backend_address_pool_ids"]; v != nil {
+				pools := v.(*schema.Set).List()
+				resources := make([]compute.SubResource, 0, len(pools))
+				for _, p := range pools {
+					id := p.(string)
+					resources = append(resources, compute.SubResource{
+						ID: &id,
+					})
+				}
+				ipConfiguration.ApplicationGatewayBackendAddressPools = &resources
 			}
 
 			if v := ipconfig["load_balancer_backend_address_pool_ids"]; v != nil {
