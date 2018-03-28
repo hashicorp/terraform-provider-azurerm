@@ -14,7 +14,9 @@ IMPROVEMENTS:
 
 * `azurerm_app_service` - allow changing `client_affinity_enabled` without requiring a resource recreation [GH-993]
 * `azurerm_app_service` - support for configuring `LocalSCM` source control [GH-826]
+* `azurerm_app_service` - returning a clearer error message when the name (which needs to be globally unique) is in use [GH-1037]
 * `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [GH-1000] 
+* `azurerm_function_app` - returning a clearer error message when the name (which needs to be globally unique) is in use [GH-1037]
 * `azurerm_network_interface` - support for attaching to Application Gateways [GH-1027]
 * `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` [GH-986]
 * `azurerm_traffic_manager_profile` - adding support for the `traffic_routing_method` `Geographic` [GH-986]
