@@ -8,6 +8,7 @@ FEATURES:
 * **New Resource:** `azurerm_express_route_circuit_peering` [GH-1033]
 * **New Resource:** `azurerm_iothub` [GH-887]
 * **New Resource:** `azurerm_policy_definition` [GH-1010]
+* **New Resource:** `azurerm_sql_virtual_network_rule` [GH-978]
 
 IMPROVEMENTS:
 
