@@ -242,7 +242,7 @@ func resourceArmAppService() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"user_name": {
+						"username": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -790,7 +790,7 @@ func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {
 	}
 
 	if input.PublishingUserName != nil {
-		result["user_name"] = *input.PublishingUserName
+		result["username"] = *input.PublishingUserName
 	}
 
 	if input.PublishingPassword != nil {

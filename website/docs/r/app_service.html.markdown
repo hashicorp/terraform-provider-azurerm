@@ -191,7 +191,7 @@ The following attributes are exported:
 
 `site_credential` supports the following:
 
-* `user_name` - If your site is named 'MySite', the user name will be '$MySite'.
+* `username` - If your site is named 'MySite', the user name will be '$MySite'.
 * `password` - Some long random string.
 
 ## Import
