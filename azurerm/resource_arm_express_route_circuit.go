@@ -1,18 +1,15 @@
 package azurerm
 
 import (
-	"bytes"
-	"log"
-	"strings"
-
 	"fmt"
+	"log"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
-	"github.com/hashicorp/errwrap"
-	"github.com/hashicorp/terraform/helper/hashcode"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
+
+var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
 
 func resourceArmExpressRouteCircuit() *schema.Resource {
 	return &schema.Resource{
@@ -55,9 +52,8 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
-				MinItems: 1,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -82,7 +78,6 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmExpressRouteCircuitSkuHash,
 			},
 
 			"allow_classic_operations": {
@@ -107,8 +102,8 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 }
 
 func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	ercClient := client.expressRouteCircuitClient
+	client := meta.(*ArmClient).expressRouteCircuitClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRouteCircuit creation.")
 
@@ -138,18 +133,25 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 		Tags: expandedTags,
 	}
 
-	_, error := ercClient.CreateOrUpdate(resGroup, name, erc, make(chan struct{}))
-	err := <-error
+	azureRMLockByName(name, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
 	if err != nil {
-		return errwrap.Wrapf("Error Creating/Updating ExpressRouteCircuit {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := ercClient.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return errwrap.Wrapf("Error Getting ExpressRouteCircuit {{err}}", err)
+		return fmt.Errorf("Error Creating/Updating ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	read, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error Retrieving ExpressRouteCircuit %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ExpressRouteCircuit %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ExpressRouteCircuit %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -158,56 +160,74 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
-	erc, resGroup, err := retrieveErcByResourceId(d.Id(), meta)
+	resp, resourceGroup, err := retrieveErcByResourceId(d.Id(), meta)
 	if err != nil {
 		return err
 	}
 
-	if erc == nil {
+	if resp == nil {
 		log.Printf("[INFO] Express Route Circuit %q not found. Removing from state", d.Get("name").(string))
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", erc.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*erc.Location))
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resourceGroup)
 
-	if erc.ServiceProviderProperties != nil {
-		d.Set("service_provider_name", erc.ServiceProviderProperties.ServiceProviderName)
-		d.Set("peering_location", erc.ServiceProviderProperties.PeeringLocation)
-		d.Set("bandwidth_in_mbps", erc.ServiceProviderProperties.BandwidthInMbps)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if erc.Sku != nil {
-		d.Set("sku", schema.NewSet(resourceArmExpressRouteCircuitSkuHash, flattenExpressRouteCircuitSku(erc.Sku)))
+	if resp.Sku != nil {
+		sku := flattenExpressRouteCircuitSku(resp.Sku)
+		if err := d.Set("sku", sku); err != nil {
+			return fmt.Errorf("Error flattening `sku`: %+v", err)
+		}
 	}
 
-	d.Set("service_provider_provisioning_state", string(erc.ServiceProviderProvisioningState))
-	d.Set("service_key", erc.ServiceKey)
-	d.Set("allow_classic_operations", erc.AllowClassicOperations)
+	if props := resp.ServiceProviderProperties; props != nil {
+		d.Set("service_provider_name", props.ServiceProviderName)
+		d.Set("peering_location", props.PeeringLocation)
+		d.Set("bandwidth_in_mbps", props.BandwidthInMbps)
+	}
 
-	flattenAndSetTags(d, erc.Tags)
+	d.Set("service_provider_provisioning_state", string(resp.ServiceProviderProvisioningState))
+	d.Set("service_key", resp.ServiceKey)
+	d.Set("allow_classic_operations", resp.AllowClassicOperations)
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
 
 func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
-	ercClient := meta.(*ArmClient).expressRouteCircuitClient
+	client := meta.(*ArmClient).expressRouteCircuitClient
+	ctx := meta.(*ArmClient).StopContext
 
-	resGroup, name, err := extractResourceGroupAndErcName(d.Id())
+	resourceGroup, name, err := extractResourceGroupAndErcName(d.Id())
 	if err != nil {
-		return errwrap.Wrapf("Error Parsing Azure Resource ID {{err}}", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 
-	_, error := ercClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
-	return err
+	azureRMLockByName(name, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+
+	future, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func expandExpressRouteCircuitSku(d *schema.ResourceData) *network.ExpressRouteCircuitSku {
-	skuSettings := d.Get("sku").(*schema.Set)
-	v := skuSettings.List()[0].(map[string]interface{}) // [0] is guarded by MinItems in schema.
+	skuSettings := d.Get("sku").([]interface{})
+	v := skuSettings[0].(map[string]interface{}) // [0] is guarded by MinItems in schema.
 	tier := v["tier"].(string)
 	family := v["family"].(string)
 	name := fmt.Sprintf("%s_%s", tier, family)
@@ -226,13 +246,4 @@ func flattenExpressRouteCircuitSku(sku *network.ExpressRouteCircuitSku) []interf
 			"family": string(sku.Family),
 		},
 	}
-}
-
-func resourceArmExpressRouteCircuitSkuHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["tier"].(string))))
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["family"].(string))))
-
-	return hashcode.String(buf.String())
 }

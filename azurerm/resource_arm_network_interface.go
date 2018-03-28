@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -60,8 +60,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"private_ip_address": {
@@ -96,6 +97,14 @@ func resourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"application_security_group_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Computed: true,
@@ -140,6 +149,20 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 			},
 
+			/**
+			 * As of 2018-01-06: AN (aka. SR-IOV) on Azure is GA on Windows and Linux.
+			 *
+			 * Refer to: https://azure.microsoft.com/en-us/blog/maximize-your-vm-s-performance-with-accelerated-networking-now-generally-available-for-both-windows-and-linux/
+			 *
+			 * Refer to: https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli
+			 * For details, VM configuration and caveats.
+			 */
+			"enable_accelerated_networking": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enable_ip_forwarding": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -166,6 +189,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
 
@@ -173,10 +197,12 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
+	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := network.InterfacePropertiesFormat{
-		EnableIPForwarding: &enableIpForwarding,
+		EnableIPForwarding:          &enableIpForwarding,
+		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
@@ -239,13 +265,17 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		Tags: expandTags(tags),
 	}
 
-	_, createErr := client.CreateOrUpdate(resGroup, name, iface, make(chan struct{}))
-	err := <-createErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, iface)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
@@ -260,6 +290,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 
 func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -268,25 +299,20 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["networkInterfaces"]
 
-	resp, err := client.Get(resGroup, name, "")
+	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Interface %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	iface := *resp.InterfacePropertiesFormat
+	props := *resp.InterfacePropertiesFormat
 
-	if iface.MacAddress != nil {
-		if *iface.MacAddress != "" {
-			d.Set("mac_address", iface.MacAddress)
-		}
-	}
-
-	if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
-		configs := *iface.IPConfigurations
+	d.Set("mac_address", props.MacAddress)
+	if props.IPConfigurations != nil && len(*props.IPConfigurations) > 0 {
+		configs := *props.IPConfigurations
 
 		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
 			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
@@ -305,48 +331,53 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if iface.IPConfigurations != nil {
-		d.Set("ip_configuration", flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations))
+	if props.IPConfigurations != nil {
+		configs := flattenNetworkInterfaceIPConfigurations(props.IPConfigurations)
+		if err := d.Set("ip_configuration", configs); err != nil {
+			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+		}
 	}
 
-	if iface.VirtualMachine != nil {
-		d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
+	if vm := props.VirtualMachine; vm != nil {
+		d.Set("virtual_machine_id", *vm.ID)
 	}
 
 	var appliedDNSServers []string
 	var dnsServers []string
-	if iface.DNSSettings != nil {
-		if iface.DNSSettings.AppliedDNSServers != nil && len(*iface.DNSSettings.AppliedDNSServers) > 0 {
-			for _, applied := range *iface.DNSSettings.AppliedDNSServers {
+	if dns := props.DNSSettings; dns != nil {
+		if appliedServers := dns.AppliedDNSServers; appliedServers != nil && len(appliedDNSServers) > 0 {
+			for _, applied := range appliedDNSServers {
 				appliedDNSServers = append(appliedDNSServers, applied)
 			}
 		}
 
-		if iface.DNSSettings.DNSServers != nil && len(*iface.DNSSettings.DNSServers) > 0 {
-			for _, dns := range *iface.DNSSettings.DNSServers {
+		if servers := dns.DNSServers; servers != nil && len(*servers) > 0 {
+			for _, dns := range *servers {
 				dnsServers = append(dnsServers, dns)
 			}
 		}
 
-		if iface.DNSSettings.InternalFqdn != nil && *iface.DNSSettings.InternalFqdn != "" {
-			d.Set("internal_fqdn", iface.DNSSettings.InternalFqdn)
-		}
-
-		d.Set("internal_dns_name_label", iface.DNSSettings.InternalDNSNameLabel)
+		d.Set("internal_fqdn", props.DNSSettings.InternalFqdn)
+		d.Set("internal_dns_name_label", props.DNSSettings.InternalDNSNameLabel)
 	}
 
-	if iface.NetworkSecurityGroup != nil {
-		d.Set("network_security_group_id", resp.NetworkSecurityGroup.ID)
+	if nsg := props.NetworkSecurityGroup; nsg != nil {
+		d.Set("network_security_group_id", nsg.ID)
 	} else {
 		d.Set("network_security_group_id", "")
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
+	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -355,6 +386,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ifaceClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -403,8 +435,15 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 	azureRMLockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 	defer azureRMUnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 
-	_, deleteErr := client.Delete(resGroup, name, make(chan struct{}))
-	err = <-deleteErr
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for the deletion of Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
+	}
 
 	return err
 }
@@ -447,6 +486,14 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 			}
 		}
 		niIPConfig["load_balancer_inbound_nat_rules_ids"] = schema.NewSet(schema.HashString, rules)
+
+		securityGroups := make([]interface{}, 0)
+		if sgs := props.ApplicationSecurityGroups; sgs != nil {
+			for _, sg := range *sgs {
+				securityGroups = append(securityGroups, *sg.ID)
+			}
+		}
+		niIPConfig["application_security_group_ids"] = schema.NewSet(schema.HashString, securityGroups)
 
 		result = append(result, niIPConfig)
 	}
@@ -532,6 +579,21 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 			}
 
 			properties.LoadBalancerInboundNatRules = &natRules
+		}
+
+		if v, ok := data["application_security_group_ids"]; ok {
+			var securityGroups []network.ApplicationSecurityGroup
+			rules := v.(*schema.Set).List()
+			for _, r := range rules {
+				groupId := r.(string)
+				group := network.ApplicationSecurityGroup{
+					ID: &groupId,
+				}
+
+				securityGroups = append(securityGroups, group)
+			}
+
+			properties.ApplicationSecurityGroups = &securityGroups
 		}
 
 		name := data["name"].(string)

@@ -3,7 +3,7 @@
 # variable "client_secret" {}
 # variable "tenant_id" {}
 
-variable "resource_group" {
+variable "resource_group_name" {
   description = "The name of the resource group in which to create the virtual network."
 }
 
@@ -46,8 +46,8 @@ variable "image_offer" {
   default     = "UbuntuServer"
 }
 
-variable "vmss_name" {
-  description = "String used as a base for naming resources. Must be 3-61 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
+variable "vmss_name_prefix" {
+  description = "String used as a base for naming resources. Must be 1-9 characters in length for windows and 1-58 for linux images and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
 }
 
 variable "instance_count" {

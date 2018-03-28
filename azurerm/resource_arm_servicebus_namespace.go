@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/servicebus"
+	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -83,13 +83,13 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 }
 
 func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	namespaceClient := client.serviceBusNamespacesClient
+	client := meta.(*ArmClient).serviceBusNamespacesClient
+	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -113,19 +113,23 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 		parameters.Sku.Capacity = utils.Int32(int32(capacity))
 	}
 
-	_, error := namespaceClient.CreateOrUpdate(resGroup, name, parameters, make(chan struct{}))
-	err := <-error
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := namespaceClient.Get(resGroup, name)
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Namespace %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ServiceBus Namespace %q (resource group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -134,33 +138,40 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	namespaceClient := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).serviceBusNamespacesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
-	resp, err := namespaceClient.Get(resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Namespace '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Namespace %q: %+v", name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
-	d.Set("sku", strings.ToLower(string(resp.Sku.Name)))
-	d.Set("capacity", resp.Sku.Capacity)
+	d.Set("resource_group_name", resourceGroup)
 
-	keys, err := namespaceClient.ListKeys(resGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", strings.ToLower(string(sku.Name)))
+		d.Set("capacity", sku.Capacity)
+	}
+
+	keys, err := client.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List default keys for Namespace %s: %+v", name, err)
+		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	} else {
 		d.Set("default_primary_connection_string", keys.PrimaryConnectionString)
 		d.Set("default_secondary_connection_string", keys.SecondaryConnectionString)
@@ -174,23 +185,19 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	namespaceClient := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).serviceBusNamespacesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
-	deleteResp, error := namespaceClient.Delete(resGroup, name, make(chan struct{}))
-	resp := <-deleteResp
-	err = <-error
-
+	_, err = client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace %q: %+v", name, err)
-		}
+		return err
 	}
 
 	return nil

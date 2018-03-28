@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/arm/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -39,6 +39,7 @@ func dataSourceArmClientConfig() *schema.Resource {
 
 func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
+	ctx := meta.(*ArmClient).StopContext
 
 	var servicePrincipal *graphrbac.ServicePrincipal
 	if client.usingServicePrincipal {
@@ -46,17 +47,17 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 		// Application & Service Principal is 1:1 per tenant. Since we know the appId (client_id)
 		// here, we can query for the Service Principal whose appId matches.
 		filter := fmt.Sprintf("appId eq '%s'", client.clientId)
-		listResult, listErr := spClient.List(filter)
+		listResult, listErr := spClient.List(ctx, filter)
 
 		if listErr != nil {
 			return fmt.Errorf("Error listing Service Principals: %#v", listErr)
 		}
 
-		if listResult.Value == nil || len(*listResult.Value) != 1 {
-			return fmt.Errorf("Unexpected Service Principal query result: %#v", listResult.Value)
+		if listResult.Values() == nil || len(listResult.Values()) != 1 {
+			return fmt.Errorf("Unexpected Service Principal query result: %#v", listResult.Values())
 		}
 
-		servicePrincipal = &(*listResult.Value)[0]
+		servicePrincipal = &(listResult.Values())[0]
 	}
 
 	d.SetId(time.Now().UTC().String())

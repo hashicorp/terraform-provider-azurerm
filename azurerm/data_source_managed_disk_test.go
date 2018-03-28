@@ -30,6 +30,8 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "disk_size_gb", "10"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "acctest"),
+					resource.TestCheckResourceAttr(dataSourceName, "zones.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "zones.0", "2"),
 				),
 			},
 		},
@@ -50,6 +52,7 @@ resource "azurerm_managed_disk" "test" {
   storage_account_type = "Premium_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
+  zones                = ["2"]
 
   tags {
     environment = "acctest"

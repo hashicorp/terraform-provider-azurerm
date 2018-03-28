@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"

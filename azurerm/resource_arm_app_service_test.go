@@ -194,6 +194,56 @@ func TestAccAzureRMAppService_clientAffinityEnabled(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_clientAffinityDisabled(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_clientAffinityUpdate(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_clientAffinity(ri, testLocation(), true)
+	updatedConfig := testAccAzureRMAppService_clientAffinity(ri, testLocation(), false)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "true"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_connectionStrings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
@@ -593,7 +643,8 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := client.Get(resourceGroup, name)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -602,7 +653,7 @@ func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 			return err
 		}
 
-		return fmt.Errorf("App Service still exists:\n%#v", resp)
+		return nil
 	}
 
 	return nil
@@ -623,8 +674,8 @@ func testCheckAzureRMAppServiceExists(name string) resource.TestCheckFunc {
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).appServicesClient
-
-		resp, err := client.Get(resourceGroup, appServiceName)
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: App Service %q (resource group: %q) does not exist", appServiceName, resourceGroup)
@@ -818,6 +869,14 @@ resource "azurerm_app_service" "test" {
 }
 
 func testAccAzureRMAppService_clientAffinityEnabled(rInt int, location string) string {
+	return testAccAzureRMAppService_clientAffinity(rInt, location, true)
+}
+
+func testAccAzureRMAppService_clientAffinityDisabled(rInt int, location string) string {
+	return testAccAzureRMAppService_clientAffinity(rInt, location, false)
+}
+
+func testAccAzureRMAppService_clientAffinity(rInt int, location string, clientAffinity bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
@@ -840,9 +899,9 @@ resource "azurerm_app_service" "test" {
   location                = "${azurerm_resource_group.test.location}"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
-  client_affinity_enabled = true
+  client_affinity_enabled = %t
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, clientAffinity)
 }
 
 func testAccAzureRMAppService_connectionStrings(rInt int, location string) string {

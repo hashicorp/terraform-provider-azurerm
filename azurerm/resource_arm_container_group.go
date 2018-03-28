@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/arm/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-02-01-preview/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -55,9 +55,33 @@ func resourceArmContainerGroup() *schema.Resource {
 
 			"tags": tagsForceNewSchema(),
 
+			"restart_policy": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          string(containerinstance.Always),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerinstance.Always),
+					string(containerinstance.Never),
+					string(containerinstance.OnFailure),
+				}, true),
+			},
+
 			"ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"dns_name_label": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"container": {
@@ -174,6 +198,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
+	ctx := meta.(*ArmClient).StopContext
 	containerGroupsClient := client.containerGroupsClient
 
 	// container group properties
@@ -183,6 +208,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
+	restartPolicy := d.Get("restart_policy").(string)
 
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
@@ -190,7 +216,8 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     expandTags(tags),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			Containers: containers,
+			Containers:    containers,
+			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
 				Type:  &IPAddressType,
 				Ports: containerGroupPorts,
@@ -200,12 +227,16 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	_, err := containerGroupsClient.CreateOrUpdate(resGroup, name, containerGroup)
+	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
+		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+	}
+
+	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
 		return err
 	}
 
-	read, err := containerGroupsClient.Get(resGroup, name)
+	read, err := containerGroupsClient.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -221,6 +252,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
+	ctx := meta.(*ArmClient).StopContext
 	containterGroupsClient := client.containerGroupsClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -232,7 +264,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
-	resp, err := containterGroupsClient.Get(resGroup, name)
+	resp, err := containterGroupsClient.Get(ctx, resGroup, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -251,7 +283,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	if address := resp.IPAddress; address != nil {
 		d.Set("ip_address_type", address.Type)
 		d.Set("ip_address", address.IP)
+		d.Set("dns_name_label", address.DNSNameLabel)
+		d.Set("fqdn", address.Fqdn)
 	}
+	d.Set("restart_policy", string(resp.RestartPolicy))
 
 	if props := resp.ContainerGroupProperties; props != nil {
 		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress.Ports, props.Volumes)
@@ -266,6 +301,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
+	ctx := meta.(*ArmClient).StopContext
 	containterGroupsClient := client.containerGroupsClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -278,7 +314,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["containerGroups"]
 
-	resp, err := containterGroupsClient.Delete(resGroup, name)
+	resp, err := containterGroupsClient.Delete(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

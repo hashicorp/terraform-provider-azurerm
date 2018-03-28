@@ -35,9 +35,9 @@ func TestProvider_impl(t *testing.T) {
 
 func testAccPreCheck(t *testing.T) {
 	variables := []string{
-		"ARM_SUBSCRIPTION_ID",
 		"ARM_CLIENT_ID",
 		"ARM_CLIENT_SECRET",
+		"ARM_SUBSCRIPTION_ID",
 		"ARM_TENANT_ID",
 		"ARM_TEST_LOCATION",
 		"ARM_TEST_LOCATION_ALT",
@@ -116,20 +116,21 @@ func TestAccAzureRMResourceProviderRegistration(t *testing.T) {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}
 
-	client := armClient.providers
-	providerList, err := client.List(nil, "")
+	client := armClient.providersClient
+	ctx := testAccProvider.StopContext()
+	providerList, err := client.List(ctx, nil, "")
 	if err != nil {
 		t.Fatalf("Unable to list provider registration status, it is possible that this is due to invalid "+
 			"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
 			"error: %s", err)
 	}
 
-	err = registerAzureResourceProvidersWithSubscription(*providerList.Value, client)
+	err = registerAzureResourceProvidersWithSubscription(ctx, providerList.Values(), client)
 	if err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}
 
-	needingRegistration := determineAzureResourceProvidersToRegister(*providerList.Value)
+	needingRegistration := determineAzureResourceProvidersToRegister(providerList.Values())
 	if len(needingRegistration) > 0 {
 		t.Fatalf("'%d' Resource Providers are still Pending Registration: %s", len(needingRegistration), spew.Sprint(needingRegistration))
 	}

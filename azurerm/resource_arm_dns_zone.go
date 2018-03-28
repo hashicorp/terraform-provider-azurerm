@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/arm/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,6 +52,7 @@ func resourceArmDnsZone() *schema.Resource {
 
 func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).zonesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -65,7 +67,7 @@ func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
 
 	etag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(resGroup, name, parameters, etag, ifNoneMatch)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch)
 	if err != nil {
 		return err
 	}
@@ -81,6 +83,7 @@ func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	zonesClient := meta.(*ArmClient).zonesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -90,7 +93,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["dnszones"]
 
-	resp, err := zonesClient.Get(resGroup, name)
+	resp, err := zonesClient.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -119,6 +122,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).zonesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -129,10 +133,19 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	name := id.Path["dnszones"]
 
 	etag := ""
-	_, error := client.Delete(resGroup, name, etag, make(chan struct{}))
-	err = <-error
-
+	future, err := client.Delete(ctx, resGroup, name, etag)
 	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
 		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", name, resGroup, err)
 	}
 

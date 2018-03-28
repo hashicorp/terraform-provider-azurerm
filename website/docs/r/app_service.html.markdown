@@ -11,6 +11,8 @@ description: |-
 
 Manages an App Service (within an App Service Plan).
 
+-> **Note:** When using Slots - the `app_settings`, `connection_string` and `site_config` blocks on the `azurerm_app_service` resource will be overwritten when promoting a Slot using the `azurerm_app_service_active_slot` resource.
+
 ## Example Usage (.net 4.x)
 
 ```hcl
@@ -167,6 +169,8 @@ The following attributes are exported:
 * `id` - The ID of the App Service.
 
 * `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
+
+* `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
 ## Import
 

@@ -1,14 +1,13 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
 
-	"bytes"
-
-	"github.com/Azure/azure-sdk-for-go/arm/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -36,6 +35,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 			"location": locationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
+
+			"zones": singleZonesSchema(),
 
 			"plan": {
 				Type:     schema.TypeList,
@@ -253,10 +254,10 @@ func resourceArmVirtualMachine() *schema.Resource {
 						},
 
 						"managed_disk_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-							Computed: true,
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"managed_disk_type": {
@@ -272,7 +273,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"create_option": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ForceNew:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
@@ -500,8 +500,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 }
 
 func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	vmClient := client.vmClient
+	client := meta.(*ArmClient).vmClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
 
@@ -510,6 +510,7 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	osDisk, err := expandAzureRmVirtualMachineOsDisk(d)
 	if err != nil {
@@ -578,7 +579,8 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		Name:                     &name,
 		Location:                 &location,
 		VirtualMachineProperties: &properties,
-		Tags: expandedTags,
+		Tags:  expandedTags,
+		Zones: zones,
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -595,13 +597,17 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		vm.Plan = plan
 	}
 
-	_, vmError := vmClient.CreateOrUpdate(resGroup, name, vm, make(chan struct{}))
-	vmErr := <-vmError
-	if vmErr != nil {
-		return vmErr
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
+	if err != nil {
+		return err
 	}
 
-	read, err := vmClient.Get(resGroup, name, "")
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	read, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		return err
 	}
@@ -616,6 +622,7 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	vmClient := meta.(*ArmClient).vmClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -624,7 +631,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
-	resp, err := vmClient.Get(resGroup, name, "")
+	resp, err := vmClient.Get(ctx, resGroup, name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -636,6 +643,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("zones", resp.Zones)
 	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 
 	if resp.Plan != nil {
@@ -721,7 +729,8 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	vmClient := meta.(*ArmClient).vmClient
+	client := meta.(*ArmClient).vmClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -730,9 +739,12 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
-	_, error := vmClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
 
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return err
 	}
@@ -826,7 +838,8 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 }
 
 func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta interface{}) error {
-	diskClient := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(managedDiskID)
 	if err != nil {
@@ -835,8 +848,12 @@ func resourceArmVirtualMachineDeleteManagedDisk(managedDiskID string, meta inter
 	resGroup := id.ResourceGroup
 	name := id.Path["disks"]
 
-	_, error := diskClient.Delete(resGroup, name, make(chan struct{}))
-	err = <-error
+	future, err := client.Delete(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error deleting Managed Disk (%s %s) %+v", name, resGroup, err)
 	}
@@ -1499,17 +1516,18 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 }
 
 func findStorageAccountResourceGroup(meta interface{}, storageAccountName string) (string, error) {
-	client := meta.(*ArmClient).resourceFindClient
+	client := meta.(*ArmClient).resourcesClient
+	ctx := meta.(*ArmClient).StopContext
 	filter := fmt.Sprintf("name eq '%s' and resourceType eq 'Microsoft.Storage/storageAccounts'", storageAccountName)
 	expand := ""
 	var pager *int32
 
-	rf, err := client.List(filter, expand, pager)
+	rf, err := client.List(ctx, filter, expand, pager)
 	if err != nil {
 		return "", fmt.Errorf("Error making resource request for query %s: %+v", filter, err)
 	}
 
-	results := *rf.Value
+	results := rf.Values()
 	if len(results) != 1 {
 		return "", fmt.Errorf("Wrong number of results making resource request for query %s: %d", filter, len(results))
 	}

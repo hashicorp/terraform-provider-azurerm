@@ -159,7 +159,7 @@ func register(client autorest.Client, originalReq *http.Request, re RequestError
 		}
 		req.Cancel = originalReq.Cancel
 
-		resp, err := autorest.SendWithSender(client.Sender, req,
+		resp, err := autorest.SendWithSender(client, req,
 			autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...),
 		)
 		if err != nil {
