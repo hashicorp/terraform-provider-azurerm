@@ -77,16 +77,6 @@ The following attributes are exported:
 
 * `id` - The ID of the SQL virtual network rule.
 
-* `endpoint_state` - The provisioning status of the endpoint.
-
-
-=> Possible values for `endpoint_state` are:
-* Ready - Indicates that the endpoint was provisioned successfully.
-* Initializing - Indicates that the endpoint provisioning is in the initialization stage.
-* InProgress - Indicates that the endpoint is still bring provisioned.
-* Deleting - Indicates that the endpoint is currently being deleted.
-* Unknown - Indicates that the state of the endpoint is unknown.
-
 ## Import
 
 SQL Virtual Network Rules can be imported using the `resource id`, e.g.
