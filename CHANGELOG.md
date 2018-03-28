@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_scheduler_job_collection` [GH-990]
 * **New Data Source:** `azurerm_traffic_manager_geographical_location` [GH-987]
 * **New Resource:** `azurerm_express_route_circuit_authorization` [GH-992]
+* **New Resource:** `azurerm_express_route_circuit_peering` [GH-1033]
 * **New Resource:** `azurerm_iothub` [GH-887]
 * **New Resource:** `azurerm_policy_definition` [GH-1010]
 
