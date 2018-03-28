@@ -134,6 +134,7 @@ type ArmClient struct {
 	sqlFirewallRulesClient               sql.FirewallRulesClient
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -613,6 +614,10 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlADClient.Sender = sender
 	sqlADClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.sqlServerAzureADAdministratorsClient = sqlADClient
+
+	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&sqlVNRClient.Client, auth)
+	c.sqlVirtualNetworkRulesClient = sqlVNRClient
 }
 
 func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
