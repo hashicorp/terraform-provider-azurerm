@@ -189,6 +189,8 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						"peering_address": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
+							ForceNew: true,
 						},
 						"peer_weight": {
 							Type:     schema.TypeInt,
