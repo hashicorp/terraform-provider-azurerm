@@ -152,6 +152,7 @@ type ArmClient struct {
 	ifaceClient                     network.InterfacesClient
 	loadBalancerClient              network.LoadBalancersClient
 	localNetConnClient              network.LocalNetworkGatewaysClient
+	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
 	routesClient                    network.RoutesClient
 	routeTablesClient               network.RouteTablesClient
@@ -737,6 +738,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	networksClient := network.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&networksClient.Client, auth)
 	c.vnetClient = networksClient
+
+	packetCapturesClient := network.NewPacketCapturesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&packetCapturesClient.Client, auth)
+	c.packetCapturesClient = packetCapturesClient
 
 	peeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&peeringsClient.Client, auth)
