@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` [GH-986]
 * `azurerm_traffic_manager_profile` - adding support for the `traffic_routing_method` `Geographic` [GH-986]
 * `azurerm_virtual_machine_scale_sets` - support for attaching to Application Gateways [GH-1027]
+* `azurerm_virtual_network_gateway` - changes to `peering_address` now force a new resource [GH-1040]
 
 ## 1.3.0 (March 15, 2018)
 
