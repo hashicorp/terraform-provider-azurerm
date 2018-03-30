@@ -24,7 +24,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -49,7 +49,7 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_lb" "test" {
   name                = "test"
-  location            = "azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
@@ -78,7 +78,7 @@ resource "azurerm_lb_nat_pool" "lbnatpool" {
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "mytestscaleset-1"
-  location            = "azurerm_resource_group.test.location}"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   upgrade_policy_mode = "Manual"
 
