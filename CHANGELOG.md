@@ -1,4 +1,9 @@
 ## 1.3.2 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_policy_assignment` [GH-1051]
+
 ## 1.3.1 (March 29, 2018)
 
 FEATURES:
