@@ -7,6 +7,13 @@ output "cosmos-db-endpoint" {
   value = "${azurerm_cosmosdb_account.db.endpoint}"
 }
 
+output "cosmos-db-endpoints_read" {
+  value = "${azurerm_cosmosdb_account.db.read_endpoints}"
+}
+output "cosmos-db-endpoints_write" {
+  value = "${azurerm_cosmosdb_account.db.write_endpoints}"
+}
+
 output "cosmos-db-geo_location-0-id" {
   value = "${azurerm_cosmosdb_account.db.geo_location}"
 }

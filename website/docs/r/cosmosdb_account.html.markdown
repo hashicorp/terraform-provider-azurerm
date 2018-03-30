@@ -73,9 +73,9 @@ The following arguments are supported:
 
 * `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
 
-* `enable_automatic_failover` - (Optional) Enable automatic fail over for this cosmos db account.
+* `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
-`consistency_policy` supports the following:
+`consistency_policy` Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.
 * `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. Accepted range for this value is 5 - 86400 (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
@@ -83,11 +83,11 @@ The following arguments are supported:
 
 ~> **Note**: `max_interval_in_seconds` and `max_staleness_prefix` can only be set to custom values when `consistency_level` is set to `BoundedStaleness` - otherwise they will return the default values shown above.
 
-`geo_location` supports the following:
+`geo_location` Configures the geographic locations the data is replicated to and supports the following:
 
-* `id` - (Optional) The ID of the region. Changing this forces a new resource to be created.
+* `prefix` - (Optional) The string used to generate the document enpoints for this region. If not specified it defaults to `${cosmosdb_account.name}-${location}`. Changing this causes the location to be deleted and re-provisioned and cannot be changed for the location with failover priority 0. 
 * `location` - (Required) The name of the Azure region to host replicated data.
-* `priority` - (Required) The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists.
+* `priority` - (Required) The failover priority of the region. A failover priority of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority 0.
 
 ## Attributes Reference
 
@@ -95,7 +95,11 @@ The following attributes are exported:
 
 * `id` - The CosmosDB Account ID.
 
-* `document_endpoint` - The endpoint used to connect to the CosmosDB account.
+* `endpoint` - The endpoint used to connect to the CosmosDB account.
+
+* `read_endpoints` - A list of read endpoints available for this CosmosDB account.
+
+* `write_endpoints` - A list of write endpoints available for this CosmosDB account.
 
 * `primary_master_key` - The Primary master key for the CosmosDB Account.
 
