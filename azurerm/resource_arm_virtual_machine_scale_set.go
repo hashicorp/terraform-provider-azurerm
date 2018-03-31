@@ -728,8 +728,10 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Sku error: %#v", err)
 	}
 
-	d.Set("identity", flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity))
-
+	if err := d.Set("identity", flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("[DEBUG] Error flattening `identity`: %+v", err)
+	}
+	
 	properties := resp.VirtualMachineScaleSetProperties
 
 	d.Set("upgrade_policy_mode", properties.UpgradePolicy.Mode)

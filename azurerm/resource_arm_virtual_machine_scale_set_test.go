@@ -1,11 +1,11 @@
 package azurerm
 
 import (
-	"fmt"
+  "fmt"
 	"net/http"
 	"regexp"
 	"testing"
-
+  
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -429,10 +429,7 @@ func TestAccAzureRMVirtualMachineScaleSet_MSI(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
-					testCheckAzureRMVirtualMachineScaleSetMSI(resourceName),
-				),
+				Check: resource.TestCheckResourceAttrSet(resourceName, "identity.0.principal_id"),
 			},
 		},
 	})
