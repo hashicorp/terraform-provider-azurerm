@@ -24,7 +24,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                         = "test"
-  location                     = "West US 2"
+  location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
   domain_name_label            = "${azurerm_resource_group.test.name}"
@@ -49,7 +49,7 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_lb" "test" {
   name                = "test"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
@@ -78,7 +78,7 @@ resource "azurerm_lb_nat_pool" "lbnatpool" {
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "mytestscaleset-1"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   upgrade_policy_mode = "Manual"
 
@@ -275,7 +275,7 @@ The following arguments are supported:
 * `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for linux. Changing this forces a new resource to be created.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
 * `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
-* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes. 
+* `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 `os_profile_secrets` supports the following:
 
@@ -314,13 +314,14 @@ The following arguments are supported:
 
 ~> _**Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure_
 
-
 `network_profile` supports the following:
 
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
+`false`.
 
 `ip_configuration` supports the following:
 
@@ -330,8 +331,6 @@ The following arguments are supported:
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
 * `primary` - (Optional) Specifies if this ip_configuration is the primary one.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
-false.
 * `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
  PublicIPAddress configuration. The public_ip_address_configuration is documented below.
 
