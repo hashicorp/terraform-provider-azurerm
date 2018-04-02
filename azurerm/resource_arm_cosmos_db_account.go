@@ -119,7 +119,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 			"failover_policy": {
 				Type:          schema.TypeSet,
 				Optional:      true,
-				Deprecated:    "This field has been renamed to 'location' to better match the SDK/API",
+				Deprecated:    "This field has been renamed to 'geo_location' to better match the SDK/API",
 				ConflictsWith: []string{"geo_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -186,7 +186,6 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 			},
 
 			//computed
-
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -277,7 +276,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	resp, err := resourceArmCosmosDBAccountApiUpset(client, ctx, resourceGroup, name, account)
+	resp, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -329,14 +328,14 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	//get existing locations (if exists)
-	resp1, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
 	}
 
 	oldLocations := []documentdb.Location{}
 	oldLocationsMap := map[string]documentdb.Location{}
-	for _, l := range *resp1.FailoverPolicies {
+	for _, l := range *resp.FailoverPolicies {
 		location := documentdb.Location{
 			ID:               l.ID,
 			LocationName:     l.LocationName,
@@ -362,7 +361,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
-	if _, err := resourceArmCosmosDBAccountApiUpset(client, ctx, resourceGroup, name, account); err != nil {
+	if _, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -383,7 +382,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 			if *l.ID != *ol.ID {
 				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the prfix/ID of the primary Cosmos DB account %q location %s (Resource Group %q)", name, *l.LocationName, resourceGroup)
+					return fmt.Errorf("Cannot change the prefix/ID of the primary Cosmos DB account %q location %s (Resource Group %q)", name, *l.LocationName, resourceGroup)
 				}
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
@@ -399,21 +398,19 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		account.DatabaseAccountCreateUpdateProperties.Locations = &locationsUnchanged
-		if _, err := resourceArmCosmosDBAccountApiUpset(client, ctx, resourceGroup, name, account); err != nil {
+		if _, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
 			return fmt.Errorf("Error removing CosmosDB Account %q renamed locations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	//add any new/renamed locations
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
-	resp3, err := resourceArmCosmosDBAccountApiUpset(client, ctx, resourceGroup, name, account)
+	upsertResponse, err := resourceArmCosmosDBAccountApiUpsert(client, ctx, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	//todo is this still required?
-	r := *resp3
-	id := r.ID
+	id := (*upsertResponse).ID
 	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
 	}
@@ -463,7 +460,7 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	if _, ok := d.GetOk("failover_policy"); ok {
 		flattenAndSetAzureRmCosmosDBAccountFailoverPolicy(d, resp.FailoverPolicies)
 	} else {
-		//if failover policy isn't set default to geo_location
+		//if failover policy isn't default to using geo_location
 		if err := flattenAndSetAzureRmCosmosDBAccountGeoLocations(d, resp); err != nil {
 			return fmt.Errorf("Error flattening geo-locations for CosmosDB Account '%s'", name)
 		}
@@ -530,7 +527,7 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmCosmosDBAccountApiUpset(client documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
+func resourceArmCosmosDBAccountApiUpsert(client documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -538,12 +535,12 @@ func resourceArmCosmosDBAccountApiUpset(client documentdb.DatabaseAccountsClient
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to finish creating: %+v", name, resourceGroup, err)
+		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to finish creating/updating: %+v", name, resourceGroup, err)
 	}
 
 	//if a replication location is added or removed it can take some time to provision
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"Updating", "Creating", "Deleting"},
+		Pending:    []string{"Creating", "Updating", "Deleting"},
 		Target:     []string{"Succeeded"},
 		Timeout:    60 * time.Minute,
 		MinTimeout: 30 * time.Second,
@@ -557,8 +554,8 @@ func resourceArmCosmosDBAccountApiUpset(client documentdb.DatabaseAccountsClient
 
 			status := "Succeeded"
 			for _, l := range append(*resp.ReadLocations, *resp.WriteLocations...) {
-				if status = *l.ProvisioningState; status != "Succeeded" {
-					break //return the first non successful status
+				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting"{
+					break //return the first non successful status.
 				}
 			}
 
@@ -619,7 +616,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	}
 
 	//TODO maybe this should be in a CustomizeDiff
-
 	// all priorities & locations must be unique
 	byPriorities := make(map[int]interface{}, len(locations))
 	byName := make(map[string]interface{}, len(locations))
@@ -701,8 +697,12 @@ func flattenAndSetAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData
 
 	result := map[string]interface{}{}
 	result["consistency_level"] = string(policy.DefaultConsistencyLevel)
-	result["max_interval_in_seconds"] = int(*policy.MaxIntervalInSeconds) //TODO need a nil check?
-	result["max_staleness_prefix"] = int(*policy.MaxStalenessPrefix)
+	if policy.MaxIntervalInSeconds != nil {
+		result["max_interval_in_seconds"] = int(*policy.MaxIntervalInSeconds)
+	}
+	if policy.MaxStalenessPrefix != nil {
+		result["max_staleness_prefix"] = int(*policy.MaxStalenessPrefix)
+	}
 
 	d.Set("consistency_policy", &[]interface{}{result})
 }
@@ -740,7 +740,6 @@ func flattenAndSetAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, acc
 
 	for _, l := range *account.FailoverPolicies {
 		lb := map[string]interface{}{
-
 			"id":                *l.ID,
 			"location":          azureRMNormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
