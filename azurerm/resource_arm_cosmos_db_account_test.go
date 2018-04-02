@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 	"testing"
+	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"strconv"
 )
 
 func init() {
@@ -268,7 +268,6 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
-					resource.TestCheckResourceAttr(resourceName, "geo_location.%", "2"),
 				),
 			},
 		},
@@ -330,7 +329,6 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 }
 
 //basic --> complete (
-//TODO test changing properties and adding new location once we handle that case
 func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -351,7 +349,7 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"),
-					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "1"),
+					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
 				),
 			},
 		},
@@ -500,7 +498,12 @@ func checkAccAzureRMCosmosDBAccount_basic(resourceName string, location string, 
 		resource.TestCheckResourceAttr(resourceName, "offer_type", string(documentdb.Standard)),
 		resource.TestCheckResourceAttr(resourceName, "consistency_policy.0.consistency_level", consistency),
 		resource.TestCheckResourceAttr(resourceName, "geo_location.#", strconv.Itoa(locationCount)),
+		resource.TestCheckResourceAttrSet(resourceName, "endpoint"),
 		resource.TestCheckResourceAttr(resourceName, "read_endpoints.#", strconv.Itoa(locationCount)),
 		resource.TestCheckResourceAttr(resourceName, "write_endpoints.#", "1"),
+		resource.TestCheckResourceAttrSet(resourceName, "primary_master_key"),
+		resource.TestCheckResourceAttrSet(resourceName, "secondary_master_key"),
+		resource.TestCheckResourceAttrSet(resourceName, "primary_readonly_master_key"),
+		resource.TestCheckResourceAttrSet(resourceName, "secondary_readonly_master_key"),
 	)
 }

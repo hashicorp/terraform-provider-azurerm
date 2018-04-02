@@ -372,7 +372,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		if ol, ok := oldLocationsMap[*l.LocationName]; ok {
 			if *l.FailoverPriority != *ol.FailoverPriority {
 				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the failover priority of primary Cosmos DB account %q location %s to %d (Resource Group %q)", name, resourceGroup, *l.LocationName, *l.FailoverPriority)
+					return fmt.Errorf("Cannot change the failover priority of primary Cosmos DB account %q location %s to %d (Resource Group %q)", name, *l.LocationName, *l.FailoverPriority, resourceGroup)
 				}
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
@@ -383,7 +383,7 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 			if *l.ID != *ol.ID {
 				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the prfix/ID of the primary Cosmos DB account %q location %s (Resource Group %q)", name, resourceGroup, *l.LocationName)
+					return fmt.Errorf("Cannot change the prfix/ID of the primary Cosmos DB account %q location %s (Resource Group %q)", name, *l.LocationName, resourceGroup)
 				}
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
@@ -460,15 +460,13 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	flattenAndSetAzureRmCosmosDBAccountConsistencyPolicy(d, resp.ConsistencyPolicy)
-	if _, ok := d.GetOk("geo_location"); ok {
+	if _, ok := d.GetOk("failover_policy"); ok {
+		flattenAndSetAzureRmCosmosDBAccountFailoverPolicy(d, resp.FailoverPolicies)
+	} else {
+		//if failover policy isn't set default to geo_location
 		if err := flattenAndSetAzureRmCosmosDBAccountGeoLocations(d, resp); err != nil {
 			return fmt.Errorf("Error flattening geo-locations for CosmosDB Account '%s'", name)
 		}
-	} else if _, ok := d.GetOk("failover_policy"); ok {
-		flattenAndSetAzureRmCosmosDBAccountFailoverPolicy(d, resp.FailoverPolicies)
-	} else {
-		//could be a CustomizeDiff, but this is temporary
-		return fmt.Errorf("Neither `geo_location` or `failover_policy` is set for CosmosDB Account '%s'", name)
 	}
 
 	readEndpoints := []string{}
