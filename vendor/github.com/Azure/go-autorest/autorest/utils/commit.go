@@ -1,4 +1,4 @@
-package autorest
+package utils
 
 // Copyright 2017 Microsoft Corporation
 //
@@ -14,7 +14,19 @@ package autorest
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-// Version returns the semantic version (see http://semver.org).
-func Version() string {
-	return "v10.5.0"
+import (
+	"bytes"
+	"os/exec"
+)
+
+// GetCommit returns git HEAD (short)
+func GetCommit() string {
+	cmd := exec.Command("git", "rev-parse", "HEAD")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return ""
+	}
+	return string(out.Bytes()[:7])
 }

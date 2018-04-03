@@ -5,7 +5,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -48,6 +48,18 @@ func resourceArmMySqlServer() *schema.Resource {
 								"MYSQLS200",
 								"MYSQLS400",
 								"MYSQLS800",
+								"GP_Gen4_1",
+								"GP_Gen4_2",
+								"GP_Gen4_4",
+								"GP_Gen4_8",
+								"GP_Gen4_16",
+								"GP_Gen4_32",
+								"GP_Gen5_1",
+								"GP_Gen5_2",
+								"GP_Gen5_4",
+								"GP_Gen5_8",
+								"GP_Gen5_16",
+								"GP_Gen5_32",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -61,6 +73,11 @@ func resourceArmMySqlServer() *schema.Resource {
 								200,
 								400,
 								800,
+								2,
+								4,
+								8,
+								16,
+								32,
 							}),
 						},
 
@@ -69,7 +86,8 @@ func resourceArmMySqlServer() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.Basic),
-								string(mysql.Standard),
+								string(mysql.GeneralPurpose),
+								string(mysql.MemoryOptimized),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -163,7 +181,8 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	version := d.Get("version").(string)
 	storageMB := d.Get("storage_mb").(int)
 
-	tags := d.Get("tags").(map[string]interface{})
+	//FIXME: Tags
+	//	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandMySQLServerSku(d, storageMB)
 
@@ -171,16 +190,18 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		Location: &location,
 		Sku:      sku,
 		Properties: &mysql.ServerPropertiesForDefaultCreate{
-			Version:                    mysql.ServerVersion(version),
-			StorageMB:                  utils.Int64(int64(storageMB)),
+			Version: mysql.ServerVersion(version),
+			// FIXME: Storage
+			//			StorageMB:                  utils.Int64(int64(storageMB)),
 			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 			AdministratorLogin:         utils.String(adminLogin),
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
 		},
-		Tags: expandTags(tags),
+		//FIXME: Fix Tags
+		//Tags: expandTags(tags),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
+	future, err := client.Create(ctx, resourceGroup, name, properties)
 	if err != nil {
 		return err
 	}
@@ -218,17 +239,20 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	storageMB := d.Get("storage_mb").(int)
 	sku := expandMySQLServerSku(d, storageMB)
 
-	tags := d.Get("tags").(map[string]interface{})
+	//FIXME: Tags
+	//	tags := d.Get("tags").(map[string]interface{})
 
 	properties := mysql.ServerUpdateParameters{
 		Sku: sku,
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
-			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
-			StorageMB:                  utils.Int64(int64(storageMB)),
+			SslEnforcement: mysql.SslEnforcementEnum(sslEnforcement),
+			// FIXME: Storage
+			//			StorageMB:                  utils.Int64(int64(storageMB)),
 			Version:                    mysql.ServerVersion(version),
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
 		},
-		Tags: expandTags(tags),
+		//FIXME: Fix Tags
+		//		Tags: expandTags(tags),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -283,14 +307,16 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
-	d.Set("storage_mb", int(*resp.StorageMB))
+	// FIXME: Storage
+	//	d.Set("storage_mb", int(*resp.StorageMB))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
 	if err := d.Set("sku", flattenMySQLServerSku(d, resp.Sku)); err != nil {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	// FIXME: Tags
+	//	flattenAndSetTags(d, resp.Tags)
 
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
