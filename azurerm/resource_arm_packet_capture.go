@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -198,6 +200,7 @@ func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) erro
 	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[WARN] Packet Capture %q (Watcher %q / Resource Group %q) %qw not found - removing from state", name, watcherName, resourceGroup, id)
 			d.SetId("")
 			return nil
 		}
