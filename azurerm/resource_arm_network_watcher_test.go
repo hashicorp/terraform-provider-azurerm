@@ -24,6 +24,13 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"importBasic":    testAccAzureRMNetworkWatcher_importBasic,
 			"importComplete": testAccAzureRMNetworkWatcher_importComplete,
 		},
+		"PacketCapture": {
+			"import":                     testAccAzureRMPacketCapture_importBasic,
+			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
+			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccAzureRMPacketCapture_withFilters,
+		},
 	}
 
 	for group, m := range testCases {
