@@ -87,6 +87,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
 			"max_size_bytes": {
