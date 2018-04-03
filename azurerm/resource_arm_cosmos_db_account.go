@@ -554,7 +554,7 @@ func resourceArmCosmosDBAccountApiUpsert(client documentdb.DatabaseAccountsClien
 
 			status := "Succeeded"
 			for _, l := range append(*resp.ReadLocations, *resp.WriteLocations...) {
-				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting"{
+				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
 					break //return the first non successful status.
 				}
 			}
@@ -739,12 +739,18 @@ func flattenAndSetAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, acc
 	}
 
 	for _, l := range *account.FailoverPolicies {
+		id := *l.ID
 		lb := map[string]interface{}{
-			"id":                *l.ID,
+			"id":                id,
 			"location":          azureRMNormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
 		}
-		lb["prefix"] = prefixMap[lb["location"].(string)]
+
+		//if id is not the default then it must be set via prefix
+		if id != resourceArmCosmosDBAccountGenerateDefaultId(d.Get("name").(string), lb["location"].(string)) {
+			lb["prefix"] = id
+		}
+
 		locationSet.Add(lb)
 	}
 
