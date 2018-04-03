@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_packet_capture` [GH-1044]
 * **New Resource:** `azurerm_policy_assignment` [GH-1051]
 
 ## 1.3.1 (March 29, 2018)
