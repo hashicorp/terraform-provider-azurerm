@@ -63,6 +63,8 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows`, `Linux` and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
 
+~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`.
+
 * `sku` - (Required) A `sku` block as documented below.
 
 * `properties` - (Optional) A `properties` block as documented below.
