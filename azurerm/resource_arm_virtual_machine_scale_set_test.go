@@ -419,7 +419,7 @@ func TestAccAzureRMVirtualMachineScaleSet_overprovision(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSet_MSI(t *testing.T) {
-	resourceName := "azurerm-vmss-msi-test"
+	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineScaleSetMSITemplate(ri, testLocation())
 	resource.Test(t, resource.TestCase{
