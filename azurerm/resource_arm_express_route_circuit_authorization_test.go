@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_authorization.test"
 	ri := acctest.RandInt()
 
@@ -21,7 +21,7 @@ func TestAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitAuthorization_basic(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitAuthorizationExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "authorization_key"),
@@ -31,7 +31,7 @@ func TestAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 	firstResourceName := "azurerm_express_route_circuit_authorization.test1"
 	secondResourceName := "azurerm_express_route_circuit_authorization.test2"
 	ri := acctest.RandInt()
@@ -42,7 +42,7 @@ func TestAccAzureRMExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitAuthorizationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuitAuthorization_multiple(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitAuthorizationExists(firstResourceName),
 					resource.TestCheckResourceAttrSet(firstResourceName, "authorization_key"),
@@ -111,7 +111,7 @@ func testCheckAzureRMExpressRouteCircuitAuthorizationDestroy(s *terraform.State)
 	return nil
 }
 
-func testAccAzureRMExpressRouteCircuitAuthorization_basic(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -147,7 +147,7 @@ resource "azurerm_express_route_circuit_authorization" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMExpressRouteCircuitAuthorization_multiple(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuitAuthorization_multipleConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
