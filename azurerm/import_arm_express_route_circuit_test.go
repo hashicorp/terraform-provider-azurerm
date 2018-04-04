@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMExpressRouteCircuit_importMetered(t *testing.T) {
+func testAccAzureRMExpressRouteCircuit_importMetered(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit.test"
 
 	ri := acctest.RandInt()
@@ -30,7 +30,7 @@ func TestAccAzureRMExpressRouteCircuit_importMetered(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuit_importUnlimited(t *testing.T) {
+func testAccAzureRMExpressRouteCircuit_importUnlimited(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit.test"
 
 	ri := acctest.RandInt()

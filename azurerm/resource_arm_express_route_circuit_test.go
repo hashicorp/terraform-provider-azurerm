@@ -36,6 +36,14 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 		"authorization": {
 			"basic":    testAccAzureRMExpressRouteCircuitAuthorization_basic,
 			"multiple": testAccAzureRMExpressRouteCircuitAuthorization_multiple,
+			"import":   testAccAzureRMExpressRouteCircuitAuthorization_importBasic,
+		},
+		"authorizationImport": {
+			"basic": testAccAzureRMExpressRouteCircuitAuthorization_importBasic,
+		},
+		"circuitImport": {
+			"metered":   testAccAzureRMExpressRouteCircuit_importMetered,
+			"unlimited": testAccAzureRMExpressRouteCircuit_importUnlimited,
 		},
 	}
 
