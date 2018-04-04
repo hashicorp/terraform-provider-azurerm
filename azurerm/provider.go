@@ -78,6 +78,7 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
+			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
 			"azurerm_builtin_role_definition":               dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_client_config":                         dataSourceArmClientConfig(),
