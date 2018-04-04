@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_virtual_network_rule"
-sidebar_current: "docs-azurerm-resource-database-sql-virtual_network_rule"
+sidebar_current: "docs-azurerm-resource-database-sql-virtual-network-rule"
 description: |-
   Create a SQL Virtual Network Rule.
 ---
