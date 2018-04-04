@@ -270,6 +270,39 @@ The following arguments are supported:
 * `tier` - (Optional) Specifies the tier of virtual machines in a scale set. Possible values, `standard` or `basic`.
 * `capacity` - (Required) Specifies the number of virtual machines in the scale set.
 
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. The only allowable value is `SystemAssigned`. To enable Managed Service Identity (MSI) on all machines in the scale set, an extension with the type "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added. The scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created.
+
+```hcl
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "vm-scaleset"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "${var.vm_sku}"
+    tier     = "Standard"
+    capacity = "${var.instance_count}"
+  }
+
+  identity {
+    type     = "systemAssigned"
+  }
+
+  extension {
+    name                       = "MSILinuxExtension"
+    publisher                  = "Microsoft.ManagedIdentity"
+    type                       = "ManagedIdentityExtensionForLinux"
+    type_handler_version       = "1.0"
+    settings                   = "{\"port\": 50342}"
+  }
+
+  output "principal_id" {
+    value = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
+  }
+```
+
 `os_profile` supports the following:
 
 * `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for linux. Changing this forces a new resource to be created.
