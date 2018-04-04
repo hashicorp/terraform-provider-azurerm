@@ -5,6 +5,10 @@ FEATURES:
 * **New Resource:** `azurerm_packet_capture` [GH-1044]
 * **New Resource:** `azurerm_policy_assignment` [GH-1051]
 
+IMPROVEMENTS:
+
+* `azurerm_virtual_machine_scale_set` - adds support for MSI [GH-1018]
+
 ## 1.3.1 (March 29, 2018)
 
 FEATURES:
