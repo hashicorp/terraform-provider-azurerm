@@ -1,13 +1,13 @@
-## 1.3.2 (Unreleased)
+## 1.3.2 (April 04, 2018)
 
 FEATURES:
 
-* **New Resource:** `azurerm_packet_capture` [GH-1044]
-* **New Resource:** `azurerm_policy_assignment` [GH-1051]
+* **New Resource:** `azurerm_packet_capture` ([#1044](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1044))
+* **New Resource:** `azurerm_policy_assignment` ([#1051](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1051))
 
 IMPROVEMENTS:
 
-* `azurerm_virtual_machine_scale_set` - adds support for MSI [GH-1018]
+* `azurerm_virtual_machine_scale_set` - adds support for MSI ([#1018](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1018))
 
 ## 1.3.1 (March 29, 2018)
 
