@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
 
-~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU.
+~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
 
 * `maximum_number_of_workers` - (Optional) Maximum number of instances that can be assigned to this App Service plan.
 
