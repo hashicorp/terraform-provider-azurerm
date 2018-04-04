@@ -150,6 +150,16 @@ func resourceArmAppService() *schema.Resource {
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
+						"scm_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(web.ScmTypeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ScmTypeNone),
+								string(web.ScmTypeLocalGit),
+							}, false),
+						},
+
 						"use_32_bit_worker_process": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -160,15 +170,6 @@ func resourceArmAppService() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Computed: true,
-						},
-						"scm_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(web.ScmTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ScmTypeNone),
-								string(web.ScmTypeLocalGit),
-							}, false),
 						},
 					},
 				},
