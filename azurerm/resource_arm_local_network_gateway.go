@@ -78,7 +78,7 @@ func resourceArmLocalNetworkGatewayCreate(d *schema.ResourceData, meta interface
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	ipAddress := d.Get("gateway_address").(string)
 

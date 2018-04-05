@@ -109,7 +109,7 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	serviceProviderName := d.Get("service_provider_name").(string)
 	peeringLocation := d.Get("peering_location").(string)
 	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))

@@ -88,7 +88,7 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	tags := d.Get("tags").(map[string]interface{})

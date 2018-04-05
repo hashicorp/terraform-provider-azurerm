@@ -111,7 +111,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := network.PublicIPAddressSku{
 		Name: network.PublicIPAddressSkuName(d.Get("sku").(string)),

@@ -101,7 +101,7 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))

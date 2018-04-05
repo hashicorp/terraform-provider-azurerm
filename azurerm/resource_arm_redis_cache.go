@@ -193,7 +193,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
 	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)

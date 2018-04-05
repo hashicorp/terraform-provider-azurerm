@@ -88,7 +88,7 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 	solutionPlan := expandAzureRmLogAnalyticsSolutionPlan(d)
 	solutionPlan.Name = &name
 
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	workspaceID := d.Get("workspace_resource_id").(string)
 

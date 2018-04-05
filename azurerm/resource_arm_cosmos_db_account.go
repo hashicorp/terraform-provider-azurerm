@@ -158,7 +158,7 @@ func resourceArmCosmosDBAccountCreateUpdate(d *schema.ResourceData, meta interfa
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)

@@ -42,7 +42,7 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	securityGroup := network.ApplicationSecurityGroup{
