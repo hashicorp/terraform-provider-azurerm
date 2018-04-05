@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -232,9 +232,18 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if d.IsNewResource() {
 		if props := read.Properties; props != nil {
 			if vault := props.VaultURI; vault != nil {
-				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
-				if err != nil {
-					return err
+				log.Printf("[DEBUG] Waiting for Key Vault %q (Resource Group %q) to become available", name, resGroup)
+				stateConf := &resource.StateChangeConf{
+					Pending:                   []string{"pending"},
+					Target:                    []string{"available"},
+					Refresh:                   keyVaultRefreshFunc(*vault),
+					Timeout:                   30 * time.Minute,
+					PollInterval:              10 * time.Second,
+					ContinuousTargetOccurence: 5,
+				}
+
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("Error waiting for Key Vault %q (Resource Group %q) to become available: %s", name, resGroup, err)
 				}
 			}
 		}
@@ -411,19 +420,24 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 	return
 }
 
-func checkKeyVaultDNSIsAvailable(vaultUri string) func() *resource.RetryError {
-	return func() *resource.RetryError {
+func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 		uri, err := url.Parse(vaultUri)
 		if err != nil {
-			return resource.NonRetryableError(err)
+			return nil, "error", fmt.Errorf("Error parsing URI %q: %s", vaultUri, err)
 		}
 
-		conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", uri.Host))
+		hostAndPort := fmt.Sprintf("%s:443", uri.Host)
+		conn, err := net.Dial("tcp", hostAndPort)
 		if err != nil {
-			return resource.RetryableError(err)
+			log.Printf("[DEBUG] Didn't find KeyVault at %q", hostAndPort)
+			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", hostAndPort, err)
 		}
 
 		_ = conn.Close()
-		return nil
+
+		log.Printf("[DEBUG] Found KeyVault at %q", hostAndPort)
+		return "available", "available", nil
 	}
 }
