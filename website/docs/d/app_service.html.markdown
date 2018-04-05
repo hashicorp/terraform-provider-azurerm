@@ -63,32 +63,32 @@ output "app_service_id" {
 
 `site_config` supports the following:
 
-* `always_on` - Should the app be loaded at all times?
+* `always_on` - Is the app be loaded at all times?
 
 * `default_documents` - The ordering of default documents to load, if an address isn't specified.
 
 * `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
 
-* `java_version` - The version of Java to use.
+* `java_version` - The version of Java in use.
 
-* `java_container` - The Java Container to use.
+* `java_container` - The Java Container in use.
 
-* `java_container_version` - The version of the Java Container to use.
+* `java_container_version` - The version of the Java Container in use.
 
 * `local_mysql_enabled` - Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
-* `managed_pipeline_mode` - The Managed Pipeline Mode.
+* `managed_pipeline_mode` - The Managed Pipeline Mode used in this App Service.
 
-* `php_version` - The version of PHP to use in this App Service.
+* `php_version` - The version of PHP used in this App Service.
 
-* `python_version` - The version of Python to use in this App Service.
+* `python_version` - The version of Python used in this App Service.
 
-* `remote_debugging_enabled` - Is Remote Debugging Enabled?
+* `remote_debugging_enabled` - Is Remote Debugging Enabled in this App Service?
 
-* `remote_debugging_version` - Which version of Visual Studio should the Remote Debugger be compatible with?
+* `remote_debugging_version` - Which version of Visual Studio is the Remote Debugger compatible with?
 
 * `scm_type` - The type of Source Control enabled for this App Service.
 
-* `use_32_bit_worker_process` - Should the App Service run in 32 bit mode, rather than 64 bit mode?
+* `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
 
-* `websockets_enabled` - Should WebSockets be enabled?
+* `websockets_enabled` - Are WebSockets enabled for this App Service?
