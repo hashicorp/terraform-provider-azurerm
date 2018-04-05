@@ -194,6 +194,10 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+
+				// TODO: (tombuildsstuff) support Update once the API is fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/1697
+				ForceNew: true,
 			},
 
 			"enabled": {

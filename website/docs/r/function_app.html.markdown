@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the Function App enabled? Changing this forces a new resource to be created.
 
-* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
+* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
 
