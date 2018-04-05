@@ -477,7 +477,9 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	accessKeys := *keys.Keys
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {

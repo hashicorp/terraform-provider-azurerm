@@ -272,8 +272,11 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("server_name", serverName)
 
 	if props := resp.DatabaseProperties; props != nil {

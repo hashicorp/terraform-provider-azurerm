@@ -116,8 +116,11 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	flattenAndSetSku(d, resp.Sku)
 
 	flattenAndSetTags(d, resp.Tags)

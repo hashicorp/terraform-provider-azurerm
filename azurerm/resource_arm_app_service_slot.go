@@ -418,7 +418,9 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", slot)
 	d.Set("app_service_name", appServiceName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)

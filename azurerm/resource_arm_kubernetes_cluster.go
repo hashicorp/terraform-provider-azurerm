@@ -248,10 +248,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	if location := resp.Location; location != nil {
-		d.Set("location", *location)
-	}
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("dns_prefix", resp.DNSPrefix)
 	d.Set("fqdn", resp.Fqdn)
 	d.Set("kubernetes_version", resp.KubernetesVersion)

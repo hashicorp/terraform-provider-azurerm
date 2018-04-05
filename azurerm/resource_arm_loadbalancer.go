@@ -202,7 +202,6 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", loadBalancer.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	if location := loadBalancer.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}

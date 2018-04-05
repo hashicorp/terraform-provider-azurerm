@@ -165,10 +165,9 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 	vnet := *resp.VirtualNetworkPropertiesFormat
 
 	// update appropriate values
-	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resGroup)
 	d.Set("address_space", vnet.AddressSpace.AddressPrefixes)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}

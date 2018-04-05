@@ -276,7 +276,9 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	flattenAndSetTags(d, resp.Tags)
 
 	d.Set("os_type", string(resp.OsType))

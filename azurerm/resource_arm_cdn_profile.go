@@ -143,7 +143,9 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))

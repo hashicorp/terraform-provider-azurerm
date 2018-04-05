@@ -159,7 +159,6 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}

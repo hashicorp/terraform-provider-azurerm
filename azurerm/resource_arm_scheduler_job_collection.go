@@ -182,8 +182,10 @@ func resourceArmSchedulerJobCollectionPopulate(d *schema.ResourceData, resourceG
 
 	//standard properties
 	d.Set("name", collection.Name)
-	d.Set("location", azureRMNormalizeLocation(*collection.Location))
 	d.Set("resource_group_name", resourceGroup)
+	if location := collection.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	flattenAndSetTags(d, collection.Tags)
 
 	//resource specific

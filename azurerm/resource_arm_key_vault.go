@@ -263,7 +263,9 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("tenant_id", resp.Properties.TenantID.String())
 	d.Set("enabled_for_deployment", resp.Properties.EnabledForDeployment)
 	d.Set("enabled_for_disk_encryption", resp.Properties.EnabledForDiskEncryption)

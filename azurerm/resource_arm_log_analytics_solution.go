@@ -143,8 +143,10 @@ func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on AzureRM Log Analytics solutions '%s': Plan was nil", name)
 	}
 
-	d.Set("location", resp.Location)
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	// Reversing the mapping used to get .solution_name
 	// expecting resp.Name to be in format "SolutionName(WorkspaceName)".
