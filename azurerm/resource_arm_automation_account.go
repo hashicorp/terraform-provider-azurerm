@@ -61,7 +61,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Account creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -116,8 +116,11 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	flattenAndSetSku(d, resp.Sku)
 
 	flattenAndSetTags(d, resp.Tags)
