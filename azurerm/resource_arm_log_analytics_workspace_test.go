@@ -69,6 +69,24 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMLogAnalyticsWorkspace_requiredOnlyNewSku(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMLogAnalyticsWorkspace_requiredOnlyNewSku(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsWorkspaceExists("azurerm_log_analytics_workspace.test"),
+				),
+			},
+		},
+	})
+}
 func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
@@ -156,6 +174,22 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Free"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMLogAnalyticsWorkspace_requiredOnlyNewSku(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
 }
 `, rInt, location, rInt)
 }

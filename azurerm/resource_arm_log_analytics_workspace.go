@@ -44,6 +44,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.Standalone),
 					string(operationalinsights.Standard),
 					string(operationalinsights.Unlimited),
+					string(operationalinsights.PerGB2018),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
