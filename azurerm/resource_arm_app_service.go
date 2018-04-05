@@ -181,6 +181,12 @@ func resourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -310,6 +316,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := expandAppServiceSiteConfig(d)
@@ -320,6 +327,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   &siteConfig,
 		},
 	}
@@ -501,6 +509,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
+		d.Set("https_only", props.HTTPSOnly)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 	}

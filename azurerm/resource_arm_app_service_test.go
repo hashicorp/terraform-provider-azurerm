@@ -152,6 +152,27 @@ func TestAccAzureRMAppService_alwaysOn(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_httpsOnly(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_httpsOnly(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "https_only", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_appSettings(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
@@ -825,6 +846,34 @@ resource "azurerm_app_service" "test" {
   site_config {
     always_on = true
   }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_httpsOnly(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  https_only          = true
 }
 `, rInt, location, rInt, rInt)
 }
