@@ -255,6 +255,29 @@ func TestAccAzureRMFunctionApp_3264bit(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_httpsOnly(t *testing.T) {
+	resourceName := "azurerm_function_app.test"
+	ri := acctest.RandInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	config := testAccAzureRMFunctionApp_httpsOnly(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "https_only", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFunctionApp_consumptionPlan(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := acctest.RandInt()
@@ -679,6 +702,42 @@ resource "azurerm_function_app" "test" {
   site_config {
     use_32_bit_worker_process = false
   }
+}
+`, rInt, location, rString, rInt, rInt)
+}
+
+func testAccAzureRMFunctionApp_httpsOnly(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+	name                     = "acctestsa%s"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  https_only                = true
 }
 `, rInt, location, rString, rInt, rInt)
 }

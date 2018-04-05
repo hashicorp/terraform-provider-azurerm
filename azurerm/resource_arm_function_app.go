@@ -132,6 +132,12 @@ func resourceArmFunctionApp() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
