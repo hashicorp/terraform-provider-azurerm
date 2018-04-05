@@ -23,11 +23,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                   = "acctestaks1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  kubernetes_version     = "1.8.2"
-  dns_prefix             = "acctestagent1"
+  name                = "acctestaks1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestagent1"
 
   linux_profile {
     admin_username = "acctestuser1"
@@ -38,11 +37,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   agent_pool_profile {
-    name              = "default"
-    count             = 1
-    vm_size           = "Standard_A0"
-    os_type           = "Linux"
-    os_disk_size_gb   = 30
+    name            = "default"
+    count           = 1
+    vm_size         = "Standard_A0"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
   }
 
   service_principal {
@@ -68,7 +67,7 @@ The following arguments are supported:
 
 * `dns_prefix` - (Optional) DNS prefix specified when creating the managed cluster.
 
-* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster.
+* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 * `linux_profile` - (Required) A Linux Profile block as documented below.
 
