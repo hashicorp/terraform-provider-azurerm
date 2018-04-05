@@ -168,7 +168,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	var outputs map[string]string
+	outputs := make(map[string]string, 0)
 	if outs := resp.Properties.Outputs; outs != nil {
 		outsVal := outs.(map[string]interface{})
 		if len(outsVal) > 0 {
