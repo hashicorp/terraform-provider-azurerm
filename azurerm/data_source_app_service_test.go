@@ -67,7 +67,7 @@ func TestAccDataSourceAzureRMAppService_clientAppAffinityDisabled(t *testing.T) 
 	})
 }
 
-func TestAccDataSourceAzureRMAppService_siteConfig(t *testing.T) {
+func TestAccDataSourceAzureRMAppService_32Bit(t *testing.T) {
 	dataSourceName := "data.azurerm_app_service.test"
 	rInt := acctest.RandInt()
 	location := testLocation()
@@ -77,7 +77,7 @@ func TestAccDataSourceAzureRMAppService_siteConfig(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAppService_siteConfig(rInt, location),
+				Config: testAccDataSourceAppService_32Bit(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "site_config.0.use_32_bit_worker_process", "true"),
 				),
@@ -162,7 +162,7 @@ data "azurerm_app_service" "test" {
 `, config)
 }
 
-func testAccDataSourceAppService_siteConfig(rInt int, location string) string {
+func testAccDataSourceAppService_32Bit(rInt int, location string) string {
 	config := testAccAzureRMAppService_32Bit(rInt, location)
 	return fmt.Sprintf(`
 %s
