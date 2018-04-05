@@ -66,7 +66,6 @@ func testSweepCosmosDBAccount(region string) error {
 func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Eventual), "", "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -74,7 +73,7 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Eventual), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Eventual), 1),
 				),
@@ -86,7 +85,6 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -94,7 +92,7 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
 				),
@@ -106,7 +104,6 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Strong), "", "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -114,7 +111,7 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Strong), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Strong), 1),
 				),
@@ -126,7 +123,6 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.ConsistentPrefix), "", "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -134,7 +130,7 @@ func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.ConsistentPrefix), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.ConsistentPrefix), 1),
 				),
@@ -146,7 +142,6 @@ func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -154,7 +149,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
 				),
@@ -166,7 +161,6 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_boundedStaleness_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -174,7 +168,7 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_boundedStaleness_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "consistency_policy.0.max_interval_in_seconds", "10"),
@@ -188,8 +182,6 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	configSession := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", "")
-	configBounded := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -197,11 +189,11 @@ func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configSession,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
 			},
 			{
-				Config: configBounded,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", ""),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
 			},
 		},
@@ -212,7 +204,6 @@ func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_mongoDB(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -220,7 +211,7 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_mongoDB(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
@@ -233,8 +224,6 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	configBasic := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", "")
-	configReplicated := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -242,11 +231,11 @@ func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
 			},
 			{
-				Config: configReplicated,
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 			},
 		},
@@ -257,7 +246,6 @@ func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	config := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -265,7 +253,7 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 				),
@@ -308,8 +296,6 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	configBasic := testAccAzureRMCosmosDBAccount_geoReplicated(ri, testLocation(), testAltLocation())
-	configReplicated := testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -317,11 +303,11 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic,
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated(ri, testLocation(), testAltLocation()),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 			},
 			{
-				Config: configReplicated,
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 			},
 		},
@@ -332,8 +318,6 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
-	configBasic := testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", "")
-	configComplete := testAccAzureRMCosmosDBAccount_complete(ri, testLocation(), testAltLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -341,11 +325,11 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: configBasic,
+				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.Session), "", ""),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
 			},
 			{
-				Config: configComplete,
+				Config: testAccAzureRMCosmosDBAccount_complete(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"),
