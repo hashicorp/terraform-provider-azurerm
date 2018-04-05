@@ -169,39 +169,41 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	}
 
 	var outputs map[string]string
-	if resp.Properties.Outputs != nil && len(*resp.Properties.Outputs) > 0 {
-		outputs = make(map[string]string)
-		for key, output := range *resp.Properties.Outputs {
-			log.Printf("[DEBUG] Processing deployment output %s", key)
-			outputMap := output.(map[string]interface{})
-			outputValue, ok := outputMap["value"]
-			if !ok {
-				log.Printf("[DEBUG] No value - skipping")
-				continue
+	if outs := resp.Properties.Outputs; outs != nil {
+		outsVal := outs.(map[string]interface{})
+		if len(outsVal) > 0 {
+			for key, output := range outsVal {
+				log.Printf("[DEBUG] Processing deployment output %s", key)
+				outputMap := output.(map[string]interface{})
+				outputValue, ok := outputMap["value"]
+				if !ok {
+					log.Printf("[DEBUG] No value - skipping")
+					continue
+				}
+				outputType, ok := outputMap["type"]
+				if !ok {
+					log.Printf("[DEBUG] No type - skipping")
+					continue
+				}
+
+				var outputValueString string
+				switch strings.ToLower(outputType.(string)) {
+				case "bool":
+					outputValueString = strconv.FormatBool(outputValue.(bool))
+
+				case "string":
+					outputValueString = outputValue.(string)
+
+				case "int":
+					outputValueString = fmt.Sprint(outputValue)
+
+				default:
+					log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
+						key, outputType)
+					continue
+				}
+				outputs[key] = outputValueString
 			}
-			outputType, ok := outputMap["type"]
-			if !ok {
-				log.Printf("[DEBUG] No type - skipping")
-				continue
-			}
-
-			var outputValueString string
-			switch strings.ToLower(outputType.(string)) {
-			case "bool":
-				outputValueString = strconv.FormatBool(outputValue.(bool))
-
-			case "string":
-				outputValueString = outputValue.(string)
-
-			case "int":
-				outputValueString = fmt.Sprint(outputValue)
-
-			default:
-				log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
-					key, outputType)
-				continue
-			}
-			outputs[key] = outputValueString
 		}
 	}
 

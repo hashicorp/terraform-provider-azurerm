@@ -194,7 +194,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("description", props.Description)
 
 		if policyRule := props.PolicyRule; policyRule != nil {
-			policyRuleStr, err := structure.FlattenJsonToString(*policyRule)
+			policyRuleVal := policyRule.(map[string]interface{})
+			policyRuleStr, err := structure.FlattenJsonToString(policyRuleVal)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `policy_rule`: %s", err)
 			}
@@ -203,7 +204,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if metadata := props.Metadata; metadata != nil {
-			metadataStr, err := structure.FlattenJsonToString(*metadata)
+			metadataVal := metadata.(map[string]interface{})
+			metadataStr, err := structure.FlattenJsonToString(metadataVal)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `metadata`: %s", err)
 			}
@@ -212,7 +214,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if parameters := props.Parameters; parameters != nil {
-			parametersStr, err := structure.FlattenJsonToString(*props.Parameters)
+			paramsVal := props.Parameters.(map[string]interface{})
+			parametersStr, err := structure.FlattenJsonToString(paramsVal)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `parameters`: %s", err)
 			}

@@ -79,7 +79,7 @@ func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	return output
 }
 
-func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) error {
+func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) {
 	if tagsMap == nil {
 		d.Set("tags", make(map[string]interface{}))
 		return
@@ -91,5 +91,5 @@ func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) error
 		output[i] = *v
 	}
 
-	return d.Set("tags", output)
+	d.Set("tags", output)
 }

@@ -260,7 +260,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 				properties := make(map[string]string, 0)
 				if props := webhookAction.Properties; props != nil {
-					for k, v := range *props {
+					for k, v := range props {
 						if k != "$type" {
 							properties[k] = *v
 						}
@@ -378,7 +378,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 
 		webhookAction := insights.RuleWebhookAction{
 			ServiceURI: &service_uri,
-			Properties: &webhook_properties,
+			Properties: webhook_properties,
 		}
 
 		actions = append(actions, webhookAction)

@@ -154,7 +154,8 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("display_name", props.DisplayName)
 
 		if params := props.Parameters; params != nil {
-			json, err := structure.FlattenJsonToString(*params)
+			paramsVal := params.(map[string]interface{})
+			json, err := structure.FlattenJsonToString(paramsVal)
 			if err != nil {
 				return fmt.Errorf("Error serializing JSON from Parameters: %+v", err)
 			}

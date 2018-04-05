@@ -205,11 +205,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	skipDNSRegistration := false
-	forceDNSRegistration := false
-	skipCustomDomainVerification := true
-	ttlInSeconds := "60"
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -376,9 +372,8 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	skipDNSRegistration := true
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
@@ -408,12 +403,12 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair 
 	}
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData) *map[string]*string {
+func expandFunctionAppAppSettings(d *schema.ResourceData) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
 	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	for _, p := range basicAppSettings {
-		(*output)[*p.Name] = p.Value
+		output[*p.Name] = p.Value
 	}
 
 	return output
@@ -469,7 +464,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	return results
 }
 
-func expandFunctionAppConnectionStrings(d *schema.ResourceData) *map[string]*web.ConnStringValueTypePair {
+func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").([]interface{})
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -486,13 +481,13 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) *map[string]*web
 		}
 	}
 
-	return &output
+	return output
 }
 
-func flattenFunctionAppConnectionStrings(input *map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range *input {
+	for k, v := range input {
 		result := make(map[string]interface{}, 0)
 		result["name"] = k
 		result["type"] = string(v.Type)
