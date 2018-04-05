@@ -45,6 +45,8 @@ output "app_service_id" {
 
 * `enabled` - Is the App Service Enabled?
 
+* `https_only` - Can the App Service only be accessed via HTTPS?
+
 * `site_config` - A `site_config` object as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
