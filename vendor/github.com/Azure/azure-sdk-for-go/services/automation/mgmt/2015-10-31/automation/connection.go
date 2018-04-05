@@ -31,32 +31,31 @@ type ConnectionClient struct {
 }
 
 // NewConnectionClient creates an instance of the ConnectionClient client.
-func NewConnectionClient(subscriptionID string) ConnectionClient {
-	return NewConnectionClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewConnectionClient(subscriptionID string, resourceGroupName string) ConnectionClient {
+	return NewConnectionClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
 }
 
 // NewConnectionClientWithBaseURI creates an instance of the ConnectionClient client.
-func NewConnectionClientWithBaseURI(baseURI string, subscriptionID string) ConnectionClient {
-	return ConnectionClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewConnectionClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) ConnectionClient {
+	return ConnectionClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
 }
 
 // CreateOrUpdate create or update a connection.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the parameters supplied to the create or update connection operation. parameters is the
-// parameters supplied to the create or update connection operation.
-func (client ConnectionClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string, parameters ConnectionCreateOrUpdateParameters) (result Connection, err error) {
+// automationAccountName is the automation account name. connectionName is the parameters supplied to the create or
+// update connection operation. parameters is the parameters supplied to the create or update connection operation.
+func (client ConnectionClient) CreateOrUpdate(ctx context.Context, automationAccountName string, connectionName string, parameters ConnectionCreateOrUpdateParameters) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.ConnectionCreateOrUpdateProperties", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "parameters.ConnectionCreateOrUpdateProperties.ConnectionType", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("automation.ConnectionClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewErrorWithValidationError(err, "automation.ConnectionClient", "CreateOrUpdate")
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, automationAccountName, connectionName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, automationAccountName, connectionName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -78,11 +77,11 @@ func (client ConnectionClient) CreateOrUpdate(ctx context.Context, resourceGroup
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ConnectionClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string, parameters ConnectionCreateOrUpdateParameters) (*http.Request, error) {
+func (client ConnectionClient) CreateOrUpdatePreparer(ctx context.Context, automationAccountName string, connectionName string, parameters ConnectionCreateOrUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"connectionName":        autorest.Encode("path", connectionName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -92,7 +91,7 @@ func (client ConnectionClient) CreateOrUpdatePreparer(ctx context.Context, resou
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/connections/{connectionName}", pathParameters),
@@ -123,16 +122,15 @@ func (client ConnectionClient) CreateOrUpdateResponder(resp *http.Response) (res
 
 // Delete delete the connection.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the name of connection.
-func (client ConnectionClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string) (result Connection, err error) {
+// automationAccountName is the automation account name. connectionName is the name of connection.
+func (client ConnectionClient) Delete(ctx context.Context, automationAccountName string, connectionName string) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ConnectionClient", "Delete", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ConnectionClient", "Delete")
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, automationAccountName, connectionName)
+	req, err := client.DeletePreparer(ctx, automationAccountName, connectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionClient", "Delete", nil, "Failure preparing request")
 		return
@@ -154,11 +152,11 @@ func (client ConnectionClient) Delete(ctx context.Context, resourceGroupName str
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ConnectionClient) DeletePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string) (*http.Request, error) {
+func (client ConnectionClient) DeletePreparer(ctx context.Context, automationAccountName string, connectionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"connectionName":        autorest.Encode("path", connectionName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -197,16 +195,15 @@ func (client ConnectionClient) DeleteResponder(resp *http.Response) (result Conn
 
 // Get retrieve the connection identified by connection name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the name of connection.
-func (client ConnectionClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string) (result Connection, err error) {
+// automationAccountName is the automation account name. connectionName is the name of connection.
+func (client ConnectionClient) Get(ctx context.Context, automationAccountName string, connectionName string) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ConnectionClient", "Get", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ConnectionClient", "Get")
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, connectionName)
+	req, err := client.GetPreparer(ctx, automationAccountName, connectionName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionClient", "Get", nil, "Failure preparing request")
 		return
@@ -228,11 +225,11 @@ func (client ConnectionClient) Get(ctx context.Context, resourceGroupName string
 }
 
 // GetPreparer prepares the Get request.
-func (client ConnectionClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string) (*http.Request, error) {
+func (client ConnectionClient) GetPreparer(ctx context.Context, automationAccountName string, connectionName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"connectionName":        autorest.Encode("path", connectionName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -271,16 +268,16 @@ func (client ConnectionClient) GetResponder(resp *http.Response) (result Connect
 
 // ListByAutomationAccount retrieve a list of connections.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-func (client ConnectionClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result ConnectionListResultPage, err error) {
+// automationAccountName is the automation account name.
+func (client ConnectionClient) ListByAutomationAccount(ctx context.Context, automationAccountName string) (result ConnectionListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ConnectionClient", "ListByAutomationAccount", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ConnectionClient", "ListByAutomationAccount")
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName)
+	req, err := client.ListByAutomationAccountPreparer(ctx, automationAccountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -302,10 +299,10 @@ func (client ConnectionClient) ListByAutomationAccount(ctx context.Context, reso
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client ConnectionClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
+func (client ConnectionClient) ListByAutomationAccountPreparer(ctx context.Context, automationAccountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -364,24 +361,23 @@ func (client ConnectionClient) listByAutomationAccountNextResults(lastResults Co
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ConnectionClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string) (result ConnectionListResultIterator, err error) {
-	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName)
+func (client ConnectionClient) ListByAutomationAccountComplete(ctx context.Context, automationAccountName string) (result ConnectionListResultIterator, err error) {
+	result.page, err = client.ListByAutomationAccount(ctx, automationAccountName)
 	return
 }
 
 // Update update a connection.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// connectionName is the parameters supplied to the update a connection operation. parameters is the parameters
-// supplied to the update a connection operation.
-func (client ConnectionClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string, parameters ConnectionUpdateParameters) (result Connection, err error) {
+// automationAccountName is the automation account name. connectionName is the parameters supplied to the update a
+// connection operation. parameters is the parameters supplied to the update a connection operation.
+func (client ConnectionClient) Update(ctx context.Context, automationAccountName string, connectionName string, parameters ConnectionUpdateParameters) (result Connection, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ConnectionClient", "Update", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ConnectionClient", "Update")
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, connectionName, parameters)
+	req, err := client.UpdatePreparer(ctx, automationAccountName, connectionName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ConnectionClient", "Update", nil, "Failure preparing request")
 		return
@@ -403,11 +399,11 @@ func (client ConnectionClient) Update(ctx context.Context, resourceGroupName str
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ConnectionClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, connectionName string, parameters ConnectionUpdateParameters) (*http.Request, error) {
+func (client ConnectionClient) UpdatePreparer(ctx context.Context, automationAccountName string, connectionName string, parameters ConnectionUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"connectionName":        autorest.Encode("path", connectionName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -417,7 +413,7 @@ func (client ConnectionClient) UpdatePreparer(ctx context.Context, resourceGroup
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/connections/{connectionName}", pathParameters),

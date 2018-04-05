@@ -31,27 +31,27 @@ type FieldsClient struct {
 }
 
 // NewFieldsClient creates an instance of the FieldsClient client.
-func NewFieldsClient(subscriptionID string) FieldsClient {
-	return NewFieldsClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewFieldsClient(subscriptionID string, resourceGroupName string) FieldsClient {
+	return NewFieldsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
 }
 
 // NewFieldsClientWithBaseURI creates an instance of the FieldsClient client.
-func NewFieldsClientWithBaseURI(baseURI string, subscriptionID string) FieldsClient {
-	return FieldsClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewFieldsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) FieldsClient {
+	return FieldsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
 }
 
 // ListByType retrieve a list of fields of a given type identified by module name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the name of module. typeName is the name of type.
-func (client FieldsClient) ListByType(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, typeName string) (result TypeFieldListResult, err error) {
+// automationAccountName is the automation account name. moduleName is the name of module. typeName is the name of
+// type.
+func (client FieldsClient) ListByType(ctx context.Context, automationAccountName string, moduleName string, typeName string) (result TypeFieldListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.FieldsClient", "ListByType", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.FieldsClient", "ListByType")
 	}
 
-	req, err := client.ListByTypePreparer(ctx, resourceGroupName, automationAccountName, moduleName, typeName)
+	req, err := client.ListByTypePreparer(ctx, automationAccountName, moduleName, typeName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.FieldsClient", "ListByType", nil, "Failure preparing request")
 		return
@@ -73,11 +73,11 @@ func (client FieldsClient) ListByType(ctx context.Context, resourceGroupName str
 }
 
 // ListByTypePreparer prepares the ListByType request.
-func (client FieldsClient) ListByTypePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, typeName string) (*http.Request, error) {
+func (client FieldsClient) ListByTypePreparer(ctx context.Context, automationAccountName string, moduleName string, typeName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"moduleName":            autorest.Encode("path", moduleName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 		"typeName":              autorest.Encode("path", typeName),
 	}

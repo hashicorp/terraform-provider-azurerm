@@ -31,34 +31,33 @@ type CredentialClient struct {
 }
 
 // NewCredentialClient creates an instance of the CredentialClient client.
-func NewCredentialClient(subscriptionID string) CredentialClient {
-	return NewCredentialClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewCredentialClient(subscriptionID string, resourceGroupName string) CredentialClient {
+	return NewCredentialClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
 }
 
 // NewCredentialClientWithBaseURI creates an instance of the CredentialClient client.
-func NewCredentialClientWithBaseURI(baseURI string, subscriptionID string) CredentialClient {
-	return CredentialClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewCredentialClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) CredentialClient {
+	return CredentialClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
 }
 
 // CreateOrUpdate create a credential.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// credentialName is the parameters supplied to the create or update credential operation. parameters is the
-// parameters supplied to the create or update credential operation.
-func (client CredentialClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string, parameters CredentialCreateOrUpdateParameters) (result Credential, err error) {
+// automationAccountName is the automation account name. credentialName is the parameters supplied to the create or
+// update credential operation. parameters is the parameters supplied to the create or update credential operation.
+func (client CredentialClient) CreateOrUpdate(ctx context.Context, automationAccountName string, credentialName string, parameters CredentialCreateOrUpdateParameters) (result Credential, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.CredentialCreateOrUpdateProperties", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "parameters.CredentialCreateOrUpdateProperties.UserName", Name: validation.Null, Rule: true, Chain: nil},
 						{Target: "parameters.CredentialCreateOrUpdateProperties.Password", Name: validation.Null, Rule: true, Chain: nil},
 					}}}}}); err != nil {
-		return result, validation.NewError("automation.CredentialClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewErrorWithValidationError(err, "automation.CredentialClient", "CreateOrUpdate")
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, automationAccountName, credentialName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, automationAccountName, credentialName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CredentialClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -80,11 +79,11 @@ func (client CredentialClient) CreateOrUpdate(ctx context.Context, resourceGroup
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client CredentialClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string, parameters CredentialCreateOrUpdateParameters) (*http.Request, error) {
+func (client CredentialClient) CreateOrUpdatePreparer(ctx context.Context, automationAccountName string, credentialName string, parameters CredentialCreateOrUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"credentialName":        autorest.Encode("path", credentialName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -94,7 +93,7 @@ func (client CredentialClient) CreateOrUpdatePreparer(ctx context.Context, resou
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/credentials/{credentialName}", pathParameters),
@@ -125,16 +124,15 @@ func (client CredentialClient) CreateOrUpdateResponder(resp *http.Response) (res
 
 // Delete delete the credential.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// credentialName is the name of credential.
-func (client CredentialClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string) (result autorest.Response, err error) {
+// automationAccountName is the automation account name. credentialName is the name of credential.
+func (client CredentialClient) Delete(ctx context.Context, automationAccountName string, credentialName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.CredentialClient", "Delete", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.CredentialClient", "Delete")
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, automationAccountName, credentialName)
+	req, err := client.DeletePreparer(ctx, automationAccountName, credentialName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CredentialClient", "Delete", nil, "Failure preparing request")
 		return
@@ -156,11 +154,11 @@ func (client CredentialClient) Delete(ctx context.Context, resourceGroupName str
 }
 
 // DeletePreparer prepares the Delete request.
-func (client CredentialClient) DeletePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string) (*http.Request, error) {
+func (client CredentialClient) DeletePreparer(ctx context.Context, automationAccountName string, credentialName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"credentialName":        autorest.Encode("path", credentialName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -198,16 +196,15 @@ func (client CredentialClient) DeleteResponder(resp *http.Response) (result auto
 
 // Get retrieve the credential identified by credential name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// credentialName is the name of credential.
-func (client CredentialClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string) (result Credential, err error) {
+// automationAccountName is the automation account name. credentialName is the name of credential.
+func (client CredentialClient) Get(ctx context.Context, automationAccountName string, credentialName string) (result Credential, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.CredentialClient", "Get", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.CredentialClient", "Get")
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, credentialName)
+	req, err := client.GetPreparer(ctx, automationAccountName, credentialName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CredentialClient", "Get", nil, "Failure preparing request")
 		return
@@ -229,11 +226,11 @@ func (client CredentialClient) Get(ctx context.Context, resourceGroupName string
 }
 
 // GetPreparer prepares the Get request.
-func (client CredentialClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string) (*http.Request, error) {
+func (client CredentialClient) GetPreparer(ctx context.Context, automationAccountName string, credentialName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"credentialName":        autorest.Encode("path", credentialName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -272,16 +269,16 @@ func (client CredentialClient) GetResponder(resp *http.Response) (result Credent
 
 // ListByAutomationAccount retrieve a list of credentials.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-func (client CredentialClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result CredentialListResultPage, err error) {
+// automationAccountName is the automation account name.
+func (client CredentialClient) ListByAutomationAccount(ctx context.Context, automationAccountName string) (result CredentialListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.CredentialClient", "ListByAutomationAccount", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.CredentialClient", "ListByAutomationAccount")
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName)
+	req, err := client.ListByAutomationAccountPreparer(ctx, automationAccountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CredentialClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -303,10 +300,10 @@ func (client CredentialClient) ListByAutomationAccount(ctx context.Context, reso
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client CredentialClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
+func (client CredentialClient) ListByAutomationAccountPreparer(ctx context.Context, automationAccountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -365,24 +362,23 @@ func (client CredentialClient) listByAutomationAccountNextResults(lastResults Cr
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client CredentialClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string) (result CredentialListResultIterator, err error) {
-	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName)
+func (client CredentialClient) ListByAutomationAccountComplete(ctx context.Context, automationAccountName string) (result CredentialListResultIterator, err error) {
+	result.page, err = client.ListByAutomationAccount(ctx, automationAccountName)
 	return
 }
 
 // Update update a credential.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// credentialName is the parameters supplied to the Update credential operation. parameters is the parameters
-// supplied to the Update credential operation.
-func (client CredentialClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string, parameters CredentialUpdateParameters) (result Credential, err error) {
+// automationAccountName is the automation account name. credentialName is the parameters supplied to the Update
+// credential operation. parameters is the parameters supplied to the Update credential operation.
+func (client CredentialClient) Update(ctx context.Context, automationAccountName string, credentialName string, parameters CredentialUpdateParameters) (result Credential, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.CredentialClient", "Update", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.CredentialClient", "Update")
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, credentialName, parameters)
+	req, err := client.UpdatePreparer(ctx, automationAccountName, credentialName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.CredentialClient", "Update", nil, "Failure preparing request")
 		return
@@ -404,11 +400,11 @@ func (client CredentialClient) Update(ctx context.Context, resourceGroupName str
 }
 
 // UpdatePreparer prepares the Update request.
-func (client CredentialClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, credentialName string, parameters CredentialUpdateParameters) (*http.Request, error) {
+func (client CredentialClient) UpdatePreparer(ctx context.Context, automationAccountName string, credentialName string, parameters CredentialUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"credentialName":        autorest.Encode("path", credentialName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -418,7 +414,7 @@ func (client CredentialClient) UpdatePreparer(ctx context.Context, resourceGroup
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/credentials/{credentialName}", pathParameters),

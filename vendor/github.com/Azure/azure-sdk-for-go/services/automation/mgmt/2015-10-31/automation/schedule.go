@@ -31,31 +31,31 @@ type ScheduleClient struct {
 }
 
 // NewScheduleClient creates an instance of the ScheduleClient client.
-func NewScheduleClient(subscriptionID string) ScheduleClient {
-	return NewScheduleClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewScheduleClient(subscriptionID string, resourceGroupName string) ScheduleClient {
+	return NewScheduleClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
 }
 
 // NewScheduleClientWithBaseURI creates an instance of the ScheduleClient client.
-func NewScheduleClientWithBaseURI(baseURI string, subscriptionID string) ScheduleClient {
-	return ScheduleClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewScheduleClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) ScheduleClient {
+	return ScheduleClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
 }
 
 // CreateOrUpdate create a schedule.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. scheduleName
-// is the schedule name. parameters is the parameters supplied to the create or update schedule operation.
-func (client ScheduleClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string, parameters ScheduleCreateOrUpdateParameters) (result Schedule, err error) {
+// automationAccountName is the automation account name. scheduleName is the schedule name. parameters is the
+// parameters supplied to the create or update schedule operation.
+func (client ScheduleClient) CreateOrUpdate(ctx context.Context, automationAccountName string, scheduleName string, parameters ScheduleCreateOrUpdateParameters) (result Schedule, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.ScheduleCreateOrUpdateProperties", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "parameters.ScheduleCreateOrUpdateProperties.StartTime", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("automation.ScheduleClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewErrorWithValidationError(err, "automation.ScheduleClient", "CreateOrUpdate")
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, automationAccountName, scheduleName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, automationAccountName, scheduleName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ScheduleClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -77,10 +77,10 @@ func (client ScheduleClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ScheduleClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string, parameters ScheduleCreateOrUpdateParameters) (*http.Request, error) {
+func (client ScheduleClient) CreateOrUpdatePreparer(ctx context.Context, automationAccountName string, scheduleName string, parameters ScheduleCreateOrUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"scheduleName":          autorest.Encode("path", scheduleName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -91,7 +91,7 @@ func (client ScheduleClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/schedules/{scheduleName}", pathParameters),
@@ -122,16 +122,15 @@ func (client ScheduleClient) CreateOrUpdateResponder(resp *http.Response) (resul
 
 // Delete delete the schedule identified by schedule name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. scheduleName
-// is the schedule name.
-func (client ScheduleClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string) (result autorest.Response, err error) {
+// automationAccountName is the automation account name. scheduleName is the schedule name.
+func (client ScheduleClient) Delete(ctx context.Context, automationAccountName string, scheduleName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ScheduleClient", "Delete", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ScheduleClient", "Delete")
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, automationAccountName, scheduleName)
+	req, err := client.DeletePreparer(ctx, automationAccountName, scheduleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ScheduleClient", "Delete", nil, "Failure preparing request")
 		return
@@ -153,10 +152,10 @@ func (client ScheduleClient) Delete(ctx context.Context, resourceGroupName strin
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ScheduleClient) DeletePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string) (*http.Request, error) {
+func (client ScheduleClient) DeletePreparer(ctx context.Context, automationAccountName string, scheduleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"scheduleName":          autorest.Encode("path", scheduleName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -195,16 +194,15 @@ func (client ScheduleClient) DeleteResponder(resp *http.Response) (result autore
 
 // Get retrieve the schedule identified by schedule name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. scheduleName
-// is the schedule name.
-func (client ScheduleClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string) (result Schedule, err error) {
+// automationAccountName is the automation account name. scheduleName is the schedule name.
+func (client ScheduleClient) Get(ctx context.Context, automationAccountName string, scheduleName string) (result Schedule, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ScheduleClient", "Get", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ScheduleClient", "Get")
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, scheduleName)
+	req, err := client.GetPreparer(ctx, automationAccountName, scheduleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ScheduleClient", "Get", nil, "Failure preparing request")
 		return
@@ -226,10 +224,10 @@ func (client ScheduleClient) Get(ctx context.Context, resourceGroupName string, 
 }
 
 // GetPreparer prepares the Get request.
-func (client ScheduleClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string) (*http.Request, error) {
+func (client ScheduleClient) GetPreparer(ctx context.Context, automationAccountName string, scheduleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"scheduleName":          autorest.Encode("path", scheduleName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -269,16 +267,16 @@ func (client ScheduleClient) GetResponder(resp *http.Response) (result Schedule,
 
 // ListByAutomationAccount retrieve a list of schedules.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-func (client ScheduleClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result ScheduleListResultPage, err error) {
+// automationAccountName is the automation account name.
+func (client ScheduleClient) ListByAutomationAccount(ctx context.Context, automationAccountName string) (result ScheduleListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ScheduleClient", "ListByAutomationAccount", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ScheduleClient", "ListByAutomationAccount")
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName)
+	req, err := client.ListByAutomationAccountPreparer(ctx, automationAccountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ScheduleClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -300,10 +298,10 @@ func (client ScheduleClient) ListByAutomationAccount(ctx context.Context, resour
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client ScheduleClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
+func (client ScheduleClient) ListByAutomationAccountPreparer(ctx context.Context, automationAccountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -362,23 +360,23 @@ func (client ScheduleClient) listByAutomationAccountNextResults(lastResults Sche
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ScheduleClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string) (result ScheduleListResultIterator, err error) {
-	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName)
+func (client ScheduleClient) ListByAutomationAccountComplete(ctx context.Context, automationAccountName string) (result ScheduleListResultIterator, err error) {
+	result.page, err = client.ListByAutomationAccount(ctx, automationAccountName)
 	return
 }
 
 // Update update the schedule identified by schedule name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. scheduleName
-// is the schedule name. parameters is the parameters supplied to the update schedule operation.
-func (client ScheduleClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string, parameters ScheduleUpdateParameters) (result Schedule, err error) {
+// automationAccountName is the automation account name. scheduleName is the schedule name. parameters is the
+// parameters supplied to the update schedule operation.
+func (client ScheduleClient) Update(ctx context.Context, automationAccountName string, scheduleName string, parameters ScheduleUpdateParameters) (result Schedule, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.ScheduleClient", "Update", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.ScheduleClient", "Update")
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, scheduleName, parameters)
+	req, err := client.UpdatePreparer(ctx, automationAccountName, scheduleName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ScheduleClient", "Update", nil, "Failure preparing request")
 		return
@@ -400,10 +398,10 @@ func (client ScheduleClient) Update(ctx context.Context, resourceGroupName strin
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ScheduleClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, scheduleName string, parameters ScheduleUpdateParameters) (*http.Request, error) {
+func (client ScheduleClient) UpdatePreparer(ctx context.Context, automationAccountName string, scheduleName string, parameters ScheduleUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"scheduleName":          autorest.Encode("path", scheduleName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -414,7 +412,7 @@ func (client ScheduleClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/schedules/{scheduleName}", pathParameters),

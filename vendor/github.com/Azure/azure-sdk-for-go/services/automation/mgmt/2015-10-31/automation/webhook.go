@@ -31,30 +31,30 @@ type WebhookClient struct {
 }
 
 // NewWebhookClient creates an instance of the WebhookClient client.
-func NewWebhookClient(subscriptionID string) WebhookClient {
-	return NewWebhookClientWithBaseURI(DefaultBaseURI, subscriptionID)
+func NewWebhookClient(subscriptionID string, resourceGroupName string) WebhookClient {
+	return NewWebhookClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
 }
 
 // NewWebhookClientWithBaseURI creates an instance of the WebhookClient client.
-func NewWebhookClientWithBaseURI(baseURI string, subscriptionID string) WebhookClient {
-	return WebhookClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewWebhookClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) WebhookClient {
+	return WebhookClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
 }
 
 // CreateOrUpdate create the webhook identified by webhook name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. webhookName
-// is the webhook name. parameters is the create or update parameters for webhook.
-func (client WebhookClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string, parameters WebhookCreateOrUpdateParameters) (result Webhook, err error) {
+// automationAccountName is the automation account name. webhookName is the webhook name. parameters is the create or
+// update parameters for webhook.
+func (client WebhookClient) CreateOrUpdate(ctx context.Context, automationAccountName string, webhookName string, parameters WebhookCreateOrUpdateParameters) (result Webhook, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.WebhookCreateOrUpdateProperties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.WebhookClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewErrorWithValidationError(err, "automation.WebhookClient", "CreateOrUpdate")
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, automationAccountName, webhookName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, automationAccountName, webhookName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -76,10 +76,10 @@ func (client WebhookClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client WebhookClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string, parameters WebhookCreateOrUpdateParameters) (*http.Request, error) {
+func (client WebhookClient) CreateOrUpdatePreparer(ctx context.Context, automationAccountName string, webhookName string, parameters WebhookCreateOrUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 		"webhookName":           autorest.Encode("path", webhookName),
 	}
@@ -90,7 +90,7 @@ func (client WebhookClient) CreateOrUpdatePreparer(ctx context.Context, resource
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/webhooks/{webhookName}", pathParameters),
@@ -121,16 +121,15 @@ func (client WebhookClient) CreateOrUpdateResponder(resp *http.Response) (result
 
 // Delete delete the webhook by name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. webhookName
-// is the webhook name.
-func (client WebhookClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string) (result autorest.Response, err error) {
+// automationAccountName is the automation account name. webhookName is the webhook name.
+func (client WebhookClient) Delete(ctx context.Context, automationAccountName string, webhookName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.WebhookClient", "Delete", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.WebhookClient", "Delete")
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, automationAccountName, webhookName)
+	req, err := client.DeletePreparer(ctx, automationAccountName, webhookName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "Delete", nil, "Failure preparing request")
 		return
@@ -152,10 +151,10 @@ func (client WebhookClient) Delete(ctx context.Context, resourceGroupName string
 }
 
 // DeletePreparer prepares the Delete request.
-func (client WebhookClient) DeletePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string) (*http.Request, error) {
+func (client WebhookClient) DeletePreparer(ctx context.Context, automationAccountName string, webhookName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 		"webhookName":           autorest.Encode("path", webhookName),
 	}
@@ -194,15 +193,15 @@ func (client WebhookClient) DeleteResponder(resp *http.Response) (result autores
 
 // GenerateURI generates a Uri for use in creating a webhook.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-func (client WebhookClient) GenerateURI(ctx context.Context, resourceGroupName string, automationAccountName string) (result String, err error) {
+// automationAccountName is the automation account name.
+func (client WebhookClient) GenerateURI(ctx context.Context, automationAccountName string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.WebhookClient", "GenerateURI", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.WebhookClient", "GenerateURI")
 	}
 
-	req, err := client.GenerateURIPreparer(ctx, resourceGroupName, automationAccountName)
+	req, err := client.GenerateURIPreparer(ctx, automationAccountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "GenerateURI", nil, "Failure preparing request")
 		return
@@ -224,10 +223,10 @@ func (client WebhookClient) GenerateURI(ctx context.Context, resourceGroupName s
 }
 
 // GenerateURIPreparer prepares the GenerateURI request.
-func (client WebhookClient) GenerateURIPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
+func (client WebhookClient) GenerateURIPreparer(ctx context.Context, automationAccountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -266,16 +265,15 @@ func (client WebhookClient) GenerateURIResponder(resp *http.Response) (result St
 
 // Get retrieve the webhook identified by webhook name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. webhookName
-// is the webhook name.
-func (client WebhookClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string) (result Webhook, err error) {
+// automationAccountName is the automation account name. webhookName is the webhook name.
+func (client WebhookClient) Get(ctx context.Context, automationAccountName string, webhookName string) (result Webhook, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.WebhookClient", "Get", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.WebhookClient", "Get")
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, webhookName)
+	req, err := client.GetPreparer(ctx, automationAccountName, webhookName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "Get", nil, "Failure preparing request")
 		return
@@ -297,10 +295,10 @@ func (client WebhookClient) Get(ctx context.Context, resourceGroupName string, a
 }
 
 // GetPreparer prepares the Get request.
-func (client WebhookClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string) (*http.Request, error) {
+func (client WebhookClient) GetPreparer(ctx context.Context, automationAccountName string, webhookName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 		"webhookName":           autorest.Encode("path", webhookName),
 	}
@@ -340,17 +338,16 @@ func (client WebhookClient) GetResponder(resp *http.Response) (result Webhook, e
 
 // ListByAutomationAccount retrieve a list of webhooks.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. filter is
-// the filter to apply on the operation.
-func (client WebhookClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result WebhookListResultPage, err error) {
+// automationAccountName is the automation account name. filter is the filter to apply on the operation.
+func (client WebhookClient) ListByAutomationAccount(ctx context.Context, automationAccountName string, filter string) (result WebhookListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.WebhookClient", "ListByAutomationAccount", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.WebhookClient", "ListByAutomationAccount")
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter)
+	req, err := client.ListByAutomationAccountPreparer(ctx, automationAccountName, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -372,10 +369,10 @@ func (client WebhookClient) ListByAutomationAccount(ctx context.Context, resourc
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client WebhookClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (*http.Request, error) {
+func (client WebhookClient) ListByAutomationAccountPreparer(ctx context.Context, automationAccountName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -437,23 +434,23 @@ func (client WebhookClient) listByAutomationAccountNextResults(lastResults Webho
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client WebhookClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result WebhookListResultIterator, err error) {
-	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter)
+func (client WebhookClient) ListByAutomationAccountComplete(ctx context.Context, automationAccountName string, filter string) (result WebhookListResultIterator, err error) {
+	result.page, err = client.ListByAutomationAccount(ctx, automationAccountName, filter)
 	return
 }
 
 // Update update the webhook identified by webhook name.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. webhookName
-// is the webhook name. parameters is the update parameters for webhook.
-func (client WebhookClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string, parameters WebhookUpdateParameters) (result Webhook, err error) {
+// automationAccountName is the automation account name. webhookName is the webhook name. parameters is the update
+// parameters for webhook.
+func (client WebhookClient) Update(ctx context.Context, automationAccountName string, webhookName string, parameters WebhookUpdateParameters) (result Webhook, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.WebhookClient", "Update", err.Error())
+		{TargetValue: client.ResourceGroupName,
+			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewErrorWithValidationError(err, "automation.WebhookClient", "Update")
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, webhookName, parameters)
+	req, err := client.UpdatePreparer(ctx, automationAccountName, webhookName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.WebhookClient", "Update", nil, "Failure preparing request")
 		return
@@ -475,10 +472,10 @@ func (client WebhookClient) Update(ctx context.Context, resourceGroupName string
 }
 
 // UpdatePreparer prepares the Update request.
-func (client WebhookClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, webhookName string, parameters WebhookUpdateParameters) (*http.Request, error) {
+func (client WebhookClient) UpdatePreparer(ctx context.Context, automationAccountName string, webhookName string, parameters WebhookUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 		"webhookName":           autorest.Encode("path", webhookName),
 	}
@@ -489,7 +486,7 @@ func (client WebhookClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsJSON(),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/webhooks/{webhookName}", pathParameters),
