@@ -1,4 +1,9 @@
 ## 1.3.3 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_app_service` [GH-1071]
+
 ## 1.3.2 (April 04, 2018)
 
 FEATURES:
