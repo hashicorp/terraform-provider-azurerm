@@ -64,7 +64,6 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
 
 	sku := expandAutomationAccountSku(d)
 
@@ -74,7 +73,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 		},
 
 		Location: &location,
-		Tags:     &expandedTags,
+		Tags:     expandTags(tags),
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -125,7 +124,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	flattenAndSetAutomationAccountSku(d, resp.Sku)
 
 	if tags := resp.Tags; tags != nil {
-		flattenAndSetTags(d, *tags)
+		flattenAndSetTags(d, tags)
 	}
 
 	return nil

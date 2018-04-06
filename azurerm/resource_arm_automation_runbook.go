@@ -116,9 +116,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
-	client.ResourceGroupName = resGroup
 	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
 
 	accName := d.Get("account_name").(string)
 	runbookType := automation.RunbookTypeEnum(d.Get("runbook_type").(string))
@@ -138,15 +136,15 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		},
 
 		Location: &location,
-		Tags:     &expandedTags,
+		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, accName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, accName, name)
+	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		return err
 	}
@@ -168,11 +166,10 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 
-	resp, err := client.Get(ctx, accName, name)
+	resp, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -197,7 +194,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if tags := resp.Tags; tags != nil {
-		flattenAndSetTags(d, *tags)
+		flattenAndSetTags(d, tags)
 	}
 
 	return nil
@@ -212,11 +209,10 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["runbooks"]
 
-	resp, err := client.Delete(ctx, accName, name)
+	resp, err := client.Delete(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
