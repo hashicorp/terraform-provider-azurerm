@@ -179,8 +179,8 @@
 			"versionExact": "v15.0.1"
 		},
 		{
-			"checksumSHA1": "0RWJdclCgo0gzJQVKXqcz6SxMkI=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis",
+			"checksumSHA1": "JNSBPrbVww7i2tKS02XHTRU9f6A=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis",
 			"revision": "068ec4d616be5b2175509bf1fb3e4c8ea160d5c8",
 			"revisionTime": "2018-04-05T22:23:54Z",
 			"version": "v15.0.1",
