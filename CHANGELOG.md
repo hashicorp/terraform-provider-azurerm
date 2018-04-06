@@ -8,6 +8,9 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to `v15.0.1` of `Azure/azure-sdk-for-go` [GH-1085]
 * dependencies: upgrading to `v10.6.0` of `Azure/go-autorest` [GH-1077]
+* `azurerm_app_service` - added support for the `https_only` field [GH-1080]
+* `azurerm_app_service_slot` - added support for the `https_only` field [GH-1080]
+* `azurerm_function_app` - added support for the `https_only` field [GH-1080]
 
 ## 1.3.2 (April 04, 2018)
 
