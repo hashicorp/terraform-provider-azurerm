@@ -77,12 +77,14 @@ func resourceArmRedisCache() *schema.Resource {
 			"subnet_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"private_static_ip_address": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ForceNew: true,
 			},
 
 			"redis_configuration": {
@@ -222,7 +224,6 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	parameters := redis.CreateParameters{
-		Name:     utils.String(name),
 		Location: utils.String(location),
 		CreateProperties: &redis.CreateProperties{
 			EnableNonSslPort: utils.Bool(enableNonSSLPort),
@@ -325,18 +326,6 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		if d.HasChange("shard_count") {
 			shardCount := int32(v.(int))
 			parameters.ShardCount = &shardCount
-		}
-	}
-
-	if v, ok := d.GetOk("private_static_ip_address"); ok {
-		if d.HasChange("private_static_ip_address") {
-			parameters.StaticIP = utils.String(v.(string))
-		}
-	}
-
-	if v, ok := d.GetOk("subnet_id"); ok {
-		if d.HasChange("subnet_id") {
-			parameters.SubnetID = utils.String(v.(string))
 		}
 	}
 
@@ -443,7 +432,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("sku_name", sku.Name)
 	}
 
-	if props := resp.ResourceProperties; props != nil {
+	if props := resp.Properties; props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
 		d.Set("port", props.Port)
@@ -504,7 +493,7 @@ func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGro
 			return nil, "", fmt.Errorf("Error issuing read request in redisStateRefreshFunc to Azure ARM for Redis Cache Instance '%s' (RG: '%s'): %s", sgName, resourceGroupName, err)
 		}
 
-		return res, *res.ProvisioningState, nil
+		return res, string(res.ProvisioningState), nil
 	}
 }
 

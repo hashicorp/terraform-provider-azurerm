@@ -58,8 +58,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	startIP := d.Get("start_ip").(string)
 	endIP := d.Get("end_ip").(string)
 
-	parameters := redis.FirewallRule{
-		Name: &name,
+	parameters := redis.FirewallRuleCreateParameters{
 		FirewallRuleProperties: &redis.FirewallRuleProperties{
 			StartIP: utils.String(startIP),
 			EndIP:   utils.String(endIP),
