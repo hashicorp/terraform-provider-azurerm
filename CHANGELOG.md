@@ -4,6 +4,11 @@ FEATURES:
 
 * **New Data Source:** `azurerm_app_service` [GH-1071]
 
+IMPROVEMENTS:
+
+* dependencies: upgrading to `v15.0.1` of `Azure/azure-sdk-for-go` [GH-1085]
+* dependencies: upgrading to `v10.6.0` of `Azure/go-autorest` [GH-1077]
+
 ## 1.3.2 (April 04, 2018)
 
 FEATURES:
