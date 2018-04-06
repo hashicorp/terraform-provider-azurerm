@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_app_service` [GH-1071]
+* **New Resource:** `azurerm_app_service_custom_hostname_binding` [GH-1087]
 
 IMPROVEMENTS:
 
