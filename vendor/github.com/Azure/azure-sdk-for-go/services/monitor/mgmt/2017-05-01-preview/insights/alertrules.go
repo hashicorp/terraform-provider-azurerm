@@ -42,8 +42,8 @@ func NewAlertRulesClientWithBaseURI(baseURI string, subscriptionID string) Alert
 
 // CreateOrUpdate creates or updates an alert rule.
 //
-// resourceGroupName is the name of the resource group. ruleName is the name of the rule. parameters is the parameters
-// of the rule to create or update.
+// resourceGroupName is the name of the resource group. ruleName is the name of the rule. parameters is the
+// parameters of the rule to create or update.
 func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, ruleName string, parameters AlertRuleResource) (result AlertRuleResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
@@ -52,7 +52,7 @@ func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 					{Target: "parameters.AlertRule.IsEnabled", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "parameters.AlertRule.Condition", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "insights.AlertRulesClient", "CreateOrUpdate")
+		return result, validation.NewError("insights.AlertRulesClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, ruleName, parameters)
@@ -90,7 +90,7 @@ func (client AlertRulesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/alertrules/{ruleName}", pathParameters),
@@ -355,7 +355,7 @@ func (client AlertRulesClient) UpdatePreparer(ctx context.Context, resourceGroup
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/alertrules/{ruleName}", pathParameters),

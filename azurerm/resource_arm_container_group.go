@@ -204,7 +204,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	// container group properties
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -276,7 +276,9 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	flattenAndSetTags(d, resp.Tags)
 
 	d.Set("os_type", string(resp.OsType))

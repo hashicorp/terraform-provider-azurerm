@@ -230,7 +230,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := d.Get("name").(string)
 	accountKind := d.Get("account_kind").(string)
 
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
@@ -289,21 +289,27 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 
 	// Create
 	ctx := meta.(*ArmClient).StopContext
-	createFuture, createErr := client.Create(resourceGroupName, storageAccountName, parameters, ctx.Done())
-
-	select {
-	case err := <-createErr:
-		return fmt.Errorf(
-			"Error creating Azure Storage Account %q: %+v",
-			storageAccountName, err)
-	case account := <-createFuture:
-		if account.ID == nil {
-			return fmt.Errorf("Cannot read Storage Account %q (resource group %q) ID",
-				storageAccountName, resourceGroupName)
-		}
-		log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
-		d.SetId(*account.ID)
+	future, err := client.Create(ctx, resourceGroupName, storageAccountName, parameters)
+	if err != nil {
+		return fmt.Errorf("Error creating Azure Storage Account %q: %+v", storageAccountName, err)
 	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
+	}
+
+	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Azure Storage Account %q: %+v", storageAccountName, err)
+	}
+
+	if account.ID == nil {
+		return fmt.Errorf("Cannot read Storage Account %q (resource group %q) ID",
+			storageAccountName, resourceGroupName)
+	}
+	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
+	d.SetId(*account.ID)
 
 	return resourceArmStorageAccountRead(d, meta)
 }
@@ -312,6 +318,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 // and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
 // available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -341,7 +348,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			Sku: &sku,
 		}
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account type %q: %+v", storageAccountName, err)
 		}
@@ -358,7 +365,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 		}
 
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
 		}
@@ -372,7 +379,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		opts := storage.AccountUpdateParameters{
 			Tags: expandTags(tags),
 		}
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account tags %q: %+v", storageAccountName, err)
 		}
@@ -409,7 +416,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			d.SetPartial("enable_file_encryption")
 		}
 
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
@@ -423,7 +430,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			},
 		}
 
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Custom Domain %q: %+v", storageAccountName, err)
 		}
@@ -437,7 +444,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 				EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			},
 		}
-		_, err := client.Update(resourceGroupName, storageAccountName, opts)
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %+v", storageAccountName, err)
 		}
@@ -450,6 +457,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
@@ -460,7 +468,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.GetProperties(resGroup, name)
+	resp, err := client.GetProperties(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -469,7 +477,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
-	keys, err := client.ListKeys(resGroup, name)
+	keys, err := client.ListKeys(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
@@ -477,7 +485,9 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	accessKeys := *keys.Keys
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
@@ -567,6 +577,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
+	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).storageServiceClient
 
 	id, err := parseAzureResourceID(d.Id())
@@ -576,7 +587,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	_, err = client.Delete(resGroup, name)
+	_, err = client.Delete(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error issuing AzureRM delete request for storage account %q: %+v", name, err)
 	}

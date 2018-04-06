@@ -12,7 +12,55 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
+func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being happy about provisioning a couple at a time
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"metered":   testAccAzureRMExpressRouteCircuit_basicMetered,
+			"unlimited": testAccAzureRMExpressRouteCircuit_basicUnlimited,
+			"update":    testAccAzureRMExpressRouteCircuit_update,
+		},
+		"PrivatePeering": {
+			"azurePrivatePeering":  testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
+			"importPrivatePeering": testAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering,
+		},
+		"PublicPeering": {
+			"azurePublicPeering":  testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering,
+			"importPublicPeering": testAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering,
+		},
+		"MicrosoftPeering": {
+			"microsoftPeering":       testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
+			"importMicrosoftPeering": testAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering,
+		},
+		"authorization": {
+			"basic":    testAccAzureRMExpressRouteCircuitAuthorization_basic,
+			"multiple": testAccAzureRMExpressRouteCircuitAuthorization_multiple,
+			"import":   testAccAzureRMExpressRouteCircuitAuthorization_importBasic,
+		},
+		"authorizationImport": {
+			"basic": testAccAzureRMExpressRouteCircuitAuthorization_importBasic,
+		},
+		"circuitImport": {
+			"metered":   testAccAzureRMExpressRouteCircuit_importMetered,
+			"unlimited": testAccAzureRMExpressRouteCircuit_importUnlimited,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
@@ -22,7 +70,7 @@ func TestAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMetered(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 				),
@@ -31,7 +79,7 @@ func TestAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
+func testAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
 
@@ -41,7 +89,7 @@ func TestAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicUnlimited(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 				),
@@ -50,7 +98,7 @@ func TestAccAzureRMExpressRouteCircuit_basicUnlimited(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuit_update(t *testing.T) {
+func testAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit.test"
 	var erc network.ExpressRouteCircuit
 	ri := acctest.RandInt()
@@ -61,14 +109,14 @@ func TestAccAzureRMExpressRouteCircuit_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicMetered(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "MeteredData"),
 				),
 			},
 			{
-				Config: testAccAzureRMExpressRouteCircuit_basicUnlimited(ri, testLocation()),
+				Config: testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists(resourceName, &erc),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "UnlimitedData"),
@@ -135,7 +183,7 @@ func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMExpressRouteCircuit_basicMetered(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuit_basicMeteredConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"
@@ -164,7 +212,7 @@ resource "azurerm_express_route_circuit" "test" {
 }
 `, rInt, location, rInt)
 }
-func testAccAzureRMExpressRouteCircuit_basicUnlimited(rInt int, location string) string {
+func testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%d"

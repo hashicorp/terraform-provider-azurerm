@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMExpressRouteCircuitAuthorization_importBasic(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitAuthorization_importBasic(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_authorization.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMExpressRouteCircuitAuthorization_basic(ri, testLocation())
+	config := testAccAzureRMExpressRouteCircuitAuthorization_basicConfig(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

@@ -506,7 +506,7 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
@@ -644,7 +644,9 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zones", resp.Zones)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if resp.Plan != nil {
 		if err := d.Set("plan", flattenAzureRmVirtualMachinePlan(resp.Plan)); err != nil {
@@ -815,7 +817,10 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 		return fmt.Errorf("Error finding resource group for storage account %s: %+v", storageAccountName, err)
 	}
 
-	blobClient, saExists, err := meta.(*ArmClient).getBlobStorageClientForStorageAccount(storageAccountResourceGroupName, storageAccountName)
+	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
+
+	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, storageAccountResourceGroupName, storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error creating blob store client for VHD deletion: %+v", err)
 	}
