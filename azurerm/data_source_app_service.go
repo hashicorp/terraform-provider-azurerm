@@ -118,6 +118,11 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"https_only": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -259,6 +264,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
+		d.Set("https_only", props.HTTPSOnly)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 	}

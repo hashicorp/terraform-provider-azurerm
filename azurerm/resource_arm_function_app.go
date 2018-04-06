@@ -132,6 +132,16 @@ func resourceArmFunctionApp() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+
+				// TODO: (tombuildsstuff) support Update once the API is fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/1697
+				ForceNew: true,
+			},
+
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
