@@ -474,7 +474,7 @@ func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGro
 	}
 }
 
-func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
+func expandRedisConfiguration(d *schema.ResourceData) map[string]*string {
 	output := make(map[string]*string)
 
 	if v, ok := d.GetOk("redis_configuration.0.maxclients"); ok {
@@ -520,7 +520,7 @@ func expandRedisConfiguration(d *schema.ResourceData) *map[string]*string {
 		output["notify-keyspace-events"] = utils.String(v.(string))
 	}
 
-	return &output
+	return output
 }
 
 func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, error) {
@@ -551,20 +551,19 @@ func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, err
 	return &schedule, nil
 }
 
-func flattenRedisConfiguration(configuration *map[string]*string) map[string]*string {
-	redisConfiguration := make(map[string]*string, len(*configuration))
-	config := *configuration
+func flattenRedisConfiguration(input map[string]*string) map[string]*string {
+	redisConfiguration := make(map[string]*string, len(input))
 
-	redisConfiguration["maxclients"] = config["maxclients"]
-	redisConfiguration["maxmemory_delta"] = config["maxmemory-delta"]
-	redisConfiguration["maxmemory_reserved"] = config["maxmemory-reserved"]
-	redisConfiguration["maxmemory_policy"] = config["maxmemory-policy"]
+	redisConfiguration["maxclients"] = input["maxclients"]
+	redisConfiguration["maxmemory_delta"] = input["maxmemory-delta"]
+	redisConfiguration["maxmemory_reserved"] = input["maxmemory-reserved"]
+	redisConfiguration["maxmemory_policy"] = input["maxmemory-policy"]
 
-	redisConfiguration["rdb_backup_enabled"] = config["rdb-backup-enabled"]
-	redisConfiguration["rdb_backup_frequency"] = config["rdb-backup-frequency"]
-	redisConfiguration["rdb_backup_max_snapshot_count"] = config["rdb-backup-max-snapshot-count"]
-	redisConfiguration["rdb_storage_connection_string"] = config["rdb-storage-connection-string"]
-	redisConfiguration["notify_keyspace_events"] = config["notify-keyspace-events"]
+	redisConfiguration["rdb_backup_enabled"] = input["rdb-backup-enabled"]
+	redisConfiguration["rdb_backup_frequency"] = input["rdb-backup-frequency"]
+	redisConfiguration["rdb_backup_max_snapshot_count"] = input["rdb-backup-max-snapshot-count"]
+	redisConfiguration["rdb_storage_connection_string"] = input["rdb-storage-connection-string"]
+	redisConfiguration["notify_keyspace_events"] = input["notify-keyspace-events"]
 
 	return redisConfiguration
 }

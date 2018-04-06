@@ -41,8 +41,8 @@ func NewAlertRuleIncidentsClientWithBaseURI(baseURI string, subscriptionID strin
 
 // Get gets an incident associated to an alert rule
 //
-// resourceGroupName is the name of the resource group. ruleName is the name of the rule. incidentName is the name of
-// the incident to retrieve.
+// resourceGroupName is the name of the resource group. ruleName is the name of the rule. incidentName is the name
+// of the incident to retrieve.
 func (client AlertRuleIncidentsClient) Get(ctx context.Context, resourceGroupName string, ruleName string, incidentName string) (result Incident, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, ruleName, incidentName)
 	if err != nil {

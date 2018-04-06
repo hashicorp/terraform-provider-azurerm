@@ -53,7 +53,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resour
 						Chain: []validation.Constraint{{Target: "activityLogAlert.ActivityLogAlert.Condition.AllOf", Name: validation.Null, Rule: true, Chain: nil}}},
 					{Target: "activityLogAlert.ActivityLogAlert.Actions", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "insights.ActivityLogAlertsClient", "CreateOrUpdate")
+		return result, validation.NewError("insights.ActivityLogAlertsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, activityLogAlertName, activityLogAlert)
@@ -91,7 +91,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdatePreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts/{activityLogAlertName}", pathParameters),
@@ -418,7 +418,7 @@ func (client ActivityLogAlertsClient) UpdatePreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/microsoft.insights/activityLogAlerts/{activityLogAlertName}", pathParameters),

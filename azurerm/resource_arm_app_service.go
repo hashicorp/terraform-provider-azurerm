@@ -329,12 +329,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
-	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
-	skipDNSRegistration := false
-	forceDNSRegistration := false
-	skipCustomDomainVerification := true
-	ttlInSeconds := "60"
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -392,16 +387,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			},
 		}
 
-		_, err := client.Update(
-			ctx,
-			resGroup,
-			name,
-			sitePatchResource,
-			nil,
-			nil,
-			nil,
-			"")
-
+		_, err := client.Update(ctx, resGroup, name, sitePatchResource)
 		if err != nil {
 			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", name, err)
 		}
@@ -546,9 +532,8 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	skipDNSRegistration := true
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
@@ -732,7 +717,7 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []in
 	return append(results, result)
 }
 
-func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
+func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
 	input := d.Get("app_settings").(map[string]interface{})
 	output := make(map[string]*string, len(input))
 
@@ -740,10 +725,10 @@ func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
 		output[k] = utils.String(v.(string))
 	}
 
-	return &output
+	return output
 }
 
-func expandAppServiceConnectionStrings(d *schema.ResourceData) *map[string]*web.ConnStringValueTypePair {
+func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").([]interface{})
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -760,13 +745,13 @@ func expandAppServiceConnectionStrings(d *schema.ResourceData) *map[string]*web.
 		}
 	}
 
-	return &output
+	return output
 }
 
-func flattenAppServiceConnectionStrings(input *map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range *input {
+	for k, v := range input {
 		result := make(map[string]interface{}, 0)
 		result["name"] = k
 		result["type"] = string(v.Type)
@@ -777,9 +762,9 @@ func flattenAppServiceConnectionStrings(input *map[string]*web.ConnStringValueTy
 	return results
 }
 
-func flattenAppServiceAppSettings(input *map[string]*string) map[string]string {
+func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	output := make(map[string]string, 0)
-	for k, v := range *input {
+	for k, v := range input {
 		output[k] = *v
 	}
 

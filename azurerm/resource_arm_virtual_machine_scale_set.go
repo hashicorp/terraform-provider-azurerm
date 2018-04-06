@@ -1171,12 +1171,13 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 				e["auto_upgrade_minor_version"] = *properties.AutoUpgradeMinorVersion
 			}
 
-			if properties.Settings != nil {
-				settings, err := structure.FlattenJsonToString(*properties.Settings)
+			if settings := properties.Settings; settings != nil {
+				settingsVal := settings.(map[string]interface{})
+				settingsJson, err := structure.FlattenJsonToString(settingsVal)
 				if err != nil {
 					return nil, err
 				}
-				e["settings"] = settings
+				e["settings"] = settingsJson
 			}
 		}
 

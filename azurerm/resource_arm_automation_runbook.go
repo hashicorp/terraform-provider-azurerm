@@ -118,6 +118,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	resGroup := d.Get("resource_group_name").(string)
 	client.ResourceGroupName = resGroup
 	tags := d.Get("tags").(map[string]interface{})
+	expandedTags := expandTags(tags)
 
 	accName := d.Get("account_name").(string)
 	runbookType := automation.RunbookTypeEnum(d.Get("runbook_type").(string))
@@ -137,7 +138,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		},
 
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     &expandedTags,
 	}
 
 	_, err := client.CreateOrUpdate(ctx, accName, name, parameters)
@@ -195,7 +196,9 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("description", props.Description)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	if tags := resp.Tags; tags != nil {
+		flattenAndSetTags(d, *tags)
+	}
 
 	return nil
 }
