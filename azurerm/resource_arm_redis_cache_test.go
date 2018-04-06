@@ -356,44 +356,6 @@ func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRedisCache_InternalSubnetUpdate(t *testing.T) {
-	resourceName := "azurerm_redis_cache.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-
-	config := testAccAzureRMRedisCache_premium(ri, location)
-	updatedConfig := testAccAzureRMRedisCache_internalSubnet(ri, location)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisCacheExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subnet_id", ""),
-				),
-			},
-			{
-				Config: updatedConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisCacheExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
-				),
-			},
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRedisCacheExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "subnet_id", ""),
-				),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMRedisCacheExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
