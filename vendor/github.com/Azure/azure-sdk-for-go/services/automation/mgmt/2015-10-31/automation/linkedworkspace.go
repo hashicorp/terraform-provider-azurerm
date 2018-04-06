@@ -25,54 +25,54 @@ import (
 	"net/http"
 )
 
-// UsagesClient is the automation Client
-type UsagesClient struct {
+// LinkedWorkspaceClient is the automation Client
+type LinkedWorkspaceClient struct {
 	BaseClient
 }
 
-// NewUsagesClient creates an instance of the UsagesClient client.
-func NewUsagesClient(subscriptionID string) UsagesClient {
-	return NewUsagesClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewLinkedWorkspaceClient creates an instance of the LinkedWorkspaceClient client.
+func NewLinkedWorkspaceClient(subscriptionID string) LinkedWorkspaceClient {
+	return NewLinkedWorkspaceClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewUsagesClientWithBaseURI creates an instance of the UsagesClient client.
-func NewUsagesClientWithBaseURI(baseURI string, subscriptionID string) UsagesClient {
-	return UsagesClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewLinkedWorkspaceClientWithBaseURI creates an instance of the LinkedWorkspaceClient client.
+func NewLinkedWorkspaceClientWithBaseURI(baseURI string, subscriptionID string) LinkedWorkspaceClient {
+	return LinkedWorkspaceClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ListByAutomationAccount retrieve the usage for the account id.
+// Get retrieve the linked workspace for the account id.
 //
 // resourceGroupName is the resource group name. automationAccountName is the automation account name.
-func (client UsagesClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result UsageListResult, err error) {
+func (client LinkedWorkspaceClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string) (result LinkedWorkspace, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("automation.UsagesClient", "ListByAutomationAccount", err.Error())
+		return result, validation.NewError("automation.LinkedWorkspaceClient", "Get", err.Error())
 	}
 
-	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.UsagesClient", "ListByAutomationAccount", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "automation.LinkedWorkspaceClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
-	resp, err := client.ListByAutomationAccountSender(req)
+	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "automation.UsagesClient", "ListByAutomationAccount", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "automation.LinkedWorkspaceClient", "Get", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByAutomationAccountResponder(resp)
+	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.UsagesClient", "ListByAutomationAccount", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "automation.LinkedWorkspaceClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client UsagesClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
+// GetPreparer prepares the Get request.
+func (client LinkedWorkspaceClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
@@ -87,21 +87,21 @@ func (client UsagesClient) ListByAutomationAccountPreparer(ctx context.Context, 
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/usages", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/linkedWorkspace", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// ListByAutomationAccountSender sends the ListByAutomationAccount request. The method will close the
+// GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client UsagesClient) ListByAutomationAccountSender(req *http.Request) (*http.Response, error) {
+func (client LinkedWorkspaceClient) GetSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// ListByAutomationAccountResponder handles the response to the ListByAutomationAccount request. The method always
+// GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client UsagesClient) ListByAutomationAccountResponder(resp *http.Response) (result UsageListResult, err error) {
+func (client LinkedWorkspaceClient) GetResponder(resp *http.Response) (result LinkedWorkspace, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
