@@ -44,6 +44,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "secret_id"),
 				),
 			},
 		},
