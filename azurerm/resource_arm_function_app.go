@@ -198,6 +198,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	siteConfig := expandFunctionAppSiteConfig(d)
@@ -211,6 +212,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			HTTPSOnly:             utils.Bool(httpsOnly),
 			SiteConfig:            &siteConfig,
 		},
 	}
