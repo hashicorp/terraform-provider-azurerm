@@ -12,7 +12,8 @@ IMPROVEMENTS:
 * `azurerm_app_service` - added support for the `https_only` field [GH-1080]
 * `azurerm_app_service_slot` - added support for the `https_only` field [GH-1080]
 * `azurerm_function_app` - added support for the `https_only` field [GH-1080]
-* `azurerm_sql_database`: changes to `collation` force a new resource [GH-1066]
+* `azurerm_key_vault_certificate` - exposing the certificate's associated `secret_id` [GH-1096]
+* `azurerm_sql_database` - changes to `collation` force a new resource [GH-1066]
 
 ## 1.3.2 (April 04, 2018)
 
