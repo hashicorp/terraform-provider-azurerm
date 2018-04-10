@@ -51,7 +51,13 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"configurations": {
 				Optional: true,
-				Type:     schema.TypeString,
+				Type:     schema.TypeMap,
+				Elem: &schema.Schema{
+					Type: schema.TypeMap,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
 			},
 			"connectivity_endpoints": {
 				Optional: true,
@@ -314,7 +320,18 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 		tmpParamOfComponentVersion[tmpParamKeyOfComponentVersion] = parametersPropertiesClusterDefinitionComponentVersion
 	}
 	parameters.Properties.ClusterDefinition.ComponentVersion = &tmpParamOfComponentVersion
-	parameters.Properties.ClusterDefinition.Configurations = utils.String(d.Get("configurations").(string))
+	tmpParamOfConfigurations := make(map[string]interface{})
+	for tmpParamKeyOfConfigurations, tmpParamItemOfConfigurations := range d.Get("configurations").(map[string]interface{}) {
+		tmpParamValueOfConfigurations := tmpParamItemOfConfigurations.(map[string]interface{})
+		tmpParamOfConfigurations1 := make(map[string]*string)
+		for tmpParamKeyOfConfigurations1, tmpParamItemOfConfigurations1 := range tmpParamValueOfConfigurations {
+			parametersPropertiesClusterDefinitionConfigurations := utils.String(tmpParamItemOfConfigurations1.(string))
+			tmpParamOfConfigurations1[tmpParamKeyOfConfigurations1] = parametersPropertiesClusterDefinitionConfigurations
+		}
+		parametersPropertiesClusterDefinitionConfigurations := &tmpParamOfConfigurations1
+		tmpParamOfConfigurations[tmpParamKeyOfConfigurations] = parametersPropertiesClusterDefinitionConfigurations
+	}
+	parameters.Properties.ClusterDefinition.Configurations = &tmpParamOfConfigurations
 	parameters.Properties.SecurityProfile = &hdinsight.SecurityProfile{}
 	parameters.Properties.SecurityProfile.DirectoryType = hdinsight.DirectoryType(d.Get("directory_type").(string))
 	parameters.Properties.SecurityProfile.Domain = utils.String(d.Get("domain").(string))
@@ -428,7 +445,16 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 		tmpRespOfComponentVersion[tmpRespKeyOfComponentVersion] = tmpRespValueOfComponentVersion
 	}
 	d.Set("component_version", tmpRespOfComponentVersion)
-	d.Set("configurations", *response.Properties.ClusterDefinition.Configurations)
+	tmpRespOfConfigurations := make(map[string]interface{})
+	for tmpRespKeyOfConfigurations, tmpRespItemOfConfigurations := range *response.Properties.ClusterDefinition.Configurations {
+		tmpRespOfConfigurations1 := make(map[string]interface{})
+		for tmpRespKeyOfConfigurations1, tmpRespItemOfConfigurations1 := range *tmpRespItemOfConfigurations.(*map[string]*string) {
+			tmpRespValueOfConfigurations1 := *tmpRespItemOfConfigurations1
+			tmpRespOfConfigurations1[tmpRespKeyOfConfigurations1] = tmpRespValueOfConfigurations1
+		}
+		tmpRespOfConfigurations[tmpRespKeyOfConfigurations] = tmpRespOfConfigurations1
+	}
+	d.Set("configurations", tmpRespOfConfigurations)
 	d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
 	d.Set("domain", *response.Properties.SecurityProfile.Domain)
 	d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
@@ -512,22 +538,13 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdInsightClustersClient
-	ctx := meta.(*ArmClient).StopContext
-
 	return nil
 }
 
 func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdInsightClustersClient
-	ctx := meta.(*ArmClient).StopContext
-
 	return nil
 }
 
 func resourceArmHDInsightClustersDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdInsightClustersClient
-	ctx := meta.(*ArmClient).StopContext
-
 	return nil
 }
