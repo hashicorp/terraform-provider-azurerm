@@ -276,7 +276,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("webhook_action", webhook_actions)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	flattenAndSetTags(d, resp.Tags, "$type")
 
 	return nil
 }

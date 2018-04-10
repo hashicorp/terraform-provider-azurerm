@@ -3,6 +3,7 @@ package azurerm
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -44,7 +45,7 @@ func tagValueToString(v interface{}) (string, error) {
 	}
 }
 
-func validateAzureRMTags(v interface{}, k string) (ws []string, es []error) {
+func validateAzureRMTags(v interface{}, f string) (ws []string, es []error) {
 	tagsMap := v.(map[string]interface{})
 
 	if len(tagsMap) > 15 {
@@ -54,6 +55,10 @@ func validateAzureRMTags(v interface{}, k string) (ws []string, es []error) {
 	for k, v := range tagsMap {
 		if len(k) > 512 {
 			es = append(es, fmt.Errorf("the maximum length for a tag key is 512 characters: %q is %d characters", k, len(k)))
+		}
+
+		if strings.EqualFold(k, "$type") {
+			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
 		}
 
 		value, err := tagValueToString(v)
@@ -79,7 +84,7 @@ func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	return output
 }
 
-func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) {
+func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string, skipPropNames ...string) {
 	if tagsMap == nil {
 		d.Set("tags", make(map[string]interface{}))
 		return
@@ -87,9 +92,14 @@ func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) {
 
 	output := make(map[string]interface{}, len(tagsMap))
 
+	// Only first optional parameter will be processed.
+	skipPropName := ""
+	if len(skipPropNames) > 0 && len(skipPropNames[0]) > 0 {
+		skipPropName = skipPropNames[0]
+	}
+
 	for i, v := range tagsMap {
-		// Filter out $type from tags object to avoid unexpected change on plan.
-		if i != "$type" {
+		if !strings.EqualFold(i, skipPropName) {
 			output[i] = *v
 		}
 	}
