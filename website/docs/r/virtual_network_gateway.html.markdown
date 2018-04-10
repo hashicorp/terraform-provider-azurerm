@@ -184,7 +184,7 @@ The `bgp_settings` block supports:
 * `peering_address` - (Optional) The BGP peer IP address of the virtual network
     gateway. This address is needed to configure the created gateway as a BGP Peer
     on the on-premises VPN devices. The IP address must be part of the subnet of
-    the Virtual Network Gateway.
+    the Virtual Network Gateway. Changing this forces a new resource to be created.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.

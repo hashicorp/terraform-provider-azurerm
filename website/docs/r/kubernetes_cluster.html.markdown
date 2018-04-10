@@ -23,26 +23,25 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                   = "acctestaks1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  kubernetes_version     = "1.8.2"
-  dns_prefix             = "acctestagent1"
+  name                = "acctestaks1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestagent1"
 
   linux_profile {
     admin_username = "acctestuser1"
 
     ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+      key_data = "ssh-rsa ..."
     }
   }
 
   agent_pool_profile {
-    name              = "default"
-    count             = 1
-    vm_size           = "Standard_A0"
-    os_type           = "Linux"
-    os_disk_size_gb   = 30
+    name            = "default"
+    count           = 1
+    vm_size         = "Standard_A0"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
   }
 
   service_principal {
@@ -68,7 +67,7 @@ The following arguments are supported:
 
 * `dns_prefix` - (Optional) DNS prefix specified when creating the managed cluster.
 
-* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster.
+* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 * `linux_profile` - (Required) A Linux Profile block as documented below.
 

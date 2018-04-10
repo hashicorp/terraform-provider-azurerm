@@ -27,7 +27,7 @@ output "cdn_profile_id" {
 
 * `name` - (Required) The name of the CDN Profile.
 
-* `resource_group_name` - The name of the resource group in which the CDN Profile exists.
+* `resource_group_name` - (Required) The name of the resource group in which the CDN Profile exists.
 
 ## Attributes Reference
 
@@ -35,4 +35,4 @@ output "cdn_profile_id" {
 
 * `sku` - The pricing related information of current CDN profile.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.

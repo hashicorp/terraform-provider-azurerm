@@ -312,8 +312,6 @@ The `ssl_certificate` block supports:
 
 The `waf_configuration` block supports:
 
-* `name` - (Required) User defined name for a web application firewall.
-
 * `firewall_mode` - (Required) Firewall mode. Valid values are:
 
   * `Detection`
@@ -324,6 +322,8 @@ The `waf_configuration` block supports:
 * `rule_set_version` - (Required) Ruleset version. Supported values:
   * `2.2.9`
   * `3.0`
+
+* `enabled` - (Required) Is the Web Application Firewall enabled?
 
 ## Attributes Reference
 

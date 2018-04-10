@@ -31,13 +31,13 @@ type UsagesClient struct {
 }
 
 // NewUsagesClient creates an instance of the UsagesClient client.
-func NewUsagesClient(subscriptionID string, resourceGroupName string) UsagesClient {
-	return NewUsagesClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
+func NewUsagesClient(subscriptionID string) UsagesClient {
+	return NewUsagesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewUsagesClientWithBaseURI creates an instance of the UsagesClient client.
-func NewUsagesClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) UsagesClient {
-	return UsagesClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
+func NewUsagesClientWithBaseURI(baseURI string, subscriptionID string) UsagesClient {
+	return UsagesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // ListByAutomationAccount retrieve the usage for the account id.
@@ -47,7 +47,7 @@ func (client UsagesClient) ListByAutomationAccount(ctx context.Context, resource
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.UsagesClient", "ListByAutomationAccount")
+		return result, validation.NewError("automation.UsagesClient", "ListByAutomationAccount", err.Error())
 	}
 
 	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName)

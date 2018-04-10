@@ -42,8 +42,8 @@ func NewAutoscaleSettingsClientWithBaseURI(baseURI string, subscriptionID string
 
 // CreateOrUpdate creates or updates an autoscale setting.
 //
-// resourceGroupName is the name of the resource group. autoscaleSettingName is the autoscale setting name. parameters
-// is parameters supplied to the operation.
+// resourceGroupName is the name of the resource group. autoscaleSettingName is the autoscale setting name.
+// parameters is parameters supplied to the operation.
 func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, autoscaleSettingName string, parameters AutoscaleSettingResource) (result AutoscaleSettingResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
@@ -51,7 +51,7 @@ func (client AutoscaleSettingsClient) CreateOrUpdate(ctx context.Context, resour
 				Chain: []validation.Constraint{{Target: "parameters.AutoscaleSetting.Profiles", Name: validation.Null, Rule: true,
 					Chain: []validation.Constraint{{Target: "parameters.AutoscaleSetting.Profiles", Name: validation.MaxItems, Rule: 20, Chain: nil}}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "insights.AutoscaleSettingsClient", "CreateOrUpdate")
+		return result, validation.NewError("insights.AutoscaleSettingsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, autoscaleSettingName, parameters)
@@ -89,7 +89,7 @@ func (client AutoscaleSettingsClient) CreateOrUpdatePreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
@@ -382,7 +382,7 @@ func (client AutoscaleSettingsClient) UpdatePreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/microsoft.insights/autoscalesettings/{autoscaleSettingName}", pathParameters),
