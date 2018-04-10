@@ -27,6 +27,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+					resource.TestCheckNoResourceAttr(resourceName, "$type"),
 				),
 			},
 			{

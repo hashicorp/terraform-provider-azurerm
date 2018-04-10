@@ -25,6 +25,9 @@ func TestAccAzureRMMetricAlertRule_importVirtualMachineCpu(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckNoResourceAttr(resourceName, "$type"),
+				),
 			},
 		},
 	})
