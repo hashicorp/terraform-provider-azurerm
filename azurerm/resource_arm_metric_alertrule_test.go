@@ -34,6 +34,7 @@ func TestAccAzureRMMetricAlertRule_virtualMachineCpu(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
+					resource.TestCheckNoResourceAttr(resourceName, "$type"),
 				),
 			},
 		},
@@ -54,6 +55,7 @@ func TestAccAzureRMMetricAlertRule_sqlDatabaseStorage(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMetricAlertRuleExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "$type"),
 				),
 			},
 		},
