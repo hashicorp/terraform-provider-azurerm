@@ -69,8 +69,9 @@ func resourceArmSqlDatabase() *schema.Resource {
 							Required: true,
 						},
 						"storage_key": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 						"storage_key_type": {
 							Type:     schema.TypeString,
@@ -84,8 +85,9 @@ func resourceArmSqlDatabase() *schema.Resource {
 							Required: true,
 						},
 						"administrator_login_password": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 						"authentication_type": {
 							Type:     schema.TypeString,
@@ -96,7 +98,8 @@ func resourceArmSqlDatabase() *schema.Resource {
 						},
 						"operation_mode": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "Import",
 							ValidateFunc: validation.StringInSlice([]string{
 								"Import",
 							}, true),
@@ -291,7 +294,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("database_import can only be used when create_mode is Default")
 		}
 		importParameters := expandAzureRmSqlDatabaseImport(d)
-		importFuture, err := client.CreateImportOperation(ctx, resourceGroup, serverName, name, "terraform", importParameters)
+		importFuture, err := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
 		if err != nil {
 			return err
 		}

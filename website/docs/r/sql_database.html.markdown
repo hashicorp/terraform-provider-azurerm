@@ -83,7 +83,7 @@ The following arguments are supported:
 * `administrator_login` - (Required) Specifies the name of the SQL administrator.
 * `administrator_login_password` - (Required) Specifies the password of the SQL administrator.
 * `authentication_type` - (Required) Specifies the type of authentication used to access the server. Valid values are `SQL` or `ADPassword`.
-* `operation_mode` - (Required) Specifies the type of import operation being performed. The only allowable value is `Import`.
+* `operation_mode` - (Optional) Specifies the type of import operation being performed. The only allowable value is `Import`.
 
 ## Attributes Reference
 
