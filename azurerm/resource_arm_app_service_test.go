@@ -653,10 +653,10 @@ func TestAccAzureRMAppService_webSockets(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppService_scmType(t *testing.T) {
+func TestAccAzureRMAppService_scmTypeLocalGit(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAppService_scmType(ri, testLocation())
+	config := testAccAzureRMAppService_scmTypeLocalGit(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -668,6 +668,29 @@ func TestAccAzureRMAppService_scmType(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.scm_type", "LocalGit"),
+					resource.TestCheckResourceAttr(resourceName, "source_control.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "site_credential.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_scmTypeGitHub(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_scmTypeGitHub(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.scm_type", "GitHub"),
 					resource.TestCheckResourceAttr(resourceName, "source_control.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "site_credential.#", "1"),
 				),
@@ -1390,7 +1413,7 @@ resource "azurerm_app_service" "test" {
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMAppService_scmType(rInt int, location string) string {
+func testAccAzureRMAppService_scmTypeLocalGit(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1416,6 +1439,37 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     scm_type = "LocalGit"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_scmTypeGitHub(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    scm_type = "GitHub"
   }
 }
 `, rInt, location, rInt, rInt)
