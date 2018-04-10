@@ -33,28 +33,6 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering(t *testing.T) {
-	resourceName := "azurerm_express_route_circuit_peering.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_publicPeering(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMExpressRouteCircuitPeeringExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "peering_type", "AzurePublicPeering"),
-					resource.TestCheckResourceAttr(resourceName, "microsoft_peering_config.#", "0"),
-				),
-			},
-		},
-	})
-}
-
 func testAccAzureRMExpressRouteCircuitPeering_microsoftPeering(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit_peering.test"
 	ri := acctest.RandInt()
@@ -169,45 +147,6 @@ resource "azurerm_express_route_circuit_peering" "test" {
   primary_peer_address_prefix   = "192.168.1.0/30"
   secondary_peer_address_prefix = "192.168.2.0/30"
   vlan_id                       = 100
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMExpressRouteCircuitPeering_publicPeering(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
-  location = "%s"
-}
-
-resource "azurerm_express_route_circuit" "test" {
-  name                  = "acctest-erc-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  service_provider_name = "Equinix"
-  peering_location      = "Silicon Valley"
-  bandwidth_in_mbps     = 50
-
-  sku {
-    tier   = "Standard"
-    family = "MeteredData"
-  }
-
-  tags {
-    Environment = "production"
-    Purpose     = "AcceptanceTests"
-  }
-}
-
-resource "azurerm_express_route_circuit_peering" "test" {
-  peering_type                  = "AzurePublicPeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  shared_key                    = "ABCdefGHIJklm@nOPqrsTU!!"
-  peer_asn                      = 100
-  primary_peer_address_prefix   = "123.0.0.0/30"
-  secondary_peer_address_prefix = "123.0.0.4/30"
-  vlan_id                       = 300
 }
 `, rInt, location, rInt)
 }
