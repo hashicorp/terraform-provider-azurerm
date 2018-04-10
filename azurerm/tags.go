@@ -88,7 +88,10 @@ func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) {
 	output := make(map[string]interface{}, len(tagsMap))
 
 	for i, v := range tagsMap {
-		output[i] = *v
+		// Filter out $type from tags object to avoid unexpected change on plan.
+		if i != "$type" {
+			output[i] = *v
+		}
 	}
 
 	d.Set("tags", output)
