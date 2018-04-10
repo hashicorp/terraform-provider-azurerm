@@ -136,7 +136,7 @@ type ArmClient struct {
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 
 	// HD Insight
-	hdInsightClusterClient hdinsight.ClustersClient
+	hdInsightClustersClient hdinsight.ClustersClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -664,7 +664,7 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 func (c *ArmClient) registerHDInsightClustersClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	hdInsightClustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&hdInsightClustersClient.Client, auth)
-	c.hdInsightClusterClient = hdInsightClustersClient
+	c.hdInsightClustersClient = hdInsightClustersClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
