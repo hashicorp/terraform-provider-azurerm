@@ -58,7 +58,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"database_import": {
+			"import": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -289,9 +289,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	if _, ok := d.GetOk("database_import"); ok {
+	if _, ok := d.GetOk("import"); ok {
 		if !strings.EqualFold(createMode, "default") {
-			return fmt.Errorf("database_import can only be used when create_mode is Default")
+			return fmt.Errorf("import can only be used when create_mode is Default")
 		}
 		importParameters := expandAzureRmSqlDatabaseImport(d)
 		importFuture, err := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
@@ -430,7 +430,7 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 }
 
 func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionRequest {
-	v := d.Get("database_import")
+	v := d.Get("import")
 	dbimportRefs := v.([]interface{})
 	dbimportRef := dbimportRefs[0].(map[string]interface{})
 	return sql.ImportExtensionRequest{

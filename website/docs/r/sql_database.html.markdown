@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) Specifies the type of database to create. Defaults to `Default`. See below for the accepted values/
 
-* `database_import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
+* `import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
 
 * `source_database_id` - (Optional) The URI of the source database if `create_mode` value is not `Default`.
 
@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`database_import` supports the following:
+`import` supports the following:
 
 * `storage_uri` - (Required) Specifies the blob URI of the .bacpac file.
 * `storage_key` - (Required) Specifies the access key for the storage account.
