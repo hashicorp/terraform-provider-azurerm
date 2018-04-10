@@ -444,9 +444,9 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	if profile != nil {
 		if accessProfile := profile.AccessProfile; accessProfile != nil {
 			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
-				config := utils.String(string(*kubeConfigRaw))
-				if kubeConfig, err := kubernetes.ParseKubeConfig(config); err == nil && kubeConfig != nil {
-					return config, flattenKubeConfig(kubeConfig)
+				rawConfig := utils.String(string(*kubeConfigRaw))
+				if kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig); err == nil && kubeConfig != nil {
+					return rawConfig, flattenKubeConfig(kubeConfig)
 				}
 			}
 		}
