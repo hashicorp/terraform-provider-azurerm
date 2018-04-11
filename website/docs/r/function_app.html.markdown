@@ -101,9 +101,11 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
+* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
+
 * `enabled` - (Optional) Is the Function App enabled? Changing this forces a new resource to be created.
 
-* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
+* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
 
