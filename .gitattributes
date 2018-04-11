@@ -5,6 +5,7 @@
 # We'll prevent accidental CRLF line endings from entering the repo
 # via the git-review gofmt checks.
 #
-# See golang.org/issue/9281
+# See golang.org/issue/9281 and an example from Golang:
+# https://github.com/golang/go/blob/master/.gitattributes
 
 * -text
