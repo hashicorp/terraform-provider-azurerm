@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * `azurerm_app_service_slot` - added support for the `https_only` field [GH-1080]
 * `azurerm_function_app` - added support for the `https_only` field [GH-1080]
 * `azurerm_key_vault_certificate` - exposing the certificate's associated `secret_id` [GH-1096]
+* `azurerm_redis_cache` - support for clusters on the internal network [GH-1086]
 * `azurerm_servicebus_queue` - support for setting `requires_session` [GH-1111]
 * `azurerm_sql_database` - changes to `collation` force a new resource [GH-1066]
 
