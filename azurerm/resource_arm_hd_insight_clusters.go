@@ -300,251 +300,895 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	clusterName := d.Get("cluster_name").(string)
 	parameters := hdinsight.ClusterCreateParametersExtended{}
-	parameters.Location = utils.String(d.Get("location").(string))
-	tmpParamOfTags := make(map[string]*string)
-	for tmpParamKeyOfTags, tmpParamItemOfTags := range d.Get("tags").(map[string]interface{}) {
-		parametersTags := utils.String(tmpParamItemOfTags.(string))
-		tmpParamOfTags[tmpParamKeyOfTags] = parametersTags
+	if paramValue, paramExists := d.GetOk("location"); paramExists {
+		parameters.Location = utils.String(paramValue.(string))
 	}
-	parameters.Tags = &tmpParamOfTags
+	if paramValue, paramExists := d.GetOk("tags"); paramExists {
+		tmpParamOfTags := make(map[string]*string)
+		for tmpParamKeyOfTags, tmpParamItemOfTags := range paramValue.(map[string]interface{}) {
+			parametersTags := utils.String(tmpParamItemOfTags.(string))
+			tmpParamOfTags[tmpParamKeyOfTags] = parametersTags
+		}
+		parameters.Tags = &tmpParamOfTags
+	}
 	parameters.Properties = &hdinsight.ClusterCreateProperties{}
-	parameters.Properties.ClusterVersion = utils.String(d.Get("cluster_version").(string))
-	parameters.Properties.OsType = hdinsight.OSType(d.Get("os_type").(string))
-	parameters.Properties.Tier = hdinsight.Tier(d.Get("tier").(string))
+	if paramValue, paramExists := d.GetOk("cluster_version"); paramExists {
+		parameters.Properties.ClusterVersion = utils.String(paramValue.(string))
+	}
+	if paramValue, paramExists := d.GetOk("os_type"); paramExists {
+		parameters.Properties.OsType = hdinsight.OSType(paramValue.(string))
+	}
+	if paramValue, paramExists := d.GetOk("tier"); paramExists {
+		parameters.Properties.Tier = hdinsight.Tier(paramValue.(string))
+	}
 	parameters.Properties.ClusterDefinition = &hdinsight.ClusterDefinition{}
-	parameters.Properties.ClusterDefinition.Blueprint = utils.String(d.Get("blueprint").(string))
-	parameters.Properties.ClusterDefinition.Kind = utils.String(d.Get("kind").(string))
-	tmpParamOfComponentVersion := make(map[string]*string)
-	for tmpParamKeyOfComponentVersion, tmpParamItemOfComponentVersion := range d.Get("component_version").(map[string]interface{}) {
-		parametersPropertiesClusterDefinitionComponentVersion := utils.String(tmpParamItemOfComponentVersion.(string))
-		tmpParamOfComponentVersion[tmpParamKeyOfComponentVersion] = parametersPropertiesClusterDefinitionComponentVersion
+	if paramValue, paramExists := d.GetOk("blueprint"); paramExists {
+		parameters.Properties.ClusterDefinition.Blueprint = utils.String(paramValue.(string))
 	}
-	parameters.Properties.ClusterDefinition.ComponentVersion = &tmpParamOfComponentVersion
-	tmpParamOfConfigurations := make(map[string]interface{})
-	for tmpParamKeyOfConfigurations, tmpParamItemOfConfigurations := range d.Get("configurations").(map[string]interface{}) {
-		tmpParamValueOfConfigurations := tmpParamItemOfConfigurations.(map[string]interface{})
-		tmpParamOfConfigurations1 := make(map[string]*string)
-		for tmpParamKeyOfConfigurations1, tmpParamItemOfConfigurations1 := range tmpParamValueOfConfigurations {
-			parametersPropertiesClusterDefinitionConfigurations := utils.String(tmpParamItemOfConfigurations1.(string))
-			tmpParamOfConfigurations1[tmpParamKeyOfConfigurations1] = parametersPropertiesClusterDefinitionConfigurations
+	if paramValue, paramExists := d.GetOk("kind"); paramExists {
+		parameters.Properties.ClusterDefinition.Kind = utils.String(paramValue.(string))
+	}
+	if paramValue, paramExists := d.GetOk("component_version"); paramExists {
+		tmpParamOfComponentVersion := make(map[string]*string)
+		for tmpParamKeyOfComponentVersion, tmpParamItemOfComponentVersion := range paramValue.(map[string]interface{}) {
+			parametersPropertiesClusterDefinitionComponentVersion := utils.String(tmpParamItemOfComponentVersion.(string))
+			tmpParamOfComponentVersion[tmpParamKeyOfComponentVersion] = parametersPropertiesClusterDefinitionComponentVersion
 		}
-		parametersPropertiesClusterDefinitionConfigurations := &tmpParamOfConfigurations1
-		tmpParamOfConfigurations[tmpParamKeyOfConfigurations] = parametersPropertiesClusterDefinitionConfigurations
+		parameters.Properties.ClusterDefinition.ComponentVersion = &tmpParamOfComponentVersion
 	}
-	parameters.Properties.ClusterDefinition.Configurations = &tmpParamOfConfigurations
+	if paramValue, paramExists := d.GetOk("configurations"); paramExists {
+		tmpParamOfConfigurations := make(map[string]interface{})
+		for tmpParamKeyOfConfigurations, tmpParamItemOfConfigurations := range paramValue.(map[string]interface{}) {
+			tmpParamValueOfConfigurations := tmpParamItemOfConfigurations.(map[string]interface{})
+			tmpParamOfConfigurations1 := make(map[string]*string)
+			for tmpParamKeyOfConfigurations1, tmpParamItemOfConfigurations1 := range tmpParamValueOfConfigurations {
+				parametersPropertiesClusterDefinitionConfigurations := utils.String(tmpParamItemOfConfigurations1.(string))
+				tmpParamOfConfigurations1[tmpParamKeyOfConfigurations1] = parametersPropertiesClusterDefinitionConfigurations
+			}
+			parametersPropertiesClusterDefinitionConfigurations := &tmpParamOfConfigurations1
+			tmpParamOfConfigurations[tmpParamKeyOfConfigurations] = parametersPropertiesClusterDefinitionConfigurations
+		}
+		parameters.Properties.ClusterDefinition.Configurations = &tmpParamOfConfigurations
+	}
 	parameters.Properties.SecurityProfile = &hdinsight.SecurityProfile{}
-	parameters.Properties.SecurityProfile.DirectoryType = hdinsight.DirectoryType(d.Get("directory_type").(string))
-	parameters.Properties.SecurityProfile.Domain = utils.String(d.Get("domain").(string))
-	parameters.Properties.SecurityProfile.OrganizationalUnitDN = utils.String(d.Get("organizational_unit_dn").(string))
-	tmpParamOfLdapsUrls := make([]string, 0)
-	for _, tmpParamItemOfLdapsUrls := range d.Get("ldaps_urls").([]interface{}) {
-		parametersPropertiesSecurityProfileLdapsUrls := utils.String(tmpParamItemOfLdapsUrls.(string))
-		tmpParamOfLdapsUrls = append(tmpParamOfLdapsUrls, *parametersPropertiesSecurityProfileLdapsUrls)
+	if paramValue, paramExists := d.GetOk("directory_type"); paramExists {
+		parameters.Properties.SecurityProfile.DirectoryType = hdinsight.DirectoryType(paramValue.(string))
 	}
-	parameters.Properties.SecurityProfile.LdapsUrls = &tmpParamOfLdapsUrls
-	parameters.Properties.SecurityProfile.DomainUsername = utils.String(d.Get("domain_username").(string))
-	parameters.Properties.SecurityProfile.DomainUserPassword = utils.String(d.Get("domain_user_password").(string))
-	tmpParamOfClusterUsersGroupDns := make([]string, 0)
-	for _, tmpParamItemOfClusterUsersGroupDns := range d.Get("cluster_users_group_dns").([]interface{}) {
-		parametersPropertiesSecurityProfileClusterUsersGroupDNS := utils.String(tmpParamItemOfClusterUsersGroupDns.(string))
-		tmpParamOfClusterUsersGroupDns = append(tmpParamOfClusterUsersGroupDns, *parametersPropertiesSecurityProfileClusterUsersGroupDNS)
+	if paramValue, paramExists := d.GetOk("domain"); paramExists {
+		parameters.Properties.SecurityProfile.Domain = utils.String(paramValue.(string))
 	}
-	parameters.Properties.SecurityProfile.ClusterUsersGroupDNS = &tmpParamOfClusterUsersGroupDns
+	if paramValue, paramExists := d.GetOk("organizational_unit_dn"); paramExists {
+		parameters.Properties.SecurityProfile.OrganizationalUnitDN = utils.String(paramValue.(string))
+	}
+	if paramValue, paramExists := d.GetOk("ldaps_urls"); paramExists {
+		tmpParamOfLdapsUrls := make([]string, 0)
+		for _, tmpParamItemOfLdapsUrls := range paramValue.([]interface{}) {
+			parametersPropertiesSecurityProfileLdapsUrls := utils.String(tmpParamItemOfLdapsUrls.(string))
+			tmpParamOfLdapsUrls = append(tmpParamOfLdapsUrls, *parametersPropertiesSecurityProfileLdapsUrls)
+		}
+		parameters.Properties.SecurityProfile.LdapsUrls = &tmpParamOfLdapsUrls
+	}
+	if paramValue, paramExists := d.GetOk("domain_username"); paramExists {
+		parameters.Properties.SecurityProfile.DomainUsername = utils.String(paramValue.(string))
+	}
+	if paramValue, paramExists := d.GetOk("domain_user_password"); paramExists {
+		parameters.Properties.SecurityProfile.DomainUserPassword = utils.String(paramValue.(string))
+	}
+	if paramValue, paramExists := d.GetOk("cluster_users_group_dns"); paramExists {
+		tmpParamOfClusterUsersGroupDns := make([]string, 0)
+		for _, tmpParamItemOfClusterUsersGroupDns := range paramValue.([]interface{}) {
+			parametersPropertiesSecurityProfileClusterUsersGroupDNS := utils.String(tmpParamItemOfClusterUsersGroupDns.(string))
+			tmpParamOfClusterUsersGroupDns = append(tmpParamOfClusterUsersGroupDns, *parametersPropertiesSecurityProfileClusterUsersGroupDNS)
+		}
+		parameters.Properties.SecurityProfile.ClusterUsersGroupDNS = &tmpParamOfClusterUsersGroupDns
+	}
 	parameters.Properties.ComputeProfile = &hdinsight.ComputeProfile{}
-	tmpParamOfRoles := make([]hdinsight.Role, 0)
-	for _, tmpParamItemOfRoles := range d.Get("roles").([]interface{}) {
-		tmpParamValueOfRoles := tmpParamItemOfRoles.(map[string]interface{})
-		parametersPropertiesComputeProfileRoles := &hdinsight.Role{}
-		parametersPropertiesComputeProfileRoles.Name = utils.String(tmpParamValueOfRoles["name"].(string))
-		parametersPropertiesComputeProfileRoles.MinInstanceCount = utils.Int32(tmpParamValueOfRoles["min_instance_count"].(int32))
-		parametersPropertiesComputeProfileRoles.TargetInstanceCount = utils.Int32(tmpParamValueOfRoles["target_instance_count"].(int32))
-		parametersPropertiesComputeProfileRoles.HardwareProfile = &hdinsight.HardwareProfile{}
-		parametersPropertiesComputeProfileRoles.HardwareProfile.VMSize = utils.String(tmpParamValueOfRoles["vm_size"].(string))
-		parametersPropertiesComputeProfileRoles.OsProfile = &hdinsight.OsProfile{}
-		parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile = &hdinsight.LinuxOperatingSystemProfile{}
-		parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(tmpParamValueOfRoles["username"].(string))
-		parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(tmpParamValueOfRoles["password"].(string))
-		parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{}
-		tmpParamOfRolespublicKeys := make([]hdinsight.SSHPublicKey, 0)
-		for _, tmpParamItemOfRolespublicKeys := range tmpParamValueOfRoles["public_keys"].([]interface{}) {
-			tmpParamValueOfRolespublicKeys := tmpParamItemOfRolespublicKeys.(map[string]interface{})
-			parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys := &hdinsight.SSHPublicKey{}
-			parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys.CertificateData = utils.String(tmpParamValueOfRolespublicKeys["certificate_data"].(string))
-			tmpParamOfRolespublicKeys = append(tmpParamOfRolespublicKeys, *parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys)
+	if paramValue, paramExists := d.GetOk("roles"); paramExists {
+		tmpParamOfRoles := make([]hdinsight.Role, 0)
+		for _, tmpParamItemOfRoles := range paramValue.([]interface{}) {
+			tmpParamValueOfRoles := tmpParamItemOfRoles.(map[string]interface{})
+			parametersPropertiesComputeProfileRoles := &hdinsight.Role{}
+			if paramValue, paramExists := tmpParamValueOfRoles["name"]; paramExists {
+				parametersPropertiesComputeProfileRoles.Name = utils.String(paramValue.(string))
+			}
+			if paramValue, paramExists := tmpParamValueOfRoles["min_instance_count"]; paramExists {
+				parametersPropertiesComputeProfileRoles.MinInstanceCount = utils.Int32(paramValue.(int32))
+			}
+			if paramValue, paramExists := tmpParamValueOfRoles["target_instance_count"]; paramExists {
+				parametersPropertiesComputeProfileRoles.TargetInstanceCount = utils.Int32(paramValue.(int32))
+			}
+			parametersPropertiesComputeProfileRoles.HardwareProfile = &hdinsight.HardwareProfile{}
+			if paramValue, paramExists := tmpParamValueOfRoles["vm_size"]; paramExists {
+				parametersPropertiesComputeProfileRoles.HardwareProfile.VMSize = utils.String(paramValue.(string))
+			}
+			parametersPropertiesComputeProfileRoles.OsProfile = &hdinsight.OsProfile{}
+			parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile = &hdinsight.LinuxOperatingSystemProfile{}
+			if paramValue, paramExists := tmpParamValueOfRoles["username"]; paramExists {
+				parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(paramValue.(string))
+			}
+			if paramValue, paramExists := tmpParamValueOfRoles["password"]; paramExists {
+				parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(paramValue.(string))
+			}
+			parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{}
+			if paramValue, paramExists := tmpParamValueOfRoles["public_keys"]; paramExists {
+				tmpParamOfRolespublicKeys := make([]hdinsight.SSHPublicKey, 0)
+				for _, tmpParamItemOfRolespublicKeys := range paramValue.([]interface{}) {
+					tmpParamValueOfRolespublicKeys := tmpParamItemOfRolespublicKeys.(map[string]interface{})
+					parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys := &hdinsight.SSHPublicKey{}
+					if paramValue, paramExists := tmpParamValueOfRolespublicKeys["certificate_data"]; paramExists {
+						parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys.CertificateData = utils.String(paramValue.(string))
+					}
+					tmpParamOfRolespublicKeys = append(tmpParamOfRolespublicKeys, *parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys)
+				}
+				parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys = &tmpParamOfRolespublicKeys
+			}
+			parametersPropertiesComputeProfileRoles.VirtualNetworkProfile = &hdinsight.VirtualNetworkProfile{}
+			if paramValue, paramExists := tmpParamValueOfRoles["id"]; paramExists {
+				parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.ID = utils.String(paramValue.(string))
+			}
+			if paramValue, paramExists := tmpParamValueOfRoles["subnet"]; paramExists {
+				parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.Subnet = utils.String(paramValue.(string))
+			}
+			if paramValue, paramExists := tmpParamValueOfRoles["data_disks_groups"]; paramExists {
+				tmpParamOfRolesdataDisksGroups := make([]hdinsight.DataDisksGroups, 0)
+				for _, tmpParamItemOfRolesdataDisksGroups := range paramValue.([]interface{}) {
+					tmpParamValueOfRolesdataDisksGroups := tmpParamItemOfRolesdataDisksGroups.(map[string]interface{})
+					parametersPropertiesComputeProfileRolesDataDisksGroups := &hdinsight.DataDisksGroups{}
+					if paramValue, paramExists := tmpParamValueOfRolesdataDisksGroups["disks_per_node"]; paramExists {
+						parametersPropertiesComputeProfileRolesDataDisksGroups.DisksPerNode = utils.Int32(paramValue.(int32))
+					}
+					if paramValue, paramExists := tmpParamValueOfRolesdataDisksGroups["storage_account_type"]; paramExists {
+						parametersPropertiesComputeProfileRolesDataDisksGroups.StorageAccountType = utils.String(paramValue.(string))
+					}
+					if paramValue, paramExists := tmpParamValueOfRolesdataDisksGroups["disk_size_gb"]; paramExists {
+						parametersPropertiesComputeProfileRolesDataDisksGroups.DiskSizeGB = utils.Int32(paramValue.(int32))
+					}
+					tmpParamOfRolesdataDisksGroups = append(tmpParamOfRolesdataDisksGroups, *parametersPropertiesComputeProfileRolesDataDisksGroups)
+				}
+				parametersPropertiesComputeProfileRoles.DataDisksGroups = &tmpParamOfRolesdataDisksGroups
+			}
+			if paramValue, paramExists := tmpParamValueOfRoles["script_actions"]; paramExists {
+				tmpParamOfRolesscriptActions := make([]hdinsight.ScriptAction, 0)
+				for _, tmpParamItemOfRolesscriptActions := range paramValue.([]interface{}) {
+					tmpParamValueOfRolesscriptActions := tmpParamItemOfRolesscriptActions.(map[string]interface{})
+					parametersPropertiesComputeProfileRolesScriptActions := &hdinsight.ScriptAction{}
+					parametersPropertiesComputeProfileRolesScriptActions.Name = utils.String(tmpParamValueOfRolesscriptActions["name"].(string))
+					parametersPropertiesComputeProfileRolesScriptActions.URI = utils.String(tmpParamValueOfRolesscriptActions["uri"].(string))
+					parametersPropertiesComputeProfileRolesScriptActions.Parameters = utils.String(tmpParamValueOfRolesscriptActions["parameters"].(string))
+					tmpParamOfRolesscriptActions = append(tmpParamOfRolesscriptActions, *parametersPropertiesComputeProfileRolesScriptActions)
+				}
+				parametersPropertiesComputeProfileRoles.ScriptActions = &tmpParamOfRolesscriptActions
+			}
+			tmpParamOfRoles = append(tmpParamOfRoles, *parametersPropertiesComputeProfileRoles)
 		}
-		parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys = &tmpParamOfRolespublicKeys
-		parametersPropertiesComputeProfileRoles.VirtualNetworkProfile = &hdinsight.VirtualNetworkProfile{}
-		parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.ID = utils.String(tmpParamValueOfRoles["id"].(string))
-		parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.Subnet = utils.String(tmpParamValueOfRoles["subnet"].(string))
-		tmpParamOfRolesdataDisksGroups := make([]hdinsight.DataDisksGroups, 0)
-		for _, tmpParamItemOfRolesdataDisksGroups := range tmpParamValueOfRoles["data_disks_groups"].([]interface{}) {
-			tmpParamValueOfRolesdataDisksGroups := tmpParamItemOfRolesdataDisksGroups.(map[string]interface{})
-			parametersPropertiesComputeProfileRolesDataDisksGroups := &hdinsight.DataDisksGroups{}
-			parametersPropertiesComputeProfileRolesDataDisksGroups.DisksPerNode = utils.Int32(tmpParamValueOfRolesdataDisksGroups["disks_per_node"].(int32))
-			parametersPropertiesComputeProfileRolesDataDisksGroups.StorageAccountType = utils.String(tmpParamValueOfRolesdataDisksGroups["storage_account_type"].(string))
-			parametersPropertiesComputeProfileRolesDataDisksGroups.DiskSizeGB = utils.Int32(tmpParamValueOfRolesdataDisksGroups["disk_size_gb"].(int32))
-			tmpParamOfRolesdataDisksGroups = append(tmpParamOfRolesdataDisksGroups, *parametersPropertiesComputeProfileRolesDataDisksGroups)
-		}
-		parametersPropertiesComputeProfileRoles.DataDisksGroups = &tmpParamOfRolesdataDisksGroups
-		tmpParamOfRolesscriptActions := make([]hdinsight.ScriptAction, 0)
-		for _, tmpParamItemOfRolesscriptActions := range tmpParamValueOfRoles["script_actions"].([]interface{}) {
-			tmpParamValueOfRolesscriptActions := tmpParamItemOfRolesscriptActions.(map[string]interface{})
-			parametersPropertiesComputeProfileRolesScriptActions := &hdinsight.ScriptAction{}
-			parametersPropertiesComputeProfileRolesScriptActions.Name = utils.String(tmpParamValueOfRolesscriptActions["name"].(string))
-			parametersPropertiesComputeProfileRolesScriptActions.URI = utils.String(tmpParamValueOfRolesscriptActions["uri"].(string))
-			parametersPropertiesComputeProfileRolesScriptActions.Parameters = utils.String(tmpParamValueOfRolesscriptActions["parameters"].(string))
-			tmpParamOfRolesscriptActions = append(tmpParamOfRolesscriptActions, *parametersPropertiesComputeProfileRolesScriptActions)
-		}
-		parametersPropertiesComputeProfileRoles.ScriptActions = &tmpParamOfRolesscriptActions
-		tmpParamOfRoles = append(tmpParamOfRoles, *parametersPropertiesComputeProfileRoles)
+		parameters.Properties.ComputeProfile.Roles = &tmpParamOfRoles
 	}
-	parameters.Properties.ComputeProfile.Roles = &tmpParamOfRoles
 	parameters.Properties.StorageProfile = &hdinsight.StorageProfile{}
-	tmpParamOfStorageaccounts := make([]hdinsight.StorageAccount, 0)
-	for _, tmpParamItemOfStorageaccounts := range d.Get("storageaccounts").([]interface{}) {
-		tmpParamValueOfStorageaccounts := tmpParamItemOfStorageaccounts.(map[string]interface{})
-		parametersPropertiesStorageProfileStorageaccounts := &hdinsight.StorageAccount{}
-		parametersPropertiesStorageProfileStorageaccounts.Name = utils.String(tmpParamValueOfStorageaccounts["name"].(string))
-		parametersPropertiesStorageProfileStorageaccounts.IsDefault = utils.Bool(tmpParamValueOfStorageaccounts["is_default"].(bool))
-		parametersPropertiesStorageProfileStorageaccounts.Container = utils.String(tmpParamValueOfStorageaccounts["container"].(string))
-		parametersPropertiesStorageProfileStorageaccounts.Key = utils.String(tmpParamValueOfStorageaccounts["key"].(string))
-		tmpParamOfStorageaccounts = append(tmpParamOfStorageaccounts, *parametersPropertiesStorageProfileStorageaccounts)
+	if paramValue, paramExists := d.GetOk("storageaccounts"); paramExists {
+		tmpParamOfStorageaccounts := make([]hdinsight.StorageAccount, 0)
+		for _, tmpParamItemOfStorageaccounts := range paramValue.([]interface{}) {
+			tmpParamValueOfStorageaccounts := tmpParamItemOfStorageaccounts.(map[string]interface{})
+			parametersPropertiesStorageProfileStorageaccounts := &hdinsight.StorageAccount{}
+			if paramValue, paramExists := tmpParamValueOfStorageaccounts["name"]; paramExists {
+				parametersPropertiesStorageProfileStorageaccounts.Name = utils.String(paramValue.(string))
+			}
+			if paramValue, paramExists := tmpParamValueOfStorageaccounts["is_default"]; paramExists {
+				parametersPropertiesStorageProfileStorageaccounts.IsDefault = utils.Bool(paramValue.(bool))
+			}
+			if paramValue, paramExists := tmpParamValueOfStorageaccounts["container"]; paramExists {
+				parametersPropertiesStorageProfileStorageaccounts.Container = utils.String(paramValue.(string))
+			}
+			if paramValue, paramExists := tmpParamValueOfStorageaccounts["key"]; paramExists {
+				parametersPropertiesStorageProfileStorageaccounts.Key = utils.String(paramValue.(string))
+			}
+			tmpParamOfStorageaccounts = append(tmpParamOfStorageaccounts, *parametersPropertiesStorageProfileStorageaccounts)
+		}
+		parameters.Properties.StorageProfile.Storageaccounts = &tmpParamOfStorageaccounts
 	}
-	parameters.Properties.StorageProfile.Storageaccounts = &tmpParamOfStorageaccounts
 
 	future, err := client.Create(ctx, resourceGroupName, clusterName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating HD Insight Clusters: %+v", err)
+		return fmt.Errorf("HD Insight Clusters creation error: %+v", err)
 	}
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error creating HD Insight Clusters: %+v", err)
+		return fmt.Errorf("HD Insight Clusters creation future wait for completion error: %+v", err)
 	}
 	response, err := future.Result(client)
 	if err != nil {
-		return fmt.Errorf("Error creating HD Insight Clusters: %+v", err)
+		return fmt.Errorf("HD Insight Clusters creation future result error: %+v", err)
 	}
 
-	d.Set("name", *response.Name)
-	d.Set("type", *response.Type)
-	d.Set("location", *response.Location)
-	tmpRespOfTags := make(map[string]interface{})
-	for tmpRespKeyOfTags, tmpRespItemOfTags := range *response.Tags {
-		tmpRespValueOfTags := *tmpRespItemOfTags
-		tmpRespOfTags[tmpRespKeyOfTags] = tmpRespValueOfTags
+	if response.Name != nil {
+		d.Set("name", *response.Name)
 	}
-	d.Set("tags", tmpRespOfTags)
-	d.Set("cluster_version", *response.Properties.ClusterVersion)
-	d.Set("os_type", response.Properties.OsType)
-	d.Set("tier", response.Properties.Tier)
-	d.Set("blueprint", *response.Properties.ClusterDefinition.Blueprint)
-	d.Set("kind", *response.Properties.ClusterDefinition.Kind)
-	tmpRespOfComponentVersion := make(map[string]interface{})
-	for tmpRespKeyOfComponentVersion, tmpRespItemOfComponentVersion := range *response.Properties.ClusterDefinition.ComponentVersion {
-		tmpRespValueOfComponentVersion := *tmpRespItemOfComponentVersion
-		tmpRespOfComponentVersion[tmpRespKeyOfComponentVersion] = tmpRespValueOfComponentVersion
+	if response.Type != nil {
+		d.Set("type", *response.Type)
 	}
-	d.Set("component_version", tmpRespOfComponentVersion)
-	tmpRespOfConfigurations := make(map[string]interface{})
-	for tmpRespKeyOfConfigurations, tmpRespItemOfConfigurations := range *response.Properties.ClusterDefinition.Configurations {
-		tmpRespOfConfigurations1 := make(map[string]interface{})
-		for tmpRespKeyOfConfigurations1, tmpRespItemOfConfigurations1 := range *tmpRespItemOfConfigurations.(*map[string]*string) {
-			tmpRespValueOfConfigurations1 := *tmpRespItemOfConfigurations1
-			tmpRespOfConfigurations1[tmpRespKeyOfConfigurations1] = tmpRespValueOfConfigurations1
+	if response.Location != nil {
+		d.Set("location", *response.Location)
+	}
+	if response.Tags != nil {
+		tmpRespOfTags := make(map[string]interface{})
+		for tmpRespKeyOfTags, tmpRespItemOfTags := range *response.Tags {
+			tmpRespValueOfTags := *tmpRespItemOfTags
+			tmpRespOfTags[tmpRespKeyOfTags] = tmpRespValueOfTags
 		}
-		tmpRespOfConfigurations[tmpRespKeyOfConfigurations] = tmpRespOfConfigurations1
+		d.Set("tags", tmpRespOfTags)
 	}
-	d.Set("configurations", tmpRespOfConfigurations)
-	d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
-	d.Set("domain", *response.Properties.SecurityProfile.Domain)
-	d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
-	tmpRespOfLdapsUrls := make([]interface{}, 0)
-	for _, tmpRespItemOfLdapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
-		tmpRespValueOfLdapsUrls := tmpRespItemOfLdapsUrls
-		tmpRespOfLdapsUrls = append(tmpRespOfLdapsUrls, tmpRespValueOfLdapsUrls)
-	}
-	d.Set("ldaps_urls", tmpRespOfLdapsUrls)
-	d.Set("domain_username", *response.Properties.SecurityProfile.DomainUsername)
-	d.Set("domain_user_password", *response.Properties.SecurityProfile.DomainUserPassword)
-	tmpRespOfClusterUsersGroupDns := make([]interface{}, 0)
-	for _, tmpRespItemOfClusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
-		tmpRespValueOfClusterUsersGroupDns := tmpRespItemOfClusterUsersGroupDns
-		tmpRespOfClusterUsersGroupDns = append(tmpRespOfClusterUsersGroupDns, tmpRespValueOfClusterUsersGroupDns)
-	}
-	d.Set("cluster_users_group_dns", tmpRespOfClusterUsersGroupDns)
-	tmpRespOfRoles := make([]interface{}, 0)
-	for _, tmpRespItemOfRoles := range *response.Properties.ComputeProfile.Roles {
-		tmpRespValueOfRoles := make(map[string]interface{})
-		tmpRespValueOfRoles["name"] = *tmpRespItemOfRoles.Name
-		tmpRespValueOfRoles["min_instance_count"] = *tmpRespItemOfRoles.MinInstanceCount
-		tmpRespValueOfRoles["target_instance_count"] = *tmpRespItemOfRoles.TargetInstanceCount
-		tmpRespValueOfRoles["vm_size"] = *tmpRespItemOfRoles.HardwareProfile.VMSize
-		tmpRespValueOfRoles["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
-		tmpRespValueOfRoles["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
-		tmpRespOfRolespublicKeys := make([]interface{}, 0)
-		for _, tmpRespItemOfRolespublicKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
-			tmpRespValueOfRolespublicKeys := make(map[string]interface{})
-			tmpRespValueOfRolespublicKeys["certificate_data"] = *tmpRespItemOfRolespublicKeys.CertificateData
-			tmpRespOfRolespublicKeys = append(tmpRespOfRolespublicKeys, tmpRespValueOfRolespublicKeys)
+	if response.Properties != nil {
+		if response.Properties.ClusterVersion != nil {
+			d.Set("cluster_version", *response.Properties.ClusterVersion)
 		}
-		tmpRespValueOfRoles["public_keys"] = tmpRespOfRolespublicKeys
-		tmpRespValueOfRoles["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
-		tmpRespValueOfRoles["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
-		tmpRespOfRolesdataDisksGroups := make([]interface{}, 0)
-		for _, tmpRespItemOfRolesdataDisksGroups := range *tmpRespItemOfRoles.DataDisksGroups {
-			tmpRespValueOfRolesdataDisksGroups := make(map[string]interface{})
-			tmpRespValueOfRolesdataDisksGroups["disks_per_node"] = *tmpRespItemOfRolesdataDisksGroups.DisksPerNode
-			tmpRespValueOfRolesdataDisksGroups["storage_account_type"] = *tmpRespItemOfRolesdataDisksGroups.StorageAccountType
-			tmpRespValueOfRolesdataDisksGroups["disk_size_gb"] = *tmpRespItemOfRolesdataDisksGroups.DiskSizeGB
-			tmpRespOfRolesdataDisksGroups = append(tmpRespOfRolesdataDisksGroups, tmpRespValueOfRolesdataDisksGroups)
+		d.Set("os_type", response.Properties.OsType)
+		d.Set("tier", response.Properties.Tier)
+		if response.Properties.ClusterDefinition.Blueprint != nil {
+			d.Set("blueprint", *response.Properties.ClusterDefinition.Blueprint)
 		}
-		tmpRespValueOfRoles["data_disks_groups"] = tmpRespOfRolesdataDisksGroups
-		tmpRespOfRolesscriptActions := make([]interface{}, 0)
-		for _, tmpRespItemOfRolesscriptActions := range *tmpRespItemOfRoles.ScriptActions {
-			tmpRespValueOfRolesscriptActions := make(map[string]interface{})
-			tmpRespValueOfRolesscriptActions["name"] = *tmpRespItemOfRolesscriptActions.Name
-			tmpRespValueOfRolesscriptActions["uri"] = *tmpRespItemOfRolesscriptActions.URI
-			tmpRespValueOfRolesscriptActions["parameters"] = *tmpRespItemOfRolesscriptActions.Parameters
-			tmpRespOfRolesscriptActions = append(tmpRespOfRolesscriptActions, tmpRespValueOfRolesscriptActions)
+		if response.Properties.ClusterDefinition.Kind != nil {
+			d.Set("kind", *response.Properties.ClusterDefinition.Kind)
 		}
-		tmpRespValueOfRoles["script_actions"] = tmpRespOfRolesscriptActions
-		tmpRespOfRoles = append(tmpRespOfRoles, tmpRespValueOfRoles)
+		if response.Properties.ClusterDefinition.ComponentVersion != nil {
+			tmpRespOfComponentVersion := make(map[string]interface{})
+			for tmpRespKeyOfComponentVersion, tmpRespItemOfComponentVersion := range *response.Properties.ClusterDefinition.ComponentVersion {
+				tmpRespValueOfComponentVersion := *tmpRespItemOfComponentVersion
+				tmpRespOfComponentVersion[tmpRespKeyOfComponentVersion] = tmpRespValueOfComponentVersion
+			}
+			d.Set("component_version", tmpRespOfComponentVersion)
+		}
+		if response.Properties.ClusterDefinition.Configurations != nil {
+			tmpRespOfConfigurations := make(map[string]interface{})
+			for tmpRespKeyOfConfigurations, tmpRespItemOfConfigurations := range *response.Properties.ClusterDefinition.Configurations {
+				tmpRespOfConfigurations1 := make(map[string]interface{})
+				for tmpRespKeyOfConfigurations1, tmpRespItemOfConfigurations1 := range *tmpRespItemOfConfigurations.(*map[string]*string) {
+					tmpRespValueOfConfigurations1 := *tmpRespItemOfConfigurations1
+					tmpRespOfConfigurations1[tmpRespKeyOfConfigurations1] = tmpRespValueOfConfigurations1
+				}
+				tmpRespOfConfigurations[tmpRespKeyOfConfigurations] = tmpRespOfConfigurations1
+			}
+			d.Set("configurations", tmpRespOfConfigurations)
+		}
+		if response.Properties.SecurityProfile != nil {
+			d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
+			if response.Properties.SecurityProfile.Domain != nil {
+				d.Set("domain", *response.Properties.SecurityProfile.Domain)
+			}
+			if response.Properties.SecurityProfile.OrganizationalUnitDN != nil {
+				d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
+			}
+			if response.Properties.SecurityProfile.LdapsUrls != nil && len(*response.Properties.SecurityProfile.LdapsUrls) > 0 {
+				tmpRespOfLdapsUrls := make([]interface{}, 0)
+				for _, tmpRespItemOfLdapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
+					tmpRespValueOfLdapsUrls := tmpRespItemOfLdapsUrls
+					tmpRespOfLdapsUrls = append(tmpRespOfLdapsUrls, tmpRespValueOfLdapsUrls)
+				}
+				d.Set("ldaps_urls", tmpRespOfLdapsUrls)
+			}
+			if response.Properties.SecurityProfile.DomainUsername != nil {
+				d.Set("domain_username", *response.Properties.SecurityProfile.DomainUsername)
+			}
+			if response.Properties.SecurityProfile.DomainUserPassword != nil {
+				d.Set("domain_user_password", *response.Properties.SecurityProfile.DomainUserPassword)
+			}
+			if response.Properties.SecurityProfile.ClusterUsersGroupDNS != nil && len(*response.Properties.SecurityProfile.ClusterUsersGroupDNS) > 0 {
+				tmpRespOfClusterUsersGroupDns := make([]interface{}, 0)
+				for _, tmpRespItemOfClusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
+					tmpRespValueOfClusterUsersGroupDns := tmpRespItemOfClusterUsersGroupDns
+					tmpRespOfClusterUsersGroupDns = append(tmpRespOfClusterUsersGroupDns, tmpRespValueOfClusterUsersGroupDns)
+				}
+				d.Set("cluster_users_group_dns", tmpRespOfClusterUsersGroupDns)
+			}
+		}
+		if response.Properties.ComputeProfile != nil {
+			if response.Properties.ComputeProfile.Roles != nil && len(*response.Properties.ComputeProfile.Roles) > 0 {
+				tmpRespOfRoles := make([]interface{}, 0)
+				for _, tmpRespItemOfRoles := range *response.Properties.ComputeProfile.Roles {
+					tmpRespValueOfRoles := make(map[string]interface{})
+					if tmpRespItemOfRoles.Name != nil {
+						tmpRespValueOfRoles["name"] = *tmpRespItemOfRoles.Name
+					}
+					if tmpRespItemOfRoles.MinInstanceCount != nil {
+						tmpRespValueOfRoles["min_instance_count"] = *tmpRespItemOfRoles.MinInstanceCount
+					}
+					if tmpRespItemOfRoles.TargetInstanceCount != nil {
+						tmpRespValueOfRoles["target_instance_count"] = *tmpRespItemOfRoles.TargetInstanceCount
+					}
+					if tmpRespItemOfRoles.HardwareProfile != nil {
+						if tmpRespItemOfRoles.HardwareProfile.VMSize != nil {
+							tmpRespValueOfRoles["vm_size"] = *tmpRespItemOfRoles.HardwareProfile.VMSize
+						}
+					}
+					if tmpRespItemOfRoles.OsProfile != nil {
+						if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile != nil {
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username != nil {
+								tmpRespValueOfRoles["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
+							}
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password != nil {
+								tmpRespValueOfRoles["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
+							}
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile != nil {
+								if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys != nil && len(*tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys) > 0 {
+									tmpRespOfRolespublicKeys := make([]interface{}, 0)
+									for _, tmpRespItemOfRolespublicKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
+										tmpRespValueOfRolespublicKeys := make(map[string]interface{})
+										if tmpRespItemOfRolespublicKeys.CertificateData != nil {
+											tmpRespValueOfRolespublicKeys["certificate_data"] = *tmpRespItemOfRolespublicKeys.CertificateData
+										}
+										tmpRespOfRolespublicKeys = append(tmpRespOfRolespublicKeys, tmpRespValueOfRolespublicKeys)
+									}
+									tmpRespValueOfRoles["public_keys"] = tmpRespOfRolespublicKeys
+								}
+							}
+						}
+					}
+					if tmpRespItemOfRoles.VirtualNetworkProfile != nil {
+						if tmpRespItemOfRoles.VirtualNetworkProfile.ID != nil {
+							tmpRespValueOfRoles["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
+						}
+						if tmpRespItemOfRoles.VirtualNetworkProfile.Subnet != nil {
+							tmpRespValueOfRoles["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
+						}
+					}
+					if tmpRespItemOfRoles.DataDisksGroups != nil && len(*tmpRespItemOfRoles.DataDisksGroups) > 0 {
+						tmpRespOfRolesdataDisksGroups := make([]interface{}, 0)
+						for _, tmpRespItemOfRolesdataDisksGroups := range *tmpRespItemOfRoles.DataDisksGroups {
+							tmpRespValueOfRolesdataDisksGroups := make(map[string]interface{})
+							if tmpRespItemOfRolesdataDisksGroups.DisksPerNode != nil {
+								tmpRespValueOfRolesdataDisksGroups["disks_per_node"] = *tmpRespItemOfRolesdataDisksGroups.DisksPerNode
+							}
+							if tmpRespItemOfRolesdataDisksGroups.StorageAccountType != nil {
+								tmpRespValueOfRolesdataDisksGroups["storage_account_type"] = *tmpRespItemOfRolesdataDisksGroups.StorageAccountType
+							}
+							if tmpRespItemOfRolesdataDisksGroups.DiskSizeGB != nil {
+								tmpRespValueOfRolesdataDisksGroups["disk_size_gb"] = *tmpRespItemOfRolesdataDisksGroups.DiskSizeGB
+							}
+							tmpRespOfRolesdataDisksGroups = append(tmpRespOfRolesdataDisksGroups, tmpRespValueOfRolesdataDisksGroups)
+						}
+						tmpRespValueOfRoles["data_disks_groups"] = tmpRespOfRolesdataDisksGroups
+					}
+					if tmpRespItemOfRoles.ScriptActions != nil && len(*tmpRespItemOfRoles.ScriptActions) > 0 {
+						tmpRespOfRolesscriptActions := make([]interface{}, 0)
+						for _, tmpRespItemOfRolesscriptActions := range *tmpRespItemOfRoles.ScriptActions {
+							tmpRespValueOfRolesscriptActions := make(map[string]interface{})
+							tmpRespValueOfRolesscriptActions["name"] = *tmpRespItemOfRolesscriptActions.Name
+							tmpRespValueOfRolesscriptActions["uri"] = *tmpRespItemOfRolesscriptActions.URI
+							tmpRespValueOfRolesscriptActions["parameters"] = *tmpRespItemOfRolesscriptActions.Parameters
+							tmpRespOfRolesscriptActions = append(tmpRespOfRolesscriptActions, tmpRespValueOfRolesscriptActions)
+						}
+						tmpRespValueOfRoles["script_actions"] = tmpRespOfRolesscriptActions
+					}
+					tmpRespOfRoles = append(tmpRespOfRoles, tmpRespValueOfRoles)
+				}
+				d.Set("roles", tmpRespOfRoles)
+			}
+		}
+		d.Set("provisioning_state", response.Properties.ProvisioningState)
+		if response.Properties.CreatedDate != nil {
+			d.Set("created_date", *response.Properties.CreatedDate)
+		}
+		if response.Properties.ClusterState != nil {
+			d.Set("cluster_state", *response.Properties.ClusterState)
+		}
+		if response.Properties.QuotaInfo != nil {
+			if response.Properties.QuotaInfo.CoresUsed != nil {
+				d.Set("cores_used", *response.Properties.QuotaInfo.CoresUsed)
+			}
+		}
+		if response.Properties.Errors != nil && len(*response.Properties.Errors) > 0 {
+			tmpRespOfErrors := make([]interface{}, 0)
+			for _, tmpRespItemOfErrors := range *response.Properties.Errors {
+				tmpRespValueOfErrors := make(map[string]interface{})
+				if tmpRespItemOfErrors.Code != nil {
+					tmpRespValueOfErrors["code"] = *tmpRespItemOfErrors.Code
+				}
+				if tmpRespItemOfErrors.Message != nil {
+					tmpRespValueOfErrors["message"] = *tmpRespItemOfErrors.Message
+				}
+				tmpRespOfErrors = append(tmpRespOfErrors, tmpRespValueOfErrors)
+			}
+			d.Set("errors", tmpRespOfErrors)
+		}
+		if response.Properties.ConnectivityEndpoints != nil && len(*response.Properties.ConnectivityEndpoints) > 0 {
+			tmpRespOfConnectivityEndpoints := make([]interface{}, 0)
+			for _, tmpRespItemOfConnectivityEndpoints := range *response.Properties.ConnectivityEndpoints {
+				tmpRespValueOfConnectivityEndpoints := make(map[string]interface{})
+				if tmpRespItemOfConnectivityEndpoints.Name != nil {
+					tmpRespValueOfConnectivityEndpoints["name"] = *tmpRespItemOfConnectivityEndpoints.Name
+				}
+				if tmpRespItemOfConnectivityEndpoints.Protocol != nil {
+					tmpRespValueOfConnectivityEndpoints["protocol"] = *tmpRespItemOfConnectivityEndpoints.Protocol
+				}
+				if tmpRespItemOfConnectivityEndpoints.Location != nil {
+					tmpRespValueOfConnectivityEndpoints["location"] = *tmpRespItemOfConnectivityEndpoints.Location
+				}
+				if tmpRespItemOfConnectivityEndpoints.Port != nil {
+					tmpRespValueOfConnectivityEndpoints["port"] = *tmpRespItemOfConnectivityEndpoints.Port
+				}
+				tmpRespOfConnectivityEndpoints = append(tmpRespOfConnectivityEndpoints, tmpRespValueOfConnectivityEndpoints)
+			}
+			d.Set("connectivity_endpoints", tmpRespOfConnectivityEndpoints)
+		}
 	}
-	d.Set("roles", tmpRespOfRoles)
-	d.Set("provisioning_state", response.Properties.ProvisioningState)
-	d.Set("created_date", *response.Properties.CreatedDate)
-	d.Set("cluster_state", *response.Properties.ClusterState)
-	d.Set("cores_used", *response.Properties.QuotaInfo.CoresUsed)
-	tmpRespOfErrors := make([]interface{}, 0)
-	for _, tmpRespItemOfErrors := range *response.Properties.Errors {
-		tmpRespValueOfErrors := make(map[string]interface{})
-		tmpRespValueOfErrors["code"] = *tmpRespItemOfErrors.Code
-		tmpRespValueOfErrors["message"] = *tmpRespItemOfErrors.Message
-		tmpRespOfErrors = append(tmpRespOfErrors, tmpRespValueOfErrors)
-	}
-	d.Set("errors", tmpRespOfErrors)
-	tmpRespOfConnectivityEndpoints := make([]interface{}, 0)
-	for _, tmpRespItemOfConnectivityEndpoints := range *response.Properties.ConnectivityEndpoints {
-		tmpRespValueOfConnectivityEndpoints := make(map[string]interface{})
-		tmpRespValueOfConnectivityEndpoints["name"] = *tmpRespItemOfConnectivityEndpoints.Name
-		tmpRespValueOfConnectivityEndpoints["protocol"] = *tmpRespItemOfConnectivityEndpoints.Protocol
-		tmpRespValueOfConnectivityEndpoints["location"] = *tmpRespItemOfConnectivityEndpoints.Location
-		tmpRespValueOfConnectivityEndpoints["port"] = *tmpRespItemOfConnectivityEndpoints.Port
-		tmpRespOfConnectivityEndpoints = append(tmpRespOfConnectivityEndpoints, tmpRespValueOfConnectivityEndpoints)
-	}
-	d.Set("connectivity_endpoints", tmpRespOfConnectivityEndpoints)
 
 	return nil
 }
 
 func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).hdInsightClustersClient
+	ctx := meta.(*ArmClient).StopContext
+
+	resourceGroupName := d.Get("resource_group_name").(string)
+	clusterName := d.Get("cluster_name").(string)
+
+	response, err := client.Get(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		return fmt.Errorf("HD Insight Clusters read error: %+v", err)
+	}
+
+	if response.Name != nil {
+		d.Set("name", *response.Name)
+	}
+	if response.Type != nil {
+		d.Set("type", *response.Type)
+	}
+	if response.Location != nil {
+		d.Set("location", *response.Location)
+	}
+	if response.Tags != nil {
+		tmpRespOfTags := make(map[string]interface{})
+		for tmpRespKeyOfTags, tmpRespItemOfTags := range *response.Tags {
+			tmpRespValueOfTags := *tmpRespItemOfTags
+			tmpRespOfTags[tmpRespKeyOfTags] = tmpRespValueOfTags
+		}
+		d.Set("tags", tmpRespOfTags)
+	}
+	if response.Properties != nil {
+		if response.Properties.ClusterVersion != nil {
+			d.Set("cluster_version", *response.Properties.ClusterVersion)
+		}
+		d.Set("os_type", response.Properties.OsType)
+		d.Set("tier", response.Properties.Tier)
+		if response.Properties.ClusterDefinition.Blueprint != nil {
+			d.Set("blueprint", *response.Properties.ClusterDefinition.Blueprint)
+		}
+		if response.Properties.ClusterDefinition.Kind != nil {
+			d.Set("kind", *response.Properties.ClusterDefinition.Kind)
+		}
+		if response.Properties.ClusterDefinition.ComponentVersion != nil {
+			tmpRespOfComponentVersion := make(map[string]interface{})
+			for tmpRespKeyOfComponentVersion, tmpRespItemOfComponentVersion := range *response.Properties.ClusterDefinition.ComponentVersion {
+				tmpRespValueOfComponentVersion := *tmpRespItemOfComponentVersion
+				tmpRespOfComponentVersion[tmpRespKeyOfComponentVersion] = tmpRespValueOfComponentVersion
+			}
+			d.Set("component_version", tmpRespOfComponentVersion)
+		}
+		if response.Properties.ClusterDefinition.Configurations != nil {
+			tmpRespOfConfigurations := make(map[string]interface{})
+			for tmpRespKeyOfConfigurations, tmpRespItemOfConfigurations := range *response.Properties.ClusterDefinition.Configurations {
+				tmpRespOfConfigurations1 := make(map[string]interface{})
+				for tmpRespKeyOfConfigurations1, tmpRespItemOfConfigurations1 := range *tmpRespItemOfConfigurations.(*map[string]*string) {
+					tmpRespValueOfConfigurations1 := *tmpRespItemOfConfigurations1
+					tmpRespOfConfigurations1[tmpRespKeyOfConfigurations1] = tmpRespValueOfConfigurations1
+				}
+				tmpRespOfConfigurations[tmpRespKeyOfConfigurations] = tmpRespOfConfigurations1
+			}
+			d.Set("configurations", tmpRespOfConfigurations)
+		}
+		if response.Properties.SecurityProfile != nil {
+			d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
+			if response.Properties.SecurityProfile.Domain != nil {
+				d.Set("domain", *response.Properties.SecurityProfile.Domain)
+			}
+			if response.Properties.SecurityProfile.OrganizationalUnitDN != nil {
+				d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
+			}
+			if response.Properties.SecurityProfile.LdapsUrls != nil && len(*response.Properties.SecurityProfile.LdapsUrls) > 0 {
+				tmpRespOfLdapsUrls := make([]interface{}, 0)
+				for _, tmpRespItemOfLdapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
+					tmpRespValueOfLdapsUrls := tmpRespItemOfLdapsUrls
+					tmpRespOfLdapsUrls = append(tmpRespOfLdapsUrls, tmpRespValueOfLdapsUrls)
+				}
+				d.Set("ldaps_urls", tmpRespOfLdapsUrls)
+			}
+			if response.Properties.SecurityProfile.DomainUsername != nil {
+				d.Set("domain_username", *response.Properties.SecurityProfile.DomainUsername)
+			}
+			if response.Properties.SecurityProfile.DomainUserPassword != nil {
+				d.Set("domain_user_password", *response.Properties.SecurityProfile.DomainUserPassword)
+			}
+			if response.Properties.SecurityProfile.ClusterUsersGroupDNS != nil && len(*response.Properties.SecurityProfile.ClusterUsersGroupDNS) > 0 {
+				tmpRespOfClusterUsersGroupDns := make([]interface{}, 0)
+				for _, tmpRespItemOfClusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
+					tmpRespValueOfClusterUsersGroupDns := tmpRespItemOfClusterUsersGroupDns
+					tmpRespOfClusterUsersGroupDns = append(tmpRespOfClusterUsersGroupDns, tmpRespValueOfClusterUsersGroupDns)
+				}
+				d.Set("cluster_users_group_dns", tmpRespOfClusterUsersGroupDns)
+			}
+		}
+		if response.Properties.ComputeProfile != nil {
+			if response.Properties.ComputeProfile.Roles != nil && len(*response.Properties.ComputeProfile.Roles) > 0 {
+				tmpRespOfRoles := make([]interface{}, 0)
+				for _, tmpRespItemOfRoles := range *response.Properties.ComputeProfile.Roles {
+					tmpRespValueOfRoles := make(map[string]interface{})
+					if tmpRespItemOfRoles.Name != nil {
+						tmpRespValueOfRoles["name"] = *tmpRespItemOfRoles.Name
+					}
+					if tmpRespItemOfRoles.MinInstanceCount != nil {
+						tmpRespValueOfRoles["min_instance_count"] = *tmpRespItemOfRoles.MinInstanceCount
+					}
+					if tmpRespItemOfRoles.TargetInstanceCount != nil {
+						tmpRespValueOfRoles["target_instance_count"] = *tmpRespItemOfRoles.TargetInstanceCount
+					}
+					if tmpRespItemOfRoles.HardwareProfile != nil {
+						if tmpRespItemOfRoles.HardwareProfile.VMSize != nil {
+							tmpRespValueOfRoles["vm_size"] = *tmpRespItemOfRoles.HardwareProfile.VMSize
+						}
+					}
+					if tmpRespItemOfRoles.OsProfile != nil {
+						if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile != nil {
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username != nil {
+								tmpRespValueOfRoles["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
+							}
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password != nil {
+								tmpRespValueOfRoles["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
+							}
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile != nil {
+								if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys != nil && len(*tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys) > 0 {
+									tmpRespOfRolespublicKeys := make([]interface{}, 0)
+									for _, tmpRespItemOfRolespublicKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
+										tmpRespValueOfRolespublicKeys := make(map[string]interface{})
+										if tmpRespItemOfRolespublicKeys.CertificateData != nil {
+											tmpRespValueOfRolespublicKeys["certificate_data"] = *tmpRespItemOfRolespublicKeys.CertificateData
+										}
+										tmpRespOfRolespublicKeys = append(tmpRespOfRolespublicKeys, tmpRespValueOfRolespublicKeys)
+									}
+									tmpRespValueOfRoles["public_keys"] = tmpRespOfRolespublicKeys
+								}
+							}
+						}
+					}
+					if tmpRespItemOfRoles.VirtualNetworkProfile != nil {
+						if tmpRespItemOfRoles.VirtualNetworkProfile.ID != nil {
+							tmpRespValueOfRoles["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
+						}
+						if tmpRespItemOfRoles.VirtualNetworkProfile.Subnet != nil {
+							tmpRespValueOfRoles["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
+						}
+					}
+					if tmpRespItemOfRoles.DataDisksGroups != nil && len(*tmpRespItemOfRoles.DataDisksGroups) > 0 {
+						tmpRespOfRolesdataDisksGroups := make([]interface{}, 0)
+						for _, tmpRespItemOfRolesdataDisksGroups := range *tmpRespItemOfRoles.DataDisksGroups {
+							tmpRespValueOfRolesdataDisksGroups := make(map[string]interface{})
+							if tmpRespItemOfRolesdataDisksGroups.DisksPerNode != nil {
+								tmpRespValueOfRolesdataDisksGroups["disks_per_node"] = *tmpRespItemOfRolesdataDisksGroups.DisksPerNode
+							}
+							if tmpRespItemOfRolesdataDisksGroups.StorageAccountType != nil {
+								tmpRespValueOfRolesdataDisksGroups["storage_account_type"] = *tmpRespItemOfRolesdataDisksGroups.StorageAccountType
+							}
+							if tmpRespItemOfRolesdataDisksGroups.DiskSizeGB != nil {
+								tmpRespValueOfRolesdataDisksGroups["disk_size_gb"] = *tmpRespItemOfRolesdataDisksGroups.DiskSizeGB
+							}
+							tmpRespOfRolesdataDisksGroups = append(tmpRespOfRolesdataDisksGroups, tmpRespValueOfRolesdataDisksGroups)
+						}
+						tmpRespValueOfRoles["data_disks_groups"] = tmpRespOfRolesdataDisksGroups
+					}
+					if tmpRespItemOfRoles.ScriptActions != nil && len(*tmpRespItemOfRoles.ScriptActions) > 0 {
+						tmpRespOfRolesscriptActions := make([]interface{}, 0)
+						for _, tmpRespItemOfRolesscriptActions := range *tmpRespItemOfRoles.ScriptActions {
+							tmpRespValueOfRolesscriptActions := make(map[string]interface{})
+							tmpRespValueOfRolesscriptActions["name"] = *tmpRespItemOfRolesscriptActions.Name
+							tmpRespValueOfRolesscriptActions["uri"] = *tmpRespItemOfRolesscriptActions.URI
+							tmpRespValueOfRolesscriptActions["parameters"] = *tmpRespItemOfRolesscriptActions.Parameters
+							tmpRespOfRolesscriptActions = append(tmpRespOfRolesscriptActions, tmpRespValueOfRolesscriptActions)
+						}
+						tmpRespValueOfRoles["script_actions"] = tmpRespOfRolesscriptActions
+					}
+					tmpRespOfRoles = append(tmpRespOfRoles, tmpRespValueOfRoles)
+				}
+				d.Set("roles", tmpRespOfRoles)
+			}
+		}
+		d.Set("provisioning_state", response.Properties.ProvisioningState)
+		if response.Properties.CreatedDate != nil {
+			d.Set("created_date", *response.Properties.CreatedDate)
+		}
+		if response.Properties.ClusterState != nil {
+			d.Set("cluster_state", *response.Properties.ClusterState)
+		}
+		if response.Properties.QuotaInfo != nil {
+			if response.Properties.QuotaInfo.CoresUsed != nil {
+				d.Set("cores_used", *response.Properties.QuotaInfo.CoresUsed)
+			}
+		}
+		if response.Properties.Errors != nil && len(*response.Properties.Errors) > 0 {
+			tmpRespOfErrors := make([]interface{}, 0)
+			for _, tmpRespItemOfErrors := range *response.Properties.Errors {
+				tmpRespValueOfErrors := make(map[string]interface{})
+				if tmpRespItemOfErrors.Code != nil {
+					tmpRespValueOfErrors["code"] = *tmpRespItemOfErrors.Code
+				}
+				if tmpRespItemOfErrors.Message != nil {
+					tmpRespValueOfErrors["message"] = *tmpRespItemOfErrors.Message
+				}
+				tmpRespOfErrors = append(tmpRespOfErrors, tmpRespValueOfErrors)
+			}
+			d.Set("errors", tmpRespOfErrors)
+		}
+		if response.Properties.ConnectivityEndpoints != nil && len(*response.Properties.ConnectivityEndpoints) > 0 {
+			tmpRespOfConnectivityEndpoints := make([]interface{}, 0)
+			for _, tmpRespItemOfConnectivityEndpoints := range *response.Properties.ConnectivityEndpoints {
+				tmpRespValueOfConnectivityEndpoints := make(map[string]interface{})
+				if tmpRespItemOfConnectivityEndpoints.Name != nil {
+					tmpRespValueOfConnectivityEndpoints["name"] = *tmpRespItemOfConnectivityEndpoints.Name
+				}
+				if tmpRespItemOfConnectivityEndpoints.Protocol != nil {
+					tmpRespValueOfConnectivityEndpoints["protocol"] = *tmpRespItemOfConnectivityEndpoints.Protocol
+				}
+				if tmpRespItemOfConnectivityEndpoints.Location != nil {
+					tmpRespValueOfConnectivityEndpoints["location"] = *tmpRespItemOfConnectivityEndpoints.Location
+				}
+				if tmpRespItemOfConnectivityEndpoints.Port != nil {
+					tmpRespValueOfConnectivityEndpoints["port"] = *tmpRespItemOfConnectivityEndpoints.Port
+				}
+				tmpRespOfConnectivityEndpoints = append(tmpRespOfConnectivityEndpoints, tmpRespValueOfConnectivityEndpoints)
+			}
+			d.Set("connectivity_endpoints", tmpRespOfConnectivityEndpoints)
+		}
+	}
+
 	return nil
 }
 
 func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).hdInsightClustersClient
+	ctx := meta.(*ArmClient).StopContext
+
+	resourceGroupName := d.Get("resource_group_name").(string)
+	clusterName := d.Get("cluster_name").(string)
+	parameters := hdinsight.ClusterPatchParameters{}
+	if paramValue, paramExists := d.GetOk("tags"); paramExists {
+		tmpParamOfTags := make(map[string]*string)
+		for tmpParamKeyOfTags, tmpParamItemOfTags := range paramValue.(map[string]interface{}) {
+			parametersTags := utils.String(tmpParamItemOfTags.(string))
+			tmpParamOfTags[tmpParamKeyOfTags] = parametersTags
+		}
+		parameters.Tags = &tmpParamOfTags
+	}
+
+	response, err := client.Update(ctx, resourceGroupName, clusterName, parameters)
+	if err != nil {
+		return fmt.Errorf("HD Insight Clusters update error: %+v", err)
+	}
+
+	if response.Name != nil {
+		d.Set("name", *response.Name)
+	}
+	if response.Type != nil {
+		d.Set("type", *response.Type)
+	}
+	if response.Location != nil {
+		d.Set("location", *response.Location)
+	}
+	if response.Tags != nil {
+		tmpRespOfTags := make(map[string]interface{})
+		for tmpRespKeyOfTags, tmpRespItemOfTags := range *response.Tags {
+			tmpRespValueOfTags := *tmpRespItemOfTags
+			tmpRespOfTags[tmpRespKeyOfTags] = tmpRespValueOfTags
+		}
+		d.Set("tags", tmpRespOfTags)
+	}
+	if response.Properties != nil {
+		if response.Properties.ClusterVersion != nil {
+			d.Set("cluster_version", *response.Properties.ClusterVersion)
+		}
+		d.Set("os_type", response.Properties.OsType)
+		d.Set("tier", response.Properties.Tier)
+		if response.Properties.ClusterDefinition.Blueprint != nil {
+			d.Set("blueprint", *response.Properties.ClusterDefinition.Blueprint)
+		}
+		if response.Properties.ClusterDefinition.Kind != nil {
+			d.Set("kind", *response.Properties.ClusterDefinition.Kind)
+		}
+		if response.Properties.ClusterDefinition.ComponentVersion != nil {
+			tmpRespOfComponentVersion := make(map[string]interface{})
+			for tmpRespKeyOfComponentVersion, tmpRespItemOfComponentVersion := range *response.Properties.ClusterDefinition.ComponentVersion {
+				tmpRespValueOfComponentVersion := *tmpRespItemOfComponentVersion
+				tmpRespOfComponentVersion[tmpRespKeyOfComponentVersion] = tmpRespValueOfComponentVersion
+			}
+			d.Set("component_version", tmpRespOfComponentVersion)
+		}
+		if response.Properties.ClusterDefinition.Configurations != nil {
+			tmpRespOfConfigurations := make(map[string]interface{})
+			for tmpRespKeyOfConfigurations, tmpRespItemOfConfigurations := range *response.Properties.ClusterDefinition.Configurations {
+				tmpRespOfConfigurations1 := make(map[string]interface{})
+				for tmpRespKeyOfConfigurations1, tmpRespItemOfConfigurations1 := range *tmpRespItemOfConfigurations.(*map[string]*string) {
+					tmpRespValueOfConfigurations1 := *tmpRespItemOfConfigurations1
+					tmpRespOfConfigurations1[tmpRespKeyOfConfigurations1] = tmpRespValueOfConfigurations1
+				}
+				tmpRespOfConfigurations[tmpRespKeyOfConfigurations] = tmpRespOfConfigurations1
+			}
+			d.Set("configurations", tmpRespOfConfigurations)
+		}
+		if response.Properties.SecurityProfile != nil {
+			d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
+			if response.Properties.SecurityProfile.Domain != nil {
+				d.Set("domain", *response.Properties.SecurityProfile.Domain)
+			}
+			if response.Properties.SecurityProfile.OrganizationalUnitDN != nil {
+				d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
+			}
+			if response.Properties.SecurityProfile.LdapsUrls != nil && len(*response.Properties.SecurityProfile.LdapsUrls) > 0 {
+				tmpRespOfLdapsUrls := make([]interface{}, 0)
+				for _, tmpRespItemOfLdapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
+					tmpRespValueOfLdapsUrls := tmpRespItemOfLdapsUrls
+					tmpRespOfLdapsUrls = append(tmpRespOfLdapsUrls, tmpRespValueOfLdapsUrls)
+				}
+				d.Set("ldaps_urls", tmpRespOfLdapsUrls)
+			}
+			if response.Properties.SecurityProfile.DomainUsername != nil {
+				d.Set("domain_username", *response.Properties.SecurityProfile.DomainUsername)
+			}
+			if response.Properties.SecurityProfile.DomainUserPassword != nil {
+				d.Set("domain_user_password", *response.Properties.SecurityProfile.DomainUserPassword)
+			}
+			if response.Properties.SecurityProfile.ClusterUsersGroupDNS != nil && len(*response.Properties.SecurityProfile.ClusterUsersGroupDNS) > 0 {
+				tmpRespOfClusterUsersGroupDns := make([]interface{}, 0)
+				for _, tmpRespItemOfClusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
+					tmpRespValueOfClusterUsersGroupDns := tmpRespItemOfClusterUsersGroupDns
+					tmpRespOfClusterUsersGroupDns = append(tmpRespOfClusterUsersGroupDns, tmpRespValueOfClusterUsersGroupDns)
+				}
+				d.Set("cluster_users_group_dns", tmpRespOfClusterUsersGroupDns)
+			}
+		}
+		if response.Properties.ComputeProfile != nil {
+			if response.Properties.ComputeProfile.Roles != nil && len(*response.Properties.ComputeProfile.Roles) > 0 {
+				tmpRespOfRoles := make([]interface{}, 0)
+				for _, tmpRespItemOfRoles := range *response.Properties.ComputeProfile.Roles {
+					tmpRespValueOfRoles := make(map[string]interface{})
+					if tmpRespItemOfRoles.Name != nil {
+						tmpRespValueOfRoles["name"] = *tmpRespItemOfRoles.Name
+					}
+					if tmpRespItemOfRoles.MinInstanceCount != nil {
+						tmpRespValueOfRoles["min_instance_count"] = *tmpRespItemOfRoles.MinInstanceCount
+					}
+					if tmpRespItemOfRoles.TargetInstanceCount != nil {
+						tmpRespValueOfRoles["target_instance_count"] = *tmpRespItemOfRoles.TargetInstanceCount
+					}
+					if tmpRespItemOfRoles.HardwareProfile != nil {
+						if tmpRespItemOfRoles.HardwareProfile.VMSize != nil {
+							tmpRespValueOfRoles["vm_size"] = *tmpRespItemOfRoles.HardwareProfile.VMSize
+						}
+					}
+					if tmpRespItemOfRoles.OsProfile != nil {
+						if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile != nil {
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username != nil {
+								tmpRespValueOfRoles["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
+							}
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password != nil {
+								tmpRespValueOfRoles["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
+							}
+							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile != nil {
+								if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys != nil && len(*tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys) > 0 {
+									tmpRespOfRolespublicKeys := make([]interface{}, 0)
+									for _, tmpRespItemOfRolespublicKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
+										tmpRespValueOfRolespublicKeys := make(map[string]interface{})
+										if tmpRespItemOfRolespublicKeys.CertificateData != nil {
+											tmpRespValueOfRolespublicKeys["certificate_data"] = *tmpRespItemOfRolespublicKeys.CertificateData
+										}
+										tmpRespOfRolespublicKeys = append(tmpRespOfRolespublicKeys, tmpRespValueOfRolespublicKeys)
+									}
+									tmpRespValueOfRoles["public_keys"] = tmpRespOfRolespublicKeys
+								}
+							}
+						}
+					}
+					if tmpRespItemOfRoles.VirtualNetworkProfile != nil {
+						if tmpRespItemOfRoles.VirtualNetworkProfile.ID != nil {
+							tmpRespValueOfRoles["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
+						}
+						if tmpRespItemOfRoles.VirtualNetworkProfile.Subnet != nil {
+							tmpRespValueOfRoles["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
+						}
+					}
+					if tmpRespItemOfRoles.DataDisksGroups != nil && len(*tmpRespItemOfRoles.DataDisksGroups) > 0 {
+						tmpRespOfRolesdataDisksGroups := make([]interface{}, 0)
+						for _, tmpRespItemOfRolesdataDisksGroups := range *tmpRespItemOfRoles.DataDisksGroups {
+							tmpRespValueOfRolesdataDisksGroups := make(map[string]interface{})
+							if tmpRespItemOfRolesdataDisksGroups.DisksPerNode != nil {
+								tmpRespValueOfRolesdataDisksGroups["disks_per_node"] = *tmpRespItemOfRolesdataDisksGroups.DisksPerNode
+							}
+							if tmpRespItemOfRolesdataDisksGroups.StorageAccountType != nil {
+								tmpRespValueOfRolesdataDisksGroups["storage_account_type"] = *tmpRespItemOfRolesdataDisksGroups.StorageAccountType
+							}
+							if tmpRespItemOfRolesdataDisksGroups.DiskSizeGB != nil {
+								tmpRespValueOfRolesdataDisksGroups["disk_size_gb"] = *tmpRespItemOfRolesdataDisksGroups.DiskSizeGB
+							}
+							tmpRespOfRolesdataDisksGroups = append(tmpRespOfRolesdataDisksGroups, tmpRespValueOfRolesdataDisksGroups)
+						}
+						tmpRespValueOfRoles["data_disks_groups"] = tmpRespOfRolesdataDisksGroups
+					}
+					if tmpRespItemOfRoles.ScriptActions != nil && len(*tmpRespItemOfRoles.ScriptActions) > 0 {
+						tmpRespOfRolesscriptActions := make([]interface{}, 0)
+						for _, tmpRespItemOfRolesscriptActions := range *tmpRespItemOfRoles.ScriptActions {
+							tmpRespValueOfRolesscriptActions := make(map[string]interface{})
+							tmpRespValueOfRolesscriptActions["name"] = *tmpRespItemOfRolesscriptActions.Name
+							tmpRespValueOfRolesscriptActions["uri"] = *tmpRespItemOfRolesscriptActions.URI
+							tmpRespValueOfRolesscriptActions["parameters"] = *tmpRespItemOfRolesscriptActions.Parameters
+							tmpRespOfRolesscriptActions = append(tmpRespOfRolesscriptActions, tmpRespValueOfRolesscriptActions)
+						}
+						tmpRespValueOfRoles["script_actions"] = tmpRespOfRolesscriptActions
+					}
+					tmpRespOfRoles = append(tmpRespOfRoles, tmpRespValueOfRoles)
+				}
+				d.Set("roles", tmpRespOfRoles)
+			}
+		}
+		d.Set("provisioning_state", response.Properties.ProvisioningState)
+		if response.Properties.CreatedDate != nil {
+			d.Set("created_date", *response.Properties.CreatedDate)
+		}
+		if response.Properties.ClusterState != nil {
+			d.Set("cluster_state", *response.Properties.ClusterState)
+		}
+		if response.Properties.QuotaInfo != nil {
+			if response.Properties.QuotaInfo.CoresUsed != nil {
+				d.Set("cores_used", *response.Properties.QuotaInfo.CoresUsed)
+			}
+		}
+		if response.Properties.Errors != nil && len(*response.Properties.Errors) > 0 {
+			tmpRespOfErrors := make([]interface{}, 0)
+			for _, tmpRespItemOfErrors := range *response.Properties.Errors {
+				tmpRespValueOfErrors := make(map[string]interface{})
+				if tmpRespItemOfErrors.Code != nil {
+					tmpRespValueOfErrors["code"] = *tmpRespItemOfErrors.Code
+				}
+				if tmpRespItemOfErrors.Message != nil {
+					tmpRespValueOfErrors["message"] = *tmpRespItemOfErrors.Message
+				}
+				tmpRespOfErrors = append(tmpRespOfErrors, tmpRespValueOfErrors)
+			}
+			d.Set("errors", tmpRespOfErrors)
+		}
+		if response.Properties.ConnectivityEndpoints != nil && len(*response.Properties.ConnectivityEndpoints) > 0 {
+			tmpRespOfConnectivityEndpoints := make([]interface{}, 0)
+			for _, tmpRespItemOfConnectivityEndpoints := range *response.Properties.ConnectivityEndpoints {
+				tmpRespValueOfConnectivityEndpoints := make(map[string]interface{})
+				if tmpRespItemOfConnectivityEndpoints.Name != nil {
+					tmpRespValueOfConnectivityEndpoints["name"] = *tmpRespItemOfConnectivityEndpoints.Name
+				}
+				if tmpRespItemOfConnectivityEndpoints.Protocol != nil {
+					tmpRespValueOfConnectivityEndpoints["protocol"] = *tmpRespItemOfConnectivityEndpoints.Protocol
+				}
+				if tmpRespItemOfConnectivityEndpoints.Location != nil {
+					tmpRespValueOfConnectivityEndpoints["location"] = *tmpRespItemOfConnectivityEndpoints.Location
+				}
+				if tmpRespItemOfConnectivityEndpoints.Port != nil {
+					tmpRespValueOfConnectivityEndpoints["port"] = *tmpRespItemOfConnectivityEndpoints.Port
+				}
+				tmpRespOfConnectivityEndpoints = append(tmpRespOfConnectivityEndpoints, tmpRespValueOfConnectivityEndpoints)
+			}
+			d.Set("connectivity_endpoints", tmpRespOfConnectivityEndpoints)
+		}
+	}
+
 	return nil
 }
 
 func resourceArmHDInsightClustersDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).hdInsightClustersClient
+	ctx := meta.(*ArmClient).StopContext
+
+	resourceGroupName := d.Get("resource_group_name").(string)
+	clusterName := d.Get("cluster_name").(string)
+
+	future, err := client.Delete(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		return fmt.Errorf("HD Insight Clusters deletion error: %+v", err)
+	}
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("HD Insight Clusters deletion future wait for completion error: %+v", err)
+	}
+
 	return nil
 }
