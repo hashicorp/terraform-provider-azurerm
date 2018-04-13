@@ -1617,7 +1617,12 @@ func resourceArmVirtualMachineReviseStorageInfo(d *schema.ResourceData, meta int
 	stopped := false
 	if instance.Statuses != nil {
 		for _, status := range *instance.Statuses {
-			if status.Code != nil && *status.Code == "PowerState/deallocated" {
+			if status.Code != nil &&
+				(*status.Code == "PowerState/deallocated" ||
+					*status.Code == "PowerState/deallocating" ||
+					*status.Code == "PowerState/starting" ||
+					*status.Code == "PowerState/stopping" ||
+					*status.Code == "PowerState/stopped") {
 				stopped = true
 				break
 			}
