@@ -640,21 +640,6 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on Azure Virtual Machine %s: %+v", name, err)
 	}
 
-	instance, err := vmClient.InstanceView(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error making InstanceView request on Azure Virtual Machine %s: %+v", name, err)
-	}
-
-	stopped := false
-	if instance.Statuses != nil {
-		for _, status := range *instance.Statuses {
-			if status.Code != nil && *status.Code == "PowerState/deallocated" {
-				stopped = true
-				break
-			}
-		}
-	}
-
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("zones", resp.Zones)
@@ -682,20 +667,12 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	osDisks, err := flattenAzureRmVirtualMachineOsDisk(resp.VirtualMachineProperties.StorageProfile.OsDisk, stopped, meta)
-	if err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Disk error: %#v", err)
-	}
-	if err = d.Set("storage_os_disk", osDisks); err != nil {
+	if err := d.Set("storage_os_disk", flattenAzureRmVirtualMachineOsDisk(resp.VirtualMachineProperties.StorageProfile.OsDisk)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Disk error: %#v", err)
 	}
 
 	if resp.VirtualMachineProperties.StorageProfile.DataDisks != nil {
-		dataDisks, err := flattenAzureRmVirtualMachineDataDisk(resp.VirtualMachineProperties.StorageProfile.DataDisks, stopped, meta)
-		if err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Data Disks error: %#v", err)
-		}
-		if err = d.Set("storage_data_disk", dataDisks); err != nil {
+		if err := d.Set("storage_data_disk", flattenAzureRmVirtualMachineDataDisk(resp.VirtualMachineProperties.StorageProfile.DataDisks)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Data Disks error: %#v", err)
 		}
 	}
@@ -749,7 +726,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 	flattenAndSetTags(d, resp.Tags)
 
-	return nil
+	return resourceArmVirtualMachineReviseStorageInfo(d, meta)
 }
 
 func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
@@ -979,27 +956,7 @@ func flattenAzureRmVirtualMachineOsProfileSecrets(secrets *[]compute.VaultSecret
 	return result
 }
 
-func getStoppedVMManagedDiskInfo(idStr string, meta interface{}) (*compute.Disk, error) {
-	client := meta.(*ArmClient).diskClient
-	ctx := meta.(*ArmClient).StopContext
-
-	id, err := parseAzureResourceID(idStr)
-	if err != nil {
-		return nil, err
-	}
-
-	resGroup := id.ResourceGroup
-	name := id.Path["disks"]
-
-	resp, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Error making Read request on stopped VM Azure Managed Disk %s (resource group %s): %s", name, resGroup, err)
-	}
-
-	return &resp, nil
-}
-
-func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk, stopped bool, meta interface{}) (interface{}, error) {
+func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk) interface{} {
 	result := make([]interface{}, len(*disks))
 	for i, disk := range *disks {
 		l := make(map[string]interface{})
@@ -1018,23 +975,9 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk, stopped boo
 		}
 		l["lun"] = *disk.Lun
 
-		if stopped && disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
-			diskInfo, err := getStoppedVMManagedDiskInfo(*disk.ManagedDisk.ID, meta)
-			if err != nil {
-				return nil, err
-			}
-			if diskInfo.DiskProperties != nil {
-				if diskSize := diskInfo.DiskProperties.DiskSizeGB; diskSize != nil {
-					l["disk_size_gb"] = *diskSize
-				}
-			}
-			if diskInfo.Sku != nil {
-				l["managed_disk_type"] = string(diskInfo.Sku.Name)
-			}
-		}
 		result[i] = l
 	}
-	return result, nil
+	return result
 }
 
 func flattenAzureRmVirtualMachineOsProfile(input *compute.OSProfile) []interface{} {
@@ -1120,7 +1063,7 @@ func flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(config *compute.Lin
 	return []interface{}{result}
 }
 
-func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk, stopped bool, meta interface{}) ([]interface{}, error) {
+func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk) []interface{} {
 	result := make(map[string]interface{})
 	result["name"] = *disk.Name
 	if disk.Vhd != nil {
@@ -1139,22 +1082,7 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk, stopped bool, meta
 	}
 	result["os_type"] = string(disk.OsType)
 
-	if stopped && disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
-		diskInfo, err := getStoppedVMManagedDiskInfo(*disk.ManagedDisk.ID, meta)
-		if err != nil {
-			return nil, err
-		}
-		if diskInfo.DiskProperties != nil {
-			if diskSize := diskInfo.DiskProperties.DiskSizeGB; diskSize != nil {
-				result["disk_size_gb"] = *diskSize
-			}
-		}
-		if diskInfo.Sku != nil {
-			result["managed_disk_type"] = string(diskInfo.Sku.Name)
-		}
-	}
-
-	return []interface{}{result}, nil
+	return []interface{}{result}
 }
 
 func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, error) {
@@ -1668,4 +1596,87 @@ func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
 	}
 	return hashcode.String(buf.String())
+}
+
+func resourceArmVirtualMachineReviseStorageInfo(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).vmClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resGroup := id.ResourceGroup
+	name := id.Path["virtualMachines"]
+
+	instance, err := client.InstanceView(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making InstanceView request on Azure Virtual Machine %s: %+v", name, err)
+	}
+
+	stopped := false
+	if instance.Statuses != nil {
+		for _, status := range *instance.Statuses {
+			if status.Code != nil && *status.Code == "PowerState/deallocated" {
+				stopped = true
+				break
+			}
+		}
+	}
+
+	if stopped {
+		if osDisks, ok := d.GetOk("storage_os_disk"); ok {
+			if err := resourceArmVirtualMachineUpdateManagedDisk(osDisks.([]interface{}), meta); err != nil {
+				return err
+			}
+			if err := d.Set("storage_os_disk", osDisks); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting virtual machine revised storage OS disk error: %#v", err)
+			}
+		}
+		if dataDisks, ok := d.GetOk("storage_data_disk"); ok {
+			if err := resourceArmVirtualMachineUpdateManagedDisk(dataDisks.([]interface{}), meta); err != nil {
+				return err
+			}
+			if err := d.Set("storage_data_disk", dataDisks); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting virtual machine revised storage data disks error: %#v", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func resourceArmVirtualMachineUpdateManagedDisk(disks []interface{}, meta interface{}) error {
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
+
+	for _, diskConfig := range disks {
+		config := diskConfig.(map[string]interface{})
+		diskID := config["managed_disk_id"].(string)
+
+		if diskID != "" {
+			id, err := parseAzureResourceID(diskID)
+			if err != nil {
+				return err
+			}
+
+			resGroup := id.ResourceGroup
+			name := id.Path["disks"]
+			diskInfo, err := client.Get(ctx, resGroup, name)
+			if err != nil {
+				return fmt.Errorf("[ERROR] Error making Read request on stopped VM Azure Managed Disk %s (resource group %s): %s", name, resGroup, err)
+			}
+
+			if diskInfo.DiskProperties != nil {
+				if diskSize := diskInfo.DiskProperties.DiskSizeGB; diskSize != nil {
+					config["disk_size_gb"] = *diskSize
+				}
+			}
+			if diskInfo.Sku != nil {
+				config["managed_disk_type"] = string(diskInfo.Sku.Name)
+			}
+		}
+	}
+
+	return nil
 }
