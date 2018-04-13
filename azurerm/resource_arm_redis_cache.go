@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -72,6 +72,19 @@ func resourceArmRedisCache() *schema.Resource {
 				Type:     schema.TypeBool,
 				Default:  false,
 				Optional: true,
+			},
+
+			"subnet_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"private_static_ip_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
 			},
 
 			"redis_configuration": {
@@ -211,12 +224,11 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	parameters := redis.CreateParameters{
-		Name:     &name,
-		Location: &location,
+		Location: utils.String(location),
 		CreateProperties: &redis.CreateProperties{
-			EnableNonSslPort: &enableNonSSLPort,
+			EnableNonSslPort: utils.Bool(enableNonSSLPort),
 			Sku: &redis.Sku{
-				Capacity: &capacity,
+				Capacity: utils.Int32(capacity),
 				Family:   family,
 				Name:     sku,
 			},
@@ -228,6 +240,14 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	if v, ok := d.GetOk("shard_count"); ok {
 		shardCount := int32(v.(int))
 		parameters.ShardCount = &shardCount
+	}
+
+	if v, ok := d.GetOk("private_static_ip_address"); ok {
+		parameters.StaticIP = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("subnet_id"); ok {
+		parameters.SubnetID = utils.String(v.(string))
 	}
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
@@ -292,9 +312,9 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
-			EnableNonSslPort: &enableNonSSLPort,
+			EnableNonSslPort: utils.Bool(enableNonSSLPort),
 			Sku: &redis.Sku{
-				Capacity: &capacity,
+				Capacity: utils.Int32(capacity),
 				Family:   family,
 				Name:     sku,
 			},
@@ -406,19 +426,22 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("ssl_port", resp.SslPort)
-	d.Set("hostname", resp.HostName)
-	d.Set("port", resp.Port)
-	d.Set("enable_non_ssl_port", resp.EnableNonSslPort)
-
 	if sku := resp.Sku; sku != nil {
 		d.Set("capacity", sku.Capacity)
 		d.Set("family", sku.Family)
 		d.Set("sku_name", sku.Name)
 	}
 
-	if resp.ShardCount != nil {
-		d.Set("shard_count", resp.ShardCount)
+	if props := resp.Properties; props != nil {
+		d.Set("ssl_port", props.SslPort)
+		d.Set("hostname", props.HostName)
+		d.Set("port", props.Port)
+		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+		if props.ShardCount != nil {
+			d.Set("shard_count", props.ShardCount)
+		}
+		d.Set("private_static_ip_address", props.StaticIP)
+		d.Set("subnet_id", props.SubnetID)
 	}
 
 	redisConfiguration := flattenRedisConfiguration(resp.RedisConfiguration)
@@ -470,7 +493,7 @@ func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGro
 			return nil, "", fmt.Errorf("Error issuing read request in redisStateRefreshFunc to Azure ARM for Redis Cache Instance '%s' (RG: '%s'): %s", sgName, resourceGroupName, err)
 		}
 
-		return res, *res.ProvisioningState, nil
+		return res, string(res.ProvisioningState), nil
 	}
 }
 

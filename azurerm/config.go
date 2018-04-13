@@ -32,7 +32,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
@@ -89,7 +89,7 @@ type ArmClient struct {
 	solutionsClient  operationsmanagement.SolutionsClient
 
 	redisClient               redis.Client
-	redisFirewallClient       redis.FirewallRuleClient
+	redisFirewallClient       redis.FirewallRulesClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// Application Insights
@@ -791,7 +791,7 @@ func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth a
 	c.configureClient(&redisClient.Client, auth)
 	c.redisClient = redisClient
 
-	firewallRuleClient := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
+	firewallRuleClient := redis.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&firewallRuleClient.Client, auth)
 	c.redisFirewallClient = firewallRuleClient
 

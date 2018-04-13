@@ -25,10 +25,6 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"azurePrivatePeering":  testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
 			"importPrivatePeering": testAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering,
 		},
-		"PublicPeering": {
-			"azurePublicPeering":  testAccAzureRMExpressRouteCircuitPeering_azurePublicPeering,
-			"importPublicPeering": testAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering,
-		},
 		"MicrosoftPeering": {
 			"microsoftPeering":       testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
 			"importMicrosoftPeering": testAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering,

@@ -1,4 +1,4 @@
-// Package redis implements the Azure ARM Redis service API version 2016-04-01.
+// Package redis implements the Azure ARM Redis service API version 2018-03-01.
 //
 // REST API for Azure Redis Cache Service.
 package redis
