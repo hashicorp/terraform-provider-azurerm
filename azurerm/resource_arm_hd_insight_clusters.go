@@ -21,18 +21,17 @@ func resourceArmHDInsightClusters() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"blueprint": {
 				Optional: true,
-				Type:     schema.TypeString,
-			},
-			"cluster_name": {
-				Required: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"cluster_state": {
 				Optional: true,
+				Computed: true,
 				Type:     schema.TypeString,
 			},
 			"cluster_users_group_dns": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -40,10 +39,12 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"cluster_version": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"component_version": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeMap,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -51,6 +52,7 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"configurations": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeMap,
 				Elem: &schema.Schema{
 					Type: schema.TypeMap,
@@ -61,23 +63,28 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"connectivity_endpoints": {
 				Optional: true,
+				Computed: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"location": {
 							Optional: true,
+							Computed: true,
 							Type:     schema.TypeString,
 						},
 						"name": {
 							Optional: true,
+							Computed: true,
 							Type:     schema.TypeString,
 						},
 						"port": {
 							Optional: true,
+							Computed: true,
 							Type:     schema.TypeInt,
 						},
 						"protocol": {
 							Optional: true,
+							Computed: true,
 							Type:     schema.TypeString,
 						},
 					},
@@ -85,39 +92,48 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"cores_used": {
 				Optional: true,
+				Computed: true,
 				Type:     schema.TypeInt,
 			},
 			"created_date": {
 				Optional: true,
+				Computed: true,
 				Type:     schema.TypeString,
 			},
 			"directory_type": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"domain": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"domain_user_password": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"domain_username": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"errors": {
 				Optional: true,
+				Computed: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"code": {
 							Optional: true,
+							Computed: true,
 							Type:     schema.TypeString,
 						},
 						"message": {
 							Optional: true,
+							Computed: true,
 							Type:     schema.TypeString,
 						},
 					},
@@ -125,10 +141,12 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"kind": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"ldaps_urls": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -136,22 +154,26 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"location": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"name": {
-				Optional: true,
+				Required: true,
 				Type:     schema.TypeString,
 			},
 			"organizational_unit_dn": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"os_type": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"provisioning_state": {
 				Optional: true,
+				Computed: true,
 				Type:     schema.TypeString,
 			},
 			"resource_group_name": {
@@ -160,24 +182,29 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"roles": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"data_disks_groups": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeList,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"disk_size_gb": {
 										Optional: true,
+										ForceNew: true,
 										Type:     schema.TypeInt,
 									},
 									"disks_per_node": {
 										Optional: true,
+										ForceNew: true,
 										Type:     schema.TypeInt,
 									},
 									"storage_account_type": {
 										Optional: true,
+										ForceNew: true,
 										Type:     schema.TypeString,
 									},
 								},
@@ -185,27 +212,33 @@ func resourceArmHDInsightClusters() *schema.Resource {
 						},
 						"id": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 						"min_instance_count": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeInt,
 						},
 						"name": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 						"password": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 						"public_keys": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeList,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"certificate_data": {
 										Optional: true,
+										ForceNew: true,
 										Type:     schema.TypeString,
 									},
 								},
@@ -213,19 +246,23 @@ func resourceArmHDInsightClusters() *schema.Resource {
 						},
 						"script_actions": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeList,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Required: true,
+										ForceNew: true,
 										Type:     schema.TypeString,
 									},
 									"parameters": {
 										Required: true,
+										ForceNew: true,
 										Type:     schema.TypeString,
 									},
 									"uri": {
 										Required: true,
+										ForceNew: true,
 										Type:     schema.TypeString,
 									},
 								},
@@ -233,18 +270,22 @@ func resourceArmHDInsightClusters() *schema.Resource {
 						},
 						"subnet": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 						"target_instance_count": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeInt,
 						},
 						"username": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 						"vm_size": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 					},
@@ -252,23 +293,28 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"storageaccounts": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"container": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 						"is_default": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeBool,
 						},
 						"key": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 						"name": {
 							Optional: true,
+							ForceNew: true,
 							Type:     schema.TypeString,
 						},
 					},
@@ -283,10 +329,12 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			},
 			"tier": {
 				Optional: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"type": {
 				Optional: true,
+				Computed: true,
 				Type:     schema.TypeString,
 			},
 		},
@@ -298,7 +346,7 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
+	clusterName := d.Get("name").(string)
 	parameters := hdinsight.ClusterCreateParametersExtended{}
 	if paramValue, paramExists := d.GetOk("location"); paramExists {
 		parameters.Location = utils.String(paramValue.(string))
@@ -498,6 +546,8 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("HD Insight Clusters creation future result error: %+v", err)
 	}
+
+	d.SetId(*response.ID)
 
 	if response.Name != nil {
 		d.Set("name", *response.Name)
@@ -718,7 +768,7 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
+	clusterName := d.Get("name").(string)
 
 	response, err := client.Get(ctx, resourceGroupName, clusterName)
 	if err != nil {
@@ -944,7 +994,7 @@ func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
+	clusterName := d.Get("name").(string)
 	parameters := hdinsight.ClusterPatchParameters{}
 	if paramValue, paramExists := d.GetOk("tags"); paramExists {
 		tmpParamOfTags := make(map[string]*string)
@@ -1179,7 +1229,7 @@ func resourceArmHDInsightClustersDelete(d *schema.ResourceData, meta interface{}
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
-	clusterName := d.Get("cluster_name").(string)
+	clusterName := d.Get("name").(string)
 
 	future, err := client.Delete(ctx, resourceGroupName, clusterName)
 	if err != nil {
