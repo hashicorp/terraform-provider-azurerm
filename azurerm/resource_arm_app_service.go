@@ -157,6 +157,7 @@ func resourceArmAppService() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.ScmTypeNone),
 								string(web.ScmTypeLocalGit),
+								string(web.ScmTypeGitHub),
 							}, false),
 						},
 
@@ -275,8 +276,10 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"source_control": {
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -288,6 +291,26 @@ func resourceArmAppService() *schema.Resource {
 						"branch": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"external_scm_credential": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"token": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -429,6 +452,14 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		if err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
 		}
+	}
+
+	if d.HasChange("source_control") {
+
+	}
+
+	if d.HasChange("external_scm_credential") {
+
 	}
 
 	return resourceArmAppServiceRead(d, meta)
