@@ -156,6 +156,7 @@ func resourceArmAppService() *schema.Resource {
 							Default:  string(web.ScmTypeNone),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.ScmTypeNone),
+								string(web.ScmTypeGitHub),
 								string(web.ScmTypeLocalGit),
 							}, false),
 						},
