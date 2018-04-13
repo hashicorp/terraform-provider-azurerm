@@ -107,7 +107,7 @@ The following Environment Variables must be set to run the acceptance tests:
 ~> **NOTE:** The Acceptance Tests require the use of a Service Principal - authenticating via either the Azure CLI or MSI is not supported.
 
 * `ARM_SUBSCRIPTION_ID` - The ID of the Azure Subscription in which to run the Acceptance Tests.
-* `ARM_CLIENT_ID` - The Client Secret of the Service Principal.
+* `ARM_CLIENT_ID` - The Client ID of the Service Principal.
 * `ARM_CLIENT_SECRET` - The Client Secret associated with the Service Principal.
 * `ARM_TENANT_ID` - The Tenant ID to use.
 * `ARM_ENVIRONMENT` - The Azure Cloud Environment to use, such as `public`, `german` etc. Defaults to `public`.
