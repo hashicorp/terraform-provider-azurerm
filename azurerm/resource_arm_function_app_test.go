@@ -61,7 +61,7 @@ func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
-	config := testAccAzureRMFunctionApp_tagsUpdated(ri, rs, testLocation())
+	updatedConfig := testAccAzureRMFunctionApp_tagsUpdated(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
