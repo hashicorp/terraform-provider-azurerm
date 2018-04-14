@@ -238,6 +238,40 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+	kind := "functionapp"
+	appServicePlanID := d.Get("app_service_plan_id").(string)
+	enabled := d.Get("enabled").(bool)
+	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
+	tags := d.Get("tags").(map[string]interface{})
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig.AppSettings = &basicAppSettings
+
+	siteEnvelope := web.Site{
+		Kind:     &kind,
+		Location: &location,
+		Tags:     expandTags(tags),
+		SiteProperties: &web.SiteProperties{
+			ServerFarmID:          utils.String(appServicePlanID),
+			Enabled:               utils.Bool(enabled),
+			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			HTTPSOnly:             utils.Bool(httpsOnly),
+			SiteConfig:            &siteConfig,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	if err != nil {
+		return err
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
 	if d.HasChange("app_settings") || d.HasChange("version") {
 		appSettings := expandFunctionAppAppSettings(d)
 		settings := web.StringDictionary{
