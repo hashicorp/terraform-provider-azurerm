@@ -44,10 +44,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"version": {
@@ -108,9 +104,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			// TODO: (tombuildsstuff) support Update once the API is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/1697
-			"tags": tagsForceNewSchema(),
+			"tags": tagsSchema(),
 
 			"default_hostname": {
 				Type:     schema.TypeString,
@@ -126,20 +120,12 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"https_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"site_config": {
