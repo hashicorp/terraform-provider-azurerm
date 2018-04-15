@@ -29,6 +29,33 @@ func resourceArmAppService() *schema.Resource {
 				ValidateFunc: validateAppServiceName,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
@@ -336,6 +363,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		siteEnvelope.Identity = appServiceIdentity
+	}
+
 	if v, ok := d.GetOkExists("client_affinity_enabled"); ok {
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
@@ -362,6 +394,16 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	d.SetId(*read.ID)
 
 	return resourceArmAppServiceUpdate(d, meta)
+}
+
+func expandAzureRmAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(identityType),
+	}
 }
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -428,6 +470,24 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
 		if err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
+		}
+	}
+
+	if d.HasChange("identity") {
+
+		site, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error getting configuration for App Service %q: %+v", name, err)
+		}
+
+		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		site.Identity = appServiceIdentity
+
+		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
+		err = future.WaitForCompletion(ctx, client.Client)
+
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
 		}
 	}
 
@@ -528,7 +588,32 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	flattenAndSetTags(d, resp.Tags)
 
+	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
+	log.Printf("##foo MSI read %v", identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
