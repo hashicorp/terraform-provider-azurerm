@@ -589,7 +589,6 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	flattenAndSetTags(d, resp.Tags)
 
 	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
-	log.Printf("##foo MSI read %v", identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
