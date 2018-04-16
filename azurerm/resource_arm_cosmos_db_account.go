@@ -447,6 +447,8 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 	d.Set("resource_group_name", resourceGroup)
+	flattenAndSetTags(d, resp.Tags)
+
 	d.Set("kind", string(resp.Kind))
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
 	d.Set("ip_range_filter", resp.IPRangeFilter)
