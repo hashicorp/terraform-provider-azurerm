@@ -424,7 +424,7 @@ resource "azurerm_virtual_machine" "test" {
 * `disk_size_gb` - (Required) Specifies the size of the data disk in gigabytes.
 * `caching` - (Optional) Specifies the caching requirements.
 * `lun` - (Required) Specifies the logical unit number of the data disk.
-* `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the disk.
+* `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the disk. This can only be enabled on `Premium_LRS` managed disks and [M-Series VMs](https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/how-to-enable-write-accelerator).  
 
 `os_profile` supports the following:
 
