@@ -207,79 +207,133 @@ func testCheckAzureRMServiceBusRuleExists() resource.TestCheckFunc {
 
 func testAccAzureRMServiceBusRule_basicSqlFilter(rInt int, location string) string {
 	sqlFilter := `
-	filter_type = "SqlFilter"
-	sql_filter  = "2=2"
+	resource "azurerm_servicebus_rule" "test" {
+		name                = "acctestservicebusrule-%d"
+		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+		topic_name          = "${azurerm_servicebus_topic.test.name}"
+		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		filter_type 		= "SqlFilter"
+		sql_filter  		= "2=2"
+	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, rInt, sqlFilter)
+
+	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
 }
 
 func testAccAzureRMServiceBusRule_basicSqlFilterUpdated(rInt int, location string) string {
 	sqlFilter := `
-	filter_type = "SqlFilter"
-	sql_filter  = "3=3"
+	resource "azurerm_servicebus_rule" "test" {
+		name                = "acctestservicebusrule-%d"
+		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+		topic_name          = "${azurerm_servicebus_topic.test.name}"
+		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		filter_type 		= "SqlFilter"
+		sql_filter  		= "3=3"
+	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, rInt, sqlFilter)
+	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
 }
 
 func testAccAzureRMServiceBusRule_sqlFilterWithAction(rInt int, location string) string {
 	sqlFilter := `
-	filter_type = "SqlFilter"
-	sql_filter  = "2=2"
-	action      = "SET Test='true'"
+	resource "azurerm_servicebus_rule" "test" {
+		name                = "acctestservicebusrule-%d"
+		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+		topic_name          = "${azurerm_servicebus_topic.test.name}"
+		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		filter_type 		= "SqlFilter"
+		sql_filter  		= "2=2"
+		action      		= "SET Test='true'"
+	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, rInt, sqlFilter)
+	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
 }
 
 func testAccAzureRMServiceBusRule_basicCorrelationFilter(rInt int, location string) string {
 	correlationFilter := `
-	filter_type = "CorrelationFilter"
-	correlation_filter = {
-		correlation_id      = "test_correlation_id"
-		message_id          = "test_message_id"
-		to                  = "test_to"
-		reply_to            = "test_reply_to"
-		label               = "test_label"
-		session_id          = "test_session_id"
-		reply_to_session_id = "test_reply_to_session_id"
-		content_type        = "test_content_type"
-	  }
+	resource "azurerm_servicebus_rule" "test" {
+		name                = "acctestservicebusrule-%d"
+		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+		topic_name          = "${azurerm_servicebus_topic.test.name}"
+		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		filter_type 		= "CorrelationFilter"
+
+		correlation_filter 	= {
+			correlation_id      = "test_correlation_id"
+			message_id          = "test_message_id"
+			to                  = "test_to"
+			reply_to            = "test_reply_to"
+			label               = "test_label"
+			session_id          = "test_session_id"
+			reply_to_session_id = "test_reply_to_session_id"
+			content_type        = "test_content_type"
+		}
+	}	
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, rInt, correlationFilter)
+	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
 func testAccAzureRMServiceBusRule_correlationFilter(rInt int, location string) string {
 	correlationFilter := `
-	filter_type = "CorrelationFilter"
-	correlation_filter = {
-		correlation_id      = "test_correlation_id"
-		message_id          = "test_message_id"
-	  }
+	resource "azurerm_servicebus_rule" "test" {
+		name                = "acctestservicebusrule-%d"
+		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+		topic_name          = "${azurerm_servicebus_topic.test.name}"
+		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		filter_type 		= "CorrelationFilter"
+
+		correlation_filter 	= {
+			correlation_id	= "test_correlation_id"
+			message_id		= "test_message_id"
+		}
+	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, rInt, correlationFilter)
+	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
 func testAccAzureRMServiceBusRule_correlationFilterUpdated(rInt int, location string) string {
 	correlationFilter := `
-	filter_type = "CorrelationFilter"
-	correlation_filter = {
-		correlation_id      = "test_correlation_id"
-		message_id          = "test_message_id_updated"
-		reply_to            = "test_reply_to_added"
-	  }
+	resource "azurerm_servicebus_rule" "test" {
+		name                = "acctestservicebusrule-%d"
+		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+		topic_name          = "${azurerm_servicebus_topic.test.name}"
+		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		filter_type 		= "CorrelationFilter"
+
+		correlation_filter 	= {
+			correlation_id	= "test_correlation_id"
+			message_id		= "test_message_id_updated"
+			reply_to		= "test_reply_to_added" 
+		}
+	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, rInt, correlationFilter)
+	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
 func testAccAzureRMServiceBusRule_correlationFilterWithAction(rInt int, location string) string {
 	correlationFilter := `
-	filter_type = "CorrelationFilter"
-	correlation_filter = {
-		correlation_id      = "test_correlation_id"
-		message_id          = "test_message_id"
-	  }
-	  action      = "SET Test='true'"
+	resource "azurerm_servicebus_rule" "test" {
+		name                = "acctestservicebusrule-%d"
+		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+		topic_name          = "${azurerm_servicebus_topic.test.name}"
+		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
+		resource_group_name = "${azurerm_resource_group.test.name}"
+		action      		= "SET Test='true'"
+		filter_type 		= "CorrelationFilter"
+
+		correlation_filter 	= {
+			correlation_id	= "test_correlation_id"
+			message_id		= "test_message_id"
+		}
+	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, rInt, correlationFilter)
+	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
 const resourceName = "azurerm_servicebus_rule.test"
@@ -311,12 +365,5 @@ resource "azurerm_servicebus_subscription" "test" {
     max_delivery_count  = 10
 }
 
-resource "azurerm_servicebus_rule" "test" {
-	name                = "acctestservicebusrule-%d"
-	namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-	topic_name          = "${azurerm_servicebus_topic.test.name}"
-	subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"	
-	%s
-  }
+%s
 `
