@@ -66,10 +66,6 @@ func validateAzureRMTags(v interface{}, f string) (ws []string, es []error) {
 			es = append(es, fmt.Errorf("the maximum length for a tag key is 512 characters: %q is %d characters", k, len(k)))
 		}
 
-		if strings.EqualFold(k, "$type") {
-			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
-		}
-
 		value, err := tagValueToString(v)
 		if err != nil {
 			es = append(es, err)
