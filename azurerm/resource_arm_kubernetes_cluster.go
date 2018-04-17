@@ -111,9 +111,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"vm_size": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"os_disk_size_gb": {
