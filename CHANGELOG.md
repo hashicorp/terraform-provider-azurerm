@@ -1,17 +1,53 @@
-## 1.3.1 (Unreleased)
+## 1.3.3 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_scheduler_job_collection` [GH-990]
-* **New Data Source:** `azurerm_traffic_manager_geographical_location` [GH-987]
-* **New Resource:** `azurerm_express_route_circuit_authorization` [GH-992]
-* **New Resource:** `azurerm_iothub` [GH-887]
+* **New Data Source:** `azurerm_app_service` [GH-1071]
+* **New Resource:** `azurerm_app_service_custom_hostname_binding` [GH-1087]
 
 IMPROVEMENTS:
 
-* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [GH-1000] 
-* `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` [GH-986]
-* `azurerm_traffic_manager_profile` - adding support for the `traffic_routing_method` `Geographic` [GH-986]
+* dependencies: upgrading to `v15.0.1` of `Azure/azure-sdk-for-go` [GH-1085]
+* dependencies: upgrading to `v10.6.0` of `Azure/go-autorest` [GH-1077]
+* `azurerm_app_service` - added support for the `https_only` field [GH-1080]
+* `azurerm_app_service_slot` - added support for the `https_only` field [GH-1080]
+* `azurerm_function_app` - added support for the `https_only` field [GH-1080]
+
+## 1.3.2 (April 04, 2018)
+
+FEATURES:
+
+* **New Resource:** `azurerm_packet_capture` ([#1044](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1044))
+* **New Resource:** `azurerm_policy_assignment` ([#1051](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1051))
+
+IMPROVEMENTS:
+
+* `azurerm_virtual_machine_scale_set` - adds support for MSI ([#1018](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1018))
+
+## 1.3.1 (March 29, 2018)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_scheduler_job_collection` ([#990](https://github.com/terraform-providers/terraform-provider-azurerm/issues/990))
+* **New Data Source:** `azurerm_traffic_manager_geographical_location` ([#987](https://github.com/terraform-providers/terraform-provider-azurerm/issues/987))
+* **New Resource:** `azurerm_express_route_circuit_authorization` ([#992](https://github.com/terraform-providers/terraform-provider-azurerm/issues/992))
+* **New Resource:** `azurerm_express_route_circuit_peering` ([#1033](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1033))
+* **New Resource:** `azurerm_iothub` ([#887](https://github.com/terraform-providers/terraform-provider-azurerm/issues/887))
+* **New Resource:** `azurerm_policy_definition` ([#1010](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1010))
+* **New Resource:** `azurerm_sql_virtual_network_rule` ([#978](https://github.com/terraform-providers/terraform-provider-azurerm/issues/978))
+
+IMPROVEMENTS:
+
+* `azurerm_app_service` - allow changing `client_affinity_enabled` without requiring a resource recreation ([#993](https://github.com/terraform-providers/terraform-provider-azurerm/issues/993))
+* `azurerm_app_service` - support for configuring `LocalSCM` source control ([#826](https://github.com/terraform-providers/terraform-provider-azurerm/issues/826))
+* `azurerm_app_service` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
+* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [[#1000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1000)] 
+* `azurerm_function_app` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
+* `azurerm_network_interface` - support for attaching to Application Gateways ([#1027](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1027))
+* `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` ([#986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/986))
+* `azurerm_traffic_manager_profile` - adding support for the `traffic_routing_method` `Geographic` ([#986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/986))
+* `azurerm_virtual_machine_scale_sets` - support for attaching to Application Gateways ([#1027](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1027))
+* `azurerm_virtual_network_gateway` - changes to `peering_address` now force a new resource ([#1040](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1040))
 
 ## 1.3.0 (March 15, 2018)
 

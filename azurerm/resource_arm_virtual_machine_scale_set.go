@@ -37,6 +37,29 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"zones": zonesSchema(),
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"sku": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -275,6 +298,13 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 									"subnet_id": {
 										Type:     schema.TypeString,
 										Required: true,
+									},
+
+									"application_gateway_backend_address_pool_ids": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+										Set:      schema.HashString,
 									},
 
 									"load_balancer_backend_address_pool_ids": {
@@ -564,7 +594,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	zones := expandZones(d.Get("zones").([]interface{}))
@@ -639,6 +669,10 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		Zones: zones,
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		scaleSetParams.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
+	}
+
 	if _, ok := d.GetOk("plan"); ok {
 		plan, err := expandAzureRmVirtualMachineScaleSetPlan(d)
 		if err != nil {
@@ -694,11 +728,17 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("zones", resp.Zones)
 
 	if err := d.Set("sku", flattenAzureRmVirtualMachineScaleSetSku(resp.Sku)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Sku error: %#v", err)
+	}
+
+	if err := d.Set("identity", flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("[DEBUG] Error flattening `identity`: %+v", err)
 	}
 
 	properties := resp.VirtualMachineScaleSetProperties
@@ -801,6 +841,20 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachineScaleSetIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	return []interface{}{result}
 }
 
 func flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(config *compute.LinuxConfiguration) []interface{} {
@@ -939,6 +993,14 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 				if ipConfig.VirtualMachineScaleSetIPConfigurationProperties.Subnet != nil {
 					config["subnet_id"] = *properties.Subnet.ID
 				}
+
+				addressPools := make([]interface{}, 0)
+				if properties.ApplicationGatewayBackendAddressPools != nil {
+					for _, pool := range *properties.ApplicationGatewayBackendAddressPools {
+						addressPools = append(addressPools, *pool.ID)
+					}
+				}
+				config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 
 				if properties.LoadBalancerBackendAddressPools != nil {
 					addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
@@ -1109,12 +1171,13 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 				e["auto_upgrade_minor_version"] = *properties.AutoUpgradeMinorVersion
 			}
 
-			if properties.Settings != nil {
-				settings, err := structure.FlattenJsonToString(*properties.Settings)
+			if settings := properties.Settings; settings != nil {
+				settingsVal := settings.(map[string]interface{})
+				settingsJson, err := structure.FlattenJsonToString(settingsVal)
 				if err != nil {
 					return nil, err
 				}
-				e["settings"] = settings
+				e["settings"] = settingsJson
 			}
 		}
 
@@ -1271,6 +1334,18 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 				},
 			}
 
+			if v := ipconfig["application_gateway_backend_address_pool_ids"]; v != nil {
+				pools := v.(*schema.Set).List()
+				resources := make([]compute.SubResource, 0, len(pools))
+				for _, p := range pools {
+					id := p.(string)
+					resources = append(resources, compute.SubResource{
+						ID: &id,
+					})
+				}
+				ipConfiguration.ApplicationGatewayBackendAddressPools = &resources
+			}
+
 			if v := ipconfig["load_balancer_backend_address_pool_ids"]; v != nil {
 				pools := v.(*schema.Set).List()
 				resources := make([]compute.SubResource, 0, len(pools))
@@ -1420,6 +1495,16 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceDat
 	}
 
 	return diagnosticsProfile
+}
+
+func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *compute.VirtualMachineScaleSetIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &compute.VirtualMachineScaleSetIdentity{
+		Type: compute.ResourceIdentityType(identityType),
+	}
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {

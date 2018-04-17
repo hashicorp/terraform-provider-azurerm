@@ -48,6 +48,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     dotnet_framework_version = "v4.0"
+    scm_type                 = "LocalGit"
   }
 
   app_settings {
@@ -99,6 +100,7 @@ resource "azurerm_app_service" "test" {
     java_version           = "1.8"
     java_container         = "JETTY"
     java_container_version = "9.3"
+    scm_type               = "LocalGit"
   }
 }
 ```
@@ -107,9 +109,9 @@ resource "azurerm_app_service" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Service Plan component. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Plan component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -122,6 +124,8 @@ The following arguments are supported:
 * `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is the App Service Enabled? Changing this forces a new resource to be created.
+
+* `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
@@ -156,11 +160,15 @@ The following arguments are supported:
 * `python_version` - (Optional) The version of Python to use in this App Service. Possible values are `2.7` and `3.4`.
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
+* `scm_type` - (Optional) The type of Source Control enabled for this App Service. Possible values include `None` and `LocalGit`. Defaults to `None`.
 * `use_32_bit_worker_process` - (Optional) Should the App Service run in 32 bit mode, rather than 64 bit mode?
 
-~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
+
+~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
 
 ## Attributes Reference
 
@@ -171,6 +179,22 @@ The following attributes are exported:
 * `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+
+* `source_control` - (Optional) The default local Git source control information if deployment option is set to `LocalGit`.
+
+* `site_credential` - (Optional) The site-level credential used to publish files to Azure Web App.
+
+---
+
+`source_control` supports the following:
+
+* `repo_url` - URL of the Git repository for this App Service.
+* `branch` - Branch name of the Git repository for this App Service.
+
+`site_credential` supports the following:
+
+* `username` - If your site is named 'MySite', the user name will be '$MySite'.
+* `password` - Some long random string.
 
 ## Import
 

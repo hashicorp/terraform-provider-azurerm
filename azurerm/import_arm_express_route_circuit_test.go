@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMExpressRouteCircuit_importMetered(t *testing.T) {
+func testAccAzureRMExpressRouteCircuit_importMetered(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMExpressRouteCircuit_basicMetered(ri, testLocation())
+	config := testAccAzureRMExpressRouteCircuit_basicMeteredConfig(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,11 +30,11 @@ func TestAccAzureRMExpressRouteCircuit_importMetered(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuit_importUnlimited(t *testing.T) {
+func testAccAzureRMExpressRouteCircuit_importUnlimited(t *testing.T) {
 	resourceName := "azurerm_express_route_circuit.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMExpressRouteCircuit_basicUnlimited(ri, testLocation())
+	config := testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

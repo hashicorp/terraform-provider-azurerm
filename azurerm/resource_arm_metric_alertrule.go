@@ -151,7 +151,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
@@ -206,7 +206,6 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -261,7 +260,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 				properties := make(map[string]string, 0)
 				if props := webhookAction.Properties; props != nil {
-					for k, v := range *props {
+					for k, v := range props {
 						if k != "$type" {
 							properties[k] = *v
 						}
@@ -379,7 +378,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 
 		webhookAction := insights.RuleWebhookAction{
 			ServiceURI: &service_uri,
-			Properties: &webhook_properties,
+			Properties: webhook_properties,
 		}
 
 		actions = append(actions, webhookAction)

@@ -119,18 +119,26 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 		},
 	}
 	ctx := client.StopContext
-	createFuture, createErr := storageClient.Create(resourceGroupName, storageAccountName, createParams, ctx.Done())
-
-	select {
-	case err := <-createErr:
+	future, err := storageClient.Create(ctx, resourceGroupName, storageAccountName, createParams)
+	if err != nil {
 		return nil, fmt.Errorf("Error creating Storage Account %q: %+v", resourceGroupName, err)
-	case account := <-createFuture:
-		return &account, nil
 	}
+
+	err = future.WaitForCompletion(ctx, storageClient.Client)
+	if err != nil {
+		return nil, fmt.Errorf("Error waiting for creation of Storage Account %q: %+v", resourceGroupName, err)
+	}
+
+	account, err := storageClient.GetProperties(ctx, resourceGroupName, storageAccountName)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Storage Account %q: %+v", resourceGroupName, err)
+	}
+
+	return &account, nil
 }
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
-	client.storageServiceClient.Delete(resourceGroupName, storageAccountName)
+	client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName)
 	client.resourceGroupsClient.Delete(ctx, resourceGroupName)
 }

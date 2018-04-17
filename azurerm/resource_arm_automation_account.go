@@ -61,11 +61,11 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Account creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	sku := expandSku(d)
+	sku := expandAutomationAccountSku(d)
 
 	parameters := automation.AccountCreateOrUpdateParameters{
 		AccountCreateOrUpdateProperties: &automation.AccountCreateOrUpdateProperties{
@@ -116,11 +116,16 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
-	flattenAndSetSku(d, resp.Sku)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
-	flattenAndSetTags(d, resp.Tags)
+	flattenAndSetAutomationAccountSku(d, resp.Sku)
+
+	if tags := resp.Tags; tags != nil {
+		flattenAndSetTags(d, tags)
+	}
 
 	return nil
 }
@@ -149,7 +154,7 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func flattenAndSetSku(d *schema.ResourceData, sku *automation.Sku) {
+func flattenAndSetAutomationAccountSku(d *schema.ResourceData, sku *automation.Sku) {
 	results := make([]interface{}, 1)
 
 	result := map[string]interface{}{}
@@ -159,7 +164,7 @@ func flattenAndSetSku(d *schema.ResourceData, sku *automation.Sku) {
 	d.Set("sku", &results)
 }
 
-func expandSku(d *schema.ResourceData) automation.Sku {
+func expandAutomationAccountSku(d *schema.ResourceData) automation.Sku {
 	inputs := d.Get("sku").([]interface{})
 	input := inputs[0].(map[string]interface{})
 	name := automation.SkuNameEnum(input["name"].(string))

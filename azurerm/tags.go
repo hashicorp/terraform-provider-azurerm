@@ -67,7 +67,7 @@ func validateAzureRMTags(v interface{}, k string) (ws []string, es []error) {
 	return
 }
 
-func expandTags(tagsMap map[string]interface{}) *map[string]*string {
+func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	output := make(map[string]*string, len(tagsMap))
 
 	for i, v := range tagsMap {
@@ -76,18 +76,18 @@ func expandTags(tagsMap map[string]interface{}) *map[string]*string {
 		output[i] = &value
 	}
 
-	return &output
+	return output
 }
 
-func flattenAndSetTags(d *schema.ResourceData, tagsMap *map[string]*string) {
+func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) {
 	if tagsMap == nil {
 		d.Set("tags", make(map[string]interface{}))
 		return
 	}
 
-	output := make(map[string]interface{}, len(*tagsMap))
+	output := make(map[string]interface{}, len(tagsMap))
 
-	for i, v := range *tagsMap {
+	for i, v := range tagsMap {
 		output[i] = *v
 	}
 
