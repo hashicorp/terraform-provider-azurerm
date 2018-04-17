@@ -1,21 +1,21 @@
-## 1.3.3 (Unreleased)
+## 1.3.3 (April 17, 2018)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_app_service` [GH-1071]
-* **New Resource:** `azurerm_app_service_custom_hostname_binding` [GH-1087]
+* **New Data Source:** `azurerm_app_service` ([#1071](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1071))
+* **New Resource:** `azurerm_app_service_custom_hostname_binding` ([#1087](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1087))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to `v15.1.0` of `Azure/azure-sdk-for-go` [GH-1099]
-* dependencies: upgrading to `v10.6.0` of `Azure/go-autorest` [GH-1077]
-* `azurerm_app_service` - added support for the `https_only` field [GH-1080]
-* `azurerm_app_service_slot` - added support for the `https_only` field [GH-1080]
-* `azurerm_function_app` - added support for the `https_only` field [GH-1080]
-* `azurerm_key_vault_certificate` - exposing the certificate's associated `secret_id` [GH-1096]
-* `azurerm_redis_cache` - support for clusters on the internal network [GH-1086]
-* `azurerm_servicebus_queue` - support for setting `requires_session` [GH-1111]
-* `azurerm_sql_database` - changes to `collation` force a new resource [GH-1066]
+* dependencies: upgrading to `v15.1.0` of `Azure/azure-sdk-for-go` ([#1099](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1099))
+* dependencies: upgrading to `v10.6.0` of `Azure/go-autorest` ([#1077](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1077))
+* `azurerm_app_service` - added support for the `https_only` field ([#1080](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1080))
+* `azurerm_app_service_slot` - added support for the `https_only` field ([#1080](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1080))
+* `azurerm_function_app` - added support for the `https_only` field ([#1080](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1080))
+* `azurerm_key_vault_certificate` - exposing the certificate's associated `secret_id` ([#1096](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1096))
+* `azurerm_redis_cache` - support for clusters on the internal network ([#1086](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1086))
+* `azurerm_servicebus_queue` - support for setting `requires_session` ([#1111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1111))
+* `azurerm_sql_database` - changes to `collation` force a new resource ([#1066](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1066))
 
 ## 1.3.2 (April 04, 2018)
 
