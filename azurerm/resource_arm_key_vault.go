@@ -111,6 +111,8 @@ func resourceArmKeyVault() *schema.Resource {
 									string(keyvault.Listissuers),
 									string(keyvault.Managecontacts),
 									string(keyvault.Manageissuers),
+									string(keyvault.Purge),
+									string(keyvault.Recover),
 									string(keyvault.Setissuers),
 									string(keyvault.Update),
 								}, true),
