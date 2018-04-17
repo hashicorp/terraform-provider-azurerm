@@ -276,7 +276,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("webhook_action", webhook_actions)
 	}
 
-	flattenAndSetTags(d, resp.Tags, "$type")
+	// Return a new tag map after filtering from specified tag list.
+	tagMap := filterTags(resp.Tags, "$type")
+
+	flattenAndSetTags(d, tagMap)
 
 	return nil
 }
