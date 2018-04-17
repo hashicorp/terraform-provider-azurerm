@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 
+	"context"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -483,15 +484,35 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
 		site.Identity = appServiceIdentity
 
-		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
-		err = future.WaitForCompletion(ctx, client.Client)
-
+		err = updateAppServiceSettings(client, ctx, resGroup, name, site)
 		if err != nil {
-			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
+			return err
 		}
 	}
 
 	return resourceArmAppServiceRead(d, meta)
+}
+
+func updateAppServiceSettings(
+	client web.AppsClient,
+	ctx context.Context,
+	resGroup string,
+	name string,
+	site web.Site) error {
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
+
+	if err != nil {
+		return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+
+	if err != nil {
+		return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
+	}
+
+	return nil
 }
 
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
