@@ -171,7 +171,9 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 	}
 
-	flattenAndSetAzureRmCosmosDBAccountConsistencyPolicy(d, resp.ConsistencyPolicy)
+	if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
+		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 
 	//sort `geo_locations` by fail over priority
 	locations := make([]map[string]interface{}, len(*resp.FailoverPolicies))
