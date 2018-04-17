@@ -1,4 +1,20 @@
 ## 1.4.0 (Unreleased)
+
+UPGRADE NOTES:
+
+* `azurerm_cosmosdb_account` - the field `failover_policy` has been deprecated in favour of `geo_locations` to better match Azure.
+
+IMPROVEMENTS:
+
+* `azurerm_cosmosdb_account` - support for `enable_automatic_failover` [GH-1055]
+* `azurerm_cosmosdb_account` - support for the `ConsistentPrefix` consistncy level [GH-1055]
+* `azurerm_cosmosdb_account` - `prefixes` can now be configured for locations [GH-1055]
+
+BUG FIXES:
+
+* `azurerm_cosmosdb_account` - locations can now be modified in-place (without requiring multiple apply's) [GH-1055]
+
+
 ## 1.3.3 (April 17, 2018)
 
 FEATURES:
