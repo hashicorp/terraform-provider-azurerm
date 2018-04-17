@@ -131,6 +131,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
 ---
 
 `connection_string` supports the following:
@@ -153,6 +155,43 @@ The following arguments are supported:
 
 * `local_mysql_enabled` - (Optional) Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
+---
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. The only allowable value is `SystemAssigned`. 
+The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created, e.g.
+
+```hcl
+resource "azurerm_app_service" "test" {
+  name                = "${random_id.server.hex}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    always_on = true
+  }
+
+  identity = {
+    type = "SystemAssigned"
+  }
+
+  client_affinity_enabled = false
+
+  app_settings {
+    "SOME_KEY" = "some-value"
+  }
+  
+}
+
+output "test_service_principal_id" {
+  value = "${lookup(azurerm_app_service.test.identity[0], "principal_id")}"
+}
+output "test_service_tenant_id" {
+  value = "${lookup(azurerm_app_service.test.identity[0], "tenant_id")}"
+}
+```
 ~> **NOTE:** MySQL In App is not intended for production environments and will not scale beyond a single instance. Instead you may wish [to use Azure Database for MySQL](/docs/providers/azurerm/r/mysql_database.html).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
@@ -184,6 +223,9 @@ The following attributes are exported:
 
 * `site_credential` - (Optional) The site-level credential used to publish files to Azure Web App.
 
+* `principal_id` - When Identity is `SystemAssigned` attribute exposes Service Principal id created by Azure Resource Manager. 
+
+* `tenant_id` - When Identity is `SystemAssigned` attribute exposes Azure AD tenant id where Service Principal was created.
 ---
 
 `source_control` supports the following:
