@@ -461,11 +461,11 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if err := d.Set("failover_policy", flattenAzureRmCosmosDBAccountFailoverPolicy(resp.FailoverPolicies)); err != nil {
-		return fmt.Errorf("Error setting CosmosDB Account %q `failover_policy` (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-	if err := d.Set("geo_location", flattenAndSetAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
-		return fmt.Errorf("Error setting CosmosDB Account %q `geo_location` (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, ok := d.GetOk("failover_policy"); ok {
+		d.Set("failover_policy", flattenAzureRmCosmosDBAccountFailoverPolicy(resp.FailoverPolicies))
+	} else {
+		//if failover policy isn't default to using geo_location
+		d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp))
 	}
 
 	if p := resp.ReadLocations; p != nil {
@@ -732,7 +732,7 @@ func flattenAzureRmCosmosDBAccountFailoverPolicy(list *[]documentdb.FailoverPoli
 	return &results
 }
 
-func flattenAndSetAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account documentdb.DatabaseAccount) *schema.Set {
+func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account documentdb.DatabaseAccount) *schema.Set {
 	locationSet := schema.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
 	}
