@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - support for the `ConsistentPrefix` consistncy level [GH-1055]
 * `azurerm_cosmosdb_account` - `prefixes` can now be configured for locations [GH-1055]
 * `azurerm_key_vault` - adding cert permissions for `Purge` and `Recover` [GH-1132]
+* `azurerm_virtual_machine` - make the `vm_size` property case insensitive [GH-1131]
 
 BUG FIXES:
 
