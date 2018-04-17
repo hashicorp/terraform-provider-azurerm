@@ -6,7 +6,7 @@ description: |-
   Create a ServiceBus Rule.
 ---
 
-# azurerm\_servicebus\_rule
+# azurerm_servicebus_rule
 
 Create a ServiceBus Rule.
 
@@ -135,15 +135,13 @@ The following arguments are supported:
 
 * `subscription_name` - (Required) The name of the ServiceBus Subscription to create this Rule in. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
-
 * `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
 
 * `filter_type` - (Required) Type of filter to be applied to a BrokeredMessage. Possible values are `SqlFilter` and `CorrelationFilter`.
 
-* `sql_filter` - (Optional) Represents a filter written in SQL language-based syntax that to be evaluated against a BrokeredMessage. Must be set when `filter_type` is set to `SqlFilter`.
+* `sql_filter` - (Optional) Represents a filter written in SQL language-based syntax that to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `SqlFilter`.
 
-* `correlation_filter` - (Optional) A `correlation_filter` block as documented below to be evaluated against a BrokeredMessage. Must be set when `filter_type` is set to `CorrelationFilter`.
+* `correlation_filter` - (Optional) A `correlation_filter` block as documented below to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `CorrelationFilter`.
 
 * `action` - (Optional) Represents set of actions written in SQL language-based syntax that is performed against a BrokeredMessage.
 

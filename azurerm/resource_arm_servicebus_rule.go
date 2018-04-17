@@ -55,8 +55,6 @@ func resourceArmServiceBusRule() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"location": deprecatedLocationSchema(),
-
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sql_filter": {
@@ -67,6 +65,7 @@ func resourceArmServiceBusRule() *schema.Resource {
 			"correlation_filter": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"correlation_id": {
@@ -125,15 +124,13 @@ func resourceArmServiceBusRuleCreate(d *schema.ResourceData, meta interface{}) e
 	resourceGroup := d.Get("resource_group_name").(string)
 	filterType := d.Get("filter_type").(string)
 
-	ruleProperties := servicebus.Ruleproperties{
-		FilterType:        servicebus.FilterType(filterType),
-		Action:            getAzureRmServiceBusAction(d),
-		SQLFilter:         getAzureRmServiceBusSQLFilter(d),
-		CorrelationFilter: getAzureRmServiceBusCorrelationFilter(d),
-	}
-
 	rule := servicebus.Rule{
-		Ruleproperties: &ruleProperties,
+		Ruleproperties: &servicebus.Ruleproperties{
+			FilterType:        servicebus.FilterType(filterType),
+			Action:            getAzureRmServiceBusAction(d),
+			SQLFilter:         getAzureRmServiceBusSQLFilter(d),
+			CorrelationFilter: getAzureRmServiceBusCorrelationFilter(d),
+		},
 	}
 
 	err := validateArmServiceBusRule(name, rule)
