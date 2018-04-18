@@ -761,7 +761,7 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 func expandAppServiceSourceControl(d *schema.ResourceData) web.SiteSourceControl {
 	scmList := d.Get("source_control").([]interface{})
 	scmRet := web.SiteSourceControl{
-		SiteSourceControlProperties: &SiteSourceControlProperties{},
+		SiteSourceControlProperties: &web.SiteSourceControlProperties{},
 	}
 
 	if len(scmList) == 0 {
