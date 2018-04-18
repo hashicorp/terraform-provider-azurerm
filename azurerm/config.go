@@ -18,6 +18,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
 	analyticsAccount "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
@@ -172,6 +173,9 @@ type ArmClient struct {
 	// Data Lake Analytics
 	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
+
+	// Databricks
+	databricksWorkspacesClient databricks.WorkspacesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -457,6 +461,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerContainerRegistryClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDatabricksClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
@@ -629,6 +634,16 @@ func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId st
 	kubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&kubernetesClustersClient.Client, auth)
 	c.kubernetesClustersClient = kubernetesClustersClient
+}
+
+func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	databricksWorkspacesClient := databricks.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&databricksWorkspacesClient.Client)
+	databricksWorkspacesClient.Authorizer = auth
+	databricksWorkspacesClient.Sender = sender
+	databricksWorkspacesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+
+	c.databricksWorkspacesClient = databricksWorkspacesClient
 }
 
 func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
