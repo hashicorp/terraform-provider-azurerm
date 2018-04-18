@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"regexp"
 )
 
 func resourceArmSqlServer() *schema.Resource {
@@ -23,10 +24,13 @@ func resourceArmSqlServer() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateDBAccountName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
+					"SQL server name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+				),
 			},
 
 			"location": locationSchema(),
