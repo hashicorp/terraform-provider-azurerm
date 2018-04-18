@@ -385,12 +385,6 @@ func registerAzureResourceProvidersWithSubscription(ctx context.Context, provide
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
 
-// Resource group names can be capitalised, but we store them in lowercase.
-// Use a custom diff function to avoid creation of new resources.
-func resourceAzurermResourceGroupNameDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
-}
-
 // ignoreCaseDiffSuppressFunc is a DiffSuppressFunc from helper/schema that is
 // used to ignore any case-changes in a return value.
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {

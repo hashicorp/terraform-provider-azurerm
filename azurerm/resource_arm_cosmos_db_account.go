@@ -36,7 +36,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"Cosmos DB Account Name name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					"Cosmos DB Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
 				),
 			},
 
