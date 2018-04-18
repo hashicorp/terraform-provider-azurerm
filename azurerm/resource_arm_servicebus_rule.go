@@ -193,10 +193,8 @@ func resourceArmServiceBusRuleRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("sql_filter", properties.SQLFilter.SQLExpression)
 		}
 
-		if properties.CorrelationFilter != nil {
-			if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(properties.CorrelationFilter)); err != nil {
-				return fmt.Errorf("Error setting `correlation_filter` on Azure ServiceVus Rule (%q): %+v", name, err)
-			}
+		if err := d.Set("correlation_filter", flattenAzureRmServiceBusCorrelationFilter(properties.CorrelationFilter)); err != nil {
+			return fmt.Errorf("Error setting `correlation_filter` on Azure ServiceVus Rule (%q): %+v", name, err)
 		}
 	}
 
@@ -312,6 +310,10 @@ func getAzureRmServiceBusCorrelationFilter(name string, d *schema.ResourceData) 
 
 func flattenAzureRmServiceBusCorrelationFilter(f *servicebus.CorrelationFilter) []interface{} {
 	filters := make([]interface{}, 0, 1)
+	if f == nil {
+		return filters
+	}
+
 	filter := make(map[string]interface{})
 
 	if f.CorrelationID != nil {
