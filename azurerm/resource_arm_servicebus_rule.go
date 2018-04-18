@@ -123,18 +123,13 @@ func resourceArmServiceBusRuleCreate(d *schema.ResourceData, meta interface{}) e
 	subscriptionName := d.Get("subscription_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	filterType := d.Get("filter_type").(string)
 
-	rule := servicebus.Rule{
-		Ruleproperties: &servicebus.Ruleproperties{
-			FilterType:        servicebus.FilterType(filterType),
-			Action:            getAzureRmServiceBusAction(d),
-			SQLFilter:         getAzureRmServiceBusSQLFilter(d),
-			CorrelationFilter: getAzureRmServiceBusCorrelationFilter(d),
-		},
+	rule, err := buildAzureRmServiceBusRule(name, d)
+	if err != nil {
+		return err
 	}
 
-	err := validateArmServiceBusRule(name, rule)
+	err = validateArmServiceBusRule(name, rule)
 	if err != nil {
 		return err
 	}
@@ -227,6 +222,25 @@ func resourceArmServiceBusRuleDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
+func buildAzureRmServiceBusRule(name string, d *schema.ResourceData) (rule servicebus.Rule, err error) {
+	correlationfilter, err := getAzureRmServiceBusCorrelationFilter(name, d)
+	if err != nil {
+		return
+	}
+
+	filterType := d.Get("filter_type").(string)
+	rule = servicebus.Rule{
+		Ruleproperties: &servicebus.Ruleproperties{
+			FilterType:        servicebus.FilterType(filterType),
+			Action:            getAzureRmServiceBusAction(d),
+			SQLFilter:         getAzureRmServiceBusSQLFilter(d),
+			CorrelationFilter: correlationfilter,
+		},
+	}
+
+	return
+}
+
 func getAzureRmServiceBusAction(d *schema.ResourceData) *servicebus.Action {
 	if action := d.Get("action").(string); action != "" {
 		serviceBusAction := servicebus.Action{
@@ -247,8 +261,14 @@ func getAzureRmServiceBusSQLFilter(d *schema.ResourceData) *servicebus.SQLFilter
 	return nil
 }
 
-func getAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) *servicebus.CorrelationFilter {
+func getAzureRmServiceBusCorrelationFilter(name string, d *schema.ResourceData) (*servicebus.CorrelationFilter, error) {
 	if config := d.Get("correlation_filter").([]interface{}); len(config) > 0 {
+
+		if config[0] == nil {
+			err := fmt.Errorf("Cannot create ServiceBus Rule (%s). At least one property must be set in the `correlation_filter` block", name)
+			return nil, err
+		}
+
 		filter := config[0].(map[string]interface{})
 		correlationFilter := servicebus.CorrelationFilter{}
 
@@ -284,9 +304,10 @@ func getAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) *servicebus.C
 			correlationFilter.ContentType = &contentType
 		}
 
-		return &correlationFilter
+		return &correlationFilter, nil
 	}
-	return nil
+
+	return nil, nil
 }
 
 func flattenAzureRmServiceBusCorrelationFilter(f *servicebus.CorrelationFilter) []interface{} {
