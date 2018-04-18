@@ -286,10 +286,12 @@ func resourceArmAppService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"repo_url": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
 						},
 						"branch": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
 						},
 					},
@@ -305,8 +307,8 @@ func resourceArmAppService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
-							Default:  "GitHub",
 							ValidateFunc: validation.StringInSlice([]string{
 								"BitBucket",
 								"Dropbox",
@@ -316,6 +318,7 @@ func resourceArmAppService() *schema.Resource {
 						},
 						"token": {
 							Type:      schema.TypeString,
+							Optional:  true,
 							Computed:  true,
 							Sensitive: true,
 						},
@@ -757,7 +760,9 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 func expandAppServiceSourceControl(d *schema.ResourceData) web.SiteSourceControl {
 	scmList := d.Get("source_control").([]interface{})
-	scmRet := web.SiteSourceControl{}
+	scmRet := web.SiteSourceControl{
+		SiteSourceControlProperties: &SiteSourceControlProperties{},
+	}
 
 	if len(scmList) == 0 {
 		return scmRet
@@ -799,7 +804,9 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControl) []interface{} 
 
 func expandAppServiceExternalSCMCredential(d *schema.ResourceData) web.SourceControl {
 	credList := d.Get("external_scm_credential").([]interface{})
-	credRet := web.SourceControl{}
+	credRet := web.SourceControl{
+		SourceControlProperties: &web.SourceControlProperties{},
+	}
 
 	if len(credList) == 0 {
 		return credRet
