@@ -2,8 +2,6 @@ package azurerm
 
 import (
 	"testing"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestValidateRFC3339Date(t *testing.T) {
