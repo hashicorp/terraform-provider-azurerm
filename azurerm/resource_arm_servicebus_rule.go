@@ -63,9 +63,10 @@ func resourceArmServiceBusRule() *schema.Resource {
 			},
 
 			"correlation_filter": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"sql_filter"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"correlation_id": {
