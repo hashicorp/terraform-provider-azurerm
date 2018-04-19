@@ -107,6 +107,9 @@ type ArmClient struct {
 	applicationsClient      graphrbac.ApplicationsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
+	// Autoscale Settings
+	autoscaleSettingsClient insights.AutoscaleSettingsClient
+
 	// CDN
 	cdnCustomDomainsClient cdn.CustomDomainsClient
 	cdnEndpointsClient     cdn.EndpointsClient
@@ -516,6 +519,12 @@ func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&autoscaleSettingsClient.Client)
+	autoscaleSettingsClient.Authorizer = auth
+	autoscaleSettingsClient.Sender = autorest.CreateSender(withRequestLogging())
+	c.autoscaleSettingsClient = autoscaleSettingsClient
+
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&availabilitySetsClient.Client, auth)
 	c.availSetClient = availabilitySetsClient
