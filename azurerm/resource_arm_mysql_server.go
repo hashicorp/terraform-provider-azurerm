@@ -3,9 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strconv"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -42,12 +41,24 @@ func resourceArmMySqlServer() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"MYSQLB50",
-								"MYSQLB100",
-								"MYSQLS100",
-								"MYSQLS200",
-								"MYSQLS400",
-								"MYSQLS800",
+								"B_Gen4_1",
+								"B_Gen4_2",
+								"B_Gen5_1",
+								"B_Gen5_2",
+								"GP_Gen4_2",
+								"GP_Gen4_4",
+								"GP_Gen4_8",
+								"GP_Gen4_16",
+								"GP_Gen4_32",
+								"GP_Gen5_2",
+								"GP_Gen5_4",
+								"GP_Gen5_8",
+								"GP_Gen5_16",
+								"GP_Gen5_32",
+								"MO_Gen5_2",
+								"MO_Gen5_4",
+								"MO_Gen5_8",
+								"MO_Gen5_16",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -56,11 +67,11 @@ func resourceArmMySqlServer() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 							ValidateFunc: validateIntInSlice([]int{
-								50,
-								100,
-								200,
-								400,
-								800,
+								2,
+								4,
+								8,
+								16,
+								32,
 							}),
 						},
 
@@ -69,7 +80,18 @@ func resourceArmMySqlServer() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.Basic),
-								string(mysql.Standard),
+								string(mysql.GeneralPurpose),
+								string(mysql.MemoryOptimized),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+
+						"family": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Gen4",
+								"Gen5",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
@@ -100,31 +122,83 @@ func resourceArmMySqlServer() *schema.Resource {
 				ForceNew:         true,
 			},
 
-			"storage_mb": {
-				Type:     schema.TypeInt,
+			"storage_profile": {
+				Type:     schema.TypeSet,
 				Required: true,
-				ForceNew: true,
-				ValidateFunc: validateIntInSlice([]int{
-					// Basic SKU
-					51200,
-					179200,
-					307200,
-					435200,
-					563200,
-					691200,
-					819200,
-					947200,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_mb": {
+							Type:     schema.TypeInt,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validateIntInSlice([]int{
+								5120,
+								179200,
+								307200,
+								435200,
+								563200,
+								691200,
+								819200,
+								947200,
+								128000,
+								256000,
+								384000,
+								512000,
+								640000,
+								768000,
+								896000,
+								1048576,
+							}),
+						},
 
-					// Standard SKU
-					128000,
-					256000,
-					384000,
-					512000,
-					640000,
-					768000,
-					896000,
-					1024000,
-				}),
+						"backupRetentionDays": {
+							Type:     schema.TypeInt,
+							Required: false,
+							ValidateFunc: validateIntInSlice([]int{
+								7,
+								8,
+								9,
+								10,
+								11,
+								12,
+								13,
+								14,
+								15,
+								16,
+								17,
+								18,
+								19,
+								20,
+								21,
+								22,
+								23,
+								24,
+								25,
+								26,
+								27,
+								28,
+								29,
+								30,
+								31,
+								32,
+								33,
+								34,
+								35,
+							}),
+						},
+
+						"georedundantbackup": {
+							Type:     schema.TypeString,
+							Required: false,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Enabled",
+								"Disabled",
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+					},
+				},
 			},
 
 			"ssl_enforcement": {
@@ -133,6 +207,16 @@ func resourceArmMySqlServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"createmode": {
+				Type:     schema.TypeString,
+				Required: false,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Default",
+					"PointInTimeRestore",
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -154,33 +238,34 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := d.Get("location").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLogin := d.Get("administrator_login").(string)
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	storageMB := d.Get("storage_mb").(int)
-
+	createMode := d.Get("createmode").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	sku := expandMySQLServerSku(d, storageMB)
+	sku := expandMySQLServerSku(d)
+	storageprofile := expandMySQLStorageProfile(d)
 
 	properties := mysql.ServerForCreate{
 		Location: &location,
-		Sku:      sku,
 		Properties: &mysql.ServerPropertiesForDefaultCreate{
-			Version:                    mysql.ServerVersion(version),
-			StorageMB:                  utils.Int64(int64(storageMB)),
-			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 			AdministratorLogin:         utils.String(adminLogin),
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
+			Version:                    mysql.ServerVersion(version),
+			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
+			StorageProfile:             storageprofile,
+			CreateMode:                 mysql.CreateMode(createMode),
 		},
+		Sku:  sku,
 		Tags: expandTags(tags),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
+	future, err := client.Create(ctx, resourceGroup, name, properties)
 	if err != nil {
 		return err
 	}
@@ -215,19 +300,18 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	storageMB := d.Get("storage_mb").(int)
-	sku := expandMySQLServerSku(d, storageMB)
-
+	sku := expandMySQLServerSku(d)
+	storageprofile := expandMySQLStorageProfile(d)
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := mysql.ServerUpdateParameters{
-		Sku: sku,
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
-			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
-			StorageMB:                  utils.Int64(int64(storageMB)),
-			Version:                    mysql.ServerVersion(version),
+			StorageProfile:             storageprofile,
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
+			Version:                    mysql.ServerVersion(version),
+			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 		},
+		Sku:  sku,
 		Tags: expandTags(tags),
 	}
 
@@ -276,16 +360,20 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
-	d.Set("storage_mb", int(*resp.StorageMB))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
 	if err := d.Set("sku", flattenMySQLServerSku(d, resp.Sku)); err != nil {
+		return err
+	}
+
+	if err := d.Set("server_profile", flattenMySQLStorageProfile(d, resp.StorageProfile)); err != nil {
 		return err
 	}
 
@@ -321,19 +409,35 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandMySQLServerSku(d *schema.ResourceData, storageMB int) *mysql.Sku {
+func expandMySQLServerSku(d *schema.ResourceData) *mysql.Sku {
 	skus := d.Get("sku").(*schema.Set).List()
 	sku := skus[0].(map[string]interface{})
 
 	name := sku["name"].(string)
 	capacity := sku["capacity"].(int)
 	tier := sku["tier"].(string)
+	family := sku["family"].(string)
 
 	return &mysql.Sku{
 		Name:     utils.String(name),
-		Capacity: utils.Int32(int32(capacity)),
 		Tier:     mysql.SkuTier(tier),
-		Size:     utils.String(strconv.Itoa(storageMB)),
+		Capacity: utils.Int32(int32(capacity)),
+		Family:   utils.String(family),
+	}
+}
+
+func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
+	storageprofiles := d.Get("storageprofile").(*schema.Set).List()
+	storageprofile := storageprofiles[0].(map[string]interface{})
+
+	backupRetentionDays := storageprofile["backupretentiondays"].(int)
+	geoRedundantBackup := storageprofile["geoRedundantBackup"].(string)
+	storageMB := storageprofile["storageMB"].(int)
+
+	return &mysql.StorageProfile{
+		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
+		StorageMB:           utils.Int32(int32(storageMB)),
+		GeoRedundantBackup:  mysql.GeoRedundantBackup(geoRedundantBackup),
 	}
 }
 
@@ -343,7 +447,19 @@ func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{
 	values["name"] = *resp.Name
 	values["capacity"] = int(*resp.Capacity)
 	values["tier"] = string(resp.Tier)
+	values["family"] = string(*resp.Family)
 
 	sku := []interface{}{values}
 	return sku
+}
+
+func flattenMySQLStorageProfile(d *schema.ResourceData, resp *mysql.StorageProfile) []interface{} {
+	values := map[string]interface{}{}
+
+	values["storageMB"] = int(*resp.StorageMB)
+	values["backupRetentionDays"] = int(*resp.BackupRetentionDays)
+	values["geoRedundantBackup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
+
+	storageprofile := []interface{}{values}
+	return storageprofile
 }

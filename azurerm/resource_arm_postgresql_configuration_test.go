@@ -223,15 +223,22 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
-    tier     = "Basic"
+    name     = "GP_Gen4_2"
+    capacity = 2
+	tier     = "Basic"
+	family   = "Gen4"
   }
 
+  storage_profile {
+	storage_mb = 51200
+	backupRetentionDays = 7
+	geoRedundantBackup = "Disabled"
+  }
+
+  createmode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
