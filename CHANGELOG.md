@@ -4,6 +4,11 @@ UPGRADE NOTES:
 
 * `azurerm_cosmosdb_account` - the field `failover_policy` has been deprecated in favour of `geo_locations` to better match Azure.
 
+FEATURES:
+
+* **New Data Source:** `azurerm_recovery_services_vault` [GH-995]
+* **New Resource:** `azurerm_recovery_services_vault` [GH-995]
+
 IMPROVEMENTS:
 
 * `azurerm_cosmosdb_account` - support for `enable_automatic_failover` [GH-1055]
