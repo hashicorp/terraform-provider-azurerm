@@ -19,6 +19,7 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"location": locationForDataSourceSchema(),
