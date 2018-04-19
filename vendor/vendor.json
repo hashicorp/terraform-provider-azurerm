@@ -179,9 +179,17 @@
 			"versionExact": "v15.1.0"
 		},
 		{
+			"checksumSHA1": "MIhAkAYROlF0bQN4AT4WZWkBQtY=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices",
+			"revision": "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f",
+			"revisionTime": "2018-04-09T17:42:04Z",
+			"version": "v15.1.0",
+			"versionExact": "v15.1.0"
+		},
+		{
 			"checksumSHA1": "JNSBPrbVww7i2tKS02XHTRU9f6A=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis",
-			"revision": "068ec4d616be5b2175509bf1fb3e4c8ea160d5c8",
+			"revision": "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f",
 			"revisionTime": "2018-04-09T17:42:04Z",
 			"version": "v15.1.0",
 			"versionExact": "v15.1.0"
