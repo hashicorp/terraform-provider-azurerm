@@ -25,7 +25,14 @@ func TestAccAzureRMRecoveryServicesVault_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check:  checkAccAzureRMRecoveryServicesVault_basic(resourceName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesVaultExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "location"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "sku", string(recoveryservices.Standard)),
+				),
 			},
 		},
 	})
@@ -104,15 +111,4 @@ resource "azurerm_recovery_services_vault" "test" {
 }
  
 `, rInt, location, rInt)
-}
-
-func checkAccAzureRMRecoveryServicesVault_basic(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeTestCheckFunc(
-		testCheckAzureRMRecoveryServicesVaultExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "location"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-		resource.TestCheckResourceAttr(resourceName, "sku", string(recoveryservices.Standard)),
-	)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
@@ -18,7 +19,14 @@ func TestAccDataSourceAzureRMRecoveryServicesVault_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceRecoveryServicesVault_basic(ri, testLocation()),
-				Check:  checkAccAzureRMRecoveryServicesVault_basic(dataSourceName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRecoveryServicesVaultExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku", string(recoveryservices.Standard)),
+				),
 			},
 		},
 	})
