@@ -291,14 +291,6 @@
 			"versionExact": "v15.1.0"
 		},
 		{
-			"checksumSHA1": "uh/72Oapxt6GqeM0RLeI+D/6pVs=",
-			"path": "github.com/Azure/azure-sdk-for-go/version",
-			"revision": "bbb570615c58626208d0a4af51ef2226aee6c729",
-			"revisionTime": "2018-03-14T22:57:36Z",
-			"version": "v15.1.0",
-			"versionExact": "v15.1.0"
-		},
-		{
 			"checksumSHA1": "Gp9PjNDzkHRrBqQ4iSH0UcQlNMU=",
 			"path": "github.com/Azure/azure-sdk-for-go/version",
 			"revision": "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f",
