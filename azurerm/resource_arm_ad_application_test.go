@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -96,7 +97,7 @@ func TestAccAzureRMAdApplication_keyCredential(t *testing.T) {
 	resourceName := "azurerm_ad_application.test"
 	id := uuid.New().String()
 	keyId := uuid.New().String()
-	config := testAccAzureRMAdApplication_keyCredential_single(id, keyId)
+	config := testAccAzureRMAdApplication_keyCredential_single(id, keyId, "AsymmetricX509Cert")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -118,12 +119,49 @@ func TestAccAzureRMAdApplication_keyCredential(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAdApplication_updateKeyCredential_increaseCount(t *testing.T) {
+func TestAccAzureRMAdApplication_updateKeyCredential_changeAttributes(t *testing.T) {
 	resourceName := "azurerm_ad_application.test"
 	id := uuid.New().String()
 	keyId := uuid.New().String()
 	keyId2 := uuid.New().String()
-	configSingle := testAccAzureRMAdApplication_keyCredential_single(id, keyId)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProvidersWithTLS,
+		CheckDestroy: testCheckAzureRMAdApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAdApplication_keyCredential_single(id, keyId, "AsymmetricX509Cert"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdApplicationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+				),
+			},
+			{
+				Config:      testAccAzureRMAdApplication_keyCredential_single(id, keyId, "Symmetric"),
+				ExpectError: regexp.MustCompile(`Error: changing Key Credential properties on existing KeyID`),
+			},
+			{
+				Config: testAccAzureRMAdApplication_keyCredential_single(id, keyId2, "Symmetric"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdApplicationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAdApplication_updateKeyCredential_changeCount(t *testing.T) {
+	resourceName := "azurerm_ad_application.test"
+	id := uuid.New().String()
+	keyId := uuid.New().String()
+	keyId2 := uuid.New().String()
+	configSingle := testAccAzureRMAdApplication_keyCredential_single(id, keyId, "AsymmetricX509Cert")
 	configDouble := testAccAzureRMAdApplication_keyCredential_double(id, keyId, keyId2)
 
 	resource.Test(t, resource.TestCase{
@@ -147,34 +185,11 @@ func TestAccAzureRMAdApplication_updateKeyCredential_increaseCount(t *testing.T)
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "2"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccAzureRMAdApplication_updateKeyCredential_decreaseCount(t *testing.T) {
-	resourceName := "azurerm_ad_application.test"
-	id := uuid.New().String()
-	keyId := uuid.New().String()
-	keyId2 := uuid.New().String()
-	configSingle := testAccAzureRMAdApplication_keyCredential_single(id, keyId)
-	configDouble := testAccAzureRMAdApplication_keyCredential_double(id, keyId, keyId2)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProvidersWithTLS,
-		CheckDestroy: testCheckAzureRMAdApplicationDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: configDouble,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAdApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "2"),
-				),
-			},
 			{
 				Config: configSingle,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdApplicationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "display_name", id),
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
 				),
 			},
@@ -186,8 +201,8 @@ func TestAccAzureRMAdApplication_passwordCredential(t *testing.T) {
 	resourceName := "azurerm_ad_application.test"
 	id := uuid.New().String()
 	keyId := uuid.New().String()
-	timeStart := string(time.Now().UTC().Format(time.RFC3339))
-	timeEnd := string(time.Now().UTC().Add(time.Duration(1) * time.Hour).Format(time.RFC3339))
+	timeStart := time.Now().UTC()
+	timeEnd := timeStart.Add(time.Duration(1) * time.Hour)
 	config := testAccAzureRMAdApplication_passwordCredential_single(id, keyId, timeStart, timeEnd)
 
 	resource.Test(t, resource.TestCase{
@@ -210,13 +225,53 @@ func TestAccAzureRMAdApplication_passwordCredential(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAdApplication_updatePasswordCredential_increaseCount(t *testing.T) {
+func TestAccAzureRMAdApplication_updatePasswordCredential_changeAttributes(t *testing.T) {
 	resourceName := "azurerm_ad_application.test"
 	id := uuid.New().String()
 	keyId := uuid.New().String()
 	keyId2 := uuid.New().String()
-	timeStart := string(time.Now().UTC().Format(time.RFC3339))
-	timeEnd := string(time.Now().UTC().Add(time.Duration(1) * time.Hour).Format(time.RFC3339))
+	timeStart := time.Now().UTC()
+	timeEnd := timeStart.Add(time.Duration(1) * time.Hour)
+	timeEnd2 := timeEnd.Add(time.Duration(1) * time.Hour)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAdApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAdApplication_passwordCredential_single(id, keyId, timeStart, timeEnd),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdApplicationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "password_credential.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+				),
+			},
+			{
+				Config:      testAccAzureRMAdApplication_passwordCredential_single(id, keyId, timeStart, timeEnd2),
+				ExpectError: regexp.MustCompile(`Error: changing Password Credential properties on existing KeyID`),
+			},
+			{
+				Config: testAccAzureRMAdApplication_passwordCredential_single(id, keyId2, timeStart, timeEnd2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdApplicationExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "password_credential.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAdApplication_updatePasswordCredential_changeCount(t *testing.T) {
+	resourceName := "azurerm_ad_application.test"
+	id := uuid.New().String()
+	keyId := uuid.New().String()
+	keyId2 := uuid.New().String()
+	timeStart := time.Now().UTC()
+	timeEnd := timeStart.Add(time.Duration(1) * time.Hour)
 	configSingle := testAccAzureRMAdApplication_passwordCredential_single(id, keyId, timeStart, timeEnd)
 	configDouble := testAccAzureRMAdApplication_passwordCredential_double(id, keyId, keyId2, timeStart, timeEnd)
 
@@ -232,32 +287,6 @@ func TestAccAzureRMAdApplication_updatePasswordCredential_increaseCount(t *testi
 					resource.TestCheckResourceAttr(resourceName, "password_credential.#", "1"),
 				),
 			},
-			{
-				Config: configDouble,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAdApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "password_credential.#", "2"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMAdApplication_updatePasswordCredential_decreaseCount(t *testing.T) {
-	resourceName := "azurerm_ad_application.test"
-	id := uuid.New().String()
-	keyId := uuid.New().String()
-	keyId2 := uuid.New().String()
-	timeStart := string(time.Now().UTC().Format(time.RFC3339))
-	timeEnd := string(time.Now().UTC().Add(time.Duration(1) * time.Hour).Format(time.RFC3339))
-	configSingle := testAccAzureRMAdApplication_passwordCredential_single(id, keyId, timeStart, timeEnd)
-	configDouble := testAccAzureRMAdApplication_passwordCredential_double(id, keyId, keyId2, timeStart, timeEnd)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAdApplicationDestroy,
-		Steps: []resource.TestStep{
 			{
 				Config: configDouble,
 				Check: resource.ComposeTestCheckFunc(
@@ -347,7 +376,7 @@ resource "azurerm_ad_application" "test" {
 `, id, id, id, id)
 }
 
-func testAccAzureRMAdApplication_keyCredential_single(id string, keyId string) string {
+func testAccAzureRMAdApplication_keyCredential_single(id string, keyId string, usage string) string {
 	return fmt.Sprintf(`
 resource "tls_private_key" "test" {
   algorithm   = "ECDSA"
@@ -378,12 +407,14 @@ resource "azurerm_ad_application" "test" {
 
   key_credential {
     key_id = "%s"
-    type = "AsymmetricX509Cert"
+    type = "%s"
     usage = "Verify"
-    value = "${replace(tls_self_signed_cert.test.cert_pem, "/(-{5}.+?-{5})|(\\n)/", "")}"
+    start_date = "${tls_self_signed_cert.test.validity_start_time}"
+    end_date = "${tls_self_signed_cert.test.validity_end_time}"
+    value = "${tls_self_signed_cert.test.cert_pem}"
   }
 }
-`, id, keyId)
+`, id, keyId, usage)
 }
 
 func testAccAzureRMAdApplication_keyCredential_double(id string, keyId string, keyId2 string) string {
@@ -443,20 +474,26 @@ resource "azurerm_ad_application" "test" {
     key_id = "%s"
     type = "AsymmetricX509Cert"
     usage = "Verify"
-    value = "${replace(tls_self_signed_cert.test.cert_pem, "/(-{5}.+?-{5})|(\\n)/", "")}"
+    start_date = "${tls_self_signed_cert.test.validity_start_time}"
+    end_date = "${tls_self_signed_cert.test.validity_end_time}"
+    value = "${tls_self_signed_cert.test.cert_pem}"
   }
 
   key_credential {
     key_id = "%s"
     type = "AsymmetricX509Cert"
     usage = "Verify"
-    value = "${replace(tls_self_signed_cert.test2.cert_pem, "/(-{5}.+?-{5})|(\\n)/", "")}"
+    start_date = "${tls_self_signed_cert.test2.validity_start_time}"
+    end_date = "${tls_self_signed_cert.test2.validity_end_time}"
+    value = "${tls_self_signed_cert.test2.cert_pem}"
   }
 }
 `, id, keyId, keyId2)
 }
 
-func testAccAzureRMAdApplication_passwordCredential_single(id string, keyId string, timeStart string, timeEnd string) string {
+func testAccAzureRMAdApplication_passwordCredential_single(id string, keyId string, timeStart time.Time, timeEnd time.Time) string {
+	ts := string(timeStart.Format(time.RFC3339))
+	te := string(timeEnd.Format(time.RFC3339))
 	return fmt.Sprintf(`
 resource "azurerm_ad_application" "test" {
   display_name = "%s"
@@ -468,10 +505,12 @@ resource "azurerm_ad_application" "test" {
     end_date = "%s"
   }
 }
-`, id, keyId, timeStart, timeEnd)
+`, id, keyId, ts, te)
 }
 
-func testAccAzureRMAdApplication_passwordCredential_double(id string, keyId string, keyId2 string, timeStart string, timeEnd string) string {
+func testAccAzureRMAdApplication_passwordCredential_double(id string, keyId string, keyId2 string, timeStart time.Time, timeEnd time.Time) string {
+	ts := string(timeStart.Format(time.RFC3339))
+	te := string(timeEnd.Format(time.RFC3339))
 	return fmt.Sprintf(`
 resource "azurerm_ad_application" "test" {
   display_name = "%s"
@@ -490,5 +529,5 @@ resource "azurerm_ad_application" "test" {
     end_date = "%s"
   }
 }
-`, id, keyId, timeStart, timeEnd, keyId2, timeStart, timeEnd)
+`, id, keyId, ts, te, keyId2, ts, te)
 }

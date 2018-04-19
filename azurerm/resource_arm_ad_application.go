@@ -11,10 +11,11 @@ import (
 
 func resourceArmAdApplication() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAdApplicationCreate,
-		Read:   resourceArmAdApplicationRead,
-		Update: resourceArmAdApplicationUpdate,
-		Delete: resourceArmAdApplicationDelete,
+		Create:        resourceArmAdApplicationCreate,
+		Read:          resourceArmAdApplicationRead,
+		Update:        resourceArmAdApplicationUpdate,
+		Delete:        resourceArmAdApplicationDelete,
+		CustomizeDiff: customizeDiffAd,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -78,6 +79,19 @@ func resourceArmAdApplication() *schema.Resource {
 			},
 		},
 	}
+}
+
+func customizeDiffAd(diff *schema.ResourceDiff, v interface{}) error {
+
+	if err := customizeDiffKeyCredential(diff, v); err != nil {
+		return err
+	}
+
+	if err := customizeDiffPasswordCredential(diff, v); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func resourceArmAdApplicationCreate(d *schema.ResourceData, meta interface{}) error {
@@ -149,21 +163,21 @@ func resourceArmAdApplicationRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("available_to_other_tenants", resp.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", resp.Oauth2AllowImplicitFlow)
 
-	respKeyCreds, err := client.ListKeyCredentials(ctx, d.Id())
+	rkc, err := client.ListKeyCredentials(ctx, d.Id())
 	if err != nil {
 		return fmt.Errorf("Error loading Application Key Credentials %q: %+v", d.Id(), err)
 	}
 
-	if err := d.Set("key_credential", flattenAzureRmKeyCredentials(respKeyCreds.Value)); err != nil {
+	if err := d.Set("key_credential", flattenAzureRmKeyCredentials(rkc.Value)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Application Key Credentials error: %#v", err)
 	}
 
-	respPassCreds, err := client.ListPasswordCredentials(ctx, d.Id())
+	rpc, err := client.ListPasswordCredentials(ctx, d.Id())
 	if err != nil {
 		return fmt.Errorf("Error loading Application Password Credentials %q: %+v", d.Id(), err)
 	}
 
-	if err := d.Set("password_credential", flattenAzureRmPasswordCredentials(respPassCreds.Value)); err != nil {
+	if err := d.Set("password_credential", flattenAzureRmPasswordCredentials(rpc.Value)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Application Password Credentials error: %#v", err)
 	}
 

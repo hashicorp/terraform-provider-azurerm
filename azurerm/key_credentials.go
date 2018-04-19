@@ -3,6 +3,7 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -16,6 +17,7 @@ func keyCredentialsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"key_id": {
@@ -26,16 +28,14 @@ func keyCredentialsSchema() *schema.Schema {
 
 				"start_date": {
 					Type:             schema.TypeString,
-					Optional:         true,
-					Computed:         true,
+					Required:         true,
 					DiffSuppressFunc: compareDataAsUTCSuppressFunc,
 					ValidateFunc:     validateRFC3339Date,
 				},
 
 				"end_date": {
 					Type:             schema.TypeString,
-					Optional:         true,
-					Computed:         true,
+					Required:         true,
 					DiffSuppressFunc: compareDataAsUTCSuppressFunc,
 					ValidateFunc:     validateRFC3339Date,
 				},
@@ -69,12 +69,55 @@ func keyCredentialsSchema() *schema.Schema {
 	}
 }
 
+func customizeDiffKeyCredential(diff *schema.ResourceDiff, v interface{}) error {
+	o, n := diff.GetChange("key_credential")
+	if o == nil {
+		o = new(schema.Set)
+	}
+	if n == nil {
+		n = new(schema.Set)
+	}
+	os := o.(*schema.Set)
+	ns := n.(*schema.Set)
+
+	// Detect if the user changed a key credential property without changing the
+	// KeyID associated with the credential. Changing the property changes the hash,
+	// which causes Terraform to pick it up as a new Set item. This will cause
+	// a conflict due to the unique KeyID requirement.
+	m := make(map[string]string)
+	for _, v := range os.Difference(ns).List() {
+		x := v.(map[string]interface{})
+		m[x["key_id"].(string)] = x["key_id"].(string)
+	}
+	for _, v := range ns.Difference(os).List() {
+		x := v.(map[string]interface{})
+		if _, ok := m[x["key_id"].(string)]; ok {
+			return fmt.Errorf("Error: changing Key Credential properties on existing KeyID %s requires generating a new unique KeyID.", x["key_id"].(string))
+		}
+	}
+
+	return nil
+}
+
 func resourceKeyCredentialHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if v != nil {
 		m := v.(map[string]interface{})
 		buf.WriteString(fmt.Sprintf("%s-", m["key_id"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["usage"].(string)))
+
+		// We parse the DateTimes and then convert them back to a string
+		// in order to have a consistent format for the hash.
+
+		if st, err := time.Parse(time.RFC3339, m["start_date"].(string)); err == nil {
+			buf.WriteString(fmt.Sprintf("%s-", string((st).Format(time.RFC3339))))
+		}
+
+		if et, err := time.Parse(time.RFC3339, m["end_date"].(string)); err == nil {
+			buf.WriteString(fmt.Sprintf("%s-", string((et).Format(time.RFC3339))))
+		}
 	}
 
 	return hashcode.String(buf.String())
@@ -111,6 +154,11 @@ func expandAzureRmKeyCredential(d *map[string]interface{}) (*graphrbac.KeyCreden
 		return nil, fmt.Errorf("Usage cannot be set to %s when %s is set as type for a Key Credential", usage, keyType)
 	}
 
+	// Match against the prefix/suffix and '\n' of certificate values.
+	// The API doesn't accept them so they need to be removed.
+	pkre := regexp.MustCompile(`(-{5}.+?-{5})|(\n)`)
+	value = pkre.ReplaceAllString(value, ``)
+
 	kc := graphrbac.KeyCredential{
 		KeyID: &keyId,
 		Type:  &keyType,
@@ -123,7 +171,7 @@ func expandAzureRmKeyCredential(d *map[string]interface{}) (*graphrbac.KeyCreden
 		if sterr != nil {
 			return nil, fmt.Errorf("Cannot parse start_date: %q", startDate)
 		}
-		stdt := date.Time{Time: starttime}
+		stdt := date.Time{Time: starttime.Truncate(time.Second)}
 		kc.StartDate = &stdt
 	}
 
@@ -132,7 +180,7 @@ func expandAzureRmKeyCredential(d *map[string]interface{}) (*graphrbac.KeyCreden
 		if eterr != nil {
 			return nil, fmt.Errorf("Cannot parse end_date: %q", endDate)
 		}
-		etdt := date.Time{Time: endtime}
+		etdt := date.Time{Time: endtime.Truncate(time.Second)}
 		kc.EndDate = &etdt
 	}
 
