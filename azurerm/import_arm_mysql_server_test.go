@@ -59,11 +59,11 @@ func TestAccAzureRMMySQLServer_importBasicFiveSeven(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySQLServer_importStandard(t *testing.T) {
+func TestAccAzureRMMySQLServer_importGeneralPurpose(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMMySQLServer_standard(ri, testLocation())
+	config := testAccAzureRMMySQLServer_generalPurpose(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

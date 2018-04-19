@@ -59,11 +59,11 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_importStandard(t *testing.T) {
+func TestAccAzureRMPostgreSQLServer_importGeneralPurpose(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_standard(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
