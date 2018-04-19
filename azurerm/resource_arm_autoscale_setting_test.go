@@ -118,8 +118,9 @@ func testCheckAzureRMAutoscaleSettingExistsfunc(s *terraform.State) error {
 	}
 
 	asClient := testAccProvider.Meta().(*ArmClient).autoscaleSettingsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	resp, err := asClient.Get(resourceGroup, autoscaleSettingName)
+	resp, err := asClient.Get(ctx, resourceGroup, autoscaleSettingName)
 	if err != nil {
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: Autoscale Setting %q (resource group: %q) does not exist", autoscaleSettingName, resourceGroup)
@@ -133,6 +134,7 @@ func testCheckAzureRMAutoscaleSettingExistsfunc(s *terraform.State) error {
 
 func testCheckAzureRMAutoscaleSettingDestroy(s *terraform.State) error {
 	asClient := testAccProvider.Meta().(*ArmClient).autoscaleSettingsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_autoscale_setting" {
@@ -142,7 +144,7 @@ func testCheckAzureRMAutoscaleSettingDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := asClient.Get(resourceGroup, name)
+		resp, err := asClient.Get(ctx, resourceGroup, name)
 
 		if err != nil {
 			return nil
