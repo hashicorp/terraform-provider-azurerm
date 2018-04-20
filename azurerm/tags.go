@@ -34,15 +34,6 @@ func tagsForDataSourceSchema() *schema.Schema {
 	}
 }
 
-func tagsForMetricAlertRuleSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeMap,
-		Optional:     true,
-		Computed:     true,
-		ValidateFunc: validateMetricAlertRuleTags,
-	}
-}
-
 func tagValueToString(v interface{}) (string, error) {
 	switch value := v.(type) {
 	case string:
@@ -71,21 +62,6 @@ func validateAzureRMTags(v interface{}, f string) (ws []string, es []error) {
 			es = append(es, err)
 		} else if len(value) > 256 {
 			es = append(es, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
-		}
-	}
-
-	return ws, es
-}
-
-func validateMetricAlertRuleTags(v interface{}, f string) (ws []string, es []error) {
-	// Normal validation required by any AzureRM resource.
-	ws, es = validateAzureRMTags(v, f)
-
-	tagsMap := v.(map[string]interface{})
-
-	for k := range tagsMap {
-		if strings.EqualFold(k, "$type") {
-			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
 		}
 	}
 

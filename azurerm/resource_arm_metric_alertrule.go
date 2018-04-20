@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -138,7 +140,12 @@ func resourceArmMetricAlertRule() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForMetricAlertRuleSchema(),
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateMetricAlertRuleTags,
+			},
 		},
 	}
 }
@@ -413,4 +420,19 @@ func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, er
 	resourceGroup := id.ResourceGroup
 
 	return resourceGroup, name, nil
+}
+
+func validateMetricAlertRuleTags(v interface{}, f string) (ws []string, es []error) {
+	// Normal validation required by any AzureRM resource.
+	ws, es = validateAzureRMTags(v, f)
+
+	tagsMap := v.(map[string]interface{})
+
+	for k := range tagsMap {
+		if strings.EqualFold(k, "$type") {
+			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
+		}
+	}
+
+	return ws, es
 }
