@@ -127,15 +127,15 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the ServiceBus Subscription resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the ServiceBus Subscription Rule. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) The name of the ServiceBus Namespace to create this Subscription in. Changing this forces a new resource to be created.
+* `namespace_name` - (Required) The name of the ServiceBus Namespace in which the ServiceBus Topic exists. Changing this forces a new resource to be created.
 
-* `topic_name` - (Required) The name of the ServiceBus Topic to create this Subscription in. Changing this forces a new resource to be created.
+* `topic_name` - (Required) The name of the ServiceBus Topic in which the ServiceBus Subscription exists. Changing this forces a new resource to be created.
 
-* `subscription_name` - (Required) The name of the ServiceBus Subscription to create this Subscription Rule in. Changing this forces a new resource to be created.
+* `subscription_name` - (Required) The name of the ServiceBus Subscription in which this Rule should be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in the ServiceBus Namespace exists. Changing this forces a new resource to be created.
 
 * `filter_type` - (Required) Type of filter to be applied to a BrokeredMessage. Possible values are `SqlFilter` and `CorrelationFilter`.
 
