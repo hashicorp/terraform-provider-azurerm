@@ -8,6 +8,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_recovery_services_vault` [GH-995]
 * **New Resource:** `azurerm_recovery_services_vault` [GH-995]
+* **New Resource:** `azurerm_servicebus_rule` [GH-1124]
 
 IMPROVEMENTS:
 
