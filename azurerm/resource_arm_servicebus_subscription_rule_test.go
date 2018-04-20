@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMServiceBusRule_basicSqlFilter(t *testing.T) {
+func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusRule_basicSqlFilter(ri, testLocation())
+	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,16 +22,16 @@ func TestAccAzureRMServiceBusRule_basicSqlFilter(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMServiceBusRule_basicCorrelationFilter(t *testing.T) {
+func TestAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusRule_basicCorrelationFilter(ri, testLocation())
+	config := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,16 +41,16 @@ func TestAccAzureRMServiceBusRule_basicCorrelationFilter(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMServiceBusRule_sqlFilterWithAction(t *testing.T) {
+func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusRule_sqlFilterWithAction(ri, testLocation())
+	config := testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -60,16 +60,16 @@ func TestAccAzureRMServiceBusRule_sqlFilterWithAction(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMServiceBusRule_correlationFilterWithAction(t *testing.T) {
+func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(t *testing.T) {
 	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusRule_correlationFilterWithAction(ri, testLocation())
+	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -79,18 +79,18 @@ func TestAccAzureRMServiceBusRule_correlationFilterWithAction(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMServiceBusRule_sqlFilterUpdated(t *testing.T) {
+func TestAccAzureRMServiceBusSubscriptionRule_sqlFilterUpdated(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
-	config := testAccAzureRMServiceBusRule_basicSqlFilter(ri, location)
-	updatedConfig := testAccAzureRMServiceBusRule_basicSqlFilterUpdated(ri, location)
+	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
+	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -100,14 +100,14 @@ func TestAccAzureRMServiceBusRule_sqlFilterUpdated(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 					resource.TestCheckResourceAttr(resourceName, "sql_filter", "2=2"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 					resource.TestCheckResourceAttr(resourceName, "sql_filter", "3=3"),
 				),
 			},
@@ -115,11 +115,11 @@ func TestAccAzureRMServiceBusRule_sqlFilterUpdated(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceBusRule_correlationFilterUpdated(t *testing.T) {
+func TestAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
-	config := testAccAzureRMServiceBusRule_correlationFilter(ri, location)
-	updatedConfig := testAccAzureRMServiceBusRule_correlationFilterUpdated(ri, location)
+	config := testAccAzureRMServiceBusSubscriptionRule_correlationFilter(ri, location)
+	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -129,7 +129,7 @@ func TestAccAzureRMServiceBusRule_correlationFilterUpdated(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 					resource.TestCheckResourceAttr(resourceName, "correlation_filter.0.message_id", "test_message_id"),
 					resource.TestCheckResourceAttr(resourceName, "correlation_filter.0.reply_to", ""),
 				),
@@ -137,7 +137,7 @@ func TestAccAzureRMServiceBusRule_correlationFilterUpdated(t *testing.T) {
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 					resource.TestCheckResourceAttr(resourceName, "correlation_filter.0.message_id", "test_message_id_updated"),
 					resource.TestCheckResourceAttr(resourceName, "correlation_filter.0.reply_to", "test_reply_to_added"),
 				),
@@ -146,11 +146,11 @@ func TestAccAzureRMServiceBusRule_correlationFilterUpdated(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMServiceBusRule_updateSqlFilterToCorrelationFilter(t *testing.T) {
+func TestAccAzureRMServiceBusSubscriptionRule_updateSqlFilterToCorrelationFilter(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
-	config := testAccAzureRMServiceBusRule_basicSqlFilter(ri, location)
-	updatedConfig := testAccAzureRMServiceBusRule_basicCorrelationFilter(ri, location)
+	config := testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(ri, location)
+	updatedConfig := testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -160,20 +160,20 @@ func TestAccAzureRMServiceBusRule_updateSqlFilterToCorrelationFilter(t *testing.
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusRuleExists(),
+					testCheckAzureRMServiceBusSubscriptionRuleExists(),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMServiceBusRuleExists() resource.TestCheckFunc {
+func testCheckAzureRMServiceBusSubscriptionRuleExists() resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -186,10 +186,10 @@ func testCheckAzureRMServiceBusRuleExists() resource.TestCheckFunc {
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Rule: %q", ruleName)
+			return fmt.Errorf("Bad: no resource group found in state for Subscription Rule: %q", ruleName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).serviceBusRulesClient
+		client := testAccProvider.Meta().(*ArmClient).serviceBusSubscriptionRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, ruleName)
@@ -198,17 +198,17 @@ func testCheckAzureRMServiceBusRuleExists() resource.TestCheckFunc {
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Rule %q (resource group: %q) does not exist", ruleName, resourceGroup)
+			return fmt.Errorf("Bad: Subscription Rule %q (resource group: %q) does not exist", ruleName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMServiceBusRule_basicSqlFilter(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(rInt int, location string) string {
 	sqlFilter := `
-	resource "azurerm_servicebus_rule" "test" {
-		name                = "acctestservicebusrule-%d"
+	resource "azurerm_servicebus_subscription_rule" "test" {
+		name                = "acctestservicebussubscriptionrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -218,13 +218,13 @@ func testAccAzureRMServiceBusRule_basicSqlFilter(rInt int, location string) stri
 	}
 	`
 
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscriptionRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
 }
 
-func testAccAzureRMServiceBusRule_basicSqlFilterUpdated(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(rInt int, location string) string {
 	sqlFilter := `
-	resource "azurerm_servicebus_rule" "test" {
-		name                = "acctestservicebusrule-%d"
+	resource "azurerm_servicebus_subscription_rule" "test" {
+		name                = "acctestservicebussubscriptionrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -233,13 +233,13 @@ func testAccAzureRMServiceBusRule_basicSqlFilterUpdated(rInt int, location strin
 		sql_filter  		= "3=3"
 	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscriptionRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
 }
 
-func testAccAzureRMServiceBusRule_sqlFilterWithAction(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(rInt int, location string) string {
 	sqlFilter := `
-	resource "azurerm_servicebus_rule" "test" {
-		name                = "acctestservicebusrule-%d"
+	resource "azurerm_servicebus_subscription_rule" "test" {
+		name                = "acctestservicebussubscriptionrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -249,13 +249,13 @@ func testAccAzureRMServiceBusRule_sqlFilterWithAction(rInt int, location string)
 		action      		= "SET Test='true'"
 	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscriptionRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(sqlFilter, rInt))
 }
 
-func testAccAzureRMServiceBusRule_basicCorrelationFilter(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(rInt int, location string) string {
 	correlationFilter := `
-	resource "azurerm_servicebus_rule" "test" {
-		name                = "acctestservicebusrule-%d"
+	resource "azurerm_servicebus_subscription_rule" "test" {
+		name                = "acctestservicebussubscriptionrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -274,13 +274,13 @@ func testAccAzureRMServiceBusRule_basicCorrelationFilter(rInt int, location stri
 		}
 	}	
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscriptionRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
-func testAccAzureRMServiceBusRule_correlationFilter(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscriptionRule_correlationFilter(rInt int, location string) string {
 	correlationFilter := `
-	resource "azurerm_servicebus_rule" "test" {
-		name                = "acctestservicebusrule-%d"
+	resource "azurerm_servicebus_subscription_rule" "test" {
+		name                = "acctestservicebussubscriptionrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -293,13 +293,13 @@ func testAccAzureRMServiceBusRule_correlationFilter(rInt int, location string) s
 		}
 	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscriptionRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
-func testAccAzureRMServiceBusRule_correlationFilterUpdated(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(rInt int, location string) string {
 	correlationFilter := `
-	resource "azurerm_servicebus_rule" "test" {
-		name                = "acctestservicebusrule-%d"
+	resource "azurerm_servicebus_subscription_rule" "test" {
+		name                = "acctestservicebussubscriptionrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -313,13 +313,13 @@ func testAccAzureRMServiceBusRule_correlationFilterUpdated(rInt int, location st
 		}
 	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscriptionRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
-func testAccAzureRMServiceBusRule_correlationFilterWithAction(rInt int, location string) string {
+func testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(rInt int, location string) string {
 	correlationFilter := `
-	resource "azurerm_servicebus_rule" "test" {
-		name                = "acctestservicebusrule-%d"
+	resource "azurerm_servicebus_subscription_rule" "test" {
+		name                = "acctestservicebussubscriptionrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -333,12 +333,12 @@ func testAccAzureRMServiceBusRule_correlationFilterWithAction(rInt int, location
 		}
 	}
 	`
-	return fmt.Sprintf(testAccAzureRMServiceBusRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
+	return fmt.Sprintf(testAccAzureRMServiceBusSubscriptionRule_tfTemplate, rInt, location, rInt, rInt, rInt, fmt.Sprintf(correlationFilter, rInt))
 }
 
-const resourceName = "azurerm_servicebus_rule.test"
+const resourceName = "azurerm_servicebus_subscription_rule.test"
 
-const testAccAzureRMServiceBusRule_tfTemplate = `
+const testAccAzureRMServiceBusSubscriptionRule_tfTemplate = `
 resource "azurerm_resource_group" "test" {
     name     = "acctestRG-%d"
     location = "%s"

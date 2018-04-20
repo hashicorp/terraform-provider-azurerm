@@ -178,11 +178,11 @@ type ArmClient struct {
 	searchServicesClient search.ServicesClient
 
 	// ServiceBus
-	serviceBusQueuesClient        servicebus.QueuesClient
-	serviceBusNamespacesClient    servicebus.NamespacesClient
-	serviceBusTopicsClient        servicebus.TopicsClient
-	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
-	serviceBusRulesClient         servicebus.RulesClient
+	serviceBusQueuesClient            servicebus.QueuesClient
+	serviceBusNamespacesClient        servicebus.NamespacesClient
+	serviceBusTopicsClient            servicebus.TopicsClient
+	serviceBusSubscriptionsClient     servicebus.SubscriptionsClient
+	serviceBusSubscriptionRulesClient servicebus.RulesClient
 
 	//Scheduler
 	schedulerJobCollectionsClient scheduler.JobCollectionsClient
@@ -850,9 +850,9 @@ func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, a
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.serviceBusSubscriptionsClient = subscriptionsClient
 
-	rulesClient := servicebus.NewRulesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&rulesClient.Client, auth)
-	c.serviceBusRulesClient = rulesClient
+	subscriptionRulesClient := servicebus.NewRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&subscriptionRulesClient.Client, auth)
+	c.serviceBusSubscriptionRulesClient = subscriptionRulesClient
 }
 
 func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
