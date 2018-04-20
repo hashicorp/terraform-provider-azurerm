@@ -51,16 +51,19 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 						"service": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"container": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"object": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -76,21 +79,25 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 						"blob": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"queue": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"table": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"file": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -120,41 +127,49 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 						"read": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"write": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"delete": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"list": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"add": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"create": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"update": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"process": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},

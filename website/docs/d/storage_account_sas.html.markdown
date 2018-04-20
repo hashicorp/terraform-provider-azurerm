@@ -72,16 +72,16 @@ output "sas_url_query_string" {
 ## Argument Reference
 
 * `connection_string` - (Required) The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
-* `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. (Default `true`)
-* `resouce_types` - (Required) A set of true/false flags which define the storage account resource types that are granted access by this SAS. 
-* `services` - (Required) A set of true/false flags which define the storage account services that are granted access by this SAS.
+* `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
+* `resouce_types` - (Required) A set of `true`/`false` flags which define the storage account resource types that are granted access by this SAS. 
+* `services` - (Required) A set of `true`/`false` flags which define the storage account services that are granted access by this SAS.
 * `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 * `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
-* `permissions` - (Required) A set of true/false flags which define the granted permissions.
+* `permissions` - (Required) A set of `true`/`false` flags which define the granted permissions.
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-an-account-sas)
 for additional details on the fields above.
 
 ## Attributes Reference
 
-* `sas` - (Computed) The computed Account Shared Access Signature (SAS). 
+* `sas` - The computed Account Shared Access Signature (SAS). 
