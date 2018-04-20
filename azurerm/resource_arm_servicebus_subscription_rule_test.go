@@ -208,7 +208,7 @@ func testCheckAzureRMServiceBusSubscriptionRuleExists() resource.TestCheckFunc {
 func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(rInt int, location string) string {
 	sqlFilter := `
 	resource "azurerm_servicebus_subscription_rule" "test" {
-		name                = "acctestservicebussubscriptionrule-%d"
+		name                = "acctestservicebusrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -224,7 +224,7 @@ func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(rInt int, location 
 func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(rInt int, location string) string {
 	sqlFilter := `
 	resource "azurerm_servicebus_subscription_rule" "test" {
-		name                = "acctestservicebussubscriptionrule-%d"
+		name                = "acctestservicebusrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -239,7 +239,7 @@ func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(rInt int, lo
 func testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(rInt int, location string) string {
 	sqlFilter := `
 	resource "azurerm_servicebus_subscription_rule" "test" {
-		name                = "acctestservicebussubscriptionrule-%d"
+		name                = "acctestservicebusrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -255,7 +255,7 @@ func testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(rInt int, loca
 func testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(rInt int, location string) string {
 	correlationFilter := `
 	resource "azurerm_servicebus_subscription_rule" "test" {
-		name                = "acctestservicebussubscriptionrule-%d"
+		name                = "acctestservicebusrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -280,7 +280,7 @@ func testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(rInt int, l
 func testAccAzureRMServiceBusSubscriptionRule_correlationFilter(rInt int, location string) string {
 	correlationFilter := `
 	resource "azurerm_servicebus_subscription_rule" "test" {
-		name                = "acctestservicebussubscriptionrule-%d"
+		name                = "acctestservicebusrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -299,7 +299,7 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilter(rInt int, locati
 func testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(rInt int, location string) string {
 	correlationFilter := `
 	resource "azurerm_servicebus_subscription_rule" "test" {
-		name                = "acctestservicebussubscriptionrule-%d"
+		name                = "acctestservicebusrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
@@ -319,7 +319,7 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(rInt int,
 func testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(rInt int, location string) string {
 	correlationFilter := `
 	resource "azurerm_servicebus_subscription_rule" "test" {
-		name                = "acctestservicebussubscriptionrule-%d"
+		name                = "acctestservicebusrule-%d"
 		namespace_name      = "${azurerm_servicebus_namespace.test.name}"
 		topic_name          = "${azurerm_servicebus_topic.test.name}"
 		subscription_name   = "${azurerm_servicebus_subscription.test.name}"
