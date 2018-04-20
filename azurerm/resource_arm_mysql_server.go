@@ -129,68 +129,23 @@ func resourceArmMySqlServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validateIntInSlice([]int{
-								5120,
-								179200,
-								307200,
-								435200,
-								563200,
-								691200,
-								819200,
-								947200,
-								128000,
-								256000,
-								384000,
-								512000,
-								640000,
-								768000,
-								896000,
-								1048576,
-							}),
+							Type:         schema.TypeInt,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: utils.IntBetweenDivisibleBy(5120, 1048576, 1024),
 						},
 
-						"backupRetentionDays": {
-							Type:     schema.TypeInt,
-							Required: false,
-							ValidateFunc: validateIntInSlice([]int{
-								7,
-								8,
-								9,
-								10,
-								11,
-								12,
-								13,
-								14,
-								15,
-								16,
-								17,
-								18,
-								19,
-								20,
-								21,
-								22,
-								23,
-								24,
-								25,
-								26,
-								27,
-								28,
-								29,
-								30,
-								31,
-								32,
-								33,
-								34,
-								35,
-							}),
+						"backup_retention_days": {
+							Type:         schema.TypeInt,
+							Required:     false,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(7, 35),
 						},
 
-						"georedundantbackup": {
+						"geo_redundant_backup": {
 							Type:     schema.TypeString,
 							Required: false,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
@@ -211,9 +166,10 @@ func resourceArmMySqlServer() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"createmode": {
+			"create_mode": {
 				Type:     schema.TypeString,
 				Required: false,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Default",
 					"PointInTimeRestore",
@@ -238,14 +194,14 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLogin := d.Get("administrator_login").(string)
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	createMode := d.Get("createmode").(string)
+	createMode := d.Get("create_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandMySQLServerSku(d)
@@ -373,7 +329,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	if err := d.Set("server_profile", flattenMySQLStorageProfile(d, resp.StorageProfile)); err != nil {
+	if err := d.Set("storage_profile", flattenMySQLStorageProfile(d, resp.StorageProfile)); err != nil {
 		return err
 	}
 
@@ -427,17 +383,17 @@ func expandMySQLServerSku(d *schema.ResourceData) *mysql.Sku {
 }
 
 func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
-	storageprofiles := d.Get("storageprofile").(*schema.Set).List()
+	storageprofiles := d.Get("storage_profile").(*schema.Set).List()
 	storageprofile := storageprofiles[0].(map[string]interface{})
 
-	backupRetentionDays := storageprofile["backupretentiondays"].(int)
-	geoRedundantBackup := storageprofile["geoRedundantBackup"].(string)
-	storageMB := storageprofile["storageMB"].(int)
+	backupRetentionDays := storageprofile["backup_retention_days"].(int)
+	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
+	storageMB := storageprofile["storage_mb"].(int)
 
 	return &mysql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
-		StorageMB:           utils.Int32(int32(storageMB)),
 		GeoRedundantBackup:  mysql.GeoRedundantBackup(geoRedundantBackup),
+		StorageMB:           utils.Int32(int32(storageMB)),
 	}
 }
 
@@ -456,9 +412,9 @@ func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{
 func flattenMySQLStorageProfile(d *schema.ResourceData, resp *mysql.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
 
-	values["storageMB"] = int(*resp.StorageMB)
-	values["backupRetentionDays"] = int(*resp.BackupRetentionDays)
-	values["geoRedundantBackup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
+	values["storage_mb"] = int(*resp.StorageMB)
+	values["backup_retention_days"] = int(*resp.BackupRetentionDays)
+	values["geo_redundant_backup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
 
 	storageprofile := []interface{}{values}
 	return storageprofile

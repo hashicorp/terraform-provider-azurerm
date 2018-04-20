@@ -130,68 +130,23 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validateIntInSlice([]int{
-								5120,
-								179200,
-								307200,
-								435200,
-								563200,
-								691200,
-								819200,
-								947200,
-								128000,
-								256000,
-								384000,
-								512000,
-								640000,
-								768000,
-								896000,
-								1048576,
-							}),
+							Type:         schema.TypeInt,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: utils.IntBetweenDivisibleBy(5120, 1048576, 1024),
 						},
 
-						"backupRetentionDays": {
-							Type:     schema.TypeInt,
-							Required: false,
-							ValidateFunc: validateIntInSlice([]int{
-								7,
-								8,
-								9,
-								10,
-								11,
-								12,
-								13,
-								14,
-								15,
-								16,
-								17,
-								18,
-								19,
-								20,
-								21,
-								22,
-								23,
-								24,
-								25,
-								26,
-								27,
-								28,
-								29,
-								30,
-								31,
-								32,
-								33,
-								34,
-								35,
-							}),
+						"backup_retention_days": {
+							Type:         schema.TypeInt,
+							Required:     false,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(7, 35),
 						},
 
-						"georedundantbackup": {
+						"geo_redundant_backup": {
 							Type:     schema.TypeString,
 							Required: false,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
@@ -208,6 +163,17 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.SslEnforcementEnumDisabled),
 					string(postgresql.SslEnforcementEnumEnabled),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"create_mode": {
+				Type:     schema.TypeString,
+				Required: false,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Default",
+					"PointInTimeRestore",
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -236,7 +202,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	createMode := d.Get("createmode").(string)
+	createMode := d.Get("create_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmPostgreSQLServerSku(d)
@@ -365,7 +331,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	if err := d.Set("server_profile", flattenPostgreSQLStorageProfile(d, resp.StorageProfile)); err != nil {
+	if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(d, resp.StorageProfile)); err != nil {
 		return err
 	}
 
@@ -425,17 +391,17 @@ func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData) *postgresql.Sku {
 }
 
 func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
-	storageprofiles := d.Get("storageprofile").(*schema.Set).List()
+	storageprofiles := d.Get("storage_profile").(*schema.Set).List()
 	storageprofile := storageprofiles[0].(map[string]interface{})
 
-	backupRetentionDays := storageprofile["backupretentiondays"].(int)
-	geoRedundantBackup := storageprofile["geoRedundantBackup"].(string)
-	storageMB := storageprofile["storageMB"].(int)
+	backupRetentionDays := storageprofile["backup_retention_days"].(int)
+	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
+	storageMB := storageprofile["storage_mb"].(int)
 
 	return &postgresql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
-		StorageMB:           utils.Int32(int32(storageMB)),
 		GeoRedundantBackup:  postgresql.GeoRedundantBackup(geoRedundantBackup),
+		StorageMB:           utils.Int32(int32(storageMB)),
 	}
 }
 
@@ -454,9 +420,9 @@ func flattenPostgreSQLServerSku(d *schema.ResourceData, resp *postgresql.Sku) []
 func flattenPostgreSQLStorageProfile(d *schema.ResourceData, resp *postgresql.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
 
-	values["storageMB"] = int(*resp.StorageMB)
-	values["backupRetentionDays"] = int(*resp.BackupRetentionDays)
-	values["geoRedundantBackup"] = postgresql.GeoRedundantBackup(resp.GeoRedundantBackup)
+	values["storage_mb"] = int(*resp.StorageMB)
+	values["backup_retention_days"] = int(*resp.BackupRetentionDays)
+	values["geo_redundant_backup"] = postgresql.GeoRedundantBackup(resp.GeoRedundantBackup)
 
 	storageprofile := []interface{}{values}
 	return storageprofile
