@@ -384,30 +384,27 @@ func TestAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	rInt := acctest.RandInt()
-	config := testAccAzureRMVirtualMachine_managedOsDiskAndDataDisk(rInt, testLocation())
+	config := testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(rInt, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:  config,
-				Destroy: false,
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "storage_os_disk.0.managed_disk_type", "Standard_LRS"),
 					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.disk_size_gb", "64"),
-					testCheckAndStopAzureRMVirtualMachine(&vm),
 				),
 			},
 			{
-				Config:             config,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
-			{
-				Config:  config,
-				Destroy: true,
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAndStopAzureRMVirtualMachine(&vm),
+					resource.TestCheckResourceAttr(resourceName, "storage_os_disk.0.managed_disk_type", "Standard_LRS"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.disk_size_gb", "64"),
+				),
 			},
 		},
 	})
@@ -2037,7 +2034,7 @@ resource "azurerm_virtual_machine" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMVirtualMachine_managedOsDiskAndDataDisk(rInt int, location string) string {
+func testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name     = "acctest-rg-%d"
@@ -2045,33 +2042,33 @@ resource "azurerm_resource_group" "test" {
 }
     
 resource "azurerm_virtual_network" "test" {
-    name                = "acctestvn-%[1]d"
+    name                = "acctestvn-%d"
     address_space       = ["10.0.0.0/16"]
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
     
 resource "azurerm_subnet" "test" {
-    name                 = "testsubnet-%[1]d"
+    name                 = "internal"
     resource_group_name  = "${azurerm_resource_group.test.name}"
     virtual_network_name = "${azurerm_virtual_network.test.name}"
     address_prefix       = "10.0.2.0/24"
 }
     
 resource "azurerm_network_interface" "test" {
-    name                = "acctestni-%[1]d"
+    name                = "acctestni-%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     
     ip_configuration {
-        name                          = "testconfiguration-%[1]d"
+        name                          = "testconfiguration"
         subnet_id                     = "${azurerm_subnet.test.id}"
         private_ip_address_allocation = "dynamic"
     }
 }
     
 resource "azurerm_virtual_machine" "test" {
-    name                  = "acctestvm-%[1]d"
+    name                  = "acctestvm-%d"
     location              = "${azurerm_resource_group.test.location}"
     resource_group_name   = "${azurerm_resource_group.test.name}"
     network_interface_ids = ["${azurerm_network_interface.test.id}"]
@@ -2085,14 +2082,14 @@ resource "azurerm_virtual_machine" "test" {
     }
     
     storage_os_disk {
-        name              = "acctest-osdisk-%[1]d"
+        name              = "acctest-osdisk-%d"
         caching           = "ReadWrite"
         create_option     = "FromImage"
         managed_disk_type = "Standard_LRS"
     }
     
     storage_data_disk {
-        name          = "acctest-datadisk-%[1]d"
+        name          = "acctest-datadisk-%d"
         caching       = "ReadWrite"
         create_option = "Empty"
         lun           = 0
@@ -2100,7 +2097,7 @@ resource "azurerm_virtual_machine" "test" {
     }
     
     os_profile {
-        computer_name  = "acctest-machine-%[1]d"
+        computer_name  = "acctest-machine-%d"
         admin_username = "testadmin"
         admin_password = "Password1234!"
     }
@@ -2109,5 +2106,5 @@ resource "azurerm_virtual_machine" "test" {
         disable_password_authentication = false
     }
 }
-`, rInt, location)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }

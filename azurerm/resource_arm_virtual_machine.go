@@ -1631,18 +1631,22 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	client := meta.(*ArmClient).diskClient
 	ctx := meta.(*ArmClient).StopContext
 
-	var diskInfo *compute.Disk
-	if disk != nil && disk.ID != nil {
-		diskID, err := parseAzureResourceID(*disk.ID)
-		if err != nil {
-			return nil, err
-		}
-		diskResp, err := client.Get(ctx, diskID.ResourceGroup, diskID.Path["disks"])
-		if err != nil {
-			return nil, err
-		}
-		diskInfo = &diskResp
+	if disk == nil || disk.ID == nil {
+		return nil, nil
 	}
 
-	return diskInfo, nil
+	diskId := *disk.ID
+	id, err := parseAzureResourceID(diskId)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing Disk ID %q: %+v", diskId, err)
+	}
+
+	resourceGroup := id.ResourceGroup
+	name := id.Path["disks"]
+	diskResp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return &diskResp, nil
 }
