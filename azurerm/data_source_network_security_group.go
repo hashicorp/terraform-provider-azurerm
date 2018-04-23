@@ -1,8 +1,11 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,8 +24,17 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 			"location": locationForDataSourceSchema(),
 
 			"security_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
+				Optional: true,
 				Computed: true,
+				Set: func(v interface{}) int {
+					var buf bytes.Buffer
+					m := v.(map[string]interface{})
+					buf.WriteString(fmt.Sprintf("%s-", m["direction"].(string)))
+					buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
+					log.Printf("[DEBUG] pwet2 "+buf.String(), hashcode.String(buf.String()))
+					return hashcode.String(buf.String())
+				},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
