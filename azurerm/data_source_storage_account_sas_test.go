@@ -66,19 +66,19 @@ data "azurerm_storage_account_sas" "test" {
     blob  = true
     queue = false
     table = false
-	file  = false
+    file  = false
   }
   start   = "%s"
   expiry  = "%s"
   permissions {
-	read    = true
-	write   = true
-	delete  = false
+    read    = true
+    write   = true
+    delete  = false
     list    = false
     add     = true
-	create  = true
-	update  = false
-	process = false
+    create  = true
+    update  = false
+    process = false
   }
 }
 `, rInt, location, rString, startDate, endDate)
