@@ -248,7 +248,7 @@ func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta in
 func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*servicebus.CorrelationFilter, error) {
 	configs := d.Get("correlation_filter").([]interface{})
 	if len(configs) == 0 {
-		return nil, fmt.Errorf("`correlation_filter` is required when `` is set to `CorrelationFilter`")
+		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
 
 	config := configs[0].(map[string]interface{})
