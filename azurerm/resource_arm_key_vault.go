@@ -76,7 +76,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"access_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
+				MinItems: 0,
 				MaxItems: 16,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -95,74 +95,9 @@ func resourceArmKeyVault() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateUUID,
 						},
-						"certificate_permissions": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.Create),
-									string(keyvault.Delete),
-									string(keyvault.Deleteissuers),
-									string(keyvault.Get),
-									string(keyvault.Getissuers),
-									string(keyvault.Import),
-									string(keyvault.List),
-									string(keyvault.Listissuers),
-									string(keyvault.Managecontacts),
-									string(keyvault.Manageissuers),
-									string(keyvault.Purge),
-									string(keyvault.Recover),
-									string(keyvault.Setissuers),
-									string(keyvault.Update),
-								}, true),
-								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							},
-						},
-						"key_permissions": {
-							Type:     schema.TypeList,
-							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.KeyPermissionsBackup),
-									string(keyvault.KeyPermissionsCreate),
-									string(keyvault.KeyPermissionsDecrypt),
-									string(keyvault.KeyPermissionsDelete),
-									string(keyvault.KeyPermissionsEncrypt),
-									string(keyvault.KeyPermissionsGet),
-									string(keyvault.KeyPermissionsImport),
-									string(keyvault.KeyPermissionsList),
-									string(keyvault.KeyPermissionsPurge),
-									string(keyvault.KeyPermissionsRecover),
-									string(keyvault.KeyPermissionsRestore),
-									string(keyvault.KeyPermissionsSign),
-									string(keyvault.KeyPermissionsUnwrapKey),
-									string(keyvault.KeyPermissionsUpdate),
-									string(keyvault.KeyPermissionsVerify),
-									string(keyvault.KeyPermissionsWrapKey),
-								}, true),
-								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							},
-						},
-						"secret_permissions": {
-							Type:     schema.TypeList,
-							Required: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(keyvault.SecretPermissionsBackup),
-									string(keyvault.SecretPermissionsDelete),
-									string(keyvault.SecretPermissionsGet),
-									string(keyvault.SecretPermissionsList),
-									string(keyvault.SecretPermissionsPurge),
-									string(keyvault.SecretPermissionsRecover),
-									string(keyvault.SecretPermissionsRestore),
-									string(keyvault.SecretPermissionsSet),
-								}, true),
-								DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							},
-						},
+						"certificate_permissions": certificatePermissionsSchema(),
+						"key_permissions":         keyPermissionsSchema(),
+						"secret_permissions":      secretPermissionsSchema(),
 					},
 				},
 			},
@@ -273,7 +208,6 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("enabled_for_disk_encryption", resp.Properties.EnabledForDiskEncryption)
 	d.Set("enabled_for_template_deployment", resp.Properties.EnabledForTemplateDeployment)
 	d.Set("sku", flattenKeyVaultSku(resp.Properties.Sku))
-	d.Set("access_policy", flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
 	d.Set("vault_uri", resp.Properties.VaultURI)
 
 	flattenAndSetTags(d, resp.Tags)
@@ -364,50 +298,11 @@ func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 	return []interface{}{result}
 }
 
-func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []interface{} {
-	result := make([]interface{}, 0, len(*policies))
-
-	for _, policy := range *policies {
-		policyRaw := make(map[string]interface{})
-
-		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
-		for _, keyPermission := range *policy.Permissions.Keys {
-			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
-		}
-
-		secretPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Secrets))
-		for _, secretPermission := range *policy.Permissions.Secrets {
-			secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
-		}
-
-		policyRaw["tenant_id"] = policy.TenantID.String()
-		policyRaw["object_id"] = *policy.ObjectID
-		if policy.ApplicationID != nil {
-			policyRaw["application_id"] = policy.ApplicationID.String()
-		}
-		policyRaw["key_permissions"] = keyPermissionsRaw
-		policyRaw["secret_permissions"] = secretPermissionsRaw
-
-		if policy.Permissions.Certificates != nil {
-			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
-			for _, certificatePermission := range *policy.Permissions.Certificates {
-				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
-			}
-			policyRaw["certificate_permissions"] = certificatePermissionsRaw
-		}
-
-		result = append(result, policyRaw)
-	}
-
-	return result
-}
-
 func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
 	value := v.(string)
 	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
 	}
-
 	return
 }
 

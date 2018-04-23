@@ -151,6 +151,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_key_vault_certificate":               resourceArmKeyVaultCertificate(),
 			"azurerm_key_vault_key":                       resourceArmKeyVaultKey(),
 			"azurerm_key_vault_secret":                    resourceArmKeyVaultSecret(),
+			"azurerm_key_vault_policy":                    resourceArmKeyVaultPolicy(),
 			"azurerm_kubernetes_cluster":                  resourceArmKubernetesCluster(),
 			"azurerm_lb":                                  resourceArmLoadBalancer(),
 			"azurerm_lb_backend_address_pool":             resourceArmLoadBalancerBackendAddressPool(),
