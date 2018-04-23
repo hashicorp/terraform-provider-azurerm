@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - `prefixes` can now be configured for locations [GH-1055]
 * `azurerm_key_vault` - adding cert permissions for `Purge` and `Recover` [GH-1132]
 * `azurerm_metric_alertrule` - filtering out tags prefixed with `$type` [GH-1107]
+* `azurerm_virtual_machine` - loading managed disk information from Azure when the machine is stopped [GH-1100]
 * `azurerm_virtual_machine` - make the `vm_size` property case insensitive [GH-1131]
 
 BUG FIXES:
