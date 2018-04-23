@@ -121,7 +121,7 @@ func resourceArmKeyVault() *schema.Resource {
 						},
 						"key_permissions": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -147,7 +147,7 @@ func resourceArmKeyVault() *schema.Resource {
 						},
 						"secret_permissions": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
