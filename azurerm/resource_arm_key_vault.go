@@ -324,21 +324,24 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 		policyRaw := policySet.(map[string]interface{})
 
 		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]interface{})
-		certificatePermissions := []keyvault.CertificatePermissions{}
-		for _, permission := range certificatePermissionsRaw {
-			certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
+		certificatePermissions := make([]keyvault.CertificatePermissions, 0)
+		for _, v := range certificatePermissionsRaw {
+			permission := keyvault.CertificatePermissions(v.(string))
+			certificatePermissions = append(certificatePermissions, permission)
 		}
 
 		keyPermissionsRaw := policyRaw["key_permissions"].([]interface{})
-		keyPermissions := []keyvault.KeyPermissions{}
-		for _, permission := range keyPermissionsRaw {
-			keyPermissions = append(keyPermissions, keyvault.KeyPermissions(permission.(string)))
+		keyPermissions := make([]keyvault.KeyPermissions, 0)
+		for _, v := range keyPermissionsRaw {
+			permission := keyvault.KeyPermissions(v.(string))
+			keyPermissions = append(keyPermissions, permission)
 		}
 
 		secretPermissionsRaw := policyRaw["secret_permissions"].([]interface{})
-		secretPermissions := []keyvault.SecretPermissions{}
-		for _, permission := range secretPermissionsRaw {
-			secretPermissions = append(secretPermissions, keyvault.SecretPermissions(permission.(string)))
+		secretPermissions := make([]keyvault.SecretPermissions, 0)
+		for _, v := range secretPermissionsRaw {
+			permission := keyvault.SecretPermissions(v.(string))
+			secretPermissions = append(secretPermissions, permission)
 		}
 
 		policy := keyvault.AccessPolicyEntry{
@@ -376,34 +379,46 @@ func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []interface{} {
 	result := make([]interface{}, 0, len(*policies))
 
+	if policies == nil {
+		return result
+	}
+
 	for _, policy := range *policies {
 		policyRaw := make(map[string]interface{})
 
-		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
-		for _, keyPermission := range *policy.Permissions.Keys {
-			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
-		}
+		keyPermissionsRaw := make([]interface{}, 0)
+		secretPermissionsRaw := make([]interface{}, 0)
+		certificatePermissionsRaw := make([]interface{}, 0)
 
-		secretPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Secrets))
-		for _, secretPermission := range *policy.Permissions.Secrets {
-			secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
+		if permissions := policy.Permissions; permissions != nil {
+			if keys := permissions.Keys; keys != nil {
+				for _, keyPermission := range *keys {
+					keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
+				}
+			}
+			if secrets := permissions.Secrets; secrets != nil {
+				for _, secretPermission := range *secrets {
+					secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
+				}
+			}
+
+			if certificates := permissions.Certificates; certificates != nil {
+				for _, certificatePermission := range *certificates {
+					certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+				}
+			}
 		}
 
 		policyRaw["tenant_id"] = policy.TenantID.String()
-		policyRaw["object_id"] = *policy.ObjectID
+		if policy.ObjectID != nil {
+			policyRaw["object_id"] = *policy.ObjectID
+		}
 		if policy.ApplicationID != nil {
 			policyRaw["application_id"] = policy.ApplicationID.String()
 		}
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
-
-		if policy.Permissions.Certificates != nil {
-			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
-			for _, certificatePermission := range *policy.Permissions.Certificates {
-				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
-			}
-			policyRaw["certificate_permissions"] = certificatePermissionsRaw
-		}
+		policyRaw["certificate_permissions"] = certificatePermissionsRaw
 
 		result = append(result, policyRaw)
 	}
