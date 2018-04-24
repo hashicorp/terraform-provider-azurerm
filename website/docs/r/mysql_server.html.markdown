@@ -25,15 +25,22 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "MYSQLB50"
-    capacity = 50
+    name = "B_Gen4_2"
+    capacity = 2
     tier = "Basic"
+    family = "Gen4"
   }
 
+  storage_profile {
+    storage_mb = 5120
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
+  }
+
+  create_mode = "Default"
   administrator_login = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version = "5.7"
-  storage_mb = "51200"
   ssl_enforcement = "Enabled"
 }
 ```
@@ -50,33 +57,15 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `storage_profile` - (Required) A `storage_profile` block as defined below.
+
+* `create_mode` - (Optional) The mode to create a new server, supported values `Default` or `PointInTimeRestore`. 
+
 * `administrator_login` - (Required) The Administrator Login for the MySQL Server. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MySQL Server.
 
 * `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.6` and `5.7`. Changing this forces a new resource to be created.
-
-* `storage_mb` - (Required) Specifies the amount of storage for the MySQL Server in Megabytes. Possible values are shown below. Changing this forces a new resource to be created.
-
-Possible values for `storage_mb` when using a SKU Name of `Basic` are:
-- `51200` (50GB)
-- `179200` (175GB)
-- `307200` (300GB)
-- `435200` (425GB)
-- `563200` (550GB)
-- `691200` (675GB)
-- `819200` (800GB)
-- `947200` (925GB)
-
-Possible values for `storage_mb` when using a SKU Name of `Standard` are:
-- `128000` (125GB)
-- `256000` (256GB)
-- `384000` (384GB)
-- `512000` (512GB)
-- `640000` (640GB)
-- `768000` (768GB)
-- `896000` (896GB)
-- `1024000` (1TB)
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enforced` and `Disabled`.
 
@@ -86,9 +75,52 @@ Possible values for `storage_mb` when using a SKU Name of `Standard` are:
 
 * `sku` supports the following:
 
-* `name` - (Optional) Specifies the SKU Name for this MySQL Server. Possible values are: `MYSQLB50`, `MYSQLB100`, `MYSQLS100`, `MYSQLS200`, `MYSQLS400` and `MYSQLS800`.
-* `capacity` - (Optional) Specifies the DTU's for this MySQL Server. Possible values are `50` and `100` DTU's when using a `Basic` SKU and `100`, `200`, `400` or `800` when using the `Standard` SKU.
-* `tier` - (Optional) Specifies the SKU Tier for this MySQL Server. Possible values are `Basic` and `Standard`.
+* `name` - (Required) Specifies the SKU Name for this MySQL Server. See the `name` values by `tier` and `capacity` table below for valid values.
+* `capacity` - (Required) The scale up/out capacity, representing server's compute units. Valid values depends on the `tier` of the server. See the `name` values by `tier` and `capacity` table below for valid values.
+* `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`.
+* `family` - (Required) The `family` of hardware, `Gen4` (Intel E5-2673 v3 (Haswell) 2.4 GHz processors) or
+`Gen5` (Intel E5-2673 v4 (Broadwell) 2.3 GHz processors).
+
+
+Suported `name` values by `tier` and `capacity`:
+
+**`Tier`: Basic**
+`name` | `family` | `capacity` | Storage Type
+-- | -- | -- | --
+`B_Gen4_1` | `Gen4` | 1 | Standard Storage
+`B_Gen4_2` | `Gen4` | 2 | Standard Storage
+`B_Gen5_1` | `Gen5` | 1 | Standard Storage
+`B_Gen5_2` | `Gen5` | 2 | Standard Storage
+
+**`Tier`: Gereral Purpose**
+`name` | `family` | `capacity` | Storage Type
+-- | -- | -- | --
+`GP_Gen4_2` | `Gen4` | 2 | Premium Storage
+`GP_Gen4_4` | `Gen4` | 4 | Premium Storage
+`GP_Gen4_8` | `Gen4` | 8 | Premium Storage
+`GP_Gen4_16` | `Gen4` | 16 | Premium Storage
+`GP_Gen4_32` | `Gen4` | 32 | Premium Storage
+`GP_Gen5_2` | `Gen5` | 2 | Premium Storage
+`GP_Gen5_4` | `Gen5` | 4 | Premium Storage
+`GP_Gen5_8` | `Gen5` | 8 | Premium Storage
+`GP_Gen5_16` | `Gen5` | 16 | Premium Storage
+`GP_Gen5_32` | `Gen5` | 32 | Premium Storage
+
+**`Tier`: MemoryOptimized**
+`name` | `family` | `capacity` | Storage Type
+-- | -- | -- | --
+`MO_Gen5_2` | `Gen5` | 2 | Premium Storage
+`MO_Gen5_4` | `Gen5` | 4 | Premium Storage
+`MO_Gen5_8` | `Gen5` | 8 | Premium Storage
+`MO_Gen5_16` | `Gen5` | 16 | Premium Storage
+
+---
+
+* `storage_profile` supports the following:
+
+* `storage_mb` - (Required) Max storage allowed for a server, possible values are between `5120` (5GB) and `1048576` (1TB). The step for this value must be in `1024` (1GB) increments.
+* `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
+* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
 
 ## Attributes Reference
 
