@@ -4,12 +4,22 @@ UPGRADE NOTES:
 
 * `azurerm_cosmosdb_account` - the field `failover_policy` has been deprecated in favour of `geo_locations` to better match Azure.
 
+FEATURES:
+
+* **New Data Source:** `azurerm_recovery_services_vault` [GH-995]
+* **New Resource:** `azurerm_recovery_services_vault` [GH-995]
+* **New Resource:** `azurerm_servicebus_rule` [GH-1124]
+
 IMPROVEMENTS:
 
+* `azurerm_app_service` - support for updating in-place [GH-1125]
 * `azurerm_cosmosdb_account` - support for `enable_automatic_failover` [GH-1055]
 * `azurerm_cosmosdb_account` - support for the `ConsistentPrefix` consistncy level [GH-1055]
 * `azurerm_cosmosdb_account` - `prefixes` can now be configured for locations [GH-1055]
+* `azurerm_function_app` - support for updating in-place [GH-1125]
 * `azurerm_key_vault` - adding cert permissions for `Purge` and `Recover` [GH-1132]
+* `azurerm_metric_alertrule` - filtering out tags prefixed with `$type` [GH-1107]
+* `azurerm_virtual_machine` - loading managed disk information from Azure when the machine is stopped [GH-1100]
 * `azurerm_virtual_machine` - make the `vm_size` property case insensitive [GH-1131]
 
 BUG FIXES:
