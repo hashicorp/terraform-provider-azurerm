@@ -441,18 +441,21 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	dnsPrefix := config["dns_prefix"].(string)
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
-	vnetSubnetID := config["vnet_subnet_id"].(string)
 	osType := config["os_type"].(string)
 
 	profile := containerservice.AgentPoolProfile{
-		Name:           &name,
-		Count:          &count,
+		Name:           utils.String(name),
+		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
-		DNSPrefix:      &dnsPrefix,
-		OsDiskSizeGB:   &osDiskSizeGB,
+		DNSPrefix:      utils.String(dnsPrefix),
+		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
 		StorageProfile: containerservice.ManagedDisks,
-		VnetSubnetID:   &vnetSubnetID,
 		OsType:         containerservice.OSType(osType),
+	}
+
+	vnetSubnetID := config["vnet_subnet_id"].(string)
+	if vnetSubnetID != "" {
+		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
 	profiles = append(profiles, profile)
