@@ -13,6 +13,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for updating in-place [GH-1125]
+* `azurerm_app_service_plan` - support for `kind` being `app` [GH-1156]
 * `azurerm_cosmosdb_account` - support for `enable_automatic_failover` [GH-1055]
 * `azurerm_cosmosdb_account` - support for the `ConsistentPrefix` consistncy level [GH-1055]
 * `azurerm_cosmosdb_account` - `prefixes` can now be configured for locations [GH-1055]
