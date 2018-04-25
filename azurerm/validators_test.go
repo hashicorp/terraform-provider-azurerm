@@ -128,3 +128,44 @@ func TestValidateIso8601Duration(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateIntBetweenDivisibleBy(t *testing.T) {
+	cases := []struct {
+		Input  []string
+		Value  int
+		Errors int
+	}{
+		{
+			Input:  []string{"1025", "2048", "1024"},
+			Value:  "1024",
+			Errors: 1,
+		},
+		{
+			Input:  []string{"1025", "2048", "3"},
+			Value:  "1024",
+			Errors: 2,
+		},
+		{
+			Input:  []string{"1024", "2048", "1024"},
+			Value:  "3072",
+			Errors: 1,
+		},
+		{
+			Input:  []string{"1024", "2048", "1024"},
+			Value:  "2049",
+			Errors: 2,
+		},
+		{
+			Input:  []string{"1024", "2048", "1024"},
+			Value:  "1024",
+			Errors: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateIntBetweenDivisibleBy(tc.Input)(tc.Value)
+		if len(errors) != tc.Errors {
+			t.Fatalf("Expected intBetweenDivisibleBy to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+		}
+	}
+}

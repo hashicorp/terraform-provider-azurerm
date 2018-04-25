@@ -34,7 +34,6 @@ resource "azurerm_mysql_server" "test" {
     storage_mb = 5120
     backup_retention_days = 7
     geo_redundant_backup = "Disabled"
-
   }
 
   create_mode = "Default"

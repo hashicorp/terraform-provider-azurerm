@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `storage_profile` - (Required) A `storage_profile` block as defined below.
 
-* `create_mode` - (Optional) The mode to create a new server, supported values `Default` or `PointInTimeRestore`. 
+* `create_mode` - (Optional) The Creation Mode of the MySQL Server, used when restoring a database backup. Possible values include `Default` and `PointInTimeRestore`. 
 
 * `administrator_login` - (Required) The Administrator Login for the MySQL Server. Changing this forces a new resource to be created.
 
@@ -75,52 +75,23 @@ The following arguments are supported:
 
 * `sku` supports the following:
 
-* `name` - (Required) Specifies the SKU Name for this MySQL Server. See the `name` values by `tier` and `capacity` table below for valid values.
-* `capacity` - (Required) The scale up/out capacity, representing server's compute units. Valid values depends on the `tier` of the server. See the `name` values by `tier` and `capacity` table below for valid values.
-* `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`.
-* `family` - (Required) The `family` of hardware, `Gen4` (Intel E5-2673 v3 (Haswell) 2.4 GHz processors) or
-`Gen5` (Intel E5-2673 v4 (Broadwell) 2.3 GHz processors).
+    * `name` - (Required) Specifies the SKU Name for this MySQL Server. The name of the SKU, follows the `tier` + `family` + `cores` pattern (e.g. B_Gen4_1, GP_Gen5_8). For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mysql/servers/create#sku).
 
+    * `capacity` - (Required) The scale up/out capacity, representing server's compute units.
 
-Suported `name` values by `tier` and `capacity`:
+    * `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/mysql/concepts-pricing-tiers).
 
-**`Tier`: Basic**
-`name` | `family` | `capacity` | Storage Type
--- | -- | -- | --
-`B_Gen4_1` | `Gen4` | 1 | Standard Storage
-`B_Gen4_2` | `Gen4` | 2 | Standard Storage
-`B_Gen5_1` | `Gen5` | 1 | Standard Storage
-`B_Gen5_2` | `Gen5` | 2 | Standard Storage
-
-**`Tier`: Gereral Purpose**
-`name` | `family` | `capacity` | Storage Type
--- | -- | -- | --
-`GP_Gen4_2` | `Gen4` | 2 | Premium Storage
-`GP_Gen4_4` | `Gen4` | 4 | Premium Storage
-`GP_Gen4_8` | `Gen4` | 8 | Premium Storage
-`GP_Gen4_16` | `Gen4` | 16 | Premium Storage
-`GP_Gen4_32` | `Gen4` | 32 | Premium Storage
-`GP_Gen5_2` | `Gen5` | 2 | Premium Storage
-`GP_Gen5_4` | `Gen5` | 4 | Premium Storage
-`GP_Gen5_8` | `Gen5` | 8 | Premium Storage
-`GP_Gen5_16` | `Gen5` | 16 | Premium Storage
-`GP_Gen5_32` | `Gen5` | 32 | Premium Storage
-
-**`Tier`: MemoryOptimized**
-`name` | `family` | `capacity` | Storage Type
--- | -- | -- | --
-`MO_Gen5_2` | `Gen5` | 2 | Premium Storage
-`MO_Gen5_4` | `Gen5` | 4 | Premium Storage
-`MO_Gen5_8` | `Gen5` | 8 | Premium Storage
-`MO_Gen5_16` | `Gen5` | 16 | Premium Storage
+    * `family` - (Required) The `family` of hardware `Gen4` or `Gen5`, before selecting your `family` check the [product documentation](https://docs.microsoft.com/en-us/azure/mysql/concepts-pricing-tiers#compute-generations-vcores-and-memory) for availability in your region.
 
 ---
 
 * `storage_profile` supports the following:
 
-* `storage_mb` - (Required) Max storage allowed for a server, possible values are between `5120` (5GB) and `1048576` (1TB). The step for this value must be in `1024` (1GB) increments.
-* `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
-* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
+    * `storage_mb` - (Required) Max storage allowed for a server, possible values are between `5120 MB` (5GB) and `1048576 MB` (1TB). The step for this value must be in `1024 MB` (1GB) increments. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mysql/servers/create#StorageProfile).
+
+    * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
+
+    * `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
 
 ## Attributes Reference
 

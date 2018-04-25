@@ -123,7 +123,7 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"storage_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -132,19 +132,15 @@ func resourceArmMySqlServer() *schema.Resource {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: utils.IntBetweenDivisibleBy(5120, 1048576, 1024),
+							ValidateFunc: validateIntBetweenDivisibleBy(5120, 1048576, 1024),
 						},
-
 						"backup_retention_days": {
 							Type:         schema.TypeInt,
-							Required:     false,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(7, 35),
 						},
-
 						"geo_redundant_backup": {
 							Type:     schema.TypeString,
-							Required: false,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
@@ -168,7 +164,6 @@ func resourceArmMySqlServer() *schema.Resource {
 
 			"create_mode": {
 				Type:     schema.TypeString,
-				Required: false,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Default",
@@ -326,11 +321,11 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
 	if err := d.Set("sku", flattenMySQLServerSku(d, resp.Sku)); err != nil {
-		return err
+		return fmt.Errorf("Error flattening `sku`: %+v", err)
 	}
 
 	if err := d.Set("storage_profile", flattenMySQLStorageProfile(d, resp.StorageProfile)); err != nil {
-		return err
+		return fmt.Errorf("Error flattening `storage_profile`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -383,7 +378,7 @@ func expandMySQLServerSku(d *schema.ResourceData) *mysql.Sku {
 }
 
 func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
-	storageprofiles := d.Get("storage_profile").(*schema.Set).List()
+	storageprofiles := d.Get("storage_profile").([]interface{})
 	storageprofile := storageprofiles[0].(map[string]interface{})
 
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
@@ -412,8 +407,14 @@ func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{
 func flattenMySQLStorageProfile(d *schema.ResourceData, resp *mysql.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
 
-	values["storage_mb"] = int(*resp.StorageMB)
-	values["backup_retention_days"] = int(*resp.BackupRetentionDays)
+	if storageMB := resp.StorageMB; storageMB != nil {
+		values["storage_mb"] = int(*storageMB)
+	}
+
+	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
+		values["backup_retention_days"] = int(*backupRetentionDays)
+	}
+
 	values["geo_redundant_backup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
 
 	storageprofile := []interface{}{values}
