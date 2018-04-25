@@ -134,7 +134,7 @@ func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 		Min    int
 		Max    int
 		Div    int
-		Value  string
+		Value  interface{}
 		Errors int
 	}{
 		{
