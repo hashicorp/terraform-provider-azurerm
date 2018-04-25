@@ -175,7 +175,7 @@ func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateIntBetweenDivisibleBy(tc.Min, tc.Max, tc.Div)(tc.Value)
+		_, errors := validateIntBetweenDivisibleBy(tc.Min, tc.Max, tc.Div)(tc.Value.(string))
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected intBetweenDivisibleBy to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}
