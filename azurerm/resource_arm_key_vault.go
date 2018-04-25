@@ -238,8 +238,9 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 					Target:                    []string{"available"},
 					Refresh:                   keyVaultRefreshFunc(*vault),
 					Timeout:                   30 * time.Minute,
+					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
-					ContinuousTargetOccurence: 5,
+					ContinuousTargetOccurence: 10,
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
