@@ -319,15 +319,10 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
-	if kubeConfigRaw != nil {
-		if err := d.Set("kube_config_raw", *kubeConfigRaw); err != nil {
-			return fmt.Errorf("Error setting `kube_config_raw`: %+v", err)
-		}
-	}
-	if kubeConfig != nil {
-		if err := d.Set("kube_config", &kubeConfig); err != nil {
-			return fmt.Errorf("Error setting `kube_config`: %+v", err)
-		}
+	d.Set("kube_config_raw", kubeConfigRaw)
+
+	if err := d.Set("kube_config", kubeConfig); err != nil {
+		return fmt.Errorf("Error setting `kube_config`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -444,22 +439,22 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	if profile != nil {
 		if accessProfile := profile.AccessProfile; accessProfile != nil {
 			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
-				rawConfig := utils.String(string(*kubeConfigRaw))
-				if kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig); err == nil && kubeConfig != nil {
-					return rawConfig, flattenKubeConfig(kubeConfig)
+				rawConfig := string(*kubeConfigRaw)
+
+				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
 				}
+
+				flattenedKubeConfig := flattenKubeConfig(*kubeConfig)
+				return utils.String(rawConfig), flattenedKubeConfig
 			}
 		}
 	}
-	return nil, nil
+	return nil, []interface{}{}
 }
 
-func flattenKubeConfig(config *kubernetes.KubeConfig) []interface{} {
-	if config == nil {
-		return nil
-	}
-
-	profiles := make([]interface{}, 0)
+func flattenKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
 	cluster := config.Clusters[0].Cluster
@@ -473,8 +468,7 @@ func flattenKubeConfig(config *kubernetes.KubeConfig) []interface{} {
 	values["client_key"] = user.ClientKeyData
 	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
 
-	profiles = append(profiles, values)
-	return profiles
+	return []interface{}{values}
 }
 
 func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {

@@ -27,12 +27,12 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckOutput(resourceName, "client_key"),
-					resource.TestCheckOutput(resourceName, "client_certificate"),
-					resource.TestCheckOutput(resourceName, "cluster_ca_certificate"),
-					resource.TestCheckOutput(resourceName, "host"),
-					resource.TestCheckOutput(resourceName, "username"),
-					resource.TestCheckOutput(resourceName, "password"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
 				),
 			},
 		},
@@ -148,38 +148,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_id     = "%s"
     client_secret = "%s"
   }
-}
-
-output "id" {
-  value = "${azurerm_kubernetes_cluster.test.id}"
-}
-
-output "kube_config" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config_raw}"
-}
-
-output "client_key" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_key}"
-}
-
-output "client_certificate" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_certificate}"
-}
-
-output "cluster_ca_certificate" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.cluster_ca_certificate}"
-}
-
-output "host" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.host}"
-}
-
-output "username" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.username}"
-}
-
-output "password" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.password}"
 }
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
