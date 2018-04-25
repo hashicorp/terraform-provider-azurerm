@@ -121,15 +121,15 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
-* `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
+* `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
 
 * `enabled` - (Optional) Is the App Service Enabled? Changing this forces a new resource to be created.
 
-* `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`. Changing this forces a new resource to be created.
+* `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 

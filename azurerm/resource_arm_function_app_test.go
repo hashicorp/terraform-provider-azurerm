@@ -56,6 +56,39 @@ func TestAccAzureRMFunctionApp_tags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_tagsUpdate(t *testing.T) {
+	resourceName := "azurerm_function_app.test"
+	ri := acctest.RandInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	config := testAccAzureRMFunctionApp_tags(ri, rs, testLocation())
+	updatedConfig := testAccAzureRMFunctionApp_tagsUpdated(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.hello", "Berlin"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 	resourceName := "azurerm_function_app.test"
 	ri := acctest.RandInt()
@@ -423,6 +456,45 @@ resource "azurerm_function_app" "test" {
 	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 	tags {
 		environment = "production"
+	}
+}
+`, rInt, location, storage)
+}
+
+func testAccAzureRMFunctionApp_tagsUpdated(rInt int, storage string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%[1]d"
+	location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+	name                     = "acctestsa%[3]s"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+	name                = "acctestASP-%[1]d"
+	location            = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	sku {
+		tier = "Standard"
+		size = "S1"
+	}
+}
+
+resource "azurerm_function_app" "test" {
+	name                      = "acctest-%[1]d-func"
+	location                  = "${azurerm_resource_group.test.location}"
+	resource_group_name       = "${azurerm_resource_group.test.name}"
+	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+	tags {
+		environment = "production"
+		hello       = "Berlin"
 	}
 }
 `, rInt, location, storage)
