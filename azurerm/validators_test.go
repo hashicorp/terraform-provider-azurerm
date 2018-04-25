@@ -149,7 +149,7 @@ func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 			Max:    2048,
 			Div:    3,
 			Value:  "1024",
-			Errors: 2,
+			Errors: 1,
 		},
 		{
 			Min:    1024,
@@ -163,7 +163,7 @@ func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 			Max:    2048,
 			Div:    1024,
 			Value:  "2049",
-			Errors: 2,
+			Errors: 1,
 		},
 		{
 			Min:    1024,
