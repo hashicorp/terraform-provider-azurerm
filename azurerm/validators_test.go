@@ -131,32 +131,32 @@ func TestValidateIso8601Duration(t *testing.T) {
 
 func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 	cases := []struct {
-		Input  []string
-		Value  int
+		Input  int, int, int
+		Value  string
 		Errors int
 	}{
 		{
-			Input:  []string{"1025", "2048", "1024"},
+			Input:  1025, 2048, 1024,
 			Value:  "1024",
 			Errors: 1,
 		},
 		{
-			Input:  []string{"1025", "2048", "3"},
+			Input:  1025, 2048, 3,
 			Value:  "1024",
 			Errors: 2,
 		},
 		{
-			Input:  []string{"1024", "2048", "1024"},
+			Input:  1024, 2048, 1024},
 			Value:  "3072",
 			Errors: 1,
 		},
 		{
-			Input:  []string{"1024", "2048", "1024"},
+			Input:  1024, 2048, 1024,
 			Value:  "2049",
 			Errors: 2,
 		},
 		{
-			Input:  []string{"1024", "2048", "1024"},
+			Input:  1024, 2048, 1024,
 			Value:  "1024",
 			Errors: 0,
 		},
