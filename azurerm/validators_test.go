@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"strconv"
 	"testing"
 )
 
@@ -175,7 +176,7 @@ func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateIntBetweenDivisibleBy(tc.Min, tc.Max, tc.Div)(tc.Value, tc.Value.(string))
+		_, errors := validateIntBetweenDivisibleBy(tc.Min, tc.Max, tc.Div)(tc.Value, strconv.Itoa(tc.Value.(int)))
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected intBetweenDivisibleBy to trigger '%d' errors for '%s' - got '%d' ['%s']", tc.Errors, tc.Value, len(errors), errors[0])
 		}
