@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -159,7 +158,7 @@ func TestParseKubeConfig(t *testing.T) {
 }
 
 func isValidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
-	result, err := ParseKubeConfig(&encodedConfig)
+	result, err := ParseKubeConfig(encodedConfig)
 	if err != nil {
 		return false, err
 	}
@@ -172,7 +171,7 @@ func isValidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
 }
 
 func isInvalidConfig(expected KubeConfig, encodedConfig string) (bool, error) {
-	_, err := ParseKubeConfig(&encodedConfig)
+	_, err := ParseKubeConfig(encodedConfig)
 	if err == nil {
 		return false, fmt.Errorf("expected test to throw error but didn't")
 	}
@@ -185,5 +184,6 @@ func LoadConfig(fileName string) string {
 	if err != nil {
 		return ""
 	}
-	return base64.StdEncoding.EncodeToString(bytes)
+
+	return string(bytes)
 }

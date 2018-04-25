@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"encoding/base64"
 	"fmt"
 
 	yaml "gopkg.in/yaml.v2"
@@ -49,23 +48,13 @@ type KubeConfig struct {
 	Preferences    map[string]interface{} `yaml:"preferences,omitempty"`
 }
 
-func ParseKubeConfig(config *string) (*KubeConfig, error) {
-	if config == nil {
-		return nil, fmt.Errorf("Cannot parse nil config")
-	}
-
-	configBytes, err := base64.StdEncoding.DecodeString(*config)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to decode base64 string %+v with error %+v", *config, err)
-	}
-
-	configStr := string(configBytes)
-	if len(configStr) <= 0 {
-		return nil, fmt.Errorf("Decoded config is empty %+v", *config)
+func ParseKubeConfig(config string) (*KubeConfig, error) {
+	if config == "" {
+		return nil, fmt.Errorf("Cannot parse empty config")
 	}
 
 	var kubeConfig KubeConfig
-	err = yaml.Unmarshal([]byte(configStr), &kubeConfig)
+	err := yaml.Unmarshal([]byte(config), &kubeConfig)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
 	}
