@@ -395,10 +395,19 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{} {
 	values := map[string]interface{}{}
 
-	values["name"] = *resp.Name
-	values["capacity"] = int(*resp.Capacity)
+	if name := resp.Name; name != nil {
+		values["name"] = utils.String(*name)
+	}
+
+	if capacity := resp.Capacity; capacity != nil {
+		values["capacity"] = utils.Int32(*capacity)
+	}
+
 	values["tier"] = string(resp.Tier)
-	values["family"] = string(*resp.Family)
+
+	if family := resp.Family; family != nil {
+		values["family"] = utils.String(*family)
+	}
 
 	sku := []interface{}{values}
 	return sku
@@ -408,11 +417,11 @@ func flattenMySQLStorageProfile(d *schema.ResourceData, resp *mysql.StorageProfi
 	values := map[string]interface{}{}
 
 	if storageMB := resp.StorageMB; storageMB != nil {
-		values["storage_mb"] = int(*storageMB)
+		values["storage_mb"] = utils.Int32(*storageMB)
 	}
 
 	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
-		values["backup_retention_days"] = int(*backupRetentionDays)
+		values["backup_retention_days"] = utils.Int32(*backupRetentionDays)
 	}
 
 	values["geo_redundant_backup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)

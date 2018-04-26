@@ -160,14 +160,14 @@ resource "azurerm_mysql_server" "test" {
   sku {
     name     = "B_Gen4_2"
     capacity = 2
-	tier     = "Basic"
-	family   = "Gen4"
+    tier     = "Basic"
+    family   = "Gen4"
   }
 
   storage_profile {
-	storage_mb = 51200
-	backup_retention_days = 7
-	geo_redundant_backup = "Disabled"
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   create_mode = "Default"
@@ -192,16 +192,16 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-  name     = "B_Gen5_2"
-  capacity = 2
-	tier     = "Basic"
-	family   = "Gen5"
+    name     = "B_Gen5_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen5"
   }
 
   storage_profile {
-	storage_mb = 51200
-	backup_retention_days = 7
-	geo_redundant_backup = "Disabled"
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   create_mode = "Default"
@@ -226,16 +226,16 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-  name     = "GP_Gen5_32"
-  capacity = 32
-	tier     = "GeneralPurpose"
-	family   = "Gen5"
+    name     = "GP_Gen5_32"
+    capacity = 32
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
   }
 
   storage_profile {
-	storage_mb = 640000
-	backup_retention_days = 7
-	geo_redundant_backup = "Disabled"
+    storage_mb = 640000
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   create_mode = "Default"
@@ -260,16 +260,16 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-  name     = "MO_Gen5_16"
-  capacity = 16
-	tier     = "MemoryOptimized"
-	family   = "Gen5"
+    name     = "MO_Gen5_16"
+    capacity = 16
+    tier     = "MemoryOptimized"
+    family   = "Gen5"
   }
 
   storage_profile {
-	storage_mb = 1048576,
-	backup_retention_days = 7
-	geo_redundant_backup = "Enabled"
+    storage_mb = 1048576,
+    backup_retention_days = 7
+    geo_redundant_backup = "Enabled"
   }
 
   create_mode = "Default"

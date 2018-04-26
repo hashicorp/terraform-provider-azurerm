@@ -225,14 +225,14 @@ resource "azurerm_mysql_server" "test" {
   sku {
     name     = "B_Gen4_2"
     capacity = 2
-	tier     = "Basic"
-	family   = "Gen4"
+    tier     = "Basic"
+    family   = "Gen4"
   }
 
   storage_profile {
-	storage_mb = 51200
-	backup_retention_days = 7
-	geo_redundant_backup = "Disabled"
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   create_mode = "Default"
