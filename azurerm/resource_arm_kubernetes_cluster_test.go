@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -25,7 +26,13 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
 				),
 			},
 		},

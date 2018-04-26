@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,6 +48,45 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kubernetes_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+
+			"kube_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"host": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"cluster_ca_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"kube_config_raw": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -273,6 +313,18 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("service_principal", servicePrincipal)
 	}
 
+	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
+	if err != nil {
+		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+	}
+
+	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
+	d.Set("kube_config_raw", kubeConfigRaw)
+
+	if err := d.Set("kube_config", kubeConfig); err != nil {
+		return fmt.Errorf("Error setting `kube_config`: %+v", err)
+	}
+
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -381,6 +433,42 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	servicePrincipalProfiles.Add(values)
 
 	return servicePrincipalProfiles
+}
+
+func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
+	if profile != nil {
+		if accessProfile := profile.AccessProfile; accessProfile != nil {
+			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
+				rawConfig := string(*kubeConfigRaw)
+
+				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig := flattenKubeConfig(*kubeConfig)
+				return utils.String(rawConfig), flattenedKubeConfig
+			}
+		}
+	}
+	return nil, []interface{}{}
+}
+
+func flattenKubeConfig(config kubernetes.KubeConfig) []interface{} {
+	values := make(map[string]interface{})
+
+	cluster := config.Clusters[0].Cluster
+	user := config.Users[0].User
+	name := config.Users[0].Name
+
+	values["host"] = cluster.Server
+	values["username"] = name
+	values["password"] = user.Token
+	values["client_certificate"] = user.ClientCertificteData
+	values["client_key"] = user.ClientKeyData
+	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
+
+	return []interface{}{values}
 }
 
 func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
