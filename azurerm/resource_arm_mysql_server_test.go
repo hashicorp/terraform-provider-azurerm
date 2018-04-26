@@ -192,8 +192,8 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "B_Gen5_2"
-    capacity = 2
+  name     = "B_Gen5_2"
+  capacity = 2
 	tier     = "Basic"
 	family   = "Gen5"
   }
@@ -226,8 +226,8 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "GP_Gen5_32"
-    capacity = 32
+  name     = "GP_Gen5_32"
+  capacity = 32
 	tier     = "GeneralPurpose"
 	family   = "Gen5"
   }
@@ -260,8 +260,8 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "MO_Gen5_16"
-    capacity = 16
+  name     = "MO_Gen5_16"
+  capacity = 16
 	tier     = "MemoryOptimized"
 	family   = "Gen5"
   }
