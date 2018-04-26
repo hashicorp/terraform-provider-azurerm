@@ -1,10 +1,13 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	multierror "github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -37,6 +40,14 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
+				Set: func(v interface{}) int {
+					var buf bytes.Buffer
+					m := v.(map[string]interface{})
+					buf.WriteString(fmt.Sprintf("%s-", m["direction"].(string)))
+					buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
+					log.Printf("[DEBUG] pwet "+buf.String(), hashcode.String(buf.String()))
+					return hashcode.String(buf.String())
+				},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
