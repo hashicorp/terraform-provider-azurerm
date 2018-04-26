@@ -1,4 +1,4 @@
-## 1.4.0 (Unreleased)
+## 1.4.0 (April 26, 2018)
 
 UPGRADE NOTES:
 
@@ -6,29 +6,29 @@ UPGRADE NOTES:
 
 FEATURES:
 
-* **New Data Source:** `azurerm_recovery_services_vault` [GH-995]
-* **New Resource:** `azurerm_recovery_services_vault` [GH-995]
-* **New Resource:** `arm_servicebus_subscription_rule` [GH-1124]
+* **New Data Source:** `azurerm_recovery_services_vault` ([#995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/995))
+* **New Resource:** `azurerm_recovery_services_vault` ([#995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/995))
+* **New Resource:** `arm_servicebus_subscription_rule` ([#1124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1124))
 
 IMPROVEMENTS:
 
-* `azurerm_app_service` - support for updating in-place [GH-1125]
-* `azurerm_app_service_plan` - support for `kind` being `app` [GH-1156]
-* `azurerm_cosmosdb_account` - support for `enable_automatic_failover` [GH-1055]
-* `azurerm_cosmosdb_account` - support for the `ConsistentPrefix` consistncy level [GH-1055]
-* `azurerm_cosmosdb_account` - `prefixes` can now be configured for locations [GH-1055]
-* `azurerm_function_app` - support for updating in-place [GH-1125]
-* `azurerm_key_vault` - adding cert permissions for `Purge` and `Recover` [GH-1132]
-* `azurerm_key_vault` - polling to ensure the Key Vault is resolvable via DNS [GH-1081] [GH-1164]
-* `azurerm_kubernetes_cluster` - only setting the Subnet ID when it's not an empty string [GH-1158]
-* `azurerm_kubernetes_cluster` - exposing the clusters credentials as `kube_config` [GH-953]
-* `azurerm_metric_alertrule` - filtering out tags prefixed with `$type` [GH-1107]
-* `azurerm_virtual_machine` - loading managed disk information from Azure when the machine is stopped [GH-1100]
-* `azurerm_virtual_machine` - make the `vm_size` property case insensitive [GH-1131]
+* `azurerm_app_service` - support for updating in-place ([#1125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1125))
+* `azurerm_app_service_plan` - support for `kind` being `app` ([#1156](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1156))
+* `azurerm_cosmosdb_account` - support for `enable_automatic_failover` ([#1055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1055))
+* `azurerm_cosmosdb_account` - support for the `ConsistentPrefix` consistncy level ([#1055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1055))
+* `azurerm_cosmosdb_account` - `prefixes` can now be configured for locations ([#1055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1055))
+* `azurerm_function_app` - support for updating in-place ([#1125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1125))
+* `azurerm_key_vault` - adding cert permissions for `Purge` and `Recover` ([#1132](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1132))
+* `azurerm_key_vault` - polling to ensure the Key Vault is resolvable via DNS ([#1081](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1081)] [[#1164](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1164))
+* `azurerm_kubernetes_cluster` - only setting the Subnet ID when it's not an empty string ([#1158](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1158))
+* `azurerm_kubernetes_cluster` - exposing the clusters credentials as `kube_config` ([#953](https://github.com/terraform-providers/terraform-provider-azurerm/issues/953))
+* `azurerm_metric_alertrule` - filtering out tags prefixed with `$type` ([#1107](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1107))
+* `azurerm_virtual_machine` - loading managed disk information from Azure when the machine is stopped ([#1100](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1100))
+* `azurerm_virtual_machine` - make the `vm_size` property case insensitive ([#1131](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1131))
 
 BUG FIXES:
 
-* `azurerm_cosmosdb_account` - locations can now be modified in-place (without requiring multiple apply's) [GH-1055]
+* `azurerm_cosmosdb_account` - locations can now be modified in-place (without requiring multiple apply's) ([#1055](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1055))
 
 
 ## 1.3.3 (April 17, 2018)
