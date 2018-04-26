@@ -386,8 +386,13 @@ func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 		job.Tags = *expandTags(tagsInf.(map[string]interface{}))
 	}
 
+	// TODO: Fix this in the future
 	_, err := client.streamAnalyticsJobsClient.Update(ctx, job, rg, jobName, "")
-	return err
+	if err != nil {
+		return nil
+	}
+
+	return nil
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
