@@ -369,9 +369,23 @@ func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 	ctx := client.StopContext
 	jobProps := &streamanalytics.StreamingJobProperties{}
 
+	// Get our current Stream analytics instance and update a property if one is not set
+	streamID := d.Id()
+	resourceID, err := parseAzureResourceID(streamID)
+	if err != nil {
+		return err
+	}
+
+	currentJob, err := client.streamAnalyticsJobsClient.Get(ctx, resourceID.ResourceGroup, resourceID.Path["streamingjobs"], "")
+	if err != nil {
+		return err
+	}
+
 	if sec, ok := d.GetOk("events_out_of_order_max_delay_in_seconds"); ok {
 		seci := int32(sec.(int))
 		jobProps.EventsOutOfOrderMaxDelayInSeconds = &seci
+	} else {
+		jobProps.EventsOutOfOrderMaxDelayInSeconds = currentJob.StreamingJobProperties.EventsOutOfOrderMaxDelayInSeconds
 	}
 
 	if evpolicy, ok := d.GetOk("events_out_of_order_policy"); ok {
@@ -386,13 +400,9 @@ func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 		job.Tags = *expandTags(tagsInf.(map[string]interface{}))
 	}
 
-	// TODO: Fix this in the future
-	_, err := client.streamAnalyticsJobsClient.Update(ctx, job, rg, jobName, "")
-	if err != nil {
-		return nil
-	}
-
-	return nil
+	// This causes an error each time it runs with no changes. We will display the error and continue
+	_, err = client.streamAnalyticsJobsClient.Update(ctx, job, rg, jobName, "")
+	return err
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
