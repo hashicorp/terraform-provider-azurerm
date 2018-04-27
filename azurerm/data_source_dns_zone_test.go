@@ -14,8 +14,9 @@ func TestAccDataSourceAzureRMDNSZone_basic(t *testing.T) {
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_basic(rInt, location),
@@ -33,8 +34,9 @@ func TestAccDataSourceAzureRMDNSZone_tags(t *testing.T) {
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceDNSZone_tags(rInt, location),
