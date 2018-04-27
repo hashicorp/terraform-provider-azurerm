@@ -31,23 +31,23 @@ type ModuleClient struct {
 }
 
 // NewModuleClient creates an instance of the ModuleClient client.
-func NewModuleClient(subscriptionID string, resourceGroupName string) ModuleClient {
-	return NewModuleClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
+func NewModuleClient(subscriptionID string) ModuleClient {
+	return NewModuleClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewModuleClientWithBaseURI creates an instance of the ModuleClient client.
-func NewModuleClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) ModuleClient {
-	return ModuleClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
+func NewModuleClientWithBaseURI(baseURI string, subscriptionID string) ModuleClient {
+	return ModuleClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate create or Update the module identified by module name.
 //
-// automationAccountName is the automation account name. moduleName is the name of module. parameters is the create or
-// update parameters for module.
-func (client ModuleClient) CreateOrUpdate(ctx context.Context, automationAccountName string, moduleName string, parameters ModuleCreateOrUpdateParameters) (result Module, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
+// is the name of module. parameters is the create or update parameters for module.
+func (client ModuleClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, parameters ModuleCreateOrUpdateParameters) (result Module, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ModuleCreateOrUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.ModuleCreateOrUpdateProperties.ContentLink", Name: validation.Null, Rule: true,
@@ -57,10 +57,10 @@ func (client ModuleClient) CreateOrUpdate(ctx context.Context, automationAccount
 						}},
 					}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.ModuleClient", "CreateOrUpdate")
+		return result, validation.NewError("automation.ModuleClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, automationAccountName, moduleName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, automationAccountName, moduleName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -82,11 +82,11 @@ func (client ModuleClient) CreateOrUpdate(ctx context.Context, automationAccount
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ModuleClient) CreateOrUpdatePreparer(ctx context.Context, automationAccountName string, moduleName string, parameters ModuleCreateOrUpdateParameters) (*http.Request, error) {
+func (client ModuleClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, parameters ModuleCreateOrUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"moduleName":            autorest.Encode("path", moduleName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -96,7 +96,7 @@ func (client ModuleClient) CreateOrUpdatePreparer(ctx context.Context, automatio
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/modules/{moduleName}", pathParameters),
@@ -127,15 +127,16 @@ func (client ModuleClient) CreateOrUpdateResponder(resp *http.Response) (result 
 
 // Delete delete the module by name.
 //
-// automationAccountName is the automation account name. moduleName is the module name.
-func (client ModuleClient) Delete(ctx context.Context, automationAccountName string, moduleName string) (result autorest.Response, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
+// is the module name.
+func (client ModuleClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.ModuleClient", "Delete")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.ModuleClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, automationAccountName, moduleName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, automationAccountName, moduleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "Delete", nil, "Failure preparing request")
 		return
@@ -157,11 +158,11 @@ func (client ModuleClient) Delete(ctx context.Context, automationAccountName str
 }
 
 // DeletePreparer prepares the Delete request.
-func (client ModuleClient) DeletePreparer(ctx context.Context, automationAccountName string, moduleName string) (*http.Request, error) {
+func (client ModuleClient) DeletePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"moduleName":            autorest.Encode("path", moduleName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -199,15 +200,16 @@ func (client ModuleClient) DeleteResponder(resp *http.Response) (result autorest
 
 // Get retrieve the module identified by module name.
 //
-// automationAccountName is the automation account name. moduleName is the module name.
-func (client ModuleClient) Get(ctx context.Context, automationAccountName string, moduleName string) (result Module, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
+// is the module name.
+func (client ModuleClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string) (result Module, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.ModuleClient", "Get")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.ModuleClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, automationAccountName, moduleName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, moduleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "Get", nil, "Failure preparing request")
 		return
@@ -229,11 +231,11 @@ func (client ModuleClient) Get(ctx context.Context, automationAccountName string
 }
 
 // GetPreparer prepares the Get request.
-func (client ModuleClient) GetPreparer(ctx context.Context, automationAccountName string, moduleName string) (*http.Request, error) {
+func (client ModuleClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"moduleName":            autorest.Encode("path", moduleName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -272,16 +274,16 @@ func (client ModuleClient) GetResponder(resp *http.Response) (result Module, err
 
 // ListByAutomationAccount retrieve a list of modules.
 //
-// automationAccountName is the automation account name.
-func (client ModuleClient) ListByAutomationAccount(ctx context.Context, automationAccountName string) (result ModuleListResultPage, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+func (client ModuleClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result ModuleListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.ModuleClient", "ListByAutomationAccount")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.ModuleClient", "ListByAutomationAccount", err.Error())
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, automationAccountName)
+	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -303,10 +305,10 @@ func (client ModuleClient) ListByAutomationAccount(ctx context.Context, automati
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client ModuleClient) ListByAutomationAccountPreparer(ctx context.Context, automationAccountName string) (*http.Request, error) {
+func (client ModuleClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -365,23 +367,23 @@ func (client ModuleClient) listByAutomationAccountNextResults(lastResults Module
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ModuleClient) ListByAutomationAccountComplete(ctx context.Context, automationAccountName string) (result ModuleListResultIterator, err error) {
-	result.page, err = client.ListByAutomationAccount(ctx, automationAccountName)
+func (client ModuleClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string) (result ModuleListResultIterator, err error) {
+	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName)
 	return
 }
 
 // Update update the module identified by module name.
 //
-// automationAccountName is the automation account name. moduleName is the name of module. parameters is the update
-// parameters for module.
-func (client ModuleClient) Update(ctx context.Context, automationAccountName string, moduleName string, parameters ModuleUpdateParameters) (result Module, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
+// is the name of module. parameters is the update parameters for module.
+func (client ModuleClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, parameters ModuleUpdateParameters) (result Module, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.ModuleClient", "Update")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.ModuleClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, automationAccountName, moduleName, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, moduleName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.ModuleClient", "Update", nil, "Failure preparing request")
 		return
@@ -403,11 +405,11 @@ func (client ModuleClient) Update(ctx context.Context, automationAccountName str
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ModuleClient) UpdatePreparer(ctx context.Context, automationAccountName string, moduleName string, parameters ModuleUpdateParameters) (*http.Request, error) {
+func (client ModuleClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, parameters ModuleUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"moduleName":            autorest.Encode("path", moduleName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -417,7 +419,7 @@ func (client ModuleClient) UpdatePreparer(ctx context.Context, automationAccount
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/modules/{moduleName}", pathParameters),

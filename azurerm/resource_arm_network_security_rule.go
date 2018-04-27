@@ -37,7 +37,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLength(140),
+				ValidateFunc: validation.StringLenBetween(0, 140),
 			},
 
 			"protocol": {

@@ -31,26 +31,27 @@ type NodeReportsClient struct {
 }
 
 // NewNodeReportsClient creates an instance of the NodeReportsClient client.
-func NewNodeReportsClient(subscriptionID string, resourceGroupName string) NodeReportsClient {
-	return NewNodeReportsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
+func NewNodeReportsClient(subscriptionID string) NodeReportsClient {
+	return NewNodeReportsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewNodeReportsClientWithBaseURI creates an instance of the NodeReportsClient client.
-func NewNodeReportsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) NodeReportsClient {
-	return NodeReportsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
+func NewNodeReportsClientWithBaseURI(baseURI string, subscriptionID string) NodeReportsClient {
+	return NodeReportsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get retrieve the Dsc node report data by node id and report id.
 //
-// automationAccountName is the automation account name. nodeID is the Dsc node id. reportID is the report id.
-func (client NodeReportsClient) Get(ctx context.Context, automationAccountName string, nodeID string, reportID string) (result DscNodeReport, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
+// the Dsc node id. reportID is the report id.
+func (client NodeReportsClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (result DscNodeReport, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.NodeReportsClient", "Get")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.NodeReportsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, automationAccountName, nodeID, reportID)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, nodeID, reportID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "Get", nil, "Failure preparing request")
 		return
@@ -72,12 +73,12 @@ func (client NodeReportsClient) Get(ctx context.Context, automationAccountName s
 }
 
 // GetPreparer prepares the Get request.
-func (client NodeReportsClient) GetPreparer(ctx context.Context, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
+func (client NodeReportsClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"nodeId":                autorest.Encode("path", nodeID),
 		"reportId":              autorest.Encode("path", reportID),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -116,15 +117,16 @@ func (client NodeReportsClient) GetResponder(resp *http.Response) (result DscNod
 
 // GetContent retrieve the Dsc node reports by node id and report id.
 //
-// automationAccountName is the automation account name. nodeID is the Dsc node id. reportID is the report id.
-func (client NodeReportsClient) GetContent(ctx context.Context, automationAccountName string, nodeID string, reportID string) (result ReadCloser, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
+// the Dsc node id. reportID is the report id.
+func (client NodeReportsClient) GetContent(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (result SetObject, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.NodeReportsClient", "GetContent")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.NodeReportsClient", "GetContent", err.Error())
 	}
 
-	req, err := client.GetContentPreparer(ctx, automationAccountName, nodeID, reportID)
+	req, err := client.GetContentPreparer(ctx, resourceGroupName, automationAccountName, nodeID, reportID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "GetContent", nil, "Failure preparing request")
 		return
@@ -146,12 +148,12 @@ func (client NodeReportsClient) GetContent(ctx context.Context, automationAccoun
 }
 
 // GetContentPreparer prepares the GetContent request.
-func (client NodeReportsClient) GetContentPreparer(ctx context.Context, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
+func (client NodeReportsClient) GetContentPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"nodeId":                autorest.Encode("path", nodeID),
 		"reportId":              autorest.Encode("path", reportID),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -177,29 +179,30 @@ func (client NodeReportsClient) GetContentSender(req *http.Request) (*http.Respo
 
 // GetContentResponder handles the response to the GetContent request. The method always
 // closes the http.Response Body.
-func (client NodeReportsClient) GetContentResponder(resp *http.Response) (result ReadCloser, err error) {
-	result.Value = &resp.Body
+func (client NodeReportsClient) GetContentResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK))
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result.Value),
+		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
 // ListByNode retrieve the Dsc node report list by node id.
 //
-// automationAccountName is the automation account name. nodeID is the parameters supplied to the list operation.
-// filter is the filter to apply on the operation.
-func (client NodeReportsClient) ListByNode(ctx context.Context, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultPage, err error) {
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
+// the parameters supplied to the list operation. filter is the filter to apply on the operation.
+func (client NodeReportsClient) ListByNode(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.NodeReportsClient", "ListByNode")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.NodeReportsClient", "ListByNode", err.Error())
 	}
 
 	result.fn = client.listByNodeNextResults
-	req, err := client.ListByNodePreparer(ctx, automationAccountName, nodeID, filter)
+	req, err := client.ListByNodePreparer(ctx, resourceGroupName, automationAccountName, nodeID, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "ListByNode", nil, "Failure preparing request")
 		return
@@ -221,11 +224,11 @@ func (client NodeReportsClient) ListByNode(ctx context.Context, automationAccoun
 }
 
 // ListByNodePreparer prepares the ListByNode request.
-func (client NodeReportsClient) ListByNodePreparer(ctx context.Context, automationAccountName string, nodeID string, filter string) (*http.Request, error) {
+func (client NodeReportsClient) ListByNodePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"nodeId":                autorest.Encode("path", nodeID),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -287,7 +290,7 @@ func (client NodeReportsClient) listByNodeNextResults(lastResults DscNodeReportL
 }
 
 // ListByNodeComplete enumerates all values, automatically crossing page boundaries as required.
-func (client NodeReportsClient) ListByNodeComplete(ctx context.Context, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultIterator, err error) {
-	result.page, err = client.ListByNode(ctx, automationAccountName, nodeID, filter)
+func (client NodeReportsClient) ListByNodeComplete(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultIterator, err error) {
+	result.page, err = client.ListByNode(ctx, resourceGroupName, automationAccountName, nodeID, filter)
 	return
 }

@@ -31,6 +31,10 @@
                     <a href="/docs/providers/azurerm/d/application_security_group.html">azurerm_application_security_group</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-datasource-app-service-x") %>>
+                    <a href="/docs/providers/azurerm/d/app_service.html">azurerm_app_service</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-datasource-app-service-plan") %>>
                     <a href="/docs/providers/azurerm/d/app_service_plan.html">azurerm_app_service_plan</a>
                 </li>
@@ -87,6 +91,10 @@
                     <a href="/docs/providers/azurerm/d/public_ips.html">azurerm_public_ips</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-datasource-recovery-services-vault") %>>
+                    <a href="/docs/providers/azurerm/d/resource_group.html">azurerm_recovery_services_vault</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-datasource-resource-group") %>>
                     <a href="/docs/providers/azurerm/d/resource_group.html">azurerm_resource_group</a>
                 </li>
@@ -107,7 +115,7 @@
                     <a href="/docs/providers/azurerm/d/subnet.html">azurerm_subnet</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-datasource-subscription") %>>
+                <li<%= sidebar_current("docs-azurerm-datasource-subscription-x") %>>
                     <a href="/docs/providers/azurerm/d/subscription.html">azurerm_subscription</a>
                 </li>
 
@@ -152,7 +160,11 @@
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-app-service-active-slot") %>>
-                <a href="/docs/providers/azurerm/r/app_service_active_slot.html">azurerm_app_service_active_slot</a>
+                  <a href="/docs/providers/azurerm/r/app_service_active_slot.html">azurerm_app_service_active_slot</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-app-service-custom-hostname-binding") %>>
+                  <a href="/docs/providers/azurerm/r/app_service_custom_hostname_binding.html">azurerm_app_service_custom_hostname_binding</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-app-service-slot") %>>
@@ -337,7 +349,7 @@
                   <a href="/docs/providers/azurerm/r/sql_database.html">azurerm_sql_database</a>
                 </li>
 
-                <li<%= sidebar_current("docs-azurerm-resource-datbase-sql-administrator") %>>
+                <li<%= sidebar_current("docs-azurerm-resource-database-sql-administrator") %>>
                   <a href="/docs/providers/azurerm/r/sql_active_directory_administrator.html">azurerm_sql_active_directory_administrator</a>
                 </li>
 
@@ -354,7 +366,7 @@
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-database-sql-virtual-network-rule") %>>
-                  <a href="/docs/providers/azurerm/r/sql_virtual_network_rule.html">sql_virtual_network_rule</a>
+                  <a href="/docs/providers/azurerm/r/sql_virtual_network_rule.html">azurerm_sql_virtual_network_rule</a>
                 </li>
 
               </ul>
@@ -499,10 +511,14 @@
 
                 <li<%= sidebar_current("docs-azurerm-resource-servicebus-queue") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_queue.html">azurerm_servicebus_queue</a>
-                </li>
+                </li>               
 
                 <li<%= sidebar_current("docs-azurerm-resource-servicebus-subscription") %>>
                   <a href="/docs/providers/azurerm/r/servicebus_subscription.html">azurerm_servicebus_subscription</a>
+                </li>
+
+                <li<%= sidebar_current("docs-azurerm-resource-servicebus-subscription-rule") %>>
+                  <a href="/docs/providers/azurerm/r/servicebus_subscription_rule.html">azurerm_servicebus_subscription_rule</a>
                 </li>
 
                 <li<%= sidebar_current("docs-azurerm-resource-servicebus-topic") %>>
@@ -568,6 +584,10 @@
                   <a href="/docs/providers/azurerm/r/network_watcher.html">azurerm_network_watcher</a>
                 </li>
 
+                <li<%= sidebar_current("docs-azurerm-resource-network-packet-capture") %>>
+                  <a href="/docs/providers/azurerm/r/packet_capture.html">azurerm_packet_capture</a>
+                </li>
+
                 <li<%= sidebar_current("docs-azurerm-resource-network-public-ip") %>>
                   <a href="/docs/providers/azurerm/r/public_ip.html">azurerm_public_ip</a>
                 </li>
@@ -631,6 +651,15 @@
 
                 <li<%= sidebar_current("docs-azurerm-oms-log-analytics-workspace") %>>
                   <a href="/docs/providers/azurerm/r/log_analytics_workspace.html">azurerm_log_analytics_workspace</a>
+                </li>
+              </ul>
+            </li>
+
+            <li<%= sidebar_current("docs-azurerm-recovery-services") %>>
+              <a href="#">Recovery Services</a>
+              <ul class="nav nav-visible">
+                <li<%= sidebar_current("docs-azurerm-recovery-services-vault") %>>
+                  <a href="/docs/providers/azurerm/r/recovery_services_vault.html">azurerm_recovery_services_vault</a>
                 </li>
               </ul>
             </li>

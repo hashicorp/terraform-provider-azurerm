@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,6 +48,45 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"kubernetes_version": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
+			},
+
+			"kube_config": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"host": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_key": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"cluster_ca_certificate": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"kube_config_raw": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -111,9 +151,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"vm_size": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
 						"os_disk_size_gb": {
@@ -177,7 +218,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
@@ -248,10 +289,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	if location := resp.Location; location != nil {
-		d.Set("location", *location)
-	}
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("dns_prefix", resp.DNSPrefix)
 	d.Set("fqdn", resp.Fqdn)
 	d.Set("kubernetes_version", resp.KubernetesVersion)
@@ -269,6 +311,18 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 	if servicePrincipal != nil {
 		d.Set("service_principal", servicePrincipal)
+	}
+
+	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
+	if err != nil {
+		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+	}
+
+	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
+	d.Set("kube_config_raw", kubeConfigRaw)
+
+	if err := d.Set("kube_config", kubeConfig); err != nil {
+		return fmt.Errorf("Error setting `kube_config`: %+v", err)
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -381,6 +435,42 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	return servicePrincipalProfiles
 }
 
+func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
+	if profile != nil {
+		if accessProfile := profile.AccessProfile; accessProfile != nil {
+			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
+				rawConfig := string(*kubeConfigRaw)
+
+				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				if err != nil {
+					return utils.String(rawConfig), []interface{}{}
+				}
+
+				flattenedKubeConfig := flattenKubeConfig(*kubeConfig)
+				return utils.String(rawConfig), flattenedKubeConfig
+			}
+		}
+	}
+	return nil, []interface{}{}
+}
+
+func flattenKubeConfig(config kubernetes.KubeConfig) []interface{} {
+	values := make(map[string]interface{})
+
+	cluster := config.Clusters[0].Cluster
+	user := config.Users[0].User
+	name := config.Users[0].Name
+
+	values["host"] = cluster.Server
+	values["username"] = name
+	values["password"] = user.Token
+	values["client_certificate"] = user.ClientCertificteData
+	values["client_key"] = user.ClientKeyData
+	values["cluster_ca_certificate"] = cluster.ClusterAuthorityData
+
+	return []interface{}{values}
+}
+
 func expandAzureRmKubernetesClusterLinuxProfile(d *schema.ResourceData) containerservice.LinuxProfile {
 	profiles := d.Get("linux_profile").([]interface{})
 	config := profiles[0].(map[string]interface{})
@@ -439,18 +529,21 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	dnsPrefix := config["dns_prefix"].(string)
 	vmSize := config["vm_size"].(string)
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
-	vnetSubnetID := config["vnet_subnet_id"].(string)
 	osType := config["os_type"].(string)
 
 	profile := containerservice.AgentPoolProfile{
-		Name:           &name,
-		Count:          &count,
+		Name:           utils.String(name),
+		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
-		DNSPrefix:      &dnsPrefix,
-		OsDiskSizeGB:   &osDiskSizeGB,
+		DNSPrefix:      utils.String(dnsPrefix),
+		OsDiskSizeGB:   utils.Int32(osDiskSizeGB),
 		StorageProfile: containerservice.ManagedDisks,
-		VnetSubnetID:   &vnetSubnetID,
 		OsType:         containerservice.OSType(osType),
+	}
+
+	vnetSubnetID := config["vnet_subnet_id"].(string)
+	if vnetSubnetID != "" {
+		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
 	profiles = append(profiles, profile)

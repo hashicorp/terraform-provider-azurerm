@@ -150,6 +150,16 @@ func resourceArmAppService() *schema.Resource {
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
+						"scm_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(web.ScmTypeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ScmTypeNone),
+								string(web.ScmTypeLocalGit),
+							}, false),
+						},
+
 						"use_32_bit_worker_process": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -161,15 +171,6 @@ func resourceArmAppService() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"scm_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(web.ScmTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ScmTypeNone),
-								string(web.ScmTypeLocalGit),
-							}, false),
-						},
 					},
 				},
 			},
@@ -180,14 +181,16 @@ func resourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"app_settings": {
@@ -232,9 +235,7 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			// TODO: (tombuildsstuff) support Update once the API is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/1697
-			"tags": tagsForceNewSchema(),
+			"tags": tagsSchema(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -306,9 +307,10 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	resGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := expandAppServiceSiteConfig(d)
@@ -319,6 +321,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   &siteConfig,
 		},
 	}
@@ -328,12 +331,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
-	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
-	skipDNSRegistration := false
-	forceDNSRegistration := false
-	skipCustomDomainVerification := true
-	ttlInSeconds := "60"
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -368,6 +366,34 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+	appServicePlanId := d.Get("app_service_plan_id").(string)
+	enabled := d.Get("enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
+	tags := d.Get("tags").(map[string]interface{})
+
+	siteConfig := expandAppServiceSiteConfig(d)
+	siteEnvelope := web.Site{
+		Location: &location,
+		Tags:     expandTags(tags),
+		SiteProperties: &web.SiteProperties{
+			ServerFarmID: utils.String(appServicePlanId),
+			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
+			SiteConfig:   &siteConfig,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	if err != nil {
+		return err
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
 	if d.HasChange("site_config") {
 		// update the main configuration
 		siteConfig := expandAppServiceSiteConfig(d)
@@ -391,16 +417,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			},
 		}
 
-		_, err := client.Update(
-			ctx,
-			resGroup,
-			name,
-			sitePatchResource,
-			nil,
-			nil,
-			nil,
-			"")
-
+		_, err := client.Update(ctx, resGroup, name, sitePatchResource)
 		if err != nil {
 			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", name, err)
 		}
@@ -492,12 +509,15 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
+		d.Set("https_only", props.HTTPSOnly)
 		d.Set("default_site_hostname", props.DefaultHostName)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 	}
@@ -543,9 +563,8 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	skipDNSRegistration := true
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
@@ -729,7 +748,7 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []in
 	return append(results, result)
 }
 
-func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
+func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
 	input := d.Get("app_settings").(map[string]interface{})
 	output := make(map[string]*string, len(input))
 
@@ -737,10 +756,10 @@ func expandAppServiceAppSettings(d *schema.ResourceData) *map[string]*string {
 		output[k] = utils.String(v.(string))
 	}
 
-	return &output
+	return output
 }
 
-func expandAppServiceConnectionStrings(d *schema.ResourceData) *map[string]*web.ConnStringValueTypePair {
+func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").([]interface{})
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -757,13 +776,13 @@ func expandAppServiceConnectionStrings(d *schema.ResourceData) *map[string]*web.
 		}
 	}
 
-	return &output
+	return output
 }
 
-func flattenAppServiceConnectionStrings(input *map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range *input {
+	for k, v := range input {
 		result := make(map[string]interface{}, 0)
 		result["name"] = k
 		result["type"] = string(v.Type)
@@ -774,9 +793,9 @@ func flattenAppServiceConnectionStrings(input *map[string]*web.ConnStringValueTy
 	return results
 }
 
-func flattenAppServiceAppSettings(input *map[string]*string) map[string]string {
+func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	output := make(map[string]string, 0)
-	for k, v := range *input {
+	for k, v := range input {
 		output[k] = *v
 	}
 

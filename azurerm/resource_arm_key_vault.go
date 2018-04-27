@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	uuid "github.com/satori/go.uuid"
+	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -111,6 +111,8 @@ func resourceArmKeyVault() *schema.Resource {
 									string(keyvault.Listissuers),
 									string(keyvault.Managecontacts),
 									string(keyvault.Manageissuers),
+									string(keyvault.Purge),
+									string(keyvault.Recover),
 									string(keyvault.Setissuers),
 									string(keyvault.Update),
 								}, true),
@@ -191,7 +193,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[INFO] preparing arguments for Azure ARM KeyVault creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
@@ -230,9 +232,19 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if d.IsNewResource() {
 		if props := read.Properties; props != nil {
 			if vault := props.VaultURI; vault != nil {
-				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
-				if err != nil {
-					return err
+				log.Printf("[DEBUG] Waiting for Key Vault %q (Resource Group %q) to become available", name, resGroup)
+				stateConf := &resource.StateChangeConf{
+					Pending:                   []string{"pending"},
+					Target:                    []string{"available"},
+					Refresh:                   keyVaultRefreshFunc(*vault),
+					Timeout:                   30 * time.Minute,
+					Delay:                     30 * time.Second,
+					PollInterval:              10 * time.Second,
+					ContinuousTargetOccurence: 10,
+				}
+
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("Error waiting for Key Vault %q (Resource Group %q) to become available: %s", name, resGroup, err)
 				}
 			}
 		}
@@ -263,7 +275,9 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("tenant_id", resp.Properties.TenantID.String())
 	d.Set("enabled_for_deployment", resp.Properties.EnabledForDeployment)
 	d.Set("enabled_for_disk_encryption", resp.Properties.EnabledForDiskEncryption)
@@ -311,21 +325,24 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 		policyRaw := policySet.(map[string]interface{})
 
 		certificatePermissionsRaw := policyRaw["certificate_permissions"].([]interface{})
-		certificatePermissions := []keyvault.CertificatePermissions{}
-		for _, permission := range certificatePermissionsRaw {
-			certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
+		certificatePermissions := make([]keyvault.CertificatePermissions, 0)
+		for _, v := range certificatePermissionsRaw {
+			permission := keyvault.CertificatePermissions(v.(string))
+			certificatePermissions = append(certificatePermissions, permission)
 		}
 
 		keyPermissionsRaw := policyRaw["key_permissions"].([]interface{})
-		keyPermissions := []keyvault.KeyPermissions{}
-		for _, permission := range keyPermissionsRaw {
-			keyPermissions = append(keyPermissions, keyvault.KeyPermissions(permission.(string)))
+		keyPermissions := make([]keyvault.KeyPermissions, 0)
+		for _, v := range keyPermissionsRaw {
+			permission := keyvault.KeyPermissions(v.(string))
+			keyPermissions = append(keyPermissions, permission)
 		}
 
 		secretPermissionsRaw := policyRaw["secret_permissions"].([]interface{})
-		secretPermissions := []keyvault.SecretPermissions{}
-		for _, permission := range secretPermissionsRaw {
-			secretPermissions = append(secretPermissions, keyvault.SecretPermissions(permission.(string)))
+		secretPermissions := make([]keyvault.SecretPermissions, 0)
+		for _, v := range secretPermissionsRaw {
+			permission := keyvault.SecretPermissions(v.(string))
+			secretPermissions = append(secretPermissions, permission)
 		}
 
 		policy := keyvault.AccessPolicyEntry{
@@ -363,34 +380,46 @@ func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []interface{} {
 	result := make([]interface{}, 0, len(*policies))
 
+	if policies == nil {
+		return result
+	}
+
 	for _, policy := range *policies {
 		policyRaw := make(map[string]interface{})
 
-		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
-		for _, keyPermission := range *policy.Permissions.Keys {
-			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
-		}
+		keyPermissionsRaw := make([]interface{}, 0)
+		secretPermissionsRaw := make([]interface{}, 0)
+		certificatePermissionsRaw := make([]interface{}, 0)
 
-		secretPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Secrets))
-		for _, secretPermission := range *policy.Permissions.Secrets {
-			secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
+		if permissions := policy.Permissions; permissions != nil {
+			if keys := permissions.Keys; keys != nil {
+				for _, keyPermission := range *keys {
+					keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
+				}
+			}
+			if secrets := permissions.Secrets; secrets != nil {
+				for _, secretPermission := range *secrets {
+					secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
+				}
+			}
+
+			if certificates := permissions.Certificates; certificates != nil {
+				for _, certificatePermission := range *certificates {
+					certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+				}
+			}
 		}
 
 		policyRaw["tenant_id"] = policy.TenantID.String()
-		policyRaw["object_id"] = *policy.ObjectID
+		if policy.ObjectID != nil {
+			policyRaw["object_id"] = *policy.ObjectID
+		}
 		if policy.ApplicationID != nil {
 			policyRaw["application_id"] = policy.ApplicationID.String()
 		}
 		policyRaw["key_permissions"] = keyPermissionsRaw
 		policyRaw["secret_permissions"] = secretPermissionsRaw
-
-		if policy.Permissions.Certificates != nil {
-			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
-			for _, certificatePermission := range *policy.Permissions.Certificates {
-				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
-			}
-			policyRaw["certificate_permissions"] = certificatePermissionsRaw
-		}
+		policyRaw["certificate_permissions"] = certificatePermissionsRaw
 
 		result = append(result, policyRaw)
 	}
@@ -407,19 +436,24 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 	return
 }
 
-func checkKeyVaultDNSIsAvailable(vaultUri string) func() *resource.RetryError {
-	return func() *resource.RetryError {
+func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
 		uri, err := url.Parse(vaultUri)
 		if err != nil {
-			return resource.NonRetryableError(err)
+			return nil, "error", fmt.Errorf("Error parsing URI %q: %s", vaultUri, err)
 		}
 
-		conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", uri.Host))
+		hostAndPort := fmt.Sprintf("%s:443", uri.Host)
+		conn, err := net.Dial("tcp", hostAndPort)
 		if err != nil {
-			return resource.RetryableError(err)
+			log.Printf("[DEBUG] Didn't find KeyVault at %q", hostAndPort)
+			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", hostAndPort, err)
 		}
 
 		_ = conn.Close()
-		return nil
+
+		log.Printf("[DEBUG] Found KeyVault at %q", hostAndPort)
+		return "available", "available", nil
 	}
 }

@@ -318,6 +318,44 @@ func TestAccAzureRMRedisCache_PatchScheduleUpdated(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisCache_InternalSubnet(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMRedisCache_internalSubnet(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_InternalSubnetStaticIP(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMRedisCache_internalSubnetStaticIP(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRedisCacheExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -634,4 +672,78 @@ resource "azurerm_redis_cache" "test" {
   }
 }
 `, rInt, location, rString, rInt)
+}
+func testAccAzureRMRedisCache_internalSubnet(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 1
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  subnet_id           = "${azurerm_subnet.test.id}"
+  redis_configuration {
+    maxclients = "256"
+  }
+}
+`, ri, location, ri, ri)
+}
+
+func testAccAzureRMRedisCache_internalSubnetStaticIP(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                      = "acctestRedis-%d"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  capacity                  = 1
+  family                    = "P"
+  sku_name                  = "Premium"
+  enable_non_ssl_port       = false
+  subnet_id                 = "${azurerm_subnet.test.id}"
+  private_static_ip_address = "10.0.1.20"
+  redis_configuration {
+    maxclients = "256"
+  }
+}
+`, ri, location, ri, ri)
 }
