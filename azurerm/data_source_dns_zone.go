@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
@@ -75,6 +76,11 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return err
 		}
+
+		if reflect.DeepEqual(resp, dns.Zone{}) {
+			d.SetId("")
+			return nil
+		}
 	}
 
 	d.SetId(*resp.ID)
@@ -122,5 +128,5 @@ func findZone(client dns.ZonesClient, rgClient resources.GroupsClient, ctx conte
 		}
 	}
 
-	return dns.Zone{}, "", fmt.Errorf("Error finding DNS Zone %s without Resource Group Name: %+v", name, err)
+	return dns.Zone{}, "", nil
 }
