@@ -53,11 +53,9 @@ func resourceArmSchedulerJob() *schema.Resource {
 
 			//actions
 			"action_web": resourceArmSchedulerJobActionWebSchema("action_web"),
-			//"action_servicebus": resourceArmSchedulerJobActionServicebusSchema("action_servicebus", []string{"action_web", "action_storagequeue"}),
 
 			//each action can also be an error action
 			"error_action_web": resourceArmSchedulerJobActionWebSchema("error_action_web"),
-			//"error_action_servicebus": resourceArmSchedulerJobActionServicebusSchema("action_servicebus", []string{"action_web", "action_servicebus"}),
 
 			//retry policy
 			"retry": {
@@ -67,19 +65,9 @@ func resourceArmSchedulerJob() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						//none cannot be used with either of these values todo keep?
-						/*"type": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Default:          string(scheduler.Fixed),
-							DiffSuppressFunc: internal.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(scheduler.Fixed),
-								string(scheduler.None),
-							}, true),
-						},*/
 
 						//silently fails if the duration is not in the correct format
+						//todo validation
 						"interval": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -128,9 +116,10 @@ func resourceArmSchedulerJob() *schema.Resource {
 						},
 
 						"count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 2147483647), //silently fails/produces odd results at >2147483647
+							Type:     schema.TypeInt,
+							Optional: true,
+							//silently fails/produces odd results at >2147483647
+							ValidateFunc: validation.IntBetween(1, 2147483647),
 						},
 
 						"end_time": {
@@ -398,9 +387,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Schema 
 func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
 
 	_, hasWeb := diff.GetOk("action_web")
-	//_, hasService := diff.GetOk("action_servicebus")
-	//_, hasStorage := diff.GetOk("action_storagequeue")
-	if !hasWeb { //&& !hasService && !hasStorage
+	if !hasWeb {
 		return fmt.Errorf("One of `action_web`, `action_servicebus` or `action_storagequeue` must be set")
 	}
 
@@ -410,7 +397,7 @@ func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, v interface
 			//if neither count nor end time is set the API will silently fail
 			_, hasCount := recurrence["count"]
 			_, hasEnd := recurrence["end_time"]
-			if !hasCount && !hasEnd { //&& !hasService && !hasStorage
+			if !hasCount && !hasEnd {
 				return fmt.Errorf("One of `count` or `end_time` must be set for the 'recurrence' block.")
 			}
 
@@ -482,9 +469,6 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 	//action
 	if b, ok := d.GetOk("action_web"); ok {
 		job.Properties.Action.Request, job.Properties.Action.Type = expandAzureArmSchedulerJobActionRequest(b)
-	} else {
-		//todo should never get here because of the customize diff, so is this required?
-		return fmt.Errorf("One of `action_web`, `action_servicebus` or `action_storagequeue` must be set for scheduler job %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	//error action
@@ -663,7 +647,6 @@ func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 //expand (terraform -> API)
-
 func expandAzureArmSchedulerJobActionRequest(b interface{}) (*scheduler.HTTPRequest, scheduler.JobActionType) {
 
 	block := b.([]interface{})[0].(map[string]interface{})
@@ -673,7 +656,7 @@ func expandAzureArmSchedulerJobActionRequest(b interface{}) (*scheduler.HTTPRequ
 	request := scheduler.HTTPRequest{
 		URI:     &url,
 		Method:  utils.String(block["method"].(string)),
-		Headers: &map[string]*string{},
+		Headers: map[string]*string{},
 	}
 
 	// determine type from the url, the property validation must ensure this
@@ -689,7 +672,7 @@ func expandAzureArmSchedulerJobActionRequest(b interface{}) (*scheduler.HTTPRequ
 	//load headers
 	//if v, ok := block["headers"].(map[string]interface{}); ok { //check doesn't seem to be needed
 	for k, v := range block["headers"].(map[string]interface{}) {
-		(*request.Headers)[k] = utils.String(v.(string))
+		(request.Headers)[k] = utils.String(v.(string))
 	}
 
 	//only valid for a set
@@ -828,7 +811,7 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest, ob
 
 	if v := request.Headers; v != nil {
 		headers := map[string]interface{}{}
-		for k, v := range *v {
+		for k, v := range v {
 			headers[k] = *v
 		}
 
@@ -977,7 +960,6 @@ func resourceAzureRMSchedulerJobMonthlyOccurrenceHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-//todo move these somewhere?
 func sliceToSetInt32(slice []int32) *schema.Set {
 	set := &schema.Set{F: set.HashInt}
 	for _, v := range slice {

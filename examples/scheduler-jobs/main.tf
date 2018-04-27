@@ -121,7 +121,7 @@ resource "azurerm_scheduler_job" "web-recurring_weekly-auth_cert" {
 }
 
 
-resource "azurerm_scheduler_job" "web-recurring_monthly-error_actioin" {
+resource "azurerm_scheduler_job" "web-recurring_monthly-error_action" {
     name                = "tfex-web-recurring_monthly-auth_ad"
     resource_group_name = "${azurerm_resource_group.rg.name}"
     job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"

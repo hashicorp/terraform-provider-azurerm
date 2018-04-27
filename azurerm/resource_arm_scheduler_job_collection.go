@@ -69,7 +69,6 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 			"quota": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -95,21 +94,12 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 							}, true),
 						},
 
-						//while in the documentation the MaxRecurrance.Interval is stated to "Gets or sets the interval between retries."
-						//it does appear it is the max interval allowed for a recurrence
+						//this is MaxRecurrance.Interval, property is named this as the documentation in the api states:
+						//  Gets or sets the interval between retries.
 						"max_retry_interval": {
-							Type:          schema.TypeInt,
-							Optional:      true,
-							Deprecated:    "Renamed to match azure",
-							ConflictsWith: []string{"quota.0.max_recurrence_interval"},
-							ValidateFunc:  validation.IntAtLeast(1), //changes depending on the frequency, unknown maximums
-						},
-
-						"max_recurrence_interval": {
-							Type:          schema.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"quota.0.max_retry_interval"},
-							ValidateFunc:  validation.IntAtLeast(1), //changes depending on the frequency, unknown maximums
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1), //changes depending on the frequency, unknown maximums
 						},
 					},
 				},
@@ -257,10 +247,8 @@ func expandAzureArmSchedulerJobCollectionQuota(d *schema.ResourceData) *schedule
 		}
 		if v, ok := quotaBlock["max_recurrence_frequency"].(string); ok {
 			quota.MaxRecurrence.Frequency = scheduler.RecurrenceFrequency(v)
-		} else if v, ok := quotaBlock["max_retry_interval"].(int); ok {
-			quota.MaxRecurrence.Interval = utils.Int32(int32(v))
 		}
-		if v, ok := quotaBlock["max_recurrence_interval"].(int); ok {
+		if v, ok := quotaBlock["max_retry_interval"].(int); ok {
 			quota.MaxRecurrence.Interval = utils.Int32(int32(v))
 		}
 
@@ -283,8 +271,7 @@ func flattenAzureArmSchedulerJobCollectionQuota(quota *scheduler.JobCollectionQu
 	}
 	if recurrence := quota.MaxRecurrence; recurrence != nil {
 		if v := recurrence.Interval; v != nil {
-			//quotaBlock["max_retry_interval"] = *v //todo fix
-			quotaBlock["max_recurrence_interval"] = *v
+			quotaBlock["max_retry_interval"] = *v
 		}
 
 		quotaBlock["max_recurrence_frequency"] = string(recurrence.Frequency)

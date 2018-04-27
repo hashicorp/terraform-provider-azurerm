@@ -75,7 +75,7 @@ func TestInternal_Supress_Rfc3339Time(t *testing.T) {
 		},
 		{
 			TimeA:    "2000-01-01T01:23:45+7:00",
-			TimeB:    "2010-01-01T08:23:45Z",
+			TimeB:    "2000-01-01T08:23:45Z",
 			Suppress: true,
 		},
 	}

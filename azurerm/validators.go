@@ -10,8 +10,6 @@ import (
 	"github.com/satori/uuid"
 )
 
-//move to package!
-
 func validateRFC3339Date(v interface{}, k string) (ws []string, errors []error) {
 	dateString := v.(string)
 
