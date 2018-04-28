@@ -1,6 +1,8 @@
 package supress
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestInternal_Suppress_CaseDifference(t *testing.T) {
 	cases := []struct {
@@ -74,8 +76,8 @@ func TestInternal_Supress_Rfc3339Time(t *testing.T) {
 			Suppress: true,
 		},
 		{
-			TimeA:    "2000-01-01T01:23:45+7:00",
-			TimeB:    "2000-01-01T08:23:45Z",
+			TimeA:    "2000-01-01T01:23:45-08:00",
+			TimeB:    "2000-01-01T09:23:45Z",
 			Suppress: true,
 		},
 	}

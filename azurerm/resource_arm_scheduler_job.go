@@ -496,7 +496,7 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error parsing start time (%s) for job %q (Resource Group %q): %+v", d.Get("start_time"), name, resourceGroup, err)
 	}
-	job.Properties.StartTime = &date.Time{startTime}
+	job.Properties.StartTime = &date.Time{Time: startTime}
 
 	//state
 	if state, ok := d.GetOk("state"); ok {
