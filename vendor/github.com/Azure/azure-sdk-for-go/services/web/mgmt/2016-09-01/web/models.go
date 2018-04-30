@@ -6878,6 +6878,35 @@ type DataSource struct {
 	DataSourceURI *[]NameValuePair `json:"dataSourceUri,omitempty"`
 }
 
+// DefaultErrorResponse app Service error response.
+type DefaultErrorResponse struct {
+	// Error - Error model.
+	Error *DefaultErrorResponseError `json:"error,omitempty"`
+}
+
+// DefaultErrorResponseError error model.
+type DefaultErrorResponseError struct {
+	// Code - Standardized string to programmatically identify the error.
+	Code *string `json:"code,omitempty"`
+	// Message - Detailed error description and debugging information.
+	Message *string `json:"message,omitempty"`
+	// Target - Detailed error description and debugging information.
+	Target  *string                                 `json:"target,omitempty"`
+	Details *[]DefaultErrorResponseErrorDetailsItem `json:"details,omitempty"`
+	// Innererror - More information to debug error.
+	Innererror *string `json:"innererror,omitempty"`
+}
+
+// DefaultErrorResponseErrorDetailsItem detailed errors.
+type DefaultErrorResponseErrorDetailsItem struct {
+	// Code - Standardized string to programmatically identify the error.
+	Code *string `json:"code,omitempty"`
+	// Message - Detailed error description and debugging information.
+	Message *string `json:"message,omitempty"`
+	// Target - Detailed error description and debugging information.
+	Target *string `json:"target,omitempty"`
+}
+
 // DeletedSite a deleted app.
 type DeletedSite struct {
 	// ID - Numeric id for the deleted site
@@ -14175,6 +14204,212 @@ func (page ResourceCollectionPage) Values() []string {
 		return nil
 	}
 	return *page.rc.Value
+}
+
+// ResourceHealthMetadata used for getting ResourceHealthCheck settings.
+type ResourceHealthMetadata struct {
+	autorest.Response `json:"-"`
+	// ResourceHealthMetadataProperties - ResourceHealthMetadata resource specific properties
+	*ResourceHealthMetadataProperties `json:"properties,omitempty"`
+	// ID - Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceHealthMetadata.
+func (rhm ResourceHealthMetadata) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rhm.ResourceHealthMetadataProperties != nil {
+		objectMap["properties"] = rhm.ResourceHealthMetadataProperties
+	}
+	if rhm.ID != nil {
+		objectMap["id"] = rhm.ID
+	}
+	if rhm.Name != nil {
+		objectMap["name"] = rhm.Name
+	}
+	if rhm.Kind != nil {
+		objectMap["kind"] = rhm.Kind
+	}
+	if rhm.Type != nil {
+		objectMap["type"] = rhm.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ResourceHealthMetadata struct.
+func (rhm *ResourceHealthMetadata) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var resourceHealthMetadataProperties ResourceHealthMetadataProperties
+				err = json.Unmarshal(*v, &resourceHealthMetadataProperties)
+				if err != nil {
+					return err
+				}
+				rhm.ResourceHealthMetadataProperties = &resourceHealthMetadataProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				rhm.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				rhm.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				rhm.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				rhm.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ResourceHealthMetadataCollection collection of resource health metadata.
+type ResourceHealthMetadataCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]ResourceHealthMetadata `json:"value,omitempty"`
+	// NextLink - Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ResourceHealthMetadataCollectionIterator provides access to a complete listing of ResourceHealthMetadata values.
+type ResourceHealthMetadataCollectionIterator struct {
+	i    int
+	page ResourceHealthMetadataCollectionPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ResourceHealthMetadataCollectionIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ResourceHealthMetadataCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ResourceHealthMetadataCollectionIterator) Response() ResourceHealthMetadataCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ResourceHealthMetadataCollectionIterator) Value() ResourceHealthMetadata {
+	if !iter.page.NotDone() {
+		return ResourceHealthMetadata{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (rhmc ResourceHealthMetadataCollection) IsEmpty() bool {
+	return rhmc.Value == nil || len(*rhmc.Value) == 0
+}
+
+// resourceHealthMetadataCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (rhmc ResourceHealthMetadataCollection) resourceHealthMetadataCollectionPreparer() (*http.Request, error) {
+	if rhmc.NextLink == nil || len(to.String(rhmc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(rhmc.NextLink)))
+}
+
+// ResourceHealthMetadataCollectionPage contains a page of ResourceHealthMetadata values.
+type ResourceHealthMetadataCollectionPage struct {
+	fn   func(ResourceHealthMetadataCollection) (ResourceHealthMetadataCollection, error)
+	rhmc ResourceHealthMetadataCollection
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ResourceHealthMetadataCollectionPage) Next() error {
+	next, err := page.fn(page.rhmc)
+	if err != nil {
+		return err
+	}
+	page.rhmc = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ResourceHealthMetadataCollectionPage) NotDone() bool {
+	return !page.rhmc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ResourceHealthMetadataCollectionPage) Response() ResourceHealthMetadataCollection {
+	return page.rhmc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ResourceHealthMetadataCollectionPage) Values() []ResourceHealthMetadata {
+	if page.rhmc.IsEmpty() {
+		return nil
+	}
+	return *page.rhmc.Value
+}
+
+// ResourceHealthMetadataProperties resourceHealthMetadata resource specific properties
+type ResourceHealthMetadataProperties struct {
+	// Category - The category that the resource matches in the RHC Policy File
+	Category *string `json:"category,omitempty"`
+	// SignalAvailability - Is there a health signal for the resource
+	SignalAvailability *bool `json:"signalAvailability,omitempty"`
 }
 
 // ResourceMetric object representing a metric for any resource .

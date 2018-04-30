@@ -103,6 +103,14 @@ $ make test
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
 
+The following ENV variables must be set in your shell prior to running acceptance tests:
+- ARM_CLIENT_ID
+- ARM_CLIENT_SECRET
+- ARM_SUBSCRIPTION_ID
+- ARM_TENANT_ID
+- ARM_TEST_LOCATION
+- ARM_TEST_LOCATION_ALT
+
 *Note:* Acceptance tests create real resources, and often cost money to run.
 
 ```sh

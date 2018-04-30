@@ -1360,7 +1360,7 @@ type ProviderOperationDisplayProperties struct {
 	Provider *string `json:"provider,omitempty"`
 	// Resource - Operation resource.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - Operation.
+	// Operation - The operation name.
 	Operation *string `json:"operation,omitempty"`
 	// Description - Operation description.
 	Description *string `json:"description,omitempty"`
@@ -1401,7 +1401,7 @@ func (prt ProviderResourceType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// Resource resource.
+// Resource basic set of the resource properties.
 type Resource struct {
 	// ID - Resource ID
 	ID *string `json:"id,omitempty"`

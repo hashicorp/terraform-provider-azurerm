@@ -3,6 +3,7 @@ package azurerm
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
 )
@@ -44,7 +45,7 @@ func tagValueToString(v interface{}) (string, error) {
 	}
 }
 
-func validateAzureRMTags(v interface{}, k string) (ws []string, es []error) {
+func validateAzureRMTags(v interface{}, f string) (ws []string, es []error) {
 	tagsMap := v.(map[string]interface{})
 
 	if len(tagsMap) > 15 {
@@ -64,7 +65,7 @@ func validateAzureRMTags(v interface{}, k string) (ws []string, es []error) {
 		}
 	}
 
-	return
+	return ws, es
 }
 
 func expandTags(tagsMap map[string]interface{}) map[string]*string {
@@ -79,15 +80,36 @@ func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	return output
 }
 
-func flattenAndSetTags(d *schema.ResourceData, tagsMap map[string]*string) {
-	if tagsMap == nil {
-		d.Set("tags", make(map[string]interface{}))
-		return
+func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*string {
+	if len(tagNames) == 0 {
+		return tagsMap
 	}
 
-	output := make(map[string]interface{}, len(tagsMap))
+	// Build the filter dictionary from passed tag names.
+	filterDict := make(map[string]bool)
+	for _, name := range tagNames {
+		if len(name) > 0 {
+			filterDict[strings.ToLower(name)] = true
+		}
+	}
 
-	for i, v := range tagsMap {
+	// Filter out tag if it exists(case insensitive) in the dictionary.
+	tagsRet := make(map[string]*string)
+	for k, v := range tagsMap {
+		if !filterDict[strings.ToLower(k)] {
+			tagsRet[k] = v
+		}
+	}
+
+	return tagsRet
+}
+
+func flattenAndSetTags(d *schema.ResourceData, tagMap map[string]*string) {
+
+	// If tagsMap is nil, len(tagsMap) will be 0.
+	output := make(map[string]interface{}, len(tagMap))
+
+	for i, v := range tagMap {
 		output[i] = *v
 	}
 

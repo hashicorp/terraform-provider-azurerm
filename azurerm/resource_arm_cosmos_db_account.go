@@ -36,7 +36,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"Cosmos DB Account Name name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					"Cosmos DB Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
 				),
 			},
 
@@ -462,10 +462,14 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if _, ok := d.GetOk("failover_policy"); ok {
-		d.Set("failover_policy", flattenAzureRmCosmosDBAccountFailoverPolicy(resp.FailoverPolicies))
+		if err := d.Set("failover_policy", flattenAzureRmCosmosDBAccountFailoverPolicy(resp.FailoverPolicies)); err != nil {
+			return fmt.Errorf("Error setting `failover_policy`: %+v", err)
+		}
 	} else {
 		//if failover policy isn't default to using geo_location
-		d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp))
+		if err := d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
+			return fmt.Errorf("Error setting `geo_location`: %+v", err)
+		}
 	}
 
 	if p := resp.ReadLocations; p != nil {

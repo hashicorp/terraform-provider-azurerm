@@ -163,11 +163,15 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6789) - disabled by default.
 
-* `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
+* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
+
+* `private_static_ip_address` - (Optional) The Static IP Address to assign to the Redis Cache when hosted inside the Virtual Network. Changing this forces a new resource to be created.
 
 * `redis_configuration` - (Required) A `redis_configuration` as defined below - with some limitations by SKU - defaults/details are shown below.
 
-* `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below - only available for Premium SKU's.
+* `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
+
+* `subnet_id` - (Optional) The ID of the Subnet within which the Redis Cache should be deployed. Changing this forces a new resource to be created.
 
 ---
 
