@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
@@ -12,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDatabricksWorkspace() *schema.Resource {
@@ -85,7 +85,7 @@ func resourceArmDatabricksWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	future, err := client.CreateOrUpdate(ctx, workspace, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Creating/Updating Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
@@ -95,13 +95,13 @@ func resourceArmDatabricksWorkspaceCreate(d *schema.ResourceData, meta interface
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Retrieving Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Databricks Workspace Instance %s (resource group %s) ID", name, resGroup)
 	}
 
-	log.Printf("[DEBUG] Waiting for Databricks Workspace (%s) to become available", d.Get("workspace_name"))
+	log.Printf("[DEBUG] Waiting for Databricks Workspace (%s) to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
@@ -145,7 +145,7 @@ func resourceArmDatabricksWorkspaceUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Cannot read Databricks Workspace %s (resource group %s) ID", name, resGroup)
 	}
 
-	log.Printf("[DEBUG] Waiting for Databricks Workspace (%s) to become available", d.Get("workspace_name"))
+	log.Printf("[DEBUG] Waiting for Databricks Workspace (%s) to become available", name)
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
@@ -154,7 +154,7 @@ func resourceArmDatabricksWorkspaceUpdate(d *schema.ResourceData, meta interface
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Databricks Workspace (%s) to become available: %s", d.Get("workspace_name"), err)
+		return fmt.Errorf("Error waiting for Databricks Workspace (%s) to become available: %s", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -175,8 +175,12 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 
 	resp, err := client.Get(ctx, resGroup, name)
 
+	if err != nil {
+		return fmt.Errorf("Error Retrieving Databricks Workspace %q (Resource Group %q): %+v", name, resGroup, err)
+	}
+
 	// covers if the resource has been deleted outside of TF, but is still in the state
-	if resp.StatusCode == http.StatusNotFound {
+	if utils.ResponseWasNotFound(resp.Response) {
 		d.SetId("")
 		return nil
 	}
@@ -212,17 +216,15 @@ func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
 	name := id.Path["workspaces"]
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-
 		return err
 	}
+
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
