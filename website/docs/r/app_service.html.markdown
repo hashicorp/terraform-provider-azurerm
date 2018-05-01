@@ -143,6 +143,14 @@ The following arguments are supported:
 
 ---
 
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+---
+
 `site_config` supports the following:
 
 * `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
@@ -155,43 +163,6 @@ The following arguments are supported:
 
 * `local_mysql_enabled` - (Optional) Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
----
-
-`identity` supports the following:
-
-* `type` - (Required) Specifies the identity type of the App Service. The only allowable value is `SystemAssigned`. 
-The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created, e.g.
-
-```hcl
-resource "azurerm_app_service" "test" {
-  name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
-
-  site_config {
-    always_on = true
-  }
-
-  identity = {
-    type = "SystemAssigned"
-  }
-
-  client_affinity_enabled = false
-
-  app_settings {
-    "SOME_KEY" = "some-value"
-  }
-  
-}
-
-output "test_service_principal_id" {
-  value = "${lookup(azurerm_app_service.test.identity[0], "principal_id")}"
-}
-output "test_service_tenant_id" {
-  value = "${lookup(azurerm_app_service.test.identity[0], "tenant_id")}"
-}
-```
 ~> **NOTE:** MySQL In App is not intended for production environments and will not scale beyond a single instance. Instead you may wish [to use Azure Database for MySQL](/docs/providers/azurerm/r/mysql_database.html).
 
 * `managed_pipeline_mode` - (Optional) The Managed Pipeline Mode. Possible values are `Integrated` and `Classic`. Defaults to `Integrated`.
@@ -206,7 +177,6 @@ output "test_service_tenant_id" {
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-
 ~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
 
 ## Attributes Reference
@@ -219,24 +189,35 @@ The following attributes are exported:
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
-* `source_control` - (Optional) The default local Git source control information if deployment option is set to `LocalGit`.
+* `source_control` - A `source_control` block as defined below, which contains the Source Control information when `scm_type` is set to `LocalGit`.
 
-* `site_credential` - (Optional) The site-level credential used to publish files to Azure Web App.
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
-* `principal_id` - When Identity is `SystemAssigned` attribute exposes Service Principal id created by Azure Resource Manager. 
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 
-* `tenant_id` - When Identity is `SystemAssigned` attribute exposes Azure AD tenant id where Service Principal was created.
 ---
 
-`source_control` supports the following:
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+---
+
+`site_credential` exports the following:
+
+* `username` - The username which can be used to publish to this App Service
+* `password` - The password associated with the username, which can be used to publish to this App Service.
+
+~> **NOTE:** both `username` and `password` for the `site_credential` block are only exported when `scm_type` is set to `LocalGit`
+
+---
+
+`source_control` exports the following:
 
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
-
-`site_credential` supports the following:
-
-* `username` - If your site is named 'MySite', the user name will be '$MySite'.
-* `password` - Some long random string.
 
 ## Import
 
