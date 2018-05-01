@@ -9,6 +9,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -104,29 +105,33 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"hadoop",
+					"hbase",
+					"storm",
+					"spark",
+				}, true),
 			},
-			"location": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-			},
+			"location": locationSchema(),
 			"name": {
 				Required: true,
+				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"os_type": {
 				Optional: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Linux",
+					"Windows",
+				}, true),
 			},
 			"provisioning_state": {
 				Computed: true,
 				Type:     schema.TypeString,
 			},
-			"resource_group_name": {
-				Required: true,
-				Type:     schema.TypeString,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 			"roles": {
 				Optional: true,
 				ForceNew: true,
@@ -140,19 +145,27 @@ func resourceArmHDInsightClusters() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"disk_size_gb": {
-										Optional: true,
-										ForceNew: true,
-										Type:     schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Type:         schema.TypeInt,
+										ValidateFunc: validateDiskSizeGB,
 									},
 									"disks_per_node": {
-										Optional: true,
-										ForceNew: true,
-										Type:     schema.TypeInt,
+										Optional:     true,
+										ForceNew:     true,
+										Type:         schema.TypeInt,
+										ValidateFunc: validation.IntBetween(0, 10),
 									},
 									"storage_account_type": {
 										Optional: true,
 										ForceNew: true,
 										Type:     schema.TypeString,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Standard_LRS",
+											"Standard_GRS",
+											"Standard_RAGRS",
+											"Standard_ZRS",
+										}, true),
 									},
 								},
 							},
@@ -192,9 +205,10 @@ func resourceArmHDInsightClusters() *schema.Resource {
 							},
 						},
 						"min_instance_count": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Type:         schema.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 32),
 						},
 						"name": {
 							Optional: true,
@@ -226,9 +240,10 @@ func resourceArmHDInsightClusters() *schema.Resource {
 							},
 						},
 						"target_instance_count": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Type:         schema.TypeInt,
+							ValidateFunc: validation.IntBetween(1, 32),
 						},
 						"vm_size": {
 							Optional: true,
@@ -338,17 +353,15 @@ func resourceArmHDInsightClusters() *schema.Resource {
 					},
 				},
 			},
-			"tags": {
-				Optional: true,
-				Type:     schema.TypeMap,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			"tags": tagsSchema(),
 			"tier": {
 				Optional: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"standard",
+					"premium",
+				}, false),
 			},
 		},
 	}
@@ -364,14 +377,9 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	if paramValue, paramExists := d.GetOk("location"); paramExists {
 		parameters.Location = utils.String(paramValue.(string))
 	}
-	if paramValue, paramExists := d.GetOk("tags"); paramExists {
-		tmpParamOfTags := make(map[string]*string)
-		for tmpParamKeyOfTags, tmpParamItemOfTags := range paramValue.(map[string]interface{}) {
-			parametersTags := utils.String(tmpParamItemOfTags.(string))
-			tmpParamOfTags[tmpParamKeyOfTags] = parametersTags
-		}
-		parameters.Tags = &tmpParamOfTags
-	}
+	tags := d.Get("tags").(map[string]interface{})
+	tmpParamOfTags := expandTags(tags)
+	parameters.Tags = tmpParamOfTags
 	parameters.Properties = &hdinsight.ClusterCreateProperties{}
 	if paramValue, paramExists := d.GetOk("cluster_version"); paramExists {
 		parameters.Properties.ClusterVersion = utils.String(paramValue.(string))
@@ -577,14 +585,7 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	if response.Location != nil {
 		d.Set("location", *response.Location)
 	}
-	if response.Tags != nil {
-		tmpRespOfTags := make(map[string]interface{})
-		for tmpRespKeyOfTags, tmpRespItemOfTags := range *response.Tags {
-			tmpRespValueOfTags := *tmpRespItemOfTags
-			tmpRespOfTags[tmpRespKeyOfTags] = tmpRespValueOfTags
-		}
-		d.Set("tags", tmpRespOfTags)
-	}
+	flattenAndSetTags(d, response.Tags)
 	if response.Properties != nil {
 		if response.Properties.ClusterVersion != nil {
 			d.Set("cluster_version", *response.Properties.ClusterVersion)
@@ -806,14 +807,7 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 	if response.Location != nil {
 		d.Set("location", *response.Location)
 	}
-	if response.Tags != nil {
-		tmpRespOfTags := make(map[string]interface{})
-		for tmpRespKeyOfTags, tmpRespItemOfTags := range *response.Tags {
-			tmpRespValueOfTags := *tmpRespItemOfTags
-			tmpRespOfTags[tmpRespKeyOfTags] = tmpRespValueOfTags
-		}
-		d.Set("tags", tmpRespOfTags)
-	}
+	flattenAndSetTags(d, response.Tags)
 	if response.Properties != nil {
 		if response.Properties.ClusterVersion != nil {
 			d.Set("cluster_version", *response.Properties.ClusterVersion)
@@ -1024,14 +1018,9 @@ func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	clusterName := d.Get("name").(string)
 	parameters := hdinsight.ClusterPatchParameters{}
-	if paramValue, paramExists := d.GetOk("tags"); paramExists {
-		tmpParamOfTags := make(map[string]*string)
-		for tmpParamKeyOfTags, tmpParamItemOfTags := range paramValue.(map[string]interface{}) {
-			parametersTags := utils.String(tmpParamItemOfTags.(string))
-			tmpParamOfTags[tmpParamKeyOfTags] = parametersTags
-		}
-		parameters.Tags = &tmpParamOfTags
-	}
+	tags := d.Get("tags").(map[string]interface{})
+	tmpParamOfTags := expandTags(tags)
+	parameters.Tags = tmpParamOfTags
 
 	response, err := client.Update(ctx, resourceGroupName, clusterName, parameters)
 	if err != nil {
@@ -1044,14 +1033,7 @@ func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}
 	if response.Location != nil {
 		d.Set("location", *response.Location)
 	}
-	if response.Tags != nil {
-		tmpRespOfTags := make(map[string]interface{})
-		for tmpRespKeyOfTags, tmpRespItemOfTags := range *response.Tags {
-			tmpRespValueOfTags := *tmpRespItemOfTags
-			tmpRespOfTags[tmpRespKeyOfTags] = tmpRespValueOfTags
-		}
-		d.Set("tags", tmpRespOfTags)
-	}
+	flattenAndSetTags(d, response.Tags)
 	if response.Properties != nil {
 		if response.Properties.ClusterVersion != nil {
 			d.Set("cluster_version", *response.Properties.ClusterVersion)
