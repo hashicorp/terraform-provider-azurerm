@@ -25,17 +25,8 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				Type:     schema.TypeString,
 			},
 			"cluster_state": {
-				Optional: true,
 				Computed: true,
 				Type:     schema.TypeString,
-			},
-			"cluster_users_group_dns": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
 			},
 			"cluster_version": {
 				Optional: true,
@@ -62,28 +53,23 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				},
 			},
 			"connectivity_endpoints": {
-				Optional: true,
 				Computed: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"location": {
-							Optional: true,
 							Computed: true,
 							Type:     schema.TypeString,
 						},
 						"name": {
-							Optional: true,
 							Computed: true,
 							Type:     schema.TypeString,
 						},
 						"port": {
-							Optional: true,
 							Computed: true,
 							Type:     schema.TypeInt,
 						},
 						"protocol": {
-							Optional: true,
 							Computed: true,
 							Type:     schema.TypeString,
 						},
@@ -91,48 +77,23 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				},
 			},
 			"cores_used": {
-				Optional: true,
 				Computed: true,
 				Type:     schema.TypeInt,
 			},
 			"created_date": {
-				Optional: true,
 				Computed: true,
 				Type:     schema.TypeString,
 			},
-			"directory_type": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-			},
-			"domain": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-			},
-			"domain_user_password": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-			},
-			"domain_username": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-			},
 			"errors": {
-				Optional: true,
 				Computed: true,
 				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"code": {
-							Optional: true,
 							Computed: true,
 							Type:     schema.TypeString,
 						},
 						"message": {
-							Optional: true,
 							Computed: true,
 							Type:     schema.TypeString,
 						},
@@ -144,14 +105,6 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				ForceNew: true,
 				Type:     schema.TypeString,
 			},
-			"ldaps_urls": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeList,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
 			"location": {
 				Optional: true,
 				ForceNew: true,
@@ -161,18 +114,12 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				Required: true,
 				Type:     schema.TypeString,
 			},
-			"organizational_unit_dn": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-			},
 			"os_type": {
 				Optional: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
 			},
 			"provisioning_state": {
-				Optional: true,
 				Computed: true,
 				Type:     schema.TypeString,
 			},
@@ -210,10 +157,39 @@ func resourceArmHDInsightClusters() *schema.Resource {
 								},
 							},
 						},
-						"id": {
+						"linux_os_profile": {
 							Optional: true,
 							ForceNew: true,
-							Type:     schema.TypeString,
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"password": {
+										Optional: true,
+										ForceNew: true,
+										Type:     schema.TypeString,
+									},
+									"ssh_keys": {
+										Optional: true,
+										ForceNew: true,
+										Type:     schema.TypeList,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"key_data": {
+													Optional: true,
+													ForceNew: true,
+													Type:     schema.TypeString,
+												},
+											},
+										},
+									},
+									"username": {
+										Optional: true,
+										ForceNew: true,
+										Type:     schema.TypeString,
+									},
+								},
+							},
 						},
 						"min_instance_count": {
 							Optional: true,
@@ -224,25 +200,6 @@ func resourceArmHDInsightClusters() *schema.Resource {
 							Optional: true,
 							ForceNew: true,
 							Type:     schema.TypeString,
-						},
-						"password": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"public_keys": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"certificate_data": {
-										Optional: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
 						},
 						"script_actions": {
 							Optional: true,
@@ -268,22 +225,83 @@ func resourceArmHDInsightClusters() *schema.Resource {
 								},
 							},
 						},
-						"subnet": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
 						"target_instance_count": {
 							Optional: true,
 							ForceNew: true,
 							Type:     schema.TypeInt,
 						},
-						"username": {
+						"vm_size": {
 							Optional: true,
 							ForceNew: true,
 							Type:     schema.TypeString,
 						},
-						"vm_size": {
+						"vnet_profile": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Optional: true,
+										ForceNew: true,
+										Type:     schema.TypeString,
+									},
+									"subnet": {
+										Optional: true,
+										ForceNew: true,
+										Type:     schema.TypeString,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"security_profile": {
+				Optional: true,
+				ForceNew: true,
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cluster_users_group_dns": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"directory_type": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"domain": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"domain_user_password": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"domain_username": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"ldaps_urls": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"organizational_unit_dn": {
 							Optional: true,
 							ForceNew: true,
 							Type:     schema.TypeString,
@@ -330,11 +348,6 @@ func resourceArmHDInsightClusters() *schema.Resource {
 			"tier": {
 				Optional: true,
 				ForceNew: true,
-				Type:     schema.TypeString,
-			},
-			"type": {
-				Optional: true,
-				Computed: true,
 				Type:     schema.TypeString,
 			},
 		},
@@ -399,36 +412,39 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 		parameters.Properties.ClusterDefinition.Configurations = &tmpParamOfConfigurations
 	}
 	parameters.Properties.SecurityProfile = &hdinsight.SecurityProfile{}
-	if paramValue, paramExists := d.GetOk("directory_type"); paramExists {
-		parameters.Properties.SecurityProfile.DirectoryType = hdinsight.DirectoryType(paramValue.(string))
-	}
-	if paramValue, paramExists := d.GetOk("domain"); paramExists {
-		parameters.Properties.SecurityProfile.Domain = utils.String(paramValue.(string))
-	}
-	if paramValue, paramExists := d.GetOk("organizational_unit_dn"); paramExists {
-		parameters.Properties.SecurityProfile.OrganizationalUnitDN = utils.String(paramValue.(string))
-	}
-	if paramValue, paramExists := d.GetOk("ldaps_urls"); paramExists {
-		tmpParamOfLdapsUrls := make([]string, 0)
-		for _, tmpParamItemOfLdapsUrls := range paramValue.([]interface{}) {
-			parametersPropertiesSecurityProfileLdapsUrls := utils.String(tmpParamItemOfLdapsUrls.(string))
-			tmpParamOfLdapsUrls = append(tmpParamOfLdapsUrls, *parametersPropertiesSecurityProfileLdapsUrls)
+	if paramValue, paramExists := d.GetOk("security_profile"); paramExists {
+		tmpParamOfSecurityProfile := paramValue.(map[string]interface{})
+		if paramValue, paramExists := tmpParamOfSecurityProfile["directory_type"]; paramExists {
+			parameters.Properties.SecurityProfile.DirectoryType = hdinsight.DirectoryType(paramValue.(string))
 		}
-		parameters.Properties.SecurityProfile.LdapsUrls = &tmpParamOfLdapsUrls
-	}
-	if paramValue, paramExists := d.GetOk("domain_username"); paramExists {
-		parameters.Properties.SecurityProfile.DomainUsername = utils.String(paramValue.(string))
-	}
-	if paramValue, paramExists := d.GetOk("domain_user_password"); paramExists {
-		parameters.Properties.SecurityProfile.DomainUserPassword = utils.String(paramValue.(string))
-	}
-	if paramValue, paramExists := d.GetOk("cluster_users_group_dns"); paramExists {
-		tmpParamOfClusterUsersGroupDns := make([]string, 0)
-		for _, tmpParamItemOfClusterUsersGroupDns := range paramValue.([]interface{}) {
-			parametersPropertiesSecurityProfileClusterUsersGroupDNS := utils.String(tmpParamItemOfClusterUsersGroupDns.(string))
-			tmpParamOfClusterUsersGroupDns = append(tmpParamOfClusterUsersGroupDns, *parametersPropertiesSecurityProfileClusterUsersGroupDNS)
+		if paramValue, paramExists := tmpParamOfSecurityProfile["domain"]; paramExists {
+			parameters.Properties.SecurityProfile.Domain = utils.String(paramValue.(string))
 		}
-		parameters.Properties.SecurityProfile.ClusterUsersGroupDNS = &tmpParamOfClusterUsersGroupDns
+		if paramValue, paramExists := tmpParamOfSecurityProfile["organizational_unit_dn"]; paramExists {
+			parameters.Properties.SecurityProfile.OrganizationalUnitDN = utils.String(paramValue.(string))
+		}
+		if paramValue, paramExists := tmpParamOfSecurityProfile["ldaps_urls"]; paramExists {
+			tmpParamOfSecurityProfileldapsUrls := make([]string, 0)
+			for _, tmpParamItemOfSecurityProfileldapsUrls := range paramValue.([]interface{}) {
+				parametersPropertiesSecurityProfileLdapsUrls := utils.String(tmpParamItemOfSecurityProfileldapsUrls.(string))
+				tmpParamOfSecurityProfileldapsUrls = append(tmpParamOfSecurityProfileldapsUrls, *parametersPropertiesSecurityProfileLdapsUrls)
+			}
+			parameters.Properties.SecurityProfile.LdapsUrls = &tmpParamOfSecurityProfileldapsUrls
+		}
+		if paramValue, paramExists := tmpParamOfSecurityProfile["domain_username"]; paramExists {
+			parameters.Properties.SecurityProfile.DomainUsername = utils.String(paramValue.(string))
+		}
+		if paramValue, paramExists := tmpParamOfSecurityProfile["domain_user_password"]; paramExists {
+			parameters.Properties.SecurityProfile.DomainUserPassword = utils.String(paramValue.(string))
+		}
+		if paramValue, paramExists := tmpParamOfSecurityProfile["cluster_users_group_dns"]; paramExists {
+			tmpParamOfSecurityProfileclusterUsersGroupDns := make([]string, 0)
+			for _, tmpParamItemOfSecurityProfileclusterUsersGroupDns := range paramValue.([]interface{}) {
+				parametersPropertiesSecurityProfileClusterUsersGroupDNS := utils.String(tmpParamItemOfSecurityProfileclusterUsersGroupDns.(string))
+				tmpParamOfSecurityProfileclusterUsersGroupDns = append(tmpParamOfSecurityProfileclusterUsersGroupDns, *parametersPropertiesSecurityProfileClusterUsersGroupDNS)
+			}
+			parameters.Properties.SecurityProfile.ClusterUsersGroupDNS = &tmpParamOfSecurityProfileclusterUsersGroupDns
+		}
 	}
 	parameters.Properties.ComputeProfile = &hdinsight.ComputeProfile{}
 	if paramValue, paramExists := d.GetOk("roles"); paramExists {
@@ -451,31 +467,37 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 			}
 			parametersPropertiesComputeProfileRoles.OsProfile = &hdinsight.OsProfile{}
 			parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile = &hdinsight.LinuxOperatingSystemProfile{}
-			if paramValue, paramExists := tmpParamValueOfRoles["username"]; paramExists {
-				parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(paramValue.(string))
-			}
-			if paramValue, paramExists := tmpParamValueOfRoles["password"]; paramExists {
-				parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(paramValue.(string))
-			}
-			parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{}
-			if paramValue, paramExists := tmpParamValueOfRoles["public_keys"]; paramExists {
-				tmpParamOfRolespublicKeys := make([]hdinsight.SSHPublicKey, 0)
-				for _, tmpParamItemOfRolespublicKeys := range paramValue.([]interface{}) {
-					tmpParamValueOfRolespublicKeys := tmpParamItemOfRolespublicKeys.(map[string]interface{})
-					parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys := &hdinsight.SSHPublicKey{}
-					if paramValue, paramExists := tmpParamValueOfRolespublicKeys["certificate_data"]; paramExists {
-						parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys.CertificateData = utils.String(paramValue.(string))
-					}
-					tmpParamOfRolespublicKeys = append(tmpParamOfRolespublicKeys, *parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys)
+			if paramValue, paramExists := tmpParamValueOfRoles["linux_os_profile"]; paramExists {
+				tmpParamOfRoleslinuxOsProfile := paramValue.(map[string]interface{})
+				if paramValue, paramExists := tmpParamOfRoleslinuxOsProfile["username"]; paramExists {
+					parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(paramValue.(string))
 				}
-				parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys = &tmpParamOfRolespublicKeys
+				if paramValue, paramExists := tmpParamOfRoleslinuxOsProfile["password"]; paramExists {
+					parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(paramValue.(string))
+				}
+				parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{}
+				if paramValue, paramExists := tmpParamOfRoleslinuxOsProfile["ssh_keys"]; paramExists {
+					tmpParamOfRoleslinuxOsProfilesshKeys := make([]hdinsight.SSHPublicKey, 0)
+					for _, tmpParamItemOfRoleslinuxOsProfilesshKeys := range paramValue.([]interface{}) {
+						tmpParamValueOfRoleslinuxOsProfilesshKeys := tmpParamItemOfRoleslinuxOsProfilesshKeys.(map[string]interface{})
+						parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys := &hdinsight.SSHPublicKey{}
+						if paramValue, paramExists := tmpParamValueOfRoleslinuxOsProfilesshKeys["key_data"]; paramExists {
+							parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys.CertificateData = utils.String(paramValue.(string))
+						}
+						tmpParamOfRoleslinuxOsProfilesshKeys = append(tmpParamOfRoleslinuxOsProfilesshKeys, *parametersPropertiesComputeProfileRolesOsProfileLinuxOperatingSystemProfileSSHProfilePublicKeys)
+					}
+					parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys = &tmpParamOfRoleslinuxOsProfilesshKeys
+				}
 			}
 			parametersPropertiesComputeProfileRoles.VirtualNetworkProfile = &hdinsight.VirtualNetworkProfile{}
-			if paramValue, paramExists := tmpParamValueOfRoles["id"]; paramExists {
-				parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.ID = utils.String(paramValue.(string))
-			}
-			if paramValue, paramExists := tmpParamValueOfRoles["subnet"]; paramExists {
-				parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.Subnet = utils.String(paramValue.(string))
+			if paramValue, paramExists := tmpParamValueOfRoles["vnet_profile"]; paramExists {
+				tmpParamOfRolesvnetProfile := paramValue.(map[string]interface{})
+				if paramValue, paramExists := tmpParamOfRolesvnetProfile["id"]; paramExists {
+					parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.ID = utils.String(paramValue.(string))
+				}
+				if paramValue, paramExists := tmpParamOfRolesvnetProfile["subnet"]; paramExists {
+					parametersPropertiesComputeProfileRoles.VirtualNetworkProfile.Subnet = utils.String(paramValue.(string))
+				}
 			}
 			if paramValue, paramExists := tmpParamValueOfRoles["data_disks_groups"]; paramExists {
 				tmpParamOfRolesdataDisksGroups := make([]hdinsight.DataDisksGroups, 0)
@@ -552,9 +574,6 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	if response.Name != nil {
 		d.Set("name", *response.Name)
 	}
-	if response.Type != nil {
-		d.Set("type", *response.Type)
-	}
 	if response.Location != nil {
 		d.Set("location", *response.Location)
 	}
@@ -599,35 +618,37 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 			d.Set("configurations", tmpRespOfConfigurations)
 		}
 		if response.Properties.SecurityProfile != nil {
-			d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
+			tmpRespOfSecurityProfile := make(map[string]interface{})
+			tmpRespOfSecurityProfile["directory_type"] = response.Properties.SecurityProfile.DirectoryType
 			if response.Properties.SecurityProfile.Domain != nil {
-				d.Set("domain", *response.Properties.SecurityProfile.Domain)
+				tmpRespOfSecurityProfile["domain"] = *response.Properties.SecurityProfile.Domain
 			}
 			if response.Properties.SecurityProfile.OrganizationalUnitDN != nil {
-				d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
+				tmpRespOfSecurityProfile["organizational_unit_dn"] = *response.Properties.SecurityProfile.OrganizationalUnitDN
 			}
 			if response.Properties.SecurityProfile.LdapsUrls != nil && len(*response.Properties.SecurityProfile.LdapsUrls) > 0 {
-				tmpRespOfLdapsUrls := make([]interface{}, 0)
-				for _, tmpRespItemOfLdapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
-					tmpRespValueOfLdapsUrls := tmpRespItemOfLdapsUrls
-					tmpRespOfLdapsUrls = append(tmpRespOfLdapsUrls, tmpRespValueOfLdapsUrls)
+				tmpRespOfSecurityProfileldapsUrls := make([]interface{}, 0)
+				for _, tmpRespItemOfSecurityProfileldapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
+					tmpRespValueOfSecurityProfileldapsUrls := tmpRespItemOfSecurityProfileldapsUrls
+					tmpRespOfSecurityProfileldapsUrls = append(tmpRespOfSecurityProfileldapsUrls, tmpRespValueOfSecurityProfileldapsUrls)
 				}
-				d.Set("ldaps_urls", tmpRespOfLdapsUrls)
+				tmpRespOfSecurityProfile["ldaps_urls"] = tmpRespOfSecurityProfileldapsUrls
 			}
 			if response.Properties.SecurityProfile.DomainUsername != nil {
-				d.Set("domain_username", *response.Properties.SecurityProfile.DomainUsername)
+				tmpRespOfSecurityProfile["domain_username"] = *response.Properties.SecurityProfile.DomainUsername
 			}
 			if response.Properties.SecurityProfile.DomainUserPassword != nil {
-				d.Set("domain_user_password", *response.Properties.SecurityProfile.DomainUserPassword)
+				tmpRespOfSecurityProfile["domain_user_password"] = *response.Properties.SecurityProfile.DomainUserPassword
 			}
 			if response.Properties.SecurityProfile.ClusterUsersGroupDNS != nil && len(*response.Properties.SecurityProfile.ClusterUsersGroupDNS) > 0 {
-				tmpRespOfClusterUsersGroupDns := make([]interface{}, 0)
-				for _, tmpRespItemOfClusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
-					tmpRespValueOfClusterUsersGroupDns := tmpRespItemOfClusterUsersGroupDns
-					tmpRespOfClusterUsersGroupDns = append(tmpRespOfClusterUsersGroupDns, tmpRespValueOfClusterUsersGroupDns)
+				tmpRespOfSecurityProfileclusterUsersGroupDns := make([]interface{}, 0)
+				for _, tmpRespItemOfSecurityProfileclusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
+					tmpRespValueOfSecurityProfileclusterUsersGroupDns := tmpRespItemOfSecurityProfileclusterUsersGroupDns
+					tmpRespOfSecurityProfileclusterUsersGroupDns = append(tmpRespOfSecurityProfileclusterUsersGroupDns, tmpRespValueOfSecurityProfileclusterUsersGroupDns)
 				}
-				d.Set("cluster_users_group_dns", tmpRespOfClusterUsersGroupDns)
+				tmpRespOfSecurityProfile["cluster_users_group_dns"] = tmpRespOfSecurityProfileclusterUsersGroupDns
 			}
+			d.Set("security_profile", tmpRespOfSecurityProfile)
 		}
 		if response.Properties.ComputeProfile != nil {
 			if response.Properties.ComputeProfile.Roles != nil && len(*response.Properties.ComputeProfile.Roles) > 0 {
@@ -650,34 +671,38 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 					}
 					if tmpRespItemOfRoles.OsProfile != nil {
 						if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile != nil {
+							tmpRespOfRoleslinuxOsProfile := make(map[string]interface{})
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username != nil {
-								tmpRespValueOfRoles["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
+								tmpRespOfRoleslinuxOsProfile["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
 							}
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password != nil {
-								tmpRespValueOfRoles["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
+								tmpRespOfRoleslinuxOsProfile["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
 							}
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile != nil {
 								if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys != nil && len(*tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys) > 0 {
-									tmpRespOfRolespublicKeys := make([]interface{}, 0)
-									for _, tmpRespItemOfRolespublicKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
-										tmpRespValueOfRolespublicKeys := make(map[string]interface{})
-										if tmpRespItemOfRolespublicKeys.CertificateData != nil {
-											tmpRespValueOfRolespublicKeys["certificate_data"] = *tmpRespItemOfRolespublicKeys.CertificateData
+									tmpRespOfRoleslinuxOsProfilesshKeys := make([]interface{}, 0)
+									for _, tmpRespItemOfRoleslinuxOsProfilesshKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
+										tmpRespValueOfRoleslinuxOsProfilesshKeys := make(map[string]interface{})
+										if tmpRespItemOfRoleslinuxOsProfilesshKeys.CertificateData != nil {
+											tmpRespValueOfRoleslinuxOsProfilesshKeys["key_data"] = *tmpRespItemOfRoleslinuxOsProfilesshKeys.CertificateData
 										}
-										tmpRespOfRolespublicKeys = append(tmpRespOfRolespublicKeys, tmpRespValueOfRolespublicKeys)
+										tmpRespOfRoleslinuxOsProfilesshKeys = append(tmpRespOfRoleslinuxOsProfilesshKeys, tmpRespValueOfRoleslinuxOsProfilesshKeys)
 									}
-									tmpRespValueOfRoles["public_keys"] = tmpRespOfRolespublicKeys
+									tmpRespOfRoleslinuxOsProfile["ssh_keys"] = tmpRespOfRoleslinuxOsProfilesshKeys
 								}
 							}
+							tmpRespValueOfRoles["linux_os_profile"] = tmpRespOfRoleslinuxOsProfile
 						}
 					}
 					if tmpRespItemOfRoles.VirtualNetworkProfile != nil {
+						tmpRespOfRolesvnetProfile := make(map[string]interface{})
 						if tmpRespItemOfRoles.VirtualNetworkProfile.ID != nil {
-							tmpRespValueOfRoles["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
+							tmpRespOfRolesvnetProfile["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
 						}
 						if tmpRespItemOfRoles.VirtualNetworkProfile.Subnet != nil {
-							tmpRespValueOfRoles["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
+							tmpRespOfRolesvnetProfile["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
 						}
+						tmpRespValueOfRoles["vnet_profile"] = tmpRespOfRolesvnetProfile
 					}
 					if tmpRespItemOfRoles.DataDisksGroups != nil && len(*tmpRespItemOfRoles.DataDisksGroups) > 0 {
 						tmpRespOfRolesdataDisksGroups := make([]interface{}, 0)
@@ -778,9 +803,6 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 	if response.Name != nil {
 		d.Set("name", *response.Name)
 	}
-	if response.Type != nil {
-		d.Set("type", *response.Type)
-	}
 	if response.Location != nil {
 		d.Set("location", *response.Location)
 	}
@@ -825,35 +847,37 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("configurations", tmpRespOfConfigurations)
 		}
 		if response.Properties.SecurityProfile != nil {
-			d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
+			tmpRespOfSecurityProfile := make(map[string]interface{})
+			tmpRespOfSecurityProfile["directory_type"] = response.Properties.SecurityProfile.DirectoryType
 			if response.Properties.SecurityProfile.Domain != nil {
-				d.Set("domain", *response.Properties.SecurityProfile.Domain)
+				tmpRespOfSecurityProfile["domain"] = *response.Properties.SecurityProfile.Domain
 			}
 			if response.Properties.SecurityProfile.OrganizationalUnitDN != nil {
-				d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
+				tmpRespOfSecurityProfile["organizational_unit_dn"] = *response.Properties.SecurityProfile.OrganizationalUnitDN
 			}
 			if response.Properties.SecurityProfile.LdapsUrls != nil && len(*response.Properties.SecurityProfile.LdapsUrls) > 0 {
-				tmpRespOfLdapsUrls := make([]interface{}, 0)
-				for _, tmpRespItemOfLdapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
-					tmpRespValueOfLdapsUrls := tmpRespItemOfLdapsUrls
-					tmpRespOfLdapsUrls = append(tmpRespOfLdapsUrls, tmpRespValueOfLdapsUrls)
+				tmpRespOfSecurityProfileldapsUrls := make([]interface{}, 0)
+				for _, tmpRespItemOfSecurityProfileldapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
+					tmpRespValueOfSecurityProfileldapsUrls := tmpRespItemOfSecurityProfileldapsUrls
+					tmpRespOfSecurityProfileldapsUrls = append(tmpRespOfSecurityProfileldapsUrls, tmpRespValueOfSecurityProfileldapsUrls)
 				}
-				d.Set("ldaps_urls", tmpRespOfLdapsUrls)
+				tmpRespOfSecurityProfile["ldaps_urls"] = tmpRespOfSecurityProfileldapsUrls
 			}
 			if response.Properties.SecurityProfile.DomainUsername != nil {
-				d.Set("domain_username", *response.Properties.SecurityProfile.DomainUsername)
+				tmpRespOfSecurityProfile["domain_username"] = *response.Properties.SecurityProfile.DomainUsername
 			}
 			if response.Properties.SecurityProfile.DomainUserPassword != nil {
-				d.Set("domain_user_password", *response.Properties.SecurityProfile.DomainUserPassword)
+				tmpRespOfSecurityProfile["domain_user_password"] = *response.Properties.SecurityProfile.DomainUserPassword
 			}
 			if response.Properties.SecurityProfile.ClusterUsersGroupDNS != nil && len(*response.Properties.SecurityProfile.ClusterUsersGroupDNS) > 0 {
-				tmpRespOfClusterUsersGroupDns := make([]interface{}, 0)
-				for _, tmpRespItemOfClusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
-					tmpRespValueOfClusterUsersGroupDns := tmpRespItemOfClusterUsersGroupDns
-					tmpRespOfClusterUsersGroupDns = append(tmpRespOfClusterUsersGroupDns, tmpRespValueOfClusterUsersGroupDns)
+				tmpRespOfSecurityProfileclusterUsersGroupDns := make([]interface{}, 0)
+				for _, tmpRespItemOfSecurityProfileclusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
+					tmpRespValueOfSecurityProfileclusterUsersGroupDns := tmpRespItemOfSecurityProfileclusterUsersGroupDns
+					tmpRespOfSecurityProfileclusterUsersGroupDns = append(tmpRespOfSecurityProfileclusterUsersGroupDns, tmpRespValueOfSecurityProfileclusterUsersGroupDns)
 				}
-				d.Set("cluster_users_group_dns", tmpRespOfClusterUsersGroupDns)
+				tmpRespOfSecurityProfile["cluster_users_group_dns"] = tmpRespOfSecurityProfileclusterUsersGroupDns
 			}
+			d.Set("security_profile", tmpRespOfSecurityProfile)
 		}
 		if response.Properties.ComputeProfile != nil {
 			if response.Properties.ComputeProfile.Roles != nil && len(*response.Properties.ComputeProfile.Roles) > 0 {
@@ -876,34 +900,38 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 					}
 					if tmpRespItemOfRoles.OsProfile != nil {
 						if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile != nil {
+							tmpRespOfRoleslinuxOsProfile := make(map[string]interface{})
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username != nil {
-								tmpRespValueOfRoles["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
+								tmpRespOfRoleslinuxOsProfile["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
 							}
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password != nil {
-								tmpRespValueOfRoles["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
+								tmpRespOfRoleslinuxOsProfile["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
 							}
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile != nil {
 								if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys != nil && len(*tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys) > 0 {
-									tmpRespOfRolespublicKeys := make([]interface{}, 0)
-									for _, tmpRespItemOfRolespublicKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
-										tmpRespValueOfRolespublicKeys := make(map[string]interface{})
-										if tmpRespItemOfRolespublicKeys.CertificateData != nil {
-											tmpRespValueOfRolespublicKeys["certificate_data"] = *tmpRespItemOfRolespublicKeys.CertificateData
+									tmpRespOfRoleslinuxOsProfilesshKeys := make([]interface{}, 0)
+									for _, tmpRespItemOfRoleslinuxOsProfilesshKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
+										tmpRespValueOfRoleslinuxOsProfilesshKeys := make(map[string]interface{})
+										if tmpRespItemOfRoleslinuxOsProfilesshKeys.CertificateData != nil {
+											tmpRespValueOfRoleslinuxOsProfilesshKeys["key_data"] = *tmpRespItemOfRoleslinuxOsProfilesshKeys.CertificateData
 										}
-										tmpRespOfRolespublicKeys = append(tmpRespOfRolespublicKeys, tmpRespValueOfRolespublicKeys)
+										tmpRespOfRoleslinuxOsProfilesshKeys = append(tmpRespOfRoleslinuxOsProfilesshKeys, tmpRespValueOfRoleslinuxOsProfilesshKeys)
 									}
-									tmpRespValueOfRoles["public_keys"] = tmpRespOfRolespublicKeys
+									tmpRespOfRoleslinuxOsProfile["ssh_keys"] = tmpRespOfRoleslinuxOsProfilesshKeys
 								}
 							}
+							tmpRespValueOfRoles["linux_os_profile"] = tmpRespOfRoleslinuxOsProfile
 						}
 					}
 					if tmpRespItemOfRoles.VirtualNetworkProfile != nil {
+						tmpRespOfRolesvnetProfile := make(map[string]interface{})
 						if tmpRespItemOfRoles.VirtualNetworkProfile.ID != nil {
-							tmpRespValueOfRoles["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
+							tmpRespOfRolesvnetProfile["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
 						}
 						if tmpRespItemOfRoles.VirtualNetworkProfile.Subnet != nil {
-							tmpRespValueOfRoles["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
+							tmpRespOfRolesvnetProfile["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
 						}
+						tmpRespValueOfRoles["vnet_profile"] = tmpRespOfRolesvnetProfile
 					}
 					if tmpRespItemOfRoles.DataDisksGroups != nil && len(*tmpRespItemOfRoles.DataDisksGroups) > 0 {
 						tmpRespOfRolesdataDisksGroups := make([]interface{}, 0)
@@ -1013,9 +1041,6 @@ func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}
 	if response.Name != nil {
 		d.Set("name", *response.Name)
 	}
-	if response.Type != nil {
-		d.Set("type", *response.Type)
-	}
 	if response.Location != nil {
 		d.Set("location", *response.Location)
 	}
@@ -1060,35 +1085,37 @@ func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}
 			d.Set("configurations", tmpRespOfConfigurations)
 		}
 		if response.Properties.SecurityProfile != nil {
-			d.Set("directory_type", response.Properties.SecurityProfile.DirectoryType)
+			tmpRespOfSecurityProfile := make(map[string]interface{})
+			tmpRespOfSecurityProfile["directory_type"] = response.Properties.SecurityProfile.DirectoryType
 			if response.Properties.SecurityProfile.Domain != nil {
-				d.Set("domain", *response.Properties.SecurityProfile.Domain)
+				tmpRespOfSecurityProfile["domain"] = *response.Properties.SecurityProfile.Domain
 			}
 			if response.Properties.SecurityProfile.OrganizationalUnitDN != nil {
-				d.Set("organizational_unit_dn", *response.Properties.SecurityProfile.OrganizationalUnitDN)
+				tmpRespOfSecurityProfile["organizational_unit_dn"] = *response.Properties.SecurityProfile.OrganizationalUnitDN
 			}
 			if response.Properties.SecurityProfile.LdapsUrls != nil && len(*response.Properties.SecurityProfile.LdapsUrls) > 0 {
-				tmpRespOfLdapsUrls := make([]interface{}, 0)
-				for _, tmpRespItemOfLdapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
-					tmpRespValueOfLdapsUrls := tmpRespItemOfLdapsUrls
-					tmpRespOfLdapsUrls = append(tmpRespOfLdapsUrls, tmpRespValueOfLdapsUrls)
+				tmpRespOfSecurityProfileldapsUrls := make([]interface{}, 0)
+				for _, tmpRespItemOfSecurityProfileldapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
+					tmpRespValueOfSecurityProfileldapsUrls := tmpRespItemOfSecurityProfileldapsUrls
+					tmpRespOfSecurityProfileldapsUrls = append(tmpRespOfSecurityProfileldapsUrls, tmpRespValueOfSecurityProfileldapsUrls)
 				}
-				d.Set("ldaps_urls", tmpRespOfLdapsUrls)
+				tmpRespOfSecurityProfile["ldaps_urls"] = tmpRespOfSecurityProfileldapsUrls
 			}
 			if response.Properties.SecurityProfile.DomainUsername != nil {
-				d.Set("domain_username", *response.Properties.SecurityProfile.DomainUsername)
+				tmpRespOfSecurityProfile["domain_username"] = *response.Properties.SecurityProfile.DomainUsername
 			}
 			if response.Properties.SecurityProfile.DomainUserPassword != nil {
-				d.Set("domain_user_password", *response.Properties.SecurityProfile.DomainUserPassword)
+				tmpRespOfSecurityProfile["domain_user_password"] = *response.Properties.SecurityProfile.DomainUserPassword
 			}
 			if response.Properties.SecurityProfile.ClusterUsersGroupDNS != nil && len(*response.Properties.SecurityProfile.ClusterUsersGroupDNS) > 0 {
-				tmpRespOfClusterUsersGroupDns := make([]interface{}, 0)
-				for _, tmpRespItemOfClusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
-					tmpRespValueOfClusterUsersGroupDns := tmpRespItemOfClusterUsersGroupDns
-					tmpRespOfClusterUsersGroupDns = append(tmpRespOfClusterUsersGroupDns, tmpRespValueOfClusterUsersGroupDns)
+				tmpRespOfSecurityProfileclusterUsersGroupDns := make([]interface{}, 0)
+				for _, tmpRespItemOfSecurityProfileclusterUsersGroupDns := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
+					tmpRespValueOfSecurityProfileclusterUsersGroupDns := tmpRespItemOfSecurityProfileclusterUsersGroupDns
+					tmpRespOfSecurityProfileclusterUsersGroupDns = append(tmpRespOfSecurityProfileclusterUsersGroupDns, tmpRespValueOfSecurityProfileclusterUsersGroupDns)
 				}
-				d.Set("cluster_users_group_dns", tmpRespOfClusterUsersGroupDns)
+				tmpRespOfSecurityProfile["cluster_users_group_dns"] = tmpRespOfSecurityProfileclusterUsersGroupDns
 			}
+			d.Set("security_profile", tmpRespOfSecurityProfile)
 		}
 		if response.Properties.ComputeProfile != nil {
 			if response.Properties.ComputeProfile.Roles != nil && len(*response.Properties.ComputeProfile.Roles) > 0 {
@@ -1111,34 +1138,38 @@ func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}
 					}
 					if tmpRespItemOfRoles.OsProfile != nil {
 						if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile != nil {
+							tmpRespOfRoleslinuxOsProfile := make(map[string]interface{})
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username != nil {
-								tmpRespValueOfRoles["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
+								tmpRespOfRoleslinuxOsProfile["username"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Username
 							}
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password != nil {
-								tmpRespValueOfRoles["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
+								tmpRespOfRoleslinuxOsProfile["password"] = *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.Password
 							}
 							if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile != nil {
 								if tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys != nil && len(*tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys) > 0 {
-									tmpRespOfRolespublicKeys := make([]interface{}, 0)
-									for _, tmpRespItemOfRolespublicKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
-										tmpRespValueOfRolespublicKeys := make(map[string]interface{})
-										if tmpRespItemOfRolespublicKeys.CertificateData != nil {
-											tmpRespValueOfRolespublicKeys["certificate_data"] = *tmpRespItemOfRolespublicKeys.CertificateData
+									tmpRespOfRoleslinuxOsProfilesshKeys := make([]interface{}, 0)
+									for _, tmpRespItemOfRoleslinuxOsProfilesshKeys := range *tmpRespItemOfRoles.OsProfile.LinuxOperatingSystemProfile.SSHProfile.PublicKeys {
+										tmpRespValueOfRoleslinuxOsProfilesshKeys := make(map[string]interface{})
+										if tmpRespItemOfRoleslinuxOsProfilesshKeys.CertificateData != nil {
+											tmpRespValueOfRoleslinuxOsProfilesshKeys["key_data"] = *tmpRespItemOfRoleslinuxOsProfilesshKeys.CertificateData
 										}
-										tmpRespOfRolespublicKeys = append(tmpRespOfRolespublicKeys, tmpRespValueOfRolespublicKeys)
+										tmpRespOfRoleslinuxOsProfilesshKeys = append(tmpRespOfRoleslinuxOsProfilesshKeys, tmpRespValueOfRoleslinuxOsProfilesshKeys)
 									}
-									tmpRespValueOfRoles["public_keys"] = tmpRespOfRolespublicKeys
+									tmpRespOfRoleslinuxOsProfile["ssh_keys"] = tmpRespOfRoleslinuxOsProfilesshKeys
 								}
 							}
+							tmpRespValueOfRoles["linux_os_profile"] = tmpRespOfRoleslinuxOsProfile
 						}
 					}
 					if tmpRespItemOfRoles.VirtualNetworkProfile != nil {
+						tmpRespOfRolesvnetProfile := make(map[string]interface{})
 						if tmpRespItemOfRoles.VirtualNetworkProfile.ID != nil {
-							tmpRespValueOfRoles["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
+							tmpRespOfRolesvnetProfile["id"] = *tmpRespItemOfRoles.VirtualNetworkProfile.ID
 						}
 						if tmpRespItemOfRoles.VirtualNetworkProfile.Subnet != nil {
-							tmpRespValueOfRoles["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
+							tmpRespOfRolesvnetProfile["subnet"] = *tmpRespItemOfRoles.VirtualNetworkProfile.Subnet
 						}
+						tmpRespValueOfRoles["vnet_profile"] = tmpRespOfRolesvnetProfile
 					}
 					if tmpRespItemOfRoles.DataDisksGroups != nil && len(*tmpRespItemOfRoles.DataDisksGroups) > 0 {
 						tmpRespOfRolesdataDisksGroups := make([]interface{}, 0)
