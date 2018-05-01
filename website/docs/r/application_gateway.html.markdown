@@ -216,7 +216,10 @@ The `backend_http_settings` block supports:
 
 * `probe_name` - (Optional) Reference to URL probe.
 
-* `authentication_certificate` - (Optional) - A list of maps of `authentication_certificate` references for the `backend_http_setting` to use. Each map consists of a `name` (required) and an `id` (calculated).
+* `authentication_certificate` - (Optional) - A list of `authentication_certificate` references for the `backend_http_setting` to use. Each element consists of:
+  
+  * `name` (Required) 
+  * `id` (Calculated)
 
 The `http_listener` block supports:
 
