@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -230,6 +231,67 @@ func TestAccAzureRMAppService_clientAffinityDisabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "client_affinity_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
+
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_mangedServiceIdentity(ri, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *testing.T) {
+
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+
+	basicResourceNoManagedIdentity := testAccAzureRMAppService_basic(ri, testLocation())
+	managedIdentityEnabled := testAccAzureRMAppService_mangedServiceIdentity(ri, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: basicResourceNoManagedIdentity,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.#", "0"),
+				),
+			},
+			{
+				Config: managedIdentityEnabled,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
 				),
 			},
 		},
@@ -974,6 +1036,36 @@ resource "azurerm_app_service" "test" {
   client_affinity_enabled = %t
 }
 `, rInt, location, rInt, rInt, clientAffinity)
+}
+
+func testAccAzureRMAppService_mangedServiceIdentity(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                    = "acctestAS-%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
+  identity = {
+    type = "SystemAssigned"
+  }
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMAppService_connectionStrings(rInt int, location string) string {

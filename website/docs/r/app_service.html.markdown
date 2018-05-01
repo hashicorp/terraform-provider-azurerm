@@ -131,6 +131,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
 ---
 
 `connection_string` supports the following:
@@ -138,6 +140,14 @@ The following arguments are supported:
 * `name` - (Required) The name of the Connection String.
 * `type` - (Required) The type of the Connection String. Possible values are `APIHub`, `Custom`, `DocDb`, `EventHub`, `MySQL`, `NotificationHub`, `PostgreSQL`, `RedisCache`, `ServiceBus`, `SQLAzure` and  `SQLServer`.
 * `value` - (Required) The value for the Connection String.
+
+---
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
 
 ---
 
@@ -167,7 +177,6 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-
 ~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
 
 ## Attributes Reference
@@ -180,21 +189,35 @@ The following attributes are exported:
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
-* `source_control` - (Optional) The default local Git source control information if deployment option is set to `LocalGit`.
+* `source_control` - A `source_control` block as defined below, which contains the Source Control information when `scm_type` is set to `LocalGit`.
 
-* `site_credential` - (Optional) The site-level credential used to publish files to Azure Web App.
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 
 ---
 
-`source_control` supports the following:
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+---
+
+`site_credential` exports the following:
+
+* `username` - The username which can be used to publish to this App Service
+* `password` - The password associated with the username, which can be used to publish to this App Service.
+
+~> **NOTE:** both `username` and `password` for the `site_credential` block are only exported when `scm_type` is set to `LocalGit`
+
+---
+
+`source_control` exports the following:
 
 * `repo_url` - URL of the Git repository for this App Service.
 * `branch` - Branch name of the Git repository for this App Service.
-
-`site_credential` supports the following:
-
-* `username` - If your site is named 'MySite', the user name will be '$MySite'.
-* `password` - Some long random string.
 
 ## Import
 
