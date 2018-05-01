@@ -5,7 +5,6 @@ import (
 	"log"
 	"regexp"
 
-	"context"
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -397,16 +396,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	return resourceArmAppServiceUpdate(d, meta)
 }
 
-func expandAzureRmAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
-	v := d.Get("identity")
-	identities := v.([]interface{})
-	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
-	return &web.ManagedServiceIdentity{
-		Type: web.ManagedServiceIdentityType(identityType),
-	}
-}
-
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
 	ctx := meta.(*ArmClient).StopContext
@@ -475,7 +464,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("identity") {
-
 		site, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			return fmt.Errorf("Error getting configuration for App Service %q: %+v", name, err)
@@ -484,35 +472,22 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
 		site.Identity = appServiceIdentity
 
-		err = updateAppServiceSettings(client, ctx, resGroup, name, site)
+		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
+
 		if err != nil {
-			return err
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
 		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
+		}
+
+		return nil
 	}
 
 	return resourceArmAppServiceRead(d, meta)
-}
-
-func updateAppServiceSettings(
-	client web.AppsClient,
-	ctx context.Context,
-	resGroup string,
-	name string,
-	site web.Site) error {
-
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
-
-	if err != nil {
-		return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
-	}
-
-	err = future.WaitForCompletion(ctx, client.Client)
-
-	if err != nil {
-		return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
-	}
-
-	return nil
 }
 
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
@@ -615,25 +590,6 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentity) []interface{} {
-
-	if identity == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	result["type"] = string(identity.Type)
-
-	if identity.PrincipalID != nil {
-		result["principal_id"] = *identity.PrincipalID
-	}
-	if identity.TenantID != nil {
-		result["tenant_id"] = *identity.TenantID
-	}
-
-	return []interface{}{result}
 }
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -887,6 +843,33 @@ func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	}
 
 	return output
+}
+
+func expandAzureRmAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(identityType),
+	}
+}
+
+func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
 
 func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
