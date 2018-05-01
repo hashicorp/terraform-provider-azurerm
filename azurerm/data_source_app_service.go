@@ -50,6 +50,12 @@ func dataSourceArmAppService() *schema.Resource {
 							Computed: true,
 						},
 
+						"http2_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"java_version": {
 							Type:     schema.TypeString,
 							Computed: true,
