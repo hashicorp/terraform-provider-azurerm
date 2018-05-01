@@ -1,4 +1,9 @@
 ## 1.5.0 (Unreleased)
+
+FEATURES:
+
+* `azurerm_app_service` - support for Managed Service Identity [GH-1130]
+
 ## 1.4.0 (April 26, 2018)
 
 UPGRADE NOTES:
