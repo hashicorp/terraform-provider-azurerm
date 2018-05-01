@@ -483,8 +483,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		if err != nil {
 			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
 		}
-
-		return nil
 	}
 
 	return resourceArmAppServiceRead(d, meta)
