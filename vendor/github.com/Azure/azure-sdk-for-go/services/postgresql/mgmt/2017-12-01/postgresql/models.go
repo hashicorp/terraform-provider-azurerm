@@ -31,6 +31,8 @@ type CreateMode string
 const (
 	// CreateModeDefault ...
 	CreateModeDefault CreateMode = "Default"
+	// CreateModeGeoRestore ...
+	CreateModeGeoRestore CreateMode = "GeoRestore"
 	// CreateModePointInTimeRestore ...
 	CreateModePointInTimeRestore CreateMode = "PointInTimeRestore"
 	// CreateModeServerPropertiesForCreate ...
@@ -39,7 +41,22 @@ const (
 
 // PossibleCreateModeValues returns an array of possible values for the CreateMode const type.
 func PossibleCreateModeValues() []CreateMode {
-	return []CreateMode{CreateModeDefault, CreateModePointInTimeRestore, CreateModeServerPropertiesForCreate}
+	return []CreateMode{CreateModeDefault, CreateModeGeoRestore, CreateModePointInTimeRestore, CreateModeServerPropertiesForCreate}
+}
+
+// GeoRedundantBackup enumerates the values for geo redundant backup.
+type GeoRedundantBackup string
+
+const (
+	// Disabled ...
+	Disabled GeoRedundantBackup = "Disabled"
+	// Enabled ...
+	Enabled GeoRedundantBackup = "Enabled"
+)
+
+// PossibleGeoRedundantBackupValues returns an array of possible values for the GeoRedundantBackup const type.
+func PossibleGeoRedundantBackupValues() []GeoRedundantBackup {
+	return []GeoRedundantBackup{Disabled, Enabled}
 }
 
 // OperationOrigin enumerates the values for operation origin.
@@ -63,17 +80,17 @@ func PossibleOperationOriginValues() []OperationOrigin {
 type ServerState string
 
 const (
-	// Disabled ...
-	Disabled ServerState = "Disabled"
-	// Dropping ...
-	Dropping ServerState = "Dropping"
-	// Ready ...
-	Ready ServerState = "Ready"
+	// ServerStateDisabled ...
+	ServerStateDisabled ServerState = "Disabled"
+	// ServerStateDropping ...
+	ServerStateDropping ServerState = "Dropping"
+	// ServerStateReady ...
+	ServerStateReady ServerState = "Ready"
 )
 
 // PossibleServerStateValues returns an array of possible values for the ServerState const type.
 func PossibleServerStateValues() []ServerState {
-	return []ServerState{Disabled, Dropping, Ready}
+	return []ServerState{ServerStateDisabled, ServerStateDropping, ServerStateReady}
 }
 
 // ServerVersion enumerates the values for server version.
@@ -97,13 +114,15 @@ type SkuTier string
 const (
 	// Basic ...
 	Basic SkuTier = "Basic"
-	// Standard ...
-	Standard SkuTier = "Standard"
+	// GeneralPurpose ...
+	GeneralPurpose SkuTier = "GeneralPurpose"
+	// MemoryOptimized ...
+	MemoryOptimized SkuTier = "MemoryOptimized"
 )
 
 // PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
 func PossibleSkuTierValues() []SkuTier {
-	return []SkuTier{Basic, Standard}
+	return []SkuTier{Basic, GeneralPurpose, MemoryOptimized}
 }
 
 // SslEnforcementEnum enumerates the values for ssl enforcement enum.
@@ -753,8 +772,6 @@ type LogFileListResult struct {
 
 // LogFileProperties the properties of a log file.
 type LogFileProperties struct {
-	// Name - Log file name.
-	Name *string `json:"name,omitempty"`
 	// SizeInKB - Size of the log file.
 	SizeInKB *int64 `json:"sizeInKB,omitempty"`
 	// CreatedTime - Creation timestamp of the log file.
@@ -846,8 +863,6 @@ type PerformanceTierListResult struct {
 type PerformanceTierProperties struct {
 	// ID - ID of the performance tier.
 	ID *string `json:"id,omitempty"`
-	// BackupRetentionDays - Backup retention in days for the performance tier edition
-	BackupRetentionDays *int32 `json:"backupRetentionDays,omitempty"`
 	// ServiceLevelObjectives - Service level objectives associated with the performance tier
 	ServiceLevelObjectives *[]PerformanceTierServiceLevelObjectives `json:"serviceLevelObjectives,omitempty"`
 }
@@ -858,10 +873,18 @@ type PerformanceTierServiceLevelObjectives struct {
 	ID *string `json:"id,omitempty"`
 	// Edition - Edition of the performance tier.
 	Edition *string `json:"edition,omitempty"`
-	// Dtu - Database throughput unit associated with the service level objective
-	Dtu *int32 `json:"dtu,omitempty"`
-	// StorageMB - Maximum storage in MB associated with the service level objective
-	StorageMB *int32 `json:"storageMB,omitempty"`
+	// VCore - vCore associated with the service level objective
+	VCore *int32 `json:"vCore,omitempty"`
+	// HardwareGeneration - Hardware generation associated with the service level objective
+	HardwareGeneration *string `json:"hardwareGeneration,omitempty"`
+	// MaxBackupRetentionDays - Maximum Backup retention in days for the performance tier edition
+	MaxBackupRetentionDays *int32 `json:"maxBackupRetentionDays,omitempty"`
+	// MinBackupRetentionDays - Minimum Backup retention in days for the performance tier edition
+	MinBackupRetentionDays *int32 `json:"minBackupRetentionDays,omitempty"`
+	// MaxStorageMB - Max storage allowed for a server.
+	MaxStorageMB *int32 `json:"maxStorageMB,omitempty"`
+	// MinStorageMB - Max storage allowed for a server.
+	MinStorageMB *int32 `json:"minStorageMB,omitempty"`
 }
 
 // ProxyResource resource properties.
@@ -1087,34 +1110,37 @@ type ServerListResult struct {
 type ServerProperties struct {
 	// AdministratorLogin - The administrator's login name of a server. Can only be specified when the server is being created (and is required for creation).
 	AdministratorLogin *string `json:"administratorLogin,omitempty"`
-	// StorageMB - The maximum storage allowed for a server.
-	StorageMB *int64 `json:"storageMB,omitempty"`
 	// Version - Server version. Possible values include: 'NineFullStopFive', 'NineFullStopSix'
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
-	// UserVisibleState - A state of a server that is visible to user. Possible values include: 'Ready', 'Dropping', 'Disabled'
+	// UserVisibleState - A state of a server that is visible to user. Possible values include: 'ServerStateReady', 'ServerStateDropping', 'ServerStateDisabled'
 	UserVisibleState ServerState `json:"userVisibleState,omitempty"`
 	// FullyQualifiedDomainName - The fully qualified domain name of a server.
 	FullyQualifiedDomainName *string `json:"fullyQualifiedDomainName,omitempty"`
+	// EarliestRestoreDate - Earliest restore point creation time (ISO8601 format)
+	EarliestRestoreDate *date.Time `json:"earliestRestoreDate,omitempty"`
+	// StorageProfile - Storage profile of a server.
+	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 }
 
 // BasicServerPropertiesForCreate the properties used to create a new server.
 type BasicServerPropertiesForCreate interface {
 	AsServerPropertiesForDefaultCreate() (*ServerPropertiesForDefaultCreate, bool)
 	AsServerPropertiesForRestore() (*ServerPropertiesForRestore, bool)
+	AsServerPropertiesForGeoRestore() (*ServerPropertiesForGeoRestore, bool)
 	AsServerPropertiesForCreate() (*ServerPropertiesForCreate, bool)
 }
 
 // ServerPropertiesForCreate the properties used to create a new server.
 type ServerPropertiesForCreate struct {
-	// StorageMB - The maximum storage allowed for a server.
-	StorageMB *int64 `json:"storageMB,omitempty"`
 	// Version - Server version. Possible values include: 'NineFullStopFive', 'NineFullStopSix'
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
-	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore'
+	// StorageProfile - Storage profile of a server.
+	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
+	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore'
 	CreateMode CreateMode `json:"createMode,omitempty"`
 }
 
@@ -1134,6 +1160,10 @@ func unmarshalBasicServerPropertiesForCreate(body []byte) (BasicServerProperties
 		var spfr ServerPropertiesForRestore
 		err := json.Unmarshal(body, &spfr)
 		return spfr, err
+	case string(CreateModeGeoRestore):
+		var spfgr ServerPropertiesForGeoRestore
+		err := json.Unmarshal(body, &spfgr)
+		return spfgr, err
 	default:
 		var spfc ServerPropertiesForCreate
 		err := json.Unmarshal(body, &spfc)
@@ -1163,14 +1193,14 @@ func unmarshalBasicServerPropertiesForCreateArray(body []byte) ([]BasicServerPro
 func (spfc ServerPropertiesForCreate) MarshalJSON() ([]byte, error) {
 	spfc.CreateMode = CreateModeServerPropertiesForCreate
 	objectMap := make(map[string]interface{})
-	if spfc.StorageMB != nil {
-		objectMap["storageMB"] = spfc.StorageMB
-	}
 	if spfc.Version != "" {
 		objectMap["version"] = spfc.Version
 	}
 	if spfc.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfc.SslEnforcement
+	}
+	if spfc.StorageProfile != nil {
+		objectMap["storageProfile"] = spfc.StorageProfile
 	}
 	if spfc.CreateMode != "" {
 		objectMap["createMode"] = spfc.CreateMode
@@ -1185,6 +1215,11 @@ func (spfc ServerPropertiesForCreate) AsServerPropertiesForDefaultCreate() (*Ser
 
 // AsServerPropertiesForRestore is the BasicServerPropertiesForCreate implementation for ServerPropertiesForCreate.
 func (spfc ServerPropertiesForCreate) AsServerPropertiesForRestore() (*ServerPropertiesForRestore, bool) {
+	return nil, false
+}
+
+// AsServerPropertiesForGeoRestore is the BasicServerPropertiesForCreate implementation for ServerPropertiesForCreate.
+func (spfc ServerPropertiesForCreate) AsServerPropertiesForGeoRestore() (*ServerPropertiesForGeoRestore, bool) {
 	return nil, false
 }
 
@@ -1204,13 +1239,13 @@ type ServerPropertiesForDefaultCreate struct {
 	AdministratorLogin *string `json:"administratorLogin,omitempty"`
 	// AdministratorLoginPassword - The password of the administrator login.
 	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
-	// StorageMB - The maximum storage allowed for a server.
-	StorageMB *int64 `json:"storageMB,omitempty"`
 	// Version - Server version. Possible values include: 'NineFullStopFive', 'NineFullStopSix'
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
-	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore'
+	// StorageProfile - Storage profile of a server.
+	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
+	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore'
 	CreateMode CreateMode `json:"createMode,omitempty"`
 }
 
@@ -1224,14 +1259,14 @@ func (spfdc ServerPropertiesForDefaultCreate) MarshalJSON() ([]byte, error) {
 	if spfdc.AdministratorLoginPassword != nil {
 		objectMap["administratorLoginPassword"] = spfdc.AdministratorLoginPassword
 	}
-	if spfdc.StorageMB != nil {
-		objectMap["storageMB"] = spfdc.StorageMB
-	}
 	if spfdc.Version != "" {
 		objectMap["version"] = spfdc.Version
 	}
 	if spfdc.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfdc.SslEnforcement
+	}
+	if spfdc.StorageProfile != nil {
+		objectMap["storageProfile"] = spfdc.StorageProfile
 	}
 	if spfdc.CreateMode != "" {
 		objectMap["createMode"] = spfdc.CreateMode
@@ -1249,6 +1284,11 @@ func (spfdc ServerPropertiesForDefaultCreate) AsServerPropertiesForRestore() (*S
 	return nil, false
 }
 
+// AsServerPropertiesForGeoRestore is the BasicServerPropertiesForCreate implementation for ServerPropertiesForDefaultCreate.
+func (spfdc ServerPropertiesForDefaultCreate) AsServerPropertiesForGeoRestore() (*ServerPropertiesForGeoRestore, bool) {
+	return nil, false
+}
+
 // AsServerPropertiesForCreate is the BasicServerPropertiesForCreate implementation for ServerPropertiesForDefaultCreate.
 func (spfdc ServerPropertiesForDefaultCreate) AsServerPropertiesForCreate() (*ServerPropertiesForCreate, bool) {
 	return nil, false
@@ -1259,19 +1299,81 @@ func (spfdc ServerPropertiesForDefaultCreate) AsBasicServerPropertiesForCreate()
 	return &spfdc, true
 }
 
-// ServerPropertiesForRestore the properties to a new server by restoring from a backup.
+// ServerPropertiesForGeoRestore the properties used to create a new server by restoring to a different region from
+// a geo replicated backup.
+type ServerPropertiesForGeoRestore struct {
+	// SourceServerID - The source server id to restore from.
+	SourceServerID *string `json:"sourceServerId,omitempty"`
+	// Version - Server version. Possible values include: 'NineFullStopFive', 'NineFullStopSix'
+	Version ServerVersion `json:"version,omitempty"`
+	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
+	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
+	// StorageProfile - Storage profile of a server.
+	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
+	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore'
+	CreateMode CreateMode `json:"createMode,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ServerPropertiesForGeoRestore.
+func (spfgr ServerPropertiesForGeoRestore) MarshalJSON() ([]byte, error) {
+	spfgr.CreateMode = CreateModeGeoRestore
+	objectMap := make(map[string]interface{})
+	if spfgr.SourceServerID != nil {
+		objectMap["sourceServerId"] = spfgr.SourceServerID
+	}
+	if spfgr.Version != "" {
+		objectMap["version"] = spfgr.Version
+	}
+	if spfgr.SslEnforcement != "" {
+		objectMap["sslEnforcement"] = spfgr.SslEnforcement
+	}
+	if spfgr.StorageProfile != nil {
+		objectMap["storageProfile"] = spfgr.StorageProfile
+	}
+	if spfgr.CreateMode != "" {
+		objectMap["createMode"] = spfgr.CreateMode
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsServerPropertiesForDefaultCreate is the BasicServerPropertiesForCreate implementation for ServerPropertiesForGeoRestore.
+func (spfgr ServerPropertiesForGeoRestore) AsServerPropertiesForDefaultCreate() (*ServerPropertiesForDefaultCreate, bool) {
+	return nil, false
+}
+
+// AsServerPropertiesForRestore is the BasicServerPropertiesForCreate implementation for ServerPropertiesForGeoRestore.
+func (spfgr ServerPropertiesForGeoRestore) AsServerPropertiesForRestore() (*ServerPropertiesForRestore, bool) {
+	return nil, false
+}
+
+// AsServerPropertiesForGeoRestore is the BasicServerPropertiesForCreate implementation for ServerPropertiesForGeoRestore.
+func (spfgr ServerPropertiesForGeoRestore) AsServerPropertiesForGeoRestore() (*ServerPropertiesForGeoRestore, bool) {
+	return &spfgr, true
+}
+
+// AsServerPropertiesForCreate is the BasicServerPropertiesForCreate implementation for ServerPropertiesForGeoRestore.
+func (spfgr ServerPropertiesForGeoRestore) AsServerPropertiesForCreate() (*ServerPropertiesForCreate, bool) {
+	return nil, false
+}
+
+// AsBasicServerPropertiesForCreate is the BasicServerPropertiesForCreate implementation for ServerPropertiesForGeoRestore.
+func (spfgr ServerPropertiesForGeoRestore) AsBasicServerPropertiesForCreate() (BasicServerPropertiesForCreate, bool) {
+	return &spfgr, true
+}
+
+// ServerPropertiesForRestore the properties used to create a new server by restoring from a backup.
 type ServerPropertiesForRestore struct {
 	// SourceServerID - The source server id to restore from.
 	SourceServerID *string `json:"sourceServerId,omitempty"`
 	// RestorePointInTime - Restore point creation time (ISO8601 format), specifying the time to restore from.
 	RestorePointInTime *date.Time `json:"restorePointInTime,omitempty"`
-	// StorageMB - The maximum storage allowed for a server.
-	StorageMB *int64 `json:"storageMB,omitempty"`
 	// Version - Server version. Possible values include: 'NineFullStopFive', 'NineFullStopSix'
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
-	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore'
+	// StorageProfile - Storage profile of a server.
+	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
+	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore'
 	CreateMode CreateMode `json:"createMode,omitempty"`
 }
 
@@ -1285,14 +1387,14 @@ func (spfr ServerPropertiesForRestore) MarshalJSON() ([]byte, error) {
 	if spfr.RestorePointInTime != nil {
 		objectMap["restorePointInTime"] = spfr.RestorePointInTime
 	}
-	if spfr.StorageMB != nil {
-		objectMap["storageMB"] = spfr.StorageMB
-	}
 	if spfr.Version != "" {
 		objectMap["version"] = spfr.Version
 	}
 	if spfr.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfr.SslEnforcement
+	}
+	if spfr.StorageProfile != nil {
+		objectMap["storageProfile"] = spfr.StorageProfile
 	}
 	if spfr.CreateMode != "" {
 		objectMap["createMode"] = spfr.CreateMode
@@ -1308,6 +1410,11 @@ func (spfr ServerPropertiesForRestore) AsServerPropertiesForDefaultCreate() (*Se
 // AsServerPropertiesForRestore is the BasicServerPropertiesForCreate implementation for ServerPropertiesForRestore.
 func (spfr ServerPropertiesForRestore) AsServerPropertiesForRestore() (*ServerPropertiesForRestore, bool) {
 	return &spfr, true
+}
+
+// AsServerPropertiesForGeoRestore is the BasicServerPropertiesForCreate implementation for ServerPropertiesForRestore.
+func (spfr ServerPropertiesForRestore) AsServerPropertiesForGeoRestore() (*ServerPropertiesForGeoRestore, bool) {
+	return nil, false
 }
 
 // AsServerPropertiesForCreate is the BasicServerPropertiesForCreate implementation for ServerPropertiesForRestore.
@@ -1533,8 +1640,8 @@ func (sup *ServerUpdateParameters) UnmarshalJSON(body []byte) error {
 
 // ServerUpdateParametersProperties the properties that can be updated for a server.
 type ServerUpdateParametersProperties struct {
-	// StorageMB - The max storage allowed for a server.
-	StorageMB *int64 `json:"storageMB,omitempty"`
+	// StorageProfile - Storage profile of a server.
+	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// AdministratorLoginPassword - The password of the administrator login.
 	AdministratorLoginPassword *string `json:"administratorLoginPassword,omitempty"`
 	// Version - The version of a server. Possible values include: 'NineFullStopFive', 'NineFullStopSix'
@@ -1545,9 +1652,9 @@ type ServerUpdateParametersProperties struct {
 
 // Sku billing information related properties of a server.
 type Sku struct {
-	// Name - The name of the sku, typically, a letter + Number code, e.g. P3.
+	// Name - The name of the sku, typically, tier + family + cores, e.g. B_Gen4_1, GP_Gen5_8.
 	Name *string `json:"name,omitempty"`
-	// Tier - The tier of the particular SKU, e.g. Basic. Possible values include: 'Basic', 'Standard'
+	// Tier - The tier of the particular SKU, e.g. Basic. Possible values include: 'Basic', 'GeneralPurpose', 'MemoryOptimized'
 	Tier SkuTier `json:"tier,omitempty"`
 	// Capacity - The scale up/out capacity, representing server's compute units.
 	Capacity *int32 `json:"capacity,omitempty"`
@@ -1555,6 +1662,16 @@ type Sku struct {
 	Size *string `json:"size,omitempty"`
 	// Family - The family of hardware.
 	Family *string `json:"family,omitempty"`
+}
+
+// StorageProfile storage Profile properties of a server
+type StorageProfile struct {
+	// BackupRetentionDays - Backup retention days for the server.
+	BackupRetentionDays *int32 `json:"backupRetentionDays,omitempty"`
+	// GeoRedundantBackup - Enable Geo-redundant or not for server backup. Possible values include: 'Enabled', 'Disabled'
+	GeoRedundantBackup GeoRedundantBackup `json:"geoRedundantBackup,omitempty"`
+	// StorageMB - Max storage allowed for a server.
+	StorageMB *int32 `json:"storageMB,omitempty"`
 }
 
 // TrackedResource resource properties including location and tags for track resources.

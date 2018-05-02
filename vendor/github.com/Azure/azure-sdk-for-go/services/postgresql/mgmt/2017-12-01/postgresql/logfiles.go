@@ -25,7 +25,8 @@ import (
 )
 
 // LogFilesClient is the the Microsoft Azure management API provides create, read, update, and delete functionality for
-// Azure PostgreSQL resources including servers, databases, firewall rules, log files and configurations.
+// Azure PostgreSQL resources including servers, databases, firewall rules, log files and configurations with new
+// business model.
 type LogFilesClient struct {
 	BaseClient
 }
@@ -41,9 +42,10 @@ func NewLogFilesClientWithBaseURI(baseURI string, subscriptionID string) LogFile
 }
 
 // ListByServer list all the log files in a given server.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
 func (client LogFilesClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result LogFileListResult, err error) {
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
@@ -74,7 +76,7 @@ func (client LogFilesClient) ListByServerPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
