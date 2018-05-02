@@ -71,6 +71,8 @@ output "app_service_id" {
 
 * `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
 
+* `http2_enabled` - Is HTTP2 Enabled on this App Service?
+
 * `java_version` - The version of Java in use.
 
 * `java_container` - The Java Container in use.
