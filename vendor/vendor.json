@@ -171,8 +171,8 @@
 			"versionExact": "v15.1.0"
 		},
 		{
-			"checksumSHA1": "d0AbZFEWBxTD9kTLApajDviAra8=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql",
+			"checksumSHA1": "qmO/KZLBNFmTuCuXaZ2Rj+nTbIY=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql",
 			"revision": "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f",
 			"revisionTime": "2018-04-09T17:42:04Z",
 			"version": "v15.1.0",

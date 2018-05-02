@@ -26,7 +26,8 @@ import (
 )
 
 // ServersClient is the the Microsoft Azure management API provides create, read, update, and delete functionality for
-// Azure PostgreSQL resources including servers, databases, firewall rules, log files and configurations.
+// Azure PostgreSQL resources including servers, databases, firewall rules, log files and configurations with new
+// business model.
 type ServersClient struct {
 	BaseClient
 }
@@ -53,10 +54,7 @@ func (client ServersClient) Create(ctx context.Context, resourceGroupName string
 				Chain: []validation.Constraint{{Target: "parameters.Sku.Capacity", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.Sku.Capacity", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil}}},
 				}},
-				{Target: "parameters.Properties", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "parameters.Properties.StorageMB", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "parameters.Properties.StorageMB", Name: validation.InclusiveMinimum, Rule: 1024, Chain: nil}}},
-					}},
+				{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("postgresql.ServersClient", "Create", err.Error())
 	}
@@ -84,7 +82,7 @@ func (client ServersClient) CreatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -155,7 +153,7 @@ func (client ServersClient) DeletePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -229,7 +227,7 @@ func (client ServersClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -291,7 +289,7 @@ func (client ServersClient) ListPreparer(ctx context.Context) (*http.Request, er
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -357,7 +355,7 @@ func (client ServersClient) ListByResourceGroupPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -420,7 +418,7 @@ func (client ServersClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

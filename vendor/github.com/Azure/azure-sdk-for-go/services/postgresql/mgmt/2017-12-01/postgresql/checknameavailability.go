@@ -27,7 +27,7 @@ import (
 
 // CheckNameAvailabilityClient is the the Microsoft Azure management API provides create, read, update, and delete
 // functionality for Azure PostgreSQL resources including servers, databases, firewall rules, log files and
-// configurations.
+// configurations with new business model.
 type CheckNameAvailabilityClient struct {
 	BaseClient
 }
@@ -79,7 +79,7 @@ func (client CheckNameAvailabilityClient) ExecutePreparer(ctx context.Context, n
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

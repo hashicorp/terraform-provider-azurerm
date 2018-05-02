@@ -26,7 +26,7 @@ import (
 
 // LocationBasedPerformanceTierClient is the the Microsoft Azure management API provides create, read, update, and
 // delete functionality for Azure PostgreSQL resources including servers, databases, firewall rules, log files and
-// configurations.
+// configurations with new business model.
 type LocationBasedPerformanceTierClient struct {
 	BaseClient
 }
@@ -74,7 +74,7 @@ func (client LocationBasedPerformanceTierClient) ListPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

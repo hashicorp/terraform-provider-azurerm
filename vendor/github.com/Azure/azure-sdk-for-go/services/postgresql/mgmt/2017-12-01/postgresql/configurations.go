@@ -26,7 +26,7 @@ import (
 
 // ConfigurationsClient is the the Microsoft Azure management API provides create, read, update, and delete
 // functionality for Azure PostgreSQL resources including servers, databases, firewall rules, log files and
-// configurations.
+// configurations with new business model.
 type ConfigurationsClient struct {
 	BaseClient
 }
@@ -71,7 +71,7 @@ func (client ConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -150,7 +150,7 @@ func (client ConfigurationsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -217,7 +217,7 @@ func (client ConfigurationsClient) ListByServerPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
