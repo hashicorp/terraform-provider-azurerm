@@ -1,7 +1,8 @@
 ## 1.5.0 (Unreleased)
 
-FEATURES:
+IMPROVEMENTS:
 
+* `azurerm_app_service` - support for HTTP2 [GH-1188]
 * `azurerm_app_service` - support for Managed Service Identity [GH-1130]
 
 ## 1.4.0 (April 26, 2018)
