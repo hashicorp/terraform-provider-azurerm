@@ -93,6 +93,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_platform_image":                        dataSourceArmPlatformImage(),
 			"azurerm_public_ip":                             dataSourceArmPublicIP(),
 			"azurerm_public_ips":                            dataSourceArmPublicIPs(),
+			"azurerm_recovery_services_vault":               dataSourceArmRecoveryServicesVault(),
 			"azurerm_resource_group":                        dataSourceArmResourceGroup(),
 			"azurerm_role_definition":                       dataSourceArmRoleDefinition(),
 			"azurerm_scheduler_job_collection":              dataSourceArmSchedulerJobCollection(),
@@ -179,6 +180,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_postgresql_firewall_rule":            resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                   resourceArmPostgreSQLServer(),
 			"azurerm_public_ip":                           resourceArmPublicIp(),
+			"azurerm_recovery_services_vault":             resourceArmRecoveryServicesVault(),
 			"azurerm_redis_cache":                         resourceArmRedisCache(),
 			"azurerm_redis_firewall_rule":                 resourceArmRedisFirewallRule(),
 			"azurerm_resource_group":                      resourceArmResourceGroup(),
@@ -190,6 +192,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_namespace":                resourceArmServiceBusNamespace(),
 			"azurerm_servicebus_queue":                    resourceArmServiceBusQueue(),
 			"azurerm_servicebus_subscription":             resourceArmServiceBusSubscription(),
+			"azurerm_servicebus_subscription_rule":        resourceArmServiceBusSubscriptionRule(),
 			"azurerm_servicebus_topic":                    resourceArmServiceBusTopic(),
 			"azurerm_servicebus_topic_authorization_rule": resourceArmServiceBusTopicAuthorizationRule(),
 			"azurerm_snapshot":                            resourceArmSnapshot(),
@@ -384,12 +387,6 @@ func registerAzureResourceProvidersWithSubscription(ctx context.Context, provide
 
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
-
-// Resource group names can be capitalised, but we store them in lowercase.
-// Use a custom diff function to avoid creation of new resources.
-func resourceAzurermResourceGroupNameDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
-}
 
 // ignoreCaseDiffSuppressFunc is a DiffSuppressFunc from helper/schema that is
 // used to ignore any case-changes in a return value.

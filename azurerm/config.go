@@ -32,7 +32,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
@@ -89,7 +90,7 @@ type ArmClient struct {
 	solutionsClient  operationsmanagement.SolutionsClient
 
 	redisClient               redis.Client
-	redisFirewallClient       redis.FirewallRuleClient
+	redisFirewallClient       redis.FirewallRulesClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// Application Insights
@@ -166,6 +167,9 @@ type ArmClient struct {
 	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
 	watcherClient                   network.WatchersClient
 
+	// Recovery Services
+	recoveryServicesVaultsClient recoveryservices.VaultsClient
+
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
 	deploymentsClient     resources.DeploymentsClient
@@ -178,10 +182,11 @@ type ArmClient struct {
 	searchServicesClient search.ServicesClient
 
 	// ServiceBus
-	serviceBusQueuesClient        servicebus.QueuesClient
-	serviceBusNamespacesClient    servicebus.NamespacesClient
-	serviceBusTopicsClient        servicebus.TopicsClient
-	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
+	serviceBusQueuesClient            servicebus.QueuesClient
+	serviceBusNamespacesClient        servicebus.NamespacesClient
+	serviceBusTopicsClient            servicebus.TopicsClient
+	serviceBusSubscriptionsClient     servicebus.SubscriptionsClient
+	serviceBusSubscriptionRulesClient servicebus.RulesClient
 
 	//Scheduler
 	schedulerJobCollectionsClient scheduler.JobCollectionsClient
@@ -373,6 +378,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
@@ -786,12 +792,18 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 	c.solutionsClient = solutionsClient
 }
 
+func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&vaultsClient.Client, auth)
+	c.recoveryServicesVaultsClient = vaultsClient
+}
+
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	redisClient := redis.NewClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&redisClient.Client, auth)
 	c.redisClient = redisClient
 
-	firewallRuleClient := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
+	firewallRuleClient := redis.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&firewallRuleClient.Client, auth)
 	c.redisFirewallClient = firewallRuleClient
 
@@ -848,6 +860,10 @@ func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, a
 	subscriptionsClient := servicebus.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.serviceBusSubscriptionsClient = subscriptionsClient
+
+	subscriptionRulesClient := servicebus.NewRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&subscriptionRulesClient.Client, auth)
+	c.serviceBusSubscriptionRulesClient = subscriptionRulesClient
 }
 
 func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

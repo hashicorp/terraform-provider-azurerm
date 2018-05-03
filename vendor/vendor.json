@@ -179,8 +179,16 @@
 			"versionExact": "v15.1.0"
 		},
 		{
-			"checksumSHA1": "0RWJdclCgo0gzJQVKXqcz6SxMkI=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis",
+			"checksumSHA1": "MIhAkAYROlF0bQN4AT4WZWkBQtY=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices",
+			"revision": "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f",
+			"revisionTime": "2018-04-09T17:42:04Z",
+			"version": "v15.1.0",
+			"versionExact": "v15.1.0"
+		},
+		{
+			"checksumSHA1": "JNSBPrbVww7i2tKS02XHTRU9f6A=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis",
 			"revision": "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f",
 			"revisionTime": "2018-04-09T17:42:04Z",
 			"version": "v15.1.0",
@@ -1523,6 +1531,12 @@
 			"path": "google.golang.org/grpc/transport",
 			"revision": "7657092a1303cc5a6fa3fee988d57c665683a4da",
 			"revisionTime": "2017-08-09T21:16:03Z"
+		},
+		{
+			"checksumSHA1": "AnKBN2Q4AWaSNb0JyINBQbnpxGM=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "7f97868eec74b32b0982dd158a51a446d1da7eb5",
+			"revisionTime": "2018-02-23T19:12:37Z"
 		},
 		{
 			"checksumSHA1": "wICWAGQfZcHD2y0dHesz9R2YSiw=",

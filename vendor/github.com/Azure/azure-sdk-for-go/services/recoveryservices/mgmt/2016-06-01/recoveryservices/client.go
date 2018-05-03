@@ -1,7 +1,7 @@
-// Package redis implements the Azure ARM Redis service API version 2016-04-01.
+// Package recoveryservices implements the Azure ARM Recoveryservices service API version 2016-06-01.
 //
-// REST API for Azure Redis Cache Service.
-package redis
+// Recovery Services Client
+package recoveryservices
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Redis
+	// DefaultBaseURI is the default URI used for the service Recoveryservices
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Redis.
+// BaseClient is the base client for Recoveryservices.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string

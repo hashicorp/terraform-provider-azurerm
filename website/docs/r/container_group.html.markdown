@@ -41,7 +41,7 @@ resource "azurerm_container_group" "aci-helloworld" {
   location            = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
   ip_address_type     = "public"
-  dns_label_name      = "aci-label"
+  dns_name_label      = "aci-label"
   os_type             = "linux"
 
   container {
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
 
-* `dns_label_name` - (Optional) The DNS label/name for the container groups IP.
+* `dns_name_label` - (Optional) The DNS label/name for the container groups IP.
 
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
 

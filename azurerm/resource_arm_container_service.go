@@ -126,8 +126,9 @@ func resourceArmContainerService() *schema.Resource {
 						},
 
 						"vm_size": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 					},
 				},
