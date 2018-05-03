@@ -78,6 +78,7 @@ func Provider() terraform.ResourceProvider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
+			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
 			"azurerm_builtin_role_definition":               dataSourceArmBuiltInRoleDefinition(),
 			"azurerm_client_config":                         dataSourceArmClientConfig(),
@@ -92,10 +93,12 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_platform_image":                        dataSourceArmPlatformImage(),
 			"azurerm_public_ip":                             dataSourceArmPublicIP(),
 			"azurerm_public_ips":                            dataSourceArmPublicIPs(),
+			"azurerm_recovery_services_vault":               dataSourceArmRecoveryServicesVault(),
 			"azurerm_resource_group":                        dataSourceArmResourceGroup(),
 			"azurerm_role_definition":                       dataSourceArmRoleDefinition(),
-			"azurerm_storage_account":                       dataSourceArmStorageAccount(),
+			"azurerm_scheduler_job_collection":              dataSourceArmSchedulerJobCollection(),
 			"azurerm_snapshot":                              dataSourceArmSnapshot(),
+			"azurerm_storage_account":                       dataSourceArmStorageAccount(),
 			"azurerm_subnet":                                dataSourceArmSubnet(),
 			"azurerm_subscription":                          dataSourceArmSubscription(),
 			"azurerm_subscriptions":                         dataSourceArmSubscriptions(),
@@ -111,6 +114,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_app_service":                         resourceArmAppService(),
 			"azurerm_app_service_plan":                    resourceArmAppServicePlan(),
 			"azurerm_app_service_active_slot":             resourceArmAppServiceActiveSlot(),
+			"azurerm_app_service_custom_hostname_binding": resourceArmAppServiceCustomHostnameBinding(),
 			"azurerm_app_service_slot":                    resourceArmAppServiceSlot(),
 			"azurerm_automation_account":                  resourceArmAutomationAccount(),
 			"azurerm_automation_credential":               resourceArmAutomationCredential(),
@@ -138,6 +142,8 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_consumer_group":             resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":                  resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":               resourceArmExpressRouteCircuit(),
+			"azurerm_express_route_circuit_authorization": resourceArmExpressRouteCircuitAuthorization(),
+			"azurerm_express_route_circuit_peering":       resourceArmExpressRouteCircuitPeering(),
 			"azurerm_function_app":                        resourceArmFunctionApp(),
 			"azurerm_hdinsight_cluster":                   resourceArmHDInsightClusters(),
 			"azurerm_image":                               resourceArmImage(),
@@ -167,11 +173,15 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_network_security_group":              resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":               resourceArmNetworkSecurityRule(),
 			"azurerm_network_watcher":                     resourceArmNetworkWatcher(),
+			"azurerm_packet_capture":                      resourceArmPacketCapture(),
+			"azurerm_policy_assignment":                   resourceArmPolicyAssignment(),
+			"azurerm_policy_definition":                   resourceArmPolicyDefinition(),
 			"azurerm_postgresql_configuration":            resourceArmPostgreSQLConfiguration(),
 			"azurerm_postgresql_database":                 resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":            resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                   resourceArmPostgreSQLServer(),
 			"azurerm_public_ip":                           resourceArmPublicIp(),
+			"azurerm_recovery_services_vault":             resourceArmRecoveryServicesVault(),
 			"azurerm_redis_cache":                         resourceArmRedisCache(),
 			"azurerm_redis_firewall_rule":                 resourceArmRedisFirewallRule(),
 			"azurerm_resource_group":                      resourceArmResourceGroup(),
@@ -183,6 +193,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_namespace":                resourceArmServiceBusNamespace(),
 			"azurerm_servicebus_queue":                    resourceArmServiceBusQueue(),
 			"azurerm_servicebus_subscription":             resourceArmServiceBusSubscription(),
+			"azurerm_servicebus_subscription_rule":        resourceArmServiceBusSubscriptionRule(),
 			"azurerm_servicebus_topic":                    resourceArmServiceBusTopic(),
 			"azurerm_servicebus_topic_authorization_rule": resourceArmServiceBusTopicAuthorizationRule(),
 			"azurerm_snapshot":                            resourceArmSnapshot(),
@@ -192,6 +203,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_sql_firewall_rule":                   resourceArmSqlFirewallRule(),
 			"azurerm_sql_active_directory_administrator":  resourceArmSqlAdministrator(),
 			"azurerm_sql_server":                          resourceArmSqlServer(),
+			"azurerm_sql_virtual_network_rule":            resourceArmSqlVirtualNetworkRule(),
 			"azurerm_storage_account":                     resourceArmStorageAccount(),
 			"azurerm_storage_blob":                        resourceArmStorageBlob(),
 			"azurerm_storage_container":                   resourceArmStorageContainer(),
@@ -376,12 +388,6 @@ func registerAzureResourceProvidersWithSubscription(ctx context.Context, provide
 
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
-
-// Resource group names can be capitalised, but we store them in lowercase.
-// Use a custom diff function to avoid creation of new resources.
-func resourceAzurermResourceGroupNameDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
-}
 
 // ignoreCaseDiffSuppressFunc is a DiffSuppressFunc from helper/schema that is
 // used to ignore any case-changes in a return value.

@@ -88,6 +88,14 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
+						"application_gateway_backend_address_pools_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"load_balancer_backend_address_pools_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
@@ -194,7 +202,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
 	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
@@ -369,7 +377,6 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -471,6 +478,14 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 			niIPConfig["primary"] = *props.Primary
 		}
 
+		var poolsAG []interface{}
+		if props.ApplicationGatewayBackendAddressPools != nil {
+			for _, pool := range *props.ApplicationGatewayBackendAddressPools {
+				poolsAG = append(poolsAG, *pool.ID)
+			}
+		}
+		niIPConfig["application_gateway_backend_address_pools_ids"] = schema.NewSet(schema.HashString, poolsAG)
+
 		var pools []interface{}
 		if props.LoadBalancerBackendAddressPools != nil {
 			for _, pool := range *props.LoadBalancerBackendAddressPools {
@@ -549,6 +564,21 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 		if v, ok := data["primary"]; ok {
 			b := v.(bool)
 			properties.Primary = &b
+		}
+
+		if v, ok := data["application_gateway_backend_address_pools_ids"]; ok {
+			var ids []network.ApplicationGatewayBackendAddressPool
+			pools := v.(*schema.Set).List()
+			for _, p := range pools {
+				pool_id := p.(string)
+				id := network.ApplicationGatewayBackendAddressPool{
+					ID: &pool_id,
+				}
+
+				ids = append(ids, id)
+			}
+
+			properties.ApplicationGatewayBackendAddressPools = &ids
 		}
 
 		if v, ok := data["load_balancer_backend_address_pools_ids"]; ok {

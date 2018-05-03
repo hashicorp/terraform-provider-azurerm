@@ -9,7 +9,7 @@ General Requirements
 ------------
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
--	[Go](https://golang.org/doc/install) 1.9 (to build the provider plugin)
+-	[Go](https://golang.org/doc/install) 1.10 (to build the provider plugin)
 
 Windows Specific Requirements
 -----------------------------
@@ -43,24 +43,28 @@ Using the provider
 ```
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
-  subscription_id = "..."
-  client_id       = "..."
-  client_secret   = "..."
-  tenant_id       = "..."
+  # NOTE: Environment Variables can also be used for Service Principal authentication
+  # Terraform also supports authenticating via the Azure CLI too.
+  # see here for more info: http://terraform.io/docs/providers/azurerm/index.html
+
+  # subscription_id = "..."
+  # client_id       = "..."
+  # client_secret   = "..."
+  # tenant_id       = "..."
 }
 
 # Create a resource group
-resource "azurerm_resource_group" "production" {
-  name     = "production"
+resource "azurerm_resource_group" "main" {
+  name     = "production-resources"
   location = "West US"
 }
 
 # Create a virtual network in the web_servers resource group
 resource "azurerm_virtual_network" "network" {
-  name                = "productionNetwork"
+  name                = "production-network"
+  resource_group_name = "${azurerm_resource_group.main.name}"
+  location            = "${azurerm_resource_group.main.location}"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
-  resource_group_name = "${azurerm_resource_group.production.name}"
 
   subnet {
     name           = "subnet1"
@@ -102,6 +106,14 @@ $ make test
 ```
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
+
+The following ENV variables must be set in your shell prior to running acceptance tests:
+- ARM_CLIENT_ID
+- ARM_CLIENT_SECRET
+- ARM_SUBSCRIPTION_ID
+- ARM_TENANT_ID
+- ARM_TEST_LOCATION
+- ARM_TEST_LOCATION_ALT
 
 *Note:* Acceptance tests create real resources, and often cost money to run.
 

@@ -55,7 +55,7 @@ func (client LogProfilesClient) CreateOrUpdate(ctx context.Context, logProfileNa
 								Chain: []validation.Constraint{{Target: "parameters.LogProfileProperties.RetentionPolicy.Days", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil}}},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "insights.LogProfilesClient", "CreateOrUpdate")
+		return result, validation.NewError("insights.LogProfilesClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, logProfileName, parameters)
@@ -92,7 +92,7 @@ func (client LogProfilesClient) CreateOrUpdatePreparer(ctx context.Context, logP
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/microsoft.insights/logprofiles/{logProfileName}", pathParameters),
@@ -350,7 +350,7 @@ func (client LogProfilesClient) UpdatePreparer(ctx context.Context, logProfileNa
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/microsoft.insights/logprofiles/{logProfileName}", pathParameters),

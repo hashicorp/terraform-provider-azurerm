@@ -162,6 +162,8 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the App Service Slot Enabled? Changing this forces a new resource to be created.
 
+* `https_only` - (Optional) Can the App Service Slot only be accessed via HTTPS? Defaults to `false`. Changing this forces a new resource to be created.
+
 * `site_config` - (Optional) A `site_config` object as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.

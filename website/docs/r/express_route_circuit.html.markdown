@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
-sidebar_current: "docs-azurerm-resource-network-express-route-circuit"
+sidebar_current: "docs-azurerm-resource-network-express-route-circuit-x"
 description: |-
   Manages an ExpressRoute circuit.
 ---
@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_express_route_circuit" "test" {
   name                     = "expressRoute1"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "West US"
+  location                 = "${azurerm_resource_group.test.location}"
   service_provider_name    = "Equinix"
   peering_location         = "Silicon Valley"
   bandwidth_in_mbps        = 50
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the ExpressRoute circuit. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the namespace. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the ExpressRoute circuit. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -64,7 +64,7 @@ The following arguments are supported:
 
 `sku` supports the following:
 
-* `tier` - (Required) The service tier. Possible values are `Standard` or `Premium``.
+* `tier` - (Required) The service tier. Possible values are `Standard` or `Premium`.
 
 * `family` - (Required) The billing mode for bandwidth. Possible values are `MeteredData` or `UnlimitedData`.
 

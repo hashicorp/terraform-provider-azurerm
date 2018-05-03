@@ -8,13 +8,13 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMRoleAssignment_importBasic(t *testing.T) {
+func testAccAzureRMRoleAssignment_importBasic(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 
 	roleDefinitionId := uuid.New().String()
 	roleAssignmentId := uuid.New().String()
 	ri := acctest.RandInt()
-	config := testAccAzureRMRoleAssignment_custom(roleDefinitionId, roleAssignmentId, ri)
+	config := testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -33,13 +33,13 @@ func TestAccAzureRMRoleAssignment_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRoleAssignment_importCustom(t *testing.T) {
+func testAccAzureRMRoleAssignment_importCustom(t *testing.T) {
 	resourceName := "azurerm_role_assignment.test"
 
 	roleDefinitionId := uuid.New().String()
 	roleAssignmentId := uuid.New().String()
 	ri := acctest.RandInt()
-	config := testAccAzureRMRoleAssignment_custom(roleDefinitionId, roleAssignmentId, ri)
+	config := testAccAzureRMRoleAssignment_customConfig(roleDefinitionId, roleAssignmentId, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

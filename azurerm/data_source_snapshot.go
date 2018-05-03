@@ -14,10 +14,8 @@ func dataSourceArmSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			// Computed
 			"os_type": {

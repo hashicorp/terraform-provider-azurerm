@@ -20,6 +20,7 @@ package containerinstance
 import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"net/http"
@@ -35,6 +36,11 @@ const (
 	UDP ContainerGroupNetworkProtocol = "UDP"
 )
 
+// PossibleContainerGroupNetworkProtocolValues returns an array of possible values for the ContainerGroupNetworkProtocol const type.
+func PossibleContainerGroupNetworkProtocolValues() []ContainerGroupNetworkProtocol {
+	return []ContainerGroupNetworkProtocol{TCP, UDP}
+}
+
 // ContainerGroupRestartPolicy enumerates the values for container group restart policy.
 type ContainerGroupRestartPolicy string
 
@@ -47,6 +53,11 @@ const (
 	OnFailure ContainerGroupRestartPolicy = "OnFailure"
 )
 
+// PossibleContainerGroupRestartPolicyValues returns an array of possible values for the ContainerGroupRestartPolicy const type.
+func PossibleContainerGroupRestartPolicyValues() []ContainerGroupRestartPolicy {
+	return []ContainerGroupRestartPolicy{Always, Never, OnFailure}
+}
+
 // ContainerNetworkProtocol enumerates the values for container network protocol.
 type ContainerNetworkProtocol string
 
@@ -56,6 +67,11 @@ const (
 	// ContainerNetworkProtocolUDP ...
 	ContainerNetworkProtocolUDP ContainerNetworkProtocol = "UDP"
 )
+
+// PossibleContainerNetworkProtocolValues returns an array of possible values for the ContainerNetworkProtocol const type.
+func PossibleContainerNetworkProtocolValues() []ContainerNetworkProtocol {
+	return []ContainerNetworkProtocol{ContainerNetworkProtocolTCP, ContainerNetworkProtocolUDP}
+}
 
 // OperatingSystemTypes enumerates the values for operating system types.
 type OperatingSystemTypes string
@@ -67,6 +83,11 @@ const (
 	Windows OperatingSystemTypes = "Windows"
 )
 
+// PossibleOperatingSystemTypesValues returns an array of possible values for the OperatingSystemTypes const type.
+func PossibleOperatingSystemTypesValues() []OperatingSystemTypes {
+	return []OperatingSystemTypes{Linux, Windows}
+}
+
 // OperationsOrigin enumerates the values for operations origin.
 type OperationsOrigin string
 
@@ -76,6 +97,11 @@ const (
 	// User ...
 	User OperationsOrigin = "User"
 )
+
+// PossibleOperationsOriginValues returns an array of possible values for the OperationsOrigin const type.
+func PossibleOperationsOriginValues() []OperationsOrigin {
+	return []OperationsOrigin{System, User}
+}
 
 // AzureFileVolume the properties of the Azure File volume. Azure File shares are mounted as volumes.
 type AzureFileVolume struct {
@@ -97,6 +123,18 @@ type Container struct {
 	*ContainerProperties `json:"properties,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for Container.
+func (c Container) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if c.Name != nil {
+		objectMap["name"] = c.Name
+	}
+	if c.ContainerProperties != nil {
+		objectMap["properties"] = c.ContainerProperties
+	}
+	return json.Marshal(objectMap)
+}
+
 // UnmarshalJSON is the custom unmarshaler for Container struct.
 func (c *Container) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -104,34 +142,61 @@ func (c *Container) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				c.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var containerProperties ContainerProperties
+				err = json.Unmarshal(*v, &containerProperties)
+				if err != nil {
+					return err
+				}
+				c.ContainerProperties = &containerProperties
+			}
 		}
-		c.Name = &name
-	}
-
-	v = m["properties"]
-	if v != nil {
-		var properties ContainerProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
-		}
-		c.ContainerProperties = &properties
 	}
 
 	return nil
 }
 
+// ContainerExecRequest the start container exec request.
+type ContainerExecRequest struct {
+	// Command - The command to be executed.
+	Command *string `json:"command,omitempty"`
+	// TerminalSize - The size of the terminal.
+	TerminalSize *ContainerExecRequestTerminalSize `json:"terminalSize,omitempty"`
+}
+
+// ContainerExecRequestTerminalSize the size of the terminal.
+type ContainerExecRequestTerminalSize struct {
+	// Rows - The row size of the terminal
+	Rows *int32 `json:"rows,omitempty"`
+	// Cols - The column size of the terminal
+	Cols *int32 `json:"cols,omitempty"`
+}
+
+// ContainerExecResponse the information for the container exec command.
+type ContainerExecResponse struct {
+	autorest.Response `json:"-"`
+	// WebSocketURI - The uri for the exec websocket.
+	WebSocketURI *string `json:"webSocketUri,omitempty"`
+	// Password - The password to start the exec command.
+	Password *string `json:"password,omitempty"`
+}
+
 // ContainerGroup a container group.
 type ContainerGroup struct {
-	autorest.Response `json:"-"`
+	autorest.Response         `json:"-"`
+	*ContainerGroupProperties `json:"properties,omitempty"`
 	// ID - The resource id.
 	ID *string `json:"id,omitempty"`
 	// Name - The resource name.
@@ -141,8 +206,31 @@ type ContainerGroup struct {
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - The resource tags.
-	Tags                      *map[string]*string `json:"tags,omitempty"`
-	*ContainerGroupProperties `json:"properties,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for ContainerGroup.
+func (cg ContainerGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cg.ContainerGroupProperties != nil {
+		objectMap["properties"] = cg.ContainerGroupProperties
+	}
+	if cg.ID != nil {
+		objectMap["id"] = cg.ID
+	}
+	if cg.Name != nil {
+		objectMap["name"] = cg.Name
+	}
+	if cg.Type != nil {
+		objectMap["type"] = cg.Type
+	}
+	if cg.Location != nil {
+		objectMap["location"] = cg.Location
+	}
+	if cg.Tags != nil {
+		objectMap["tags"] = cg.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for ContainerGroup struct.
@@ -152,66 +240,63 @@ func (cg *ContainerGroup) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties ContainerGroupProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var containerGroupProperties ContainerGroupProperties
+				err = json.Unmarshal(*v, &containerGroupProperties)
+				if err != nil {
+					return err
+				}
+				cg.ContainerGroupProperties = &containerGroupProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				cg.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cg.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cg.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				cg.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				cg.Tags = tags
+			}
 		}
-		cg.ContainerGroupProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		cg.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		cg.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		cg.Type = &typeVar
-	}
-
-	v = m["location"]
-	if v != nil {
-		var location string
-		err = json.Unmarshal(*m["location"], &location)
-		if err != nil {
-			return err
-		}
-		cg.Location = &location
-	}
-
-	v = m["tags"]
-	if v != nil {
-		var tags map[string]*string
-		err = json.Unmarshal(*m["tags"], &tags)
-		if err != nil {
-			return err
-		}
-		cg.Tags = &tags
 	}
 
 	return nil
@@ -349,6 +434,55 @@ type ContainerGroupPropertiesInstanceView struct {
 	Events *[]Event `json:"events,omitempty"`
 	// State - The state of the container group. Only valid in response.
 	State *string `json:"state,omitempty"`
+}
+
+// ContainerGroupsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ContainerGroupsCreateOrUpdateFuture struct {
+	azure.Future
+	req *http.Request
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future ContainerGroupsCreateOrUpdateFuture) Result(client ContainerGroupsClient) (cg ContainerGroup, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		return cg, azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsCreateOrUpdateFuture")
+	}
+	if future.PollingMethod() == azure.PollingLocation {
+		cg, err = client.CreateOrUpdateResponder(future.Response())
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", future.Response(), "Failure responding to request")
+		}
+		return
+	}
+	var req *http.Request
+	var resp *http.Response
+	if future.PollingURL() != "" {
+		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
+		if err != nil {
+			return
+		}
+	} else {
+		req = autorest.ChangeToGet(future.req)
+	}
+	resp, err = autorest.SendWithSender(client, req,
+		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", resp, "Failure sending request")
+		return
+	}
+	cg, err = client.CreateOrUpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", resp, "Failure responding to request")
+	}
+	return
 }
 
 // ContainerPort the port exposed on the container instance.
@@ -490,7 +624,8 @@ type OperationDisplay struct {
 	Description *string `json:"description,omitempty"`
 }
 
-// OperationListResult the operation list response that contains all operations for Azure Container Instance service.
+// OperationListResult the operation list response that contains all operations for Azure Container Instance
+// service.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of operations.
@@ -518,7 +653,28 @@ type Resource struct {
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
 	// Tags - The resource tags.
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if r.ID != nil {
+		objectMap["id"] = r.ID
+	}
+	if r.Name != nil {
+		objectMap["name"] = r.Name
+	}
+	if r.Type != nil {
+		objectMap["type"] = r.Type
+	}
+	if r.Location != nil {
+		objectMap["location"] = r.Location
+	}
+	if r.Tags != nil {
+		objectMap["tags"] = r.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // ResourceLimits the resource limits.
@@ -578,11 +734,30 @@ type Volume struct {
 	// AzureFile - The Azure File volume.
 	AzureFile *AzureFileVolume `json:"azureFile,omitempty"`
 	// EmptyDir - The empty directory volume.
-	EmptyDir *map[string]interface{} `json:"emptyDir,omitempty"`
+	EmptyDir interface{} `json:"emptyDir,omitempty"`
 	// Secret - The secret volume.
-	Secret *map[string]*string `json:"secret,omitempty"`
+	Secret map[string]*string `json:"secret"`
 	// GitRepo - The git repo volume.
 	GitRepo *GitRepoVolume `json:"gitRepo,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Volume.
+func (vVar Volume) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vVar.Name != nil {
+		objectMap["name"] = vVar.Name
+	}
+	if vVar.AzureFile != nil {
+		objectMap["azureFile"] = vVar.AzureFile
+	}
+	objectMap["emptyDir"] = vVar.EmptyDir
+	if vVar.Secret != nil {
+		objectMap["secret"] = vVar.Secret
+	}
+	if vVar.GitRepo != nil {
+		objectMap["gitRepo"] = vVar.GitRepo
+	}
+	return json.Marshal(objectMap)
 }
 
 // VolumeMount the properties of the volume mount.

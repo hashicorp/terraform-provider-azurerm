@@ -31,7 +31,7 @@ The following arguments are supported:
     Azure subscription.
 
 * `location` - (Required) The location where the resource group should be created.
-    For a list of all Azure locations, please consult [this link](http://azure.microsoft.com/en-us/regions/).
+    For a list of all Azure locations, please consult [this link](http://azure.microsoft.com/en-us/regions/) or run `az account list-locations --output table`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

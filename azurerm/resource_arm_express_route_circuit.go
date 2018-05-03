@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
+var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
+
 func resourceArmExpressRouteCircuit() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmExpressRouteCircuitCreateOrUpdate,
@@ -107,7 +109,7 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	serviceProviderName := d.Get("service_provider_name").(string)
 	peeringLocation := d.Get("peering_location").(string)
 	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))
@@ -130,6 +132,9 @@ func resourceArmExpressRouteCircuitCreateOrUpdate(d *schema.ResourceData, meta i
 		},
 		Tags: expandedTags,
 	}
+
+	azureRMLockByName(name, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, erc)
 	if err != nil {
@@ -168,7 +173,6 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -203,6 +207,9 @@ func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
+
+	azureRMLockByName(name, expressRouteCircuitResourceName)
+	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

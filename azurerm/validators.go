@@ -48,22 +48,6 @@ func validateUUID(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
-func validateDBAccountName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	r, _ := regexp.Compile("^[a-z0-9\\-]+$")
-	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("Account Name can only contain lower-case characters, numbers and the `-` character."))
-	}
-
-	length := len(value)
-	if length > 50 || 3 > length {
-		errors = append(errors, fmt.Errorf("Account Name can only be between 3 and 50 seconds."))
-	}
-
-	return
-}
-
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) {
 	_, es := validateFunc(i, k)
 
@@ -72,17 +56,6 @@ func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.Sch
 	}
 
 	return true, nil
-}
-
-func validateStringLength(maxLength int) schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, errors []error) {
-		value := v.(string)
-		if len(value) > maxLength {
-			errors = append(errors, fmt.Errorf(
-				"The %q can be no longer than %d chars", k, maxLength))
-		}
-		return
-	}
 }
 
 func validateIso8601Duration() schema.SchemaValidateFunc {

@@ -55,7 +55,6 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	administratorName := "activeDirectory"
 	login := d.Get("login").(string)
 	objectId := uuid.FromStringOrNil(d.Get("object_id").(string))
 	tenantId := uuid.FromStringOrNil(d.Get("tenant_id").(string))
@@ -68,7 +67,7 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, administratorName, parameters)
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
 	if err != nil {
 		return err
 	}
@@ -78,7 +77,7 @@ func resourceArmSqlActiveDirectoryAdministratorCreateUpdate(d *schema.ResourceDa
 		return err
 	}
 
-	resp, err := client.Get(ctx, resGroup, serverName, administratorName)
+	resp, err := client.Get(ctx, resGroup, serverName)
 	if err != nil {
 		return err
 	}
@@ -99,9 +98,8 @@ func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta
 
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
-	administratorName := id.Path["administrators"]
 
-	resp, err := client.Get(ctx, resourceGroup, serverName, administratorName)
+	resp, err := client.Get(ctx, resourceGroup, serverName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL AD administrator %q - removing from state", d.Id())
@@ -132,9 +130,8 @@ func resourceArmSqlActiveDirectoryAdministratorDelete(d *schema.ResourceData, me
 
 	resourceGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
-	administratorName := id.Path["administrators"]
 
-	_, err = client.Delete(ctx, resourceGroup, serverName, administratorName)
+	_, err = client.Delete(ctx, resourceGroup, serverName)
 	if err != nil {
 		return fmt.Errorf("Error deleting SQL AD administrator: %+v", err)
 	}

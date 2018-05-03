@@ -44,7 +44,7 @@ func NewContainerGroupsClientWithBaseURI(baseURI string, subscriptionID string) 
 //
 // resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
 // containerGroup is the properties of the container group to be created or updated.
-func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, containerGroupName string, containerGroup ContainerGroup) (result ContainerGroup, err error) {
+func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, containerGroupName string, containerGroup ContainerGroup) (result ContainerGroupsCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: containerGroup,
 			Constraints: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties", Name: validation.Null, Rule: true,
@@ -54,7 +54,7 @@ func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resource
 							{Target: "containerGroup.ContainerGroupProperties.IPAddress.Type", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "containerinstance.ContainerGroupsClient", "CreateOrUpdate")
+		return result, validation.NewError("containerinstance.ContainerGroupsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, containerGroupName, containerGroup)
@@ -63,16 +63,10 @@ func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resource
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
@@ -92,7 +86,7 @@ func (client ContainerGroupsClient) CreateOrUpdatePreparer(ctx context.Context, 
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}", pathParameters),
@@ -103,9 +97,17 @@ func (client ContainerGroupsClient) CreateOrUpdatePreparer(ctx context.Context, 
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client ContainerGroupsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+func (client ContainerGroupsClient) CreateOrUpdateSender(req *http.Request) (future ContainerGroupsCreateOrUpdateFuture, err error) {
+	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
+	future.Future = azure.NewFuture(req)
+	future.req = req
+	_, err = future.Done(sender)
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(future.Response(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -445,9 +447,9 @@ func (client ContainerGroupsClient) ListByResourceGroupComplete(ctx context.Cont
 
 // Update updates container group tags with specified values.
 //
-// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group. resource
-// is the container group resource with just the tags to be updated.
-func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupName string, containerGroupName string, resource *Resource) (result ContainerGroup, err error) {
+// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
+// resource is the container group resource with just the tags to be updated.
+func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupName string, containerGroupName string, resource Resource) (result ContainerGroup, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, containerGroupName, resource)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Update", nil, "Failure preparing request")
@@ -470,7 +472,7 @@ func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupNam
 }
 
 // UpdatePreparer prepares the Update request.
-func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, containerGroupName string, resource *Resource) (*http.Request, error) {
+func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, containerGroupName string, resource Resource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"containerGroupName": autorest.Encode("path", containerGroupName),
 		"resourceGroupName":  autorest.Encode("path", resourceGroupName),
@@ -483,15 +485,12 @@ func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resource
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}", pathParameters),
+		autorest.WithJSON(resource),
 		autorest.WithQueryParameters(queryParameters))
-	if resource != nil {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithJSON(resource))
-	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
