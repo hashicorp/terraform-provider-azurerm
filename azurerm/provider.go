@@ -139,6 +139,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_namespace":                  resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":               resourceArmExpressRouteCircuit(),
 			"azurerm_function_app":                        resourceArmFunctionApp(),
+			"azurerm_hdinsight_cluster":                   resourceArmHDInsightClusters(),
 			"azurerm_image":                               resourceArmImage(),
 			"azurerm_iothub":                              resourceArmIotHub(),
 			"azurerm_key_vault":                           resourceArmKeyVault(),
