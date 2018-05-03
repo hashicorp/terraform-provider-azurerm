@@ -150,7 +150,7 @@ The following attributes are exported:
 
   * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
--> **NOTE:** You can use this It's possible to use this information with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+-> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
 
 ```
 provider "kubernetes" {
