@@ -3,9 +3,7 @@ package azurerm
 // Code based on the terraform.provider plugin by Microsoft (R) AutoRest Code Generator.
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight"
@@ -31,6 +29,7 @@ func resourceArmHDInsightClusters() *schema.Resource {
 					"storm",
 					"spark",
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 			"cluster_version": {
 				Required: true,
@@ -83,6 +82,7 @@ func resourceArmHDInsightClusters() *schema.Resource {
 					"Linux",
 					"Windows",
 				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 			"resource_group_name": resourceGroupNameSchema(),
 			"restauth_username": {
@@ -494,10 +494,12 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
+				Default:  "standard",
 				ValidateFunc: validation.StringInSlice([]string{
 					"standard",
 					"premium",
-				}, false),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 		},
 	}
@@ -510,9 +512,7 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	resourceGroupName := d.Get("resource_group_name").(string)
 	clusterName := d.Get("name").(string)
 	parameters := hdinsight.ClusterCreateParametersExtended{}
-	if paramValue, paramExists := d.GetOk("location"); paramExists {
-		parameters.Location = utils.String(paramValue.(string))
-	}
+	parameters.Location = utils.String(azureRMNormalizeLocation(d.Get("location").(string)))
 	tags := d.Get("tags").(map[string]interface{})
 	tmpParamOfTags := expandTags(tags)
 	parameters.Tags = tmpParamOfTags
@@ -664,9 +664,6 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	}
 	parameters.Properties.ComputeProfile.Roles = &tmpParamOfRoles
 
-	paramJson, _ := json.Marshal(parameters)
-	log.Printf("[DEBUG] Create HDInsight parameters body: %s", string(paramJson))
-
 	future, err := client.Create(ctx, resourceGroupName, clusterName, parameters)
 	if err != nil {
 		return fmt.Errorf("HD Insight Clusters creation error: %+v", err)
@@ -704,17 +701,12 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("HD Insight Clusters read error: %+v", err)
 	}
 
-	if response.Name != nil {
-		d.Set("name", *response.Name)
-	}
-	if response.Location != nil {
-		d.Set("location", *response.Location)
-	}
-	flattenAndSetTags(d, response.Tags)
+	d.Set("name", *response.Name)
+	d.Set("resource_group_name", resourceGroupName)
+	d.Set("location", azureRMNormalizeLocation(*response.Location))
 	if response.Properties != nil {
-		if response.Properties.ClusterVersion != nil {
-			d.Set("cluster_version", *response.Properties.ClusterVersion)
-		}
+		clusterVersions := strings.Split(*response.Properties.ClusterVersion, ".")
+		d.Set("cluster_version", strings.Join(clusterVersions[0:2], "."))
 		d.Set("os_type", response.Properties.OsType)
 		d.Set("tier", response.Properties.Tier)
 		if response.Properties.ClusterDefinition.Kind != nil {
@@ -872,6 +864,8 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("connectivity_endpoints", tmpRespOfConnectivityEndpoints)
 		}
 	}
+
+	flattenAndSetTags(d, response.Tags)
 
 	return nil
 }
