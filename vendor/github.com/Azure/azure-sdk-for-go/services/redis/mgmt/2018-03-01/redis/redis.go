@@ -41,8 +41,8 @@ func NewClientWithBaseURI(baseURI string, subscriptionID string) Client {
 }
 
 // CheckNameAvailability checks that the redis cache name is valid and is not already in use.
-//
-// parameters is parameters supplied to the CheckNameAvailability Redis operation.
+// Parameters:
+// parameters - parameters supplied to the CheckNameAvailability Redis operation.
 func (client Client) CheckNameAvailability(ctx context.Context, parameters CheckNameAvailabilityParameters) (result autorest.Response, err error) {
 	req, err := client.CheckNameAvailabilityPreparer(ctx, parameters)
 	if err != nil {
@@ -106,9 +106,10 @@ func (client Client) CheckNameAvailabilityResponder(resp *http.Response) (result
 }
 
 // Create create or replace (overwrite/recreate, with potential downtime) an existing Redis cache.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache. parameters is
-// parameters supplied to the Create Redis operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
+// parameters - parameters supplied to the Create Redis operation.
 func (client Client) Create(ctx context.Context, resourceGroupName string, name string, parameters CreateParameters) (result CreateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
@@ -191,8 +192,9 @@ func (client Client) CreateResponder(resp *http.Response) (result ResourceType, 
 }
 
 // Delete deletes a Redis cache.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
 func (client Client) Delete(ctx context.Context, resourceGroupName string, name string) (result DeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, name)
 	if err != nil {
@@ -258,9 +260,10 @@ func (client Client) DeleteResponder(resp *http.Response) (result autorest.Respo
 }
 
 // ExportData export data from the redis cache to blobs in a container.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache. parameters is
-// parameters for Redis export operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
+// parameters - parameters for Redis export operation.
 func (client Client) ExportData(ctx context.Context, resourceGroupName string, name string, parameters ExportRDBParameters) (result ExportDataFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
@@ -336,9 +339,10 @@ func (client Client) ExportDataResponder(resp *http.Response) (result autorest.R
 
 // ForceReboot reboot specified Redis node(s). This operation requires write permission to the cache resource. There
 // can be potential data loss.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache. parameters is
-// specifies which Redis node(s) to reboot.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
+// parameters - specifies which Redis node(s) to reboot.
 func (client Client) ForceReboot(ctx context.Context, resourceGroupName string, name string, parameters RebootParameters) (result ForceRebootResponse, err error) {
 	req, err := client.ForceRebootPreparer(ctx, resourceGroupName, name, parameters)
 	if err != nil {
@@ -405,8 +409,9 @@ func (client Client) ForceRebootResponder(resp *http.Response) (result ForceRebo
 }
 
 // Get gets a Redis cache (resource description).
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
 func (client Client) Get(ctx context.Context, resourceGroupName string, name string) (result ResourceType, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, name)
 	if err != nil {
@@ -471,9 +476,10 @@ func (client Client) GetResponder(resp *http.Response) (result ResourceType, err
 }
 
 // ImportData import data into Redis cache.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache. parameters is
-// parameters for Redis import operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
+// parameters - parameters for Redis import operation.
 func (client Client) ImportData(ctx context.Context, resourceGroupName string, name string, parameters ImportRDBParameters) (result ImportDataFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
@@ -637,8 +643,8 @@ func (client Client) ListComplete(ctx context.Context) (result ListResultIterato
 }
 
 // ListByResourceGroup lists all Redis caches in a resource group.
-//
-// resourceGroupName is the name of the resource group.
+// Parameters:
+// resourceGroupName - the name of the resource group.
 func (client Client) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ListResultPage, err error) {
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
@@ -730,8 +736,9 @@ func (client Client) ListByResourceGroupComplete(ctx context.Context, resourceGr
 }
 
 // ListKeys retrieve a Redis cache's access keys. This operation requires write permission to the cache resource.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
 func (client Client) ListKeys(ctx context.Context, resourceGroupName string, name string) (result AccessKeys, err error) {
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, name)
 	if err != nil {
@@ -796,9 +803,10 @@ func (client Client) ListKeysResponder(resp *http.Response) (result AccessKeys, 
 }
 
 // ListUpgradeNotifications gets any upgrade notifications for a Redis cache.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache. history is how many
-// minutes in past to look for upgrade notifications
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
+// history - how many minutes in past to look for upgrade notifications
 func (client Client) ListUpgradeNotifications(ctx context.Context, resourceGroupName string, name string, history float64) (result NotificationListResponse, err error) {
 	req, err := client.ListUpgradeNotificationsPreparer(ctx, resourceGroupName, name, history)
 	if err != nil {
@@ -864,9 +872,10 @@ func (client Client) ListUpgradeNotificationsResponder(resp *http.Response) (res
 }
 
 // RegenerateKey regenerate Redis cache's access keys. This operation requires write permission to the cache resource.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache. parameters is
-// specifies which key to regenerate.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
+// parameters - specifies which key to regenerate.
 func (client Client) RegenerateKey(ctx context.Context, resourceGroupName string, name string, parameters RegenerateKeyParameters) (result AccessKeys, err error) {
 	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, name, parameters)
 	if err != nil {
@@ -933,9 +942,10 @@ func (client Client) RegenerateKeyResponder(resp *http.Response) (result AccessK
 }
 
 // Update update an existing Redis cache.
-//
-// resourceGroupName is the name of the resource group. name is the name of the Redis cache. parameters is
-// parameters supplied to the Update Redis operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// name - the name of the Redis cache.
+// parameters - parameters supplied to the Update Redis operation.
 func (client Client) Update(ctx context.Context, resourceGroupName string, name string, parameters UpdateParameters) (result ResourceType, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, name, parameters)
 	if err != nil {

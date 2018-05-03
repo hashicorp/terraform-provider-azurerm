@@ -41,9 +41,9 @@ func NewComponentFeatureCapabilitiesClientWithBaseURI(baseURI string, subscripti
 }
 
 // Get returns feature capabilites of the application insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
 func (client ComponentFeatureCapabilitiesClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result ApplicationInsightsComponentFeatureCapabilities, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
