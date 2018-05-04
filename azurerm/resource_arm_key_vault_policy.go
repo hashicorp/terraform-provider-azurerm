@@ -3,10 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -128,17 +126,6 @@ func resourceArmKeyVaultPolicyCreateOrDelete(d *schema.ResourceData, meta interf
 	}
 
 	d.SetId(*read.ID)
-
-	if d.IsNewResource() {
-		if props := read.Properties; props != nil {
-			if vault := props.VaultURI; vault != nil {
-				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
 
 	return resourceArmKeyVaultRead(d, meta)
 }
