@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm_key_vault_secret
+# Data Source: azurerm_key_vault_secret
 
 Returns information about the specified Key Vault Secret.
 

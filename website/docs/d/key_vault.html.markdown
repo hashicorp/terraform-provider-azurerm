@@ -6,7 +6,7 @@ description: |-
   Gets information about a Key Vault.
 ---
 
-# azurerm_key_vault
+# Data Source: azurerm_key_vault
 
 Gets information about a Key Vault.
 
