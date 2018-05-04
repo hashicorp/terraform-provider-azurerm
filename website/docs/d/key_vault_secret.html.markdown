@@ -11,12 +11,15 @@ description: |-
 
 Returns information about the specified Key Vault Secret.
 
+~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text.
+[Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
 ## Example Usage
 
 ```hcl
 data "azurerm_key_vault_secret" "test" {
   name      = "secret-sauce"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  vault_uri = "https://rickslab.vault.azure.net/"
 }
 
 output "secret_value" {
