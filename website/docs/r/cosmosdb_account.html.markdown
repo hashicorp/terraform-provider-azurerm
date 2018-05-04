@@ -111,8 +111,7 @@ The following attributes are exported:
 
 * `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
 
-* `connection_strings` - A list of connection strings available for this CosmosDB 
-  account. If the kind is `GlobalDocumentDB`, this will be empty.
+* `connection_strings` - A list of connection strings available for this CosmosDB account. If the kind is `GlobalDocumentDB`, this will be empty.
 
 
 ## Import
