@@ -19,6 +19,13 @@ func resourceArmHDInsightClusters() *schema.Resource {
 		Update: resourceArmHDInsightClustersUpdate,
 		Delete: resourceArmHDInsightClustersDelete,
 		Schema: map[string]*schema.Schema{
+			"location":            locationSchema(),
+			"resource_group_name": resourceGroupNameSchema(),
+			"name": {
+				Required: true,
+				ForceNew: true,
+				Type:     schema.TypeString,
+			},
 			"cluster_type": {
 				Required: true,
 				ForceNew: true,
@@ -44,47 +51,6 @@ func resourceArmHDInsightClusters() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"connectivity_endpoints": {
-				Computed: true,
-				Type:     schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"location": {
-							Computed: true,
-							Type:     schema.TypeString,
-						},
-						"name": {
-							Computed: true,
-							Type:     schema.TypeString,
-						},
-						"port": {
-							Computed: true,
-							Type:     schema.TypeInt,
-						},
-						"protocol": {
-							Computed: true,
-							Type:     schema.TypeString,
-						},
-					},
-				},
-			},
-			"location": locationSchema(),
-			"name": {
-				Required: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-			},
-			"os_type": {
-				Required: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Linux",
-					"Windows",
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-			},
-			"resource_group_name": resourceGroupNameSchema(),
 			"restauth_username": {
 				Required: true,
 				ForceNew: true,
@@ -94,375 +60,6 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
-			},
-			"head_node": {
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Type:     schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"linux_os_profile": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"password": {
-										Optional: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"ssh_keys": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeList,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"key_data": {
-													Required: true,
-													ForceNew: true,
-													Type:     schema.TypeString,
-												},
-											},
-										},
-									},
-									"username": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-						"min_instance_count": {
-							Optional:     true,
-							Default:      1,
-							ForceNew:     true,
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 32),
-						},
-						"script_actions": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"parameters": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"uri": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-						"target_instance_count": {
-							Required:     true,
-							ForceNew:     true,
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 32),
-						},
-						"vm_size": {
-							Required: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"vnet_profile": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"subnet": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"worker_node": {
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Type:     schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"linux_os_profile": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"password": {
-										Optional: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"ssh_keys": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeList,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"key_data": {
-													Required: true,
-													ForceNew: true,
-													Type:     schema.TypeString,
-												},
-											},
-										},
-									},
-									"username": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-						"min_instance_count": {
-							Optional:     true,
-							Default:      1,
-							ForceNew:     true,
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 32),
-						},
-						"script_actions": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"parameters": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"uri": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-						"target_instance_count": {
-							Required:     true,
-							ForceNew:     true,
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 32),
-						},
-						"vm_size": {
-							Required: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"vnet_profile": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"subnet": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"zookeeper_node": {
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Type:     schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"linux_os_profile": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"password": {
-										Optional: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"ssh_keys": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeList,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"key_data": {
-													Required: true,
-													ForceNew: true,
-													Type:     schema.TypeString,
-												},
-											},
-										},
-									},
-									"username": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-						"min_instance_count": {
-							Optional:     true,
-							Default:      1,
-							ForceNew:     true,
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 32),
-						},
-						"script_actions": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"parameters": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"uri": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-						"target_instance_count": {
-							Required:     true,
-							ForceNew:     true,
-							Type:         schema.TypeInt,
-							ValidateFunc: validation.IntBetween(1, 32),
-						},
-						"vm_size": {
-							Required: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"vnet_profile": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-									"subnet": {
-										Required: true,
-										ForceNew: true,
-										Type:     schema.TypeString,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"security_profile": {
-				Optional: true,
-				ForceNew: true,
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cluster_users_group_dns": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"directory_type": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"domain": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"domain_user_password": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"domain_username": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-						"ldaps_urls": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"organizational_unit_dn": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
-						},
-					},
-				},
 			},
 			"storage_account": {
 				Required: true,
@@ -489,17 +86,165 @@ func resourceArmHDInsightClusters() *schema.Resource {
 					},
 				},
 			},
+			"head_node": {
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Type:     schema.TypeList,
+				Elem:     hdInsightClustersNodeSchema(),
+			},
+			"worker_node": {
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Type:     schema.TypeList,
+				Elem:     hdInsightClustersNodeSchema(),
+			},
+			"zookeeper_node": {
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Type:     schema.TypeList,
+				Elem:     hdInsightClustersNodeSchema(),
+			},
 			"tags": tagsSchema(),
 			"tier": {
 				Optional: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
-				Default:  "standard",
+				Default:  string(hdinsight.Standard),
 				ValidateFunc: validation.StringInSlice([]string{
-					"standard",
-					"premium",
+					string(hdinsight.Standard),
+					string(hdinsight.Premium),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+			"connectivity_endpoints": {
+				Computed: true,
+				Type:     schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"location": {
+							Computed: true,
+							Type:     schema.TypeString,
+						},
+						"name": {
+							Computed: true,
+							Type:     schema.TypeString,
+						},
+						"port": {
+							Computed: true,
+							Type:     schema.TypeInt,
+						},
+						"protocol": {
+							Computed: true,
+							Type:     schema.TypeString,
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func hdInsightClustersNodeSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"linux_os_profile": {
+				Optional: true,
+				ForceNew: true,
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"password": {
+							Optional: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"ssh_keys": {
+							Required: true,
+							ForceNew: true,
+							Type:     schema.TypeList,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"key_data": {
+										Required: true,
+										ForceNew: true,
+										Type:     schema.TypeString,
+									},
+								},
+							},
+						},
+						"username": {
+							Required: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+					},
+				},
+			},
+			"min_instance_count": {
+				Optional:     true,
+				Default:      1,
+				ForceNew:     true,
+				Type:         schema.TypeInt,
+				ValidateFunc: validation.IntBetween(1, 32),
+			},
+			"script_actions": {
+				Optional: true,
+				ForceNew: true,
+				Type:     schema.TypeList,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Required: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"parameters": {
+							Required: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"uri": {
+							Required: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+					},
+				},
+			},
+			"target_instance_count": {
+				Required:     true,
+				ForceNew:     true,
+				Type:         schema.TypeInt,
+				ValidateFunc: validation.IntBetween(1, 32),
+			},
+			"vm_size": {
+				Required: true,
+				ForceNew: true,
+				Type:     schema.TypeString,
+			},
+			"vnet_profile": {
+				Optional: true,
+				ForceNew: true,
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Required: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+						"subnet": {
+							Required: true,
+							ForceNew: true,
+							Type:     schema.TypeString,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -520,16 +265,12 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	if paramValue, paramExists := d.GetOk("cluster_version"); paramExists {
 		parameters.Properties.ClusterVersion = utils.String(paramValue.(string))
 	}
-	if paramValue, paramExists := d.GetOk("os_type"); paramExists {
-		parameters.Properties.OsType = hdinsight.OSType(paramValue.(string))
-	}
+	parameters.Properties.OsType = hdinsight.Linux
 	if paramValue, paramExists := d.GetOk("tier"); paramExists {
 		parameters.Properties.Tier = hdinsight.Tier(paramValue.(string))
 	}
 	parameters.Properties.ClusterDefinition = &hdinsight.ClusterDefinition{}
-	if paramValue, paramExists := d.GetOk("cluster_type"); paramExists {
-		parameters.Properties.ClusterDefinition.Kind = utils.String(paramValue.(string))
-	}
+	parameters.Properties.ClusterDefinition.Kind = utils.String(d.Get("cluster_type").(string))
 	if paramValue, paramExists := d.GetOk("component_version"); paramExists {
 		tmpParamOfComponentVersion := make(map[string]*string)
 		for tmpParamKeyOfComponentVersion, tmpParamItemOfComponentVersion := range paramValue.(map[string]interface{}) {
@@ -554,41 +295,6 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	tmpParamOfConfigurations["gateway"] = tmpParamOfGatewayConfigurations
 	tmpParamOfConfigurations["core-site"] = tmpParamOfCoreSiteConfigurations
 	parameters.Properties.ClusterDefinition.Configurations = &tmpParamOfConfigurations
-	if paramValue, paramExists := d.GetOk("security_profile"); paramExists {
-		parameters.Properties.SecurityProfile = &hdinsight.SecurityProfile{}
-		tmpParamOfSecurityProfile := paramValue.(map[string]interface{})
-		if paramValue, paramExists := tmpParamOfSecurityProfile["directory_type"]; paramExists {
-			parameters.Properties.SecurityProfile.DirectoryType = hdinsight.DirectoryType(paramValue.(string))
-		}
-		if paramValue, paramExists := tmpParamOfSecurityProfile["domain"]; paramExists {
-			parameters.Properties.SecurityProfile.Domain = utils.String(paramValue.(string))
-		}
-		if paramValue, paramExists := tmpParamOfSecurityProfile["organizational_unit_dn"]; paramExists {
-			parameters.Properties.SecurityProfile.OrganizationalUnitDN = utils.String(paramValue.(string))
-		}
-		if paramValue, paramExists := tmpParamOfSecurityProfile["ldaps_urls"]; paramExists {
-			tmpParamOfSecurityProfileldapsUrls := make([]string, 0)
-			for _, tmpParamItemOfSecurityProfileldapsUrls := range paramValue.([]interface{}) {
-				parametersPropertiesSecurityProfileLdapsUrls := utils.String(tmpParamItemOfSecurityProfileldapsUrls.(string))
-				tmpParamOfSecurityProfileldapsUrls = append(tmpParamOfSecurityProfileldapsUrls, *parametersPropertiesSecurityProfileLdapsUrls)
-			}
-			parameters.Properties.SecurityProfile.LdapsUrls = &tmpParamOfSecurityProfileldapsUrls
-		}
-		if paramValue, paramExists := tmpParamOfSecurityProfile["domain_username"]; paramExists {
-			parameters.Properties.SecurityProfile.DomainUsername = utils.String(paramValue.(string))
-		}
-		if paramValue, paramExists := tmpParamOfSecurityProfile["domain_user_password"]; paramExists {
-			parameters.Properties.SecurityProfile.DomainUserPassword = utils.String(paramValue.(string))
-		}
-		if paramValue, paramExists := tmpParamOfSecurityProfile["cluster_users_group_dns"]; paramExists {
-			tmpParamOfSecurityProfileclusterUsersGroupDNS := make([]string, 0)
-			for _, tmpParamItemOfSecurityProfileclusterUsersGroupDNS := range paramValue.([]interface{}) {
-				parametersPropertiesSecurityProfileClusterUsersGroupDNS := utils.String(tmpParamItemOfSecurityProfileclusterUsersGroupDNS.(string))
-				tmpParamOfSecurityProfileclusterUsersGroupDNS = append(tmpParamOfSecurityProfileclusterUsersGroupDNS, *parametersPropertiesSecurityProfileClusterUsersGroupDNS)
-			}
-			parameters.Properties.SecurityProfile.ClusterUsersGroupDNS = &tmpParamOfSecurityProfileclusterUsersGroupDNS
-		}
-	}
 	parameters.Properties.ComputeProfile = &hdinsight.ComputeProfile{}
 	tmpParamOfRoles := make([]hdinsight.Role, 0)
 	appendParamRole := func(name string, tmpParamItemOfRoles interface{}) {
@@ -707,7 +413,6 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 	if response.Properties != nil {
 		clusterVersions := strings.Split(*response.Properties.ClusterVersion, ".")
 		d.Set("cluster_version", strings.Join(clusterVersions[0:2], "."))
-		d.Set("os_type", response.Properties.OsType)
 		d.Set("tier", response.Properties.Tier)
 		if response.Properties.ClusterDefinition.Kind != nil {
 			d.Set("cluster_type", *response.Properties.ClusterDefinition.Kind)
@@ -737,39 +442,6 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 				tmpRespOfStorageAccount["access_key"] = tmpRespOfCoreSiteConfigurations["fs.azure.account.key."+tmpRespOfStorageAccountName]
 				d.Set("storage_account", tmpRespOfStorageAccount)
 			}
-		}
-		if response.Properties.SecurityProfile != nil {
-			tmpRespOfSecurityProfile := make(map[string]interface{})
-			tmpRespOfSecurityProfile["directory_type"] = response.Properties.SecurityProfile.DirectoryType
-			if response.Properties.SecurityProfile.Domain != nil {
-				tmpRespOfSecurityProfile["domain"] = *response.Properties.SecurityProfile.Domain
-			}
-			if response.Properties.SecurityProfile.OrganizationalUnitDN != nil {
-				tmpRespOfSecurityProfile["organizational_unit_dn"] = *response.Properties.SecurityProfile.OrganizationalUnitDN
-			}
-			if response.Properties.SecurityProfile.LdapsUrls != nil && len(*response.Properties.SecurityProfile.LdapsUrls) > 0 {
-				tmpRespOfSecurityProfileldapsUrls := make([]interface{}, 0)
-				for _, tmpRespItemOfSecurityProfileldapsUrls := range *response.Properties.SecurityProfile.LdapsUrls {
-					tmpRespValueOfSecurityProfileldapsUrls := tmpRespItemOfSecurityProfileldapsUrls
-					tmpRespOfSecurityProfileldapsUrls = append(tmpRespOfSecurityProfileldapsUrls, tmpRespValueOfSecurityProfileldapsUrls)
-				}
-				tmpRespOfSecurityProfile["ldaps_urls"] = tmpRespOfSecurityProfileldapsUrls
-			}
-			if response.Properties.SecurityProfile.DomainUsername != nil {
-				tmpRespOfSecurityProfile["domain_username"] = *response.Properties.SecurityProfile.DomainUsername
-			}
-			if response.Properties.SecurityProfile.DomainUserPassword != nil {
-				tmpRespOfSecurityProfile["domain_user_password"] = *response.Properties.SecurityProfile.DomainUserPassword
-			}
-			if response.Properties.SecurityProfile.ClusterUsersGroupDNS != nil && len(*response.Properties.SecurityProfile.ClusterUsersGroupDNS) > 0 {
-				tmpRespOfSecurityProfileclusterUsersGroupDNS := make([]interface{}, 0)
-				for _, tmpRespItemOfSecurityProfileclusterUsersGroupDNS := range *response.Properties.SecurityProfile.ClusterUsersGroupDNS {
-					tmpRespValueOfSecurityProfileclusterUsersGroupDNS := tmpRespItemOfSecurityProfileclusterUsersGroupDNS
-					tmpRespOfSecurityProfileclusterUsersGroupDNS = append(tmpRespOfSecurityProfileclusterUsersGroupDNS, tmpRespValueOfSecurityProfileclusterUsersGroupDNS)
-				}
-				tmpRespOfSecurityProfile["cluster_users_group_dns"] = tmpRespOfSecurityProfileclusterUsersGroupDNS
-			}
-			d.Set("security_profile", tmpRespOfSecurityProfile)
 		}
 		if response.Properties.ComputeProfile != nil {
 			if response.Properties.ComputeProfile.Roles != nil && len(*response.Properties.ComputeProfile.Roles) > 0 {
