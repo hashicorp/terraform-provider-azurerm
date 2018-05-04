@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm\_key\_vault\_secret
+# azurerm_key_vault_secret
 
 Manages a Key Vault Secret.
 

@@ -87,6 +87,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_namespace":                    dataSourceEventHubNamespace(),
 			"azurerm_image":                                 dataSourceArmImage(),
 			"azurerm_key_vault_access_policy":               dataSourceArmKeyVaultAccessPolicy(),
+			"azurerm_key_vault_secret":                      dataSourceArmKeyVaultSecret(),
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
