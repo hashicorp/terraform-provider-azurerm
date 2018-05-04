@@ -24,29 +24,26 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // ExtensionClient is the hDInsight Management Client
 type ExtensionClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // NewExtensionClient creates an instance of the ExtensionClient client.
 func NewExtensionClient(subscriptionID string) ExtensionClient {
 	return NewExtensionClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // NewExtensionClientWithBaseURI creates an instance of the ExtensionClient client.
 func NewExtensionClientWithBaseURI(baseURI string, subscriptionID string) ExtensionClient {
 	return ExtensionClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // Create creates an HDInsight cluster extension.
-//
-// resourceGroupName is the name of the resource group. clusterName is the name of the cluster. parameters is the
-// cluster extensions create request.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// parameters - the cluster extensions create request.
 func (client ExtensionClient) Create(ctx context.Context, resourceGroupName string, clusterName string, parameters Extension) (result autorest.Response, err error) {
 	req, err := client.CreatePreparer(ctx, resourceGroupName, clusterName, parameters)
 	if err != nil {
@@ -69,7 +66,6 @@ func (client ExtensionClient) Create(ctx context.Context, resourceGroupName stri
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // CreatePreparer prepares the Create request.
 func (client ExtensionClient) CreatePreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters Extension) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -94,7 +90,6 @@ func (client ExtensionClient) CreatePreparer(ctx context.Context, resourceGroupN
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionClient) CreateSender(req *http.Request) (*http.Response, error) {
@@ -102,7 +97,6 @@ func (client ExtensionClient) CreateSender(req *http.Request) (*http.Response, e
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // CreateResponder handles the response to the Create request. The method always
 // closes the http.Response Body.
 func (client ExtensionClient) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -115,10 +109,10 @@ func (client ExtensionClient) CreateResponder(resp *http.Response) (result autor
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // Delete deletes the specified extension for HDInsight cluster.
-//
-// resourceGroupName is the name of the resource group. clusterName is the name of the cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
 func (client ExtensionClient) Delete(ctx context.Context, resourceGroupName string, clusterName string) (result autorest.Response, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, clusterName)
 	if err != nil {
@@ -141,7 +135,6 @@ func (client ExtensionClient) Delete(ctx context.Context, resourceGroupName stri
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // DeletePreparer prepares the Delete request.
 func (client ExtensionClient) DeletePreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -164,7 +157,6 @@ func (client ExtensionClient) DeletePreparer(ctx context.Context, resourceGroupN
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -172,7 +164,6 @@ func (client ExtensionClient) DeleteSender(req *http.Request) (*http.Response, e
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client ExtensionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -185,10 +176,10 @@ func (client ExtensionClient) DeleteResponder(resp *http.Response) (result autor
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // DisableMonitoring disables the Operations Management Suite (OMS) on the HDInsight cluster.
-//
-// resourceGroupName is the name of the resource group. clusterName is the name of the cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
 func (client ExtensionClient) DisableMonitoring(ctx context.Context, resourceGroupName string, clusterName string) (result ExtensionDisableMonitoringFuture, err error) {
 	req, err := client.DisableMonitoringPreparer(ctx, resourceGroupName, clusterName)
 	if err != nil {
@@ -205,7 +196,6 @@ func (client ExtensionClient) DisableMonitoring(ctx context.Context, resourceGro
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // DisableMonitoringPreparer prepares the DisableMonitoring request.
 func (client ExtensionClient) DisableMonitoringPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -227,7 +217,6 @@ func (client ExtensionClient) DisableMonitoringPreparer(ctx context.Context, res
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // DisableMonitoringSender sends the DisableMonitoring request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionClient) DisableMonitoringSender(req *http.Request) (future ExtensionDisableMonitoringFuture, err error) {
@@ -243,7 +232,6 @@ func (client ExtensionClient) DisableMonitoringSender(req *http.Request) (future
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // DisableMonitoringResponder handles the response to the DisableMonitoring request. The method always
 // closes the http.Response Body.
 func (client ExtensionClient) DisableMonitoringResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -256,11 +244,11 @@ func (client ExtensionClient) DisableMonitoringResponder(resp *http.Response) (r
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // EnableMonitoring enables the Operations Management Suite (OMS) on the HDInsight cluster.
-//
-// resourceGroupName is the name of the resource group. clusterName is the name of the cluster. parameters is the
-// Operations Management Suite (OMS) workspace parameters.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
+// parameters - the Operations Management Suite (OMS) workspace parameters.
 func (client ExtensionClient) EnableMonitoring(ctx context.Context, resourceGroupName string, clusterName string, parameters ClusterMonitoringRequest) (result ExtensionEnableMonitoringFuture, err error) {
 	req, err := client.EnableMonitoringPreparer(ctx, resourceGroupName, clusterName, parameters)
 	if err != nil {
@@ -277,7 +265,6 @@ func (client ExtensionClient) EnableMonitoring(ctx context.Context, resourceGrou
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // EnableMonitoringPreparer prepares the EnableMonitoring request.
 func (client ExtensionClient) EnableMonitoringPreparer(ctx context.Context, resourceGroupName string, clusterName string, parameters ClusterMonitoringRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -301,7 +288,6 @@ func (client ExtensionClient) EnableMonitoringPreparer(ctx context.Context, reso
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // EnableMonitoringSender sends the EnableMonitoring request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionClient) EnableMonitoringSender(req *http.Request) (future ExtensionEnableMonitoringFuture, err error) {
@@ -317,7 +303,6 @@ func (client ExtensionClient) EnableMonitoringSender(req *http.Request) (future 
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // EnableMonitoringResponder handles the response to the EnableMonitoring request. The method always
 // closes the http.Response Body.
 func (client ExtensionClient) EnableMonitoringResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -330,10 +315,10 @@ func (client ExtensionClient) EnableMonitoringResponder(resp *http.Response) (re
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // Get gets the extension properties for the specified HDInsight cluster extension.
-//
-// resourceGroupName is the name of the resource group. clusterName is the name of the cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
 func (client ExtensionClient) Get(ctx context.Context, resourceGroupName string, clusterName string) (result Extension, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, clusterName)
 	if err != nil {
@@ -356,7 +341,6 @@ func (client ExtensionClient) Get(ctx context.Context, resourceGroupName string,
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // GetPreparer prepares the Get request.
 func (client ExtensionClient) GetPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -379,7 +363,6 @@ func (client ExtensionClient) GetPreparer(ctx context.Context, resourceGroupName
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -387,7 +370,6 @@ func (client ExtensionClient) GetSender(req *http.Request) (*http.Response, erro
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ExtensionClient) GetResponder(resp *http.Response) (result Extension, err error) {
@@ -401,10 +383,10 @@ func (client ExtensionClient) GetResponder(resp *http.Response) (result Extensio
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // GetMonitoringStatus gets the status of Operations Management Suite (OMS) on the HDInsight cluster.
-//
-// resourceGroupName is the name of the resource group. clusterName is the name of the cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// clusterName - the name of the cluster.
 func (client ExtensionClient) GetMonitoringStatus(ctx context.Context, resourceGroupName string, clusterName string) (result ClusterMonitoringResponse, err error) {
 	req, err := client.GetMonitoringStatusPreparer(ctx, resourceGroupName, clusterName)
 	if err != nil {
@@ -427,7 +409,6 @@ func (client ExtensionClient) GetMonitoringStatus(ctx context.Context, resourceG
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // GetMonitoringStatusPreparer prepares the GetMonitoringStatus request.
 func (client ExtensionClient) GetMonitoringStatusPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -449,7 +430,6 @@ func (client ExtensionClient) GetMonitoringStatusPreparer(ctx context.Context, r
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // GetMonitoringStatusSender sends the GetMonitoringStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionClient) GetMonitoringStatusSender(req *http.Request) (*http.Response, error) {
@@ -457,7 +437,6 @@ func (client ExtensionClient) GetMonitoringStatusSender(req *http.Request) (*htt
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight instead.
 // GetMonitoringStatusResponder handles the response to the GetMonitoringStatus request. The method always
 // closes the http.Response Body.
 func (client ExtensionClient) GetMonitoringStatusResponder(resp *http.Response) (result ClusterMonitoringResponse, err error) {
