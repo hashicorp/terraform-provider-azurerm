@@ -536,7 +536,7 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 			parametersPropertiesClusterDefinitionComponentVersion := utils.String(tmpParamItemOfComponentVersion.(string))
 			tmpParamOfComponentVersion[tmpParamKeyOfComponentVersion] = parametersPropertiesClusterDefinitionComponentVersion
 		}
-		parameters.Properties.ClusterDefinition.ComponentVersion = &tmpParamOfComponentVersion
+		parameters.Properties.ClusterDefinition.ComponentVersion = tmpParamOfComponentVersion
 	}
 	tmpParamOfConfigurations := make(map[string]interface{})
 	tmpParamOfGatewayConfigurations := make(map[string]interface{})
@@ -714,14 +714,14 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 		}
 		if response.Properties.ClusterDefinition.ComponentVersion != nil {
 			tmpRespOfComponentVersion := make(map[string]interface{})
-			for tmpRespKeyOfComponentVersion, tmpRespItemOfComponentVersion := range *response.Properties.ClusterDefinition.ComponentVersion {
+			for tmpRespKeyOfComponentVersion, tmpRespItemOfComponentVersion := range response.Properties.ClusterDefinition.ComponentVersion {
 				tmpRespValueOfComponentVersion := *tmpRespItemOfComponentVersion
 				tmpRespOfComponentVersion[tmpRespKeyOfComponentVersion] = tmpRespValueOfComponentVersion
 			}
 			d.Set("component_version", tmpRespOfComponentVersion)
 		}
 		if response.Properties.ClusterDefinition.Configurations != nil {
-			tmpRespOfConfigurations := *response.Properties.ClusterDefinition.Configurations
+			tmpRespOfConfigurations := *response.Properties.ClusterDefinition.Configurations.(*map[string]interface{})
 			if paramValue, paramExists := tmpRespOfConfigurations["gateway"]; paramExists {
 				tmpRespOfGatewayConfigurations := paramValue.(map[string]interface{})
 				d.Set("restauth_username", tmpRespOfGatewayConfigurations["restAuthCredential.username"].(string))

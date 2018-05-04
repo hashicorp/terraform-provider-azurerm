@@ -107,6 +107,12 @@
 			"versionExact": "v15.1.0"
 		},
 		{
+			"checksumSHA1": "/vYE8x51TYTN9dHYzbqjWpiRyDk=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/hdinsight/mgmt/2015-03-01-preview/hdinsight",
+			"revision": "52423c14f13e2567193ec7d2fde122a959739f91",
+			"revisionTime": "2018-05-03T20:00:13Z"
+		},
+		{
 			"checksumSHA1": "0kRLbd9dmqjHMNHLDoiIQTv5Vdc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices",
 			"revision": "0b745831a99da5f43aa3cc641cfcb9ed323e1f9f",
