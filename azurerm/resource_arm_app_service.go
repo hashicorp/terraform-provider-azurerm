@@ -152,13 +152,13 @@ func resourceArmAppService() *schema.Resource {
 
 						"scm_type": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"local_git": {
+							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  string(web.ScmTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ScmTypeNone),
-								string(web.ScmTypeLocalGit),
-								string(web.ScmTypeGitHub),
-							}, false),
+							Default:  false,
 						},
 
 						"use_32_bit_worker_process": {
@@ -298,17 +298,17 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			"external_scm_credential": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+			"ext_scm_token": {
+				Type:      schema.TypeList,
+				Optional:  true,
+				Sensitive: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"BitBucket",
 								"Dropbox",
@@ -319,7 +319,6 @@ func resourceArmAppService() *schema.Resource {
 						"token": {
 							Type:      schema.TypeString,
 							Optional:  true,
-							Computed:  true,
 							Sensitive: true,
 						},
 					},
@@ -472,11 +471,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	}
 
-	if d.HasChange("external_scm_credential") {
-		scmCred := expandAppServiceExternalSCMCredential(d)
+	if d.HasChange("ext_scm_token") {
+		scmCred := expandAppServiceExternalSCMToken(d)
 
 		if _, err := client.BaseClient.UpdateSourceControl(ctx, *scmCred.Name, scmCred); err != nil {
-			return fmt.Errorf("error updating external scm credential for app service %q: %+v", name, err)
+			return fmt.Errorf("error updating external scm token for app service %q: %+v", name, err)
 		}
 	}
 
@@ -678,8 +677,10 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := config["scm_type"]; ok {
-		siteConfig.ScmType = web.ScmType(v.(string))
+	if v, ok := config["local_git"]; ok {
+		if v.(bool) {
+			siteConfig.ScmType = web.ScmTypeLocalGit
+		}
 	}
 
 	return siteConfig
@@ -753,7 +754,7 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
 
-	result["scm_type"] = string(input.ScmType)
+	result["scm_type"] = input.ScmType
 
 	return append(results, result)
 }
@@ -802,8 +803,8 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControl) []interface{} 
 	return append(results, result)
 }
 
-func expandAppServiceExternalSCMCredential(d *schema.ResourceData) web.SourceControl {
-	credList := d.Get("external_scm_credential").([]interface{})
+func expandAppServiceExternalSCMToken(d *schema.ResourceData) web.SourceControl {
+	credList := d.Get("ext_scm_token").([]interface{})
 	credRet := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{},
 	}
