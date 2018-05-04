@@ -78,6 +78,11 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Eventual), 1),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -96,6 +101,11 @@ func TestAccAzureRMCosmosDBAccount_session(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 1),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -116,6 +126,11 @@ func TestAccAzureRMCosmosDBAccount_strong(t *testing.T) {
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Strong), 1),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -135,6 +150,11 @@ func TestAccAzureRMCosmosDBAccount_consistentPrefix(t *testing.T) {
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.ConsistentPrefix), 1),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -153,6 +173,11 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -175,6 +200,11 @@ func TestAccAzureRMCosmosDBAccount_boundedStaleness_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "consistency_policy.0.max_staleness_prefix", "200"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -195,6 +225,11 @@ func TestAccAzureRMCosmosDBAccount_consistency_change(t *testing.T) {
 			{
 				Config: testAccAzureRMCosmosDBAccount_basic(ri, testLocation(), string(documentdb.BoundedStaleness), "", ""),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -217,6 +252,11 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kind", "MongoDB"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -238,6 +278,11 @@ func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -257,6 +302,11 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -289,6 +339,11 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
 					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -309,6 +364,11 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 			{
 				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customId(ri, testLocation(), testAltLocation()),
 				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 2),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -335,6 +395,11 @@ func TestAccAzureRMCosmosDBAccount_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "ip_range_filter", "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"),
 					resource.TestCheckResourceAttr(resourceName, "enable_automatic_failover", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
