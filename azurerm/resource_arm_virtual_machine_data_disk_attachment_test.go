@@ -6,13 +6,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-// TODO: Docs and Locks
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_singleVHD(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
@@ -144,19 +142,21 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.ID)
+		diskName := rs.Primary.Attributes["name"]
+		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
+
+		id, err := parseAzureResourceID(virtualMachineId)
 		if err != nil {
 			return err
 		}
 
-		diskName := id.Path["dataDisks"]
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
 
 		client := testAccProvider.Meta().(*ArmClient).vmClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, compute.InstanceView)
+		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
 		}
@@ -182,25 +182,27 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 			continue
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.ID)
+		diskName := rs.Primary.Attributes["name"]
+		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
+
+		id, err := parseAzureResourceID(virtualMachineId)
 		if err != nil {
 			return err
 		}
 
-		diskName := id.Path["dataDisks"]
 		virtualMachineName := id.Path["virtualMachines"]
 		resourceGroup := id.ResourceGroup
 
 		client := testAccProvider.Meta().(*ArmClient).vmClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, compute.InstanceView)
+		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
-		}
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: VirtualMachine %q (resource group: %q) does not exist", virtualMachineName, resourceGroup)
+			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
 		}
 
 		// does the disk exist?
@@ -262,17 +264,6 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 
-resource "azurerm_storage_blob" "test" {
-  name = "datadisk1.vhd"
-
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
-
-  type = "page"
-  size = 102400
-}
-
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
   location              = "${azurerm_resource_group.test.location}"
@@ -289,10 +280,10 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_os_disk {
     name = "osd-%d"
+    vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
     caching = "ReadWrite"
     create_option = "FromImage"
-    disk_size_gb = "50"
-    managed_disk_type = "Standard_LRS"
+    disk_size_gb = "45"
   }
 
   os_profile {
@@ -306,11 +297,11 @@ resource "azurerm_virtual_machine" "test" {
   }
 }
 
-resource "azurerm_virtual_machine_data_disk_attachment" "first" {
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   name               = "disk1-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  vhd_uri            = ${azurerm_storage_blob.test.url}
-  managed_disk_type  = "Empty"
+  vhd_uri            = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/mydatadisk1.vhd"
+  create_option      = "Empty"
   disk_size_gb       = 10
   lun                = 1
 }
@@ -386,7 +377,8 @@ resource "azurerm_virtual_machine" "test" {
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   name               = "disk1-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  managed_disk_type  = "Empty"
+  create_option      = "Empty"
+  managed_disk_type  = "Standard_LRS"
   disk_size_gb       = 10
   lun                = 1
 }
@@ -472,7 +464,8 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   name               = "disk1-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
   managed_disk_id    = "${azurerm_managed_disk.test.id}"
-  managed_disk_type  = "Attach"
+  create_option      = "Attach"
+  managed_disk_type  = "Standard_LRS"
   lun                = 1
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
@@ -547,7 +540,8 @@ resource "azurerm_virtual_machine" "test" {
 resource "azurerm_virtual_machine_data_disk_attachment" "first" {
   name               = "disk1-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  managed_disk_type  = "Empty"
+  create_option      = "Empty"
+  managed_disk_type  = "Standard_LRS"
   disk_size_gb       = 10
   lun                = %d
 }
@@ -555,7 +549,8 @@ resource "azurerm_virtual_machine_data_disk_attachment" "first" {
 resource "azurerm_virtual_machine_data_disk_attachment" "second" {
   name               = "disk2-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  managed_disk_type  = "Empty"
+  create_option      = "Empty"
+  managed_disk_type  = "Standard_LRS"
   disk_size_gb       = 20
   lun                = %d
 }

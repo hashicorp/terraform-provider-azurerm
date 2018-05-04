@@ -162,12 +162,12 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, virtualMachine)
 	if err != nil {
-		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, expandedDisk.Name, err)
+		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, *expandedDisk.Name, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, expandedDisk.Name, err)
+		return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, *expandedDisk.Name, err)
 	}
 
 	d.SetId(fmt.Sprintf("%s/dataDisks/%s", virtualMachineId, *expandedDisk.Name))
@@ -188,7 +188,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	virtualMachineName := id.Path["virtualMachines"]
 	name := id.Path["dataDisks"]
 
-	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, compute.InstanceView)
+	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualMachine.Response) {
 			return fmt.Errorf("Virtual Machine %q (Resource Group %q) was not found", virtualMachineName, resourceGroup)
@@ -255,7 +255,7 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	azureRMLockByName(virtualMachineName, virtualMachineResourceName)
 	defer azureRMUnlockByName(virtualMachineName, virtualMachineResourceName)
 
-	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, compute.InstanceView)
+	virtualMachine, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualMachine.Response) {
 			return fmt.Errorf("Virtual Machine %q (Resource Group %q) was not found", virtualMachineName, resourceGroup)
