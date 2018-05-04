@@ -507,12 +507,10 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("primary_master_key", keys.PrimaryMasterKey)
 	d.Set("secondary_master_key", keys.SecondaryMasterKey)
 
-	readonlyKeys, err := client.ListReadOnlyKeys(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
+	if keys.DatabaseAccountListReadOnlyKeysResult != nil {
+		d.Set("primary_readonly_master_key", keys.PrimaryReadonlyMasterKey)
+		d.Set("secondary_readonly_master_key", keys.SecondaryReadonlyMasterKey)
 	}
-	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 
 	connStringResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
 	if err != nil {
