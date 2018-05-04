@@ -21,11 +21,3 @@ output "cosmos-db-primary_master_key" {
 output "cosmos-db-secondary_master_key" {
   value = "${azurerm_cosmosdb_account.db.secondary_master_key}"
 }
-
-output "cosmos-db-primary_read_key" {
-  value = "${azurerm_cosmosdb_account.db.primary_readonly_master_key}"
-}
-
-output "cosmos-db-secondary_read_key" {
-  value = "${azurerm_cosmosdb_account.db.secondary_readonly_master_key}"
-}
