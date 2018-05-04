@@ -227,6 +227,14 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"connection_strings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -490,19 +498,31 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
-	} else {
-		d.Set("primary_master_key", keys.PrimaryMasterKey)
-		d.Set("secondary_master_key", keys.SecondaryMasterKey)
+		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
 	}
+	d.Set("primary_master_key", keys.PrimaryMasterKey)
+	d.Set("secondary_master_key", keys.SecondaryMasterKey)
 
 	readonlyKeys, err := client.ListReadOnlyKeys(ctx, resourceGroup, name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
-	} else {
-		d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
-		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
+		return fmt.Errorf("[ERROR] Unable to List read-only keys for CosmosDB Account %s: %s", name, err)
 	}
+	d.Set("primary_readonly_master_key", readonlyKeys.PrimaryReadonlyMasterKey)
+	d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
+
+	connStringResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("[ERROR] Unable to List connection strings for CosmosDB Account %s: %s", name, err)
+	}
+	var connStrings []string
+	if connStringResp.ConnectionStrings != nil {
+		connStrings = make([]string, len(*connStringResp.ConnectionStrings))
+		for i, v := range *connStringResp.ConnectionStrings {
+			connStrings[i] = *v.ConnectionString
+		}
+
+	}
+	d.Set("connection_strings", connStrings)
 
 	return nil
 }
