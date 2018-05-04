@@ -20,6 +20,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
+	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -136,6 +137,9 @@ type ArmClient struct {
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
+
+	// Data Lake Store
+	dataLakeStoreAccount account.AccountsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -372,6 +376,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDataLakeStoreAccountClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
@@ -642,6 +647,12 @@ func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth aut
 	zo := dns.NewZonesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&zo.Client, auth)
 	c.zonesClient = zo
+}
+
+func (c *ArmClient) registerDataLakeStoreAccountClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	dataLakeStoreAccountClient := accounts.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dataLakeStoreAccountClient.Client, auth)
+	c.dataLakeStoreAccountClient = dataLakeStoreAccountClient
 }
 
 func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
