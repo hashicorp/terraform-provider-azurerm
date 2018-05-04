@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("azurerm_data_lake_store", &resource.Sweeper{
+	resource.AddTestSweepers("azurerm_cdn_profile", &resource.Sweeper{
 		Name: "azurerm_cdn_profile",
 		F:    testSweepCDNProfiles,
 	})

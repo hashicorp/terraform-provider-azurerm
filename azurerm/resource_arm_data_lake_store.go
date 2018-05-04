@@ -6,11 +6,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDateLakeStore() *schema.Resource {
+func resourceArmDataLakeStore() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmDateLakeStoreCreate,
 		Read:   resourceArmDateLakeStoreRead,
@@ -33,9 +34,19 @@ func resourceArmDateLakeStore() *schema.Resource {
 
 			"tier": {
 				Type:             schema.TypeString,
-				Required:         false,
 				ForceNew:         false,
+				Optional:         true,
+				Default:          string(account.Consumption),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(account.Consumption),
+					string(account.Commitment1TB),
+					string(account.Commitment10TB),
+					string(account.Commitment100TB),
+					string(account.Commitment500TB),
+					string(account.Commitment1PB),
+					string(account.Commitment5PB),
+				}, true),
 			},
 
 			"tags": tagsSchema(),
@@ -52,14 +63,14 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
-	tier := d.Get("tier").(account.TierType)
+	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
 	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
 		Tags:     expandTags(tags),
 		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
-			NewTier: tier,
+			NewTier: account.TierType(tier),
 		},
 	}
 
@@ -90,19 +101,15 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).dataLakeStoreAccountClient
 	ctx := meta.(*ArmClient).StopContext
 
-	if !d.HasChange("tags") {
-		return nil
-	}
-
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	newTags := d.Get("tags").(map[string]interface{})
-	newTier := d.Get("tier").(account.TierType)
+	newTier := d.Get("tier").(string)
 
 	props := account.UpdateDataLakeStoreAccountParameters{
 		Tags: expandTags(newTags),
 		UpdateDataLakeStoreAccountProperties: &account.UpdateDataLakeStoreAccountProperties{
-			NewTier: newTier,
+			NewTier: account.TierType(newTier),
 		},
 	}
 
@@ -134,6 +141,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
+			fmt.Print("Oh no nothing was found")
 			return nil
 		}
 		return fmt.Errorf("Error making Read request on Azure Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -145,7 +153,9 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("tier", resp.Type)
+	if tier := resp.DataLakeStoreAccountProperties; tier != nil {
+		d.Set("tier", string(tier.CurrentTier))
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 

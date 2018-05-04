@@ -12,7 +12,7 @@ import (
 
 func TestAccAzureRMDataLakeStore_payasyougo(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := acctest.RandIntRange(1, 999999)
 	config := testAccAzureRMDataLakeStore_payasyougo(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -24,6 +24,7 @@ func TestAccAzureRMDataLakeStore_payasyougo(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tier", "Consumption"),
 				),
 			},
 		},
@@ -32,7 +33,7 @@ func TestAccAzureRMDataLakeStore_payasyougo(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := acctest.RandIntRange(1, 999999)
 	config := testAccAzureRMDataLakeStore_monthlycommitment(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -44,6 +45,7 @@ func TestAccAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataLakeStoreExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment_1TB"),
 				),
 			},
 		},
@@ -52,7 +54,7 @@ func TestAccAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
 
 func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandInt()
+	ri := acctest.RandIntRange(1, 999999)
 	location := testLocation()
 	preConfig := testAccAzureRMDataLakeStore_withTags(ri, location)
 	postConfig := testAccAzureRMDataLakeStore_withTagsUpdate(ri, location)
