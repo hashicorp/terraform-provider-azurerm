@@ -30,11 +30,11 @@ func TestAccAzureRMDataLakeStore_importPayAsYouGo(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataLakeStore_importPayAsYouGoWithTags(t *testing.T) {
+func TestAccAzureRMDataLakeStore_importTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureDataLakeStore_withTags(ri, testLocation())
+	config := testAccAzureRMDataLakeStore_withTags(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

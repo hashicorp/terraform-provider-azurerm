@@ -19,8 +19,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -139,7 +139,7 @@ type ArmClient struct {
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Lake Store
-	dataLakeStoreAccount account.AccountsClient
+	dataLakeStoreAccountClient account.AccountsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -650,7 +650,7 @@ func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerDataLakeStoreAccountClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	dataLakeStoreAccountClient := accounts.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	dataLakeStoreAccountClient := account.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dataLakeStoreAccountClient.Client, auth)
 	c.dataLakeStoreAccountClient = dataLakeStoreAccountClient
 }

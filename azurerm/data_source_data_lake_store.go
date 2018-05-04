@@ -24,7 +24,7 @@ func dataSourceArmDataLakeStoreAccount() *schema.Resource {
 			"tier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  false
+				Default:  false,
 			},
 
 			"tags": tagsForDataSourceSchema(),
@@ -55,8 +55,7 @@ func dataSourceArmDateLakeStoreAccountRead(d *schema.ResourceData, meta interfac
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	d.Set("tier", string(resp.Type))
-	
+	d.Set("tier", resp.Type)
 
 	flattenAndSetTags(d, resp.Tags)
 

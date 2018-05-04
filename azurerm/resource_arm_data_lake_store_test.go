@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"testing"
 
@@ -34,7 +33,7 @@ func TestAccAzureRMDataLakeStore_payasyougo(t *testing.T) {
 func TestAccAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()
-	config := TestAccAzureRMDataLakeStore_monthlycommitment(ri, testLocation())
+	config := testAccAzureRMDataLakeStore_monthlycommitment(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -148,11 +147,12 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_data_lake_store" "test" {
     name = "acctestlake%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "%s"
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, location)
 }
 
-func TestAccAzureRMDataLakeStore_monthlycommitment(rInt int, location string) string {
+func testAccAzureRMDataLakeStore_monthlycommitment(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG_%d"
@@ -162,9 +162,10 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_data_lake_store" "test" {
     name = "acctestlake%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "%s"
     tier = "Commitment_1TB"
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, location)
 }
 
 func testAccAzureRMDataLakeStore_withTags(rInt int, location string) string {
@@ -177,12 +178,13 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_data_lake_store" "test" {
     name = "acctestlake%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "%s"
     tags {
         environment = "Production"
         cost_center = "MSFT"
     }
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, location)
 }
 
 func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, location string) string {
@@ -195,10 +197,10 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_data_lake_store" "test" {
     name = "acctestlake%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
+    location = "%s"
     tags {
         environment = "staging"
     }
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, location)
 }
-

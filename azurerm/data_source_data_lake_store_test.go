@@ -20,7 +20,7 @@ func TestAccDataSourceAzureRMDataLakeStore_payasyougo(t *testing.T) {
 			{
 				Config: testAccDataSourceDataLakeStore_payasyougo(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.testCheckAzureRMDataLakeStoreExists(dataSourceName),
+					testCheckAzureRMDataLakeStoreExists(dataSourceName),
 				),
 			},
 		},
@@ -41,7 +41,7 @@ func TestAccDataSourceAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "tier", "Commitment_1TB"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.hello", "world")
+					resource.TestCheckResourceAttr(dataSourceName, "tags.hello", "world"),
 				),
 			},
 		},
@@ -68,7 +68,7 @@ data "azurerm_data_lake_store" "test" {
 	name                = "${azurerm_data_lake_store.test.name}"
 	resource_group_name = "${azurerm_data_lake_store.test.resource_group_name}"
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, location)
 }
 
 func testAccDataSourceDataLakeStore_monthlycommitment(rInt int, location string) string {
@@ -92,5 +92,5 @@ data "azurerm_data_lake_store" "test" {
 	name                = "${azurerm_data_lake_store.test.name}"
 	resource_group_name = "${azurerm_data_lake_store.test.resource_group_name}"
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, location)
 }

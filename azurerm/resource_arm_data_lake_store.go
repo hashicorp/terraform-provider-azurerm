@@ -6,7 +6,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,9 +32,9 @@ func resourceArmDateLakeStore() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"tier": {
-				Type:     schema.TypeString,
-				Required: false,
-				ForceNew: false,
+				Type:             schema.TypeString,
+				Required:         false,
+				ForceNew:         false,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
@@ -53,13 +52,13 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
-	tier := d.Get("tier").(string)
+	tier := d.Get("tier").(account.TierType)
 	tags := d.Get("tags").(map[string]interface{})
 
-	dateLakeStore := accounts.CreateDataLakeStoreAccountParameters{
+	dateLakeStore := account.CreateDataLakeStoreAccountParameters{
 		Location: &location,
 		Tags:     expandTags(tags),
-		CreateDataLakeStoreAccountProperties: &accounts.CreateDataLakeStoreAccountProperties{
+		CreateDataLakeStoreAccountProperties: &account.CreateDataLakeStoreAccountProperties{
 			NewTier: tier,
 		},
 	}
@@ -98,13 +97,13 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	newTags := d.Get("tags").(map[string]interface{})
-	newTier := d.Get("tier").(string)
+	newTier := d.Get("tier").(account.TierType)
 
-	props := accounts.UpdateDataLakeStoreAccountParameters{
+	props := account.UpdateDataLakeStoreAccountParameters{
 		Tags: expandTags(newTags),
-		UpdateDataLakeStoreAccountProperties: &accounts.UpdateDataLakeStoreAccountProperties{
+		UpdateDataLakeStoreAccountProperties: &account.UpdateDataLakeStoreAccountProperties{
 			NewTier: newTier,
-		}
+		},
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, props)
