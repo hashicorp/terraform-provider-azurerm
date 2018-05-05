@@ -90,8 +90,8 @@ resource "azurerm_hdinsight_cluster" "test" {
   cluster_type        = "hadoop"
   cluster_version     = "3.6"
   os_type             = "Linux"
-  restauth_username   = "super"
-  restauth_password   = "Password1234!"
+  login_username   = "super"
+  login_password   = "Password1234!"
 
   storage_account {
     blob_endpoint = "${azurerm_storage_account.test.primary_blob_endpoint}"

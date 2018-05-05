@@ -18,6 +18,10 @@ func resourceArmHDInsightClusters() *schema.Resource {
 		Read:   resourceArmHDInsightClustersRead,
 		Update: resourceArmHDInsightClustersUpdate,
 		Delete: resourceArmHDInsightClustersDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"location":            locationSchema(),
 			"resource_group_name": resourceGroupNameSchema(),
@@ -51,12 +55,12 @@ func resourceArmHDInsightClusters() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			"restauth_username": {
+			"login_username": {
 				Required: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
 			},
-			"restauth_password": {
+			"login_password": {
 				Required: true,
 				ForceNew: true,
 				Type:     schema.TypeString,
@@ -151,7 +155,7 @@ func hdInsightClustersNodeSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"linux_os_profile": {
-				Optional: true,
+				Required: true,
 				ForceNew: true,
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -282,8 +286,8 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	tmpParamOfConfigurations := make(map[string]interface{})
 	tmpParamOfGatewayConfigurations := make(map[string]interface{})
 	tmpParamOfGatewayConfigurations["restAuthCredential.isEnabled"] = true
-	tmpParamOfGatewayConfigurations["restAuthCredential.username"] = d.Get("restauth_username")
-	tmpParamOfGatewayConfigurations["restAuthCredential.password"] = d.Get("restauth_password")
+	tmpParamOfGatewayConfigurations["restAuthCredential.username"] = d.Get("login_username")
+	tmpParamOfGatewayConfigurations["restAuthCredential.password"] = d.Get("login_password")
 	tmpParamOfCoreSiteConfigurations := make(map[string]interface{})
 	for _, paramValue := range d.Get("storage_account").([]interface{}) {
 		tmpParamOfStorageAccount := paramValue.(map[string]interface{})
@@ -429,8 +433,8 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 			tmpRespOfConfigurations := *response.Properties.ClusterDefinition.Configurations.(*map[string]interface{})
 			if paramValue, paramExists := tmpRespOfConfigurations["gateway"]; paramExists {
 				tmpRespOfGatewayConfigurations := paramValue.(map[string]interface{})
-				d.Set("restauth_username", tmpRespOfGatewayConfigurations["restAuthCredential.username"].(string))
-				d.Set("restauth_password", tmpRespOfGatewayConfigurations["restAuthCredential.password"].(string))
+				d.Set("login_username", tmpRespOfGatewayConfigurations["restAuthCredential.username"].(string))
+				d.Set("login_password", tmpRespOfGatewayConfigurations["restAuthCredential.password"].(string))
 			}
 			if paramValue, paramExists := tmpRespOfConfigurations["core-site"]; paramExists {
 				tmpRespOfCoreSiteConfigurations := paramValue.(map[string]interface{})
