@@ -500,6 +500,8 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("write_endpoints", writeEndpoints)
 	}
 
+	// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer
+	// implying that it also returns the read only keys, however this appears to not be the case
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("[ERROR] Unable to List Write keys for CosmosDB Account %s: %s", name, err)
