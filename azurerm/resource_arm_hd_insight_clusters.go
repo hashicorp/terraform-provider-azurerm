@@ -61,9 +61,10 @@ func resourceArmHDInsightClusters() *schema.Resource {
 				Type:     schema.TypeString,
 			},
 			"login_password": {
-				Required: true,
-				ForceNew: true,
-				Type:     schema.TypeString,
+				Required:  true,
+				ForceNew:  true,
+				Sensitive: true,
+				Type:      schema.TypeString,
 			},
 			"storage_account": {
 				Required: true,
@@ -162,9 +163,10 @@ func hdInsightClustersNodeSchema() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"password": {
-							Optional: true,
-							ForceNew: true,
-							Type:     schema.TypeString,
+							Optional:  true,
+							ForceNew:  true,
+							Sensitive: true,
+							Type:      schema.TypeString,
 						},
 						"ssh_keys": {
 							Required: true,
@@ -382,15 +384,15 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("HD Insight Clusters creation future wait for completion error: %+v", err)
 	}
-	response, err := future.Result(client)
-	if err != nil {
-		return fmt.Errorf("HD Insight Clusters creation future result error: %+v", err)
-	}
 
-	if response.ID == nil {
+	read, err := client.Get(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		return fmt.Errorf("Cannot get HD Insight Clusters info after created: %+v", err)
+	}
+	if read.ID == nil {
 		return fmt.Errorf("Cannot get the ID of HD Insight Clusters %q (Resource Group %q) ID", clusterName, resourceGroupName)
 	}
-	d.SetId(*response.ID)
+	d.SetId(*read.ID)
 
 	return resourceArmHDInsightClustersRead(d, meta)
 }
@@ -557,15 +559,19 @@ func resourceArmHDInsightClustersUpdate(d *schema.ResourceData, meta interface{}
 	tmpParamOfTags := expandTags(tags)
 	parameters.Tags = tmpParamOfTags
 
-	response, err := client.Update(ctx, resourceGroupName, clusterName, parameters)
+	_, err := client.Update(ctx, resourceGroupName, clusterName, parameters)
 	if err != nil {
 		return fmt.Errorf("HD Insight Clusters update error: %+v", err)
 	}
 
-	if response.ID == nil {
+	read, err := client.Get(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		return fmt.Errorf("Cannot get HD Insight Clusters info after updated: %+v", err)
+	}
+	if read.ID == nil {
 		return fmt.Errorf("Cannot get the ID of HD Insight Clusters %q (Resource Group %q) ID", clusterName, resourceGroupName)
 	}
-	d.SetId(*response.ID)
+	d.SetId(*read.ID)
 
 	return resourceArmHDInsightClustersRead(d, meta)
 }
