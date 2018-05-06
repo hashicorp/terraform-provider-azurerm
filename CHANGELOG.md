@@ -4,8 +4,9 @@ IMPROVEMENTS:
 
 * `azurerm_app_service` - support for HTTP2 [GH-1188]
 * `azurerm_app_service` - support for Managed Service Identity [GH-1130]
-* `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
 * `azurerm_cosmosdb_account` - added support for the `connection_strings` property [GH-1194]
+* `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
+* `azurerm_virtual_network_gateway` - ignoring the case of the `GatewaySubnet` [GH-1141]
 
 ## 1.4.0 (April 26, 2018)
 
