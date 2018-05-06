@@ -4,7 +4,8 @@ IMPROVEMENTS:
 
 * `azurerm_app_service` - support for HTTP2 [GH-1188]
 * `azurerm_app_service` - support for Managed Service Identity [GH-1130]
-* `cosmos_db_account` - added support for the `connection_strings` property [GH-1194]
+* `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
+* `azurerm_cosmosdb_account` - added support for the `connection_strings` property [GH-1194]
 
 ## 1.4.0 (April 26, 2018)
 
@@ -16,7 +17,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_recovery_services_vault` ([#995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/995))
 * **New Resource:** `azurerm_recovery_services_vault` ([#995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/995))
-* **New Resource:** `arm_servicebus_subscription_rule` ([#1124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1124))
+* **New Resource:** `azurerm_servicebus_subscription_rule` ([#1124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1124))
 
 IMPROVEMENTS:
 
