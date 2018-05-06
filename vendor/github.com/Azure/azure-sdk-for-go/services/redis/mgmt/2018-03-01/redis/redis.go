@@ -42,8 +42,16 @@ func NewClientWithBaseURI(baseURI string, subscriptionID string) Client {
 
 // CheckNameAvailability checks that the redis cache name is valid and is not already in use.
 // Parameters:
-// parameters - parameters supplied to the CheckNameAvailability Redis operation.
+// parameters - parameters supplied to the CheckNameAvailability Redis operation. The only supported resource
+// type is 'Microsoft.Cache/redis'
 func (client Client) CheckNameAvailability(ctx context.Context, parameters CheckNameAvailabilityParameters) (result autorest.Response, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.Type", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("redis.Client", "CheckNameAvailability", err.Error())
+	}
+
 	req, err := client.CheckNameAvailabilityPreparer(ctx, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "redis.Client", "CheckNameAvailability", nil, "Failure preparing request")
