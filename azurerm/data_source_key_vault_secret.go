@@ -49,19 +49,17 @@ func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).keyVaultManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseKeyVaultChildID(d.Id())
-	if err != nil {
-		return err
-	}
+	name := d.Get("name").(string)
+	vaultUri := d.Get("vault_uri").(string)
 
 	// we always want to get the latest version
-	resp, err := client.GetSecret(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := client.GetSecret(ctx, vaultUri, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
+		return fmt.Errorf("Error making Read request on Azure KeyVault Secret %s: %+v", name, err)
 	}
 
 	// the version may have changed, so parse the updated id
@@ -69,6 +67,8 @@ func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
+	d.SetId(*resp.ID)
 
 	d.Set("name", respID.Name)
 	d.Set("vault_uri", respID.KeyVaultBaseUrl)

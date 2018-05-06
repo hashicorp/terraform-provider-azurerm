@@ -113,14 +113,10 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	resGroup := id.ResourceGroup
-	name := id.Path["vaults"]
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -129,8 +125,10 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making Read request on KeyVault %q: %+v", name, err)
 	}
 
+	d.SetId(*resp.ID)
+
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
