@@ -179,12 +179,12 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resourceGroup, name, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
