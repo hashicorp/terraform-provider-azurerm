@@ -1,5 +1,9 @@
 ## 1.5.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_cosmosdb_account` [GH-1056]
+
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for HTTP2 [GH-1188]
