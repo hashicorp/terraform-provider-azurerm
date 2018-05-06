@@ -21,13 +21,12 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				Required: true,
 			},
 
-			"location": locationForDataSourceSchema(),
-
 			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+
+			"location": locationForDataSourceSchema(),
 
 			"tags": tagsForDataSourceSchema(),
 
-			//resource fields
 			"offer_type": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -76,7 +75,6 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-
 						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -153,50 +151,58 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account '%s': %s", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM CosmosDB Account %s (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resourceGroup)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+	d.Set("kind", string(resp.Kind))
 	flattenAndSetTags(d, resp.Tags)
 
-	d.Set("kind", string(resp.Kind))
-	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
-	d.Set("ip_range_filter", resp.IPRangeFilter)
-	d.Set("endpoint", resp.DocumentEndpoint)
-
-	if v := resp.EnableAutomaticFailover; v != nil {
+	if props := resp.DatabaseAccountProperties; props != nil {
+		d.Set("offer_type", string(props.DatabaseAccountOfferType))
+		d.Set("ip_range_filter", props.IPRangeFilter)
+		d.Set("endpoint", props.DocumentEndpoint)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
-	}
 
-	if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
-		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	//sort `geo_locations` by fail over priority
-	locations := make([]map[string]interface{}, len(*resp.FailoverPolicies))
-	for _, l := range *resp.FailoverPolicies {
-		locations[*l.FailoverPriority] = map[string]interface{}{
-			"id":                *l.ID,
-			"location":          azureRMNormalizeLocation(*l.LocationName),
-			"failover_priority": int(*l.FailoverPriority),
+		if err := d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
+			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)
 		}
-	}
-	d.Set("geo_location", &locations)
 
-	readEndpoints := []string{}
-	for _, l := range *resp.ReadLocations {
-		readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
-	}
-	d.Set("read_endpoints", readEndpoints)
+		//sort `geo_locations` by fail over priority
+		locations := make([]map[string]interface{}, len(*props.FailoverPolicies))
+		for _, l := range *props.FailoverPolicies {
+			locations[*l.FailoverPriority] = map[string]interface{}{
+				"id":                *l.ID,
+				"location":          azureRMNormalizeLocation(*l.LocationName),
+				"failover_priority": int(*l.FailoverPriority),
+			}
+		}
+		if err := d.Set("geo_location", locations); err != nil {
+			return fmt.Errorf("Error setting `geo_location`: %+v", err)
+		}
 
-	writeEndpoints := []string{}
-	for _, l := range *resp.WriteLocations {
-		writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
+		readEndpoints := make([]string, 0)
+		if locations := props.ReadLocations; locations != nil {
+			for _, l := range *locations {
+				readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
+			}
+		}
+		d.Set("read_endpoints", readEndpoints)
+
+		writeEndpoints := make([]string, 0)
+		if locations := props.WriteLocations; locations != nil {
+			for _, l := range *locations {
+				writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
+			}
+		}
+		d.Set("write_endpoints", writeEndpoints)
 	}
-	d.Set("write_endpoints", writeEndpoints)
 
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
