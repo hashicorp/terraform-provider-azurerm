@@ -303,7 +303,7 @@ func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
 
 			if props := subnet.SubnetPropertiesFormat; props != nil {
 				if prefix := props.AddressPrefix; prefix != nil {
-					output["address_prefix"] = *props.AddressPrefix
+					output["address_prefix"] = *prefix
 				}
 
 				if nsg := props.NetworkSecurityGroup; nsg != nil {
