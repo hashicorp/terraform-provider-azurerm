@@ -57,8 +57,8 @@ func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 
 // CheckNameAvailability check the availability of a resource name. This is needed for resources where name is globally
 // unique, such as a CDN endpoint.
-//
-// checkNameAvailabilityInput is input to check.
+// Parameters:
+// checkNameAvailabilityInput - input to check.
 func (client BaseClient) CheckNameAvailability(ctx context.Context, checkNameAvailabilityInput CheckNameAvailabilityInput) (result CheckNameAvailabilityOutput, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: checkNameAvailabilityInput,
@@ -128,8 +128,8 @@ func (client BaseClient) CheckNameAvailabilityResponder(resp *http.Response) (re
 // ValidateProbe check if the probe path is a valid path and the file can be accessed. Probe path is the path to a file
 // hosted on the origin server to help accelerate the delivery of dynamic content via the CDN endpoint. This path is
 // relative to the origin path specified in the endpoint configuration.
-//
-// validateProbeInput is input to check.
+// Parameters:
+// validateProbeInput - input to check.
 func (client BaseClient) ValidateProbe(ctx context.Context, validateProbeInput ValidateProbeInput) (result ValidateProbeOutput, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: validateProbeInput,

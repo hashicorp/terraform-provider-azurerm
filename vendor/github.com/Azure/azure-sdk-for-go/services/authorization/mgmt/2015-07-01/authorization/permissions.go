@@ -43,11 +43,12 @@ func NewPermissionsClientWithBaseURI(baseURI string, subscriptionID string) Perm
 }
 
 // ListForResource gets all permissions the caller has for a resource.
-//
-// resourceGroupName is the name of the resource group containing the resource. The name is case insensitive.
-// resourceProviderNamespace is the namespace of the resource provider. parentResourcePath is the parent resource
-// identity. resourceType is the resource type of the resource. resourceName is the name of the resource to get the
-// permissions for.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the resource. The name is case insensitive.
+// resourceProviderNamespace - the namespace of the resource provider.
+// parentResourcePath - the parent resource identity.
+// resourceType - the resource type of the resource.
+// resourceName - the name of the resource to get the permissions for.
 func (client PermissionsClient) ListForResource(ctx context.Context, resourceGroupName string, resourceProviderNamespace string, parentResourcePath string, resourceType string, resourceName string) (result PermissionGetResultPage, err error) {
 	result.fn = client.listForResourceNextResults
 	req, err := client.ListForResourcePreparer(ctx, resourceGroupName, resourceProviderNamespace, parentResourcePath, resourceType, resourceName)
@@ -143,8 +144,8 @@ func (client PermissionsClient) ListForResourceComplete(ctx context.Context, res
 }
 
 // ListForResourceGroup gets all permissions the caller has for a resource group.
-//
-// resourceGroupName is the name of the resource group to get the permissions for. The name is case insensitive.
+// Parameters:
+// resourceGroupName - the name of the resource group to get the permissions for. The name is case insensitive.
 func (client PermissionsClient) ListForResourceGroup(ctx context.Context, resourceGroupName string) (result PermissionGetResultPage, err error) {
 	result.fn = client.listForResourceGroupNextResults
 	req, err := client.ListForResourceGroupPreparer(ctx, resourceGroupName)

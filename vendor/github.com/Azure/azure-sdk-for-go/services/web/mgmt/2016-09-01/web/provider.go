@@ -40,8 +40,6 @@ func NewProviderClientWithBaseURI(baseURI string, subscriptionID string) Provide
 }
 
 // GetAvailableStacks get available application frameworks and their versions
-//
-// osTypeSelected is
 func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelected string) (result ApplicationStackCollectionPage, err error) {
 	result.fn = client.getAvailableStacksNextResults
 	req, err := client.GetAvailableStacksPreparer(ctx, osTypeSelected)
@@ -131,8 +129,6 @@ func (client ProviderClient) GetAvailableStacksComplete(ctx context.Context, osT
 }
 
 // GetAvailableStacksOnPrem get available application frameworks and their versions
-//
-// osTypeSelected is
 func (client ProviderClient) GetAvailableStacksOnPrem(ctx context.Context, osTypeSelected string) (result ApplicationStackCollectionPage, err error) {
 	result.fn = client.getAvailableStacksOnPremNextResults
 	req, err := client.GetAvailableStacksOnPremPreparer(ctx, osTypeSelected)
