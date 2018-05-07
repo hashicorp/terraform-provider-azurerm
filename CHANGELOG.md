@@ -7,6 +7,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies - upgrading to v16.2.1 of `Azure/azure-sdk-for-go` [GH-1198]
+* dependencies - upgrading to v10.8.1 of `Azure/go-autorest` [GH-1198]
 * `azurerm_app_service` - support for HTTP2 [GH-1188]
 * `azurerm_app_service` - support for Managed Service Identity [GH-1130]
 * `azurerm_app_service_slot` - support for HTTP2 [GH-1205]
