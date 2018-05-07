@@ -17,10 +17,9 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"location": locationForDataSourceSchema(),
 
@@ -258,40 +257,42 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservice.AgentPoolProfile) []interface{} {
 	agentPoolProfiles := make([]interface{}, 0)
 
-	if profiles := input; profiles != nil {
-		for _, profile := range *profiles {
-			agentPoolProfile := make(map[string]interface{})
+	if input == nil {
+		return agentPoolProfiles
+	}
 
-			if profile.Count != nil {
-				agentPoolProfile["count"] = int(*profile.Count)
-			}
+	for _, profile := range *input {
+		agentPoolProfile := make(map[string]interface{})
 
-			if profile.DNSPrefix != nil {
-				agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
-			}
-
-			if profile.Name != nil {
-				agentPoolProfile["name"] = *profile.Name
-			}
-
-			if profile.VMSize != "" {
-				agentPoolProfile["vm_size"] = string(profile.VMSize)
-			}
-
-			if profile.OsDiskSizeGB != nil {
-				agentPoolProfile["os_disk_size_gb"] = int(*profile.OsDiskSizeGB)
-			}
-
-			if profile.VnetSubnetID != nil {
-				agentPoolProfile["vnet_subnet_id"] = *profile.VnetSubnetID
-			}
-
-			if profile.OsType != "" {
-				agentPoolProfile["os_type"] = string(profile.OsType)
-			}
-
-			agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
+		if profile.Count != nil {
+			agentPoolProfile["count"] = int(*profile.Count)
 		}
+
+		if profile.DNSPrefix != nil {
+			agentPoolProfile["dns_prefix"] = *profile.DNSPrefix
+		}
+
+		if profile.Name != nil {
+			agentPoolProfile["name"] = *profile.Name
+		}
+
+		if profile.VMSize != "" {
+			agentPoolProfile["vm_size"] = string(profile.VMSize)
+		}
+
+		if profile.OsDiskSizeGB != nil {
+			agentPoolProfile["os_disk_size_gb"] = int(*profile.OsDiskSizeGB)
+		}
+
+		if profile.VnetSubnetID != nil {
+			agentPoolProfile["vnet_subnet_id"] = *profile.VnetSubnetID
+		}
+
+		if profile.OsType != "" {
+			agentPoolProfile["os_type"] = string(profile.OsType)
+		}
+
+		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
 	}
 
 	return agentPoolProfiles
@@ -322,21 +323,22 @@ func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containe
 }
 
 func flattenKubernetesClusterDataSourceAccessProfile(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
-	if profile != nil {
-		if accessProfile := profile.AccessProfile; accessProfile != nil {
-			if kubeConfigRaw := accessProfile.KubeConfig; kubeConfigRaw != nil {
-				rawConfig := string(*kubeConfigRaw)
-
-				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
-				if err != nil {
-					return utils.String(rawConfig), []interface{}{}
-				}
-
-				flattenedKubeConfig := flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
-				return utils.String(rawConfig), flattenedKubeConfig
-			}
-		}
+	if profile == nil || profile.AccessProfile == nil {
+		return nil, []interface{}{}
 	}
+
+	if kubeConfigRaw := profile.AccessProfile.KubeConfig; kubeConfigRaw != nil {
+		rawConfig := string(*kubeConfigRaw)
+
+		kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+		if err != nil {
+			return utils.String(rawConfig), []interface{}{}
+		}
+
+		flattenedKubeConfig := flattenKubernetesClusterDataSourceKubeConfig(*kubeConfig)
+		return utils.String(rawConfig), flattenedKubeConfig
+	}
+
 	return nil, []interface{}{}
 }
 

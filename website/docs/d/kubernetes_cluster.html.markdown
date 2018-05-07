@@ -27,7 +27,7 @@ data "azurerm_kubernetes_cluster" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the managed Kubernetes Cluster
+* `name` - (Required) The name of the managed Kubernetes Cluster.
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the managed Kubernetes Cluster exists.
 
@@ -39,9 +39,9 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
-* `kube_config_raw` - Base64 encoded Kubernetes configuration
+* `kube_config_raw` - Base64 encoded Kubernetes configuration.
 
-* `kube_config` - A `kube_config` block as defined below
+* `kube_config` - A `kube_config` block as defined below.
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
@@ -51,11 +51,11 @@ The following attributes are exported:
 
 * `linux_profile` - A `linux_profile` block as documented below.
 
-* `agent_pool_profile` - One or more `agent_profile_pool` blocks as documented below
+* `agent_pool_profile` - One or more `agent_profile_pool` blocks as documented below.
 
 * `service_principal` - A `service_principal` block as documented below.
 
-* `tags` - A mapping of tags assigned to this resource
+* `tags` - A mapping of tags assigned to this resource.
 
 ---
 
