@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -628,7 +629,7 @@ func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (s []stri
 		return
 	}
 
-	if subnet != "GatewaySubnet" {
+	if strings.ToLower(subnet) != "gatewaysubnet" {
 		es = append(es, fmt.Errorf("expected %s to reference a gateway subnet with name GatewaySubnet", k))
 	}
 
