@@ -23,6 +23,9 @@ func resourceArmRedisCache() *schema.Resource {
 		Read:   resourceArmRedisCacheRead,
 		Update: resourceArmRedisCacheUpdate,
 		Delete: resourceArmRedisCacheDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
