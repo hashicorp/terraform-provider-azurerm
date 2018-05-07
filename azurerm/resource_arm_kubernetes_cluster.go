@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -127,9 +128,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validateKubernetesClusterAgentPoolName(),
 						},
 
 						"count": {
@@ -559,4 +561,11 @@ func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) 
 	buf.WriteString(fmt.Sprintf("%s-", clientId))
 
 	return hashcode.String(buf.String())
+}
+
+func validateKubernetesClusterAgentPoolName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-z]{1}[a-z0-9]{0,11}$"),
+		"Agent Pool names must start with a lowercase letter, have max length of 12, and only have characters a-z0-9.",
+	)
 }

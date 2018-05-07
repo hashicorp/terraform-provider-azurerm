@@ -29,6 +29,33 @@ func resourceArmAppService() *schema.Resource {
 				ValidateFunc: validateAppServiceName,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
@@ -68,6 +95,12 @@ func resourceArmAppService() *schema.Resource {
 								"v4.0",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+
+						"http2_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"java_version": {
@@ -326,6 +359,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		siteEnvelope.Identity = appServiceIdentity
+	}
+
 	if v, ok := d.GetOkExists("client_affinity_enabled"); ok {
 		enabled := v.(bool)
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
@@ -449,6 +487,28 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	if d.HasChange("identity") {
+		site, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error getting configuration for App Service %q: %+v", name, err)
+		}
+
+		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		site.Identity = appServiceIdentity
+
+		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
+
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
+		}
+	}
+
 	return resourceArmAppServiceRead(d, meta)
 }
 
@@ -546,6 +606,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	flattenAndSetTags(d, resp.Tags)
 
+	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -613,6 +678,10 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 
 	if v, ok := config["java_container_version"]; ok {
 		siteConfig.JavaContainerVersion = utils.String(v.(string))
+	}
+
+	if v, ok := config["http2_enabled"]; ok {
+		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
 
 	if v, ok := config["local_mysql_enabled"]; ok {
@@ -694,6 +763,10 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.LocalMySQLEnabled != nil {
 		result["local_mysql_enabled"] = *input.LocalMySQLEnabled
+	}
+
+	if input.HTTP20Enabled != nil {
+		result["http2_enabled"] = *input.HTTP20Enabled
 	}
 
 	result["managed_pipeline_mode"] = string(input.ManagedPipelineMode)
@@ -800,6 +873,33 @@ func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	}
 
 	return output
+}
+
+func expandAzureRmAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(identityType),
+	}
+}
+
+func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
 
 func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
