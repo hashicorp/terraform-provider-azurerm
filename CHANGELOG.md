@@ -8,6 +8,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * `azurerm_app_service` - support for HTTP2 [GH-1188]
+* `azurerm_app_service_slot` - support for HTTP2 [GH-1205]
 * `azurerm_app_service` - support for Managed Service Identity [GH-1130]
 * `azurerm_cosmosdb_account` - added support for the `connection_strings` property [GH-1194]
 * `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
