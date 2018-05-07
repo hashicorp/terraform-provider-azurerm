@@ -43,8 +43,8 @@ func NewCheckNameAvailabilityClientWithBaseURI(baseURI string, subscriptionID st
 }
 
 // Execute check the availability of name for resource
-//
-// nameAvailabilityRequest is the required parameters for checking if resource name is available.
+// Parameters:
+// nameAvailabilityRequest - the required parameters for checking if resource name is available.
 func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvailabilityRequest NameAvailabilityRequest) (result NameAvailability, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: nameAvailabilityRequest,

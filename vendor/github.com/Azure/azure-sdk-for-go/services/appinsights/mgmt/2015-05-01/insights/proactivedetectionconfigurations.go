@@ -41,10 +41,11 @@ func NewProactiveDetectionConfigurationsClientWithBaseURI(baseURI string, subscr
 }
 
 // Get get the ProactiveDetection configuration for this configuration id.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. configurationID is the ProactiveDetection configuration ID. This is unique within a
-// Application Insights component.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// configurationID - the ProactiveDetection configuration ID. This is unique within a Application Insights
+// component.
 func (client ProactiveDetectionConfigurationsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, configurationID string) (result ApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName, configurationID)
 	if err != nil {
@@ -110,9 +111,9 @@ func (client ProactiveDetectionConfigurationsClient) GetResponder(resp *http.Res
 }
 
 // List gets a list of ProactiveDetection configurations of an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
 func (client ProactiveDetectionConfigurationsClient) List(ctx context.Context, resourceGroupName string, resourceName string) (result ListApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
@@ -177,11 +178,13 @@ func (client ProactiveDetectionConfigurationsClient) ListResponder(resp *http.Re
 }
 
 // Update update the ProactiveDetection configuration for this configuration id.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. configurationID is the ProactiveDetection configuration ID. This is unique within a
-// Application Insights component. proactiveDetectionProperties is properties that need to be specified to update
-// the ProactiveDetection configuration.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// configurationID - the ProactiveDetection configuration ID. This is unique within a Application Insights
+// component.
+// proactiveDetectionProperties - properties that need to be specified to update the ProactiveDetection
+// configuration.
 func (client ProactiveDetectionConfigurationsClient) Update(ctx context.Context, resourceGroupName string, resourceName string, configurationID string, proactiveDetectionProperties ApplicationInsightsComponentProactiveDetectionConfiguration) (result ApplicationInsightsComponentProactiveDetectionConfiguration, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, resourceName, configurationID, proactiveDetectionProperties)
 	if err != nil {
