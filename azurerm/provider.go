@@ -97,6 +97,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_recovery_services_vault":               dataSourceArmRecoveryServicesVault(),
 			"azurerm_resource_group":                        dataSourceArmResourceGroup(),
 			"azurerm_role_definition":                       dataSourceArmRoleDefinition(),
+			"azurerm_route_table":                           dataSourceArmRouteTable(),
 			"azurerm_scheduler_job_collection":              dataSourceArmSchedulerJobCollection(),
 			"azurerm_snapshot":                              dataSourceArmSnapshot(),
 			"azurerm_storage_account":                       dataSourceArmStorageAccount(),
