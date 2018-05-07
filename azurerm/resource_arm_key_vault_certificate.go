@@ -231,6 +231,11 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
+			"certificate_data": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -339,6 +344,10 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	// Computed
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
+
+	if contents := cert.Cer; contents != nil {
+		d.Set("certificate_data", string(*contents))
+	}
 	flattenAndSetTags(d, cert.Tags)
 
 	return nil

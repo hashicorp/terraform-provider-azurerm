@@ -19,11 +19,10 @@ package automation
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"net/http"
 )
 
 // KeysClient is the automation Client
@@ -43,7 +42,7 @@ func NewKeysClientWithBaseURI(baseURI string, subscriptionID string) KeysClient 
 
 // ListByAutomationAccount retrieve the automation keys for an account.
 //
-// automationAccountName is the automation account name.
+// resourceGroupName is the resource group name. automationAccountName is the automation account name.
 func (client KeysClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result KeyListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -75,8 +74,8 @@ func (client KeysClient) ListByAutomationAccount(ctx context.Context, resourceGr
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
 func (client KeysClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"automationAccountName": autorest.Encode("path", automationAccountName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
