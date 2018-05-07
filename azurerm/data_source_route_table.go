@@ -16,10 +16,9 @@ func dataSourceArmRouteTable() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"location": locationForDataSourceSchema(),
 

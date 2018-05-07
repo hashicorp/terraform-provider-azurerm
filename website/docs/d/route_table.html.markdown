@@ -24,9 +24,9 @@ data "azurerm_route_table" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Route Table
+* `name` - (Required) The name of the Route Table.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Route Table exists
+* `resource_group_name` - (Required) The name of the Resource Group in which the Route Table exists.
 
 ## Attributes Reference
 
@@ -36,11 +36,11 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the Route Table exists.
 
-* `route` - One or more `route` blocks as documented below
+* `route` - One or more `route` blocks as documented below.
 
 * `subnets` - The collection of Subnets associated with this route table.
 
-* `tags` - A mapping of tags assigned to the Route Table
+* `tags` - A mapping of tags assigned to the Route Table.
 
 The `route` block exports the following:
 
