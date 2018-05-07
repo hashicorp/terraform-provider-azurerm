@@ -43,8 +43,8 @@ func NewLocationBasedPerformanceTierClientWithBaseURI(baseURI string, subscripti
 }
 
 // List list all the performance tiers at specified location in a given subscription.
-//
-// locationName is the name of the location.
+// Parameters:
+// locationName - the name of the location.
 func (client LocationBasedPerformanceTierClient) List(ctx context.Context, locationName string) (result PerformanceTierListResult, err error) {
 	req, err := client.ListPreparer(ctx, locationName)
 	if err != nil {
