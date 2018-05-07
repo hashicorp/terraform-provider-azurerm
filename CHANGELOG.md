@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_cosmosdb_account` [GH-1056]
+* **New Data Source:** `azurerm_route_table` [GH-1203]
 
 IMPROVEMENTS:
 
