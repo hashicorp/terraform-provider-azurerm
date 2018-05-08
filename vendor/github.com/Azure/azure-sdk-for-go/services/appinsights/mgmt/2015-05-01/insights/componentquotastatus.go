@@ -40,9 +40,9 @@ func NewComponentQuotaStatusClientWithBaseURI(baseURI string, subscriptionID str
 }
 
 // Get returns daily data volume cap (quota) status for an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
 func (client ComponentQuotaStatusClient) Get(ctx context.Context, resourceGroupName string, resourceName string) (result ApplicationInsightsComponentQuotaStatus, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {

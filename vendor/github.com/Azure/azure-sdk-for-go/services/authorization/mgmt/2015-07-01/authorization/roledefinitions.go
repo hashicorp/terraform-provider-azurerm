@@ -43,9 +43,10 @@ func NewRoleDefinitionsClientWithBaseURI(baseURI string, subscriptionID string) 
 }
 
 // CreateOrUpdate creates or updates a role definition.
-//
-// scope is the scope of the role definition. roleDefinitionID is the ID of the role definition. roleDefinition is
-// the values for the role definition.
+// Parameters:
+// scope - the scope of the role definition.
+// roleDefinitionID - the ID of the role definition.
+// roleDefinition - the values for the role definition.
 func (client RoleDefinitionsClient) CreateOrUpdate(ctx context.Context, scope string, roleDefinitionID string, roleDefinition RoleDefinition) (result RoleDefinition, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, scope, roleDefinitionID, roleDefinition)
 	if err != nil {
@@ -111,8 +112,9 @@ func (client RoleDefinitionsClient) CreateOrUpdateResponder(resp *http.Response)
 }
 
 // Delete deletes a role definition.
-//
-// scope is the scope of the role definition. roleDefinitionID is the ID of the role definition to delete.
+// Parameters:
+// scope - the scope of the role definition.
+// roleDefinitionID - the ID of the role definition to delete.
 func (client RoleDefinitionsClient) Delete(ctx context.Context, scope string, roleDefinitionID string) (result RoleDefinition, err error) {
 	req, err := client.DeletePreparer(ctx, scope, roleDefinitionID)
 	if err != nil {
@@ -176,8 +178,9 @@ func (client RoleDefinitionsClient) DeleteResponder(resp *http.Response) (result
 }
 
 // Get get role definition by name (GUID).
-//
-// scope is the scope of the role definition. roleDefinitionID is the ID of the role definition.
+// Parameters:
+// scope - the scope of the role definition.
+// roleDefinitionID - the ID of the role definition.
 func (client RoleDefinitionsClient) Get(ctx context.Context, scope string, roleDefinitionID string) (result RoleDefinition, err error) {
 	req, err := client.GetPreparer(ctx, scope, roleDefinitionID)
 	if err != nil {
@@ -241,8 +244,8 @@ func (client RoleDefinitionsClient) GetResponder(resp *http.Response) (result Ro
 }
 
 // GetByID gets a role definition by ID.
-//
-// roleDefinitionID is the fully qualified role definition ID. Use the format,
+// Parameters:
+// roleDefinitionID - the fully qualified role definition ID. Use the format,
 // /subscriptions/{guid}/providers/Microsoft.Authorization/roleDefinitions/{roleDefinitionId} for subscription
 // level role definitions, or /providers/Microsoft.Authorization/roleDefinitions/{roleDefinitionId} for tenant
 // level role definitions.
@@ -308,9 +311,10 @@ func (client RoleDefinitionsClient) GetByIDResponder(resp *http.Response) (resul
 }
 
 // List get all role definitions that are applicable at scope and above.
-//
-// scope is the scope of the role definition. filter is the filter to apply on the operation. Use atScopeAndBelow
-// filter to search below the given scope as well.
+// Parameters:
+// scope - the scope of the role definition.
+// filter - the filter to apply on the operation. Use atScopeAndBelow filter to search below the given scope as
+// well.
 func (client RoleDefinitionsClient) List(ctx context.Context, scope string, filter string) (result RoleDefinitionListResultPage, err error) {
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, scope, filter)

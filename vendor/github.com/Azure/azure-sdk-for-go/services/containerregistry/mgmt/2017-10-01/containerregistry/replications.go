@@ -41,10 +41,11 @@ func NewReplicationsClientWithBaseURI(baseURI string, subscriptionID string) Rep
 }
 
 // Create creates a replication for a container registry with the specified parameters.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. replicationName is the name of the replication. replication is the parameters
-// for creating a replication.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// replicationName - the name of the replication.
+// replication - the parameters for creating a replication.
 func (client ReplicationsClient) Create(ctx context.Context, resourceGroupName string, registryName string, replicationName string, replication Replication) (result ReplicationsCreateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -126,9 +127,10 @@ func (client ReplicationsClient) CreateResponder(resp *http.Response) (result Re
 }
 
 // Delete deletes a replication from a container registry.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. replicationName is the name of the replication.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// replicationName - the name of the replication.
 func (client ReplicationsClient) Delete(ctx context.Context, resourceGroupName string, registryName string, replicationName string) (result ReplicationsDeleteFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -207,9 +209,10 @@ func (client ReplicationsClient) DeleteResponder(resp *http.Response) (result au
 }
 
 // Get gets the properties of the specified replication.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. replicationName is the name of the replication.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// replicationName - the name of the replication.
 func (client ReplicationsClient) Get(ctx context.Context, resourceGroupName string, registryName string, replicationName string) (result Replication, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -287,9 +290,9 @@ func (client ReplicationsClient) GetResponder(resp *http.Response) (result Repli
 }
 
 // List lists all the replications for the specified container registry.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
 func (client ReplicationsClient) List(ctx context.Context, resourceGroupName string, registryName string) (result ReplicationListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -390,10 +393,11 @@ func (client ReplicationsClient) ListComplete(ctx context.Context, resourceGroup
 }
 
 // Update updates a replication for a container registry with the specified parameters.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. replicationName is the name of the replication. replicationUpdateParameters is
-// the parameters for updating a replication.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// replicationName - the name of the replication.
+// replicationUpdateParameters - the parameters for updating a replication.
 func (client ReplicationsClient) Update(ctx context.Context, resourceGroupName string, registryName string, replicationName string, replicationUpdateParameters ReplicationUpdateParameters) (result ReplicationsUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
