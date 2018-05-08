@@ -449,7 +449,7 @@ resource "azurerm_redis_cache" "test" {
     enable_non_ssl_port = false
 
     redis_configuration {
-      maxclients = "256"
+      maxclients = 256
     }
 }
 `, rInt, location, rInt)
@@ -471,7 +471,7 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Standard"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients = "256"
+      maxclients = 256
     }
 
     tags {
