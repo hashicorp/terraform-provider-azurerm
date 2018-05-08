@@ -449,7 +449,6 @@ resource "azurerm_redis_cache" "test" {
     enable_non_ssl_port = false
 
     redis_configuration {
-      maxclients = 256
     }
 }
 `, rInt, location, rInt)
@@ -471,7 +470,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Standard"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients = 256
     }
 
     tags {
@@ -497,8 +495,7 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = 256,
-      maxmemory_reserved = 2,
+      maxmemory_reserved = 2
       maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
@@ -523,8 +520,7 @@ resource "azurerm_redis_cache" "test" {
     enable_non_ssl_port = true
     shard_count         = 3
     redis_configuration {
-      maxclients         = "256",
-      maxmemory_reserved = 2,
+      maxmemory_reserved = 2
       maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
@@ -548,7 +544,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "basic"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients = "256"
     }
 }
 `, ri, location, ri)
@@ -570,7 +565,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = "256"
       rdb_backup_enabled = false
     }
 }
@@ -605,7 +599,6 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients                    = "256"
       rdb_backup_enabled            = true
       rdb_backup_frequency          = 60
       rdb_backup_max_snapshot_count = 1
@@ -630,8 +623,7 @@ resource "azurerm_redis_cache" "test" {
     sku_name            = "Premium"
     enable_non_ssl_port = false
     redis_configuration {
-      maxclients         = 256,
-      maxmemory_reserved = 2,
+      maxmemory_reserved = 2
       maxmemory_delta    = 2
       maxmemory_policy   = "allkeys-lru"
     }
@@ -704,7 +696,6 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
   redis_configuration {
-    maxclients = "256"
   }
 }
 `, ri, location, ri, ri)
@@ -742,7 +733,6 @@ resource "azurerm_redis_cache" "test" {
   subnet_id                 = "${azurerm_subnet.test.id}"
   private_static_ip_address = "10.0.1.20"
   redis_configuration {
-    maxclients = "256"
   }
 }
 `, ri, location, ri, ri)

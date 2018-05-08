@@ -98,7 +98,6 @@ func resourceArmRedisCache() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"maxclients": {
 							Type:     schema.TypeInt,
-							Optional: true,
 							Computed: true,
 						},
 
@@ -623,7 +622,7 @@ func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) 
 		if err != nil {
 			return nil, fmt.Errorf("Error parsing `rdb-backup-frequency` %q: %+v", v, err)
 		}
-		outputs["maxmemoryrdb_backup_frequency_policy"] = i
+		outputs["rdb_backup_frequency"] = i
 	}
 	if v := input["rdb-backup-max-snapshot-count"]; v != nil {
 		i, err := strconv.Atoi(*v)
