@@ -298,13 +298,9 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	return agentPoolProfiles
 }
 
-func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
+func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) []interface{} {
 	if profile == nil {
-		return nil
-	}
-
-	servicePrincipalProfiles := &schema.Set{
-		F: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
+		return []interface{}{}
 	}
 
 	values := make(map[string]interface{})
@@ -313,13 +309,7 @@ func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containe
 		values["client_id"] = *clientId
 	}
 
-	if secret := profile.Secret; secret != nil {
-		values["client_secret"] = *secret
-	}
-
-	servicePrincipalProfiles.Add(values)
-
-	return servicePrincipalProfiles
+	return []interface{}{values}
 }
 
 func flattenKubernetesClusterDataSourceAccessProfile(profile *containerservice.ManagedClusterAccessProfile) (*string, []interface{}) {
