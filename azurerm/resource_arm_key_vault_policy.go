@@ -102,7 +102,6 @@ func resourceArmKeyVaultPolicyCreateOrDelete(d *schema.ResourceData, meta interf
 	log.Printf("[INFO] preparing arguments for Azure ARM Policy: %s.", action)
 
 	name := d.Get("vault_name").(string)
-	//location := azureRMNormalizeLocation(d.Get("vault_location").(string))
 	resGroup := d.Get("vault_resource_group").(string)
 
 	parameters := keyvault.VaultAccessPolicyParameters{
@@ -125,7 +124,9 @@ func resourceArmKeyVaultPolicyCreateOrDelete(d *schema.ResourceData, meta interf
 		return fmt.Errorf("cannot read KeyVault %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	if action != keyvault.Remove {
+		d.SetId(*read.ID)
+	}
 
 	return resourceArmKeyVaultRead(d, meta)
 }

@@ -76,7 +76,6 @@ func resourceArmKeyVault() *schema.Resource {
 			"access_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 0,
 				MaxItems: 16,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
