@@ -141,6 +141,13 @@ func TestAccAzureRMRedisCache_importBackupEnabled(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+
+				// `redis_configuration.0.rdb_storage_connection_string` is returned as:
+				// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+				// TODO: remove this once the Bug's been fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/3037
+				ExpectNonEmptyPlan:      true,
+				ImportStateVerifyIgnore: []string{"redis_configuration.0.rdb_storage_connection_string"},
 			},
 		},
 	})
