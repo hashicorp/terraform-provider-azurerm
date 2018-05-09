@@ -77,8 +77,7 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: EventHub Namespace %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on EventHub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
