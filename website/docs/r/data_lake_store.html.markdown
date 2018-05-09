@@ -44,7 +44,7 @@ resource "azurerm_data_lake_store" "monthly" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Data Lake Store. Changing this forces a
-    new resource to be created. Has to be between 8 to 24 characters.
+    new resource to be created. Has to be between 3 to 24 characters.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the Data Lake Store.
