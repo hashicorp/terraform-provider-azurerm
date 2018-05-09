@@ -90,6 +90,7 @@
 			"version": "v16.2.1",
 			"versionExact": "v16.2.1"
 		},
+		{
 			"checksumSHA1": "NieGKPVYPaCrPLxkzS+fEMidE3M=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
