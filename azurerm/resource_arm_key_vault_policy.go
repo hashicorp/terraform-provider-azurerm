@@ -126,9 +126,10 @@ func resourceArmKeyVaultPolicyCreateOrDelete(d *schema.ResourceData, meta interf
 
 	if action != keyvault.Remove {
 		d.SetId(*read.ID)
+		return resourceArmKeyVaultRead(d, meta)
+	} else {
+		return nil
 	}
-
-	return resourceArmKeyVaultRead(d, meta)
 }
 
 func resourceArmKeyVaultPolicyCreate(d *schema.ResourceData, meta interface{}) error {
