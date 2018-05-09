@@ -119,6 +119,8 @@ The following arguments are supported:
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
+~> **NOTE:** There's a known issue where Agents connected to an Internal Network (e.g. on a Subnet) have their network routing configured incorrectly; such that Pods cannot communicate across nodes. This is a bug in the Azure API - and will be fixed there in the future.
+
 `service_principal` supports the following:
 
 * `client_id` - (Required) The Client ID for the Service Principal.
@@ -147,6 +149,19 @@ The following attributes are exported:
   * `username` - A username used to authenticate to the Kubernetes cluster.
 
   * `password` - A password or token used to authenticate to the Kubernetes cluster.
+
+-> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+
+```
+provider "kubernetes" {
+  host                   = "${azurerm_kubernetes_cluster.main.kube_config.0.host}"
+  username               = "${azurerm_kubernetes_cluster.main.kube_config.0.username}"
+  password               = "${azurerm_kubernetes_cluster.main.kube_config.0.password}"
+  client_certificate     = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)}"
+  client_key             = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)}"
+  cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
+}
+```
 
 ## Import
 

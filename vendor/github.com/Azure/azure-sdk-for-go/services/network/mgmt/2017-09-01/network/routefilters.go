@@ -40,9 +40,10 @@ func NewRouteFiltersClientWithBaseURI(baseURI string, subscriptionID string) Rou
 }
 
 // CreateOrUpdate creates or updates a route filter in a specified resource group.
-//
-// resourceGroupName is the name of the resource group. routeFilterName is the name of the route filter.
-// routeFilterParameters is parameters supplied to the create or update route filter operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// routeFilterName - the name of the route filter.
+// routeFilterParameters - parameters supplied to the create or update route filter operation.
 func (client RouteFiltersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, routeFilterName string, routeFilterParameters RouteFilter) (result RouteFiltersCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, routeFilterName, routeFilterParameters)
 	if err != nil {
@@ -111,8 +112,9 @@ func (client RouteFiltersClient) CreateOrUpdateResponder(resp *http.Response) (r
 }
 
 // Delete deletes the specified route filter.
-//
-// resourceGroupName is the name of the resource group. routeFilterName is the name of the route filter.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// routeFilterName - the name of the route filter.
 func (client RouteFiltersClient) Delete(ctx context.Context, resourceGroupName string, routeFilterName string) (result RouteFiltersDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, routeFilterName)
 	if err != nil {
@@ -178,9 +180,10 @@ func (client RouteFiltersClient) DeleteResponder(resp *http.Response) (result au
 }
 
 // Get gets the specified route filter.
-//
-// resourceGroupName is the name of the resource group. routeFilterName is the name of the route filter. expand is
-// expands referenced express route bgp peering resources.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// routeFilterName - the name of the route filter.
+// expand - expands referenced express route bgp peering resources.
 func (client RouteFiltersClient) Get(ctx context.Context, resourceGroupName string, routeFilterName string, expand string) (result RouteFilter, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, routeFilterName, expand)
 	if err != nil {
@@ -338,8 +341,8 @@ func (client RouteFiltersClient) ListComplete(ctx context.Context) (result Route
 }
 
 // ListByResourceGroup gets all route filters in a resource group.
-//
-// resourceGroupName is the name of the resource group.
+// Parameters:
+// resourceGroupName - the name of the resource group.
 func (client RouteFiltersClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result RouteFilterListResultPage, err error) {
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
@@ -431,9 +434,10 @@ func (client RouteFiltersClient) ListByResourceGroupComplete(ctx context.Context
 }
 
 // Update updates a route filter in a specified resource group.
-//
-// resourceGroupName is the name of the resource group. routeFilterName is the name of the route filter.
-// routeFilterParameters is parameters supplied to the update route filter operation.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// routeFilterName - the name of the route filter.
+// routeFilterParameters - parameters supplied to the update route filter operation.
 func (client RouteFiltersClient) Update(ctx context.Context, resourceGroupName string, routeFilterName string, routeFilterParameters PatchRouteFilter) (result RouteFiltersUpdateFuture, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, routeFilterName, routeFilterParameters)
 	if err != nil {

@@ -24,21 +24,25 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // StartContainerClient is the client for the StartContainer methods of the Containerinstance service.
 type StartContainerClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // NewStartContainerClient creates an instance of the StartContainerClient client.
 func NewStartContainerClient(subscriptionID string) StartContainerClient {
 	return NewStartContainerClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // NewStartContainerClientWithBaseURI creates an instance of the StartContainerClient client.
 func NewStartContainerClientWithBaseURI(baseURI string, subscriptionID string) StartContainerClient {
 	return StartContainerClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // LaunchExec starts the exec command for a specified container instance in a specified resource group and container
 // group.
 //
@@ -66,6 +70,7 @@ func (client StartContainerClient) LaunchExec(ctx context.Context, resourceGroup
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // LaunchExecPreparer prepares the LaunchExec request.
 func (client StartContainerClient) LaunchExecPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, containerExecRequest ContainerExecRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -90,6 +95,7 @@ func (client StartContainerClient) LaunchExecPreparer(ctx context.Context, resou
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // LaunchExecSender sends the LaunchExec request. The method will close the
 // http.Response Body if it receives an error.
 func (client StartContainerClient) LaunchExecSender(req *http.Request) (*http.Response, error) {
@@ -97,6 +103,7 @@ func (client StartContainerClient) LaunchExecSender(req *http.Request) (*http.Re
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // LaunchExecResponder handles the response to the LaunchExec request. The method always
 // closes the http.Response Body.
 func (client StartContainerClient) LaunchExecResponder(resp *http.Response) (result ContainerExecResponse, err error) {
