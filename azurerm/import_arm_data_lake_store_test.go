@@ -10,7 +10,7 @@ import (
 func TestAccAzureRMDataLakeStore_importPayAsYouGo(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 
-	ri := acctest.RandInt()
+	ri := acctest.RandIntRange(1, 999999)
 	config := testAccAzureRMDataLakeStore_payasyougo(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -33,7 +33,7 @@ func TestAccAzureRMDataLakeStore_importPayAsYouGo(t *testing.T) {
 func TestAccAzureRMDataLakeStore_importTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 
-	ri := acctest.RandInt()
+	ri := acctest.RandIntRange(1, 999999)
 	config := testAccAzureRMDataLakeStore_withTags(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{

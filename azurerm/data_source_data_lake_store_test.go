@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceAzureRMDataLakeStore_payasyougo(t *testing.T) {
 	dataSourceName := "data.azurerm_data_lake_store.test"
-	rInt := acctest.RandInt()
+	rInt := acctest.RandIntRange(1, 999999)
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMDataLakeStore_payasyougo(t *testing.T) {
 
 func TestAccDataSourceAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
 	dataSourceName := "data.azurerm_data_lake_store.test"
-	rInt := acctest.RandInt()
+	rInt := acctest.RandIntRange(1, 999999)
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -56,7 +56,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-	name = "acctestdatalakestore%d"
+	name = "acctest%d"
 	location = "%s"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	tags {
@@ -79,7 +79,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_data_lake_store" "test" {
-	name = "acctestdatalakestore%d"
+	name = "acctest%d"
 	location = "%s"
 	tier = "Commitment_1TB"
 	resource_group_name = "${azurerm_resource_group.test.name}"
