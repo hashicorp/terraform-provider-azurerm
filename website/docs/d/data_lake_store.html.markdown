@@ -32,5 +32,5 @@ output "data_lake_store_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Data Lake Store.
-* `tier` - Current Commitment tier for the account.
+* `tier` - Current monthly commitment tier for the account.
 * `tags` - A mapping of tags to assign to the Data Lake Store.
