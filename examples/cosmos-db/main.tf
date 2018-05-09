@@ -18,10 +18,13 @@ resource "azurerm_cosmosdb_account" "db" {
 
     enable_automatic_failover = true
 
+    //set ip_range_filter to allow azure services (0.0.0.0) and azure portal.
+    ip_range_filter = "0.0.0.0,104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
+
     consistency_policy {
-        consistency_level       = "BoundedStaleness"
-        max_interval_in_seconds = 10
-        max_staleness_prefix    = 200
+      consistency_level       = "BoundedStaleness"
+      max_interval_in_seconds = 10
+      max_staleness_prefix    = 200
     }
 
     geo_location {
@@ -31,7 +34,7 @@ resource "azurerm_cosmosdb_account" "db" {
     }
 
     geo_location {
-        location          = "${var.failover_location}"
-        failover_priority = 0
+      location          = "${var.failover_location}"
+      failover_priority = 0
     }
 }

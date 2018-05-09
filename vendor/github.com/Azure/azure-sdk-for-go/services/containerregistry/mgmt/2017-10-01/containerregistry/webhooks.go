@@ -41,10 +41,11 @@ func NewWebhooksClientWithBaseURI(baseURI string, subscriptionID string) Webhook
 }
 
 // Create creates a webhook for a container registry with the specified parameters.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook. webhookCreateParameters is the
-// parameters for creating a webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
+// webhookCreateParameters - the parameters for creating a webhook.
 func (client WebhooksClient) Create(ctx context.Context, resourceGroupName string, registryName string, webhookName string, webhookCreateParameters WebhookCreateParameters) (result WebhooksCreateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -132,9 +133,10 @@ func (client WebhooksClient) CreateResponder(resp *http.Response) (result Webhoo
 }
 
 // Delete deletes a webhook from a container registry.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) Delete(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result WebhooksDeleteFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -213,9 +215,10 @@ func (client WebhooksClient) DeleteResponder(resp *http.Response) (result autore
 }
 
 // Get gets the properties of the specified webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) Get(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result Webhook, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -293,9 +296,10 @@ func (client WebhooksClient) GetResponder(resp *http.Response) (result Webhook, 
 }
 
 // GetCallbackConfig gets the configuration of service URI and custom headers for the webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) GetCallbackConfig(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result CallbackConfig, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -373,9 +377,9 @@ func (client WebhooksClient) GetCallbackConfigResponder(resp *http.Response) (re
 }
 
 // List lists all the webhooks for the specified container registry.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
 func (client WebhooksClient) List(ctx context.Context, resourceGroupName string, registryName string) (result WebhookListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -476,9 +480,10 @@ func (client WebhooksClient) ListComplete(ctx context.Context, resourceGroupName
 }
 
 // ListEvents lists recent events for the specified webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) ListEvents(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result EventListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -584,9 +589,10 @@ func (client WebhooksClient) ListEventsComplete(ctx context.Context, resourceGro
 }
 
 // Ping triggers a ping event to be sent to the webhook.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
 func (client WebhooksClient) Ping(ctx context.Context, resourceGroupName string, registryName string, webhookName string) (result EventInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,
@@ -664,10 +670,11 @@ func (client WebhooksClient) PingResponder(resp *http.Response) (result EventInf
 }
 
 // Update updates a webhook with the specified parameters.
-//
-// resourceGroupName is the name of the resource group to which the container registry belongs. registryName is the
-// name of the container registry. webhookName is the name of the webhook. webhookUpdateParameters is the
-// parameters for updating a webhook.
+// Parameters:
+// resourceGroupName - the name of the resource group to which the container registry belongs.
+// registryName - the name of the container registry.
+// webhookName - the name of the webhook.
+// webhookUpdateParameters - the parameters for updating a webhook.
 func (client WebhooksClient) Update(ctx context.Context, resourceGroupName string, registryName string, webhookName string, webhookUpdateParameters WebhookUpdateParameters) (result WebhooksUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: registryName,

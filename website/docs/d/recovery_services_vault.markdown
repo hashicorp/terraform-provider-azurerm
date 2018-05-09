@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_recovery_services_vault
 
-Use this data source to access the properties of an Recovery Services Vault.
+Use this data source to access the properties of a Recovery Services Vault.
 
 ## Example Usage
 
