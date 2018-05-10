@@ -1,5 +1,9 @@
 ## 1.5.0 (Unreleased)
 
+UPGRADE NOTES:
+
+~> **Please Note:** Prior to v1.5 Data Sources in the AzureRM Provider returned `nil` rather than an error message when a Resource didn't exist, which was a bug. In order to bring this into line with other Providers - starting in v1.5 the AzureRM Provider will return an error message when a resource doesn't exist.
+
 FEATURES:
 
 * **New Data Source:** `azurerm_cosmosdb_account` [GH-1056]
