@@ -72,8 +72,9 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config_raw": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"linux_profile": {
