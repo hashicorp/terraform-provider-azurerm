@@ -119,8 +119,7 @@ func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("KeyVault %q (Resource Group %q) does not exist", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on KeyVault %q: %+v", name, err)
 	}

@@ -56,8 +56,7 @@ func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.GetSecret(ctx, vaultUri, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("KeyVault Secret %q (KeyVault URI %q) does not exist", name, vaultUri)
 		}
 		return fmt.Errorf("Error making Read request on Azure KeyVault Secret %s: %+v", name, err)
 	}
