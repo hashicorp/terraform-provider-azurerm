@@ -13,9 +13,13 @@ Gets information about a Key Vault.
 ## Example Usage
 
 ```hcl
-resource "azurerm_key_vault" "test" {
+data "azurerm_key_vault" "test" {
   name                = "mykeyvault"
   resource_group_name = "some-resource-group"
+}
+
+output "vault_uri" {
+  value = "${data.azurerm_key_vault.test.vault_uri}"
 }
 ```
 
@@ -25,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Key Vault.
 
-* `resource_group_name` - The name of the Resource Group in which the Key Vault exists.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Key Vault exists.
 
 ## Attributes Reference
 
@@ -35,7 +39,7 @@ The following attributes are exported:
 
 * `vault_uri` - The URI of the vault for performing operations on keys and secrets.
 
-* `location` - The Azure Region in which the Key Vault exists
+* `location` - The Azure Region in which the Key Vault exists.
 
 * `sku` - A `sku` block as described below.
 
@@ -67,4 +71,4 @@ A `sku` block exports the following:
 
 * `key_permissions` - A list of key permissions applicable to this Access Policy.
 
-* `secret_permissions` - A list of secret permissions applicable to this Access Policy.`set`.
+* `secret_permissions` - A list of secret permissions applicable to this Access Policy.
