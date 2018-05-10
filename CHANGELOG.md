@@ -4,6 +4,8 @@ FEATURES:
 
 * **New Data Source:** `azurerm_cosmosdb_account` [GH-1056]
 * **New Data Source:** `azurerm_kubernetes_cluster` [GH-1204]
+* **New Data Source:** `azurerm_key_vault` [GH-1202]
+* **New Data Source:** `azurerm_key_vault_secret` [GH-1202]
 * **New Data Source:** `azurerm_route_table` [GH-1203]
 
 IMPROVEMENTS:
