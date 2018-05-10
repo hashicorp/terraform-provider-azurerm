@@ -1239,10 +1239,10 @@ func (page ListResultPage) Values() []Model {
 	return *page.lr.Value
 }
 
-// MessagingPlan messaging
+// MessagingPlan messaging Plan for the namespace
 type MessagingPlan struct {
 	autorest.Response        `json:"-"`
-	*MessagingPlanproperties `json:"properties,omitempty"`
+	*MessagingPlanProperties `json:"properties,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
@@ -1258,8 +1258,8 @@ type MessagingPlan struct {
 // MarshalJSON is the custom marshaler for MessagingPlan.
 func (mp MessagingPlan) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if mp.MessagingPlanproperties != nil {
-		objectMap["properties"] = mp.MessagingPlanproperties
+	if mp.MessagingPlanProperties != nil {
+		objectMap["properties"] = mp.MessagingPlanProperties
 	}
 	if mp.Location != nil {
 		objectMap["location"] = mp.Location
@@ -1290,12 +1290,12 @@ func (mp *MessagingPlan) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "properties":
 			if v != nil {
-				var messagingPlanproperties MessagingPlanproperties
-				err = json.Unmarshal(*v, &messagingPlanproperties)
+				var messagingPlanProperties MessagingPlanProperties
+				err = json.Unmarshal(*v, &messagingPlanProperties)
 				if err != nil {
 					return err
 				}
-				mp.MessagingPlanproperties = &messagingPlanproperties
+				mp.MessagingPlanProperties = &messagingPlanProperties
 			}
 		case "location":
 			if v != nil {
@@ -1348,8 +1348,8 @@ func (mp *MessagingPlan) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// MessagingPlanproperties messaging Region
-type MessagingPlanproperties struct {
+// MessagingPlanProperties ...
+type MessagingPlanProperties struct {
 	// Sku - Sku type
 	Sku *int32 `json:"sku,omitempty"`
 	// SelectedEventHubUnit - Selected event hub unit

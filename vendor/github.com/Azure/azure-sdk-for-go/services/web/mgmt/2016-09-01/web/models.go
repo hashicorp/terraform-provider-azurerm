@@ -892,6 +892,25 @@ func PossiblePublishingProfileFormatValues() []PublishingProfileFormat {
 	return []PublishingProfileFormat{FileZilla3, Ftp, WebDeploy}
 }
 
+// RenderingType enumerates the values for rendering type.
+type RenderingType string
+
+const (
+	// NoGraph ...
+	NoGraph RenderingType = "NoGraph"
+	// Table ...
+	Table RenderingType = "Table"
+	// TimeSeries ...
+	TimeSeries RenderingType = "TimeSeries"
+	// TimeSeriesPerInstance ...
+	TimeSeriesPerInstance RenderingType = "TimeSeriesPerInstance"
+)
+
+// PossibleRenderingTypeValues returns an array of possible values for the RenderingType const type.
+func PossibleRenderingTypeValues() []RenderingType {
+	return []RenderingType{NoGraph, Table, TimeSeries, TimeSeriesPerInstance}
+}
+
 // ResourceScopeType enumerates the values for resource scope type.
 type ResourceScopeType string
 
@@ -5408,6 +5427,218 @@ type BackupSchedule struct {
 	LastExecutionTime *date.Time `json:"lastExecutionTime,omitempty"`
 }
 
+// BillingMeter app Service billing entity that contains information about meter which the Azure billing system
+// utilizes to charge users for services.
+type BillingMeter struct {
+	// BillingMeterProperties - BillingMeter resource specific properties
+	*BillingMeterProperties `json:"properties,omitempty"`
+	// ID - Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for BillingMeter.
+func (bm BillingMeter) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if bm.BillingMeterProperties != nil {
+		objectMap["properties"] = bm.BillingMeterProperties
+	}
+	if bm.ID != nil {
+		objectMap["id"] = bm.ID
+	}
+	if bm.Name != nil {
+		objectMap["name"] = bm.Name
+	}
+	if bm.Kind != nil {
+		objectMap["kind"] = bm.Kind
+	}
+	if bm.Type != nil {
+		objectMap["type"] = bm.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for BillingMeter struct.
+func (bm *BillingMeter) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var billingMeterProperties BillingMeterProperties
+				err = json.Unmarshal(*v, &billingMeterProperties)
+				if err != nil {
+					return err
+				}
+				bm.BillingMeterProperties = &billingMeterProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				bm.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				bm.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				bm.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				bm.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// BillingMeterCollection collection of Billing Meters
+type BillingMeterCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of Billing Meters.
+	Value *[]BillingMeter `json:"value,omitempty"`
+	// NextLink - Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// BillingMeterCollectionIterator provides access to a complete listing of BillingMeter values.
+type BillingMeterCollectionIterator struct {
+	i    int
+	page BillingMeterCollectionPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *BillingMeterCollectionIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter BillingMeterCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter BillingMeterCollectionIterator) Response() BillingMeterCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter BillingMeterCollectionIterator) Value() BillingMeter {
+	if !iter.page.NotDone() {
+		return BillingMeter{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (bmc BillingMeterCollection) IsEmpty() bool {
+	return bmc.Value == nil || len(*bmc.Value) == 0
+}
+
+// billingMeterCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (bmc BillingMeterCollection) billingMeterCollectionPreparer() (*http.Request, error) {
+	if bmc.NextLink == nil || len(to.String(bmc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(bmc.NextLink)))
+}
+
+// BillingMeterCollectionPage contains a page of BillingMeter values.
+type BillingMeterCollectionPage struct {
+	fn  func(BillingMeterCollection) (BillingMeterCollection, error)
+	bmc BillingMeterCollection
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *BillingMeterCollectionPage) Next() error {
+	next, err := page.fn(page.bmc)
+	if err != nil {
+		return err
+	}
+	page.bmc = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page BillingMeterCollectionPage) NotDone() bool {
+	return !page.bmc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page BillingMeterCollectionPage) Response() BillingMeterCollection {
+	return page.bmc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page BillingMeterCollectionPage) Values() []BillingMeter {
+	if page.bmc.IsEmpty() {
+		return nil
+	}
+	return *page.bmc.Value
+}
+
+// BillingMeterProperties billingMeter resource specific properties
+type BillingMeterProperties struct {
+	// MeterID - Meter GUID onboarded in Commerce
+	MeterID *string `json:"meterId,omitempty"`
+	// BillingLocation - Azure Location of billable resource
+	BillingLocation *string `json:"billingLocation,omitempty"`
+	// ShortName - Short Name from App Service Azure pricing Page
+	ShortName *string `json:"shortName,omitempty"`
+	// FriendlyName - Friendly name of the meter
+	FriendlyName *string `json:"friendlyName,omitempty"`
+	// ResourceType - App Service resource type meter used for
+	ResourceType *string `json:"resourceType,omitempty"`
+}
+
 // Capability describes the capabilities/features allowed for a specific SKU.
 type Capability struct {
 	// Name - Name of the SKU capability.
@@ -6878,6 +7109,26 @@ type DataSource struct {
 	DataSourceURI *[]NameValuePair `json:"dataSourceUri,omitempty"`
 }
 
+// DataTableResponseColumn column definition
+type DataTableResponseColumn struct {
+	// ColumnName - Name of the column
+	ColumnName *string `json:"columnName,omitempty"`
+	// DataType - Data type which looks like 'String' or 'Int32'.
+	DataType *string `json:"dataType,omitempty"`
+	// ColumnType - Column Type
+	ColumnType *string `json:"columnType,omitempty"`
+}
+
+// DataTableResponseObject data Table which defines columns and raw row values
+type DataTableResponseObject struct {
+	// TableName - Name of the table
+	TableName *string `json:"tableName,omitempty"`
+	// Columns - List of columns with data types
+	Columns *[]DataTableResponseColumn `json:"columns,omitempty"`
+	// Rows - Raw row values
+	Rows *[][]string `json:"rows,omitempty"`
+}
+
 // DefaultErrorResponse app Service error response.
 type DefaultErrorResponse struct {
 	// Error - Error model.
@@ -7386,6 +7637,224 @@ type DetectorDefinitionProperties struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
 
+// DetectorInfo definition of Detector
+type DetectorInfo struct {
+	// Description - Short description of the detector and its purpose
+	Description *string `json:"description,omitempty"`
+	// Category - Support Category
+	Category *string `json:"category,omitempty"`
+	// SubCategory - Support Sub Category
+	SubCategory *string `json:"subCategory,omitempty"`
+	// SupportTopicID - Support Topic Id
+	SupportTopicID *string `json:"supportTopicId,omitempty"`
+}
+
+// DetectorResponse class representing Response from Detector
+type DetectorResponse struct {
+	autorest.Response `json:"-"`
+	// DetectorResponseProperties - DetectorResponse resource specific properties
+	*DetectorResponseProperties `json:"properties,omitempty"`
+	// ID - Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DetectorResponse.
+func (dr DetectorResponse) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dr.DetectorResponseProperties != nil {
+		objectMap["properties"] = dr.DetectorResponseProperties
+	}
+	if dr.ID != nil {
+		objectMap["id"] = dr.ID
+	}
+	if dr.Name != nil {
+		objectMap["name"] = dr.Name
+	}
+	if dr.Kind != nil {
+		objectMap["kind"] = dr.Kind
+	}
+	if dr.Type != nil {
+		objectMap["type"] = dr.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DetectorResponse struct.
+func (dr *DetectorResponse) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var detectorResponseProperties DetectorResponseProperties
+				err = json.Unmarshal(*v, &detectorResponseProperties)
+				if err != nil {
+					return err
+				}
+				dr.DetectorResponseProperties = &detectorResponseProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				dr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				dr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				dr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				dr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// DetectorResponseCollection collection of detector responses
+type DetectorResponseCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]DetectorResponse `json:"value,omitempty"`
+	// NextLink - Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DetectorResponseCollectionIterator provides access to a complete listing of DetectorResponse values.
+type DetectorResponseCollectionIterator struct {
+	i    int
+	page DetectorResponseCollectionPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DetectorResponseCollectionIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DetectorResponseCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DetectorResponseCollectionIterator) Response() DetectorResponseCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DetectorResponseCollectionIterator) Value() DetectorResponse {
+	if !iter.page.NotDone() {
+		return DetectorResponse{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (drc DetectorResponseCollection) IsEmpty() bool {
+	return drc.Value == nil || len(*drc.Value) == 0
+}
+
+// detectorResponseCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (drc DetectorResponseCollection) detectorResponseCollectionPreparer() (*http.Request, error) {
+	if drc.NextLink == nil || len(to.String(drc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(drc.NextLink)))
+}
+
+// DetectorResponseCollectionPage contains a page of DetectorResponse values.
+type DetectorResponseCollectionPage struct {
+	fn  func(DetectorResponseCollection) (DetectorResponseCollection, error)
+	drc DetectorResponseCollection
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DetectorResponseCollectionPage) Next() error {
+	next, err := page.fn(page.drc)
+	if err != nil {
+		return err
+	}
+	page.drc = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DetectorResponseCollectionPage) NotDone() bool {
+	return !page.drc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DetectorResponseCollectionPage) Response() DetectorResponseCollection {
+	return page.drc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DetectorResponseCollectionPage) Values() []DetectorResponse {
+	if page.drc.IsEmpty() {
+		return nil
+	}
+	return *page.drc.Value
+}
+
+// DetectorResponseProperties detectorResponse resource specific properties
+type DetectorResponseProperties struct {
+	// Metadata - metadata for the detector
+	Metadata *DetectorInfo `json:"metadata,omitempty"`
+	// Dataset - Data Set
+	Dataset *[]DiagnosticData `json:"dataset,omitempty"`
+}
+
 // DiagnosticAnalysis class representing a diagnostic analysis done on an application
 type DiagnosticAnalysis struct {
 	autorest.Response `json:"-"`
@@ -7800,6 +8269,14 @@ func (page DiagnosticCategoryCollectionPage) Values() []DiagnosticCategory {
 type DiagnosticCategoryProperties struct {
 	// Description - Description of the diagnostic category
 	Description *string `json:"description,omitempty"`
+}
+
+// DiagnosticData set of data with rendering instructions
+type DiagnosticData struct {
+	// Table - Data in table form
+	Table *DataTableResponseObject `json:"table,omitempty"`
+	// RenderingProperties - Properties that describe how the table should be rendered
+	RenderingProperties *Rendering `json:"renderingProperties,omitempty"`
 }
 
 // DiagnosticDetectorCollection collection of Diagnostic Detectors
@@ -13949,6 +14426,16 @@ type RelayServiceConnectionEntityProperties struct {
 	Hostname                 *string `json:"hostname,omitempty"`
 	Port                     *int32  `json:"port,omitempty"`
 	BiztalkURI               *string `json:"biztalkUri,omitempty"`
+}
+
+// Rendering instructions for rendering the data
+type Rendering struct {
+	// RenderingType - Rendering Type. Possible values include: 'NoGraph', 'Table', 'TimeSeries', 'TimeSeriesPerInstance'
+	RenderingType RenderingType `json:"renderingType,omitempty"`
+	// Title - Title of data
+	Title *string `json:"title,omitempty"`
+	// Description - Description of the data that will help it be interpreted
+	Description *string `json:"description,omitempty"`
 }
 
 // RenewCertificateOrderRequest class representing certificate renew request.

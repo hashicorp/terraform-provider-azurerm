@@ -29,6 +29,25 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri, testLocation())
@@ -132,6 +151,52 @@ resource "azurerm_virtual_network" "test" {
 
 resource "azurerm_subnet" "test" {
   name = "GatewaySubnet"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name = "acctestpip-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name = "acctestvng-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  type = "Vpn"
+  vpn_type = "RouteBased"
+  sku = "Basic"
+
+  ip_configuration {
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id = "${azurerm_subnet.test.id}"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acctestvn-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name = "gatewaySubnet"
   resource_group_name = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix = "10.0.1.0/24"

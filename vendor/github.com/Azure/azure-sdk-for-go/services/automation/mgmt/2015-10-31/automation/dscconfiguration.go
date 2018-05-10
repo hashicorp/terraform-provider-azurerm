@@ -19,11 +19,10 @@ package automation
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"net/http"
 )
 
 // DscConfigurationClient is the automation Client
@@ -450,8 +449,9 @@ func (client DscConfigurationClient) ListByAutomationAccountComplete(ctx context
 
 // Update create the configuration identified by configuration name.
 //
-// automationAccountName is the automation account name. configurationName is the create or update parameters for
-// configuration. parameters is the create or update parameters for configuration.
+// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+// configurationName is the create or update parameters for configuration. parameters is the create or update
+// parameters for configuration.
 func (client DscConfigurationClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, configurationName string, parameters *DscConfigurationUpdateParameters) (result DscConfiguration, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,

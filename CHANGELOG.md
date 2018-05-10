@@ -1,9 +1,22 @@
 ## 1.5.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_cosmosdb_account` [GH-1056]
+* **New Data Source:** `azurerm_kubernetes_cluster` [GH-1204]
+* **New Data Source:** `azurerm_route_table` [GH-1203]
+
 IMPROVEMENTS:
 
+* dependencies - upgrading to v16.2.1 of `Azure/azure-sdk-for-go` [GH-1198]
+* dependencies - upgrading to v10.8.1 of `Azure/go-autorest` [GH-1198]
 * `azurerm_app_service` - support for HTTP2 [GH-1188]
 * `azurerm_app_service` - support for Managed Service Identity [GH-1130]
+* `azurerm_app_service_slot` - support for HTTP2 [GH-1205]
+* `azurerm_cosmosdb_account` - added support for the `connection_strings` property [GH-1194]
+* `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
+* `azurerm_virtual_network` - guarding against nil-objects in the response [GH-1208]
+* `azurerm_virtual_network_gateway` - ignoring the case of the `GatewaySubnet` [GH-1141]
 
 ## 1.4.0 (April 26, 2018)
 
@@ -15,7 +28,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_recovery_services_vault` ([#995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/995))
 * **New Resource:** `azurerm_recovery_services_vault` ([#995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/995))
-* **New Resource:** `arm_servicebus_subscription_rule` ([#1124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1124))
+* **New Resource:** `azurerm_servicebus_subscription_rule` ([#1124](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1124))
 
 IMPROVEMENTS:
 
