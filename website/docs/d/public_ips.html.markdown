@@ -6,7 +6,7 @@ description: |-
   Provides a list of public IP addresses.
 ---
 
-# azurerm_public_ips
+# Data Source: azurerm_public_ips
 
 Use this data source to access a filtered list of Public IP Addresses
 
