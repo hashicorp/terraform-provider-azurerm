@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -218,9 +217,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service %q (resource group %q) was not found - removing from state", name, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: App Service %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", name, err)
 	}

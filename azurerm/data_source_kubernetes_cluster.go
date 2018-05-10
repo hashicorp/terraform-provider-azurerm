@@ -175,8 +175,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	resp, err := kubernetesClustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: AKS Managed Cluster %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)

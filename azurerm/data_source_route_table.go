@@ -72,8 +72,7 @@ func dataSourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Route Table %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on Azure Route Table %q: %+v", name, err)
 	}

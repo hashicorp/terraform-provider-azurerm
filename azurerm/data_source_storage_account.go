@@ -169,8 +169,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.GetProperties(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Storage Account %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
