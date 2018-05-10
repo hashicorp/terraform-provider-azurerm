@@ -82,7 +82,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			// Only valid for BlobStorage accounts, defaults to "Hot" in create function
+			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
 			"access_tier": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -220,7 +220,6 @@ func resourceArmStorageAccount() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 	}
-
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
