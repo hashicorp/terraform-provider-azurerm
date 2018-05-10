@@ -40,13 +40,15 @@ func NewFavoritesClientWithBaseURI(baseURI string, subscriptionID string) Favori
 }
 
 // List gets a list of favorites defined within an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. favoriteType is the type of favorite. Value can be either shared or user. sourceType is
-// source type of favorite to return. When left out, the source type defaults to 'other' (not present in this
-// enum). canFetchContent is flag indicating whether or not to return the full content for each applicable
-// favorite. If false, only return summary content for favorites. tags is tags that must be present on each
-// favorite returned.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// favoriteType - the type of favorite. Value can be either shared or user.
+// sourceType - source type of favorite to return. When left out, the source type defaults to 'other' (not
+// present in this enum).
+// canFetchContent - flag indicating whether or not to return the full content for each applicable favorite. If
+// false, only return summary content for favorites.
+// tags - tags that must be present on each favorite returned.
 func (client FavoritesClient) List(ctx context.Context, resourceGroupName string, resourceName string, favoriteType FavoriteType, sourceType FavoriteSourceType, canFetchContent *bool, tags []string) (result ListApplicationInsightsComponentFavorite, err error) {
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName, favoriteType, sourceType, canFetchContent, tags)
 	if err != nil {

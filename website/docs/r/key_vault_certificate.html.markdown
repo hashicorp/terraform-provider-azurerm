@@ -251,6 +251,7 @@ The following attributes are exported:
 * `id` - The Key Vault Certificate ID.
 * `secret_id` - The ID of the associated Key Vault Secret.
 * `version` - The current version of the Key Vault Certificate.
+* `certificate_data` - The raw Key Vault Certificate
 
 
 ## Import
