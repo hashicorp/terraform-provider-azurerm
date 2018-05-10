@@ -3,10 +3,12 @@ package azurerm
 // Code based on the terraform.provider plugin by Microsoft (R) AutoRest Code Generator.
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -155,11 +157,12 @@ func resourceArmHDInsightClusters() *schema.Resource {
 func hdInsightClustersNodeSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"linux_os_profile": {
+			"linux_profile": {
 				Required: true,
 				ForceNew: true,
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				MaxItems: 1,
+				Set:      resourceArmHDInsightLinuxProfileHash,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"password": {
@@ -256,6 +259,15 @@ func hdInsightClustersNodeSchema() *schema.Resource {
 	}
 }
 
+func resourceArmHDInsightLinuxProfileHash(v interface{}) int {
+	var buf bytes.Buffer
+	if v != nil {
+		m := v.(map[string]interface{})
+		buf.WriteString(fmt.Sprintf("%s-", m["username"].(string)))
+	}
+	return hashcode.String(buf.String())
+}
+
 func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).hdInsightClustersClient
 	ctx := meta.(*ArmClient).StopContext
@@ -318,7 +330,7 @@ func resourceArmHDInsightClustersCreate(d *schema.ResourceData, meta interface{}
 			parametersPropertiesComputeProfileRoles.HardwareProfile.VMSize = utils.String(paramValue.(string))
 		}
 		parametersPropertiesComputeProfileRoles.OsProfile = &hdinsight.OsProfile{}
-		for _, paramValue := range tmpParamValueOfRoles["linux_os_profile"].([]interface{}) {
+		for _, paramValue := range tmpParamValueOfRoles["linux_profile"].(*schema.Set).List() {
 			parametersPropertiesComputeProfileRoles.OsProfile.LinuxOperatingSystemProfile = &hdinsight.LinuxOperatingSystemProfile{}
 			tmpParamOfRoleslinuxOsProfile := paramValue.(map[string]interface{})
 			if paramValue, paramExists := tmpParamOfRoleslinuxOsProfile["username"]; paramExists {
@@ -486,7 +498,7 @@ func resourceArmHDInsightClustersRead(d *schema.ResourceData, meta interface{}) 
 									tmpRespOfRoleslinuxOsProfile["ssh_keys"] = tmpRespOfRoleslinuxOsProfilesshKeys
 								}
 							}
-							tmpRespValueOfRoles["linux_os_profile"] = tmpRespOfRoleslinuxOsProfile
+							tmpRespValueOfRoles["linux_profile"] = schema.NewSet(resourceArmHDInsightLinuxProfileHash, []interface{}{tmpRespOfRoleslinuxOsProfile})
 						}
 					}
 					if tmpRespItemOfRoles.VirtualNetworkProfile != nil {

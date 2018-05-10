@@ -103,7 +103,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 2
     vm_size               = "Large"
 
-    linux_os_profile {
+    linux_profile {
 	  username = "super"
 	  
       ssh_keys {
@@ -116,7 +116,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 2
     vm_size               = "Large"
 
-    linux_os_profile {
+    linux_profile {
       username = "super"
 
       ssh_keys {

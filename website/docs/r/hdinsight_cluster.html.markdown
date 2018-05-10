@@ -52,7 +52,7 @@ resource "azurerm_hdinsight_cluster" "main" {
     target_instance_count = 2
     vm_size               = "Large"
 
-    linux_os_profile {
+    linux_profile {
       username = "super"
 
       ssh_keys {
@@ -65,7 +65,7 @@ resource "azurerm_hdinsight_cluster" "main" {
     target_instance_count = 4
     vm_size               = "Large"
 
-    linux_os_profile {
+    linux_profile {
       username = "super"
 
       ssh_keys {
@@ -107,11 +107,11 @@ The following arguments are supported:
 
 `head_node`, `worker_node` and `zookeeper_node` supports the following:
 
-* `linux_os_profile`: (Required) A Linux Profile block as documented below.
+* `linux_profile`: (Required) A Linux Profile block as documented below.
 * `target_instance_count`: (Required) The target instances count used by this HDInsight cluster. Changing this forces a new resource to be created.
 * `min_instance_count`: (Optional) The minimum instances count used by this HDInsight cluster. Changing this forces a new resource to be created.
 
-`linux_os_profile` supports the following:
+`linux_profile` supports the following:
 
 * `username`: (Required) The username used to login to the Linux machine.
 * `ssh_keys`: (Required) The public SSH key block used to login to the Linux machine as documented below.
