@@ -265,6 +265,11 @@ func TestAccAzureRMRedisCache_BackupEnabledDisabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists("azurerm_redis_cache.test"),
 				),
+				// `redis_configuration.0.rdb_storage_connection_string` is returned as:
+				// "...;AccountKey=[key hidden]" rather than "...;AccountKey=fsjfvjnfnf"
+				// TODO: remove this once the Bug's been fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/3037
+				ExpectNonEmptyPlan: true,
 			},
 			{
 				Config: updatedConfig,
