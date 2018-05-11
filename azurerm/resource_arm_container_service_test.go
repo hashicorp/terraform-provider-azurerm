@@ -255,8 +255,9 @@ resource "azurerm_container_service" "test" {
   orchestration_platform = "Kubernetes"
 
   master_profile {
-    count      = 1
-    dns_prefix = "acctestmaster%d"
+    count           = 1
+    dns_prefix      = "acctestmaster%d"
+    vm_size         = "Standard_D1_v2"
   }
 
   linux_profile {
@@ -268,10 +269,10 @@ resource "azurerm_container_service" "test" {
   }
 
   agent_pool_profile {
-    name       = "default"
-    count      = 1
-    dns_prefix = "acctestagent%d"
-    vm_size    = "Standard_A0"
+    name            = "default"
+    count           = 1
+    dns_prefix      = "acctestagent%d"
+    vm_size         = "Standard_A0"
   }
 
   service_principal {

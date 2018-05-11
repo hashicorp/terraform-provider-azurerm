@@ -179,6 +179,8 @@ The following arguments are supported:
 
 * `count` - (Required) Number of masters (VMs) in the container service cluster. Allowed values are 1, 3, and 5. The default value is 1.
 * `dns_prefix` - (Required) The DNS Prefix to use for the Container Service master nodes.
+* `vm_size` - (Optional) The VM Size of each of the masters (VMs) (e.g. Standard_F1 / Standard_D2v2). Unless you are deploying to a [RPv2 region](https://github.com/Azure/ACS/blob/master/announcements/2017-09-11_Kubernetes-cluster-not-responding-issue-fix.md), this will be Standard_D2_v2.
+* `os_disk_size_gb` - (Optional) Specifies the size of the os disk in gigabytes. To be able to use this, you'll have to deploy to [RPv2 regions](https://github.com/Azure/ACS/blob/master/announcements/2017-09-11_Kubernetes-cluster-not-responding-issue-fix.md), such as UK West, UK South, West Central US, West US 2,Canada East, Canada Central, West India, South India, Central India, Japan West.
 
 `linux_profile` supports the following:
 
@@ -194,7 +196,8 @@ The following arguments are supported:
 * `name` - (Required) Unique name of the agent pool profile in the context of the subscription and resource group.
 * `count` - (Required) Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
 * `dns_prefix` - (Required) The DNS Prefix given to Agents in this Agent Pool.
-* `vm_size` - (Required) The VM Size of each of the Agent Pool VM's (e.g. Standard_F1 / Standard_D2v2).
+* `vm_size` - (Optional) The VM Size of each of the Agent Pool VM's (e.g. Standard_F1 / Standard_D2v2). The default value is Standard_D2v2.
+* `os_disk_size_gb` - (Optional) Specifies the size of the os disk in gigabytes. To be able to use this, you'll have to deploy to [RPv2 regions](https://github.com/Azure/ACS/blob/master/announcements/2017-09-11_Kubernetes-cluster-not-responding-issue-fix.md), such as UK West, UK South, West Central US, West US 2,Canada East, Canada Central, West India, South India, Central India, Japan West.
 
 `service_principal` supports the following:
 

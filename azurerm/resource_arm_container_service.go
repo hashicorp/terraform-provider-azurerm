@@ -62,6 +62,18 @@ func resourceArmContainerService() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+
+						"vm_size": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"os_disk_size_gb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validateDiskSizeGB,
+						},
 					},
 				},
 				Set: resourceAzureRMContainerServiceMasterProfileHash,
@@ -129,6 +141,13 @@ func resourceArmContainerService() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+
+						"os_disk_size_gb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validateDiskSizeGB,
 						},
 					},
 				},
@@ -341,6 +360,14 @@ func flattenAzureRmContainerServiceMasterProfile(profile containerservice.Master
 	masterProfile["dns_prefix"] = *profile.DNSPrefix
 	masterProfile["fqdn"] = *profile.Fqdn
 
+	if string(profile.VMSize) != "" {
+		masterProfile["vm_size"] = string(profile.VMSize)
+	}
+
+	if profile.OsDiskSizeGB != nil {
+		masterProfile["os_disk_size_gb"] = int(*profile.OsDiskSizeGB)
+	}
+
 	masterProfiles.Add(masterProfile)
 
 	return masterProfiles
@@ -381,6 +408,11 @@ func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservic
 		agentPoolProfile["fqdn"] = *profile.Fqdn
 		agentPoolProfile["name"] = *profile.Name
 		agentPoolProfile["vm_size"] = string(profile.VMSize)
+
+		if profile.OsDiskSizeGB != nil {
+			agentPoolProfile["os_disk_size_gb"] = int(*profile.OsDiskSizeGB)
+		}
+
 		agentPoolProfiles.Add(agentPoolProfile)
 	}
 
@@ -410,6 +442,10 @@ func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerser
 }
 
 func flattenAzureRmContainerServiceDiagnosticsProfile(profile *containerservice.DiagnosticsProfile) *schema.Set {
+	if profile == nil {
+		return nil
+	}
+
 	diagnosticProfiles := &schema.Set{
 		F: resourceAzureRMContainerServiceDiagnosticProfilesHash,
 	}
@@ -482,6 +518,16 @@ func expandAzureRmContainerServiceMasterProfile(d *schema.ResourceData) containe
 		DNSPrefix: &dnsPrefix,
 	}
 
+	if c := config["vm_size"]; c != nil {
+		vmSize := config["vm_size"].(string)
+		profile.VMSize = containerservice.VMSizeTypes(vmSize)
+	}
+
+	if c := int32(config["os_disk_size_gb"].(int)); c != 0 {
+		osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
+		profile.OsDiskSizeGB = &osDiskSizeGB
+	}
+
 	return profile
 }
 
@@ -524,6 +570,11 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 		DNSPrefix: &dnsPrefix,
 	}
 
+	if c := int32(config["os_disk_size_gb"].(int)); c != 0 {
+		osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
+		profile.OsDiskSizeGB = &osDiskSizeGB
+	}
+
 	profiles = append(profiles, profile)
 
 	return profiles
@@ -547,9 +598,13 @@ func resourceAzureRMContainerServiceMasterProfileHash(v interface{}) int {
 
 	count := m["count"].(int)
 	dnsPrefix := m["dns_prefix"].(string)
+	vmSize := m["vm_size"].(string)
+	osDiskSizeGB := m["os_disk_size_gb"].(int)
 
 	buf.WriteString(fmt.Sprintf("%d-", count))
 	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
+	buf.WriteString(fmt.Sprintf("%s-", vmSize))
+	buf.WriteString(fmt.Sprintf("%d-", osDiskSizeGB))
 
 	return hashcode.String(buf.String())
 }
