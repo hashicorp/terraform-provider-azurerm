@@ -195,11 +195,11 @@ type AccessKeys struct {
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
 }
 
-// CheckNameAvailabilityParameters parameters body to pass for  name availability check.
+// CheckNameAvailabilityParameters parameters body to pass for resource name availability check.
 type CheckNameAvailabilityParameters struct {
 	// Name - Resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type.
+	// Type - Resource type. The only legal value of this property for checking redis cache name availability is 'Microsoft.Cache/redis'.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -650,7 +650,7 @@ type FirewallRuleListResult struct {
 	autorest.Response `json:"-"`
 	// Value - Results of the list firewall rules operation.
 	Value *[]FirewallRule `json:"value,omitempty"`
-	// NextLink - Link for next set of locations.
+	// NextLink - Link for next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1123,7 +1123,7 @@ type ListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of Redis cache instances.
 	Value *[]ResourceType `json:"value,omitempty"`
-	// NextLink - Link for next set of locations.
+	// NextLink - Link for next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1432,6 +1432,108 @@ func (ps *PatchSchedule) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// PatchScheduleListResult the response of list patch schedules Redis operation.
+type PatchScheduleListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Results of the list patch schedules operation.
+	Value *[]PatchSchedule `json:"value,omitempty"`
+	// NextLink - Link for next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// PatchScheduleListResultIterator provides access to a complete listing of PatchSchedule values.
+type PatchScheduleListResultIterator struct {
+	i    int
+	page PatchScheduleListResultPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PatchScheduleListResultIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PatchScheduleListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PatchScheduleListResultIterator) Response() PatchScheduleListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PatchScheduleListResultIterator) Value() PatchSchedule {
+	if !iter.page.NotDone() {
+		return PatchSchedule{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (pslr PatchScheduleListResult) IsEmpty() bool {
+	return pslr.Value == nil || len(*pslr.Value) == 0
+}
+
+// patchScheduleListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (pslr PatchScheduleListResult) patchScheduleListResultPreparer() (*http.Request, error) {
+	if pslr.NextLink == nil || len(to.String(pslr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(pslr.NextLink)))
+}
+
+// PatchScheduleListResultPage contains a page of PatchSchedule values.
+type PatchScheduleListResultPage struct {
+	fn   func(PatchScheduleListResult) (PatchScheduleListResult, error)
+	pslr PatchScheduleListResult
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PatchScheduleListResultPage) Next() error {
+	next, err := page.fn(page.pslr)
+	if err != nil {
+		return err
+	}
+	page.pslr = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PatchScheduleListResultPage) NotDone() bool {
+	return !page.pslr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PatchScheduleListResultPage) Response() PatchScheduleListResult {
+	return page.pslr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PatchScheduleListResultPage) Values() []PatchSchedule {
+	if page.pslr.IsEmpty() {
+		return nil
+	}
+	return *page.pslr.Value
 }
 
 // Properties properties of the redis cache.

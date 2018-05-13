@@ -177,7 +177,6 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `redis_configuration` supports the following:
 
-* `maxclients` - (Optional) Set the max number of connected clients at the same time. Defaults are shown below.
 * `maxmemory_reserve` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
@@ -186,11 +185,20 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 * `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `15`, `30`, `60`, `360`, `720` and `1440`.
 * `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKU's.
 * `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKU's. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}`.
+
+~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) e.g.:
+
+```
+resource "azurerm_redis_cache" "test" {
+  # ...
+  ignore_changes = ["redis_configuration.0.rdb_storage_connection_string"]
+}
+```
+
 * `notify_keyspace_events` - (Optional) Keyspace notifications allows clients to subscribe to Pub/Sub channels in order to receive events affecting the Redis data set in some way. [Reference](https://redis.io/topics/notifications#configuration)
 
 ```hcl
 redis_configuration {
-  maxclients         = 512
   maxmemory_reserve  = 10
   maxmemory_delta    = 2
   maxmemory_policy   = "allkeys-lru"
@@ -200,7 +208,6 @@ redis_configuration {
 ## Default Redis Configuration Values
 | Redis Value        | Basic        | Standard     | Premium      |
 | ------------------ | ------------ | ------------ | ------------ |
-| maxclients         | 256          | 1000         | 7500         |
 | maxmemory_reserved | 2            | 50           | 200          |
 | maxmemory_delta    | 2            | 50           | 200          |
 | maxmemory_policy   | volatile-lru | volatile-lru | volatile-lru |
@@ -230,6 +237,22 @@ The following attributes are exported:
 
 * `secondary_access_key` - The Secondary Access Key for the Redis Instance
 
+* `redis_configuration` - A `redis_configuration` block as defined below:
+
+---
+
+A `redis_configuration` block exports the following:
+
+* `maxclients` - Returns the max number of connected clients at the same time.
+
 ## Relevant Links
  - [Azure Redis Cache: SKU specific configuration limitations](https://azure.microsoft.com/en-us/documentation/articles/cache-configure/#advanced-settings)
  - [Redis: Available Configuration Settings](http://redis.io/topics/config)
+
+## Import
+
+Redis Cache's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_redis_cache.cache1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/Redis/cache1
+```

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
 sidebar_current: "docs-azurerm-resource-key-vault-x"
 description: |-
-  Create a Key Vault.
+  Manages a Key Vault.
 ---
 
-# azurerm\_key\_vault
+# azurerm_key_vault
 
-Create a Key Vault.
+Manages a Key Vault.
 
 ## Example Usage
 
@@ -54,14 +54,14 @@ resource "azurerm_key_vault" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Key Vault resource. Changing this
+* `name` - (Required) Specifies the name of the Key Vault. Changing this
     forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists.
     Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
-    create the namespace. Changing this forces a new resource to be created.
+    create the Key Vault. Changing this forces a new resource to be created.
 
 * `sku` - (Required) An SKU block as described below.
 
