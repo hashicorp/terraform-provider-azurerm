@@ -3,6 +3,7 @@
 UPGRADE NOTES:
 
 ~> **Please Note:** Prior to v1.5 Data Sources in the AzureRM Provider returned `nil` rather than an error message when a Resource didn't exist, which was a bug. In order to bring this into line with other Providers - starting in v1.5 the AzureRM Provider will return an error message when a resource doesn't exist.
+~> **Please Note:** This release fixes a bug in the `azurerm_redis_cache` resource where changes to fields weren't detected; as such you may see changes in the `redis_configuration` block, particularly with the `rdb_storage_connection_string` field. There's a bug tracking this inconsistency in [the Azure Rest API Specs Repository](https://github.com/Azure/azure-rest-api-specs/issues/3037).
 
 FEATURES:
 
@@ -11,6 +12,10 @@ FEATURES:
 * **New Data Source:** `azurerm_key_vault` [GH-1202]
 * **New Data Source:** `azurerm_key_vault_secret` [GH-1202]
 * **New Data Source:** `azurerm_route_table` [GH-1203]
+
+BUG FIXES:
+
+* `azurerm_redis_cache` - changes to the `redis_configuration` block are now detected - please see the note above for more information [GH-1211]
 
 IMPROVEMENTS:
 
@@ -22,6 +27,8 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - added support for the `connection_strings` property [GH-1194]
 * `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
 * `azurerm_kubernetes_cluster` - making `kube_config_raw` a sensitive field [GH-1225]
+* `azurerm_redis_cache` - Redis Caches can now be Imported [GH-1211]
+* `azurerm_redis_firewall_rule` - Redis Firewall Rules can now be Imported [GH-1211]
 * `azurerm_virtual_network` - guarding against nil-objects in the response [GH-1208]
 * `azurerm_virtual_network_gateway` - ignoring the case of the `GatewaySubnet` [GH-1141]
 
