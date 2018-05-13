@@ -888,16 +888,17 @@ func checkAccAzureRMSchedulerJob_retry_complete(resourceName string) resource.Te
 }
 
 func testAccAzureRMSchedulerJob_block_actionWeb_basic(blockName string) string {
+	//need a valid URL here otherwise on a slow connection job might fault before the test check
 	return fmt.Sprintf(`
   %s {
-    url = "http://this.get.url.fails"
+    url = "http://terraform.io"
   } 
 `, blockName)
 }
 
 func checkAccAzureRMSchedulerJob_web_basic(resourceName, blockName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://this.get.url.fails"),
+		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://www.google.com"),
 	)
 }
 

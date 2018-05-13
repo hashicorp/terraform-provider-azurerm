@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-func CaseDifference(k, old, new string, d *schema.ResourceData) bool {
+func CaseDifference(_, old, new string, _ *schema.ResourceData) bool {
 	return strings.ToLower(old) == strings.ToLower(new)
 }
 
-func Rfc3339Time(k, old, new string, d *schema.ResourceData) bool {
+func Rfc3339Time(_, old, new string, _ *schema.ResourceData) bool {
 	ot, oerr := time.Parse(time.RFC3339, old)
 	nt, nerr := time.Parse(time.RFC3339, new)
 

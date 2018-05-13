@@ -491,11 +491,8 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 		job.Properties.Recurrence = expandAzureArmSchedulerJobRecurrence(b)
 	}
 
-	//start time
-	startTime, err := time.Parse(time.RFC3339, d.Get("start_time").(string))
-	if err != nil {
-		return fmt.Errorf("Error parsing start time (%s) for job %q (Resource Group %q): %+v", d.Get("start_time"), name, resourceGroup, err)
-	}
+	//start time, should be validated by schema
+	startTime, _ := time.Parse(time.RFC3339, d.Get("start_time").(string))
 	job.Properties.StartTime = &date.Time{Time: startTime}
 
 	//state
@@ -510,7 +507,7 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
-	return resourceArmSchedulerJobPopulate(d, resourceGroup, jobCollection, &resp)
+	return resourceArmSchedulerJobRead(d, meta)
 }
 
 func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error {
@@ -538,13 +535,7 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error making Read request on Scheduler Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return resourceArmSchedulerJobPopulate(d, resourceGroup, jobCollection, &job)
-}
-
-func resourceArmSchedulerJobPopulate(d *schema.ResourceData, resourceGroup string, jobCollection string, job *scheduler.JobDefinition) error {
-
 	//standard properties
-	name := strings.Split(*job.Name, "/")[1] //job.Name is actually "{job_collection_name}/{job_name}
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("job_collection_name", jobCollection)
@@ -589,10 +580,13 @@ func resourceArmSchedulerJobPopulate(d *schema.ResourceData, resourceGroup strin
 		d.Set("recurrence", flattenAzureArmSchedulerJobSchedule(recurrence))
 	}
 
-	d.Set("start_time", properties.StartTime.Format(time.RFC3339))
+	if v := properties.StartTime; v != nil {
+		d.Set("start_time", (*v).Format(time.RFC3339))
+	}
+
+	//status && state
 	d.Set("state", properties.State)
 
-	//status
 	status := properties.Status
 	if status != nil {
 		if v := status.ExecutionCount; v != nil {
@@ -744,7 +738,7 @@ func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrenc
 		recurrence.Count = utils.Int32(int32(v))
 	}
 	if v, ok := block["end_time"].(string); ok && v != "" {
-		endTime, _ := time.Parse(time.RFC3339, v)
+		endTime, _ := time.Parse(time.RFC3339, v) //validated by schema
 		recurrence.EndTime = &date.Time{Time: endTime}
 	}
 
@@ -778,6 +772,8 @@ func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrenc
 		schedule.MonthlyOccurrences = &slice
 	}
 
+	// if non of these are set and we try and send out a empty JobRecurrenceSchedule block
+	// the API will not respond so kindly
 	if schedule.Minutes != nil ||
 		schedule.Hours != nil ||
 		schedule.WeekDays != nil ||
@@ -960,6 +956,7 @@ func resourceAzureRMSchedulerJobMonthlyOccurrenceHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
+//todo where to put these?
 func sliceToSetInt32(slice []int32) *schema.Set {
 	set := &schema.Set{F: set.HashInt}
 	for _, v := range slice {
