@@ -151,7 +151,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 		dataDisks := make([]compute.DataDisk, 0)
 		for _, dataDisk := range disks {
 			if !strings.EqualFold(*dataDisk.Name, *expandedDisk.Name) {
-				disks = append(disks, dataDisk)
+				disks = append(dataDisks, dataDisk)
 			}
 		}
 		disks = dataDisks
