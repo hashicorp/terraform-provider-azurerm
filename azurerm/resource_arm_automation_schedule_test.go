@@ -64,42 +64,6 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMAutomationScheduleExistsAndFrequencyType(name string, freq automation.ScheduleFrequency) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
-
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Automation Schedule: '%s'", name)
-		}
-
-		conn := testAccProvider.Meta().(*ArmClient).automationScheduleClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-		resp, err := conn.Get(ctx, resourceGroup, accName, name)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Automation Schedule '%s' (resource group: '%s') does not exist", name, resourceGroup)
-			}
-
-			return fmt.Errorf("Bad: Get on automationScheduleClient: %+v", err)
-		}
-
-		if resp.Frequency != freq {
-			return fmt.Errorf("Current frequency %s is not consistent with checked value %s", resp.Frequency, freq)
-		}
-		return nil
-	}
-}
-
 func testAccAzureRMAutomationSchedule_oneTime(rInt int, location string) string {
 	startTime := time.Now().UTC().Add(time.Duration(7) * time.Minute)
 	startTime = startTime.Add(time.Duration(-1*startTime.Second()) * time.Second)

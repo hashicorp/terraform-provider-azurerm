@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -16,6 +17,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 		Read:   resourceArmAutomationAccountRead,
 		Update: resourceArmAutomationAccountCreateUpdate,
 		Delete: resourceArmAutomationAccountDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -25,12 +27,17 @@ func resourceArmAutomationAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`^[0-9a-zA-Z][-0-9a-zA-Z]{0,48}[0-9a-zA-Z]$`), //todo will not allow single character names, even thou they are valid
+					`The account name must not be empty, and must not exceed 50 characters in length.  The account name must start with a letter or number.  The account name can contain letters, numbers, and dashes. The final character must be a letter or a number.`,
+				),
 			},
 
 			"location": locationSchema(),
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			//can we somehow default this?
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -154,6 +161,7 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
+//todo remove when deprecated field
 func flattenAndSetAutomationAccountSku(d *schema.ResourceData, sku *automation.Sku) {
 	results := make([]interface{}, 1)
 
