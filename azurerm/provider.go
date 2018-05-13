@@ -342,6 +342,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"microsoft.insights":            {},
 		"Microsoft.Network":             {},
 		"Microsoft.OperationalInsights": {},
+		"Microsoft.Relay":               {},
 		"Microsoft.Resources":           {},
 		"Microsoft.Search":              {},
 		"Microsoft.ServiceBus":          {},
