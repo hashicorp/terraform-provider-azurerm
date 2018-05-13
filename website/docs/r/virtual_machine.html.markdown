@@ -347,6 +347,9 @@ The following arguments are supported:
 * `storage_os_disk` - (Required) A Storage OS Disk block as referenced below.
 * `delete_os_disk_on_termination` - (Optional) Flag to enable deletion of the OS disk VHD blob or managed disk when the VM is deleted, defaults to `false`
 * `storage_data_disk` - (Optional) A list of Storage Data disk blocks as referenced below.
+
+~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
+
 * `delete_data_disks_on_termination` - (Optional) Flag to enable deletion of storage data disk VHD blobs or managed disks when the VM is deleted, defaults to `false`
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 * `identity` - (Optional) An identity block as documented below.
@@ -377,7 +380,7 @@ For more information on the different example configurations, please check out t
 
 `storage_image_reference` supports the following:
 
-* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
 machine, for example:
 
 ```hcl

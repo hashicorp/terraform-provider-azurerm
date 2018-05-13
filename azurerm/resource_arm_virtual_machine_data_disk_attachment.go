@@ -35,6 +35,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: can we remove this option, in favour of looking up if the disk exists?
 			"create_option": {
 				Type:             schema.TypeString,
 				Required:         true,
