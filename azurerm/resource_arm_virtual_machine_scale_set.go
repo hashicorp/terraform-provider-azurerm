@@ -87,6 +87,17 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetSkuHash,
 			},
 
+			"license_type": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Windows_Client",
+					"Windows_Server",
+				}, true),
+			},
+
 			"upgrade_policy_mode": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -660,7 +671,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
 	}
 
-	scaleSetParams := compute.VirtualMachineScaleSet{
+	properties := compute.VirtualMachineScaleSet{
 		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
@@ -670,7 +681,12 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		scaleSetParams.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
+		properties.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
+	}
+
+	if v, ok := d.GetOk("license_type"); ok {
+		license := v.(string)
+		properties.VirtualMachineProfile.LicenseType = &license
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
@@ -679,10 +695,10 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 			return err
 		}
 
-		scaleSetParams.Plan = plan
+		properties.Plan = plan
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, scaleSetParams)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, properties)
 	if err != nil {
 		return err
 	}
@@ -746,6 +762,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	d.Set("upgrade_policy_mode", properties.UpgradePolicy.Mode)
 	d.Set("overprovision", properties.Overprovision)
 	d.Set("single_placement_group", properties.SinglePlacementGroup)
+	d.Set("license_type", properties.VirtualMachineProfile.LicenseType)
 
 	osProfile, err := flattenAzureRMVirtualMachineScaleSetOsProfile(d, properties.VirtualMachineProfile.OsProfile)
 	if err != nil {
