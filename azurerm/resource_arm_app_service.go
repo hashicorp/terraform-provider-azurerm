@@ -613,9 +613,9 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	ipSecurityRestrictions := configResp.SiteConfig.IPSecurityRestrictions
-	if ipSecurityRestrictions != nil {
-		d.Set("ip_restrictions", flattenAppServiceIpRestrictions(ipSecurityRestrictions))
+	restrictions := flattenAppServiceIpRestrictions(configResp.SiteConfig.IPSecurityRestrictions)
+	if err := d.Set("ip_restrictions", restrictions); err != nil {
+		return fmt.Errorf("Error flattening `ip_restrictions`: %s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
@@ -915,11 +915,13 @@ func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTyp
 func flattenAppServiceIpRestrictions(input *[]web.IPSecurityRestriction) interface{} {
 	results := make([]interface{}, 0)
 
-	for _, ip_restriction := range *input {
-		result := make(map[string]interface{}, 0)
-		result["ip_address"] = *ip_restriction.IPAddress
-		result["subnet_mask"] = *ip_restriction.SubnetMask
-		results = append(results, result)
+	if input != nil {
+		for _, v := range *input {
+			result := make(map[string]interface{}, 0)
+			result["ip_address"] = *v.IPAddress
+			result["subnet_mask"] = *v.SubnetMask
+			results = append(results, result)
+		}
 	}
 
 	return results
