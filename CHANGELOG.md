@@ -1,3 +1,4 @@
+## 1.6.0 (Unreleased)
 ## 1.5.0 (May 14, 2018)
 
 UPGRADE NOTES:
