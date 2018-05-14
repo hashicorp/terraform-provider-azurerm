@@ -221,9 +221,6 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
 			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
 		}
-		if err := d.Set("access_policy", flattenKeyVaultAccessPolicies(props.AccessPolicies)); err != nil {
-			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
-		}
 		d.Set("vault_uri", props.VaultURI)
 	}
 
