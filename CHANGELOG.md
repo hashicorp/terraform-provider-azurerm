@@ -1,4 +1,4 @@
-## 1.5.0 (Unreleased)
+## 1.5.0 (May 14, 2018)
 
 UPGRADE NOTES:
 
@@ -8,30 +8,30 @@ UPGRADE NOTES:
 
 FEATURES:
 
-* **New Data Source:** `azurerm_cosmosdb_account` [GH-1056]
-* **New Data Source:** `azurerm_kubernetes_cluster` [GH-1204]
-* **New Data Source:** `azurerm_key_vault` [GH-1202]
-* **New Data Source:** `azurerm_key_vault_secret` [GH-1202]
-* **New Data Source:** `azurerm_route_table` [GH-1203]
+* **New Data Source:** `azurerm_cosmosdb_account` ([#1056](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1056))
+* **New Data Source:** `azurerm_kubernetes_cluster` ([#1204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1204))
+* **New Data Source:** `azurerm_key_vault` ([#1202](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1202))
+* **New Data Source:** `azurerm_key_vault_secret` ([#1202](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1202))
+* **New Data Source:** `azurerm_route_table` ([#1203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1203))
 
 BUG FIXES:
 
-* `azurerm_redis_cache` - changes to the `redis_configuration` block are now detected - please see the note above for more information [GH-1211]
+* `azurerm_redis_cache` - changes to the `redis_configuration` block are now detected - please see the note above for more information ([#1211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1211))
 
 IMPROVEMENTS:
 
-* dependencies - upgrading to v16.2.1 of `Azure/azure-sdk-for-go` [GH-1198]
-* dependencies - upgrading to v10.8.1 of `Azure/go-autorest` [GH-1198]
-* `azurerm_app_service` - support for HTTP2 [GH-1188]
-* `azurerm_app_service` - support for Managed Service Identity [GH-1130]
-* `azurerm_app_service_slot` - support for HTTP2 [GH-1205]
-* `azurerm_cosmosdb_account` - added support for the `connection_strings` property [GH-1194]
-* `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
-* `azurerm_kubernetes_cluster` - making `kube_config_raw` a sensitive field [GH-1225]
-* `azurerm_redis_cache` - Redis Caches can now be Imported [GH-1211]
-* `azurerm_redis_firewall_rule` - Redis Firewall Rules can now be Imported [GH-1211]
-* `azurerm_virtual_network` - guarding against nil-objects in the response [GH-1208]
-* `azurerm_virtual_network_gateway` - ignoring the case of the `GatewaySubnet` [GH-1141]
+* dependencies - upgrading to v16.2.1 of `Azure/azure-sdk-for-go` ([#1198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1198))
+* dependencies - upgrading to v10.8.1 of `Azure/go-autorest` ([#1198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1198))
+* `azurerm_app_service` - support for HTTP2 ([#1188](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1188))
+* `azurerm_app_service` - support for Managed Service Identity ([#1130](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1130))
+* `azurerm_app_service_slot` - support for HTTP2 ([#1205](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1205))
+* `azurerm_cosmosdb_account` - added support for the `connection_strings` property ([#1194](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1194))
+* `azurerm_key_vault_certificate` - exposing the `certificate_data` ([#1200](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1200))
+* `azurerm_kubernetes_cluster` - making `kube_config_raw` a sensitive field ([#1225](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1225))
+* `azurerm_redis_cache` - Redis Caches can now be Imported ([#1211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1211))
+* `azurerm_redis_firewall_rule` - Redis Firewall Rules can now be Imported ([#1211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1211))
+* `azurerm_virtual_network` - guarding against nil-objects in the response ([#1208](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1208))
+* `azurerm_virtual_network_gateway` - ignoring the case of the `GatewaySubnet` ([#1141](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1141))
 
 ## 1.4.0 (April 26, 2018)
 
