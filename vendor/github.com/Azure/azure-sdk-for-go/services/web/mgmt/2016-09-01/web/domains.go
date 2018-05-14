@@ -41,8 +41,8 @@ func NewDomainsClientWithBaseURI(baseURI string, subscriptionID string) DomainsC
 }
 
 // CheckAvailability check if a domain is available for registration.
-//
-// identifier is name of the domain.
+// Parameters:
+// identifier - name of the domain.
 func (client DomainsClient) CheckAvailability(ctx context.Context, identifier NameIdentifier) (result DomainAvailablilityCheckResult, err error) {
 	req, err := client.CheckAvailabilityPreparer(ctx, identifier)
 	if err != nil {
@@ -77,7 +77,7 @@ func (client DomainsClient) CheckAvailabilityPreparer(ctx context.Context, ident
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.DomainRegistration/checkDomainAvailability", pathParameters),
@@ -107,9 +107,10 @@ func (client DomainsClient) CheckAvailabilityResponder(resp *http.Response) (res
 }
 
 // CreateOrUpdate creates or updates a domain.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of the domain.
-// domain is domain registration information.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of the domain.
+// domain - domain registration information.
 func (client DomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, domainName string, domain Domain) (result DomainsCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -174,7 +175,7 @@ func (client DomainsClient) CreateOrUpdate(ctx context.Context, resourceGroupNam
 						}},
 					{Target: "domain.DomainProperties.Consent", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "CreateOrUpdate")
+		return result, validation.NewError("web.DomainsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, domainName, domain)
@@ -206,7 +207,7 @@ func (client DomainsClient) CreateOrUpdatePreparer(ctx context.Context, resource
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DomainRegistration/domains/{domainName}", pathParameters),
@@ -245,16 +246,18 @@ func (client DomainsClient) CreateOrUpdateResponder(resp *http.Response) (result
 
 // CreateOrUpdateOwnershipIdentifier creates an ownership identifier for a domain or updates identifier details for an
 // existing identifer
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of domain. name is
-// name of identifier. domainOwnershipIdentifier is a JSON representation of the domain ownership properties.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of domain.
+// name - name of identifier.
+// domainOwnershipIdentifier - a JSON representation of the domain ownership properties.
 func (client DomainsClient) CreateOrUpdateOwnershipIdentifier(ctx context.Context, resourceGroupName string, domainName string, name string, domainOwnershipIdentifier DomainOwnershipIdentifier) (result DomainOwnershipIdentifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "CreateOrUpdateOwnershipIdentifier")
+		return result, validation.NewError("web.DomainsClient", "CreateOrUpdateOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateOwnershipIdentifierPreparer(ctx, resourceGroupName, domainName, name, domainOwnershipIdentifier)
@@ -293,7 +296,7 @@ func (client DomainsClient) CreateOrUpdateOwnershipIdentifierPreparer(ctx contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DomainRegistration/domains/{domainName}/domainOwnershipIdentifiers/{name}", pathParameters),
@@ -323,9 +326,10 @@ func (client DomainsClient) CreateOrUpdateOwnershipIdentifierResponder(resp *htt
 }
 
 // Delete delete a domain.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of the domain.
-// forceHardDeleteDomain is specify <code>true</code> to delete the domain immediately. The default is
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of the domain.
+// forceHardDeleteDomain - specify <code>true</code> to delete the domain immediately. The default is
 // <code>false</code> which deletes the domain after 24 hours.
 func (client DomainsClient) Delete(ctx context.Context, resourceGroupName string, domainName string, forceHardDeleteDomain *bool) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -333,7 +337,7 @@ func (client DomainsClient) Delete(ctx context.Context, resourceGroupName string
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "Delete")
+		return result, validation.NewError("web.DomainsClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, domainName, forceHardDeleteDomain)
@@ -401,16 +405,17 @@ func (client DomainsClient) DeleteResponder(resp *http.Response) (result autores
 }
 
 // DeleteOwnershipIdentifier delete ownership identifier for domain
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of domain. name is
-// name of identifier.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of domain.
+// name - name of identifier.
 func (client DomainsClient) DeleteOwnershipIdentifier(ctx context.Context, resourceGroupName string, domainName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "DeleteOwnershipIdentifier")
+		return result, validation.NewError("web.DomainsClient", "DeleteOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.DeleteOwnershipIdentifierPreparer(ctx, resourceGroupName, domainName, name)
@@ -476,15 +481,16 @@ func (client DomainsClient) DeleteOwnershipIdentifierResponder(resp *http.Respon
 }
 
 // Get get a domain.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of the domain.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of the domain.
 func (client DomainsClient) Get(ctx context.Context, resourceGroupName string, domainName string) (result Domain, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "Get")
+		return result, validation.NewError("web.DomainsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, domainName)
@@ -612,16 +618,17 @@ func (client DomainsClient) GetControlCenterSsoRequestResponder(resp *http.Respo
 }
 
 // GetOwnershipIdentifier get ownership identifier for domain
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of domain. name is
-// name of identifier.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of domain.
+// name - name of identifier.
 func (client DomainsClient) GetOwnershipIdentifier(ctx context.Context, resourceGroupName string, domainName string, name string) (result DomainOwnershipIdentifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "GetOwnershipIdentifier")
+		return result, validation.NewError("web.DomainsClient", "GetOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.GetOwnershipIdentifierPreparer(ctx, resourceGroupName, domainName, name)
@@ -778,15 +785,15 @@ func (client DomainsClient) ListComplete(ctx context.Context) (result DomainColl
 }
 
 // ListByResourceGroup get all domains in a resource group.
-//
-// resourceGroupName is name of the resource group to which the resource belongs.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
 func (client DomainsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result DomainCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "ListByResourceGroup")
+		return result, validation.NewError("web.DomainsClient", "ListByResourceGroup", err.Error())
 	}
 
 	result.fn = client.listByResourceGroupNextResults
@@ -879,15 +886,16 @@ func (client DomainsClient) ListByResourceGroupComplete(ctx context.Context, res
 }
 
 // ListOwnershipIdentifiers lists domain ownership identifiers.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of domain.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of domain.
 func (client DomainsClient) ListOwnershipIdentifiers(ctx context.Context, resourceGroupName string, domainName string) (result DomainOwnershipIdentifierCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "ListOwnershipIdentifiers")
+		return result, validation.NewError("web.DomainsClient", "ListOwnershipIdentifiers", err.Error())
 	}
 
 	result.fn = client.listOwnershipIdentifiersNextResults
@@ -981,8 +989,8 @@ func (client DomainsClient) ListOwnershipIdentifiersComplete(ctx context.Context
 }
 
 // ListRecommendations get domain name recommendations based on keywords.
-//
-// parameters is search parameters for domain name recommendations.
+// Parameters:
+// parameters - search parameters for domain name recommendations.
 func (client DomainsClient) ListRecommendations(ctx context.Context, parameters DomainRecommendationSearchParameters) (result NameIdentifierCollectionPage, err error) {
 	result.fn = client.listRecommendationsNextResults
 	req, err := client.ListRecommendationsPreparer(ctx, parameters)
@@ -1018,7 +1026,7 @@ func (client DomainsClient) ListRecommendationsPreparer(ctx context.Context, par
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.DomainRegistration/listDomainRecommendations", pathParameters),
@@ -1074,10 +1082,85 @@ func (client DomainsClient) ListRecommendationsComplete(ctx context.Context, par
 	return
 }
 
+// Renew renew a domain.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of the domain.
+func (client DomainsClient) Renew(ctx context.Context, resourceGroupName string, domainName string) (result autorest.Response, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.DomainsClient", "Renew", err.Error())
+	}
+
+	req, err := client.RenewPreparer(ctx, resourceGroupName, domainName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Renew", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RenewSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Renew", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RenewResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.DomainsClient", "Renew", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// RenewPreparer prepares the Renew request.
+func (client DomainsClient) RenewPreparer(ctx context.Context, resourceGroupName string, domainName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"domainName":        autorest.Encode("path", domainName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2015-04-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DomainRegistration/domains/{domainName}/renew", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RenewSender sends the Renew request. The method will close the
+// http.Response Body if it receives an error.
+func (client DomainsClient) RenewSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// RenewResponder handles the response to the Renew request. The method always
+// closes the http.Response Body.
+func (client DomainsClient) RenewResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Update creates or updates a domain.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of the domain.
-// domain is domain registration information.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of the domain.
+// domain - domain registration information.
 func (client DomainsClient) Update(ctx context.Context, resourceGroupName string, domainName string, domain DomainPatchResource) (result Domain, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -1086,7 +1169,7 @@ func (client DomainsClient) Update(ctx context.Context, resourceGroupName string
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: domainName,
 			Constraints: []validation.Constraint{{Target: "domainName", Name: validation.Pattern, Rule: `[a-zA-Z0-9][a-zA-Z0-9\.-]+`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "Update")
+		return result, validation.NewError("web.DomainsClient", "Update", err.Error())
 	}
 
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, domainName, domain)
@@ -1124,7 +1207,7 @@ func (client DomainsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DomainRegistration/domains/{domainName}", pathParameters),
@@ -1155,16 +1238,18 @@ func (client DomainsClient) UpdateResponder(resp *http.Response) (result Domain,
 
 // UpdateOwnershipIdentifier creates an ownership identifier for a domain or updates identifier details for an existing
 // identifer
-//
-// resourceGroupName is name of the resource group to which the resource belongs. domainName is name of domain. name is
-// name of identifier. domainOwnershipIdentifier is a JSON representation of the domain ownership properties.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// domainName - name of domain.
+// name - name of identifier.
+// domainOwnershipIdentifier - a JSON representation of the domain ownership properties.
 func (client DomainsClient) UpdateOwnershipIdentifier(ctx context.Context, resourceGroupName string, domainName string, name string, domainOwnershipIdentifier DomainOwnershipIdentifier) (result DomainOwnershipIdentifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.DomainsClient", "UpdateOwnershipIdentifier")
+		return result, validation.NewError("web.DomainsClient", "UpdateOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.UpdateOwnershipIdentifierPreparer(ctx, resourceGroupName, domainName, name, domainOwnershipIdentifier)
@@ -1203,7 +1288,7 @@ func (client DomainsClient) UpdateOwnershipIdentifierPreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DomainRegistration/domains/{domainName}/domainOwnershipIdentifiers/{name}", pathParameters),

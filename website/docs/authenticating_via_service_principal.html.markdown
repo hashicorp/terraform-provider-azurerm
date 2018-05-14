@@ -143,3 +143,9 @@ Secondly, search for and select the name of the Application created in Azure Act
 ## Creating a Service Principal through the Legacy CLI's
 
 It's also possible to create credentials via [the legacy cross-platform CLI](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal-cli/) and the [legacy PowerShell Cmdlets](https://azure.microsoft.com/en-us/documentation/articles/resource-group-authenticate-service-principal/) - however we would highly recommend using the Azure CLI above.
+
+## Configuring your Service Principal
+
+Service Principals can be configured in Terraform in one of two ways, either as Environment Variables or in the Provider block. Please see [this section](index.html#argument-reference) for an example of which fields are available and can be specified either through Environment Variables - or in the Provider Block.
+
+~> **NOTE:** Authenticating using a Service Principal via the Azure CLI is unsupported. Service Principal credentials either need to be specified either as Environment Variables or in the Provider Block.

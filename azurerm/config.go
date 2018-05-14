@@ -23,17 +23,22 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
+	"github.com/Azure/azure-sdk-for-go/services/iothub/mgmt/2017-07-01/devices"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
+	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
@@ -82,9 +87,10 @@ type ArmClient struct {
 	eventHubNamespacesClient    eventhub.NamespacesClient
 
 	workspacesClient operationalinsights.WorkspacesClient
+	solutionsClient  operationsmanagement.SolutionsClient
 
 	redisClient               redis.Client
-	redisFirewallClient       redis.FirewallRuleClient
+	redisFirewallClient       redis.FirewallRulesClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
 
 	// Application Insights
@@ -97,8 +103,9 @@ type ArmClient struct {
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// CDN
-	cdnProfilesClient  cdn.ProfilesClient
-	cdnEndpointsClient cdn.EndpointsClient
+	cdnCustomDomainsClient cdn.CustomDomainsClient
+	cdnEndpointsClient     cdn.EndpointsClient
+	cdnProfilesClient      cdn.ProfilesClient
 
 	// Compute
 	availSetClient         compute.AvailabilitySetsClient
@@ -111,6 +118,9 @@ type ArmClient struct {
 	vmScaleSetClient       compute.VirtualMachineScaleSetsClient
 	vmImageClient          compute.VirtualMachineImagesClient
 	vmClient               compute.VirtualMachinesClient
+
+	// Devices
+	iothubResourceClient devices.IotHubResourceClient
 
 	// Databases
 	mysqlConfigurationsClient            mysql.ConfigurationsClient
@@ -126,6 +136,7 @@ type ArmClient struct {
 	sqlFirewallRulesClient               sql.FirewallRulesClient
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
+	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -137,10 +148,13 @@ type ArmClient struct {
 	// Networking
 	applicationGatewayClient        network.ApplicationGatewaysClient
 	applicationSecurityGroupsClient network.ApplicationSecurityGroupsClient
+	expressRouteAuthsClient         network.ExpressRouteCircuitAuthorizationsClient
 	expressRouteCircuitClient       network.ExpressRouteCircuitsClient
+	expressRoutePeeringsClient      network.ExpressRouteCircuitPeeringsClient
 	ifaceClient                     network.InterfacesClient
 	loadBalancerClient              network.LoadBalancersClient
 	localNetConnClient              network.LocalNetworkGatewaysClient
+	packetCapturesClient            network.PacketCapturesClient
 	publicIPClient                  network.PublicIPAddressesClient
 	routesClient                    network.RoutesClient
 	routeTablesClient               network.RouteTablesClient
@@ -154,6 +168,9 @@ type ArmClient struct {
 	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
 	watcherClient                   network.WatchersClient
 
+	// Recovery Services
+	recoveryServicesVaultsClient recoveryservices.VaultsClient
+
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
 	deploymentsClient     resources.DeploymentsClient
@@ -166,22 +183,31 @@ type ArmClient struct {
 	searchServicesClient search.ServicesClient
 
 	// ServiceBus
-	serviceBusQueuesClient        servicebus.QueuesClient
-	serviceBusNamespacesClient    servicebus.NamespacesClient
-	serviceBusTopicsClient        servicebus.TopicsClient
-	serviceBusSubscriptionsClient servicebus.SubscriptionsClient
+	serviceBusQueuesClient            servicebus.QueuesClient
+	serviceBusNamespacesClient        servicebus.NamespacesClient
+	serviceBusTopicsClient            servicebus.TopicsClient
+	serviceBusSubscriptionsClient     servicebus.SubscriptionsClient
+	serviceBusSubscriptionRulesClient servicebus.RulesClient
+
+	//Scheduler
+	schedulerJobCollectionsClient scheduler.JobCollectionsClient
 
 	// Storage
 	storageServiceClient storage.AccountsClient
 	storageUsageClient   storage.UsageClient
 
 	// Traffic Manager
-	trafficManagerProfilesClient  trafficmanager.ProfilesClient
-	trafficManagerEndpointsClient trafficmanager.EndpointsClient
+	trafficManagerGeographialHierarchiesClient trafficmanager.GeographicHierarchiesClient
+	trafficManagerProfilesClient               trafficmanager.ProfilesClient
+	trafficManagerEndpointsClient              trafficmanager.EndpointsClient
 
 	// Web
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
+
+	// Policy
+	policyAssignmentsClient policy.AssignmentsClient
+	policyDefinitionsClient policy.DefinitionsClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -345,6 +371,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
@@ -352,13 +379,16 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
+	client.registerSchedulerClients(endpoint, c.SubscriptionID, auth)
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -373,28 +403,28 @@ func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, 
 }
 
 func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId, "")
+	accountClient := automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&accountClient.Client)
 	accountClient.Authorizer = auth
 	accountClient.Sender = sender
 	accountClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationAccountClient = accountClient
 
-	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId, "")
+	credentialClient := automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&credentialClient.Client)
 	credentialClient.Authorizer = auth
 	credentialClient.Sender = sender
 	credentialClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationCredentialClient = credentialClient
 
-	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId, "")
+	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&runbookClient.Client)
 	runbookClient.Authorizer = auth
 	runbookClient.Sender = sender
 	runbookClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationRunbookClient = runbookClient
 
-	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId, "")
+	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&scheduleClient.Client)
 	scheduleClient.Authorizer = auth
 	scheduleClient.Sender = sender
@@ -433,23 +463,21 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 }
 
 func (c *ArmClient) registerCDNClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	customDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&customDomainsClient.Client, auth)
+	c.cdnCustomDomainsClient = customDomainsClient
+
 	endpointsClient := cdn.NewEndpointsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&endpointsClient.Client)
-	endpointsClient.Authorizer = auth
-	endpointsClient.Sender = sender
-	endpointsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&endpointsClient.Client, auth)
 	c.cdnEndpointsClient = endpointsClient
 
 	profilesClient := cdn.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&profilesClient.Client)
-	profilesClient.Authorizer = auth
-	profilesClient.Sender = sender
-	profilesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.configureClient(&profilesClient.Client, auth)
 	c.cdnProfilesClient = profilesClient
 }
 
 func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId, "", "", "", "", "")
+	cdb := documentdb.NewDatabaseAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&cdb.Client, auth)
 	c.cosmosDBClient = cdb
 }
@@ -602,6 +630,16 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	sqlADClient.Sender = sender
 	sqlADClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.sqlServerAzureADAdministratorsClient = sqlADClient
+
+	sqlVNRClient := sql.NewVirtualNetworkRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&sqlVNRClient.Client, auth)
+	c.sqlVirtualNetworkRulesClient = sqlVNRClient
+}
+
+func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&iotClient.Client, auth)
+	c.iothubResourceClient = iotClient
 }
 
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -679,9 +717,17 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.configureClient(&appSecurityGroupsClient.Client, auth)
 	c.applicationSecurityGroupsClient = appSecurityGroupsClient
 
+	expressRouteAuthsClient := network.NewExpressRouteCircuitAuthorizationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&expressRouteAuthsClient.Client, auth)
+	c.expressRouteAuthsClient = expressRouteAuthsClient
+
 	expressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&expressRouteCircuitsClient.Client, auth)
 	c.expressRouteCircuitClient = expressRouteCircuitsClient
+
+	expressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&expressRoutePeeringsClient.Client, auth)
+	c.expressRoutePeeringsClient = expressRoutePeeringsClient
 
 	interfacesClient := network.NewInterfacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&interfacesClient.Client, auth)
@@ -706,6 +752,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	networksClient := network.NewVirtualNetworksClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&networksClient.Client, auth)
 	c.vnetClient = networksClient
+
+	packetCapturesClient := network.NewPacketCapturesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&packetCapturesClient.Client, auth)
+	c.packetCapturesClient = packetCapturesClient
 
 	peeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&peeringsClient.Client, auth)
@@ -744,6 +794,16 @@ func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId 
 	opwc := operationalinsights.NewWorkspacesClient(subscriptionId)
 	c.configureClient(&opwc.Client, auth)
 	c.workspacesClient = opwc
+
+	solutionsClient := operationsmanagement.NewSolutionsClient(subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
+	c.configureClient(&solutionsClient.Client, auth)
+	c.solutionsClient = solutionsClient
+}
+
+func (c *ArmClient) registerRecoveryServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	vaultsClient := recoveryservices.NewVaultsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&vaultsClient.Client, auth)
+	c.recoveryServicesVaultsClient = vaultsClient
 }
 
 func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
@@ -751,7 +811,7 @@ func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth a
 	c.configureClient(&redisClient.Client, auth)
 	c.redisClient = redisClient
 
-	firewallRuleClient := redis.NewFirewallRuleClientWithBaseURI(endpoint, subscriptionId)
+	firewallRuleClient := redis.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&firewallRuleClient.Client, auth)
 	c.redisFirewallClient = firewallRuleClient
 
@@ -808,6 +868,16 @@ func (c *ArmClient) registerServiceBusClients(endpoint, subscriptionId string, a
 	subscriptionsClient := servicebus.NewSubscriptionsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&subscriptionsClient.Client, auth)
 	c.serviceBusSubscriptionsClient = subscriptionsClient
+
+	subscriptionRulesClient := servicebus.NewRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&subscriptionRulesClient.Client, auth)
+	c.serviceBusSubscriptionRulesClient = subscriptionRulesClient
+}
+
+func (c *ArmClient) registerSchedulerClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	jobsClient := scheduler.NewJobCollectionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&jobsClient.Client, auth)
+	c.schedulerJobCollectionsClient = jobsClient
 }
 
 func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -825,6 +895,10 @@ func (c *ArmClient) registerTrafficManagerClients(endpoint, subscriptionId strin
 	c.configureClient(&endpointsClient.Client, auth)
 	c.trafficManagerEndpointsClient = endpointsClient
 
+	geographicalHierarchiesClient := trafficmanager.NewGeographicHierarchiesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&geographicalHierarchiesClient.Client, auth)
+	c.trafficManagerGeographialHierarchiesClient = geographicalHierarchiesClient
+
 	profilesClient := trafficmanager.NewProfilesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&profilesClient.Client, auth)
 	c.trafficManagerProfilesClient = profilesClient
@@ -840,12 +914,22 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	c.appServicesClient = appsClient
 }
 
+func (c *ArmClient) registerPolicyClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	policyAssignmentsClient := policy.NewAssignmentsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&policyAssignmentsClient.Client, auth)
+	c.policyAssignmentsClient = policyAssignmentsClient
+
+	policyDefinitionsClient := policy.NewDefinitionsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&policyDefinitionsClient.Client, auth)
+	c.policyDefinitionsClient = policyDefinitionsClient
+}
+
 var (
 	storageKeyCacheMu sync.RWMutex
 	storageKeyCache   = make(map[string]string)
 )
 
-func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAccountName string) (string, bool, error) {
+func (armClient *ArmClient) getKeyForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (string, bool, error) {
 	cacheIndex := resourceGroupName + "/" + storageAccountName
 	storageKeyCacheMu.RLock()
 	key, ok := storageKeyCache[cacheIndex]
@@ -859,7 +943,7 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 	defer storageKeyCacheMu.Unlock()
 	key, ok = storageKeyCache[cacheIndex]
 	if !ok {
-		accountKeys, err := armClient.storageServiceClient.ListKeys(resourceGroupName, storageAccountName)
+		accountKeys, err := armClient.storageServiceClient.ListKeys(ctx, resourceGroupName, storageAccountName)
 		if utils.ResponseWasNotFound(accountKeys.Response) {
 			return "", false, nil
 		}
@@ -890,8 +974,8 @@ func (armClient *ArmClient) getKeyForStorageAccount(resourceGroupName, storageAc
 	return key, true, nil
 }
 
-func (armClient *ArmClient) getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName string) (*mainStorage.BlobStorageClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(resourceGroupName, storageAccountName)
+func (armClient *ArmClient) getBlobStorageClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.BlobStorageClient, bool, error) {
+	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}
@@ -909,8 +993,8 @@ func (armClient *ArmClient) getBlobStorageClientForStorageAccount(resourceGroupN
 	return &blobClient, true, nil
 }
 
-func (armClient *ArmClient) getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName string) (*mainStorage.FileServiceClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(resourceGroupName, storageAccountName)
+func (armClient *ArmClient) getFileServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.FileServiceClient, bool, error) {
+	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}
@@ -928,8 +1012,8 @@ func (armClient *ArmClient) getFileServiceClientForStorageAccount(resourceGroupN
 	return &fileClient, true, nil
 }
 
-func (armClient *ArmClient) getTableServiceClientForStorageAccount(resourceGroupName, storageAccountName string) (*mainStorage.TableServiceClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(resourceGroupName, storageAccountName)
+func (armClient *ArmClient) getTableServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.TableServiceClient, bool, error) {
+	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}
@@ -947,8 +1031,8 @@ func (armClient *ArmClient) getTableServiceClientForStorageAccount(resourceGroup
 	return &tableClient, true, nil
 }
 
-func (armClient *ArmClient) getQueueServiceClientForStorageAccount(resourceGroupName, storageAccountName string) (*mainStorage.QueueServiceClient, bool, error) {
-	key, accountExists, err := armClient.getKeyForStorageAccount(resourceGroupName, storageAccountName)
+func (armClient *ArmClient) getQueueServiceClientForStorageAccount(ctx context.Context, resourceGroupName, storageAccountName string) (*mainStorage.QueueServiceClient, bool, error) {
+	key, accountExists, err := armClient.getKeyForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return nil, accountExists, err
 	}

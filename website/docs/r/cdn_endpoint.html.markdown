@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm\_cdn\_endpoint
+# azurerm_cdn_endpoint
 
 A CDN Endpoint is the entity within a CDN Profile containing configuration information regarding caching behaviors and origins. The CDN Endpoint is exposed using the URL format <endpointname>.azureedge.net by default, but custom domains can also be created.
 
@@ -51,44 +51,55 @@ resource "azurerm_cdn_endpoint" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the CDN Endpoint. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the CDN Endpoint. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the CDN Endpoint.
+* `resource_group_name` - (Required) The name of the resource group in which to create the CDN Endpoint.
 
 * `profile_name` - (Required) The CDN Profile to which to attach the CDN Endpoint.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins. Defaults to the host name of the origin.
-
 * `is_http_allowed` - (Optional) Defaults to `true`.
 
 * `is_https_allowed` - (Optional) Defaults to `true`.
 
-* `origin` - (Optional) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options.
-Each `origin` block supports fields documented below.
+* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
 
-* `origin_path` - (Optional) The path used at for origin requests.
+* `geo_filter` - (Optional) A set of Geo Filters for this CDN Endpoint. Each `geo_filter` block supports fields documented below.
+
+* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled. Defaults to false.
 
 * `querystring_caching_behaviour` - (Optional) Sets query string caching behavior. Allowed values are `IgnoreQueryString`, `BypassCaching` and `UseQueryString`. Defaults to `IgnoreQueryString`.
 
-* `content_types_to_compress` - (Optional) An array of strings that indicates a content types on which compression will be applied. The value for the elements should be MIME types.
+* `optimization_type` - (Optional) What types of optimization should this CDN Endpoint optimize for? Possible values include `DynamicSiteAcceleration`, `GeneralMediaStreaming`, `GeneralWebDelivery`, `LargeFileDownload` and `VideoOnDemandMediaStreaming`.
 
-* `is_compression_enabled` - (Optional) Indicates whether compression is to be enabled. Defaults to false.
+* `origin` - (Optional) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below.
+
+* `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins. Defaults to the host name of the origin.
+
+* `origin_path` - (Optional) The path used at for origin requests.
+
+* `probe_path` - (Optional) the path to a file hosted on the origin which helps accelerate delivery of the dynamic content and calculate the most optimal routes for the CDN. This is relative to the `origin_path`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 The `origin` block supports:
 
-* `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under endpoint.
+* `name` - (Required) The name of the origin. This is an arbitrary value. However, this value needs to be unique under the endpoint. Changing this forces a new resource to be created.
 
-* `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string can be a domain name, Storage Account endpoint, Web App endpoint, IPv4 address or IPv6 address.
+* `host_name` - (Required) A string that determines the hostname/IP address of the origin server. This string can be a domain name, Storage Account endpoint, Web App endpoint, IPv4 address or IPv6 address. Changing this forces a new resource to be created.
 
-* `http_port` - (Optional) The HTTP port of the origin. Defaults to `80`.
+* `http_port` - (Optional) The HTTP port of the origin. Defaults to `80`. Changing this forces a new resource to be created.
 
-* `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`.
+* `https_port` - (Optional) The HTTPS port of the origin. Defaults to `443`. Changing this forces a new resource to be created.
+
+The `geo_filter` block supports:
+
+* `relative_path` - (Required) The relative path applicable to geo filter.
+
+* `action` - (Required) The Action of the Geo Filter. Possible values include `Allow` and `Block`.
+
+* `country_codes` - (Required) A List of two letter country codes (e.g. `US`, `GB`) to be associated with this Geo Filter.
 
 ## Attributes Reference
 

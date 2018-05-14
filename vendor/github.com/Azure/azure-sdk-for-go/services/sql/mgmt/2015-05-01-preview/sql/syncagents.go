@@ -24,6 +24,7 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // SyncAgentsClient is the the Azure SQL Database management API provides a RESTful set of web services that interact
 // with Azure SQL Database services to manage your databases. The API enables you to create, retrieve, update, and
 // delete databases.
@@ -31,21 +32,24 @@ type SyncAgentsClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewSyncAgentsClient creates an instance of the SyncAgentsClient client.
 func NewSyncAgentsClient(subscriptionID string) SyncAgentsClient {
 	return NewSyncAgentsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewSyncAgentsClientWithBaseURI creates an instance of the SyncAgentsClient client.
 func NewSyncAgentsClientWithBaseURI(baseURI string, subscriptionID string) SyncAgentsClient {
 	return SyncAgentsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdate creates or updates a sync agent.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is hosted.
-// syncAgentName is the name of the sync agent. parameters is the requested sync agent resource state.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is
+// hosted. syncAgentName is the name of the sync agent. parameters is the requested sync agent resource state.
 func (client SyncAgentsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string, parameters SyncAgent) (result SyncAgentsCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, syncAgentName, parameters)
 	if err != nil {
@@ -62,6 +66,7 @@ func (client SyncAgentsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client SyncAgentsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string, parameters SyncAgent) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -77,7 +82,7 @@ func (client SyncAgentsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/syncAgents/{syncAgentName}", pathParameters),
@@ -86,6 +91,7 @@ func (client SyncAgentsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncAgentsClient) CreateOrUpdateSender(req *http.Request) (future SyncAgentsCreateOrUpdateFuture, err error) {
@@ -101,6 +107,7 @@ func (client SyncAgentsClient) CreateOrUpdateSender(req *http.Request) (future S
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client SyncAgentsClient) CreateOrUpdateResponder(resp *http.Response) (result SyncAgent, err error) {
@@ -114,11 +121,12 @@ func (client SyncAgentsClient) CreateOrUpdateResponder(resp *http.Response) (res
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Delete deletes a sync agent.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is hosted.
-// syncAgentName is the name of the sync agent.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is
+// hosted. syncAgentName is the name of the sync agent.
 func (client SyncAgentsClient) Delete(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (result SyncAgentsDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName, syncAgentName)
 	if err != nil {
@@ -135,6 +143,7 @@ func (client SyncAgentsClient) Delete(ctx context.Context, resourceGroupName str
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // DeletePreparer prepares the Delete request.
 func (client SyncAgentsClient) DeletePreparer(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -157,6 +166,7 @@ func (client SyncAgentsClient) DeletePreparer(ctx context.Context, resourceGroup
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncAgentsClient) DeleteSender(req *http.Request) (future SyncAgentsDeleteFuture, err error) {
@@ -172,6 +182,7 @@ func (client SyncAgentsClient) DeleteSender(req *http.Request) (future SyncAgent
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client SyncAgentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -184,11 +195,12 @@ func (client SyncAgentsClient) DeleteResponder(resp *http.Response) (result auto
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GenerateKey generates a sync agent key.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is hosted.
-// syncAgentName is the name of the sync agent.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is
+// hosted. syncAgentName is the name of the sync agent.
 func (client SyncAgentsClient) GenerateKey(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (result SyncAgentKeyProperties, err error) {
 	req, err := client.GenerateKeyPreparer(ctx, resourceGroupName, serverName, syncAgentName)
 	if err != nil {
@@ -211,6 +223,7 @@ func (client SyncAgentsClient) GenerateKey(ctx context.Context, resourceGroupNam
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GenerateKeyPreparer prepares the GenerateKey request.
 func (client SyncAgentsClient) GenerateKeyPreparer(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -233,6 +246,7 @@ func (client SyncAgentsClient) GenerateKeyPreparer(ctx context.Context, resource
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GenerateKeySender sends the GenerateKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncAgentsClient) GenerateKeySender(req *http.Request) (*http.Response, error) {
@@ -240,6 +254,7 @@ func (client SyncAgentsClient) GenerateKeySender(req *http.Request) (*http.Respo
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GenerateKeyResponder handles the response to the GenerateKey request. The method always
 // closes the http.Response Body.
 func (client SyncAgentsClient) GenerateKeyResponder(resp *http.Response) (result SyncAgentKeyProperties, err error) {
@@ -253,11 +268,12 @@ func (client SyncAgentsClient) GenerateKeyResponder(resp *http.Response) (result
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Get gets a sync agent.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is hosted.
-// syncAgentName is the name of the sync agent.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is
+// hosted. syncAgentName is the name of the sync agent.
 func (client SyncAgentsClient) Get(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (result SyncAgent, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, syncAgentName)
 	if err != nil {
@@ -280,6 +296,7 @@ func (client SyncAgentsClient) Get(ctx context.Context, resourceGroupName string
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetPreparer prepares the Get request.
 func (client SyncAgentsClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -302,6 +319,7 @@ func (client SyncAgentsClient) GetPreparer(ctx context.Context, resourceGroupNam
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncAgentsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -309,6 +327,7 @@ func (client SyncAgentsClient) GetSender(req *http.Request) (*http.Response, err
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client SyncAgentsClient) GetResponder(resp *http.Response) (result SyncAgent, err error) {
@@ -322,10 +341,12 @@ func (client SyncAgentsClient) GetResponder(resp *http.Response) (result SyncAge
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByServer lists sync agents in a server.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is hosted.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is
+// hosted.
 func (client SyncAgentsClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result SyncAgentListResultPage, err error) {
 	result.fn = client.listByServerNextResults
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
@@ -349,6 +370,7 @@ func (client SyncAgentsClient) ListByServer(ctx context.Context, resourceGroupNa
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByServerPreparer prepares the ListByServer request.
 func (client SyncAgentsClient) ListByServerPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -370,6 +392,7 @@ func (client SyncAgentsClient) ListByServerPreparer(ctx context.Context, resourc
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncAgentsClient) ListByServerSender(req *http.Request) (*http.Response, error) {
@@ -377,6 +400,7 @@ func (client SyncAgentsClient) ListByServerSender(req *http.Request) (*http.Resp
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByServerResponder handles the response to the ListByServer request. The method always
 // closes the http.Response Body.
 func (client SyncAgentsClient) ListByServerResponder(resp *http.Response) (result SyncAgentListResult, err error) {
@@ -411,17 +435,19 @@ func (client SyncAgentsClient) listByServerNextResults(lastResults SyncAgentList
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByServerComplete enumerates all values, automatically crossing page boundaries as required.
 func (client SyncAgentsClient) ListByServerComplete(ctx context.Context, resourceGroupName string, serverName string) (result SyncAgentListResultIterator, err error) {
 	result.page, err = client.ListByServer(ctx, resourceGroupName, serverName)
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListLinkedDatabases lists databases linked to a sync agent.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is hosted.
-// syncAgentName is the name of the sync agent.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server on which the sync agent is
+// hosted. syncAgentName is the name of the sync agent.
 func (client SyncAgentsClient) ListLinkedDatabases(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (result SyncAgentLinkedDatabaseListResultPage, err error) {
 	result.fn = client.listLinkedDatabasesNextResults
 	req, err := client.ListLinkedDatabasesPreparer(ctx, resourceGroupName, serverName, syncAgentName)
@@ -445,6 +471,7 @@ func (client SyncAgentsClient) ListLinkedDatabases(ctx context.Context, resource
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListLinkedDatabasesPreparer prepares the ListLinkedDatabases request.
 func (client SyncAgentsClient) ListLinkedDatabasesPreparer(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -467,6 +494,7 @@ func (client SyncAgentsClient) ListLinkedDatabasesPreparer(ctx context.Context, 
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListLinkedDatabasesSender sends the ListLinkedDatabases request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncAgentsClient) ListLinkedDatabasesSender(req *http.Request) (*http.Response, error) {
@@ -474,6 +502,7 @@ func (client SyncAgentsClient) ListLinkedDatabasesSender(req *http.Request) (*ht
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListLinkedDatabasesResponder handles the response to the ListLinkedDatabases request. The method always
 // closes the http.Response Body.
 func (client SyncAgentsClient) ListLinkedDatabasesResponder(resp *http.Response) (result SyncAgentLinkedDatabaseListResult, err error) {
@@ -508,6 +537,7 @@ func (client SyncAgentsClient) listLinkedDatabasesNextResults(lastResults SyncAg
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListLinkedDatabasesComplete enumerates all values, automatically crossing page boundaries as required.
 func (client SyncAgentsClient) ListLinkedDatabasesComplete(ctx context.Context, resourceGroupName string, serverName string, syncAgentName string) (result SyncAgentLinkedDatabaseListResultIterator, err error) {
 	result.page, err = client.ListLinkedDatabases(ctx, resourceGroupName, serverName, syncAgentName)

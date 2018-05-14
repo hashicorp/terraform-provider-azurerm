@@ -44,6 +44,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO: reusable schema
 			"site_config": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -72,6 +73,12 @@ func resourceArmAppServiceSlot() *schema.Resource {
 								"v4.0",
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+
+						"http2_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"java_version": {
@@ -165,6 +172,16 @@ func resourceArmAppServiceSlot() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+
+						"scm_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(web.ScmTypeNone),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.ScmTypeNone),
+								string(web.ScmTypeLocalGit),
+							}, false),
+						},
 					},
 				},
 			},
@@ -173,6 +190,16 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
+
+				// TODO: (tombuildsstuff) support Update once the API is fixed:
+				// https://github.com/Azure/azure-rest-api-specs/issues/1697
+				ForceNew: true,
+			},
+
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 
 				// TODO: (tombuildsstuff) support Update once the API is fixed:
 				// https://github.com/Azure/azure-rest-api-specs/issues/1697
@@ -250,10 +277,11 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 
 	slot := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	appServiceName := d.Get("app_service_name").(string)
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	siteConfig := expandAppServiceSiteConfig(d)
@@ -264,6 +292,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   &siteConfig,
 		},
 	}
@@ -407,12 +436,15 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", slot)
 	d.Set("app_service_name", appServiceName)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 		d.Set("enabled", props.Enabled)
+		d.Set("https_only", props.HTTPSOnly)
 		d.Set("default_site_hostname", props.DefaultHostName)
 	}
 

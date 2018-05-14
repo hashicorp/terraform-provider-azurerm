@@ -37,7 +37,7 @@ output "location" {
 
 * `security_rule` - One or more `security_rule` blocks as defined below.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.
 
 
 The `security_rule` block supports:

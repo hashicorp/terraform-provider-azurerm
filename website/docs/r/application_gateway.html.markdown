@@ -216,7 +216,10 @@ The `backend_http_settings` block supports:
 
 * `probe_name` - (Optional) Reference to URL probe.
 
-* `authentication_certificate` - TODO - this doesn't seem to belong here
+* `authentication_certificate` - (Optional) - A list of `authentication_certificate` references for the `backend_http_setting` to use. Each element consists of:
+  
+  * `name` (Required) 
+  * `id` (Calculated)
 
 The `http_listener` block supports:
 
@@ -312,8 +315,6 @@ The `ssl_certificate` block supports:
 
 The `waf_configuration` block supports:
 
-* `name` - (Required) User defined name for a web application firewall.
-
 * `firewall_mode` - (Required) Firewall mode. Valid values are:
 
   * `Detection`
@@ -324,6 +325,8 @@ The `waf_configuration` block supports:
 * `rule_set_version` - (Required) Ruleset version. Supported values:
   * `2.2.9`
   * `3.0`
+
+* `enabled` - (Required) Is the Web Application Firewall enabled?
 
 ## Attributes Reference
 

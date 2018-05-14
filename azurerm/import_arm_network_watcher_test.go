@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMNetworkWatcher_importBasic(t *testing.T) {
+func testAccAzureRMNetworkWatcher_importBasic(t *testing.T) {
 	rInt := acctest.RandInt()
 	resourceName := "azurerm_network_watcher.test"
 
@@ -17,7 +17,7 @@ func TestAccAzureRMNetworkWatcher_importBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
 			},
 			{
 				ResourceName:      resourceName,
@@ -28,7 +28,7 @@ func TestAccAzureRMNetworkWatcher_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNetworkWatcher_importComplete(t *testing.T) {
+func testAccAzureRMNetworkWatcher_importComplete(t *testing.T) {
 	rInt := acctest.RandInt()
 	resourceName := "azurerm_network_watcher.test"
 
@@ -38,7 +38,7 @@ func TestAccAzureRMNetworkWatcher_importComplete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_complete(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
 			},
 			{
 				ResourceName:      resourceName,

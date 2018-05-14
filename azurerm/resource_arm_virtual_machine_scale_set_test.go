@@ -361,6 +361,25 @@ func TestAccAzureRMVirtualMachineScaleSet_customImage(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_applicationGateway(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSetApplicationGatewayTemplate(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
+					testCheckAzureRMVirtualMachineScaleSetHasApplicationGateway("azurerm_virtual_machine_scale_set.test"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineScaleSet_loadBalancer(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(ri, testLocation())
@@ -413,6 +432,23 @@ func TestAccAzureRMVirtualMachineScaleSet_overprovision(t *testing.T) {
 					testCheckAzureRMVirtualMachineScaleSetExists("azurerm_virtual_machine_scale_set.test"),
 					testCheckAzureRMVirtualMachineScaleSetOverprovision("azurerm_virtual_machine_scale_set.test"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachineScaleSet_MSI(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSetMSITemplate(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check:  resource.TestCheckResourceAttrSet(resourceName, "identity.0.principal_id"),
 			},
 		},
 	})
@@ -662,6 +698,32 @@ func testCheckAzureRMVirtualMachineScaleSetHasLoadbalancer(name string) resource
 	}
 }
 
+func testCheckAzureRMVirtualMachineScaleSetHasApplicationGateway(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		if err != nil {
+			return err
+		}
+
+		n := resp.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations
+		if n == nil || len(*n) == 0 {
+			return fmt.Errorf("Bad: Could not get network interface configurations for scale set %v", name)
+		}
+
+		ip := (*n)[0].IPConfigurations
+		if ip == nil || len(*ip) == 0 {
+			return fmt.Errorf("Bad: Could not get ip configurations for scale set %v", name)
+		}
+
+		pools := (*ip)[0].ApplicationGatewayBackendAddressPools
+		if pools == nil || len(*pools) == 0 {
+			return fmt.Errorf("Bad: Application gateway backend pools is empty for scale set %v", name)
+		}
+
+		return nil
+	}
+}
+
 func testCheckAzureRMVirtualMachineScaleSetIsPrimary(name string, boolean bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
@@ -759,6 +821,27 @@ func testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(name string, exp
 
 		if *resp.SinglePlacementGroup != expectedSinglePlacementGroup {
 			return fmt.Errorf("Bad: Overprovision should have been %t for scale set %v", expectedSinglePlacementGroup, name)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMVirtualMachineScaleSetMSI(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
+		if err != nil {
+			return err
+		}
+
+		identityType := resp.Identity.Type
+		if identityType != "systemAssigned" {
+			return fmt.Errorf("Bad: Identity Type is not systemAssigned for scale set %v", name)
+		}
+
+		principalID := *resp.Identity.PrincipalID
+		if len(principalID) == 0 {
+			return fmt.Errorf("Bad: Could not get principal_id for scale set %v", name)
 		}
 
 		return nil
@@ -878,7 +961,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     tier = "Standard"
     capacity = 2
   }
-
+  
   os_profile {
     computer_name_prefix = "testvm-%d"
     admin_username = "myadmin"
@@ -2102,6 +2185,201 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
+func testAccAzureRMVirtualMachineScaleSetApplicationGatewayTemplate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+
+  sku {
+    name     = "Standard_D1_v2"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%d"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name                                         = "TestIPConfiguration"
+      subnet_id                                    = "${azurerm_subnet.test.id}"
+      application_gateway_backend_address_pool_ids = ["${azurerm_application_gateway.test.backend_address_pool.0.id}"]
+    }
+  }
+
+  storage_profile_os_disk {
+    name           = "os-disk"
+    caching        = "ReadWrite"
+    create_option  = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+# application gateway
+resource "azurerm_subnet" "gwtest" {
+  name                 = "gw-subnet-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.3.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                         = "acctest-pubip-%d"
+  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  public_ip_address_allocation = "dynamic"
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestgw-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "Standard_Medium"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  gateway_ip_configuration {
+    # id = computed
+    name      = "gw-ip-config1"
+    subnet_id = "${azurerm_subnet.gwtest.id}"
+  }
+
+  frontend_ip_configuration {
+    # id = computed
+    name                 = "ip-config-public"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+
+  frontend_ip_configuration {
+    # id = computed
+    name      = "ip-config-private"
+    subnet_id = "${azurerm_subnet.gwtest.id}"
+
+    # private_ip_address = computed
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  frontend_port {
+    # id = computed
+    name = "port-8080"
+    port = 8080
+  }
+
+  backend_address_pool {
+    # id = computed
+    name = "pool-1"
+  }
+
+  backend_http_settings {
+    # id = computed
+    name                  = "backend-http-1"
+    port                  = 8010
+    protocol              = "Http"
+    cookie_based_affinity = "Enabled"
+    request_timeout       = 30
+
+    # probe_id = computed
+    probe_name = "probe-1"
+  }
+
+  http_listener {
+    # id = computed
+    name = "listener-1"
+
+    # frontend_ip_configuration_id = computed
+    frontend_ip_configuration_name = "ip-config-public"
+
+    # frontend_ip_port_id = computed
+    frontend_port_name = "port-8080"
+    protocol           = "Http"
+  }
+
+  probe {
+    # id = computed
+    name                = "probe-1"
+    protocol            = "Http"
+    path                = "/test"
+    host                = "azure.com"
+    timeout             = 120
+    interval            = 300
+    unhealthy_threshold = 8
+  }
+
+  request_routing_rule {
+    # id = computed
+    name      = "rule-basic-1"
+    rule_type = "Basic"
+
+    # http_listener_id = computed
+    http_listener_name = "listener-1"
+
+    # backend_address_pool_id = computed
+    backend_address_pool_name = "pool-1"
+
+    # backend_http_settings_id = computed
+    backend_http_settings_name = "backend-http-1"
+  }
+
+  tags {
+    environment = "tf01"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
 func testAccAzureRMVirtualMachineScaleSetLoadBalancerTemplate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -2264,6 +2542,101 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     tier     = "Standard"
     capacity = 1
   }
+
+  os_profile {
+    computer_name_prefix = "testvm-%d"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+
+  storage_profile_os_disk {
+    name           = "os-disk"
+    caching        = "ReadWrite"
+    create_option  = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineScaleSetMSITemplate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+  overprovision       = false
+
+  sku {
+    name     = "Standard_D1_v2"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  identity {
+    type     = "systemAssigned"
+  }
+  
+  extension {
+    name                       = "MSILinuxExtension"
+    publisher                  = "Microsoft.ManagedIdentity"
+    type                       = "ManagedIdentityExtensionForLinux"
+    type_handler_version       = "1.0"
+    settings                   = "{\"port\": 50342}"
+  }  
 
   os_profile {
     computer_name_prefix = "testvm-%d"

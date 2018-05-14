@@ -162,7 +162,7 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Virtual Network Gateway %q (Resource Group %q) was not found!", name, resGroup)
+			return fmt.Errorf("Virtual Network Gateway %q (Resource Group %q) was not found", name, resGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
@@ -172,7 +172,6 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}

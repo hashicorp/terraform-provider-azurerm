@@ -23,26 +23,25 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                   = "acctestaks1"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  kubernetes_version     = "1.8.2"
-  dns_prefix             = "acctestagent1"
+  name                = "acctestaks1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestagent1"
 
   linux_profile {
     admin_username = "acctestuser1"
 
     ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+      key_data = "ssh-rsa ..."
     }
   }
 
   agent_pool_profile {
-    name              = "default"
-    count             = 1
-    vm_size           = "Standard_A0"
-    os_type           = "Linux"
-    os_disk_size_gb   = 30
+    name            = "default"
+    count           = 1
+    vm_size         = "Standard_A0"
+    os_type         = "Linux"
+    os_disk_size_gb = 30
   }
 
   service_principal {
@@ -53,6 +52,30 @@ resource "azurerm_kubernetes_cluster" "test" {
   tags {
     Environment = "Production"
   }
+}
+
+output "id" {
+    value = "${azurerm_kubernetes_cluster.test.id}"
+}
+
+output "kube_config" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config_raw}"
+}
+
+output "client_key" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_key}"
+}
+
+output "client_certificate" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_certificate}"
+}
+
+output "cluster_ca_certificate" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.cluster_ca_certificate}"
+}
+
+output "host" {
+  value = "${azurerm_kubernetes_cluster.test.kube_config.0.host}"
 }
 ```
 
@@ -68,7 +91,7 @@ The following arguments are supported:
 
 * `dns_prefix` - (Optional) DNS prefix specified when creating the managed cluster.
 
-* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster.
+* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
 
 * `linux_profile` - (Required) A Linux Profile block as documented below.
 
@@ -96,6 +119,8 @@ The following arguments are supported:
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
+~> **NOTE:** There's a known issue where Agents connected to an Internal Network (e.g. on a Subnet) have their network routing configured incorrectly; such that Pods cannot communicate across nodes. This is a bug in the Azure API - and will be fixed there in the future.
+
 `service_principal` supports the following:
 
 * `client_id` - (Required) The Client ID for the Service Principal.
@@ -108,6 +133,35 @@ The following attributes are exported:
 * `id` - The Kubernetes Managed Cluster ID.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+* `kube_config_raw` - Base64 encoded Kubernetes configuration
+
+* `kube_config` - Kubernetes configuration, sub-attributes defined below:
+
+  * `client_key` - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
+
+  * `client_certificate` - Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.
+
+  * `cluster_ca_certificate` - Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.
+
+  * `host` - The Kubernetes cluster server host.
+
+  * `username` - A username used to authenticate to the Kubernetes cluster.
+
+  * `password` - A password or token used to authenticate to the Kubernetes cluster.
+
+-> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+
+```
+provider "kubernetes" {
+  host                   = "${azurerm_kubernetes_cluster.main.kube_config.0.host}"
+  username               = "${azurerm_kubernetes_cluster.main.kube_config.0.username}"
+  password               = "${azurerm_kubernetes_cluster.main.kube_config.0.password}"
+  client_certificate     = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_certificate)}"
+  client_key             = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.client_key)}"
+  cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
+}
+```
 
 ## Import
 

@@ -12,6 +12,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,18 +40,31 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			},
 
 			"parameters": {
-				Type:     schema.TypeMap,
-				Optional: true,
+				Type:          schema.TypeMap,
+				Optional:      true,
+				ConflictsWith: []string{"parameters_body"},
 			},
 
-			"outputs": {
-				Type:     schema.TypeMap,
-				Computed: true,
+			"parameters_body": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				StateFunc:     normalizeJson,
+				ConflictsWith: []string{"parameters"},
 			},
 
 			"deployment_mode": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(resources.Complete),
+					string(resources.Incremental),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"outputs": {
+				Type:     schema.TypeMap,
+				Computed: true,
 			},
 		},
 	}
@@ -65,7 +79,7 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 	resourceGroup := d.Get("resource_group_name").(string)
 	deploymentMode := d.Get("deployment_mode").(string)
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Template Deployment creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM Template Deployment creation.")
 	properties := resources.DeploymentProperties{
 		Mode: resources.DeploymentMode(deploymentMode),
 	}
@@ -83,6 +97,15 @@ func resourceArmTemplateDeploymentCreate(d *schema.ResourceData, meta interface{
 		}
 
 		properties.Parameters = &newParams
+	}
+
+	if v, ok := d.GetOk("parameters_body"); ok {
+		params, err := expandParametersBody(v.(string))
+		if err != nil {
+			return err
+		}
+
+		properties.Parameters = &params
 	}
 
 	if v, ok := d.GetOk("template_body"); ok {
@@ -145,40 +168,42 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	var outputs map[string]string
-	if resp.Properties.Outputs != nil && len(*resp.Properties.Outputs) > 0 {
-		outputs = make(map[string]string)
-		for key, output := range *resp.Properties.Outputs {
-			log.Printf("[DEBUG] Processing deployment output %s", key)
-			outputMap := output.(map[string]interface{})
-			outputValue, ok := outputMap["value"]
-			if !ok {
-				log.Printf("[DEBUG] No value - skipping")
-				continue
+	outputs := make(map[string]string, 0)
+	if outs := resp.Properties.Outputs; outs != nil {
+		outsVal := outs.(map[string]interface{})
+		if len(outsVal) > 0 {
+			for key, output := range outsVal {
+				log.Printf("[DEBUG] Processing deployment output %s", key)
+				outputMap := output.(map[string]interface{})
+				outputValue, ok := outputMap["value"]
+				if !ok {
+					log.Printf("[DEBUG] No value - skipping")
+					continue
+				}
+				outputType, ok := outputMap["type"]
+				if !ok {
+					log.Printf("[DEBUG] No type - skipping")
+					continue
+				}
+
+				var outputValueString string
+				switch strings.ToLower(outputType.(string)) {
+				case "bool":
+					outputValueString = strconv.FormatBool(outputValue.(bool))
+
+				case "string":
+					outputValueString = outputValue.(string)
+
+				case "int":
+					outputValueString = fmt.Sprint(outputValue)
+
+				default:
+					log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
+						key, outputType)
+					continue
+				}
+				outputs[key] = outputValueString
 			}
-			outputType, ok := outputMap["type"]
-			if !ok {
-				log.Printf("[DEBUG] No type - skipping")
-				continue
-			}
-
-			var outputValueString string
-			switch strings.ToLower(outputType.(string)) {
-			case "bool":
-				outputValueString = strconv.FormatBool(outputValue.(bool))
-
-			case "string":
-				outputValueString = outputValue.(string)
-
-			case "int":
-				outputValueString = fmt.Sprint(outputValue)
-
-			default:
-				log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
-					key, outputType)
-				continue
-			}
-			outputs[key] = outputValueString
 		}
 	}
 
@@ -209,6 +234,15 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 }
 
 // TODO: move this out into the new `helpers` structure
+func expandParametersBody(body string) (map[string]interface{}, error) {
+	var parametersBody map[string]interface{}
+	err := json.Unmarshal([]byte(body), &parametersBody)
+	if err != nil {
+		return nil, fmt.Errorf("Error Expanding the parameters_body for Azure RM Template Deployment")
+	}
+	return parametersBody, nil
+}
+
 func expandTemplateBody(template string) (map[string]interface{}, error) {
 	var templateBody map[string]interface{}
 	err := json.Unmarshal([]byte(template), &templateBody)

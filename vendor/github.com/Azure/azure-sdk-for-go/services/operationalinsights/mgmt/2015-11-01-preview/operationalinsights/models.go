@@ -26,6 +26,7 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // DataSourceKind enumerates the values for data source kind.
 type DataSourceKind string
 
@@ -62,6 +63,13 @@ const (
 	WindowsPerformanceCounter DataSourceKind = "WindowsPerformanceCounter"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// PossibleDataSourceKindValues returns an array of possible values for the DataSourceKind const type.
+func PossibleDataSourceKindValues() []DataSourceKind {
+	return []DataSourceKind{AzureActivityLog, ChangeTrackingCustomRegistry, ChangeTrackingDefaultPath, ChangeTrackingDefaultRegistry, ChangeTrackingPath, CustomLog, CustomLogCollection, GenericDataSource, IISLogs, LinuxPerformanceCollection, LinuxPerformanceObject, LinuxSyslog, LinuxSyslogCollection, WindowsEvent, WindowsPerformanceCounter}
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // EntityStatus enumerates the values for entity status.
 type EntityStatus string
 
@@ -80,22 +88,21 @@ const (
 	Succeeded EntityStatus = "Succeeded"
 )
 
-// SearchSortEnum enumerates the values for search sort enum.
-type SearchSortEnum string
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// PossibleEntityStatusValues returns an array of possible values for the EntityStatus const type.
+func PossibleEntityStatusValues() []EntityStatus {
+	return []EntityStatus{Canceled, Creating, Deleting, Failed, ProvisioningAccount, Succeeded}
+}
 
-const (
-	// Asc ...
-	Asc SearchSortEnum = "asc"
-	// Desc ...
-	Desc SearchSortEnum = "desc"
-)
-
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // SkuNameEnum enumerates the values for sku name enum.
 type SkuNameEnum string
 
 const (
 	// Free ...
 	Free SkuNameEnum = "Free"
+	// PerGB2018 ...
+	PerGB2018 SkuNameEnum = "PerGB2018"
 	// PerNode ...
 	PerNode SkuNameEnum = "PerNode"
 	// Premium ...
@@ -108,27 +115,22 @@ const (
 	Unlimited SkuNameEnum = "Unlimited"
 )
 
-// StorageInsightState enumerates the values for storage insight state.
-type StorageInsightState string
-
-const (
-	// ERROR ...
-	ERROR StorageInsightState = "ERROR"
-	// OK ...
-	OK StorageInsightState = "OK"
-)
-
-// CoreSummary the core summary of a search.
-type CoreSummary struct {
-	// Status - The status of a core summary.
-	Status *string `json:"Status,omitempty"`
-	// NumberOfDocuments - The number of documents of a core summary.
-	NumberOfDocuments *int64 `json:"NumberOfDocuments,omitempty"`
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// PossibleSkuNameEnumValues returns an array of possible values for the SkuNameEnum const type.
+func PossibleSkuNameEnumValues() []SkuNameEnum {
+	return []SkuNameEnum{Free, PerGB2018, PerNode, Premium, Standalone, Standard, Unlimited}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // DataSource datasources under OMS Workspace.
 type DataSource struct {
 	autorest.Response `json:"-"`
+	// Properties - The data source properties in raw json format, each kind of data source have it's own schema.
+	Properties interface{} `json:"properties,omitempty"`
+	// ETag - The ETag of the data source.
+	ETag *string `json:"eTag,omitempty"`
+	// Kind - Possible values include: 'AzureActivityLog', 'ChangeTrackingPath', 'ChangeTrackingDefaultPath', 'ChangeTrackingDefaultRegistry', 'ChangeTrackingCustomRegistry', 'CustomLog', 'CustomLogCollection', 'GenericDataSource', 'IISLogs', 'LinuxPerformanceObject', 'LinuxPerformanceCollection', 'LinuxSyslog', 'LinuxSyslogCollection', 'WindowsEvent', 'WindowsPerformanceCounter'
+	Kind DataSourceKind `json:"kind,omitempty"`
 	// ID - Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name.
@@ -136,21 +138,43 @@ type DataSource struct {
 	// Type - Resource type.
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// Properties - The data source properties in raw json format, each kind of data source have it's own schema.
-	Properties *map[string]interface{} `json:"properties,omitempty"`
-	// ETag - The ETag of the data source.
-	ETag *string `json:"eTag,omitempty"`
-	// Kind - Possible values include: 'AzureActivityLog', 'ChangeTrackingPath', 'ChangeTrackingDefaultPath', 'ChangeTrackingDefaultRegistry', 'ChangeTrackingCustomRegistry', 'CustomLog', 'CustomLogCollection', 'GenericDataSource', 'IISLogs', 'LinuxPerformanceObject', 'LinuxPerformanceCollection', 'LinuxSyslog', 'LinuxSyslogCollection', 'WindowsEvent', 'WindowsPerformanceCounter'
-	Kind DataSourceKind `json:"kind,omitempty"`
+	Tags map[string]*string `json:"tags"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// MarshalJSON is the custom marshaler for DataSource.
+func (ds DataSource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	objectMap["properties"] = ds.Properties
+	if ds.ETag != nil {
+		objectMap["eTag"] = ds.ETag
+	}
+	if ds.Kind != "" {
+		objectMap["kind"] = ds.Kind
+	}
+	if ds.ID != nil {
+		objectMap["id"] = ds.ID
+	}
+	if ds.Name != nil {
+		objectMap["name"] = ds.Name
+	}
+	if ds.Type != nil {
+		objectMap["type"] = ds.Type
+	}
+	if ds.Tags != nil {
+		objectMap["tags"] = ds.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // DataSourceFilter dataSource filter. Right now, only filter by kind is supported.
 type DataSourceFilter struct {
 	// Kind - Possible values include: 'AzureActivityLog', 'ChangeTrackingPath', 'ChangeTrackingDefaultPath', 'ChangeTrackingDefaultRegistry', 'ChangeTrackingCustomRegistry', 'CustomLog', 'CustomLogCollection', 'GenericDataSource', 'IISLogs', 'LinuxPerformanceObject', 'LinuxPerformanceCollection', 'LinuxSyslog', 'LinuxSyslogCollection', 'WindowsEvent', 'WindowsPerformanceCounter'
 	Kind DataSourceKind `json:"kind,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // DataSourceListResult the list data source by workspace operation response.
 type DataSourceListResult struct {
 	autorest.Response `json:"-"`
@@ -160,12 +184,14 @@ type DataSourceListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // DataSourceListResultIterator provides access to a complete listing of DataSource values.
 type DataSourceListResultIterator struct {
 	i    int
 	page DataSourceListResultPage
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
 func (iter *DataSourceListResultIterator) Next() error {
@@ -182,16 +208,19 @@ func (iter *DataSourceListResultIterator) Next() error {
 	return nil
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // NotDone returns true if the enumeration should be started or is not yet complete.
 func (iter DataSourceListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Response returns the raw server response from the last page request.
 func (iter DataSourceListResultIterator) Response() DataSourceListResult {
 	return iter.page.Response()
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
 func (iter DataSourceListResultIterator) Value() DataSource {
@@ -201,6 +230,7 @@ func (iter DataSourceListResultIterator) Value() DataSource {
 	return iter.page.Values()[iter.i]
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // IsEmpty returns true if the ListResult contains no values.
 func (dslr DataSourceListResult) IsEmpty() bool {
 	return dslr.Value == nil || len(*dslr.Value) == 0
@@ -218,12 +248,14 @@ func (dslr DataSourceListResult) dataSourceListResultPreparer() (*http.Request, 
 		autorest.WithBaseURL(to.String(dslr.NextLink)))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // DataSourceListResultPage contains a page of DataSource values.
 type DataSourceListResultPage struct {
 	fn   func(DataSourceListResult) (DataSourceListResult, error)
 	dslr DataSourceListResult
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
 func (page *DataSourceListResultPage) Next() error {
@@ -235,16 +267,19 @@ func (page *DataSourceListResultPage) Next() error {
 	return nil
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // NotDone returns true if the page enumeration should be started or is not yet complete.
 func (page DataSourceListResultPage) NotDone() bool {
 	return !page.dslr.IsEmpty()
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Response returns the raw server response from the last page request.
 func (page DataSourceListResultPage) Response() DataSourceListResult {
 	return page.dslr
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Values returns the slice of values for the current page or nil if there are no values.
 func (page DataSourceListResultPage) Values() []DataSource {
 	if page.dslr.IsEmpty() {
@@ -253,17 +288,23 @@ func (page DataSourceListResultPage) Values() []DataSource {
 	return *page.dslr.Value
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // IntelligencePack intelligence Pack containing a string name and boolean indicating if it's enabled.
 type IntelligencePack struct {
 	// Name - The name of the intelligence pack.
 	Name *string `json:"name,omitempty"`
 	// Enabled - The enabled boolean for the intelligence pack.
 	Enabled *bool `json:"enabled,omitempty"`
+	// DisplayName - The display name of the intelligence pack.
+	DisplayName *string `json:"displayName,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // LinkedService the top level Linked service resource container.
 type LinkedService struct {
 	autorest.Response `json:"-"`
+	// LinkedServiceProperties - The properties of the linked service.
+	*LinkedServiceProperties `json:"properties,omitempty"`
 	// ID - Resource ID.
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name.
@@ -271,11 +312,32 @@ type LinkedService struct {
 	// Type - Resource type.
 	Type *string `json:"type,omitempty"`
 	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// LinkedServiceProperties - The properties of the linked service.
-	*LinkedServiceProperties `json:"properties,omitempty"`
+	Tags map[string]*string `json:"tags"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// MarshalJSON is the custom marshaler for LinkedService.
+func (ls LinkedService) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ls.LinkedServiceProperties != nil {
+		objectMap["properties"] = ls.LinkedServiceProperties
+	}
+	if ls.ID != nil {
+		objectMap["id"] = ls.ID
+	}
+	if ls.Name != nil {
+		objectMap["name"] = ls.Name
+	}
+	if ls.Type != nil {
+		objectMap["type"] = ls.Type
+	}
+	if ls.Tags != nil {
+		objectMap["tags"] = ls.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // UnmarshalJSON is the custom unmarshaler for LinkedService struct.
 func (ls *LinkedService) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -283,61 +345,60 @@ func (ls *LinkedService) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties LinkedServiceProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var linkedServiceProperties LinkedServiceProperties
+				err = json.Unmarshal(*v, &linkedServiceProperties)
+				if err != nil {
+					return err
+				}
+				ls.LinkedServiceProperties = &linkedServiceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ls.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ls.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ls.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				ls.Tags = tags
+			}
 		}
-		ls.LinkedServiceProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		ls.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		ls.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		ls.Type = &typeVar
-	}
-
-	v = m["tags"]
-	if v != nil {
-		var tags map[string]*string
-		err = json.Unmarshal(*m["tags"], &tags)
-		if err != nil {
-			return err
-		}
-		ls.Tags = &tags
 	}
 
 	return nil
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // LinkedServiceListResult the list linked service operation response.
 type LinkedServiceListResult struct {
 	autorest.Response `json:"-"`
@@ -345,42 +406,38 @@ type LinkedServiceListResult struct {
 	Value *[]LinkedService `json:"value,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // LinkedServiceProperties linked service properties.
 type LinkedServiceProperties struct {
 	// ResourceID - The resource id of the resource that will be linked to the workspace.
 	ResourceID *string `json:"resourceId,omitempty"`
 }
 
-// LinkTarget metadata for a workspace that isn't linked to an Azure subscription.
-type LinkTarget struct {
-	// CustomerID - The GUID that uniquely identifies the workspace.
-	CustomerID *string `json:"customerId,omitempty"`
-	// DisplayName - The display name of the workspace.
-	DisplayName *string `json:"accountName,omitempty"`
-	// WorkspaceName - The DNS valid workspace name.
-	WorkspaceName *string `json:"workspaceName,omitempty"`
-	// Location - The location of the workspace.
-	Location *string `json:"location,omitempty"`
-}
-
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // ListIntelligencePack ...
 type ListIntelligencePack struct {
 	autorest.Response `json:"-"`
 	Value             *[]IntelligencePack `json:"value,omitempty"`
 }
 
-// ListLinkTarget ...
-type ListLinkTarget struct {
-	autorest.Response `json:"-"`
-	Value             *[]LinkTarget `json:"value,omitempty"`
-}
-
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // ManagementGroup a management group that is connected to a workspace
 type ManagementGroup struct {
 	// ManagementGroupProperties - The properties of the management group.
 	*ManagementGroupProperties `json:"properties,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// MarshalJSON is the custom marshaler for ManagementGroup.
+func (mg ManagementGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mg.ManagementGroupProperties != nil {
+		objectMap["properties"] = mg.ManagementGroupProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // UnmarshalJSON is the custom unmarshaler for ManagementGroup struct.
 func (mg *ManagementGroup) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -388,21 +445,24 @@ func (mg *ManagementGroup) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties ManagementGroupProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var managementGroupProperties ManagementGroupProperties
+				err = json.Unmarshal(*v, &managementGroupProperties)
+				if err != nil {
+					return err
+				}
+				mg.ManagementGroupProperties = &managementGroupProperties
+			}
 		}
-		mg.ManagementGroupProperties = &properties
 	}
 
 	return nil
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // ManagementGroupProperties management group properties.
 type ManagementGroupProperties struct {
 	// ServerCount - The number of servers connected to the management group.
@@ -423,6 +483,7 @@ type ManagementGroupProperties struct {
 	Sku *string `json:"sku,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // MetricName the name of a metric.
 type MetricName struct {
 	// Value - The system name of the metric.
@@ -431,362 +492,47 @@ type MetricName struct {
 	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
-// ProxyResource common properties of proxy resource.
-type ProxyResource struct {
-	// ID - Resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// Operation supported operation of OperationalInsights resource provider.
+type Operation struct {
+	// Name - Operation name: {provider}/{resource}/{operation}
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type.
-	Type *string `json:"type,omitempty"`
-	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
+	// Display - Display metadata associated with the operation.
+	Display *OperationDisplay `json:"display,omitempty"`
 }
 
-// Resource the resource definition.
-type Resource struct {
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// OperationDisplay display metadata associated with the operation.
+type OperationDisplay struct {
+	// Provider - Service provider: Microsoft OperationsManagement.
+	Provider *string `json:"provider,omitempty"`
+	// Resource - Resource on which the operation is performed etc.
+	Resource *string `json:"resource,omitempty"`
+	// Operation - Type of operation: get, read, delete, etc.
+	Operation *string `json:"operation,omitempty"`
 }
 
-// SavedSearch value object for saved search results.
-type SavedSearch struct {
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// OperationListResult result of the request to list solution operations.
+type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// ID - The id of the saved search.
-	ID *string `json:"id,omitempty"`
-	// Etag - The etag of the saved search.
-	Etag *string `json:"etag,omitempty"`
-	// SavedSearchProperties - Gets or sets properties of the saved search.
-	*SavedSearchProperties `json:"properties,omitempty"`
+	// Value - List of solution operations supported by the OperationsManagement resource provider.
+	Value *[]Operation `json:"value,omitempty"`
+	// NextLink - URL to get the next set of operation list results if there are any.
+	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// UnmarshalJSON is the custom unmarshaler for SavedSearch struct.
-func (ss *SavedSearch) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	var v *json.RawMessage
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		ss.ID = &ID
-	}
-
-	v = m["etag"]
-	if v != nil {
-		var etag string
-		err = json.Unmarshal(*m["etag"], &etag)
-		if err != nil {
-			return err
-		}
-		ss.Etag = &etag
-	}
-
-	v = m["properties"]
-	if v != nil {
-		var properties SavedSearchProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
-		}
-		ss.SavedSearchProperties = &properties
-	}
-
-	return nil
-}
-
-// SavedSearchesListResult the saved search operation response.
-type SavedSearchesListResult struct {
-	autorest.Response `json:"-"`
-	// Metadata - The metadata from search results.
-	Metadata *SearchMetadata `json:"__metadata,omitempty"`
-	// Value - The array of result values.
-	Value *[]SavedSearch `json:"value,omitempty"`
-}
-
-// SavedSearchProperties value object for saved search results.
-type SavedSearchProperties struct {
-	// Category - The category of the saved search. This helps the user to find a saved search faster.
-	Category *string `json:"Category,omitempty"`
-	// DisplayName - Saved search display name.
-	DisplayName *string `json:"DisplayName,omitempty"`
-	// Query - The query expression for the saved search. Please see https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-search-reference for reference.
-	Query *string `json:"Query,omitempty"`
-	// Version - The version number of the query lanuage. Only verion 1 is allowed here.
-	Version *int64 `json:"Version,omitempty"`
-	// Tags - The tags attached to the saved search.
-	Tags *[]Tag `json:"Tags,omitempty"`
-}
-
-// SearchError details for a search error.
-type SearchError struct {
-	// Type - The error type.
-	Type *string `json:"type,omitempty"`
-	// Message - The error message.
-	Message *string `json:"message,omitempty"`
-}
-
-// SearchGetSchemaResponse the get schema operation response.
-type SearchGetSchemaResponse struct {
-	autorest.Response `json:"-"`
-	// Metadata - The metadata from search results.
-	Metadata *SearchMetadata `json:"__metadata,omitempty"`
-	// Value - The array of result values.
-	Value *[]SearchSchemaValue `json:"value,omitempty"`
-}
-
-// SearchHighlight highlight details.
-type SearchHighlight struct {
-	// Pre - The string that is put before a matched result.
-	Pre *string `json:"pre,omitempty"`
-	// Post - The string that is put after a matched result.
-	Post *string `json:"post,omitempty"`
-}
-
-// SearchMetadata metadata for search results.
-type SearchMetadata struct {
-	// SearchID - The request id of the search.
-	SearchID *string `json:"RequestId,omitempty"`
-	// ResultType - The search result type.
-	ResultType *string `json:"resultType,omitempty"`
-	// Total - The total number of search results.
-	Total *int64 `json:"total,omitempty"`
-	// Top - The number of top search results.
-	Top *int64 `json:"top,omitempty"`
-	// ID - The id of the search results request.
-	ID *string `json:"id,omitempty"`
-	// CoreSummaries - The core summaries.
-	CoreSummaries *[]CoreSummary `json:"CoreSummaries,omitempty"`
-	// Status - The status of the search results.
-	Status *string `json:"Status,omitempty"`
-	// StartTime - The start time for the search.
-	StartTime *date.Time `json:"StartTime,omitempty"`
-	// LastUpdated - The time of last update.
-	LastUpdated *date.Time `json:"LastUpdated,omitempty"`
-	// ETag - The ETag of the search results.
-	ETag *string `json:"ETag,omitempty"`
-	// Sort - How the results are sorted.
-	Sort *[]SearchSort `json:"sort,omitempty"`
-	// RequestTime - The request time.
-	RequestTime *int64 `json:"requestTime,omitempty"`
-	// AggregatedValueField - The aggregated value field.
-	AggregatedValueField *string `json:"aggregatedValueField,omitempty"`
-	// AggregatedGroupingFields - The aggregated grouping fields.
-	AggregatedGroupingFields *string `json:"aggregatedGroupingFields,omitempty"`
-	// Sum - The sum of all aggregates returned in the result set.
-	Sum *int64 `json:"sum,omitempty"`
-	// Max - The max of all aggregates returned in the result set.
-	Max *int64 `json:"max,omitempty"`
-	// Schema - The schema.
-	Schema *SearchMetadataSchema `json:"schema,omitempty"`
-}
-
-// SearchMetadataSchema schema metadata for search.
-type SearchMetadataSchema struct {
-	// Name - The name of the metadata schema.
-	Name *string `json:"name,omitempty"`
-	// Version - The version of the metadata schema.
-	Version *int32 `json:"version,omitempty"`
-}
-
-// SearchParameters parameters specifying the search query and range.
-type SearchParameters struct {
-	// Top - The number to get from the top.
-	Top *int64 `json:"top,omitempty"`
-	// Highlight - The highlight that looks for all occurences of a string.
-	Highlight *SearchHighlight `json:"highlight,omitempty"`
-	// Query - The query to search.
-	Query *string `json:"query,omitempty"`
-	// Start - The start date filter, so the only query results returned are after this date.
-	Start *date.Time `json:"start,omitempty"`
-	// End - The end date filter, so the only query results returned are before this date.
-	End *date.Time `json:"end,omitempty"`
-}
-
-// SearchResultsResponse the get search result operation response.
-type SearchResultsResponse struct {
-	autorest.Response `json:"-"`
-	// ID - The id of the search, which includes the full url.
-	ID *string `json:"id,omitempty"`
-	// Metadata - The metadata from search results.
-	Metadata *SearchMetadata `json:"__metadata,omitempty"`
-	// Value - The array of result values.
-	Value *[]map[string]interface{} `json:"value,omitempty"`
-	// Error - The error.
-	Error *SearchError `json:"error,omitempty"`
-}
-
-// SearchSchemaValue value object for schema results.
-type SearchSchemaValue struct {
-	// Name - The name of the schema.
-	Name *string `json:"name,omitempty"`
-	// DisplayName - The display name of the schema.
-	DisplayName *string `json:"displayName,omitempty"`
-	// Type - The type.
-	Type *string `json:"type,omitempty"`
-	// Indexed - The boolean that indicates the field is searchable as free text.
-	Indexed *bool `json:"indexed,omitempty"`
-	// Stored - The boolean that indicates whether or not the field is stored.
-	Stored *bool `json:"stored,omitempty"`
-	// Facet - The boolean that indicates whether or not the field is a facet.
-	Facet *bool `json:"facet,omitempty"`
-	// OwnerType - The array of workflows containing the field.
-	OwnerType *[]string `json:"ownerType,omitempty"`
-}
-
-// SearchSort the sort parameters for search.
-type SearchSort struct {
-	// Name - The name of the field the search query is sorted on.
-	Name *string `json:"name,omitempty"`
-	// Order - The sort order of the search. Possible values include: 'Asc', 'Desc'
-	Order SearchSortEnum `json:"order,omitempty"`
-}
-
-// SharedKeys the shared keys for a workspace.
-type SharedKeys struct {
-	autorest.Response `json:"-"`
-	// PrimarySharedKey - The primary shared key of a workspace.
-	PrimarySharedKey *string `json:"primarySharedKey,omitempty"`
-	// SecondarySharedKey - The secondary shared key of a workspace.
-	SecondarySharedKey *string `json:"secondarySharedKey,omitempty"`
-}
-
-// Sku the SKU (tier) of a workspace.
-type Sku struct {
-	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'Unlimited', 'PerNode', 'Standalone'
-	Name SkuNameEnum `json:"name,omitempty"`
-}
-
-// StorageAccount describes a storage account connection.
-type StorageAccount struct {
-	// ID - The Azure Resource Manager ID of the storage account resource.
-	ID *string `json:"id,omitempty"`
-	// Key - The storage account key.
-	Key *string `json:"key,omitempty"`
-}
-
-// StorageInsight the top level storage insight resource container.
-type StorageInsight struct {
-	autorest.Response `json:"-"`
-	// ID - Resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type.
-	Type *string `json:"type,omitempty"`
-	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// StorageInsightProperties - Storage insight properties.
-	*StorageInsightProperties `json:"properties,omitempty"`
-	// ETag - The ETag of the storage insight.
-	ETag *string `json:"eTag,omitempty"`
-}
-
-// UnmarshalJSON is the custom unmarshaler for StorageInsight struct.
-func (si *StorageInsight) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties StorageInsightProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
-		}
-		si.StorageInsightProperties = &properties
-	}
-
-	v = m["eTag"]
-	if v != nil {
-		var eTag string
-		err = json.Unmarshal(*m["eTag"], &eTag)
-		if err != nil {
-			return err
-		}
-		si.ETag = &eTag
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		si.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		si.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		si.Type = &typeVar
-	}
-
-	v = m["tags"]
-	if v != nil {
-		var tags map[string]*string
-		err = json.Unmarshal(*m["tags"], &tags)
-		if err != nil {
-			return err
-		}
-		si.Tags = &tags
-	}
-
-	return nil
-}
-
-// StorageInsightListResult the list storage insights operation response.
-type StorageInsightListResult struct {
-	autorest.Response `json:"-"`
-	// Value - Gets or sets a list of storage insight instances.
-	Value *[]StorageInsight `json:"value,omitempty"`
-	// OdataNextLink - The link (url) to the next page of results.
-	OdataNextLink *string `json:"@odata.nextLink,omitempty"`
-}
-
-// StorageInsightListResultIterator provides access to a complete listing of StorageInsight values.
-type StorageInsightListResultIterator struct {
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// OperationListResultIterator provides access to a complete listing of Operation values.
+type OperationListResultIterator struct {
 	i    int
-	page StorageInsightListResultPage
+	page OperationListResultPage
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *StorageInsightListResultIterator) Next() error {
+func (iter *OperationListResultIterator) Next() error {
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
@@ -800,105 +546,173 @@ func (iter *StorageInsightListResultIterator) Next() error {
 	return nil
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter StorageInsightListResultIterator) NotDone() bool {
+func (iter OperationListResultIterator) NotDone() bool {
 	return iter.page.NotDone() && iter.i < len(iter.page.Values())
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Response returns the raw server response from the last page request.
-func (iter StorageInsightListResultIterator) Response() StorageInsightListResult {
+func (iter OperationListResultIterator) Response() OperationListResult {
 	return iter.page.Response()
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Value returns the current value or a zero-initialized value if the
 // iterator has advanced beyond the end of the collection.
-func (iter StorageInsightListResultIterator) Value() StorageInsight {
+func (iter OperationListResultIterator) Value() Operation {
 	if !iter.page.NotDone() {
-		return StorageInsight{}
+		return Operation{}
 	}
 	return iter.page.Values()[iter.i]
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // IsEmpty returns true if the ListResult contains no values.
-func (silr StorageInsightListResult) IsEmpty() bool {
-	return silr.Value == nil || len(*silr.Value) == 0
+func (olr OperationListResult) IsEmpty() bool {
+	return olr.Value == nil || len(*olr.Value) == 0
 }
 
-// storageInsightListResultPreparer prepares a request to retrieve the next set of results.
+// operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (silr StorageInsightListResult) storageInsightListResultPreparer() (*http.Request, error) {
-	if silr.OdataNextLink == nil || len(to.String(silr.OdataNextLink)) < 1 {
+func (olr OperationListResult) operationListResultPreparer() (*http.Request, error) {
+	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
 		return nil, nil
 	}
 	return autorest.Prepare(&http.Request{},
 		autorest.AsJSON(),
 		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(silr.OdataNextLink)))
+		autorest.WithBaseURL(to.String(olr.NextLink)))
 }
 
-// StorageInsightListResultPage contains a page of StorageInsight values.
-type StorageInsightListResultPage struct {
-	fn   func(StorageInsightListResult) (StorageInsightListResult, error)
-	silr StorageInsightListResult
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// OperationListResultPage contains a page of Operation values.
+type OperationListResultPage struct {
+	fn  func(OperationListResult) (OperationListResult, error)
+	olr OperationListResult
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Next advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *StorageInsightListResultPage) Next() error {
-	next, err := page.fn(page.silr)
+func (page *OperationListResultPage) Next() error {
+	next, err := page.fn(page.olr)
 	if err != nil {
 		return err
 	}
-	page.silr = next
+	page.olr = next
 	return nil
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page StorageInsightListResultPage) NotDone() bool {
-	return !page.silr.IsEmpty()
+func (page OperationListResultPage) NotDone() bool {
+	return !page.olr.IsEmpty()
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Response returns the raw server response from the last page request.
-func (page StorageInsightListResultPage) Response() StorageInsightListResult {
-	return page.silr
+func (page OperationListResultPage) Response() OperationListResult {
+	return page.olr
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Values returns the slice of values for the current page or nil if there are no values.
-func (page StorageInsightListResultPage) Values() []StorageInsight {
-	if page.silr.IsEmpty() {
+func (page OperationListResultPage) Values() []Operation {
+	if page.olr.IsEmpty() {
 		return nil
 	}
-	return *page.silr.Value
+	return *page.olr.Value
 }
 
-// StorageInsightProperties storage insight properties.
-type StorageInsightProperties struct {
-	// Containers - The names of the blob containers that the workspace should read
-	Containers *[]string `json:"containers,omitempty"`
-	// Tables - The names of the Azure tables that the workspace should read
-	Tables *[]string `json:"tables,omitempty"`
-	// StorageAccount - The storage account connection details
-	StorageAccount *StorageAccount `json:"storageAccount,omitempty"`
-	// Status - The status of the storage insight
-	Status *StorageInsightStatus `json:"status,omitempty"`
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// ProxyResource common properties of proxy resource.
+type ProxyResource struct {
+	// ID - Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type.
+	Type *string `json:"type,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
 }
 
-// StorageInsightStatus the status of the storage insight.
-type StorageInsightStatus struct {
-	// State - The state of the storage insight connection to the workspace. Possible values include: 'OK', 'ERROR'
-	State StorageInsightState `json:"state,omitempty"`
-	// Description - Description of the state of the storage insight.
-	Description *string `json:"description,omitempty"`
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// MarshalJSON is the custom marshaler for ProxyResource.
+func (pr ProxyResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pr.ID != nil {
+		objectMap["id"] = pr.ID
+	}
+	if pr.Name != nil {
+		objectMap["name"] = pr.Name
+	}
+	if pr.Type != nil {
+		objectMap["type"] = pr.Type
+	}
+	if pr.Tags != nil {
+		objectMap["tags"] = pr.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
-// Tag a tag of a saved search.
-type Tag struct {
-	// Name - The tag name.
-	Name *string `json:"Name,omitempty"`
-	// Value - The tag value.
-	Value *string `json:"Value,omitempty"`
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// Resource the resource definition.
+type Resource struct {
+	// ID - Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if r.ID != nil {
+		objectMap["id"] = r.ID
+	}
+	if r.Name != nil {
+		objectMap["name"] = r.Name
+	}
+	if r.Type != nil {
+		objectMap["type"] = r.Type
+	}
+	if r.Location != nil {
+		objectMap["location"] = r.Location
+	}
+	if r.Tags != nil {
+		objectMap["tags"] = r.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// SharedKeys the shared keys for a workspace.
+type SharedKeys struct {
+	autorest.Response `json:"-"`
+	// PrimarySharedKey - The primary shared key of a workspace.
+	PrimarySharedKey *string `json:"primarySharedKey,omitempty"`
+	// SecondarySharedKey - The secondary shared key of a workspace.
+	SecondarySharedKey *string `json:"secondarySharedKey,omitempty"`
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// Sku the SKU (tier) of a workspace.
+type Sku struct {
+	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'Unlimited', 'PerNode', 'PerGB2018', 'Standalone'
+	Name SkuNameEnum `json:"name,omitempty"`
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // UsageMetric a metric describing the usage of a resource.
 type UsageMetric struct {
 	// Name - The name of the metric.
@@ -915,9 +729,14 @@ type UsageMetric struct {
 	QuotaPeriod *string `json:"quotaPeriod,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Workspace the top level Workspace resource container.
 type Workspace struct {
 	autorest.Response `json:"-"`
+	// WorkspaceProperties - Workspace properties.
+	*WorkspaceProperties `json:"properties,omitempty"`
+	// ETag - The ETag of the workspace.
+	ETag *string `json:"eTag,omitempty"`
 	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
@@ -927,13 +746,38 @@ type Workspace struct {
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// WorkspaceProperties - Workspace properties.
-	*WorkspaceProperties `json:"properties,omitempty"`
-	// ETag - The ETag of the workspace.
-	ETag *string `json:"eTag,omitempty"`
+	Tags map[string]*string `json:"tags"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// MarshalJSON is the custom marshaler for Workspace.
+func (w Workspace) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if w.WorkspaceProperties != nil {
+		objectMap["properties"] = w.WorkspaceProperties
+	}
+	if w.ETag != nil {
+		objectMap["eTag"] = w.ETag
+	}
+	if w.ID != nil {
+		objectMap["id"] = w.ID
+	}
+	if w.Name != nil {
+		objectMap["name"] = w.Name
+	}
+	if w.Type != nil {
+		objectMap["type"] = w.Type
+	}
+	if w.Location != nil {
+		objectMap["location"] = w.Location
+	}
+	if w.Tags != nil {
+		objectMap["tags"] = w.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // UnmarshalJSON is the custom unmarshaler for Workspace struct.
 func (w *Workspace) UnmarshalJSON(body []byte) error {
 	var m map[string]*json.RawMessage
@@ -941,81 +785,78 @@ func (w *Workspace) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties WorkspaceProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var workspaceProperties WorkspaceProperties
+				err = json.Unmarshal(*v, &workspaceProperties)
+				if err != nil {
+					return err
+				}
+				w.WorkspaceProperties = &workspaceProperties
+			}
+		case "eTag":
+			if v != nil {
+				var eTag string
+				err = json.Unmarshal(*v, &eTag)
+				if err != nil {
+					return err
+				}
+				w.ETag = &eTag
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				w.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				w.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				w.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				w.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				w.Tags = tags
+			}
 		}
-		w.WorkspaceProperties = &properties
-	}
-
-	v = m["eTag"]
-	if v != nil {
-		var eTag string
-		err = json.Unmarshal(*m["eTag"], &eTag)
-		if err != nil {
-			return err
-		}
-		w.ETag = &eTag
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		w.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		w.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		w.Type = &typeVar
-	}
-
-	v = m["location"]
-	if v != nil {
-		var location string
-		err = json.Unmarshal(*m["location"], &location)
-		if err != nil {
-			return err
-		}
-		w.Location = &location
-	}
-
-	v = m["tags"]
-	if v != nil {
-		var tags map[string]*string
-		err = json.Unmarshal(*m["tags"], &tags)
-		if err != nil {
-			return err
-		}
-		w.Tags = &tags
 	}
 
 	return nil
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // WorkspaceListManagementGroupsResult the list workspace managmement groups operation response.
 type WorkspaceListManagementGroupsResult struct {
 	autorest.Response `json:"-"`
@@ -1023,6 +864,7 @@ type WorkspaceListManagementGroupsResult struct {
 	Value *[]ManagementGroup `json:"value,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // WorkspaceListResult the list workspaces operation response.
 type WorkspaceListResult struct {
 	autorest.Response `json:"-"`
@@ -1030,6 +872,7 @@ type WorkspaceListResult struct {
 	Value *[]Workspace `json:"value,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // WorkspaceListUsagesResult the list workspace usages operation response.
 type WorkspaceListUsagesResult struct {
 	autorest.Response `json:"-"`
@@ -1037,6 +880,7 @@ type WorkspaceListUsagesResult struct {
 	Value *[]UsageMetric `json:"value,omitempty"`
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // WorkspaceProperties workspace properties.
 type WorkspaceProperties struct {
 	// ProvisioningState - The provisioning state of the workspace. Possible values include: 'Creating', 'Succeeded', 'Failed', 'Canceled', 'Deleting', 'ProvisioningAccount'
@@ -1053,65 +897,53 @@ type WorkspaceProperties struct {
 	RetentionInDays *int32 `json:"retentionInDays,omitempty"`
 }
 
-// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
+// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type WorkspacesCreateOrUpdateFuture struct {
 	azure.Future
 	req *http.Request
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights instead.
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
 func (future WorkspacesCreateOrUpdateFuture) Result(client WorkspacesClient) (w Workspace, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
+		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		return w, autorest.NewError("operationalinsights.WorkspacesCreateOrUpdateFuture", "Result", "asynchronous operation has not completed")
+		return w, azure.NewAsyncOpIncompleteError("operationalinsights.WorkspacesCreateOrUpdateFuture")
 	}
 	if future.PollingMethod() == azure.PollingLocation {
 		w, err = client.CreateOrUpdateResponder(future.Response())
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesCreateOrUpdateFuture", "Result", future.Response(), "Failure responding to request")
+		}
 		return
 	}
+	var req *http.Request
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, autorest.ChangeToGet(future.req),
+	if future.PollingURL() != "" {
+		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
+		if err != nil {
+			return
+		}
+	} else {
+		req = autorest.ChangeToGet(future.req)
+	}
+	resp, err = autorest.SendWithSender(client, req,
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if err != nil {
+		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesCreateOrUpdateFuture", "Result", resp, "Failure sending request")
 		return
 	}
 	w, err = client.CreateOrUpdateResponder(resp)
-	return
-}
-
-// WorkspacesGetSearchResultsFuture an abstraction for monitoring and retrieving the results of a long-running
-// operation.
-type WorkspacesGetSearchResultsFuture struct {
-	azure.Future
-	req *http.Request
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future WorkspacesGetSearchResultsFuture) Result(client WorkspacesClient) (srr SearchResultsResponse, err error) {
-	var done bool
-	done, err = future.Done(client)
 	if err != nil {
-		return
+		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesCreateOrUpdateFuture", "Result", resp, "Failure responding to request")
 	}
-	if !done {
-		return srr, autorest.NewError("operationalinsights.WorkspacesGetSearchResultsFuture", "Result", "asynchronous operation has not completed")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		srr, err = client.GetSearchResultsResponder(future.Response())
-		return
-	}
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, autorest.ChangeToGet(future.req),
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		return
-	}
-	srr, err = client.GetSearchResultsResponder(resp)
 	return
 }

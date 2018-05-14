@@ -43,9 +43,9 @@ func NewProviderOperationsMetadataClientWithBaseURI(baseURI string, subscription
 }
 
 // Get gets provider operations metadata for the specified resource provider.
-//
-// resourceProviderNamespace is the namespace of the resource provider. expand is specifies whether to expand the
-// values.
+// Parameters:
+// resourceProviderNamespace - the namespace of the resource provider.
+// expand - specifies whether to expand the values.
 func (client ProviderOperationsMetadataClient) Get(ctx context.Context, resourceProviderNamespace string, expand string) (result ProviderOperationsMetadata, err error) {
 	req, err := client.GetPreparer(ctx, resourceProviderNamespace, expand)
 	if err != nil {
@@ -80,6 +80,8 @@ func (client ProviderOperationsMetadataClient) GetPreparer(ctx context.Context, 
 	}
 	if len(expand) > 0 {
 		queryParameters["$expand"] = autorest.Encode("query", expand)
+	} else {
+		queryParameters["$expand"] = autorest.Encode("query", "resourceTypes")
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -111,8 +113,8 @@ func (client ProviderOperationsMetadataClient) GetResponder(resp *http.Response)
 }
 
 // List gets provider operations metadata for all resource providers.
-//
-// expand is specifies whether to expand the values.
+// Parameters:
+// expand - specifies whether to expand the values.
 func (client ProviderOperationsMetadataClient) List(ctx context.Context, expand string) (result ProviderOperationsMetadataListResultPage, err error) {
 	result.fn = client.listNextResults
 	req, err := client.ListPreparer(ctx, expand)
@@ -144,6 +146,8 @@ func (client ProviderOperationsMetadataClient) ListPreparer(ctx context.Context,
 	}
 	if len(expand) > 0 {
 		queryParameters["$expand"] = autorest.Encode("query", expand)
+	} else {
+		queryParameters["$expand"] = autorest.Encode("query", "resourceTypes")
 	}
 
 	preparer := autorest.CreatePreparer(

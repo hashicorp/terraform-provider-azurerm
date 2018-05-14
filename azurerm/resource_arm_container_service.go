@@ -126,8 +126,9 @@ func resourceArmContainerService() *schema.Resource {
 						},
 
 						"vm_size": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 					},
 				},
@@ -188,7 +189,7 @@ func resourceArmContainerServiceCreate(d *schema.ResourceData, meta interface{})
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 
 	orchestrationPlatform := d.Get("orchestration_platform").(string)
 
@@ -273,8 +274,10 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	d.Set("orchestration_platform", string(resp.Properties.OrchestratorProfile.OrchestratorType))
 
