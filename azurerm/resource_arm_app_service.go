@@ -614,7 +614,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	restrictions := flattenAppServiceIpRestrictions(configResp.SiteConfig.IPSecurityRestrictions)
-	if err := d.Set("ip_restrictions", restrictions); err != nil {
+	if err := d.Set("ip_restriction", restrictions); err != nil {
 		return fmt.Errorf("Error flattening `ip_restrictions`: %s", err)
 	}
 
