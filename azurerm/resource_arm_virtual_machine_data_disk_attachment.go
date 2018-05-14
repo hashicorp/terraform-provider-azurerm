@@ -6,6 +6,8 @@ import (
 	"log"
 	"strings"
 
+	"context"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -33,13 +35,6 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-			},
-
-			// TODO: can we remove this option, in favour of looking up if the disk exists?
-			"create_option": {
-				Type:             schema.TypeString,
-				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"lun": {
@@ -115,13 +110,11 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	name := d.Get("name").(string)
-	createOption := d.Get("create_option").(string)
 	lun := int32(d.Get("lun").(int))
 
 	expandedDisk := compute.DataDisk{
-		Name:         utils.String(name),
-		Lun:          utils.Int32(lun),
-		CreateOption: compute.DiskCreateOptionTypes(createOption),
+		Name: utils.String(name),
+		Lun:  utils.Int32(lun),
 	}
 	if v, ok := d.GetOk("vhd_uri"); ok {
 		expandedDisk.Vhd = &compute.VirtualHardDisk{
@@ -144,6 +137,14 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 
 	if v, ok := d.GetOk("disk_size_gb"); ok {
 		expandedDisk.DiskSizeGB = utils.Int32(int32(v.(int)))
+	}
+
+	createOption, err := determineAzureDataDiskCreateOption(ctx, meta, expandedDisk)
+	if err != nil {
+		return fmt.Errorf("Error determining Create Option for Data Disk %q: %+v", name, err)
+	}
+	if createOption != nil {
+		expandedDisk.CreateOption = compute.DiskCreateOptionTypes(*createOption)
 	}
 
 	disks := *virtualMachine.StorageProfile.DataDisks
@@ -228,7 +229,6 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 		d.Set("managed_disk_type", string(managedDisk.StorageAccountType))
 	}
 
-	d.Set("create_option", string(disk.CreateOption))
 	d.Set("caching", string(disk.Caching))
 	if diskSizeGb := disk.DiskSizeGB; diskSizeGb != nil {
 		d.Set("disk_size_gb", int(*diskSizeGb))
@@ -285,4 +285,55 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	}
 
 	return nil
+}
+
+func determineAzureDataDiskCreateOption(ctx context.Context, meta interface{}, disk compute.DataDisk) (*string, error) {
+	attach := string(compute.DiskCreateOptionTypesAttach)
+
+	if disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
+		diskId := *disk.ManagedDisk.ID
+		id, err := parseAzureResourceID(diskId)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing Managed Disk Resource ID %q: %+v", diskId, err)
+		}
+
+		client := meta.(*ArmClient).diskClient
+		resourceGroup := id.ResourceGroup
+		name := id.Path["disks"]
+
+		_, err = client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return nil, fmt.Errorf("Error loading Data Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		return &attach, nil
+	}
+
+	if disk.Vhd != nil && disk.Vhd.URI != nil {
+		diskId := *disk.Vhd.URI
+		metadata, err := storageAccountNameForUnmanagedDisk(diskId, meta)
+		if err != nil {
+			return nil, fmt.Errorf("Error locating Storage Account for Unmanaged Disk %q: %+v", diskId, err)
+		}
+
+		client := meta.(*ArmClient)
+		storageClient, _, err := client.getBlobStorageClientForStorageAccount(ctx, metadata.ResourceGroupName, metadata.StorageAccountName)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting Blob Storage Client for Account %q (Resource Group %q): %+v", metadata.StorageAccountName, metadata.ResourceGroupName, err)
+		}
+
+		container := storageClient.GetContainerReference(metadata.StorageContainerName)
+		blob := container.GetBlobReference(metadata.BlobName)
+		exists, err := blob.Exists()
+		if err != nil {
+			return nil, fmt.Errorf("Error locating Blob for Unmanaged Disk %q: %+v", diskId, err)
+		}
+
+		if exists {
+			return &attach, nil
+		}
+	}
+
+	empty := string(compute.DiskCreateOptionTypesEmpty)
+	return &empty, nil
 }

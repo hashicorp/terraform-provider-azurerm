@@ -301,7 +301,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   name               = "disk1-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
   vhd_uri            = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/mydatadisk1.vhd"
-  create_option      = "Empty"
   disk_size_gb       = 10
   lun                = 1
 }
@@ -377,7 +376,6 @@ resource "azurerm_virtual_machine" "test" {
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   name               = "disk1-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  create_option      = "Empty"
   managed_disk_type  = "Standard_LRS"
   disk_size_gb       = 10
   lun                = 1
@@ -464,7 +462,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   name               = "${azurerm_managed_disk.test.name}"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
   managed_disk_id    = "${azurerm_managed_disk.test.id}"
-  create_option      = "Attach"
   managed_disk_type  = "Standard_LRS"
   lun                = 1
 }
@@ -540,7 +537,6 @@ resource "azurerm_virtual_machine" "test" {
 resource "azurerm_virtual_machine_data_disk_attachment" "first" {
   name               = "disk1-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  create_option      = "Empty"
   managed_disk_type  = "Standard_LRS"
   disk_size_gb       = 10
   lun                = %d
@@ -549,7 +545,6 @@ resource "azurerm_virtual_machine_data_disk_attachment" "first" {
 resource "azurerm_virtual_machine_data_disk_attachment" "second" {
   name               = "disk2-%d"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  create_option      = "Empty"
   managed_disk_type  = "Standard_LRS"
   disk_size_gb       = 20
   lun                = %d
