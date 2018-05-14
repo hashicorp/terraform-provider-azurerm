@@ -102,7 +102,7 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 		}
 		d.Set("state", string(properties.State))
 
-		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota, d.Get("quota").([]interface{}))); err != nil {
+		if err := d.Set("quota", flattenAzureArmSchedulerJobCollectionQuota(properties.Quota)); err != nil {
 			return fmt.Errorf("Error flattening quota for Job Collection %q (Resource Group %q): %+v", collection.Name, resourceGroup, err)
 		}
 	}
