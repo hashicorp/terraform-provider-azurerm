@@ -1226,8 +1226,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   ip_restriction {
-    ip_address  = "10.10.10.10"
-    subnet_mask = "255.255.255.255"
+    ip_address = "10.10.10.10"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -1258,8 +1257,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
   ip_restriction {
-    ip_address  = "10.10.10.10"
-    subnet_mask = "255.255.255.255"
+    ip_address = "10.10.10.10"
   }
 
   ip_restriction {
