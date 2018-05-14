@@ -4,6 +4,10 @@ BUG FIXES:
 
 * `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic [GH-1224]
 
+IMPROVEMENTS:
+
+* `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` [GH-1235]
+
 ## 1.5.0 (May 14, 2018)
 
 UPGRADE NOTES:
