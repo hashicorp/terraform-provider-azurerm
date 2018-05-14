@@ -301,9 +301,9 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	ipSecurityRestrictions := configResp.SiteConfig.IPSecurityRestrictions
-	if ipSecurityRestrictions != nil {
-		d.Set("ip_restriction", flattenAppServiceIpRestrictions(ipSecurityRestrictions))
+	restrictions := flattenAppServiceIpRestrictions(configResp.SiteConfig.IPSecurityRestrictions)
+	if err := d.Set("ip_restriction", restrictions); err != nil {
+		return fmt.Errorf("Error setting `ip_restriction`: %s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
