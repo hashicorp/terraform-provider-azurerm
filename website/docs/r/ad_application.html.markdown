@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ad_application"
-sidebar_current: "docs-azurerm-resource-authorization-ad-application"
+sidebar_current: "docs-azurerm-resource-active-directory-application"
 description: |-
   Manage an Azure Active Directory Application.
 
@@ -9,7 +9,10 @@ description: |-
 
 # azurerm_ad_application
 
-Create a new application in Azure Active Directory. If your account is not an administrator in Active Directory an administrator must enable users to register applications within the User Settings. In addition, if you are using a Service Principal then it must have the permissions `Read and write all applications` and `Sign in and read user profile` under the `Windows Azure Active Directory` API.
+Create a new application in Azure Active Directory. If your account is not an administrator in Active Directory an administrator must enable users to register applications within the User Settings. In addition, if you are using a Service Principal then it must have the following permissions under the `Windows Azure Active Directory` API:
+
+* Read and write all applications
+* Sign in and read user profile
 
 ## Example Usage
 
@@ -63,10 +66,10 @@ resource "azurerm_ad_application" "example" {
   display_name = "example"
 
   key_credential {
-    key_id = "32efa455-6b0e-489d-b3a7-d12675b767a5"
+    key_id = "00000000-0000-0000-0000-000000000000"
     type = "AsymmetricX509Cert"
     usage = "Verify"
-    value = "${replace(tls_self_signed_cert.example.cert_pem, "/(-{5}.+?-{5})|(\\n)/", "")}"
+    value = "${tls_self_signed_cert.example.cert_pem}"
   }
 }
 ```
@@ -78,7 +81,7 @@ resource "azurerm_ad_application" "test" {
   display_name = "example"
 
   password_credential {
-    key_id = "32efa455-6b0e-489d-b3a7-d12675b767a5"
+    key_id = "00000000-0000-0000-0000-000000000000"
     value = "example"
     start_date = "2018-03-01T00:00:00+00:00"
     end_date = "2018-03-02T00:00:00+00:00"
@@ -114,9 +117,9 @@ The following arguments are supported:
 
 * `usage` - (Required) A string that describes the purpose for which the key can be used. Possible values are `Sign` and `Verify`.
 
-* `start_date` - (Optional) The date and time at which the credential becomes valid.
+* `start_date` - (Required) The date and time at which the credential becomes valid.
 
-* `end_date` - (Optional) The date and time at which the credential expires.
+* `end_date` - (Required) The date and time at which the credential expires.
 
 * `value` - (Required) The certificate value of the credential.
 
@@ -124,7 +127,7 @@ The following arguments are supported:
 
 * `key_id` - (Required) The unique identifier (GUID) for the key.
 
-* `start_date` - (Optional) The date and time at which the credential becomes valid.
+* `start_date` - (Required) The date and time at which the credential becomes valid.
 
 * `end_date` - (Required) The date and time at which the credential expires.
 
