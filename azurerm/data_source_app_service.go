@@ -123,6 +123,23 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"ip_restriction": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"subnet_mask": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"https_only": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -282,6 +299,11 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
+	}
+
+	restrictions := flattenAppServiceIpRestrictions(configResp.SiteConfig.IPSecurityRestrictions)
+	if err := d.Set("ip_restriction", restrictions); err != nil {
+		return fmt.Errorf("Error setting `ip_restriction`: %s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)

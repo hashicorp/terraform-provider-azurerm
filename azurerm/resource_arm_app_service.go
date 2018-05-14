@@ -214,6 +214,25 @@ func resourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
+			"ip_restriction": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ip_address": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"subnet_mask": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "255.255.255.255",
+						},
+					},
+				},
+			},
+
 			"https_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -432,7 +451,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if d.HasChange("site_config") {
+	if d.HasChange("site_config") || d.HasChange("ip_restriction") {
 		// update the main configuration
 		siteConfig := expandAppServiceSiteConfig(d)
 		siteConfigResource := web.SiteConfigResource{
@@ -594,6 +613,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	restrictions := flattenAppServiceIpRestrictions(configResp.SiteConfig.IPSecurityRestrictions)
+	if err := d.Set("ip_restriction", restrictions); err != nil {
+		return fmt.Errorf("Error flattening `ip_restrictions`: %s", err)
+	}
+
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
 		return err
@@ -642,6 +666,9 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 	configs := d.Get("site_config").([]interface{})
 	siteConfig := web.SiteConfig{}
+
+	ipRestrictions := expandIpRestrictions(d)
+	siteConfig.IPSecurityRestrictions = ipRestrictions
 
 	if len(configs) == 0 {
 		return siteConfig
@@ -852,6 +879,25 @@ func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.C
 	return output
 }
 
+func expandIpRestrictions(d *schema.ResourceData) *[]web.IPSecurityRestriction {
+	ipSecurityRestrictions := d.Get("ip_restriction").([]interface{})
+	restrictions := make([]web.IPSecurityRestriction, 0)
+
+	for _, ipSecurityRestriction := range ipSecurityRestrictions {
+		restriction := ipSecurityRestriction.(map[string]interface{})
+
+		ip_address := restriction["ip_address"].(string)
+		subnet_mask := restriction["subnet_mask"].(string)
+
+		restrictions = append(restrictions, web.IPSecurityRestriction{
+			IPAddress:  &ip_address,
+			SubnetMask: &subnet_mask,
+		})
+	}
+
+	return &restrictions
+}
+
 func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
@@ -861,6 +907,21 @@ func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTyp
 		result["type"] = string(v.Type)
 		result["value"] = *v.Value
 		results = append(results, result)
+	}
+
+	return results
+}
+
+func flattenAppServiceIpRestrictions(input *[]web.IPSecurityRestriction) interface{} {
+	results := make([]interface{}, 0)
+
+	if input != nil {
+		for _, v := range *input {
+			result := make(map[string]interface{}, 0)
+			result["ip_address"] = *v.IPAddress
+			result["subnet_mask"] = *v.SubnetMask
+			results = append(results, result)
+		}
 	}
 
 	return results

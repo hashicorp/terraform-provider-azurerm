@@ -127,7 +127,9 @@ The following arguments are supported:
 
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
-* `site_config` - (Optional) A `site_config` object as defined below.
+* `ip_restriction` - (Optional) A `ip_restriction` block as defined below.
+
+* `site_config` - (Optional) A `site_config` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -148,6 +150,14 @@ The following arguments are supported:
 * `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+---
+
+`ip_restriction` supports the following:
+
+* `ip_address` - (Required) The IP Address used for this IP Restriction.
+
+* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
 ---
 
