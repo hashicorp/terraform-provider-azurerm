@@ -1,5 +1,9 @@
 ## 1.6.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_relay_namespace` [GH-1233]
+
 BUG FIXES:
 
 * `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic [GH-1224]
