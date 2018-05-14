@@ -15,7 +15,6 @@ import (
 func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
-	config := testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), "")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,8 +22,13 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -33,8 +37,6 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job_collection.test"
-	preConfig := testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), "")
-	config := testAccAzureRMSchedulerJobCollection_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,12 +44,17 @@ func TestAccAzureRMSchedulerJobCollection_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobCollectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: preConfig,
+				Config: testAccAzureRMSchedulerJobCollection_basic(ri, testLocation(), ""),
 				Check:  checkAccAzureRMSchedulerJobCollection_basic(resourceName),
 			},
 			{
-				Config: config,
+				Config: testAccAzureRMSchedulerJobCollection_complete(ri, testLocation()),
 				Check:  checkAccAzureRMSchedulerJobCollection_complete(resourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -133,7 +140,7 @@ func testAccAzureRMSchedulerJobCollection_complete(rInt int, location string) st
   state = "disabled" 
   quota { 
     max_recurrence_frequency = "Hour" 
-    max_retry_interval       = 10 
+    max_recurrence_interval  = 10  
     max_job_count            = 10 
   } 
 `)
@@ -159,7 +166,7 @@ func checkAccAzureRMSchedulerJobCollection_complete(resourceName string) resourc
 		resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 		resource.TestCheckResourceAttr(resourceName, "state", string(scheduler.Disabled)),
 		resource.TestCheckResourceAttr(resourceName, "quota.0.max_job_count", "10"),
-		resource.TestCheckResourceAttr(resourceName, "quota.0.max_retry_interval", "10"),
+		resource.TestCheckResourceAttr(resourceName, "quota.0.max_recurrence_interval", "10"),
 		resource.TestCheckResourceAttr(resourceName, "quota.0.max_recurrence_frequency", "hour"),
 	)
 }
