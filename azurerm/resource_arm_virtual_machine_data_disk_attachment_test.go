@@ -461,14 +461,14 @@ resource "azurerm_managed_disk" "test" {
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  name               = "disk1-%d"
+  name               = "${azurerm_managed_disk.test.name}"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
   managed_disk_id    = "${azurerm_managed_disk.test.id}"
   create_option      = "Attach"
   managed_disk_type  = "Standard_LRS"
   lun                = 1
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(rInt int, location string, firstDiskLun int, secondDiskLun int) string {

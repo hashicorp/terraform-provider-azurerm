@@ -77,7 +77,6 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_importExistingManagedDisk(t 
 }
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_importMultipleDisks(t *testing.T) {
-	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location, 1, 2)
@@ -91,7 +90,12 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_importMultipleDisks(t *testi
 				Config: config,
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      "azurerm_virtual_machine_data_disk_attachment.first",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      "azurerm_virtual_machine_data_disk_attachment.second",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
