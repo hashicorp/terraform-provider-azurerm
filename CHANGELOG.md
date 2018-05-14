@@ -1,4 +1,9 @@
 ## 1.6.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic [GH-1224]
+
 ## 1.5.0 (May 14, 2018)
 
 UPGRADE NOTES:
