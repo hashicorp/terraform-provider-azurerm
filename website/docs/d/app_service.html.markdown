@@ -47,7 +47,9 @@ output "app_service_id" {
 
 * `https_only` - Can the App Service only be accessed via HTTPS?
 
-* `site_config` - A `site_config` object as defined below.
+* `ip_restriction` - A `ip_restriction` block as defined below.
+
+* `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
 
@@ -60,6 +62,14 @@ output "app_service_id" {
 * `type` - The type of the Connection String.
 
 * `value` - The value for the Connection String.
+
+---
+
+`ip_restriction` exports the following:
+
+* `ip_address` - The IP Address used for this IP Restriction.
+
+* `subnet_mask` - The Subnet mask used for this IP Restriction.
 
 ---
 
