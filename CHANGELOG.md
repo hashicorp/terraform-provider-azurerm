@@ -1,5 +1,9 @@
 ## 1.6.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_scheduler_job_collection` - the property `max_retry_interval` has been deprecated in favour of `max_recurrence_interval` to better match Azure [GH-1218]
+
 FEATURES:
 
 * **New Resource:** `azurerm_relay_namespace` [GH-1233]
@@ -52,7 +56,7 @@ IMPROVEMENTS:
 
 UPGRADE NOTES:
 
-* `azurerm_cosmosdb_account` - the field `failover_policy` has been deprecated in favour of `geo_locations` to better match Azure.
+* `azurerm_cosmosdb_account` - the field `failover_policy` has been deprecated in favour of `geo_locations` to better match Azure
 
 FEATURES:
 
