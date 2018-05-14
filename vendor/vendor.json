@@ -195,6 +195,14 @@
 			"versionExact": "v16.2.1"
 		},
 		{
+			"checksumSHA1": "/Tlgqs81ToI+zz4miZcfu5yvZYU=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
 			"checksumSHA1": "DJY5zDEcGa82/Hbfud8lgHCuvU4=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
