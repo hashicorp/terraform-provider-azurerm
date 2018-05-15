@@ -51,8 +51,9 @@ func resourceArmApplicationInsights() *schema.Resource {
 			},
 
 			"instrumentation_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
