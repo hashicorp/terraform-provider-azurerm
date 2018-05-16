@@ -103,6 +103,25 @@ func resourceArmAppService() *schema.Resource {
 							Default:  false,
 						},
 
+						"ip_restriction": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_address": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"subnet_mask": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "255.255.255.255",
+									},
+								},
+							},
+						},
+
 						"java_version": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -212,25 +231,6 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-			},
-
-			"ip_restriction": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"ip_address": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"subnet_mask": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "255.255.255.255",
-						},
-					},
-				},
 			},
 
 			"https_only": {
@@ -451,7 +451,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if d.HasChange("site_config") || d.HasChange("ip_restriction") {
+	if d.HasChange("site_config") {
 		// update the main configuration
 		siteConfig := expandAppServiceSiteConfig(d)
 		siteConfigResource := web.SiteConfigResource{
@@ -613,11 +613,6 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	restrictions := flattenAppServiceIpRestrictions(configResp.SiteConfig.IPSecurityRestrictions)
-	if err := d.Set("ip_restriction", restrictions); err != nil {
-		return fmt.Errorf("Error flattening `ip_restrictions`: %s", err)
-	}
-
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
 		return err
@@ -667,9 +662,6 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 	configs := d.Get("site_config").([]interface{})
 	siteConfig := web.SiteConfig{}
 
-	ipRestrictions := expandIpRestrictions(d)
-	siteConfig.IPSecurityRestrictions = ipRestrictions
-
 	if len(configs) == 0 {
 		return siteConfig
 	}
@@ -709,6 +701,24 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 
 	if v, ok := config["http2_enabled"]; ok {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["ip_restriction"]; ok {
+		ipSecurityRestrictions := v.([]interface{})
+		restrictions := make([]web.IPSecurityRestriction, 0)
+
+		for _, ipSecurityRestriction := range ipSecurityRestrictions {
+			restriction := ipSecurityRestriction.(map[string]interface{})
+
+			ipAddress := restriction["ip_address"].(string)
+			mask := restriction["subnet_mask"].(string)
+
+			restrictions = append(restrictions, web.IPSecurityRestriction{
+				IPAddress:  &ipAddress,
+				SubnetMask: &mask,
+			})
+		}
+		siteConfig.IPSecurityRestrictions = &restrictions
 	}
 
 	if v, ok := config["local_mysql_enabled"]; ok {
@@ -796,6 +806,21 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
 
+	restrictions := make([]interface{}, 0)
+	if vs := input.IPSecurityRestrictions; vs != nil {
+		for _, v := range *vs {
+			result := make(map[string]interface{}, 0)
+			if ip := v.IPAddress; ip != nil {
+				result["ip_address"] = *ip
+			}
+			if subnet := v.SubnetMask; subnet != nil {
+				result["subnet_mask"] = *subnet
+			}
+			restrictions = append(restrictions, result)
+		}
+	}
+	result["ip_restriction"] = restrictions
+
 	result["managed_pipeline_mode"] = string(input.ManagedPipelineMode)
 
 	if input.PhpVersion != nil {
@@ -879,25 +904,6 @@ func expandAppServiceConnectionStrings(d *schema.ResourceData) map[string]*web.C
 	return output
 }
 
-func expandIpRestrictions(d *schema.ResourceData) *[]web.IPSecurityRestriction {
-	ipSecurityRestrictions := d.Get("ip_restriction").([]interface{})
-	restrictions := make([]web.IPSecurityRestriction, 0)
-
-	for _, ipSecurityRestriction := range ipSecurityRestrictions {
-		restriction := ipSecurityRestriction.(map[string]interface{})
-
-		ip_address := restriction["ip_address"].(string)
-		subnet_mask := restriction["subnet_mask"].(string)
-
-		restrictions = append(restrictions, web.IPSecurityRestriction{
-			IPAddress:  &ip_address,
-			SubnetMask: &subnet_mask,
-		})
-	}
-
-	return &restrictions
-}
-
 func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
@@ -907,21 +913,6 @@ func flattenAppServiceConnectionStrings(input map[string]*web.ConnStringValueTyp
 		result["type"] = string(v.Type)
 		result["value"] = *v.Value
 		results = append(results, result)
-	}
-
-	return results
-}
-
-func flattenAppServiceIpRestrictions(input *[]web.IPSecurityRestriction) interface{} {
-	results := make([]interface{}, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			result := make(map[string]interface{}, 0)
-			result["ip_address"] = *v.IPAddress
-			result["subnet_mask"] = *v.SubnetMask
-			results = append(results, result)
-		}
 	}
 
 	return results
