@@ -891,21 +891,21 @@ func testAccAzureRMSchedulerJob_block_actionWeb_basic(blockName string) string {
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
 	return fmt.Sprintf(`
   %s {
-    url = "http://terraform.io"
+    url = "http://example.com"
   } 
 `, blockName)
 }
 
 func checkAccAzureRMSchedulerJob_web_basic(resourceName, blockName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://www.google.com"),
+		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://example.com"),
 	)
 }
 
 func testAccAzureRMSchedulerJob_block_actionWeb_put(blockName string) string {
 	return fmt.Sprintf(`
   %s {
-    url    = "http://this.put.url.fails"
+    url    = "http://example.com"
     method = "put"
     body   = "this is some text"
     headers = {
@@ -917,7 +917,7 @@ func testAccAzureRMSchedulerJob_block_actionWeb_put(blockName string) string {
 
 func checkAccAzureRMSchedulerJob_web_put(resourceName, blockName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://this.put.url.fails"),
+		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://example.com"),
 		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.method", blockName), "put"),
 		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.body", blockName), "this is some text"),
 		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.headers.%%", blockName), "1"),
@@ -927,7 +927,7 @@ func checkAccAzureRMSchedulerJob_web_put(resourceName, blockName string) resourc
 func testAccAzureRMSchedulerJob_block_actionWeb_authBasic(blockName string) string {
 	return fmt.Sprintf(`
   %s {
-    url    = "https://this.url.fails"
+    url    = "https://example.com"
     method = "get"
 
     authentication_basic {
@@ -940,7 +940,7 @@ func testAccAzureRMSchedulerJob_block_actionWeb_authBasic(blockName string) stri
 
 func checkAccAzureRMSchedulerJob_web_authBasic(resourceName string, blockName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "https://this.url.fails"),
+		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "https://example.com"),
 		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.method", blockName), "get"),
 		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.authentication_basic.0.username", blockName), "login"),
 		resource.TestCheckResourceAttrSet(resourceName, fmt.Sprintf("%s.0.authentication_basic.0.password", blockName)),
@@ -950,7 +950,7 @@ func checkAccAzureRMSchedulerJob_web_authBasic(resourceName string, blockName st
 func testAccAzureRMSchedulerJob_block_actionWeb_authCert() string {
 	return `
   action_web {
-    url    = "https://this.url.fails"
+    url    = "https://example.com"
     method = "get"
 
     authentication_certificate {
@@ -963,7 +963,7 @@ func testAccAzureRMSchedulerJob_block_actionWeb_authCert() string {
 
 func checkAccAzureRMSchedulerJob_web_authCert(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://this.url.fails"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_certificate.0.pfx"),
 		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_certificate.0.password"),
@@ -975,7 +975,7 @@ func checkAccAzureRMSchedulerJob_web_authCert(resourceName string) resource.Test
 func testAccAzureRMSchedulerJob_block_actionWeb_authAd(tenantId, clientId, secret string) string {
 	return fmt.Sprintf(`
   action_web {
-    url    = "https://this.url.fails"
+    url    = "https://example.com"
     method = "get"
 
     authentication_active_directory {
@@ -990,7 +990,7 @@ func testAccAzureRMSchedulerJob_block_actionWeb_authAd(tenantId, clientId, secre
 
 func checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId, secret string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://this.url.fails"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.tenant_id", tenantId),
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.client_id", clientId),

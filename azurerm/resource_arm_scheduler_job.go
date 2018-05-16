@@ -134,16 +134,22 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							MinItems: 1,
-							Elem:     &schema.Schema{Type: schema.TypeInt},
-							Set:      set.HashInt,
+							Elem: &schema.Schema{
+								Type:         schema.TypeInt,
+								ValidateFunc: validation.IntBetween(0, 59),
+							},
+							Set: set.HashInt,
 						},
 
 						"hours": {
 							Type:     schema.TypeSet,
 							Optional: true,
 							MinItems: 1,
-							Elem:     &schema.Schema{Type: schema.TypeInt},
-							Set:      set.HashInt,
+							Elem: &schema.Schema{
+								Type:         schema.TypeInt,
+								ValidateFunc: validation.IntBetween(0, 23),
+							},
+							Set: set.HashInt,
 						},
 
 						"week_days": { //used with weekly
@@ -151,19 +157,33 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Optional:      true,
 							ConflictsWith: []string{"recurrence.0.month_days", "recurrence.0.monthly_occurrences"},
 							MinItems:      1,
-							Elem:          &schema.Schema{Type: schema.TypeString},
-							//the constants are title cased but the API returns all lowercase
-							//so lets ignore the case
+							// the constants are title cased but the API returns all lowercase
+							// so lets ignore the case
 							Set: set.HashStringIgnoreCase,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(scheduler.Sunday),
+									string(scheduler.Monday),
+									string(scheduler.Tuesday),
+									string(scheduler.Wednesday),
+									string(scheduler.Thursday),
+									string(scheduler.Friday),
+									string(scheduler.Saturday),
+								}, true),
+							},
 						},
 
-						"month_days": { //used with monthly, -1, 1- must be between 1/31
+						"month_days": { //used with monthly,
 							Type:          schema.TypeSet,
 							Optional:      true,
 							ConflictsWith: []string{"recurrence.0.week_days", "recurrence.0.monthly_occurrences"},
 							MinItems:      1,
-							Elem:          &schema.Schema{Type: schema.TypeInt},
-							Set:           set.HashInt,
+							Elem: &schema.Schema{
+								Type:         schema.TypeInt,
+								ValidateFunc: validate.IntBetweenAndNot(-31, 31, 0),
+							},
+							Set: set.HashInt,
 						},
 
 						"monthly_occurrences": {
@@ -174,13 +194,23 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Set:           resourceAzureRMSchedulerJobMonthlyOccurrenceHash,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"day": { // DatOfWeek (sunday monday)
+									"day": {
 										Type:     schema.TypeString,
 										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(scheduler.Sunday),
+											string(scheduler.Monday),
+											string(scheduler.Tuesday),
+											string(scheduler.Wednesday),
+											string(scheduler.Thursday),
+											string(scheduler.Friday),
+											string(scheduler.Saturday),
+										}, true),
 									},
-									"occurrence": { //-5 - 5, not 0
-										Type:     schema.TypeInt,
-										Required: true,
+									"occurrence": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validate.IntBetweenAndNot(-5, 5, 0),
 									},
 								},
 							},
@@ -192,7 +222,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 			"start_time": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          time.Now().Format(time.RFC3339), //default to now
+				Computed:         true, //defaults to now in create function
 				DiffSuppressFunc: supress.Rfc3339Time,
 				ValidateFunc:     validate.Rfc3339Time, //times in the past just start immediately
 			},
@@ -400,50 +430,6 @@ func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, v interface
 			if !hasCount && !hasEnd {
 				return fmt.Errorf("One of `count` or `end_time` must be set for the 'recurrence' block.")
 			}
-
-			if v, ok := recurrence["minutes"].(*schema.Set); ok {
-				for _, e := range v.List() {
-					//leverage existing function, validates type and value
-					if _, errors := validation.IntBetween(0, 59)(e, "minutes"); len(errors) > 0 {
-						return errors[0]
-					}
-				}
-			}
-
-			if v, ok := recurrence["hours"].(*schema.Set); ok {
-				for _, e := range v.List() {
-					//leverage existing function, validates type and value
-					if _, errors := validation.IntBetween(0, 23)(e, "hours"); len(errors) > 0 {
-						return errors[0]
-					}
-				}
-			}
-
-			if v, ok := recurrence["week_days"].(*schema.Set); ok {
-				for _, e := range v.List() {
-					//leverage existing function, validates type and value
-					if _, errors := validation.StringInSlice([]string{
-						string(scheduler.Monday),
-						string(scheduler.Tuesday),
-						string(scheduler.Wednesday),
-						string(scheduler.Thursday),
-						string(scheduler.Friday),
-						string(scheduler.Saturday),
-						string(scheduler.Sunday),
-					}, true)(e, "week_days"); len(errors) > 0 {
-						return errors[0] //string in slice can only return one
-					}
-				}
-			}
-
-			if v, ok := recurrence["month_days"].(*schema.Set); ok {
-				for _, e := range v.List() {
-					v := e.(int)
-					if (-31 < v && v > 31) && v != 0 {
-						return fmt.Errorf("expected 'month_days' to be in the range (-31 - 31) excluding 0, got %d", v)
-					}
-				}
-			}
 		}
 	}
 
@@ -491,9 +477,13 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 		job.Properties.Recurrence = expandAzureArmSchedulerJobRecurrence(b)
 	}
 
-	//start time, should be validated by schema
-	startTime, _ := time.Parse(time.RFC3339, d.Get("start_time").(string))
-	job.Properties.StartTime = &date.Time{Time: startTime}
+	//start time, should be validated by schema, also defaults to now if not set
+	if v, ok := d.GetOk("start_time"); ok {
+		startTime, _ := time.Parse(time.RFC3339, v.(string))
+		job.Properties.StartTime = &date.Time{Time: startTime}
+	} else {
+		job.Properties.StartTime = &date.Time{Time: time.Now()}
+	}
 
 	//state
 	if state, ok := d.GetOk("state"); ok {
