@@ -150,6 +150,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_express_route_circuit_authorization": resourceArmExpressRouteCircuitAuthorization(),
 			"azurerm_express_route_circuit_peering":       resourceArmExpressRouteCircuitPeering(),
 			"azurerm_function_app":                        resourceArmFunctionApp(),
+			"azurerm_hdinsight_cluster":                   resourceArmHDInsightClusters(),
 			"azurerm_image":                               resourceArmImage(),
 			"azurerm_iothub":                              resourceArmIotHub(),
 			"azurerm_key_vault":                           resourceArmKeyVault(),

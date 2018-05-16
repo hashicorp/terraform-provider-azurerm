@@ -32,6 +32,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
@@ -137,6 +138,9 @@ type ArmClient struct {
 	sqlServersClient                     sql.ServersClient
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
+
+	// HD Insight
+	hdInsightClustersClient hdinsight.ClustersClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -378,6 +382,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerHDInsightClustersClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
@@ -679,6 +684,12 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	ehnc.Sender = sender
 	ehnc.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.eventHubNamespacesClient = ehnc
+}
+
+func (c *ArmClient) registerHDInsightClustersClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	hdInsightClustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&hdInsightClustersClient.Client, auth)
+	c.hdInsightClustersClient = hdInsightClustersClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
