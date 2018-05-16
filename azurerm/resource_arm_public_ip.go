@@ -50,15 +50,15 @@ func resourceArmPublicIp() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateFunc:     validation.StringInSlice([]string{"static", "dynamic"}, true),
-				StateFunc:        ignoreCaseStateFunc,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				StateFunc:        ignoreCaseStateFunc,
 			},
 
 			"sku": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(network.PublicIPAddressSkuNameBasic),
 				ForceNew: true,
+				Default:  string(network.PublicIPAddressSkuNameBasic),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.PublicIPAddressSkuNameBasic),
 					string(network.PublicIPAddressSkuNameStandard),
@@ -67,16 +67,9 @@ func resourceArmPublicIp() *schema.Resource {
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value < 4 || value > 30 {
-						errors = append(errors, fmt.Errorf(
-							"The idle timeout must be between 4 and 30 minutes"))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
 			"domain_name_label": {
