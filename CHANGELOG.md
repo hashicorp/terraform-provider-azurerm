@@ -10,6 +10,7 @@ FEATURES:
 
 BUG FIXES:
 
+* across data-sources and resources: making Connection Strings, Keys and Passwords sensitive fields [GH-1242]
 * `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic [GH-1224]
 
 IMPROVEMENTS:
