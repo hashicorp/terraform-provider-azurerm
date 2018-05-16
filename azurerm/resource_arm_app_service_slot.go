@@ -81,6 +81,25 @@ func resourceArmAppServiceSlot() *schema.Resource {
 							Default:  false,
 						},
 
+						"ip_restriction": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_address": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"subnet_mask": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "255.255.255.255",
+									},
+								},
+							},
+						},
+
 						"java_version": {
 							Type:     schema.TypeString,
 							Optional: true,
