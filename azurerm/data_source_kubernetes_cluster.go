@@ -52,16 +52,18 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 						"password": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_certificate": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"client_key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
 							Type:     schema.TypeString,

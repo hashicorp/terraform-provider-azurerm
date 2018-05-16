@@ -95,8 +95,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 			},
 
 			"admin_password": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tagsSchema(),

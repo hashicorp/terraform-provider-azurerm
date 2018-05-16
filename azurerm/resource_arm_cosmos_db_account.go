@@ -213,28 +213,33 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 			},
 
 			"primary_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"primary_readonly_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_readonly_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"connection_strings": {
-				Type:     schema.TypeList,
-				Computed: true,
+				Type:      schema.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
