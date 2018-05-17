@@ -115,6 +115,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"priority": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Low),
+					string(compute.Regular),
+				}, true),
+			},
+
 			"os_profile": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -651,6 +661,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	updatePolicy := d.Get("upgrade_policy_mode").(string)
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
+	priority := d.Get("priority").(string)
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
@@ -661,6 +672,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 			StorageProfile:   &storageProfile,
 			OsProfile:        osProfile,
 			ExtensionProfile: extensions,
+			Priority:         compute.VirtualMachinePriorityTypes(priority),
 		},
 		Overprovision:        &overprovision,
 		SinglePlacementGroup: &singlePlacementGroup,
@@ -768,6 +780,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
+			d.Set("priority", profile.Priority)
 
 			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
 			if err := d.Set("os_profile", osProfile); err != nil {
