@@ -15,8 +15,8 @@ Manage an Azure Data Lake Store.
 ```hcl
 # Pay As You Go
 resource "azurerm_resource_group" "test" {
-    name = "test"
-    location = "northeurope"
+  name = "test"
+  location = "northeurope"
 }
 
 resource "azurerm_data_lake_store" "consumption" {
