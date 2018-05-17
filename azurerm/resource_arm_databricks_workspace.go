@@ -110,7 +110,7 @@ func resourceArmDatabricksWorkspaceCreate(d *schema.ResourceData, meta interface
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Databricks Workspace (%s) to become available: %s", d.Get("workspace_name"), err)
+		return fmt.Errorf("Error waiting for Databricks Workspace (%s) to become available: %s", name, err)
 	}
 
 	d.SetId(*read.ID)
