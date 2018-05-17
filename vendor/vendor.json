@@ -67,6 +67,12 @@
 			"versionExact": "v21.1.0"
 		},
 		{
+			"checksumSHA1": "N1LLsxeYQ5jlMTM7vgW9kFhdwOY=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks",
+			"revision": "060bf9b93ad98bc41813ca23f5328843f6c0e90b",
+			"revisionTime": "2018-04-12T22:47:53Z"
+		},
+		{
 			"checksumSHA1": "9oNfXIzF5S8ninqAOSfpVf5rNEY=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account",
 			"revision": "6d20bdbae88c06c36d72eb512295417693bfdf4e",
@@ -97,6 +103,14 @@
 			"revisionTime": "2018-09-28T00:20:07Z",
 			"version": "v21.1.0",
 			"versionExact": "v21.1.0"
+		},
+		{
+			"checksumSHA1": "cdSthV7hZqJYRvbNwWuC0VFzn14=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
 		},
 		{
 			"checksumSHA1": "mdwBbEgubHb6UnwDspop+43Sx8k=",
