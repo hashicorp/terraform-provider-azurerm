@@ -59,8 +59,6 @@ The following arguments are supported:
 
 * `storage_profile` - (Required) A `storage_profile` block as defined below.
 
-* `create_mode` - (Optional) The Creation Mode of the MySQL Server, used when restoring a database backup. Possible values include `Default` and `PointInTimeRestore`. 
-
 * `administrator_login` - (Required) The Administrator Login for the MySQL Server. Changing this forces a new resource to be created.
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MySQL Server.

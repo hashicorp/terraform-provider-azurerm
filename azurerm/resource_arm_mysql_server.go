@@ -162,16 +162,6 @@ func resourceArmMySqlServer() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"create_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Default",
-					"PointInTimeRestore",
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-			},
-
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -196,7 +186,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	createMode := d.Get("create_mode").(string)
+	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandMySQLServerSku(d)
@@ -409,8 +399,7 @@ func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{
 		values["family"] = *family
 	}
 
-	sku := []interface{}{values}
-	return sku
+	return []interface{}{values}
 }
 
 func flattenMySQLStorageProfile(d *schema.ResourceData, resp *mysql.StorageProfile) []interface{} {
@@ -426,6 +415,5 @@ func flattenMySQLStorageProfile(d *schema.ResourceData, resp *mysql.StorageProfi
 
 	values["geo_redundant_backup"] = mysql.GeoRedundantBackup(resp.GeoRedundantBackup)
 
-	storageprofile := []interface{}{values}
-	return storageprofile
+	return []interface{}{values}
 }

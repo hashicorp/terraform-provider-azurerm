@@ -170,7 +170,6 @@ resource "azurerm_mysql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.6"
@@ -204,7 +203,6 @@ resource "azurerm_mysql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
@@ -238,7 +236,6 @@ resource "azurerm_mysql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
@@ -272,7 +269,6 @@ resource "azurerm_mysql_server" "test" {
     geo_redundant_backup = "Enabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
