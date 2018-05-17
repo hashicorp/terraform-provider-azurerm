@@ -165,17 +165,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"create_mode": {
-				Type:     schema.TypeString,
-				Required: false,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Default",
-					"PointInTimeRestore",
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-			},
-
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -200,7 +189,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	createMode := d.Get("create_mode").(string)
+	createMode := "Default"
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmPostgreSQLServerSku(d)
@@ -423,8 +412,7 @@ func flattenPostgreSQLServerSku(d *schema.ResourceData, resp *postgresql.Sku) []
 		values["family"] = *family
 	}
 
-	sku := []interface{}{values}
-	return sku
+	return []interface{}{values}
 }
 
 func flattenPostgreSQLStorageProfile(d *schema.ResourceData, resp *postgresql.StorageProfile) []interface{} {
@@ -440,6 +428,5 @@ func flattenPostgreSQLStorageProfile(d *schema.ResourceData, resp *postgresql.St
 
 	values["geo_redundant_backup"] = postgresql.GeoRedundantBackup(resp.GeoRedundantBackup)
 
-	storageprofile := []interface{}{values}
-	return storageprofile
+	return []interface{}{values}
 }

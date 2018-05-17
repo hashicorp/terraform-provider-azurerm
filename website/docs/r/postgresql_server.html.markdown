@@ -36,7 +36,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version = "9.5"
@@ -60,8 +59,6 @@ The following arguments are supported:
 * `sku` - (Required) A `sku` block as defined below.
 
 * `storage_profile` - (Required) A `storage_profile` block as defined below.
-
-* `create_mode` - (Optional) The Creation Mode of the MySQL Server, used when restoring a database backup. Possible values include `Default` and `PointInTimeRestore`.
 
 * `administrator_login` - (Required) The Administrator Login for the PostgreSQL Server. Changing this forces a new resource to be created.
 
