@@ -40,11 +40,12 @@ func NewFavoriteClientWithBaseURI(baseURI string, subscriptionID string) Favorit
 }
 
 // Add adds a new favorites to an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. favoriteID is the Id of a specific favorite defined in the Application Insights component
-// favoriteProperties is properties that need to be specified to create a new favorite and add it to an Application
-// Insights component.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// favoriteID - the Id of a specific favorite defined in the Application Insights component
+// favoriteProperties - properties that need to be specified to create a new favorite and add it to an
+// Application Insights component.
 func (client FavoriteClient) Add(ctx context.Context, resourceGroupName string, resourceName string, favoriteID string, favoriteProperties ApplicationInsightsComponentFavorite) (result ApplicationInsightsComponentFavorite, err error) {
 	req, err := client.AddPreparer(ctx, resourceGroupName, resourceName, favoriteID, favoriteProperties)
 	if err != nil {
@@ -112,9 +113,10 @@ func (client FavoriteClient) AddResponder(resp *http.Response) (result Applicati
 }
 
 // Delete remove a favorite that is associated to an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. favoriteID is the Id of a specific favorite defined in the Application Insights component
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// favoriteID - the Id of a specific favorite defined in the Application Insights component
 func (client FavoriteClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, favoriteID string) (result autorest.Response, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, favoriteID)
 	if err != nil {
@@ -179,9 +181,10 @@ func (client FavoriteClient) DeleteResponder(resp *http.Response) (result autore
 }
 
 // Get get a single favorite by its FavoriteId, defined within an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. favoriteID is the Id of a specific favorite defined in the Application Insights component
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// favoriteID - the Id of a specific favorite defined in the Application Insights component
 func (client FavoriteClient) Get(ctx context.Context, resourceGroupName string, resourceName string, favoriteID string) (result ApplicationInsightsComponentFavorite, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName, favoriteID)
 	if err != nil {
@@ -247,10 +250,11 @@ func (client FavoriteClient) GetResponder(resp *http.Response) (result Applicati
 }
 
 // Update updates a favorite that has already been added to an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. favoriteID is the Id of a specific favorite defined in the Application Insights component
-// favoriteProperties is properties that need to be specified to update the existing favorite.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// favoriteID - the Id of a specific favorite defined in the Application Insights component
+// favoriteProperties - properties that need to be specified to update the existing favorite.
 func (client FavoriteClient) Update(ctx context.Context, resourceGroupName string, resourceName string, favoriteID string, favoriteProperties ApplicationInsightsComponentFavorite) (result ApplicationInsightsComponentFavorite, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, resourceName, favoriteID, favoriteProperties)
 	if err != nil {

@@ -12,8 +12,8 @@ resource "azurerm_scheduler_job_collection" "jc" {
     state               = "enabled"
 
     quota {
-        max_job_count            = 15
-        max_recurrence_interval  = 1
+        max_job_count            = 5
+        max_recurrence_interval  = 5
         max_recurrence_frequency = "minute"
     }
 }
@@ -59,7 +59,7 @@ resource "azurerm_scheduler_job" "web-recurring" {
 
     recurrence {
         frequency  = "minute"
-        interval   = 5
+        interval   = 10
         count      = 10 //recurring counts start in past
     }
 

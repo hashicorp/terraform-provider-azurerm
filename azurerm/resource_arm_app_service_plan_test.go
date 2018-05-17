@@ -293,6 +293,10 @@ resource "azurerm_app_service_plan" "test" {
     tier = "Basic"
     size = "B1"
   }
+
+  properties {
+    reserved = true
+  }
 }
 `, rInt, location, rInt)
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
@@ -66,16 +67,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 						"password": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_certificate": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"client_key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
 							Type:     schema.TypeString,
@@ -86,8 +89,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config_raw": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"linux_profile": {
@@ -127,9 +131,10 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validateKubernetesClusterAgentPoolName(),
 						},
 
 						"count": {
@@ -288,34 +293,36 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
 
+	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
+	if err != nil {
+		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+	}
+
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	d.Set("dns_prefix", resp.DNSPrefix)
-	d.Set("fqdn", resp.Fqdn)
-	d.Set("kubernetes_version", resp.KubernetesVersion)
+	if props := resp.ManagedClusterProperties; props != nil {
+		d.Set("dns_prefix", props.DNSPrefix)
+		d.Set("fqdn", props.Fqdn)
+		d.Set("kubernetes_version", props.KubernetesVersion)
 
-	linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(*resp.ManagedClusterProperties.LinuxProfile)
-	if err := d.Set("linux_profile", &linuxProfile); err != nil {
-		return fmt.Errorf("Error setting `linux_profile`: %+v", err)
-	}
+		linuxProfile := flattenAzureRmKubernetesClusterLinuxProfile(props.LinuxProfile)
+		if err := d.Set("linux_profile", linuxProfile); err != nil {
+			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+		}
 
-	agentPoolProfiles := flattenAzureRmKubernetesClusterAgentPoolProfiles(resp.ManagedClusterProperties.AgentPoolProfiles, resp.Fqdn)
-	if err := d.Set("agent_pool_profile", &agentPoolProfiles); err != nil {
-		return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
-	}
+		agentPoolProfiles := flattenAzureRmKubernetesClusterAgentPoolProfiles(props.AgentPoolProfiles, resp.Fqdn)
+		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
+			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
+		}
 
-	servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
-	if servicePrincipal != nil {
-		d.Set("service_principal", servicePrincipal)
-	}
-
-	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
-	if err != nil {
-		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
+		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
+		if err := d.Set("service_principal", servicePrincipal); err != nil {
+			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
 	}
 
 	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
@@ -350,27 +357,34 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	return future.WaitForCompletion(ctx, kubernetesClustersClient.Client)
 }
 
-func flattenAzureRmKubernetesClusterLinuxProfile(profile containerservice.LinuxProfile) []interface{} {
-	profiles := make([]interface{}, 0)
+func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxProfile) []interface{} {
 	values := make(map[string]interface{})
-	sshKeys := make([]interface{}, 0, len(*profile.SSH.PublicKeys))
+	sshKeys := make([]interface{}, 0)
 
-	for _, ssh := range *profile.SSH.PublicKeys {
-		keys := make(map[string]interface{})
-		keys["key_data"] = *ssh.KeyData
-		sshKeys = append(sshKeys, keys)
+	if profile := input; profile != nil {
+		if username := profile.AdminUsername; username != nil {
+			values["admin_username"] = *username
+		}
+
+		if ssh := profile.SSH; ssh != nil {
+			if keys := ssh.PublicKeys; keys != nil {
+				for _, sshKey := range *keys {
+					outputs := make(map[string]interface{}, 0)
+					if keyData := sshKey.KeyData; keyData != nil {
+						outputs["key_data"] = *keyData
+					}
+					sshKeys = append(sshKeys, outputs)
+				}
+			}
+		}
 	}
-
-	values["admin_username"] = *profile.AdminUsername
 	values["ssh_key"] = sshKeys
 
-	profiles = append(profiles, values)
-
-	return profiles
+	return []interface{}{values}
 }
 
 func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile, fqdn *string) []interface{} {
-	agentPoolProfiles := make([]interface{}, 0, len(*profiles))
+	agentPoolProfiles := make([]interface{}, 0)
 
 	for _, profile := range *profiles {
 		agentPoolProfile := make(map[string]interface{})
@@ -425,9 +439,11 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 
 	values := make(map[string]interface{})
 
-	values["client_id"] = *profile.ClientID
-	if profile.Secret != nil {
-		values["client_secret"] = *profile.Secret
+	if clientId := profile.ClientID; clientId != nil {
+		values["client_id"] = *clientId
+	}
+	if secret := profile.Secret; secret != nil {
+		values["client_secret"] = *secret
 	}
 
 	servicePrincipalProfiles.Add(values)
@@ -446,7 +462,7 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 					return utils.String(rawConfig), []interface{}{}
 				}
 
-				flattenedKubeConfig := flattenKubeConfig(*kubeConfig)
+				flattenedKubeConfig := flattenKubernetesClusterKubeConfig(*kubeConfig)
 				return utils.String(rawConfig), flattenedKubeConfig
 			}
 		}
@@ -454,7 +470,7 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	return nil, []interface{}{}
 }
 
-func flattenKubeConfig(config kubernetes.KubeConfig) []interface{} {
+func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
 	cluster := config.Clusters[0].Cluster
@@ -553,10 +569,17 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	clientId := m["client_id"].(string)
-	buf.WriteString(fmt.Sprintf("%s-", clientId))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["client_id"].(string)))
+	}
 
 	return hashcode.String(buf.String())
+}
+
+func validateKubernetesClusterAgentPoolName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-z]{1}[a-z0-9]{0,11}$"),
+		"Agent Pool names must start with a lowercase letter, have max length of 12, and only have characters a-z0-9.",
+	)
 }

@@ -27,7 +27,7 @@ resource "azurerm_scheduler_job_collection" "jobs" {
 
     quota {
         max_job_count            = 5
-        max_retry_interval       = 24
+        max_recurrence_interval  = 24
         max_recurrence_frequency = "hour"
     }
 }
@@ -58,7 +58,7 @@ The `quota` block supports:
 
 * `max_recurrence_frequency` - (Required) The maximum frequency of recurrence. Possible values include: `Minute`, `Hour`, `Day`, `Week`, `Month`
 
-* `max_retry_interval` - (Optional) The maximum interval between retries.
+* `max_recurrence_interval` - (Optional) The maximum interval between recurrence.
 
 ## Attributes Reference
 

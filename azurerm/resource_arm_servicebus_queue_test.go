@@ -172,6 +172,33 @@ func TestAccAzureRMServiceBusQueue_enableRequiresSession(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(t *testing.T) {
+	resourceName := "azurerm_servicebus_queue.test"
+	location := testLocation()
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueue_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "dead_lettering_on_message_expiration", "false"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "dead_lettering_on_message_expiration", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMServiceBusQueue_lockDuration(t *testing.T) {
 	resourceName := "azurerm_servicebus_queue.test"
 	ri := acctest.RandInt()
@@ -401,6 +428,30 @@ resource "azurerm_servicebus_queue" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
     namespace_name      = "${azurerm_servicebus_namespace.test.name}"
     requires_session    = true
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMServiceBusQueue_enableDeadLetteringOnMessageExpiration(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+    name                = "acctestservicebusnamespace-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    sku = "standard"
+}
+
+resource "azurerm_servicebus_queue" "test" {
+    name                				 = "acctestservicebusqueue-%d"
+    resource_group_name 				 = "${azurerm_resource_group.test.name}"
+    namespace_name      				 = "${azurerm_servicebus_namespace.test.name}"
+    dead_lettering_on_message_expiration = true
 }
 `, rInt, location, rInt, rInt)
 }
