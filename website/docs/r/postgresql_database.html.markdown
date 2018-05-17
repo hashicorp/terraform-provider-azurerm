@@ -36,7 +36,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version = "9.5"
