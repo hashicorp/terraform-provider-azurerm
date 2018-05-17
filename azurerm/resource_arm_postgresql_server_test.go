@@ -233,7 +233,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
@@ -267,7 +266,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
@@ -301,7 +299,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "R3dH0TCh1l1P3pp3rs!"
   version                      = "9.6"
@@ -336,7 +333,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
@@ -370,7 +366,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
@@ -404,7 +399,6 @@ resource "azurerm_postgresql_server" "test" {
     geo_redundant_backup = "Enabled"
   }
 
-  create_mode = "Default"
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
