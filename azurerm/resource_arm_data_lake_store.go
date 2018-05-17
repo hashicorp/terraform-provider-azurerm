@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -23,9 +24,10 @@ func resourceArmDataLakeStore() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmDataLakeName,
 			},
 
 			"location": locationSchema(),
@@ -34,7 +36,6 @@ func resourceArmDataLakeStore() *schema.Resource {
 
 			"tier": {
 				Type:             schema.TypeString,
-				ForceNew:         false,
 				Optional:         true,
 				Default:          string(account.Consumption),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
@@ -62,7 +63,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 
 	name := d.Get("name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -74,9 +75,9 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 		},
 	}
 
-	future, err := client.Create(ctx, resGroup, name, dateLakeStore)
+	future, err := client.Create(ctx, resourceGroup, name, dateLakeStore)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
@@ -84,12 +85,12 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Data Lake Store %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Data Lake Store %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -190,4 +191,14 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func validateArmDataLakeName(v interface{}, k string) (ws []string, es []error) {
+	input := v.(string)
+
+	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
+		es = append(es, fmt.Errorf("name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long"))
+	}
+
+	return
 }

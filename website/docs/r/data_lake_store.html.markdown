@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
 sidebar_current: "docs-azurerm-resource-data-lake-store"
 description: |-
-  Create a Azure Data Lake Store.
+  Manage an Azure Data Lake Store.
 ---
 
-# azurerm\_data\_lake\_store
+# azurerm_data_lake_store
 
-Create a Azure Data Lake Store.
+Manage an Azure Data Lake Store.
 
 ## Example Usage
 
@@ -19,23 +19,23 @@ resource "azurerm_resource_group" "test" {
     location = "northeurope"
 }
 
-resource "azurerm_data_lake_store" "payasyougo" {
-    name = "payasyougodatalake"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "northeurope"
+resource "azurerm_data_lake_store" "consumption" {
+  name = "consumptiondatalake"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "northeurope"
 }
 
 # Monthly Commitment Tier
 resource "azurerm_resource_group" "test" {
-    name = "test"
-    location = "westeurope"
+  name = "test"
+  location = "westeurope"
 }
 
 resource "azurerm_data_lake_store" "monthly" {
-    name = "monthlydatalake"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "westeurope"
-    tier = "Commitment_1TB"
+  name = "monthlydatalake"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "westeurope"
+  tier = "Commitment_1TB"
 }
 ```
 
@@ -43,11 +43,9 @@ resource "azurerm_data_lake_store" "monthly" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Lake Store. Changing this forces a
-    new resource to be created. Has to be between 3 to 24 characters.
+* `name` - (Required) Specifies the name of the Data Lake Store. Changing this forces a new resource to be created. Has to be between 3 to 24 characters.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Data Lake Store.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Data Lake Store.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 

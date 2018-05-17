@@ -10,10 +10,33 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMDataLakeStore_payasyougo(t *testing.T) {
+func TestValidateArmDataLakeName(t *testing.T) {
+	testCases := []struct {
+		input       string
+		shouldError bool
+	}{
+		{"ab", true},
+		{"ABC", true},
+		{"abc", false},
+		{"123456789012345678901234", false},
+		{"1234567890123456789012345", true},
+		{"abc12345", false},
+	}
+
+	for _, test := range testCases {
+		_, es := validateArmDataLakeName(test.input, "name")
+
+		if test.shouldError && len(es) == 0 {
+			t.Fatalf("Expected validating name %q to fail", test.input)
+		}
+	}
+}
+
+func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandIntRange(1, 999999)
-	config := testAccAzureRMDataLakeStore_payasyougo(ri, testLocation())
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMDataLakeStore_basic(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -27,14 +50,20 @@ func TestAccAzureRMDataLakeStore_payasyougo(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tier", "Consumption"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
-func TestAccAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
+func TestAccAzureRMDataLakeStore_tier(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandIntRange(1, 999999)
-	config := testAccAzureRMDataLakeStore_monthlycommitment(ri, testLocation())
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMDataLakeStore_tier(ri, rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -48,16 +77,22 @@ func TestAccAzureRMDataLakeStore_monthlycommitment(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tier", "Commitment_1TB"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
 
 func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
-	ri := acctest.RandIntRange(1, 999999)
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
 	location := testLocation()
-	preConfig := testAccAzureRMDataLakeStore_withTags(ri, location)
-	postConfig := testAccAzureRMDataLakeStore_withTagsUpdate(ri, location)
+	preConfig := testAccAzureRMDataLakeStore_withTags(ri, rs, location)
+	postConfig := testAccAzureRMDataLakeStore_withTagsUpdate(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -77,6 +112,11 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 					testCheckAzureRMDnsZoneExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -139,70 +179,70 @@ func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDataLakeStore_payasyougo(rInt int, location string) string {
+func testAccAzureRMDataLakeStore_basic(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-    name = "acctestlake%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "%s"
+  name = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "%s"
 }
-`, rInt, location, rInt, location)
+`, rInt, location, rs, location)
 }
 
-func testAccAzureRMDataLakeStore_monthlycommitment(rInt int, location string) string {
+func testAccAzureRMDataLakeStore_tier(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-    name = "acctestlake%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "%s"
-    tier = "Commitment_1TB"
+  name = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "%s"
+  tier = "Commitment_1TB"
 }
-`, rInt, location, rInt, location)
+`, rInt, location, rs, location)
 }
 
-func testAccAzureRMDataLakeStore_withTags(rInt int, location string) string {
+func testAccAzureRMDataLakeStore_withTags(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-    name = "acctestlake%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "%s"
-    tags {
-        environment = "Production"
-        cost_center = "MSFT"
-    }
+  name = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "%s"
+  tags {
+    environment = "Production"
+    cost_center = "MSFT"
+  }
 }
-`, rInt, location, rInt, location)
+`, rInt, location, rs, location)
 }
 
-func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, location string) string {
+func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
-    location = "%s"
+  name = "acctestRG_%d"
+  location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-    name = "acctestlake%d"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    location = "%s"
-    tags {
-        environment = "staging"
-    }
+  name = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location = "%s"
+  tags {
+    environment = "staging"
+  }
 }
-`, rInt, location, rInt, location)
+`, rInt, location, rs, location)
 }

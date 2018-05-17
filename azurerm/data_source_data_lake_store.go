@@ -58,8 +58,8 @@ func dataSourceArmDateLakeStoreAccountRead(d *schema.ResourceData, meta interfac
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if tier := resp.DataLakeStoreAccountProperties; tier != nil {
-		d.Set("tier", string(tier.CurrentTier))
+	if properties := resp.DataLakeStoreAccountProperties; properties != nil {
+		d.Set("tier", string(properties.CurrentTier))
 	}
 
 	flattenAndSetTags(d, resp.Tags)
