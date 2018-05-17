@@ -26,7 +26,7 @@ resource "azurerm_scheduler_job" "web-once-now" {
     state = "enabled"
 
     action_web {
-        url    = "http://this.url.fails"
+        url    = "http://example.com"
     }
 
     retry {
@@ -44,7 +44,7 @@ resource "azurerm_scheduler_job" "web-recurring" {
     job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
 
     action_web {
-        url     = "http://this.url.fails"
+        url     = "http://example.com"
         method  = "put"
         body    = "this is some text"
         headers = {
@@ -74,7 +74,7 @@ resource "azurerm_scheduler_job" "web-recurring_daily-auth_basic" {
     state = "enabled"
 
     action_web {
-        url    = "https://this.url.fails"
+        url    = "https://example.com"
         method = "get"
 
         authentication_basic {
@@ -102,7 +102,7 @@ resource "azurerm_scheduler_job" "web-recurring_weekly-auth_cert" {
     state = "enabled"
 
     action_web {
-        url    = "https://this.url.fails"
+        url    = "https://example.com"
         method = "get"
 
         authentication_certificate {
@@ -129,12 +129,12 @@ resource "azurerm_scheduler_job" "web-recurring_monthly-error_action" {
     state = "enabled"
 
     action_web {
-        url    = "http://this.url.fails"
+        url    = "http://example.com"
         method = "get"
     }
 
     error_action_web {
-        url     = "https://this.url.fails"
+        url     = "https://example.com"
         method  = "put"
         body    = "The job failed"
 

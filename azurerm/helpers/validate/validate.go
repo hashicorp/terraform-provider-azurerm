@@ -2,8 +2,8 @@ package validate
 
 import (
 	"fmt"
-	"time"
 	"net/url"
+	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
