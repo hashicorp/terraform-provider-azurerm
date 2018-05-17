@@ -1,4 +1,3 @@
-
 output "job_collection-id" {
   value = "${azurerm_scheduler_job_collection.jc.id}"
 }
@@ -14,6 +13,7 @@ output "job-web-once-count" {
 output "job-web-recurring_weekly-authCert_thumb" {
   value = "${azurerm_scheduler_job.web-recurring_weekly-auth_cert.action_web.0.authentication_certificate.0.thumbprint}"
 }
+
 output "job-web-recurring_weekly-authCert_expire" {
   value = "${azurerm_scheduler_job.web-recurring_weekly-auth_cert.action_web.0.authentication_certificate.0.expiration}"
 }
