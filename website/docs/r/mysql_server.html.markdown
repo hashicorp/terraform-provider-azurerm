@@ -37,7 +37,6 @@ resource "azurerm_mysql_server" "test" {
     geo_redundant_backup = "Disabled"
   }
 
-  create_mode = "Default"
   administrator_login = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version = "5.7"
