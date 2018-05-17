@@ -638,11 +638,7 @@ func (c *ArmClient) registerContainerServicesClients(endpoint, subscriptionId st
 
 func (c *ArmClient) registerDatabricksClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	databricksWorkspacesClient := databricks.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&databricksWorkspacesClient.Client)
-	databricksWorkspacesClient.Authorizer = auth
-	databricksWorkspacesClient.Sender = sender
-	databricksWorkspacesClient.SkipResourceProviderRegistration = c.skipProviderRegistration
-
+	c.configureClient(&databricksWorkspacesClient.Client, auth)
 	c.databricksWorkspacesClient = databricksWorkspacesClient
 }
 
