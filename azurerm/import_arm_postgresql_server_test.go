@@ -27,7 +27,6 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointFive(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"administrator_login_password", // not returned as sensitive
-					"create_mode",
 				},
 			},
 		},
@@ -54,7 +53,6 @@ func TestAccAzureRMPostgreSQLServer_importBasicNinePointSix(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"administrator_login_password", // not returned as sensitive
-					"create_mode",
 				},
 			},
 		},
@@ -81,7 +79,6 @@ func TestAccAzureRMPostgreSQLServer_importGeneralPurpose(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"administrator_login_password", // not returned as sensitive
-					"create_mode",
 				},
 			},
 		},
@@ -108,7 +105,6 @@ func TestAccAzureRMPostgreSQLServer_importMemoryOptimized(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"administrator_login_password", // not returned as sensitive
-					"create_mode",
 				},
 			},
 		},
