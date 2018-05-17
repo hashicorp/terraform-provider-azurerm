@@ -40,9 +40,9 @@ func NewWebTestLocationsClientWithBaseURI(baseURI string, subscriptionID string)
 }
 
 // List gets a list of web test locations available to this Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
 func (client WebTestLocationsClient) List(ctx context.Context, resourceGroupName string, resourceName string) (result ApplicationInsightsWebTestLocationsListResult, err error) {
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {

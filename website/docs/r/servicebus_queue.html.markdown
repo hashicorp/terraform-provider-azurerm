@@ -102,6 +102,8 @@ The following arguments are supported:
     This will allow ordered handling of unbounded sequences of related messages. With sessions enabled 
     a queue can guarantee first-in-first-out delivery of messages. 
     Changing this forces a new resource to be created. Defaults to `false`.
+
+* `requires_session` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
     
 ### TimeSpan Format
 

@@ -23,6 +23,9 @@ func resourceArmRedisCache() *schema.Resource {
 		Read:   resourceArmRedisCacheRead,
 		Update: resourceArmRedisCacheUpdate,
 		Delete: resourceArmRedisCacheDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -95,7 +98,6 @@ func resourceArmRedisCache() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"maxclients": {
 							Type:     schema.TypeInt,
-							Optional: true,
 							Computed: true,
 						},
 
@@ -131,8 +133,9 @@ func resourceArmRedisCache() *schema.Resource {
 							Optional: true,
 						},
 						"rdb_storage_connection_string": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 						"notify_keyspace_events": {
 							Type:     schema.TypeString,
@@ -186,13 +189,15 @@ func resourceArmRedisCache() *schema.Resource {
 			},
 
 			"primary_access_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_access_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tagsSchema(),
@@ -444,8 +449,13 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("subnet_id", props.SubnetID)
 	}
 
-	redisConfiguration := flattenRedisConfiguration(resp.RedisConfiguration)
-	d.Set("redis_configuration", &redisConfiguration)
+	redisConfiguration, err := flattenRedisConfiguration(resp.RedisConfiguration)
+	if err != nil {
+		return fmt.Errorf("Error flattening `redis_configuration`: %+v", err)
+	}
+	if err := d.Set("redis_configuration", redisConfiguration); err != nil {
+		return fmt.Errorf("Error setting `redis_configuration`: %+v", err)
+	}
 
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
@@ -574,21 +584,64 @@ func expandRedisPatchSchedule(d *schema.ResourceData) (*redis.PatchSchedule, err
 	return &schedule, nil
 }
 
-func flattenRedisConfiguration(input map[string]*string) map[string]*string {
-	redisConfiguration := make(map[string]*string, len(input))
+func flattenRedisConfiguration(input map[string]*string) ([]interface{}, error) {
+	outputs := make(map[string]interface{}, len(input))
 
-	redisConfiguration["maxclients"] = input["maxclients"]
-	redisConfiguration["maxmemory_delta"] = input["maxmemory-delta"]
-	redisConfiguration["maxmemory_reserved"] = input["maxmemory-reserved"]
-	redisConfiguration["maxmemory_policy"] = input["maxmemory-policy"]
+	if v := input["maxclients"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `maxclients` %q: %+v", v, err)
+		}
+		outputs["maxclients"] = i
+	}
+	if v := input["maxmemory-delta"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `maxmemory-delta` %q: %+v", v, err)
+		}
+		outputs["maxmemory_delta"] = i
+	}
+	if v := input["maxmemory-reserved"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `maxmemory-reserved` %q: %+v", v, err)
+		}
+		outputs["maxmemory_reserved"] = i
+	}
+	if v := input["maxmemory-policy"]; v != nil {
+		outputs["maxmemory_policy"] = *v
+	}
 
-	redisConfiguration["rdb_backup_enabled"] = input["rdb-backup-enabled"]
-	redisConfiguration["rdb_backup_frequency"] = input["rdb-backup-frequency"]
-	redisConfiguration["rdb_backup_max_snapshot_count"] = input["rdb-backup-max-snapshot-count"]
-	redisConfiguration["rdb_storage_connection_string"] = input["rdb-storage-connection-string"]
-	redisConfiguration["notify_keyspace_events"] = input["notify-keyspace-events"]
+	// delta, reserved, enabled, frequency,, count,
+	if v := input["rdb-backup-enabled"]; v != nil {
+		b, err := strconv.ParseBool(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `rdb-backup-enabled` %q: %+v", v, err)
+		}
+		outputs["rdb_backup_enabled"] = b
+	}
+	if v := input["rdb-backup-frequency"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `rdb-backup-frequency` %q: %+v", v, err)
+		}
+		outputs["rdb_backup_frequency"] = i
+	}
+	if v := input["rdb-backup-max-snapshot-count"]; v != nil {
+		i, err := strconv.Atoi(*v)
+		if err != nil {
+			return nil, fmt.Errorf("Error parsing `rdb-backup-max-snapshot-count` %q: %+v", v, err)
+		}
+		outputs["rdb_backup_max_snapshot_count"] = i
+	}
+	if v := input["rdb-storage-connection-string"]; v != nil {
+		outputs["rdb_storage_connection_string"] = *v
+	}
+	if v := input["notify-keyspace-events"]; v != nil {
+		outputs["notify_keyspace_events"] = *v
+	}
 
-	return redisConfiguration
+	return []interface{}{outputs}, nil
 }
 
 func flattenRedisPatchSchedules(schedule redis.PatchSchedule) []interface{} {

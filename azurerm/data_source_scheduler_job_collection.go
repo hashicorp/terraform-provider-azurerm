@@ -77,8 +77,7 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 	collection, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(collection.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Scheduler Job Collection %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on Scheduler Job Collection %q (Resource Group %q): %+v", name, resourceGroup, err)

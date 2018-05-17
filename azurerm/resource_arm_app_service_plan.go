@@ -39,6 +39,9 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Default:  "Windows",
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					// @tombuildsstuff: I believe `app` is the older representation of `Windows`
+					// thus we need to support it to be able to import resources without recreating them.
+					"App",
 					"FunctionApp",
 					"Linux",
 					"Windows",

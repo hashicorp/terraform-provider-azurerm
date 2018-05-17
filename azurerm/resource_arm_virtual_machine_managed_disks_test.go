@@ -380,6 +380,63 @@ func TestAccAzureRMVirtualMachine_winRMCerts(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(t *testing.T) {
+	var vm compute.VirtualMachine
+	resourceName := "azurerm_virtual_machine.test"
+	rInt := acctest.RandInt()
+	config := testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(rInt, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+					resource.TestCheckResourceAttr(resourceName, "storage_os_disk.0.managed_disk_type", "Standard_LRS"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.disk_size_gb", "64"),
+				),
+			},
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAndStopAzureRMVirtualMachine(&vm),
+					resource.TestCheckResourceAttr(resourceName, "storage_os_disk.0.managed_disk_type", "Standard_LRS"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.disk_size_gb", "64"),
+				),
+			},
+		},
+	})
+}
+
+func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		vmID, err := parseAzureResourceID(*vm.ID)
+		if err != nil {
+			return fmt.Errorf("Unable to parse virtual machine ID %s, %+v", *vm.ID, err)
+		}
+
+		name := vmID.Path["virtualMachines"]
+		resourceGroup := vmID.ResourceGroup
+
+		client := testAccProvider.Meta().(*ArmClient).vmClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		future, err := client.Deallocate(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Failed stopping virtual machine %q: %+v", resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Failed long polling for the stop of virtual machine %q: %+v", resourceGroup, err)
+		}
+
+		return nil
+	}
+}
+
 func testAccAzureRMVirtualMachine_winRMCerts(rString string, location string) string {
 	return fmt.Sprintf(`
 variable "prefix" {
@@ -1975,4 +2032,79 @@ resource "azurerm_virtual_machine" "test" {
 
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctest-rg-%d"
+    location = "%s"
+}
+    
+resource "azurerm_virtual_network" "test" {
+    name                = "acctestvn-%d"
+    address_space       = ["10.0.0.0/16"]
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+    
+resource "azurerm_subnet" "test" {
+    name                 = "internal"
+    resource_group_name  = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix       = "10.0.2.0/24"
+}
+    
+resource "azurerm_network_interface" "test" {
+    name                = "acctestni-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    
+    ip_configuration {
+        name                          = "testconfiguration"
+        subnet_id                     = "${azurerm_subnet.test.id}"
+        private_ip_address_allocation = "dynamic"
+    }
+}
+    
+resource "azurerm_virtual_machine" "test" {
+    name                  = "acctestvm-%d"
+    location              = "${azurerm_resource_group.test.location}"
+    resource_group_name   = "${azurerm_resource_group.test.name}"
+    network_interface_ids = ["${azurerm_network_interface.test.id}"]
+    vm_size               = "Standard_DS1_v2"
+    
+    storage_image_reference {
+        publisher = "Canonical"
+        offer     = "UbuntuServer"
+        sku       = "16.04-LTS"
+        version   = "latest"
+    }
+    
+    storage_os_disk {
+        name              = "acctest-osdisk-%d"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "Standard_LRS"
+    }
+    
+    storage_data_disk {
+        name          = "acctest-datadisk-%d"
+        caching       = "ReadWrite"
+        create_option = "Empty"
+        lun           = 0
+        disk_size_gb  = 64
+    }
+    
+    os_profile {
+        computer_name  = "acctest-machine-%d"
+        admin_username = "testadmin"
+        admin_password = "Password1234!"
+    }
+    
+    os_profile_linux_config {
+        disable_password_authentication = false
+    }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }

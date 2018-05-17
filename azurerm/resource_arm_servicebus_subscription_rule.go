@@ -7,14 +7,15 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusSubscriptionRuleCreate,
+		Create: resourceArmServiceBusSubscriptionRuleCreateUpdate,
 		Read:   resourceArmServiceBusSubscriptionRuleRead,
-		Update: resourceArmServiceBusSubscriptionRuleCreate,
+		Update: resourceArmServiceBusSubscriptionRuleCreateUpdate,
 		Delete: resourceArmServiceBusSubscriptionRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -27,6 +28,8 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringLenBetween(1, 50),
 			},
+
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"namespace_name": {
 				Type:     schema.TypeString,
@@ -56,7 +59,10 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"action": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 
 			"sql_filter": {
 				Type:     schema.TypeString,
@@ -105,37 +111,50 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 					},
 				},
 			},
-
-			"action": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 		},
 	}
 }
 
-func resourceArmServiceBusSubscriptionRuleCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusSubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
-	log.Printf("[INFO] preparing arguments for Azure ARM Service Bus Subscription Rule creation.")
+	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
 
 	name := d.Get("name").(string)
 	topicName := d.Get("topic_name").(string)
 	subscriptionName := d.Get("subscription_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-
-	rule, err := buildAzureRmServiceBusSubscriptionRule(name, d)
-	if err != nil {
-		return err
+	filterType := d.Get("filter_type").(string)
+	rule := servicebus.Rule{
+		Ruleproperties: &servicebus.Ruleproperties{
+			FilterType: servicebus.FilterType(filterType),
+		},
 	}
 
-	err = validateArmServiceBusSubscriptionRule(name, rule)
-	if err != nil {
-		return err
+	if action := d.Get("action").(string); action != "" {
+		rule.Ruleproperties.Action = &servicebus.Action{
+			SQLExpression: &action,
+		}
 	}
 
-	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule)
+	if rule.Ruleproperties.FilterType == servicebus.FilterTypeCorrelationFilter {
+		correlationFilter, err := expandAzureRmServiceBusCorrelationFilter(d)
+		if err != nil {
+			return fmt.Errorf("Cannot create Service Bus Subscription Rule %q: %+v", name, err)
+		}
+
+		rule.Ruleproperties.CorrelationFilter = correlationFilter
+	}
+
+	if rule.Ruleproperties.FilterType == servicebus.FilterTypeSQLFilter {
+		sqlFilter := d.Get("sql_filter").(string)
+		rule.Ruleproperties.SQLFilter = &servicebus.SQLFilter{
+			SQLExpression: &sqlFilter,
+		}
+	}
+
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name, rule)
 	if err != nil {
 		return err
 	}
@@ -216,141 +235,91 @@ func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta in
 	subscriptionName := id.Path["subscriptions"]
 	name := id.Path["rules"]
 
-	_, err = client.Delete(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
-
-	return err
-}
-
-func buildAzureRmServiceBusSubscriptionRule(name string, d *schema.ResourceData) (rule servicebus.Rule, err error) {
-	correlationfilter, err := getAzureRmServiceBusCorrelationFilter(name, d)
+	resp, err := client.Delete(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
 	if err != nil {
-		return
-	}
-
-	filterType := d.Get("filter_type").(string)
-	rule = servicebus.Rule{
-		Ruleproperties: &servicebus.Ruleproperties{
-			FilterType:        servicebus.FilterType(filterType),
-			Action:            getAzureRmServiceBusAction(d),
-			SQLFilter:         getAzureRmServiceBusSQLFilter(d),
-			CorrelationFilter: correlationfilter,
-		},
-	}
-
-	return
-}
-
-func getAzureRmServiceBusAction(d *schema.ResourceData) *servicebus.Action {
-	if action := d.Get("action").(string); action != "" {
-		serviceBusAction := servicebus.Action{
-			SQLExpression: &action,
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting ServiceBus Subscription Rule %q: %+v", name, err)
 		}
-		return &serviceBusAction
 	}
+
 	return nil
 }
 
-func getAzureRmServiceBusSQLFilter(d *schema.ResourceData) *servicebus.SQLFilter {
-	if sqlFilter := d.Get("sql_filter").(string); sqlFilter != "" {
-		serviceBusSQLFilter := servicebus.SQLFilter{
-			SQLExpression: &sqlFilter,
-		}
-		return &serviceBusSQLFilter
-	}
-	return nil
-}
-
-func getAzureRmServiceBusCorrelationFilter(name string, d *schema.ResourceData) (*servicebus.CorrelationFilter, error) {
-	if config := d.Get("correlation_filter").([]interface{}); len(config) > 0 {
-
-		if config[0] == nil {
-			err := fmt.Errorf("Cannot create Service Bus Subscription Rule (%s). At least one property must be set in the `correlation_filter` block", name)
-			return nil, err
-		}
-
-		filter := config[0].(map[string]interface{})
-		correlationFilter := servicebus.CorrelationFilter{}
-
-		if correlationID := filter["correlation_id"].(string); correlationID != "" {
-			correlationFilter.CorrelationID = &correlationID
-		}
-
-		if messageID := filter["message_id"].(string); messageID != "" {
-			correlationFilter.MessageID = &messageID
-		}
-
-		if to := filter["to"].(string); to != "" {
-			correlationFilter.To = &to
-		}
-
-		if replyTo := filter["reply_to"].(string); replyTo != "" {
-			correlationFilter.ReplyTo = &replyTo
-		}
-
-		if label := filter["label"].(string); label != "" {
-			correlationFilter.Label = &label
-		}
-
-		if sessionID := filter["session_id"].(string); sessionID != "" {
-			correlationFilter.SessionID = &sessionID
-		}
-
-		if replyToSessionID := filter["reply_to_session_id"].(string); replyToSessionID != "" {
-			correlationFilter.ReplyToSessionID = &replyToSessionID
-		}
-
-		if contentType := filter["content_type"].(string); contentType != "" {
-			correlationFilter.ContentType = &contentType
-		}
-
-		return &correlationFilter, nil
+func expandAzureRmServiceBusCorrelationFilter(d *schema.ResourceData) (*servicebus.CorrelationFilter, error) {
+	configs := d.Get("correlation_filter").([]interface{})
+	if len(configs) == 0 {
+		return nil, fmt.Errorf("`correlation_filter` is required when `filter_type` is set to `CorrelationFilter`")
 	}
 
-	return nil, nil
+	config := configs[0].(map[string]interface{})
+
+	contentType := config["content_type"].(string)
+	correlationID := config["correlation_id"].(string)
+	label := config["label"].(string)
+	messageID := config["message_id"].(string)
+	replyTo := config["reply_to"].(string)
+	replyToSessionID := config["reply_to_session_id"].(string)
+	sessionID := config["session_id"].(string)
+	to := config["to"].(string)
+
+	if contentType == "" && correlationID == "" && label == "" && messageID == "" && replyTo == "" && replyToSessionID == "" && sessionID == "" && to == "" {
+		return nil, fmt.Errorf("At least one property must be set in the `correlation_filter` block")
+	}
+
+	correlationFilter := servicebus.CorrelationFilter{
+		CorrelationID:    utils.String(correlationID),
+		MessageID:        utils.String(messageID),
+		To:               utils.String(to),
+		ReplyTo:          utils.String(replyTo),
+		Label:            utils.String(label),
+		SessionID:        utils.String(sessionID),
+		ReplyToSessionID: utils.String(replyToSessionID),
+		ContentType:      utils.String(contentType),
+	}
+
+	return &correlationFilter, nil
 }
 
-func flattenAzureRmServiceBusCorrelationFilter(f *servicebus.CorrelationFilter) []interface{} {
-	filters := make([]interface{}, 0, 1)
-	if f == nil {
-		return filters
+func flattenAzureRmServiceBusCorrelationFilter(input *servicebus.CorrelationFilter) []interface{} {
+	if input == nil {
+		return []interface{}{}
 	}
 
 	filter := make(map[string]interface{})
 
-	if f.CorrelationID != nil {
-		filter["correlation_id"] = *f.CorrelationID
+	if input.CorrelationID != nil {
+		filter["correlation_id"] = *input.CorrelationID
 	}
 
-	if f.MessageID != nil {
-		filter["message_id"] = *f.MessageID
+	if input.MessageID != nil {
+		filter["message_id"] = *input.MessageID
 	}
 
-	if f.To != nil {
-		filter["to"] = *f.To
+	if input.To != nil {
+		filter["to"] = *input.To
 	}
 
-	if f.ReplyTo != nil {
-		filter["reply_to"] = *f.ReplyTo
+	if input.ReplyTo != nil {
+		filter["reply_to"] = *input.ReplyTo
 	}
 
-	if f.Label != nil {
-		filter["label"] = *f.Label
+	if input.Label != nil {
+		filter["label"] = *input.Label
 	}
 
-	if f.SessionID != nil {
-		filter["session_id"] = *f.SessionID
+	if input.SessionID != nil {
+		filter["session_id"] = *input.SessionID
 	}
 
-	if f.ReplyToSessionID != nil {
-		filter["reply_to_session_id"] = *f.ReplyToSessionID
+	if input.ReplyToSessionID != nil {
+		filter["reply_to_session_id"] = *input.ReplyToSessionID
 	}
 
-	if f.ContentType != nil {
-		filter["content_type"] = *f.ContentType
+	if input.ContentType != nil {
+		filter["content_type"] = *input.ContentType
 	}
 
-	filters = append(filters, filter)
-	return filters
+	return []interface{}{filter}
 }
 
 func validateArmServiceBusSubscriptionRule(name string, rule servicebus.Rule) error {
@@ -358,17 +327,11 @@ func validateArmServiceBusSubscriptionRule(name string, rule servicebus.Rule) er
 		if rule.Ruleproperties.SQLFilter == nil {
 			return fmt.Errorf("Cannot create Service Bus Subscription Rule (%s). 'sql_filter' must be specified when 'filter_type' is set to 'SqlFilter'", name)
 		}
-		if rule.Ruleproperties.CorrelationFilter != nil {
-			return fmt.Errorf("Service Bus Subscription Rule (%s) does not support `correlation_filter` when 'filter_type' is set to 'SqlFilter'", name)
-		}
 	}
 
 	if rule.Ruleproperties.FilterType == servicebus.FilterTypeCorrelationFilter {
 		if rule.Ruleproperties.CorrelationFilter == nil {
 			return fmt.Errorf("Cannot create Service Bus Subscription Rule (%s). 'correlation_filter' must be specified when 'filter_type' is set to 'CorrelationFilter'", name)
-		}
-		if rule.Ruleproperties.SQLFilter != nil {
-			return fmt.Errorf("Service Bus Subscription Rule (%s) does not support `sql_filter` when 'filter_type' is set to 'CorrelationFilter'", name)
 		}
 	}
 
