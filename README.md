@@ -5,6 +5,13 @@ AzureRM Terraform Provider
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
 
+Maintainers
+------------
+
+This provider plugin is maintained by:
+- The Microsoft Azure Services Team at Microsoft (Contact: @metacpp)
+- The Terraform team at [HashiCorp](https://www.hashicorp.com/)
+
 General Requirements
 ------------
 
