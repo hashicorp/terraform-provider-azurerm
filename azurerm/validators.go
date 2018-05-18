@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -93,6 +94,23 @@ func validateIntBetweenDivisibleBy(min, max, divisor int) schema.SchemaValidateF
 
 		if math.Mod(float64(v), float64(divisor)) != 0 {
 			es = append(es, fmt.Errorf("expected %s to be divisible by %d", k, divisor))
+			return
+		}
+
+		return
+	}
+}
+
+func validateCollation() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		if strings.Contains(v, "-") {
+			es = append(es, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
 			return
 		}
 

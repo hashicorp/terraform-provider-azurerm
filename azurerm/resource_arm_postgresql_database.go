@@ -41,9 +41,10 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateCollation(),
 			},
 		},
 	}
@@ -119,8 +120,7 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", resGroup)
 	d.Set("server_name", serverName)
 	d.Set("charset", resp.Charset)
-	d.Set("collation", resp.Collation)
-
+	d.Set("collation", utils.AzureRMNormalizeCollation(d.Get("collation").(string), "-", "_", -1))
 	return nil
 }
 
