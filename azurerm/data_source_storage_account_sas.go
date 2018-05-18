@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strings"
 
 	"crypto/hmac"
@@ -199,11 +198,6 @@ func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) e
 	services := buildServicesString(servicesIface[0].(map[string]interface{}))
 	permissions := buildPermissionsString(permissionsIface[0].(map[string]interface{}))
 
-	_, svcErr := validateArmStorageAccountSasResourceTypes(resourceTypes, "")
-	if svcErr != nil {
-		return svcErr[0]
-	}
-
 	// Parse the connection string
 	kvp, err := parseAzureStorageAccountConnectionString(connString)
 	if err != nil {
@@ -312,16 +306,6 @@ func buildResourceTypesString(resTypes map[string]interface{}) string {
 	}
 
 	return retVal
-}
-
-func validateArmStorageAccountSasResourceTypes(v interface{}, _ string) (ws []string, es []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`\A([cos]{1,3})\z`).MatchString(input) {
-		es = append(es, fmt.Errorf("resource types can only consist of 's', 'c', 'o', and must be between 1 and 3 characters long: found: %s", input))
-	}
-
-	return
 }
 
 func computeAzureStorageAccountSas(accountName string,

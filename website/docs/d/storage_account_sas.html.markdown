@@ -73,11 +73,47 @@ output "sas_url_query_string" {
 
 * `connection_string` - (Required) The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
-* `resouce_types` - (Required) A set of `true`/`false` flags which define the storage account resource types that are granted access by this SAS. 
-* `services` - (Required) A set of `true`/`false` flags which define the storage account services that are granted access by this SAS.
+* `resouce_types` - (Required) A `resource_types` block as defined below. 
+* `services` - (Required) A `services` block as defined below.
 * `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 * `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
-* `permissions` - (Required) A set of `true`/`false` flags which define the granted permissions.
+* `permissions` - (Required) A `permissions` block as defined below.
+
+---
+
+`resource_types` is a set of `true`/`false` flags which define the storage account resource types that are granted 
+access by this SAS. This can be thought of as the scope over which the permissions apply. A `service` will have
+larger scope (affecting all sub-resources) than `object`.
+
+A `resource_types` block contains:
+
+* `service` - (Required) Should permission be granted to the entire service?
+* `container` - (Required) Should permission be granted to the container?
+* `object` - (Required) Should permission be granted only to a specific object?
+
+---
+
+`services` is a set of `true`/`false` flags which define the storage account services that are granted access by this SAS.
+
+A `services` block contains:
+
+* `blob` - (Required) Should permission be granted to `blob` services within this storage account?
+* `queue` - (Required) Should permission be granted to `queue` services within this storage account?
+* `table` - (Required) Should permission be granted to `table` services within this storage account?
+* `file` - (Required) Should permission be granted to `file` services within this storage account?
+
+---
+
+A `permissions` block contains:
+
+* `read` - (Required) Should Read permissions be enabled for this SAS?
+* `write` - (Required) Should Write permissions be enabled for this SAS?
+* `delete` - (Required) Should Delete permissions be enabled for this SAS?
+* `list` - (Required) Should List permissions be enabled for this SAS?
+* `add` - (Required) Should Add permissions be enabled for this SAS?
+* `create` - (Required) Should Create permissions be enabled for this SAS?
+* `update` - (Required) Should Update permissions be enabled for this SAS?
+* `process` - (Required) Should Process permissions be enabled for this SAS?
 
 Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/en-us/rest/api/storageservices/constructing-an-account-sas)
 for additional details on the fields above.

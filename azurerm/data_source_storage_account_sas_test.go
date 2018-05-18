@@ -177,37 +177,6 @@ func TestBuildPermissionsString(t *testing.T) {
 	}
 }
 
-func TestValidateArmStorageAccountSasResourceTypes(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"s", false},
-		{"c", false},
-		{"o", false},
-		{"sc", false},
-		{"cs", false},
-		{"os", false},
-		{"sco", false},
-		{"cso", false},
-		{"osc", false},
-		{"scos", true},
-		{"csoc", true},
-		{"oscs", true},
-		{"S", true},
-		{"C", true},
-		{"O", true},
-	}
-
-	for _, test := range testCases {
-		_, es := validateArmStorageAccountSasResourceTypes(test.input, "<unused>")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating resource_types %q to fail", test.input)
-		}
-	}
-}
-
 // This connection string was for a real storage account which has been deleted
 // so its safe to include here for reference to understand the format.
 // DefaultEndpointsProtocol=https;AccountName=azurermtestsa0;AccountKey=T0ZQouXBDpWud/PlTRHIJH2+VUK8D+fnedEynb9Mx638IYnsMUe4mv1fFjC7t0NayTfFAQJzPZuV1WHFKOzGdg==;EndpointSuffix=core.windows.net
