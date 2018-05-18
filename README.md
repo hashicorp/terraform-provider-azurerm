@@ -8,7 +8,7 @@ AzureRM Terraform Provider
 General Requirements
 ------------
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
+-	[Terraform](https://www.terraform.io/downloads.html) 0.11.x
 -	[Go](https://golang.org/doc/install) 1.10 (to build the provider plugin)
 
 Windows Specific Requirements
