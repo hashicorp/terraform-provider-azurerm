@@ -47,9 +47,12 @@ func resourceArmPublicIp() *schema.Resource {
 			"zones": singleZonesSchema(),
 
 			"public_ip_address_allocation": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateFunc:     validation.StringInSlice([]string{"static", "dynamic"}, true),
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.Static),
+					string(network.Dynamic),
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				StateFunc:        ignoreCaseStateFunc,
 			},
