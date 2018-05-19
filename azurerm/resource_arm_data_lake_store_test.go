@@ -10,28 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestValidateArmDataLakeName(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"ab", true},
-		{"ABC", true},
-		{"abc", false},
-		{"123456789012345678901234", false},
-		{"1234567890123456789012345", true},
-		{"abc12345", false},
-	}
-
-	for _, test := range testCases {
-		_, es := validateArmDataLakeName(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
-
 func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store.test"
 	ri := acctest.RandInt()

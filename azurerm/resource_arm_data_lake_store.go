@@ -27,7 +27,10 @@ func resourceArmDataLakeStore() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmDataLakeName,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`\A([a-z0-9]{3,24})\z`),
+					"Name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long",
+				),
 			},
 
 			"location": locationSchema(),
@@ -82,12 +85,12 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Data Lake Store %s (resource group %s) ID", name, resourceGroup)
@@ -179,7 +182,7 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return err
+		return fmt.Errorf("Error issuing delete request for Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
@@ -187,18 +190,8 @@ func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) er
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return err
+		return fmt.Errorf("Error deleting Data Lake Store %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
-}
-
-func validateArmDataLakeName(v interface{}, k string) (ws []string, es []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
-		es = append(es, fmt.Errorf("name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long"))
-	}
-
-	return
 }

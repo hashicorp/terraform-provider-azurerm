@@ -24,8 +24,7 @@ func dataSourceArmDataLakeStoreAccount() *schema.Resource {
 
 			"tier": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"tags": tagsForDataSourceSchema(),
