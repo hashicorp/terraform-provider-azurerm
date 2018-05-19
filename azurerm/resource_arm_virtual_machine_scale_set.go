@@ -1189,44 +1189,52 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 
 func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if m["publisher"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["publisher"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["offer"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["sku"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["version"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
 	}
-	if m["offer"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
-	}
-	if m["sku"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
-	}
-	if m["version"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["version"].(string)))
-	}
-	if m["id"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
-	}
+
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetSkuHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	if m["tier"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["tier"].(string))))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["capacity"].(int)))
+
+		if v, ok := m["tier"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
 	}
-	buf.WriteString(fmt.Sprintf("%d-", m["capacity"].(int)))
 
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 
-	if m["vhd_containers"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["vhd_containers"].(*schema.Set).List()))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+
+		if v, ok := m["vhd_containers"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(*schema.Set).List()))
+		}
 	}
 
 	return hashcode.String(buf.String())
@@ -1234,51 +1242,62 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 
 func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+	}
+
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if m["provision_vm_agent"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["provision_vm_agent"].(bool)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["provision_vm_agent"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["enable_automatic_upgrades"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
 	}
-	if m["enable_automatic_upgrades"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["enable_automatic_upgrades"].(bool)))
-	}
+
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
-	if m["auto_upgrade_minor_version"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
-	}
 
-	// we need to ensure the whitespace is consistent
-	settings := m["settings"].(string)
-	if settings != "" {
-		expandedSettings, err := structure.ExpandJsonFromString(settings)
-		if err == nil {
-			serialisedSettings, err := structure.FlattenJsonToString(expandedSettings)
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+
+		if v, ok := m["auto_upgrade_minor_version"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+
+		// we need to ensure the whitespace is consistent
+		settings := m["settings"].(string)
+		if settings != "" {
+			expandedSettings, err := structure.ExpandJsonFromString(settings)
 			if err == nil {
-				buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
+				serialisedSettings, err := structure.FlattenJsonToString(expandedSettings)
+				if err == nil {
+					buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
+				}
 			}
 		}
 	}

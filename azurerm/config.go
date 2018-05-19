@@ -34,6 +34,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-06-01/subscriptions"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
@@ -169,6 +170,9 @@ type ArmClient struct {
 
 	// Recovery Services
 	recoveryServicesVaultsClient recoveryservices.VaultsClient
+
+	// Relay
+	relayNamespacesClient relay.NamespacesClient
 
 	// Resources
 	managementLocksClient locks.ManagementLocksClient
@@ -380,6 +384,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerRelayClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
 	client.registerSearchClients(endpoint, c.SubscriptionID, auth)
 	client.registerServiceBusClients(endpoint, c.SubscriptionID, auth)
@@ -810,6 +815,12 @@ func (c *ArmClient) registerRedisClients(endpoint, subscriptionId string, auth a
 	patchSchedulesClient := redis.NewPatchSchedulesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&patchSchedulesClient.Client, auth)
 	c.redisPatchSchedulesClient = patchSchedulesClient
+}
+
+func (c *ArmClient) registerRelayClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	relayNamespacesClient := relay.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&relayNamespacesClient.Client, auth)
+	c.relayNamespacesClient = relayNamespacesClient
 }
 
 func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

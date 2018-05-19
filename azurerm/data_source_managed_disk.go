@@ -2,9 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmManagedDisk() *schema.Resource {
@@ -60,11 +60,10 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		if resp.StatusCode == http.StatusNotFound {
-			d.SetId("")
-			return nil
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error: Managed Disk %q (Resource Group %q) was not found", name, resGroup)
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Azure Managed Disk %s (resource group %s): %s", name, resGroup, err)
+		return fmt.Errorf("[ERROR] Error making Read request on Azure Managed Disk %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)

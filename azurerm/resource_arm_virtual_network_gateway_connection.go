@@ -51,8 +51,9 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			},
 
 			"authorization_key": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
 			},
 
 			"express_route_circuit_id": {

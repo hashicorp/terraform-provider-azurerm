@@ -47,8 +47,6 @@ The following arguments are supported:
 * `frontend_ip_configuration` - (Optional) A frontend ip configuration block as documented below.
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
--> **Note:** The `Standard` SKU is currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions `Standard` SKU's are available in are available here](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-overview)
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `frontend_ip_configuration` supports the following:

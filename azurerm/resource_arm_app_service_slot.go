@@ -75,6 +75,12 @@ func resourceArmAppServiceSlot() *schema.Resource {
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 
+						"http2_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"java_version": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -227,8 +233,9 @@ func resourceArmAppServiceSlot() *schema.Resource {
 							Required: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 						"type": {
 							Type:     schema.TypeString,

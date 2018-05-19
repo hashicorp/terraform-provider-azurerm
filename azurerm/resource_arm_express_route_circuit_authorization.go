@@ -34,8 +34,9 @@ func resourceArmExpressRouteCircuitAuthorization() *schema.Resource {
 			},
 
 			"authorization_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"authorization_use_status": {

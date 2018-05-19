@@ -93,12 +93,14 @@ func resourceArmIotHub() *schema.Resource {
 							Computed: true,
 						},
 						"primary_key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"secondary_key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"permissions": {
 							Type:     schema.TypeString,
