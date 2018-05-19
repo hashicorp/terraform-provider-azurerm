@@ -24,9 +24,9 @@ func resourceArmDataLakeStore() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`\A([a-z0-9]{3,24})\z`),
 					"Name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long",
