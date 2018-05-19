@@ -3,7 +3,6 @@ package azurerm
 import (
 	"context"
 	"fmt"
-	"reflect"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
@@ -76,8 +75,8 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			return err
 		}
 
-		if reflect.DeepEqual(resp, dns.Zone{}) {
-			return fmt.Errorf("Error: DNS Zone %q was not found", name, resourceGroup)
+		if resourceGroup == "" {
+			return fmt.Errorf("Error: DNS Zone %q was not found", name)
 		}
 	}
 
