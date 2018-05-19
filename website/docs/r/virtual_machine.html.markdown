@@ -473,6 +473,7 @@ output "principal_id" {
 
 * `provision_vm_agent` - (Optional) This value defaults to false.
 * `enable_automatic_upgrades` - (Optional) This value defaults to false.
+* `timezone` - (Optional) Specifies the time zone of the virtual machine. e.g. "Pacific Standard Time".
 * `winrm` - (Optional) A collection of WinRM configuration blocks as documented below.
 * `additional_unattend_config` - (Optional) An Additional Unattended Config block as documented below.
 
