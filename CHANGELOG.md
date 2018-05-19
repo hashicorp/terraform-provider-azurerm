@@ -16,7 +16,9 @@ BUG FIXES:
 IMPROVEMENTS:
 
 * `azurerm_app_service` - adding support for `ip_restriction`'s [GH-1231]
+* `azurerm_public_ip` - computed values now default to an empy string [GH-1247]
 * `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` [GH-1235]
+
 
 ## 1.5.0 (May 14, 2018)
 
