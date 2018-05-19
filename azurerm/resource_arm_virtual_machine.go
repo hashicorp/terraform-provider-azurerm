@@ -377,7 +377,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"timezone": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "UTC",
 							ValidateFunc: validateAzureTimeZone(),
 						},
 						"winrm": {
