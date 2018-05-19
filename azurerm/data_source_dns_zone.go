@@ -64,8 +64,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		resp, err = client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				d.SetId("")
-				return nil
+				return fmt.Errorf("Error: DNS Zone %q (Resource Group %q) was not found", name, resourceGroup)
 			}
 			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -78,8 +77,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if reflect.DeepEqual(resp, dns.Zone{}) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: DNS Zone %q was not found", name, resourceGroup)
 		}
 	}
 
