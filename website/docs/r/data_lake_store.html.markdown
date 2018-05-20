@@ -15,27 +15,27 @@ Manage an Azure Data Lake Store.
 ```hcl
 # Pay As You Go
 resource "azurerm_resource_group" "test" {
-  name = "test"
+  name     = "test"
   location = "northeurope"
 }
 
 resource "azurerm_data_lake_store" "consumption" {
-  name = "consumptiondatalake"
+  name                = "consumptiondatalake"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "northeurope"
+  location            = "northeurope"
 }
 
 # Monthly Commitment Tier
 resource "azurerm_resource_group" "test" {
-  name = "test"
+  name     = "test"
   location = "westeurope"
 }
 
 resource "azurerm_data_lake_store" "monthly" {
-  name = "monthlydatalake"
+  name                = "monthlydatalake"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "westeurope"
-  tier = "Commitment_1TB"
+  location            = "westeurope"
+  tier                = "Commitment_1TB"
 }
 ```
 
