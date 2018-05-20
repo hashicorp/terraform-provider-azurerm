@@ -87,7 +87,7 @@ func TestAccAzureRMDataLakeStore_withTags(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDnsZoneExists(resourceName),
+					testCheckAzureRMDataLakeStoreExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 				),
 			},
