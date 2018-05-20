@@ -160,14 +160,14 @@ func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
 func testAccAzureRMDataLakeStore_basic(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name     = "acctestRG_%d"
   location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name = "unlikely23exst2acct%s"
+  name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "%s"
+  location            = "%s"
 }
 `, rInt, location, rs, location)
 }
@@ -175,15 +175,15 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_tier(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name     = "acctestRG_%d"
   location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name = "unlikely23exst2acct%s"
+  name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "%s"
-  tier = "Commitment_1TB"
+  location            = "%s"
+  tier                = "Commitment_1TB"
 }
 `, rInt, location, rs, location)
 }
@@ -191,14 +191,15 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_withTags(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name     = "acctestRG_%d"
   location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name = "unlikely23exst2acct%s"
+  name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "%s"
+  location            = "%s"
+  
   tags {
     environment = "Production"
     cost_center = "MSFT"
@@ -210,14 +211,15 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name     = "acctestRG_%d"
   location = "%s"
 }
 
 resource "azurerm_data_lake_store" "test" {
-  name = "unlikely23exst2acct%s"
+  name                = "unlikely23exst2acct%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "%s"
+  location            = "%s"
+  
   tags {
     environment = "staging"
   }
