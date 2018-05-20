@@ -7,6 +7,7 @@ UPGRADE NOTES:
 FEATURES:
 
 * **New Resource:** `azurerm_relay_namespace` [GH-1233]
+* **New Resource:** `azurerm_data_lake_store` [GH-1219]
 
 BUG FIXES:
 
