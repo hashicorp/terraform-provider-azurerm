@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestAccDataSourceArmStorageAccountSasRead(t *testing.T) {
+func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_storage_account_sas.test"
 	rInt := acctest.RandInt()
 	rString := acctest.RandString(4)
@@ -84,7 +84,7 @@ data "azurerm_storage_account_sas" "test" {
 `, rInt, location, rString, startDate, endDate)
 }
 
-func TestParseAzureStorageAccountConnectionString(t *testing.T) {
+func TestAccDataSourceArmStorageAccountSas_connectionString(t *testing.T) {
 	testCases := []struct {
 		input               string
 		expectedAccountName string
@@ -113,7 +113,7 @@ func TestParseAzureStorageAccountConnectionString(t *testing.T) {
 
 }
 
-func TestBuildResourceTypesString(t *testing.T) {
+func TestAccDataSourceArmStorageAccountSas_resourceTypesString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]interface{}
 		expected string
@@ -132,7 +132,7 @@ func TestBuildResourceTypesString(t *testing.T) {
 	}
 }
 
-func TestBuildServicesString(t *testing.T) {
+func TestAccDataSourceArmStorageAccountSas_servicesString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]interface{}
 		expected string
@@ -153,7 +153,7 @@ func TestBuildServicesString(t *testing.T) {
 
 }
 
-func TestBuildPermissionsString(t *testing.T) {
+func TestAccDataSourceArmStorageAccountSas_permissionsString(t *testing.T) {
 	testCases := []struct {
 		input    map[string]interface{}
 		expected string
@@ -181,7 +181,7 @@ func TestBuildPermissionsString(t *testing.T) {
 // so its safe to include here for reference to understand the format.
 // DefaultEndpointsProtocol=https;AccountName=azurermtestsa0;AccountKey=T0ZQouXBDpWud/PlTRHIJH2+VUK8D+fnedEynb9Mx638IYnsMUe4mv1fFjC7t0NayTfFAQJzPZuV1WHFKOzGdg==;EndpointSuffix=core.windows.net
 
-func TestComputeAzureStorageAccountSas(t *testing.T) {
+func TestAccDataSourceArmStorageAccountSas_computeSas(t *testing.T) {
 	testCases := []struct {
 		accountName    string
 		accountKey     string
