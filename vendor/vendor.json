@@ -251,6 +251,14 @@
 			"versionExact": "v20.1.0"
 		},
 		{
+			"checksumSHA1": "lm0tvCajScn5lWy5FJMw4V98BHQ=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
 			"checksumSHA1": "UWSnIzZywuEpEevbPfbPNLk1dFk=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices",
 			"revision": "2935c0241c74bd8549b843978dd6fc1be6f48b4a",
