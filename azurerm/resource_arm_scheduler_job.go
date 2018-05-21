@@ -52,15 +52,24 @@ func resourceArmSchedulerJob() *schema.Resource {
 			},
 
 			//actions
-			"action_web": resourceArmSchedulerJobActionWebSchema("action_web"),
+			"action_web": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem:     resourceArmSchedulerJobActionWebSchema("action_web"),
+			},
 
-			//each action can also be an error action
-			"error_action_web": resourceArmSchedulerJobActionWebSchema("error_action_web"),
+			//actions
+			"error_action_web": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem:     resourceArmSchedulerJobActionWebSchema("error_action_web"),
+			},
 
 			//retry policy
 			"retry": {
 				Type:     schema.TypeList,
-				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -133,7 +142,6 @@ func resourceArmSchedulerJob() *schema.Resource {
 						"minutes": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeInt,
 								ValidateFunc: validation.IntBetween(0, 59),
@@ -144,7 +152,6 @@ func resourceArmSchedulerJob() *schema.Resource {
 						"hours": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeInt,
 								ValidateFunc: validation.IntBetween(0, 23),
@@ -156,7 +163,6 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Type:          schema.TypeSet,
 							Optional:      true,
 							ConflictsWith: []string{"recurrence.0.month_days", "recurrence.0.monthly_occurrences"},
-							MinItems:      1,
 							// the constants are title cased but the API returns all lowercase
 							// so lets ignore the case
 							Set: set.HashStringIgnoreCase,
@@ -266,146 +272,134 @@ func resourceArmSchedulerJob() *schema.Resource {
 	}
 }
 
-func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		MinItems: 1,
-		MaxItems: 1,
-		Optional: true,
-		//ConflictsWith: conflictsWith,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
+func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			// we can determine the type (HTTP/HTTPS) from the url
+			// but we need to make sure the url starts with http/https
+			// both so we can determine the type and as azure requires it
+			"url": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: supress.CaseDifference,
+				ValidateFunc:     validate.Url,
+			},
 
-				// we can determine the type (HTTP/HTTPS) from the url
-				// but we need to make sure the url starts with http/https
-				// both so we can determine the type and as azure requires it
-				"url": {
-					Type:             schema.TypeString,
-					Optional:         true,
-					DiffSuppressFunc: supress.CaseDifference,
-					ValidateFunc:     validate.Url,
+			"method": {
+				Type:     schema.TypeString,
+				Optional: true,
+				//DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				Default: "Get", //todo have a default or force user to pick?
+				ValidateFunc: validation.StringInSlice([]string{
+					"Get", "Put", "Post", "Delete",
+				}, true),
+			},
+
+			//only valid/used when action type is put
+			"body": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"headers": {
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
+
+			//authentication requires HTTPS
+			"authentication_basic": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				ConflictsWith: []string{
+					fmt.Sprintf("%s.0.authentication_certificate", propertyName),
+					fmt.Sprintf("%s.0.authentication_active_directory", propertyName),
 				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"username": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
 
-				"method": {
-					Type:     schema.TypeString,
-					Optional: true,
-					//DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-					Default: "Get", //todo have a default or force user to pick?
-					ValidateFunc: validation.StringInSlice([]string{
-						"Get", "Put", "Post", "Delete",
-					}, true),
-				},
-
-				//only valid/used when action type is put
-				"body": {
-					Type:     schema.TypeString,
-					Optional: true,
-				},
-
-				"headers": {
-					Type:     schema.TypeMap,
-					Optional: true,
-				},
-
-				//authentication requires HTTPS
-				"authentication_basic": {
-					Type:     schema.TypeList,
-					MinItems: 1,
-					MaxItems: 1,
-					Optional: true,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.authentication_certificate", propertyName),
-						fmt.Sprintf("%s.0.authentication_active_directory", propertyName),
-					},
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"username": {
-								Type:     schema.TypeString,
-								Required: true,
-							},
-
-							"password": {
-								Type:      schema.TypeString,
-								Required:  true,
-								Sensitive: true,
-							},
+						"password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 					},
 				},
+			},
 
-				"authentication_certificate": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MinItems: 1,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.authentication_basic", propertyName),
-						fmt.Sprintf("%s.0.authentication_active_directory", propertyName),
-					},
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"pfx": {
-								Type:      schema.TypeString,
-								Required:  true,
-								Sensitive: true, //sensitive & shortens diff
-							},
+			"authentication_certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ConflictsWith: []string{
+					fmt.Sprintf("%s.0.authentication_basic", propertyName),
+					fmt.Sprintf("%s.0.authentication_active_directory", propertyName),
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"pfx": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true, //sensitive & shortens diff
+						},
 
-							"password": {
-								Type:      schema.TypeString,
-								Required:  true,
-								Sensitive: true,
-							},
+						"password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
 
-							"thumbprint": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
+						"thumbprint": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 
-							"expiration": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
+						"expiration": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 
-							"subject_name": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
+						"subject_name": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
+			},
 
-				"authentication_active_directory": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MinItems: 1,
-					MaxItems: 1,
-					ConflictsWith: []string{
-						fmt.Sprintf("%s.0.authentication_basic", propertyName),
-						fmt.Sprintf("%s.0.authentication_certificate", propertyName),
-					},
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"tenant_id": {
-								Type:     schema.TypeString,
-								Required: true,
-							},
+			"authentication_active_directory": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ConflictsWith: []string{
+					fmt.Sprintf("%s.0.authentication_basic", propertyName),
+					fmt.Sprintf("%s.0.authentication_certificate", propertyName),
+				},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
 
-							"client_id": {
-								Type:     schema.TypeString,
-								Required: true,
-							},
+						"client_id": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"secret": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
 
-							"secret": {
-								Type:      schema.TypeString,
-								Required:  true,
-								Sensitive: true,
-							},
-
-							"audience": {
-								Type:     schema.TypeString,
-								Optional: true,
-								Default:  "https://management.core.windows.net/",
-							},
+						"audience": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "https://management.core.windows.net/",
 						},
 					},
 				},
