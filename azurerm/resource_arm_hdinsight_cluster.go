@@ -156,11 +156,11 @@ func resourceArmHDInsightCluster() *schema.Resource {
 				},
 			},
 
-			"head_node": hdinsightClusterNodeProfile(2),
+			"head_node": hdinsightClusterNodeProfile(2, true),
 
-			"worker_node": hdinsightClusterNodeProfile(2),
+			"worker_node": hdinsightClusterNodeProfile(2, false),
 
-			"zookeeper_node": hdinsightClusterNodeProfile(3),
+			"zookeeper_node": hdinsightClusterNodeProfile(3, true),
 
 			"tags": tagsSchema(),
 
@@ -268,7 +268,28 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	// TODO: resizing nodes in the cluster
+	if d.HasChange("worker_node") {
+		computeProfile := expandHDInsightClusterComputeProfile(d)
+		nodes, err := populateHDInsightClusterComputeProfile(computeProfile)
+		if err != nil {
+			return fmt.Errorf("Error populating Compute Profile for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		parameters := hdinsight.ClusterResizeParameters{
+			TargetInstanceCount: nodes.workerNode.TargetInstanceCount,
+		}
+		future, err := client.Resize(ctx, resourceGroup, name, parameters)
+		if err != nil {
+			return fmt.Errorf("Error resizing the number of worker nodes for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for resizing of worker nodes for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	// TODO: update the configuration
 
 	return nil
 }
@@ -376,7 +397,7 @@ func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func hdinsightClusterNodeProfile(minTargetInstanceCount int) *schema.Schema {
+func hdinsightClusterNodeProfile(minTargetInstanceCount int, numberOfNodesForceNew bool) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -391,10 +412,9 @@ func hdinsightClusterNodeProfile(minTargetInstanceCount int) *schema.Schema {
 				},
 
 				"target_instance_count": {
-					// TODO: this can be updated via the "Resize" endpoint
 					Type:         schema.TypeInt,
 					Required:     true,
-					ForceNew:     true,
+					ForceNew:     numberOfNodesForceNew,
 					ValidateFunc: validation.IntAtLeast(minTargetInstanceCount),
 				},
 
