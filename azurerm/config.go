@@ -102,6 +102,7 @@ type ArmClient struct {
 	// Authentication
 	roleAssignmentsClient   authorization.RoleAssignmentsClient
 	roleDefinitionsClient   authorization.RoleDefinitionsClient
+	applicationsClient      graphrbac.ApplicationsClient
 	servicePrincipalsClient graphrbac.ServicePrincipalsClient
 
 	// CDN
@@ -461,6 +462,13 @@ func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscription
 	definitionsClient.Sender = sender
 	definitionsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.roleDefinitionsClient = definitionsClient
+
+	applicationsClient := graphrbac.NewApplicationsClientWithBaseURI(graphEndpoint, tenantId)
+	setUserAgent(&applicationsClient.Client)
+	applicationsClient.Authorizer = graphAuth
+	applicationsClient.Sender = sender
+	applicationsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.applicationsClient = applicationsClient
 
 	servicePrincipalsClient := graphrbac.NewServicePrincipalsClientWithBaseURI(graphEndpoint, tenantId)
 	setUserAgent(&servicePrincipalsClient.Client)
