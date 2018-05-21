@@ -144,6 +144,32 @@ func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistry_basicBasicUpgradePremium(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
+	configUpdated := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExistsValidateSkuValue("azurerm_container_registry.test", "Basic"),
+				),
+			},
+			{
+				Config: configUpdated,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExistsValidateSkuValue("azurerm_container_registry.test", "Premium"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)
@@ -241,6 +267,49 @@ func testCheckAzureRMContainerRegistryExists(name string) resource.TestCheckFunc
 
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) does not exist", name, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMContainerRegistryExistsValidateSkuValue(name string, value string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		sku := rs.Primary.Attributes["sku"]
+
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		resourceSku, hasResourceSku := rs.Primary.Attributes["sku"]
+
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
+		}
+
+		if !hasResourceSku {
+			return fmt.Errorf("Bad: no sku found in state for Container Registry: %s", resourceSku)
+		}
+
+		conn := testAccProvider.Meta().(*ArmClient).containerRegistryClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := conn.Get(ctx, resourceGroup, name)
+
+		if err != nil {
+			return fmt.Errorf("Bad: Get on containerRegistryClient: %+v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: Container Registry %q (resource group: %q) does not exist", name, resourceGroup)
+		}
+
+		if sku != value {
+			return fmt.Errorf("Bad: Container Registry sku '%s' does not match expected sku of '%s'", sku, value)
 		}
 
 		return nil
