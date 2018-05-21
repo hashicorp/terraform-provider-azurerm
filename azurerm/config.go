@@ -35,7 +35,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+<<<<<<< HEAD
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+=======
+	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight"
+>>>>>>> New Resource: `azurerm_hdinsight_cluster`
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
@@ -169,6 +173,10 @@ type ArmClient struct {
 	// Data Lake Analytics
 	dataLakeAnalyticsAccountClient       analyticsAccount.AccountsClient
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
+
+	// HDInsight
+	hdinsightClustersClient       hdinsight.ClustersClient
+	hdinsightConfigurationsClient hdinsight.ConfigurationsClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -461,6 +469,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerHDInsightClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
@@ -758,6 +767,16 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	ehnc := eventhub.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&ehnc.Client, auth)
 	c.eventHubNamespacesClient = ehnc
+}
+
+func (c *ArmClient) registerHDInsightClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	clustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&clustersClient.Client, auth)
+	c.hdinsightClustersClient = clustersClient
+
+	configurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&configurationsClient.Client, auth)
+	c.hdinsightConfigurationsClient = configurationsClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
