@@ -129,7 +129,7 @@ func TestValidateIso8601Duration(t *testing.T) {
 	}
 }
 
-func TestValidateAzureTimeZone(t *testing.T) {
+func TestValidateAzureVMTimeZone(t *testing.T) {
 	cases := []struct {
 		Value  string
 		Errors int
@@ -144,13 +144,8 @@ func TestValidateAzureTimeZone(t *testing.T) {
 		},
 		{
 			// Valid UTC time zone
-			Value:  "UTC-11",
+			Value:  "utc-11",
 			Errors: 0,
-		},
-		{
-			// Wrong casing
-			Value:  "china standard time",
-			Errors: 1,
 		},
 		{
 			// Invalid UTC time zone
@@ -160,10 +155,10 @@ func TestValidateAzureTimeZone(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureTimeZone()(tc.Value, "unittest")
+		_, errors := validateAzureVMTimeZone()(tc.Value, "unittest")
 
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected validateAzureTimeZone to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+			t.Fatalf("Expected validateAzureVMTimeZone to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}
 	}
 }
