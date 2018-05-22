@@ -33,7 +33,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -68,6 +68,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 							ValidateFunc: validateIntInSlice([]int{
+								1,
 								2,
 								4,
 								8,
@@ -79,6 +80,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(postgresql.Basic),
 								string(postgresql.GeneralPurpose),
@@ -90,6 +92,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"family": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
@@ -366,7 +369,7 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData) *postgresql.Sku {
-	skus := d.Get("sku").(*schema.Set).List()
+	skus := d.Get("sku").([]interface{})
 	sku := skus[0].(map[string]interface{})
 
 	name := sku["name"].(string)
