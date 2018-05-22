@@ -115,12 +115,12 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"version": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				ForceNew:         true,
 			},
 
 			"storage_profile": {
@@ -193,7 +193,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmPostgreSQLServerSku(d)
-	storageprofile := expandAzureRmPostgreSQLStorageProfile(d)
+	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
 
 	properties := postgresql.ServerForCreate{
 		Location: &location,
@@ -202,7 +202,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
 			Version:                    postgresql.ServerVersion(version),
 			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
-			StorageProfile:             storageprofile,
+			StorageProfile:             storageProfile,
 			CreateMode:                 postgresql.CreateMode(createMode),
 		},
 		Sku:  sku,
@@ -211,20 +211,21 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for creation of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read PostgreSQL Server %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -245,12 +246,12 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	sku := expandAzureRmPostgreSQLServerSku(d)
-	storageprofile := expandAzureRmPostgreSQLStorageProfile(d)
+	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := postgresql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			StorageProfile:             storageprofile,
+			StorageProfile:             storageProfile,
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
 			Version:                    postgresql.ServerVersion(version),
 			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
@@ -261,18 +262,19 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resourceGroup)
 	}
@@ -296,12 +298,12 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Server '%s' was not found (resource group '%s')", name, resourceGroup)
+			log.Printf("[WARN] PostgreSQL Server %q was not found (resource group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure PostgreSQL Server %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -315,11 +317,11 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
-	if err := d.Set("sku", flattenPostgreSQLServerSku(d, resp.Sku)); err != nil {
+	if err := d.Set("sku", flattenPostgreSQLServerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error flattening `sku`: %+v", err)
 	}
 
-	if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(d, resp.StorageProfile)); err != nil {
+	if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(resp.StorageProfile)); err != nil {
 		return fmt.Errorf("Error flattening `storage_profile`: %+v", err)
 	}
 
@@ -347,7 +349,8 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return err
+
+		return fmt.Errorf("Error deleting PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
@@ -355,7 +358,8 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return err
+
+		return fmt.Errorf("Error waiting for deletion of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -364,8 +368,6 @@ func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{})
 func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData) *postgresql.Sku {
 	skus := d.Get("sku").(*schema.Set).List()
 	sku := skus[0].(map[string]interface{})
-
-	fmt.Printf("[SKU]: %s", sku)
 
 	name := sku["name"].(string)
 	capacity := sku["capacity"].(int)
@@ -395,7 +397,7 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 	}
 }
 
-func flattenPostgreSQLServerSku(d *schema.ResourceData, resp *postgresql.Sku) []interface{} {
+func flattenPostgreSQLServerSku(resp *postgresql.Sku) []interface{} {
 	values := map[string]interface{}{}
 
 	if name := resp.Name; name != nil {
@@ -415,7 +417,7 @@ func flattenPostgreSQLServerSku(d *schema.ResourceData, resp *postgresql.Sku) []
 	return []interface{}{values}
 }
 
-func flattenPostgreSQLStorageProfile(d *schema.ResourceData, resp *postgresql.StorageProfile) []interface{} {
+func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
 
 	if storageMB := resp.StorageMB; storageMB != nil {
