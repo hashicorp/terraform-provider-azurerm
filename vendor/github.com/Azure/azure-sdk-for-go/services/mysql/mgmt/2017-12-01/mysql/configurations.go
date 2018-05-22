@@ -25,7 +25,8 @@ import (
 )
 
 // ConfigurationsClient is the the Microsoft Azure management API provides create, read, update, and delete
-// functionality for Azure MySQL resources including servers, databases, firewall rules, log files and configurations.
+// functionality for Azure MySQL resources including servers, databases, firewall rules, log files and configurations
+// with new business model.
 type ConfigurationsClient struct {
 	BaseClient
 }
@@ -41,10 +42,12 @@ func NewConfigurationsClientWithBaseURI(baseURI string, subscriptionID string) C
 }
 
 // CreateOrUpdate updates a configuration of a server.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server. configurationName is the
-// name of the server configuration. parameters is the required parameters for updating a server configuration.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// configurationName - the name of the server configuration.
+// parameters - the required parameters for updating a server configuration.
 func (client ConfigurationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, configurationName string, parameters Configuration) (result ConfigurationsCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, configurationName, parameters)
 	if err != nil {
@@ -70,7 +73,7 @@ func (client ConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -114,10 +117,11 @@ func (client ConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) 
 }
 
 // Get gets information about a configuration of server.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server. configurationName is the
-// name of the server configuration.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// configurationName - the name of the server configuration.
 func (client ConfigurationsClient) Get(ctx context.Context, resourceGroupName string, serverName string, configurationName string) (result Configuration, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, configurationName)
 	if err != nil {
@@ -149,7 +153,7 @@ func (client ConfigurationsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -183,9 +187,10 @@ func (client ConfigurationsClient) GetResponder(resp *http.Response) (result Con
 }
 
 // ListByServer list all the configurations in a given server.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
 func (client ConfigurationsClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result ConfigurationListResult, err error) {
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
@@ -216,7 +221,7 @@ func (client ConfigurationsClient) ListByServerPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

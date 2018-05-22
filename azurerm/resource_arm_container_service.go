@@ -543,73 +543,64 @@ func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName strin
 
 func resourceAzureRMContainerServiceMasterProfileHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	count := m["count"].(int)
-	dnsPrefix := m["dns_prefix"].(string)
-
-	buf.WriteString(fmt.Sprintf("%d-", count))
-	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["count"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["dns_prefix"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceLinuxProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	adminUsername := m["admin_username"].(string)
-
-	buf.WriteString(fmt.Sprintf("%s-", adminUsername))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceLinuxProfilesSSHKeysHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	keyData := m["key_data"].(string)
-
-	buf.WriteString(fmt.Sprintf("%s-", keyData))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["key_data"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceAgentPoolProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	count := m["count"].(int)
-	dnsPrefix := m["dns_prefix"].(string)
-	name := m["name"].(string)
-	vm_size := m["vm_size"].(string)
-
-	buf.WriteString(fmt.Sprintf("%d-", count))
-	buf.WriteString(fmt.Sprintf("%s-", dnsPrefix))
-	buf.WriteString(fmt.Sprintf("%s-", name))
-	buf.WriteString(fmt.Sprintf("%s-", vm_size))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%d-", m["count"].(int)))
+		buf.WriteString(fmt.Sprintf("%s-", m["dns_prefix"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["vm_size"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceServicePrincipalProfileHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	clientId := m["client_id"].(string)
-	buf.WriteString(fmt.Sprintf("%s-", clientId))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["client_id"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMContainerServiceDiagnosticProfilesHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	enabled := m["enabled"].(bool)
-
-	buf.WriteString(fmt.Sprintf("%t", enabled))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%t", m["enabled"].(bool)))
+	}
 
 	return hashcode.String(buf.String())
 }

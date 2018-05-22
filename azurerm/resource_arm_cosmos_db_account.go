@@ -213,28 +213,33 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 			},
 
 			"primary_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"primary_readonly_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_readonly_master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"connection_strings": {
-				Type:     schema.TypeList,
-				Computed: true,
+				Type:      schema.TypeList,
+				Computed:  true,
+				Sensitive: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -798,28 +803,30 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 //todo remove once deprecated field `failover_policy` is removed
 func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	location := azureRMNormalizeLocation(m["location"].(string))
-	priority := int32(m["priority"].(int))
+	if m, ok := v.(map[string]interface{}); ok {
+		location := azureRMNormalizeLocation(m["location"].(string))
+		priority := int32(m["priority"].(int))
 
-	buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
+		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	prefix := ""
-	if v, ok := m["prefix"].(string); ok {
-		prefix = v
+	if m, ok := v.(map[string]interface{}); ok {
+		prefix := ""
+		if v, ok := m["prefix"].(string); ok {
+			prefix = v
+		}
+		location := azureRMNormalizeLocation(m["location"].(string))
+		priority := int32(m["failover_priority"].(int))
+
+		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
 	}
-	location := azureRMNormalizeLocation(m["location"].(string))
-	priority := int32(m["failover_priority"].(int))
-
-	buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
 
 	return hashcode.String(buf.String())
 }

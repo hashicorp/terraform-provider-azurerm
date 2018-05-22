@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmSubscription() *schema.Resource {
@@ -26,6 +27,10 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 
 	resp, err := groupClient.Get(ctx, subscriptionId)
 	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error: Subscription %q was not found", subscriptionId)
+		}
+
 		return fmt.Errorf("Error reading subscription: %+v", err)
 	}
 

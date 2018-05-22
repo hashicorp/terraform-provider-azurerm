@@ -26,7 +26,7 @@ import (
 
 // LocationBasedPerformanceTierClient is the the Microsoft Azure management API provides create, read, update, and
 // delete functionality for Azure MySQL resources including servers, databases, firewall rules, log files and
-// configurations.
+// configurations with new business model.
 type LocationBasedPerformanceTierClient struct {
 	BaseClient
 }
@@ -43,8 +43,8 @@ func NewLocationBasedPerformanceTierClientWithBaseURI(baseURI string, subscripti
 }
 
 // List list all the performance tiers at specified location in a given subscription.
-//
-// locationName is the name of the location.
+// Parameters:
+// locationName - the name of the location.
 func (client LocationBasedPerformanceTierClient) List(ctx context.Context, locationName string) (result PerformanceTierListResult, err error) {
 	req, err := client.ListPreparer(ctx, locationName)
 	if err != nil {
@@ -74,7 +74,7 @@ func (client LocationBasedPerformanceTierClient) ListPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
