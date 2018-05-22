@@ -9,8 +9,8 @@ Maintainers
 ------------
 
 This provider plugin is maintained by:
-- The Microsoft Azure Services Team (@metacpp, @JunyiYi, @jeffreyCline) at Microsoft
-- The Terraform team at [HashiCorp](https://www.hashicorp.com/) (@tombuildsstuff, @katbyte, @paultyng)
+- The Microsoft Azure Services team (@metacpp, @JunyiYi, @jeffreyCline) at Microsoft
+- The Terraform team (@tombuildsstuff, @katbyte, @paultyng) at [HashiCorp](https://www.hashicorp.com/)
 
 General Requirements
 ------------
