@@ -685,8 +685,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	if v, ok := d.GetOk("license_type"); ok {
-		license := v.(string)
-		properties.VirtualMachineProfile.LicenseType = &license
+		properties.VirtualMachineProfile.LicenseType = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
