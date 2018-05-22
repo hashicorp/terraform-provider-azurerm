@@ -246,7 +246,8 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdinsightClustersClient
+	clustersClient := meta.(*ArmClient).hdinsightClustersClient
+	configurationsClient := meta.(*ArmClient).hdinsightConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -262,36 +263,42 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 			Tags: expandTags(tags),
 		}
 
-		_, err = client.Update(ctx, resourceGroup, name, parameters)
+		_, err = clustersClient.Update(ctx, resourceGroup, name, parameters)
 		if err != nil {
 			return fmt.Errorf("Error updating HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	if d.HasChange("worker_node") {
-		computeProfile := expandHDInsightClusterComputeProfile(d)
-		nodes, err := populateHDInsightClusterComputeProfile(computeProfile)
-		if err != nil {
-			return fmt.Errorf("Error populating Compute Profile for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
+		workerNode := expandHDInsightClusterNodeProfile("workernode", d.Get("worker_node"))
 		parameters := hdinsight.ClusterResizeParameters{
-			TargetInstanceCount: nodes.workerNode.TargetInstanceCount,
+			TargetInstanceCount: workerNode.TargetInstanceCount,
 		}
-		future, err := client.Resize(ctx, resourceGroup, name, parameters)
+		future, err := clustersClient.Resize(ctx, resourceGroup, name, parameters)
 		if err != nil {
 			return fmt.Errorf("Error resizing the number of worker nodes for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
+		err = future.WaitForCompletion(ctx, clustersClient.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for resizing of worker nodes for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
-	// TODO: update the configuration
+	if d.HasChange("cluster") {
+		credentials := expandHDInsightsClusterGatewayCredentials(d)
+		future, err := configurationsClient.UpdateHTTPSettings(ctx, resourceGroup, name, credentials)
+		if err != nil {
+			return fmt.Errorf("Error updating Gateway Connectivity Settings for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 
-	return nil
+		err = future.WaitForCompletion(ctx, configurationsClient.Client)
+		if err != nil {
+			return fmt.Errorf("Error waiting for HDInsights Cluster %q (Resource Group %q) to finish updating Gateway Connectivity Settings: %+v", name, resourceGroup, err)
+		}
+	}
+
+	return resourceArmHDInsightClusterRead(d, meta)
 }
 
 func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
@@ -339,6 +346,11 @@ func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("Error parsing Compute Profile for HDInsight Cluster: %+v", err)
 		}
+
+		log.Printf("[TOMTOMTOMTOMTOM] Head: %d / Worker %d / Zookeeper %d",
+			int(*computeProfile.headNode.TargetInstanceCount),
+			int(*computeProfile.workerNode.TargetInstanceCount),
+			int(*computeProfile.zookeeperNode.TargetInstanceCount))
 
 		headNode := flattenHDInsightClusterComputeNodeProfile(computeProfile.headNode)
 		if err := d.Set("head_node", headNode); err != nil {
@@ -639,6 +651,30 @@ func flattenHDInsightStorageProfile(input *hdinsight.StorageProfile) []interface
 	return []interface{}{profile}
 }
 
+func expandHDInsightsClusterGatewayCredentials(d *schema.ResourceData) hdinsight.HTTPConnectivitySettings {
+	clusters := d.Get("cluster").([]interface{})
+	cluster := clusters[0].(map[string]interface{})
+
+	gateways := cluster["gateway"].([]interface{})
+	gateway := gateways[0].(map[string]interface{})
+
+	enabled := gateway["enabled"].(bool)
+	username := gateway["username"].(string)
+	password := gateway["password"].(string)
+
+	if enabled {
+		return hdinsight.HTTPConnectivitySettings{
+			EnabledCredential: hdinsight.True,
+			Username:          utils.String(username),
+			Password:          utils.String(password),
+		}
+	}
+
+	return hdinsight.HTTPConnectivitySettings{
+		EnabledCredential: hdinsight.False,
+	}
+}
+
 func expandHDInsightClusterDetails(d *schema.ResourceData) (*hdinsight.ClusterDefinition, string) {
 	clusters := d.Get("cluster").([]interface{})
 	cluster := clusters[0].(map[string]interface{})
@@ -646,20 +682,17 @@ func expandHDInsightClusterDetails(d *schema.ResourceData) (*hdinsight.ClusterDe
 	clusterKind := cluster["kind"].(string)
 	clusterVersion := cluster["version"].(string)
 
-	gateways := cluster["gateway"].([]interface{})
-	gateway := gateways[0].(map[string]interface{})
-
-	enabled := gateway["enabled"].(bool)
+	gatewayCredentials := expandHDInsightsClusterGatewayCredentials(d)
 	gatewayConfig := map[string]interface{}{
-		"restAuthCredential.isEnabled": enabled,
+		"restAuthCredential.isEnabled": gatewayCredentials.EnabledCredential == hdinsight.True,
 	}
 
-	if enabled {
-		username := gateway["username"].(string)
-		password := gateway["password"].(string)
+	if username := gatewayCredentials.Username; username != nil {
+		gatewayConfig["restAuthCredential.username"] = *username
+	}
 
-		gatewayConfig["restAuthCredential.username"] = username
-		gatewayConfig["restAuthCredential.password"] = password
+	if password := gatewayCredentials.Password; password != nil {
+		gatewayConfig["restAuthCredential.password"] = *password
 	}
 
 	definition := hdinsight.ClusterDefinition{
