@@ -111,6 +111,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_subscription":                          dataSourceArmSubscription(),
 			"azurerm_subscriptions":                         dataSourceArmSubscriptions(),
 			"azurerm_traffic_manager_geographical_location": dataSourceArmTrafficManagerGeographicalLocation(),
+			"azurerm_virtual_machine_scale_set":             dataSourceArmVirtualMachineScaleSet(),
 			"azurerm_virtual_network":                       dataSourceArmVirtualNetwork(),
 			"azurerm_virtual_network_gateway":               dataSourceArmVirtualNetworkGateway(),
 		},

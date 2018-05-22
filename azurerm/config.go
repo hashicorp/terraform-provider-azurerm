@@ -117,6 +117,7 @@ type ArmClient struct {
 	vmExtensionImageClient compute.VirtualMachineExtensionImagesClient
 	vmExtensionClient      compute.VirtualMachineExtensionsClient
 	vmScaleSetClient       compute.VirtualMachineScaleSetsClient
+	vmScaleSetVMsClient    compute.VirtualMachineScaleSetVMsClient
 	vmImageClient          compute.VirtualMachineImagesClient
 	vmClient               compute.VirtualMachinesClient
 
@@ -520,6 +521,10 @@ func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth
 	scaleSetsClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&scaleSetsClient.Client, auth)
 	c.vmScaleSetClient = scaleSetsClient
+
+	scaleSetVMsClient := compute.NewVirtualMachineScaleSetVMsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&scaleSetVMsClient.Client, auth)
+	c.vmScaleSetVMsClient = scaleSetVMsClient
 
 	virtualMachinesClient := compute.NewVirtualMachinesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&virtualMachinesClient.Client, auth)
