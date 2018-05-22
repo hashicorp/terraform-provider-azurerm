@@ -6,8 +6,8 @@ UPGRADE NOTES:
 
 FEATURES:
 
+* **New Data Source:** `azurerm_storage_account_sas` [GH-1011]
 * **New Resource:** `azurerm_data_lake_store` [GH-1219]
-* **New Resource:** `azurerm_storage_account_sas` [GH-1011]
 * **New Resource:** `azurerm_relay_namespace` [GH-1233]
 
 BUG FIXES:
