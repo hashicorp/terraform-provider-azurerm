@@ -25,7 +25,8 @@ import (
 )
 
 // DatabasesClient is the the Microsoft Azure management API provides create, read, update, and delete functionality
-// for Azure MySQL resources including servers, databases, firewall rules, log files and configurations.
+// for Azure MySQL resources including servers, databases, firewall rules, log files and configurations with new
+// business model.
 type DatabasesClient struct {
 	BaseClient
 }
@@ -41,10 +42,12 @@ func NewDatabasesClientWithBaseURI(baseURI string, subscriptionID string) Databa
 }
 
 // CreateOrUpdate creates a new database or updates an existing database.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
-// the database. parameters is the required parameters for creating or updating a database.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// databaseName - the name of the database.
+// parameters - the required parameters for creating or updating a database.
 func (client DatabasesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters Database) (result DatabasesCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, databaseName, parameters)
 	if err != nil {
@@ -70,7 +73,7 @@ func (client DatabasesClient) CreateOrUpdatePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -114,10 +117,11 @@ func (client DatabasesClient) CreateOrUpdateResponder(resp *http.Response) (resu
 }
 
 // Delete deletes a database.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
-// the database.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// databaseName - the name of the database.
 func (client DatabasesClient) Delete(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result DatabasesDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName, databaseName)
 	if err != nil {
@@ -143,7 +147,7 @@ func (client DatabasesClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -184,10 +188,11 @@ func (client DatabasesClient) DeleteResponder(resp *http.Response) (result autor
 }
 
 // Get gets information about a database.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
-// the database.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+// databaseName - the name of the database.
 func (client DatabasesClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result Database, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, databaseName)
 	if err != nil {
@@ -219,7 +224,7 @@ func (client DatabasesClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,9 +258,10 @@ func (client DatabasesClient) GetResponder(resp *http.Response) (result Database
 }
 
 // ListByServer list all the databases in a given server.
-//
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
-// the Azure Resource Manager API or the portal. serverName is the name of the server.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
 func (client DatabasesClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result DatabaseListResult, err error) {
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
@@ -286,7 +292,7 @@ func (client DatabasesClient) ListByServerPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

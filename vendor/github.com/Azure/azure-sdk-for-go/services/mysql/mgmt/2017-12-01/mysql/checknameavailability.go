@@ -26,7 +26,8 @@ import (
 )
 
 // CheckNameAvailabilityClient is the the Microsoft Azure management API provides create, read, update, and delete
-// functionality for Azure MySQL resources including servers, databases, firewall rules, log files and configurations.
+// functionality for Azure MySQL resources including servers, databases, firewall rules, log files and configurations
+// with new business model.
 type CheckNameAvailabilityClient struct {
 	BaseClient
 }
@@ -42,8 +43,8 @@ func NewCheckNameAvailabilityClientWithBaseURI(baseURI string, subscriptionID st
 }
 
 // Execute check the availability of name for resource
-//
-// nameAvailabilityRequest is the required parameters for checking if resource name is available.
+// Parameters:
+// nameAvailabilityRequest - the required parameters for checking if resource name is available.
 func (client CheckNameAvailabilityClient) Execute(ctx context.Context, nameAvailabilityRequest NameAvailabilityRequest) (result NameAvailability, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: nameAvailabilityRequest,
@@ -78,7 +79,7 @@ func (client CheckNameAvailabilityClient) ExecutePreparer(ctx context.Context, n
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

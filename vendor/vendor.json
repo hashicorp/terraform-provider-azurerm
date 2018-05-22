@@ -147,8 +147,8 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "l5LiS1E96VhqOILV/TKh37eYbeg=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql",
+			"checksumSHA1": "k+eOq0DE2aRNVwLFElfc81YE18Y=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",
