@@ -306,12 +306,13 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting `ip_restriction`: %s", err)
 	}
 
-	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	scm := flattenAppServiceSourceControl(&scmResp)
+
 	if err := d.Set("source_control", scm); err != nil {
 		return err
 	}
 
-	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
+	siteCred := flattenAppServiceSiteCredential(&siteCredResp)
 	if err := d.Set("site_credential", siteCred); err != nil {
 		return err
 	}

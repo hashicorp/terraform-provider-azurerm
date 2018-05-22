@@ -185,12 +185,13 @@ func resourceArmAppService() *schema.Resource {
 
 						"scm_type": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"local_git": {
+							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  string(web.ScmTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ScmTypeNone),
-								string(web.ScmTypeLocalGit),
-							}, false),
+							Default:  false,
 						},
 
 						"use_32_bit_worker_process": {
@@ -318,19 +319,50 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"source_control": {
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"repo_url": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
 						},
 						"branch": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"ext_scm_token": {
+				Type:      schema.TypeList,
+				Optional:  true,
+				Sensitive: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"BitBucket",
+								"Dropbox",
+								"GitHub",
+								"OneDrive",
+							}, false),
+						},
+						"token": {
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -460,7 +492,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 		_, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource)
 		if err != nil {
-			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", name, err)
+			return fmt.Errorf("error updating configuration for App Service %q: %+v", name, err)
 		}
 	}
 
@@ -477,7 +509,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		_, err := client.Update(ctx, resGroup, name, sitePatchResource)
 		if err != nil {
-			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", name, err)
+			return fmt.Errorf("error updating App Service ARR Affinity setting %q: %+v", name, err)
 		}
 	}
 
@@ -490,7 +522,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
 		if err != nil {
-			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", name, err)
+			return fmt.Errorf("error updating Application Settings for App Service %q: %+v", name, err)
 		}
 	}
 
@@ -503,7 +535,23 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
 		if err != nil {
-			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
+			return fmt.Errorf("error updating Connection Strings for App Service %q: %+v", name, err)
+		}
+	}
+
+	if d.HasChange("source_control") {
+		scm := expandAppServiceSourceControl(d)
+		if _, err := client.UpdateSourceControl(ctx, resGroup, name, scm); err != nil {
+			return fmt.Errorf("error updating source control for app service %q: %+v", name, err)
+		}
+
+	}
+
+	if d.HasChange("ext_scm_token") {
+		scmCred := expandAppServiceExternalSCMToken(d)
+
+		if _, err := client.BaseClient.UpdateSourceControl(ctx, *scmCred.Name, scmCred); err != nil {
+			return fmt.Errorf("error updating external scm token for app service %q: %+v", name, err)
 		}
 	}
 
@@ -619,12 +667,13 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error flattening `ip_restrictions`: %s", err)
 	}
 
-	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	scm := flattenAppServiceSourceControl(&scmResp)
+
 	if err := d.Set("source_control", scm); err != nil {
 		return err
 	}
 
-	siteCred := flattenAppServiceSiteCredential(siteCredResp.UserProperties)
+	siteCred := flattenAppServiceSiteCredential(&siteCredResp)
 	if err := d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
@@ -744,8 +793,10 @@ func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
 	}
 
-	if v, ok := config["scm_type"]; ok {
-		siteConfig.ScmType = web.ScmType(v.(string))
+	if v, ok := config["local_git"]; ok {
+		if v.(bool) {
+			siteConfig.ScmType = web.ScmTypeLocalGit
+		}
 	}
 
 	return siteConfig
@@ -823,17 +874,40 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
 	}
 
-	result["scm_type"] = string(input.ScmType)
+	result["scm_type"] = input.ScmType
 
 	return append(results, result)
 }
 
-func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
+func expandAppServiceSourceControl(d *schema.ResourceData) web.SiteSourceControl {
+	scmList := d.Get("source_control").([]interface{})
+	scmRet := web.SiteSourceControl{
+		SiteSourceControlProperties: &web.SiteSourceControlProperties{},
+	}
+
+	if len(scmList) == 0 {
+		return scmRet
+	}
+
+	scm := scmList[0].(map[string]interface{})
+
+	if v, ok := scm["repo_url"]; ok {
+		scmRet.RepoURL = utils.String(v.(string))
+	}
+
+	if v, ok := scm["branch"]; ok {
+		scmRet.Branch = utils.String(v.(string))
+	}
+
+	return scmRet
+}
+
+func flattenAppServiceSourceControl(input *web.SiteSourceControl) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{}, 0)
 
 	if input == nil {
-		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
+		log.Printf("[DEBUG] SiteSourceControl is nil")
 		return results
 	}
 
@@ -847,6 +921,29 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []in
 	}
 
 	return append(results, result)
+}
+
+func expandAppServiceExternalSCMToken(d *schema.ResourceData) web.SourceControl {
+	credList := d.Get("ext_scm_token").([]interface{})
+	credRet := web.SourceControl{
+		SourceControlProperties: &web.SourceControlProperties{},
+	}
+
+	if len(credList) == 0 {
+		return credRet
+	}
+
+	cred := credList[0].(map[string]interface{})
+
+	if v, ok := cred["name"]; ok {
+		credRet.Name = utils.String(v.(string))
+	}
+
+	if v, ok := cred["token"]; ok {
+		credRet.Token = utils.String(v.(string))
+	}
+
+	return credRet
 }
 
 func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
@@ -974,7 +1071,7 @@ func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
 	return
 }
 
-func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {
+func flattenAppServiceSiteCredential(input *web.User) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{}, 0)
 
