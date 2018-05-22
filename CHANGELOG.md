@@ -21,7 +21,7 @@ IMPROVEMENTS:
 * `azurerm_dns_zone` - datasource's `resource_group` field is now optional [GH-1180]
 * `azurerm_public_ip` - computed values now default to an empy string [GH-1247]
 * `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` [GH-1235]
-
+* `azurerm_virtual_machine_scale_set` - adding the `licence_type` property [GH-1245]
 
 ## 1.5.0 (May 14, 2018)
 
