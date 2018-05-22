@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required for `Classic` Sku - Optional otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
 
-* `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
+* `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`. Once provisioned changing the SKU will not force a new resource.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
