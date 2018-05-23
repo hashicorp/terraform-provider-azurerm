@@ -365,8 +365,6 @@ func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData) *postgresql.Sku {
 	skus := d.Get("sku").(*schema.Set).List()
 	sku := skus[0].(map[string]interface{})
 
-	fmt.Printf("[SKU]: %s", sku)
-
 	name := sku["name"].(string)
 	capacity := sku["capacity"].(int)
 	tier := sku["tier"].(string)
