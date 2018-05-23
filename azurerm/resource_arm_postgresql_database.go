@@ -120,7 +120,9 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", resGroup)
 	d.Set("server_name", serverName)
 	d.Set("charset", resp.Charset)
-	d.Set("collation", utils.AzureRMNormalizeCollation(d.Get("collation").(string), "-", "_", -1))
+
+	collation := strings.Replace(d.Get(resp.Collation, "-", "_", -1)
+	d.Set("collation", collation)
 	return nil
 }
 
