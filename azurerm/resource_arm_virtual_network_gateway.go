@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/hashicorp/terraform/helper/customdiff"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -137,16 +138,21 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"vpn_client_protocol": {
-							Type:     schema.TypeList,
+						"vpn_client_protocols": {
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.IkeV2),
+									string(network.SSTP),
+								}, true),
 							},
 						},
 						"root_certificate": {
 							Type:     schema.TypeSet,
 							Optional: true,
+
 							ConflictsWith: []string{
 								"vpn_client_configuration.0.radius_server_address",
 								"vpn_client_configuration.0.radius_server_secret",
@@ -528,7 +534,7 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 		revokedCerts = append(revokedCerts, r)
 	}
 
-	confVpnClientProtocol := conf["vpn_client_protocol"].([]interface{})
+	confVpnClientProtocol := conf["vpn_client_protocols"].([]interface{})
 	vpnClientProtocols := make([]network.VpnClientProtocol, 0, len(confVpnClientProtocol))
 	for _, protocol := range confVpnClientProtocol {
 		vpnClientProtocols = append(vpnClientProtocols, network.VpnClientProtocol(protocol.(string)))
@@ -629,7 +635,7 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 			vpnClientProtocol = append(vpnClientProtocol, vpnProtocol)
 		}
 	}
-	flat["vpn_client_protocol"] = vpnClientProtocol
+	flat["vpn_client_protocols"] = vpnClientProtocol
 
 	return []interface{}{flat}
 }
