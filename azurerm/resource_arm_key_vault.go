@@ -76,6 +76,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"access_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 16,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -312,6 +313,45 @@ func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
 	}
 
 	return []interface{}{result}
+}
+
+
+func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []interface{} {
+	result := make([]interface{}, 0, len(*policies))
+
+	for _, policy := range *policies {
+		policyRaw := make(map[string]interface{})
+
+		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
+		for _, keyPermission := range *policy.Permissions.Keys {
+			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
+		}
+
+		secretPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Secrets))
+		for _, secretPermission := range *policy.Permissions.Secrets {
+			secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
+		}
+
+		policyRaw["tenant_id"] = policy.TenantID.String()
+		policyRaw["object_id"] = *policy.ObjectID
+		if policy.ApplicationID != nil {
+			policyRaw["application_id"] = policy.ApplicationID.String()
+		}
+		policyRaw["key_permissions"] = keyPermissionsRaw
+		policyRaw["secret_permissions"] = secretPermissionsRaw
+
+		if policy.Permissions.Certificates != nil {
+			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
+			for _, certificatePermission := range *policy.Permissions.Certificates {
+				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+			}
+			policyRaw["certificate_permissions"] = certificatePermissionsRaw
+		}
+
+		result = append(result, policyRaw)
+	}
+
+	return result
 }
 
 func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {

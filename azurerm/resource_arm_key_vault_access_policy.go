@@ -10,12 +10,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmKeyVaultPolicy() *schema.Resource {
+func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultPolicyCreate,
-		Read:   resourceArmKeyVaultPolicyRead,
-		Update: resourceArmKeyVaultPolicyUpdate,
-		Delete: resourceArmKeyVaultPolicyDelete,
+		Create: resourceArmKeyVaultAccessPolicyCreate,
+		Read:   resourceArmKeyVaultAccessPolicyRead,
+		Update: resourceArmKeyVaultAccessPolicyUpdate,
+		Delete: resourceArmKeyVaultAccessPolicyDelete,
 
 		Schema: map[string]*schema.Schema{
 			"vault_name": {
@@ -96,7 +96,7 @@ func createKeyVaultAccessPolicy(d *schema.ResourceData) *keyvault.AccessPolicyEn
 
 }
 
-func resourceArmKeyVaultPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
+func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
 	client := meta.(*ArmClient).keyVaultClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Policy: %s.", action)
@@ -132,19 +132,19 @@ func resourceArmKeyVaultPolicyCreateOrDelete(d *schema.ResourceData, meta interf
 	}
 }
 
-func resourceArmKeyVaultPolicyCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultPolicyCreateOrDelete(d, meta, keyvault.Add)
+func resourceArmKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Add)
 }
 
-func resourceArmKeyVaultPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultPolicyCreateOrDelete(d, meta, keyvault.Remove)
+func resourceArmKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
 }
 
-func resourceArmKeyVaultPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceArmKeyVaultPolicyCreateOrDelete(d, meta, keyvault.Replace)
+func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interface{}) error {
+	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Replace)
 }
 
-func resourceArmKeyVaultPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).keyVaultClient
 	ctx := meta.(*ArmClient).StopContext
 
