@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"regexp"
 )
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
@@ -21,9 +22,11 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 		Read:   resourceArmServiceBusNamespaceRead,
 		Update: resourceArmServiceBusNamespaceCreate,
 		Delete: resourceArmServiceBusNamespaceDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
 		MigrateState:  resourceAzureRMServiceBusNamespaceMigrateState,
 		SchemaVersion: 1,
 
@@ -32,6 +35,10 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,100}[a-zA-Z0-9]$"),
+					"The namespace can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.",
+				),
 			},
 
 			"location": locationSchema(),
@@ -51,10 +58,10 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			},
 
 			"capacity": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validateServiceBusNamespaceCapacity,
+				Type:     schema.TypeInt,
+				Optional: true,
+
+				ValidateFunc: validateIntInSlice([]int{1, 2, 4}),
 			},
 
 			"default_primary_connection_string": {
@@ -108,11 +115,11 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 
 	capacity := d.Get("capacity").(int)
 	if capacity > 0 {
-		skuName := strings.ToLower(string(parameters.Sku.Name))
+		/*skuName := strings.ToLower(string(parameters.Sku.Name))
 		premiumSku := strings.ToLower(string(servicebus.Premium))
 		if skuName != premiumSku {
 			return fmt.Errorf("`capacity` can only be set for a Premium SKU")
-		}
+		}*/
 
 		parameters.Sku.Capacity = utils.Int32(int32(capacity))
 	}
@@ -204,18 +211,4 @@ func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
-}
-
-func validateServiceBusNamespaceCapacity(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-	capacities := map[int]bool{
-		1: true,
-		2: true,
-		4: true,
-	}
-
-	if !capacities[value] {
-		errors = append(errors, fmt.Errorf("ServiceBus Namespace Capacity can only be 1, 2 or 4"))
-	}
-	return
 }
