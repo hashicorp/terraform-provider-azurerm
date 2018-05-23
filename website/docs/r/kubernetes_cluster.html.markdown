@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
 description: |-
-  Creates a managed Kubernetes Cluster (AKS)
+  Manages a managed Kubernetes Cluster (AKS)
 ---
 
 # azurerm_kubernetes_cluster
 
-Creates a managed Kubernetes Cluster (AKS)
+Manages a managed Kubernetes Cluster (AKS)
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).

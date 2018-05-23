@@ -6,7 +6,7 @@ description: |-
   Create a ServiceBus Topic.
 ---
 
-# azurerm\_servicebus\_topic
+# azurerm_servicebus_topic
 
 Create a ServiceBus Topic.
 

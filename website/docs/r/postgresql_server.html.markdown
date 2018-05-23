@@ -6,7 +6,7 @@ description: |-
   Create a PostgreSQL Server.
 ---
 
-# azurerm\_postgresql\_server
+# azurerm_postgresql_server
 
 Create a PostgreSQL Server.
 

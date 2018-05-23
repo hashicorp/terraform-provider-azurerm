@@ -6,7 +6,7 @@ description: |-
   Manage a DNS MX Record.
 ---
 
-# azurerm\_dns\_mx\_record
+# azurerm_dns_mx_record
 
 Enables you to manage DNS MX Records within Azure DNS.
 

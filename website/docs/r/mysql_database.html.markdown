@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_database"
 sidebar_current: "docs-azurerm-resource-database-mysql-database"
 description: |-
-  Creates a MySQL Database within a MySQL Server.
+  Manages a MySQL Database within a MySQL Server.
 ---
 
 # azurerm_mysql_database
 
-Creates a MySQL Database within a MySQL Server
+Manages a MySQL Database within a MySQL Server
 
 ## Example Usage
 

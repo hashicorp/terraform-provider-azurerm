@@ -6,7 +6,7 @@ description: |-
   Create a DNS TXT Record.
 ---
 
-# azurerm\_dns\_txt\_record
+# azurerm_dns_txt_record
 
 Enables you to manage DNS TXT Records within Azure DNS.
 

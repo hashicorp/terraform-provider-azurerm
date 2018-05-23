@@ -6,7 +6,7 @@ description: |-
   Create a LoadBalancer Resource.
 ---
 
-# azurerm\_lb
+# azurerm_lb
 
 Create a LoadBalancer Resource.
 

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_network_gateway_connection"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-connection"
 description: |-
-  Creates a new connection in an existing Virtual Network Gateway.
+  Manages a new connection in an existing Virtual Network Gateway.
 ---
 
 # azurerm_virtual_network_gateway_connection
 
-Creates a new connection in an existing Virtual Network Gateway.
+Manages a new connection in an existing Virtual Network Gateway.
 
 ## Example Usage
 

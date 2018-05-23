@@ -6,7 +6,7 @@ description: |-
   Create a Managed Disk.
 ---
 
-# azurerm\_managed\_disk
+# azurerm_managed_disk
 
 Create a managed disk.
 
