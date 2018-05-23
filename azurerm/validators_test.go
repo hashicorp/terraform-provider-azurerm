@@ -203,7 +203,7 @@ func TestValidateAzureVMTimeZone(t *testing.T) {
 		},
 		{
 			// Invalid UTC time zone
-			Value:  "UTC-10",
+			Value:  "UTC-30",
 			Errors: 1,
 		},
 	}
