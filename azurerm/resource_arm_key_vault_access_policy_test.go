@@ -10,10 +10,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMKeyVaultPolicy_basic(t *testing.T) {
-	resourceName := "azurerm_key_vault_policy.test"
+func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
+	resourceName := "azurerm_key_vault_access_policy.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultPolicy_basic(rs, testLocation())
+	config := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,7 +23,7 @@ func TestAccAzureRMKeyVaultPolicy_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultPolicyExists(resourceName),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
@@ -33,10 +33,10 @@ func TestAccAzureRMKeyVaultPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVaultPolicy_complete(t *testing.T) {
-	resourceName := "azurerm_key_vault_policy.test"
+func TestAccAzureRMKeyVaultAccessPolicy_complete(t *testing.T) {
+	resourceName := "azurerm_key_vault_access_policy.test"
 	rs := acctest.RandString(6)
-	config := testAccAzureRMKeyVaultPolicy_complete(rs, testLocation())
+	config := testAccAzureRMKeyVaultAccessPolicy_complete(rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -46,7 +46,7 @@ func TestAccAzureRMKeyVaultPolicy_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultPolicyExists(resourceName),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "create"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.1", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
@@ -59,11 +59,11 @@ func TestAccAzureRMKeyVaultPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVaultPolicy_update(t *testing.T) {
+func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 	rs := acctest.RandString(6)
-	resourceName := "azurerm_key_vault_policy.test"
-	preConfig := testAccAzureRMKeyVaultPolicy_basic(rs, testLocation())
-	postConfig := testAccAzureRMKeyVaultPolicy_update(rs, testLocation())
+	resourceName := "azurerm_key_vault_access_policy.test"
+	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
+	postConfig := testAccAzureRMKeyVaultAccessPolicy_update(rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -74,7 +74,7 @@ func TestAccAzureRMKeyVaultPolicy_update(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultPolicyExists(resourceName),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
@@ -83,7 +83,7 @@ func TestAccAzureRMKeyVaultPolicy_update(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultPolicyExists("azurerm_key_vault_policy.test"),
+					testCheckAzureRMKeyVaultAccessPolicyExists("azurerm_key_vault_access_policy.test"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "list"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.1", "encrypt"),
 				),
@@ -92,11 +92,11 @@ func TestAccAzureRMKeyVaultPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVaultPolicy_policyRemoved(t *testing.T) {
+func TestAccAzureRMKeyVaultAccessPolicy_policyRemoved(t *testing.T) {
 	rs := acctest.RandString(6)
-	resourceName := "azurerm_key_vault_policy.test"
-	preConfig := testAccAzureRMKeyVaultPolicy_basic(rs, testLocation())
-	postConfig := testAccAzureRMKeyVaultPolicy_policyRemoved(rs, testLocation())
+	resourceName := "azurerm_key_vault_access_policy.test"
+	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
+	postConfig := testAccAzureRMKeyVaultAccessPolicy_policyRemoved(rs, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -107,7 +107,7 @@ func TestAccAzureRMKeyVaultPolicy_policyRemoved(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultPolicyExists(resourceName),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
@@ -116,14 +116,14 @@ func TestAccAzureRMKeyVaultPolicy_policyRemoved(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultPolicyMissing("azurerm_key_vault.test"),
+					testCheckAzureRMKeyVaultAccessPolicyMissing("azurerm_key_vault_access_policy.test"),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMKeyVaultPolicyExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMKeyVaultAccessPolicyExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -156,7 +156,7 @@ func testCheckAzureRMKeyVaultPolicyExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMKeyVaultPolicyMissing(name string) resource.TestCheckFunc {
+func testCheckAzureRMKeyVaultAccessPolicyMissing(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -190,7 +190,7 @@ func testCheckAzureRMKeyVaultPolicyMissing(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMKeyVaultPolicy_basic(rString string, location string) string {
+func testAccAzureRMKeyVaultAccessPolicy_basic(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -214,7 +214,7 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_policy" "test" {
+resource "azurerm_key_vault_access_policy" "test" {
 	vault_name                = "${azurerm_key_vault.test.name}"
 	vault_resource_group      = "${azurerm_resource_group.test.name}"
 
@@ -233,7 +233,7 @@ resource "azurerm_key_vault_policy" "test" {
 `, rString, location, rString)
 }
 
-func testAccAzureRMKeyVaultPolicy_complete(rString string, location string) string {
+func testAccAzureRMKeyVaultAccessPolicy_complete(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -258,7 +258,7 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_policy" "test" {
+resource "azurerm_key_vault_access_policy" "test" {
 	vault_name                = "${azurerm_key_vault.test.name}"
 	vault_resource_group      = "${azurerm_resource_group.test.name}"
 
@@ -284,7 +284,7 @@ resource "azurerm_key_vault_policy" "test" {
 `, rString, location, rString)
 }
 
-func testAccAzureRMKeyVaultPolicy_update(rString string, location string) string {
+func testAccAzureRMKeyVaultAccessPolicy_update(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -308,7 +308,7 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_policy" "test" {
+resource "azurerm_key_vault_access_policy" "test" {
 	vault_name                = "${azurerm_key_vault.test.name}"
 	vault_resource_group      = "${azurerm_resource_group.test.name}"
 
@@ -326,7 +326,7 @@ resource "azurerm_key_vault_policy" "test" {
 `, rString, location, rString)
 }
 
-func testAccAzureRMKeyVaultPolicy_policyRemoved(rString string, location string) string {
+func testAccAzureRMKeyVaultAccessPolicy_policyRemoved(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
