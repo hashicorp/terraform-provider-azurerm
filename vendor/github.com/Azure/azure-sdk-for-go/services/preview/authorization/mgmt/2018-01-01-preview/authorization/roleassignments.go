@@ -80,7 +80,7 @@ func (client RoleAssignmentsClient) CreatePreparer(ctx context.Context, scope st
 		"scope":              scope,
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -117,13 +117,10 @@ func (client RoleAssignmentsClient) CreateResponder(resp *http.Response) (result
 
 // CreateByID creates a role assignment by ID.
 // Parameters:
-// roleAssignmentID - the fully qualified ID of the role assignment, including the scope, resource name and
-// resource type. Use the format,
-// /{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}. Example:
-// /subscriptions/{subId}/resourcegroups/{rgname}//providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}.
+// roleID - the ID of the role assignment to create.
 // parameters - parameters for the role assignment.
-func (client RoleAssignmentsClient) CreateByID(ctx context.Context, roleAssignmentID string, parameters RoleAssignmentCreateParameters) (result RoleAssignment, err error) {
-	req, err := client.CreateByIDPreparer(ctx, roleAssignmentID, parameters)
+func (client RoleAssignmentsClient) CreateByID(ctx context.Context, roleID string, parameters RoleAssignmentCreateParameters) (result RoleAssignment, err error) {
+	req, err := client.CreateByIDPreparer(ctx, roleID, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "CreateByID", nil, "Failure preparing request")
 		return
@@ -145,12 +142,12 @@ func (client RoleAssignmentsClient) CreateByID(ctx context.Context, roleAssignme
 }
 
 // CreateByIDPreparer prepares the CreateByID request.
-func (client RoleAssignmentsClient) CreateByIDPreparer(ctx context.Context, roleAssignmentID string, parameters RoleAssignmentCreateParameters) (*http.Request, error) {
+func (client RoleAssignmentsClient) CreateByIDPreparer(ctx context.Context, roleID string, parameters RoleAssignmentCreateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"roleAssignmentId": roleAssignmentID,
+		"roleId": roleID,
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -159,7 +156,7 @@ func (client RoleAssignmentsClient) CreateByIDPreparer(ctx context.Context, role
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{roleAssignmentId}", pathParameters),
+		autorest.WithPathParameters("/{roleId}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -218,7 +215,7 @@ func (client RoleAssignmentsClient) DeletePreparer(ctx context.Context, scope st
 		"scope":              scope,
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,12 +250,9 @@ func (client RoleAssignmentsClient) DeleteResponder(resp *http.Response) (result
 
 // DeleteByID deletes a role assignment.
 // Parameters:
-// roleAssignmentID - the fully qualified ID of the role assignment, including the scope, resource name and
-// resource type. Use the format,
-// /{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}. Example:
-// /subscriptions/{subId}/resourcegroups/{rgname}//providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}.
-func (client RoleAssignmentsClient) DeleteByID(ctx context.Context, roleAssignmentID string) (result RoleAssignment, err error) {
-	req, err := client.DeleteByIDPreparer(ctx, roleAssignmentID)
+// roleID - the ID of the role assignment to delete.
+func (client RoleAssignmentsClient) DeleteByID(ctx context.Context, roleID string) (result RoleAssignment, err error) {
+	req, err := client.DeleteByIDPreparer(ctx, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "DeleteByID", nil, "Failure preparing request")
 		return
@@ -280,12 +274,12 @@ func (client RoleAssignmentsClient) DeleteByID(ctx context.Context, roleAssignme
 }
 
 // DeleteByIDPreparer prepares the DeleteByID request.
-func (client RoleAssignmentsClient) DeleteByIDPreparer(ctx context.Context, roleAssignmentID string) (*http.Request, error) {
+func (client RoleAssignmentsClient) DeleteByIDPreparer(ctx context.Context, roleID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"roleAssignmentId": roleAssignmentID,
+		"roleId": roleID,
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -293,7 +287,7 @@ func (client RoleAssignmentsClient) DeleteByIDPreparer(ctx context.Context, role
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{roleAssignmentId}", pathParameters),
+		autorest.WithPathParameters("/{roleId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -351,7 +345,7 @@ func (client RoleAssignmentsClient) GetPreparer(ctx context.Context, scope strin
 		"scope":              scope,
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -386,12 +380,9 @@ func (client RoleAssignmentsClient) GetResponder(resp *http.Response) (result Ro
 
 // GetByID gets a role assignment by ID.
 // Parameters:
-// roleAssignmentID - the fully qualified ID of the role assignment, including the scope, resource name and
-// resource type. Use the format,
-// /{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}. Example:
-// /subscriptions/{subId}/resourcegroups/{rgname}//providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}.
-func (client RoleAssignmentsClient) GetByID(ctx context.Context, roleAssignmentID string) (result RoleAssignment, err error) {
-	req, err := client.GetByIDPreparer(ctx, roleAssignmentID)
+// roleID - the ID of the role assignment to get.
+func (client RoleAssignmentsClient) GetByID(ctx context.Context, roleID string) (result RoleAssignment, err error) {
+	req, err := client.GetByIDPreparer(ctx, roleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "authorization.RoleAssignmentsClient", "GetByID", nil, "Failure preparing request")
 		return
@@ -413,12 +404,12 @@ func (client RoleAssignmentsClient) GetByID(ctx context.Context, roleAssignmentI
 }
 
 // GetByIDPreparer prepares the GetByID request.
-func (client RoleAssignmentsClient) GetByIDPreparer(ctx context.Context, roleAssignmentID string) (*http.Request, error) {
+func (client RoleAssignmentsClient) GetByIDPreparer(ctx context.Context, roleID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"roleAssignmentId": roleAssignmentID,
+		"roleId": roleID,
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -426,7 +417,7 @@ func (client RoleAssignmentsClient) GetByIDPreparer(ctx context.Context, roleAss
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{roleAssignmentId}", pathParameters),
+		autorest.WithPathParameters("/{roleId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -485,7 +476,7 @@ func (client RoleAssignmentsClient) ListPreparer(ctx context.Context, filter str
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -592,7 +583,7 @@ func (client RoleAssignmentsClient) ListForResourcePreparer(ctx context.Context,
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -691,7 +682,7 @@ func (client RoleAssignmentsClient) ListForResourceGroupPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -789,7 +780,7 @@ func (client RoleAssignmentsClient) ListForScopePreparer(ctx context.Context, sc
 		"scope": scope,
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
