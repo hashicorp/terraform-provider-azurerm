@@ -355,7 +355,7 @@ func testAccAzureRMPublicIPStatic_basic_withDNSLabel(rInt int, location string) 
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name        = "acctestRG-%d"
-    location 	= "%s"
+    location    = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
