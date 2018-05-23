@@ -25,6 +25,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		MigrateState:  resourceAzureRMVirtualMachineMigrateState,
+		SchemaVersion: 1,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -378,7 +381,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							Default:          "UTF",
+							Default:          "UTC",
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc:     validateAzureVMTimeZone(),
 						},
