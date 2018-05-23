@@ -46,6 +46,7 @@ func resourceArmPublicIp() *schema.Resource {
 
 			"zones": singleZonesSchema(),
 
+			//should this perhaps be allocation_method?
 			"public_ip_address_allocation": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -128,18 +129,18 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 		PublicIPAllocationMethod: ipAllocationMethod,
 	}
 
-	dnl, hasDnl := d.GetOk("domain_name_label")
-	rfqdn, hasRfqdn := d.GetOk("reverse_fqdn")
+	dnl, dnlOk := d.GetOk("domain_name_label")
+	rfqdn, rfqdnOk := d.GetOk("reverse_fqdn")
 
-	if hasDnl || hasRfqdn {
+	if dnlOk || rfqdnOk {
 		dnsSettings := network.PublicIPAddressDNSSettings{}
 
-		if hasRfqdn {
+		if rfqdnOk {
 			reverseFqdn := rfqdn.(string)
 			dnsSettings.ReverseFqdn = &reverseFqdn
 		}
 
-		if hasDnl {
+		if dnlOk {
 			domainNameLabel := dnl.(string)
 			dnsSettings.DomainNameLabel = &domainNameLabel
 		}
@@ -148,8 +149,7 @@ func resourceArmPublicIpCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
-		idleTimeout := int32(v.(int))
-		properties.IdleTimeoutInMinutes = &idleTimeout
+		properties.IdleTimeoutInMinutes = utils.Int32(int32(v.(int)))
 	}
 
 	publicIp := network.PublicIPAddress{
@@ -226,6 +226,12 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("fqdn", fqdn)
 			} else {
 				d.Set("fqdn", "")
+			}
+
+			if dnl := settings.DomainNameLabel; dnl != nil {
+				d.Set("domain_name_label", dnl)
+			} else {
+				d.Set("domain_name_label", "")
 			}
 		}
 

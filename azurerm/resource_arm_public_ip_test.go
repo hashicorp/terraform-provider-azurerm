@@ -64,6 +64,29 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_label", "dnstestlabel"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPublicIpStatic_standard(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMPublicIPStatic_standard(ri, testLocation())
@@ -296,14 +319,15 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 func testAccAzureRMPublicIPStatic_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestpublicip-%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+
     public_ip_address_allocation = "static"
 }
 `, rInt, location, rInt)
@@ -312,16 +336,35 @@ resource "azurerm_public_ip" "test" {
 func testAccAzureRMPublicIPStatic_basic_withZone(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+    name                         = "acctestpublicip-%d"
+    location                     = "${azurerm_resource_group.test.location}"
+    resource_group_name          = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation = "static"
+
     zones = ["1"]
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_basic_withDNSLabel(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name        = "acctestRG-%d"
+    location 	= "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name                            = "acctestpublicip-%d"
+    location                        = "${azurerm_resource_group.test.location}"
+    resource_group_name             = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation    = "static"
+
+    domain_name_label = "dnstestlabel"
 }
 `, rInt, location, rInt)
 }
