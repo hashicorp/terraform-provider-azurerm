@@ -754,7 +754,7 @@ values are: `Equals`, `NotEquals`, `GreaterThan`, `GreaterThanOrEqual`, `LessTha
 
 * `direction` - (Required) Specifies the scale direction. Possible values are: `Increase`, `Decrease`.
 
-* `type` - (Required) Specifies the type of action that should occur, this must be set to `ChangeCount` or `PercentChangeCount`.
+* `type` - (Required) Specifies the type of action that should occur. Possible values are: `ChangeCount`, `ExactCount`, `PercentChangeCount`.
 
 * `value` - (Required) Specifies the number that is involved in the scaling action. This value must be 1 or greater. The default 
 value is 1.

@@ -519,12 +519,6 @@ func (c *ArmClient) registerCosmosDBClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerComputeClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&autoscaleSettingsClient.Client)
-	autoscaleSettingsClient.Authorizer = auth
-	autoscaleSettingsClient.Sender = autorest.CreateSender(withRequestLogging())
-	c.autoscaleSettingsClient = autoscaleSettingsClient
-
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&availabilitySetsClient.Client, auth)
 	c.availSetClient = availabilitySetsClient
@@ -764,6 +758,10 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	arc.Authorizer = auth
 	arc.Sender = autorest.CreateSender(withRequestLogging())
 	c.monitorAlertRulesClient = arc
+
+	autoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&autoscaleSettingsClient.Client, auth)
+	c.autoscaleSettingsClient = autoscaleSettingsClient
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {

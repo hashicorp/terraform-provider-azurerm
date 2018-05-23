@@ -2,17 +2,12 @@ package azurerm
 
 import (
 	"bytes"
+	"fmt"
+	"net/http"
 	"sort"
 	"strconv"
-	"time"
-
-	"fmt"
-
-	"net/http"
-
-	"regexp"
-
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -37,12 +32,8 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"location": locationSchema(),
+			"resource_group_name": resourceGroupNameSchema(),
+			"location":            locationSchema(),
 			"profile": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -101,7 +92,7 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 												"time_grain": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: iso8601DurationString(),
+													ValidateFunc: validateIso8601Duration(),
 												},
 												"statistic": {
 													Type:     schema.TypeString,
@@ -117,7 +108,7 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 												"time_window": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: iso8601DurationString(),
+													ValidateFunc: validateIso8601Duration(),
 												},
 												"time_aggregation": {
 													Type:     schema.TypeString,
@@ -172,18 +163,19 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
 														string(insights.ChangeCount),
+														string(insights.ExactCount),
 														string(insights.PercentChangeCount),
 													}, true),
 													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"value": {
-													Type:     schema.TypeString,
+													Type:     schema.TypeInt,
 													Required: true,
 												},
 												"cooldown": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: iso8601DurationString(),
+													ValidateFunc: validateIso8601Duration(),
 												},
 											},
 										},
@@ -207,12 +199,12 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: rfc3339String(),
+										ValidateFunc: validateRFC3339Date,
 									},
 									"end": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: rfc3339String(),
+										ValidateFunc: validateRFC3339Date,
 									},
 								},
 							},
@@ -229,7 +221,14 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											string(insights.Day),
+											string(insights.Hour),
+											string(insights.Minute),
+											string(insights.Month),
+											string(insights.None),
+											string(insights.Second),
 											string(insights.Week),
+											string(insights.Year),
 										}, true),
 										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 									},
@@ -249,20 +248,31 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													Required: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
+														ValidateFunc: validation.StringInSlice([]string{
+															"Monday",
+															"Tuesday",
+															"Wednesday",
+															"Thursday",
+															"Friday",
+															"Saturday",
+															"Sunday",
+														}, true),
 													},
 												},
 												"hours": {
 													Type:     schema.TypeList,
 													Required: true,
 													Elem: &schema.Schema{
-														Type: schema.TypeInt,
+														Type:         schema.TypeInt,
+														ValidateFunc: validation.IntBetween(0, 23),
 													},
 												},
 												"minutes": {
 													Type:     schema.TypeList,
-													Required: true,
+													Optional: true,
 													Elem: &schema.Schema{
-														Type: schema.TypeInt,
+														Type:         schema.TypeInt,
+														ValidateFunc: validation.IntBetween(0, 59),
 													},
 												},
 											},
@@ -281,24 +291,21 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"operation": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"Scale"}, true),
-						},
 						"email": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"send_to_subscription_administrator": {
 										Type:     schema.TypeBool,
-										Required: true,
+										Optional: true,
+										Default:  false,
 									},
 									"send_to_subscription_co_administrator": {
 										Type:     schema.TypeBool,
-										Required: true,
+										Optional: true,
+										Default:  false,
 									},
 									"custom_emails": {
 										Type:     schema.TypeList,
@@ -347,13 +354,12 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 }
 
 func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
-	asClient := armClient.autoscaleSettingsClient
+	asClient := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	enabled := d.Get("enabled").(bool)
 	targetResourceURI := d.Get("target_resource_id").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -361,7 +367,7 @@ func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 
 	profiles, err := expandAzureRmAutoscaleProfile(d)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing Autoscale Profile: %+v", err)
 	}
 
 	notifications, err := expandAzureRmAutoscaleNotification(d)
@@ -369,27 +375,34 @@ func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	autoscaleSetting := insights.AutoscaleSetting{
-		Name:              &name,
-		Enabled:           &enabled,
-		TargetResourceURI: &targetResourceURI,
-		Profiles:          &profiles,
-		Notifications:     &notifications,
-	}
-
 	parameters := insights.AutoscaleSettingResource{
-		Name:             &name,
-		Location:         &location,
-		Tags:             expandedTags,
-		AutoscaleSetting: &autoscaleSetting,
+		Name:     &name,
+		Location: &location,
+		Tags:     expandedTags,
+		AutoscaleSetting: &insights.AutoscaleSetting{
+			Name:              &name,
+			Enabled:           &enabled,
+			TargetResourceURI: &targetResourceURI,
+			Profiles:          &profiles,
+			Notifications:     &notifications,
+		},
 	}
 
-	result, err := asClient.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
+	_, err = asClient.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(*result.ID)
+	read, err := asClient.Get(ctx, resourceGroupName, name)
+	if err != nil {
+		return err
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Autoscale settings %s (resource group %s) ID", name, resourceGroupName)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceArmAutoscaleSettingRead(d, meta)
 }
@@ -424,7 +437,9 @@ func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	autoscaleSetting := *result.AutoscaleSetting
 	d.Set("name", result.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", result.Location)
+	if location := result.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("enabled", autoscaleSetting.Enabled)
 	d.Set("target_resource_id", autoscaleSetting.TargetResourceURI)
 	flattenAndSetTags(d, result.Tags)
@@ -436,8 +451,7 @@ func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAutoscaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
-	asClient := armClient.autoscaleSettingsClient
+	asClient := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -850,7 +864,7 @@ func flattenAzureRmAutoscaleNotification(notifications *[]insights.AutoscaleNoti
 
 	for _, notification := range *notifications {
 		notificationConfig := make(map[string]interface{})
-		notificationConfig["operation"] = *notification.Operation
+		notificationConfig["operation"] = "Scale"
 		notificationConfig["email"] = flattenAzureRmAutoscaleEmailNotification(notification)
 		if *notification.Webhooks != nil {
 			notificationConfig["webhook"] = flattenAzureRmAutoscaleWebhook(notification)
@@ -941,38 +955,4 @@ func listTimeZoneNames() []string {
 		"Vladivostok Standard Time", "Russia Time Zone 10", "Central Pacific Standard Time", "Russia Time Zone 11",
 		"New Zealand Standard Time", "UTC+12", "Fiji Standard Time", "Kamchatka Standard Time",
 		"Tonga Standard Time", "Samoa Standard Time", "Line Islands Standard Time"}
-}
-
-func rfc3339String() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
-		v, ok := i.(string)
-		if !ok {
-			es = append(es, fmt.Errorf("expected type of %s to be string", k))
-			return
-		}
-
-		_, parseErr := date.ParseTime(time.RFC3339, v)
-
-		if parseErr != nil {
-			es = append(es, fmt.Errorf("expected %s to be in RFC3339 format, got %s", k, v))
-		}
-		return
-	}
-}
-
-func iso8601DurationString() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, es []error) {
-		v, ok := i.(string)
-		if !ok {
-			es = append(es, fmt.Errorf("expected type of %s to be string", k))
-			return
-		}
-
-		matched, _ := regexp.MatchString(`^P(([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?))?$`, v)
-
-		if !matched {
-			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
-		}
-		return
-	}
 }
