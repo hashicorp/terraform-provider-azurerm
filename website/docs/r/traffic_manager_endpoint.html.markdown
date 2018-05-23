@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_endpoint"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-endpoint"
 description: |-
-  Creates a Traffic Manager Endpoint.
+  Manages a Traffic Manager Endpoint.
 ---
 
 # azurerm_traffic_manager_endpoint
 
-Creates a Traffic Manager Endpoint.
+Manages a Traffic Manager Endpoint.
 
 ## Example Usage
 

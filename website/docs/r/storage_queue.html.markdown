@@ -6,7 +6,7 @@ description: |-
   Create a Azure Storage Queue.
 ---
 
-# azurerm\_storage\_queue
+# azurerm_storage_queue
 
 Create an Azure Storage Queue.
 

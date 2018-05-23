@@ -6,7 +6,7 @@ description: |-
   Create an Azure Storage Share.
 ---
 
-# azurerm\_storage\_share
+# azurerm_storage_share
 
 Create an Azure Storage File Share.
 

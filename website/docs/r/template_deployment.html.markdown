@@ -6,7 +6,7 @@ description: |-
   Create a template deployment of resources.
 ---
 
-# azurerm\_template\_deployment
+# azurerm_template_deployment
 
 Create a template deployment of resources
 

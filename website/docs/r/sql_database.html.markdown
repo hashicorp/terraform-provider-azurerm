@@ -6,7 +6,7 @@ description: |-
   Create a SQL Database.
 ---
 
-# azurerm\_sql\_database
+# azurerm_sql_database
 
 Allows you to manage an Azure SQL Database
 
