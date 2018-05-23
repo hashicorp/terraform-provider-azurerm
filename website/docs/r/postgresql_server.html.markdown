@@ -6,7 +6,7 @@ description: |-
   Create a PostgreSQL Server.
 ---
 
-# azurerm\_postgresql\_server
+# azurerm_postgresql_server
 
 Create a PostgreSQL Server.
 
@@ -48,11 +48,9 @@ resource "azurerm_postgresql_server" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the PostgreSQL Server. Changing this forces a
-    new resource to be created.
+* `name` - (Required) Specifies the name of the PostgreSQL Server. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the PostgreSQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the PostgreSQL Server. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -72,8 +70,23 @@ The following arguments are supported:
 
 ---
 
-* `sku` supports the following:
+`sku` supports the following:
 
+* `name` - (Required) Specifies the SKU Name for this PostgreSQL Server. The name of the SKU, follows the `tier` + `family` + `cores` pattern (e.g. B_Gen4_1, GP_Gen5_8). For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/postgresql/servers/create#sku).
+    
+* `capacity` - (Required) The scale up/out capacity, representing server's compute units.
+
+* `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers).
+
+* `family` - (Required) The `family` of hardware `Gen4` or `Gen5`, before selecting your `family` check the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers#compute-generations-vcores-and-memory) for availability in your region.
+
+---
+
+`storage_profile` supports the following:
+
+* `storage_mb` - (Required) Max storage allowed for a server, possible values are between `5120 MB` (5GB) and `1048576 MB` (1TB). The step for this value must be in `1024 MB` (1GB) increments. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/postgresql/servers/create#StorageProfile).
+
+<<<<<<< HEAD
     * `name` - (Required) Specifies the SKU Name for this PostgreSQL Server. The name of the SKU, follows the `tier` + `family` + `cores` pattern (e.g. B_Gen4_1, GP_Gen5_8). For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/postgresql/servers/create#sku).
     
     * `capacity` - (Required) The scale up/out capacity, representing server's compute units.
@@ -91,6 +104,11 @@ The following arguments are supported:
     * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
     * `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
+=======
+* `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
+
+* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
+>>>>>>> master
 
 ## Attributes Reference
 

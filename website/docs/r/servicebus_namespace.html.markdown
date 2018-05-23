@@ -6,7 +6,7 @@ description: |-
   Create a ServiceBus Namespace.
 ---
 
-# azurerm\_servicebus\_namespace
+# azurerm_servicebus_namespace
 
 Create a ServiceBus Namespace.
 

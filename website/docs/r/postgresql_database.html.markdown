@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_database"
 sidebar_current: "docs-azurerm-resource-database-postgresql-database"
 description: |-
-  Creates a PostgreSQL Database within a PostgreSQL Server.
+  Manages a PostgreSQL Database within a PostgreSQL Server.
 ---
 
-# azurerm\_postgresql\_database
+# azurerm_postgresql_database
 
-Creates a PostgreSQL Database within a PostgreSQL Server
+Manages a PostgreSQL Database within a PostgreSQL Server
 
 ## Example Usage
 

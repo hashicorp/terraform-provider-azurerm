@@ -6,7 +6,7 @@ description: |-
   Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 ---
 
-# azurerm\_postgresql\_configuration
+# azurerm_postgresql_configuration
 
 Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 
