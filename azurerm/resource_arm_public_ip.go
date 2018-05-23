@@ -18,6 +18,7 @@ func resourceArmPublicIp() *schema.Resource {
 		Read:   resourceArmPublicIpRead,
 		Update: resourceArmPublicIpCreate,
 		Delete: resourceArmPublicIpDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				id, err := parseAzureResourceID(d.Id())
@@ -46,24 +47,32 @@ func resourceArmPublicIp() *schema.Resource {
 			"zones": singleZonesSchema(),
 
 			"public_ip_address_allocation": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ValidateFunc:     validatePublicIpAllocation,
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.Static),
+					string(network.Dynamic),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				StateFunc:        ignoreCaseStateFunc,
+			},
+
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(network.PublicIPAddressSkuNameBasic),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.PublicIPAddressSkuNameBasic),
+					string(network.PublicIPAddressSkuNameStandard),
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"idle_timeout_in_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				ValidateFunc: func(v interface{}, k string) (ws []string, errors []error) {
-					value := v.(int)
-					if value < 4 || value > 30 {
-						errors = append(errors, fmt.Errorf(
-							"The idle timeout must be between 4 and 30 minutes"))
-					}
-					return
-				},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(4, 30),
 			},
 
 			"domain_name_label": {
@@ -85,18 +94,6 @@ func resourceArmPublicIp() *schema.Resource {
 			"ip_address": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"sku": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(network.PublicIPAddressSkuNameBasic),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.PublicIPAddressSkuNameBasic),
-					string(network.PublicIPAddressSkuNameStandard),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"tags": tagsSchema(),
@@ -227,11 +224,15 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 		if settings := props.DNSSettings; settings != nil {
 			if fqdn := settings.Fqdn; fqdn != nil {
 				d.Set("fqdn", fqdn)
+			} else {
+				d.Set("fqdn", "")
 			}
 		}
 
 		if ip := props.IPAddress; ip != nil {
 			d.Set("ip_address", ip)
+		} else {
+			d.Set("ip_address", "")
 		}
 	}
 
@@ -262,19 +263,6 @@ func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
-}
-
-func validatePublicIpAllocation(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	allocations := map[string]bool{
-		"static":  true,
-		"dynamic": true,
-	}
-
-	if !allocations[value] {
-		errors = append(errors, fmt.Errorf("Public IP Allocation must be an accepted value: Static, Dynamic"))
-	}
-	return
 }
 
 func validatePublicIpDomainNameLabel(v interface{}, k string) (ws []string, errors []error) {

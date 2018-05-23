@@ -248,6 +248,7 @@ The following arguments are supported:
 * `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
 * `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Default is true. Changing this forces a
     new resource to be created. See [documentation](http://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information.
+* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 * `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 * `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
@@ -287,15 +288,15 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type     = "systemAssigned"
+    type = "systemAssigned"
   }
 
   extension {
-    name                       = "MSILinuxExtension"
-    publisher                  = "Microsoft.ManagedIdentity"
-    type                       = "ManagedIdentityExtensionForLinux"
-    type_handler_version       = "1.0"
-    settings                   = "{\"port\": 50342}"
+    name                 = "MSILinuxExtension"
+    publisher            = "Microsoft.ManagedIdentity"
+    type                 = "ManagedIdentityExtensionForLinux"
+    type_handler_version = "1.0"
+    settings             = "{\"port\": 50342}"
   }
 
   output "principal_id" {

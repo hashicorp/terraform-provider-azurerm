@@ -87,6 +87,17 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetSkuHash,
 			},
 
+			"license_type": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Windows_Client",
+					"Windows_Server",
+				}, true),
+			},
+
 			"upgrade_policy_mode": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -660,7 +671,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
 	}
 
-	scaleSetParams := compute.VirtualMachineScaleSet{
+	properties := compute.VirtualMachineScaleSet{
 		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
@@ -670,7 +681,11 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		scaleSetParams.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
+		properties.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
+	}
+
+	if v, ok := d.GetOk("license_type"); ok {
+		properties.VirtualMachineProfile.LicenseType = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
@@ -679,10 +694,10 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 			return err
 		}
 
-		scaleSetParams.Plan = plan
+		properties.Plan = plan
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, scaleSetParams)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, properties)
 	if err != nil {
 		return err
 	}
@@ -734,83 +749,111 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	d.Set("zones", resp.Zones)
 
 	if err := d.Set("sku", flattenAzureRmVirtualMachineScaleSetSku(resp.Sku)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Sku error: %#v", err)
+		return fmt.Errorf("[DEBUG] Error setting `sku`: %#v", err)
 	}
 
-	if err := d.Set("identity", flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("[DEBUG] Error flattening `identity`: %+v", err)
+	flattenedIdentity := flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
 	}
 
-	properties := resp.VirtualMachineScaleSetProperties
+	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
 
-	d.Set("upgrade_policy_mode", properties.UpgradePolicy.Mode)
-	d.Set("overprovision", properties.Overprovision)
-	d.Set("single_placement_group", properties.SinglePlacementGroup)
+		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
+			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
+		}
 
-	osProfile, err := flattenAzureRMVirtualMachineScaleSetOsProfile(d, properties.VirtualMachineProfile.OsProfile)
-	if err != nil {
-		return fmt.Errorf("[DEBUG] Error flattening Virtual Machine Scale Set OS Profile. Error: %#v", err)
-	}
+		d.Set("overprovision", properties.Overprovision)
+		d.Set("single_placement_group", properties.SinglePlacementGroup)
 
-	if err := d.Set("os_profile", osProfile); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile error: %#v", err)
-	}
+		if profile := properties.VirtualMachineProfile; profile != nil {
+			d.Set("license_type", profile.LicenseType)
 
-	if properties.VirtualMachineProfile.OsProfile.Secrets != nil {
-		if err := d.Set("os_profile_secrets", flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(properties.VirtualMachineProfile.OsProfile.Secrets)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Secrets error: %#v", err)
+			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
+			if err := d.Set("os_profile", osProfile); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting `os_profile`: %#v", err)
+			}
+
+			if osProfile := profile.OsProfile; osProfile != nil {
+				if linuxConfiguration := osProfile.LinuxConfiguration; linuxConfiguration != nil {
+					flattenedLinuxConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(linuxConfiguration)
+					if err := d.Set("os_profile_linux_config", flattenedLinuxConfiguration); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `os_profile_linux_config`: %#v", err)
+					}
+				}
+
+				if secrets := osProfile.Secrets; secrets != nil {
+					flattenedSecrets := flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets)
+					if err := d.Set("os_profile_secrets", flattenedSecrets); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `os_profile_secrets`: %#v", err)
+					}
+
+				}
+
+				if windowsConfiguration := osProfile.WindowsConfiguration; windowsConfiguration != nil {
+					flattenedWindowsConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(windowsConfiguration)
+					if err := d.Set("os_profile_windows_config", flattenedWindowsConfiguration); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `os_profile_windows_config`: %#v", err)
+					}
+				}
+			}
+
+			if diagnosticsProfile := profile.DiagnosticsProfile; diagnosticsProfile != nil {
+				if bootDiagnostics := diagnosticsProfile.BootDiagnostics; bootDiagnostics != nil {
+					flattenedDiagnostics := flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostics)
+					// TODO: rename this field to `diagnostics_profile`
+					if err := d.Set("boot_diagnostics", flattenedDiagnostics); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `boot_diagnostics`: %#v", err)
+					}
+				}
+			}
+
+			if networkProfile := profile.NetworkProfile; networkProfile != nil {
+				flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)
+				if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
+					return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
+				}
+			}
+
+			if storageProfile := profile.StorageProfile; storageProfile != nil {
+				if dataDisks := resp.VirtualMachineProfile.StorageProfile.DataDisks; dataDisks != nil {
+					flattenedDataDisks := flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(dataDisks)
+					if err := d.Set("storage_profile_data_disk", flattenedDataDisks); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `storage_profile_data_disk`: %#v", err)
+					}
+				}
+
+				if imageRef := storageProfile.ImageReference; imageRef != nil {
+					flattenedImageRef := flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(imageRef)
+					if err := d.Set("storage_profile_image_reference", flattenedImageRef); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `storage_profile_image_reference`: %#v", err)
+					}
+				}
+
+				if osDisk := storageProfile.OsDisk; osDisk != nil {
+					flattenedOSDisk := flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(osDisk)
+					if err := d.Set("storage_profile_os_disk", flattenedOSDisk); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `storage_profile_os_disk`: %#v", err)
+					}
+				}
+			}
+
+			if extensionProfile := properties.VirtualMachineProfile.ExtensionProfile; extensionProfile != nil {
+				extension, err := flattenAzureRmVirtualMachineScaleSetExtensionProfile(extensionProfile)
+				if err != nil {
+					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Extension Profile error: %#v", err)
+				}
+				if err := d.Set("extension", extension); err != nil {
+					return fmt.Errorf("[DEBUG] Error setting `extension`: %#v", err)
+				}
+			}
 		}
 	}
 
-	if properties.VirtualMachineProfile.DiagnosticsProfile != nil {
-		if err := d.Set("boot_diagnostics", flattenAzureRmVirtualMachineScaleSetBootDiagnostics(properties.VirtualMachineProfile.DiagnosticsProfile.BootDiagnostics)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virutal Machine Scale Set Boot Diagnostics: %#v", err)
-		}
-	}
-
-	if properties.VirtualMachineProfile.OsProfile.WindowsConfiguration != nil {
-		if err := d.Set("os_profile_windows_config", flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(properties.VirtualMachineProfile.OsProfile.WindowsConfiguration)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Windows config error: %#v", err)
-		}
-	}
-
-	if properties.VirtualMachineProfile.OsProfile.LinuxConfiguration != nil {
-		if err := d.Set("os_profile_linux_config", flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(properties.VirtualMachineProfile.OsProfile.LinuxConfiguration)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Linux config error: %#v", err)
-		}
-	}
-
-	if err := d.Set("network_profile", flattenAzureRmVirtualMachineScaleSetNetworkProfile(properties.VirtualMachineProfile.NetworkProfile)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Network Profile error: %#v", err)
-	}
-
-	if properties.VirtualMachineProfile.StorageProfile.ImageReference != nil {
-		if err := d.Set("storage_profile_image_reference", flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(properties.VirtualMachineProfile.StorageProfile.ImageReference)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Storage Profile Image Reference error: %#v", err)
-		}
-	}
-
-	if err := d.Set("storage_profile_os_disk", flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(properties.VirtualMachineProfile.StorageProfile.OsDisk)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Storage Profile OS Disk error: %#v", err)
-	}
-
-	if resp.VirtualMachineProfile.StorageProfile.DataDisks != nil {
-		if err := d.Set("storage_profile_data_disk", flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(properties.VirtualMachineProfile.StorageProfile.DataDisks)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Storage Profile Data Disk error: %#v", err)
-		}
-	}
-
-	if properties.VirtualMachineProfile.ExtensionProfile != nil {
-		extension, err := flattenAzureRmVirtualMachineScaleSetExtensionProfile(properties.VirtualMachineProfile.ExtensionProfile)
-		if err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Extension Profile error: %#v", err)
-		}
-		d.Set("extension", extension)
-	}
-
-	if resp.Plan != nil {
-		if err := d.Set("plan", flattenAzureRmVirtualMachineScaleSetPlan(resp.Plan)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Plan. Error: %#v", err)
+	if plan := resp.Plan; plan != nil {
+		flattenedPlan := flattenAzureRmVirtualMachineScaleSetPlan(plan)
+		if err := d.Set("plan", flattenedPlan); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting `plan`: %#v", err)
 		}
 	}
 
@@ -1044,7 +1087,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 	return result
 }
 
-func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
+func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) []interface{} {
 	result := make(map[string]interface{})
 
 	result["computer_name_prefix"] = *profile.ComputerNamePrefix
@@ -1067,7 +1110,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profi
 		result["custom_data"] = value
 	}
 
-	return []interface{}{result}, nil
+	return []interface{}{result}
 }
 
 func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *compute.VirtualMachineScaleSetOSDisk) []interface{} {
