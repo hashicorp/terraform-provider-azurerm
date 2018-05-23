@@ -67,7 +67,8 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation())
+	dnl := fmt.Sprintf("tfacc%d", ri)
+	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation(), dnl)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -80,7 +81,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
-					resource.TestCheckResourceAttr(resourceName, "domain_name_label", "dnstestlabel"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_label", dnl),
 				),
 			},
 		},
@@ -351,7 +352,7 @@ resource "azurerm_public_ip" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMPublicIPStatic_basic_withDNSLabel(rInt int, location string) string {
+func testAccAzureRMPublicIPStatic_basic_withDNSLabel(rInt int, location, dnsNameLabel string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name        = "acctestRG-%d"
@@ -364,9 +365,9 @@ resource "azurerm_public_ip" "test" {
     resource_group_name             = "${azurerm_resource_group.test.name}"
     public_ip_address_allocation    = "static"
 
-    domain_name_label = "dnstestlabel"
+    domain_name_label = "%s"
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, dnsNameLabel)
 }
 
 func testAccAzureRMPublicIPStatic_standard(rInt int, location string) string {
