@@ -180,7 +180,7 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_builtin_role_definition" "test" {
-  name = "Reader"
+  name = "Monitoring Reader"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -200,7 +200,7 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = "${data.azurerm_subscription.primary.id}"
-  role_definition_name = "Reader"
+  role_definition_name = "Log Analytics Reader"
   principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
 `, id)
@@ -213,7 +213,7 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_builtin_role_definition" "test" {
-  name = "Reader"
+  name = "Site Recovery Reader"
 }
 
 resource "azurerm_role_assignment" "test" {
