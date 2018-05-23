@@ -25,7 +25,8 @@ import (
 )
 
 // OperationsClient is the the Microsoft Azure management API provides create, read, update, and delete functionality
-// for Azure PostgreSQL resources including servers, databases, firewall rules, log files and configurations.
+// for Azure PostgreSQL resources including servers, databases, firewall rules, log files and configurations with new
+// business model.
 type OperationsClient struct {
 	BaseClient
 }
@@ -65,7 +66,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2017-04-30-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
