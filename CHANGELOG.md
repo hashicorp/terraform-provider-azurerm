@@ -24,6 +24,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - adding support for `ip_restriction`'s [GH-1231]
 * `azurerm_container_registry` - no longer forces a new resource on SKU change [GH-1264]
 * `azurerm_dns_zone` - datasource's `resource_group` field is now optional [GH-1180]
+* `azurerm_mysql_database` - ignoring casing for the `charset` field [GH-1281]
 * `azurerm_mysql_server` - support for the new GA Pricing SKU's [GH-1154]
 * `azurerm_postgresql_server` - support for the new GA Pricing SKU's [GH-1190]
 * `azurerm_public_ip` - computed values now default to an empy string [GH-1247]
