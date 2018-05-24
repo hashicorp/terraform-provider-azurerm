@@ -260,6 +260,7 @@ The following arguments are supported:
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
 * `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
 * `plan` - (Optional) A plan block as documented below.
+* `priority` - (Optional) Specifies the priority for the virtual machines in the scale set, defaults to `Regular`. Possible values are `Low` and `Regular`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 * `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
 
