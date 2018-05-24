@@ -121,10 +121,15 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("server_name", serverName)
-	d.Set("charset", resp.Charset)
 
-	collation := strings.Replace(*resp.Collation, "-", "_", -1)
-	d.Set("collation", collation)
+	if props := resp.DatabaseProperties; props != nil {
+		d.Set("charset", props.Charset)
+
+		if collation := props.Collation; collation != nil {
+			v := strings.Replace(*collation, "-", "_", -1)
+			d.Set("collation", v)
+		}
+	}
 
 	return nil
 }
