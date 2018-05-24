@@ -60,7 +60,8 @@ func TestAccAzureRMPublicIpStatic_importBasic_withDNSLabel(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation())
+	dnl := fmt.Sprintf("tfacc%d", ri)
+	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation(), dnl)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
