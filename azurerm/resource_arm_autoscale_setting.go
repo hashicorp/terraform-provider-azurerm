@@ -486,7 +486,7 @@ func expandAzureRmAutoscaleProfile(d *schema.ResourceData) ([]insights.Autoscale
 		recurrence, recurrenceErr := expandAzureRmAutoscaleRecurrence(profile)
 
 		if fixedDate != nil && recurrence != nil {
-			return nil, fmt.Errorf("Conflict between fixed_date and reucrrence in profile %s", profileName)
+			return nil, fmt.Errorf("Conflict between fixed_date and recurrence in profile %s", profileName)
 		}
 
 		if fixedDateErr != nil {
@@ -569,7 +569,7 @@ func expandAzureRmScaleAction(config map[string]interface{}) insights.ScaleActio
 	scaleActionConfig := scaleActionSet[0].(map[string]interface{})
 	direction := scaleActionConfig["direction"].(string)
 	scaleType := scaleActionConfig["type"].(string)
-	value := scaleActionConfig["value"].(string)
+	value := strconv.Itoa(scaleActionConfig["value"].(int))
 	cooldown := scaleActionConfig["cooldown"].(string)
 
 	return insights.ScaleAction{
@@ -664,10 +664,10 @@ func expandAzureRmAutoscaleNotification(d *schema.ResourceData) ([]insights.Auto
 
 	notificationData := r.([]interface{})
 	notifications := make([]insights.AutoscaleNotification, 0, len(notificationData))
+	operation := "Scale"
 
 	for _, item := range notificationData {
 		notificationConfig := item.(map[string]interface{})
-		operation := notificationConfig["operation"].(string)
 		email := expandAzureRmAutoscaleEmailNotification(notificationConfig)
 		webhooks, err := expandAzureRmAutoscaleWebhook(notificationConfig)
 
@@ -864,7 +864,7 @@ func flattenAzureRmAutoscaleNotification(notifications *[]insights.AutoscaleNoti
 
 	for _, notification := range *notifications {
 		notificationConfig := make(map[string]interface{})
-		notificationConfig["operation"] = "Scale"
+		notificationConfig["operation"] = *notification.Operation
 		notificationConfig["email"] = flattenAzureRmAutoscaleEmailNotification(notification)
 		if *notification.Webhooks != nil {
 			notificationConfig["webhook"] = flattenAzureRmAutoscaleWebhook(notification)
