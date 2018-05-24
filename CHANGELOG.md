@@ -21,6 +21,7 @@ BUG FIXES:
 
 IMPROVEMENTS:
 
+* authorization: upgrading to API version `2018-01-01-preview`
 * `azurerm_app_service` - adding support for `ip_restriction`'s [GH-1231]
 * `azurerm_container_registry` - no longer forces a new resource on SKU change [GH-1264]
 * `azurerm_dns_zone` - datasource's `resource_group` field is now optional [GH-1180]
@@ -29,6 +30,7 @@ IMPROVEMENTS:
 * `azurerm_postgresql_database` - ignoring the casing on the `collation` field [GH-1255]
 * `azurerm_postgresql_server` - support for the new GA Pricing SKU's [GH-1190]
 * `azurerm_public_ip` - computed values now default to an empy string [GH-1247]
+* `azurerm_role_assignment` - support for roles containing DataActions [GH-1284]
 * `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` [GH-1235]
 * `azurerm_virtual_machine_scale_set` - adding the `licence_type` property [GH-1245]
 
