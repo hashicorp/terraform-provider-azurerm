@@ -94,7 +94,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 							}, true),
 						},
 
-						// API documentation states the MaxRecurrance.Interval "Gets or sets the interval between retries."
+						// API documentation states the MaxRecurrence.Interval "Gets or sets the interval between retries."
 						// however it does appear it is the max interval allowed for recurrences
 						"max_retry_interval": {
 							Type:         schema.TypeInt,
