@@ -437,6 +437,26 @@ func TestAccAzureRMVirtualMachineScaleSet_overprovision(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_priority(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineScaleSetPriorityTemplate(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "priority", "Low"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualMachineScaleSet_MSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
@@ -820,7 +840,7 @@ func testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(name string, exp
 		}
 
 		if *resp.SinglePlacementGroup != expectedSinglePlacementGroup {
-			return fmt.Errorf("Bad: Overprovision should have been %t for scale set %v", expectedSinglePlacementGroup, name)
+			return fmt.Errorf("Bad: SinglePlacementGroup should have been %t for scale set %v", expectedSinglePlacementGroup, name)
 		}
 
 		return nil
@@ -2575,6 +2595,90 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 }
 
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineScaleSetPriorityTemplate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  upgrade_policy_mode = "Manual"
+  overprovision       = false
+  priority            = "Low"
+
+  sku {
+    name     = "Standard_D1_v2"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%[1]d"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+
+  storage_profile_os_disk {
+    name           = "os-disk"
+    caching        = "ReadWrite"
+    create_option  = "FromImage"
+    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+
+`, rInt, location)
 }
 
 func testAccAzureRMVirtualMachineScaleSetMSITemplate(rInt int, location string) string {
