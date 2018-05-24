@@ -34,6 +34,7 @@ IMPROVEMENTS:
 * `azurerm_role_assignment` - support for roles containing DataActions [GH-1284]
 * `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` [GH-1235]
 * `azurerm_virtual_machine_scale_set` - adding the `licence_type` property [GH-1245]
+* `azurerm_virtual_machine_scale_set` - adding the `priority` property [GH-1250]
 
 ## 1.5.0 (May 14, 2018)
 
