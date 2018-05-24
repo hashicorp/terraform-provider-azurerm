@@ -4,6 +4,8 @@ UPGRADE NOTES:
 
 ~> **Please Note:** The `azurerm_mysql_server` resource has been updated from the Preview API's to the GA API's - which requires code changes in your Terraform Configuration to use the new Pricing SKU's. Upon updating to v1.6.0 - you'll need to update the configuration from the Preview SKU's to the GA SKU's.
 
+~> **Please Note:** The `azurerm_postgresql_server` resource has been updated from the Preview API's to the GA API's - which requires code changes in your Terraform Configuration to use the new Pricing SKU's. Upon updating to v1.6.0 - you'll need to update the configuration from the Preview SKU's to the GA SKU's.
+
 * `azurerm_scheduler_job_collection` - the property `max_retry_interval` has been deprecated in favour of `max_recurrence_interval` to better match Azure [GH-1218]
 
 FEATURES:
@@ -23,6 +25,7 @@ IMPROVEMENTS:
 * `azurerm_container_registry` - no longer forces a new resource on SKU change [GH-1264]
 * `azurerm_dns_zone` - datasource's `resource_group` field is now optional [GH-1180]
 * `azurerm_mysql_server` - support for the new GA Pricing SKU's [GH-1154]
+* `azurerm_postgresql_server` - support for the new GA Pricing SKU's [GH-1190]
 * `azurerm_public_ip` - computed values now default to an empy string [GH-1247]
 * `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` [GH-1235]
 * `azurerm_virtual_machine_scale_set` - adding the `licence_type` property [GH-1245]

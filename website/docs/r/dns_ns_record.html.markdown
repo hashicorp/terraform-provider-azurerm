@@ -6,7 +6,7 @@ description: |-
   Create a DNS NS Record.
 ---
 
-# azurerm\_dns\_ns\_record
+# azurerm_dns_ns_record
 
 Enables you to manage DNS NS Records within Azure DNS.
 

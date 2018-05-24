@@ -6,7 +6,7 @@ description: |-
   Create a custom virtual machine image that can be used to create virtual machines.
 ---
 
-# azurerm\_image
+# azurerm_image
 
 Create a custom virtual machine image that can be used to create virtual machines.
 

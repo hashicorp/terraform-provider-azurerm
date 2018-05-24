@@ -6,7 +6,7 @@ description: |-
   Create a LoadBalancer Rule.
 ---
 
-# azurerm\_lb\_rule
+# azurerm_lb_rule
 
 Create a LoadBalancer Rule.
 

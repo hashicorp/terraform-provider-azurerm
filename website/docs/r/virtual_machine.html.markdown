@@ -6,7 +6,7 @@ description: |-
   Create a Virtual Machine.
 ---
 
-# azurerm\_virtual\_machine
+# azurerm_virtual_machine
 
 Create a virtual machine.
 
