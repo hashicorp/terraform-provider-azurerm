@@ -72,7 +72,7 @@ func (client ClassicAdministratorsClient) ListPreparer(ctx context.Context) (*ht
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2015-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

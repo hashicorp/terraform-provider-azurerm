@@ -1,4 +1,4 @@
-// Package authorization implements the Azure ARM Authorization service API version 2015-07-01.
+// Package authorization implements the Azure ARM Authorization service API version .
 //
 // Role based access control provides you a way to apply granular level policy administration down to individual
 // resources or resource groups. These operations enable you to manage role definitions and role assignments. A role

@@ -44,7 +44,7 @@ func NewPermissionsClientWithBaseURI(baseURI string, subscriptionID string) Perm
 
 // ListForResource gets all permissions the caller has for a resource.
 // Parameters:
-// resourceGroupName - the name of the resource group containing the resource. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // resourceProviderNamespace - the namespace of the resource provider.
 // parentResourcePath - the parent resource identity.
 // resourceType - the resource type of the resource.
@@ -83,7 +83,7 @@ func (client PermissionsClient) ListForResourcePreparer(ctx context.Context, res
 		"subscriptionId":            autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -145,7 +145,7 @@ func (client PermissionsClient) ListForResourceComplete(ctx context.Context, res
 
 // ListForResourceGroup gets all permissions the caller has for a resource group.
 // Parameters:
-// resourceGroupName - the name of the resource group to get the permissions for. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 func (client PermissionsClient) ListForResourceGroup(ctx context.Context, resourceGroupName string) (result PermissionGetResultPage, err error) {
 	result.fn = client.listForResourceGroupNextResults
 	req, err := client.ListForResourceGroupPreparer(ctx, resourceGroupName)
@@ -176,7 +176,7 @@ func (client PermissionsClient) ListForResourceGroupPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-07-01"
+	const APIVersion = "2018-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
