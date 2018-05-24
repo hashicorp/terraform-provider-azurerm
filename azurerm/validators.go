@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
@@ -109,7 +108,9 @@ func validateCollation() schema.SchemaValidateFunc {
 			return
 		}
 
-		if strings.Contains(v, "-") {
+		matched, _ := regexp.MatchString(`^[A-Za-z0-9_. ]+$`, v)
+
+		if !matched {
 			es = append(es, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
 			return
 		}
