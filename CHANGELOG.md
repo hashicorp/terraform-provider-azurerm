@@ -6,7 +6,7 @@ UPGRADE NOTES:
 
 ~> **Please Note:** The `azurerm_postgresql_server` resource has been updated from the Preview API's to the GA API's - which requires code changes in your Terraform Configuration to use the new Pricing SKU's. Upon updating to v1.6.0 - you'll need to update the configuration from the Preview SKU's to the GA SKU's.
 
-* `azurerm_scheduler_job_collection` - the property `max_retry_interval` has been deprecated in favour of `max_recurrence_interval` to better match Azure [GH-1218]
+* `azurerm_scheduler_job_collection` - the property `max_retry_interval` on both the resource and datasource has been deprecated in favour of `max_recurrence_interval` to better match Azure [GH-1218]
 
 FEATURES:
 
