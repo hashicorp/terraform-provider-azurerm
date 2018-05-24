@@ -23,6 +23,7 @@ IMPROVEMENTS:
 
 * authorization: upgrading to API version `2018-01-01-preview`
 * `azurerm_app_service` - adding support for `ip_restriction`'s [GH-1231]
+* `azurerm_app_service_slot` - adding support for `ip_restriction`'s [GH-1246]
 * `azurerm_container_registry` - no longer forces a new resource on SKU change [GH-1264]
 * `azurerm_dns_zone` - datasource's `resource_group` field is now optional [GH-1180]
 * `azurerm_mysql_database` - ignoring casing for the `charset` field [GH-1281]
