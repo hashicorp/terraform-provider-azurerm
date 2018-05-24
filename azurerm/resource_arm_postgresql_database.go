@@ -36,9 +36,10 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 			},
 
 			"charset": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ForceNew:         true,
 			},
 
 			"collation": {
