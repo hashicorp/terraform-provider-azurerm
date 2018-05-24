@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -121,8 +122,9 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 	d.Set("server_name", serverName)
 	d.Set("charset", resp.Charset)
 
-	collation := strings.Replace(d.Get(resp.Collation, "-", "_", -1)
+	collation := strings.Replace(*resp.Collation, "-", "_", -1)
 	d.Set("collation", collation)
+
 	return nil
 }
 
