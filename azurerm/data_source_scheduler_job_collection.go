@@ -54,11 +54,12 @@ func dataSourceArmSchedulerJobCollection() *schema.Resource {
 							Computed: true,
 						},
 
-						// API documentation states the MaxRecurrance.Interval "Gets or sets the interval between retries."
+						// API documentation states the MaxRecurrence.Interval "Gets or sets the interval between retries."
 						// however it does appear it is the max interval allowed for recurrences
 						"max_retry_interval": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:       schema.TypeInt,
+							Deprecated: "Renamed to `max_recurrence_interval` to match azure",
+							Computed:   true,
 						},
 
 						"max_recurrence_interval": {
