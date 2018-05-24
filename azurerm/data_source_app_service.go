@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,125 +28,19 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"site_config": {
-				Type:     schema.TypeList,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"always_on": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-
-						"default_documents": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-
-						"dotnet_framework_version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"http2_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"java_version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"java_container": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"java_container_version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"local_mysql_enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-
-						"managed_pipeline_mode": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"php_version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"python_version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"remote_debugging_enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-
-						"remote_debugging_version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"scm_type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"use_32_bit_worker_process": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-
-						"websockets_enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"site_config": azSchema.AppServiceSiteConfigSchema(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
-			"ip_restriction": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"ip_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"subnet_mask": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"https_only": {
+			"enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
-			"enabled": {
+			"https_only": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -205,6 +100,7 @@ func dataSourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"source_control": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -296,14 +192,9 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
+	siteConfig := azSchema.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
-	}
-
-	restrictions := flattenAppServiceIpRestrictions(configResp.SiteConfig.IPSecurityRestrictions)
-	if err := d.Set("ip_restriction", restrictions); err != nil {
-		return fmt.Errorf("Error setting `ip_restriction`: %s", err)
 	}
 
 	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)

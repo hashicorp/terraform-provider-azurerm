@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -399,10 +400,9 @@ func registerAzureResourceProvidersWithSubscription(ctx context.Context, provide
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
 
-// ignoreCaseDiffSuppressFunc is a DiffSuppressFunc from helper/schema that is
-// used to ignore any case-changes in a return value.
+// Deprecated - use `azschema.IgnoreCaseDiffSuppressFunc` instead
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
+	return azSchema.IgnoreCaseDiffSuppressFunc(k, old, new, d)
 }
 
 // ignoreCaseStateFunc is a StateFunc from helper/schema that converts the

@@ -385,8 +385,8 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
 				),
 			},
 		},
@@ -407,12 +407,12 @@ func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.0.ip_address", "10.10.10.10"),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.0.subnet_mask", "255.255.255.255"),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.1.ip_address", "20.20.20.0"),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.1.subnet_mask", "255.255.255.0"),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.2.ip_address", "30.30.0.0"),
-					resource.TestCheckResourceAttr(resourceName, "ip_restriction.2.subnet_mask", "255.255.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.1.ip_address", "20.20.20.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
 				),
 			},
 		},
@@ -1225,8 +1225,10 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
-  ip_restriction {
-    ip_address = "10.10.10.10"
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10"
+    }
   }
 }
 `, rInt, location, rInt, rInt)
@@ -1256,18 +1258,20 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
 
-  ip_restriction {
-    ip_address = "10.10.10.10"
-  }
+  site_config {
+    ip_restriction {
+      ip_address = "10.10.10.10"
+    }
 
-  ip_restriction {
-    ip_address  = "20.20.20.0"
-    subnet_mask = "255.255.255.0"
-  }
+    ip_restriction {
+      ip_address  = "20.20.20.0"
+      subnet_mask = "255.255.255.0"
+    }
 
-  ip_restriction {
-    ip_address  = "30.30.0.0"
-    subnet_mask = "255.255.0.0"
+    ip_restriction {
+      ip_address  = "30.30.0.0"
+      subnet_mask = "255.255.0.0"
+    }
   }
 }
 `, rInt, location, rInt, rInt)
