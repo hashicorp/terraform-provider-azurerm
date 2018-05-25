@@ -372,7 +372,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceler
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation()),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation(), "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.write_accelerator_enabled", "true"),
@@ -393,16 +393,16 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_changeWriteAccel
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_empty(rInt, testLocation()),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation(), "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation()),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation(), "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
-					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.write_accelerator_enabled", "True"),
+					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.write_accelerator_enabled", "true"),
 				),
 			},
 		},
@@ -483,6 +483,90 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 
 		return nil
 	}
+}
+
+func testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt int, location, enabled string) string {
+	return fmt.Sprintf(` 
+resource "azurerm_resource_group" "test" { 
+  name     = "acctestRG-%d" 
+  location = "%s" 
+} 
+ 
+resource "azurerm_virtual_network" "test" { 
+  name                = "acctvn-%d" 
+  address_space       = ["10.0.0.0/16"] 
+  location            = "${azurerm_resource_group.test.location}" 
+  resource_group_name = "${azurerm_resource_group.test.name}" 
+} 
+ 
+resource "azurerm_subnet" "test" { 
+  name                 = "acctsub-%d" 
+  resource_group_name  = "${azurerm_resource_group.test.name}" 
+  virtual_network_name = "${azurerm_virtual_network.test.name}" 
+  address_prefix       = "10.0.2.0/24" 
+} 
+ 
+resource "azurerm_network_interface" "test" { 
+  name                = "acctni-%d" 
+  location            = "${azurerm_resource_group.test.location}" 
+  resource_group_name = "${azurerm_resource_group.test.name}" 
+ 
+  ip_configuration { 
+    name                          = "testconfiguration1" 
+    subnet_id                     = "${azurerm_subnet.test.id}" 
+    private_ip_address_allocation = "dynamic" 
+  } 
+} 
+ 
+resource "azurerm_virtual_machine" "test" { 
+  name                  = "acctvm-%d" 
+  location              = "${azurerm_resource_group.test.location}" 
+  resource_group_name   = "${azurerm_resource_group.test.name}" 
+  network_interface_ids = ["${azurerm_network_interface.test.id}"] 
+  vm_size               = "Standard_M64s" 
+ 
+  delete_os_disk_on_termination = true 
+ 
+  storage_image_reference { 
+    publisher = "Canonical" 
+    offer     = "UbuntuServer" 
+    sku       = "16.04-LTS" 
+    version   = "latest" 
+  } 
+ 
+  storage_os_disk { 
+    name              = "osd-%d" 
+    caching           = "ReadWrite" 
+    create_option     = "FromImage" 
+    disk_size_gb      = "50" 
+    managed_disk_type = "Standard_LRS" 
+  } 
+ 
+  storage_data_disk { 
+    name              = "acctmd-%d" 
+    create_option     = "Empty" 
+    disk_size_gb      = "1" 
+    managed_disk_type = "Premium_LRS" 
+    lun               = 0 
+    write_accelerator_enabled = %s 
+  } 
+ 
+  os_profile { 
+    computer_name  = "hn%d" 
+    admin_username = "testadmin" 
+    admin_password = "Password1234!" 
+  } 
+ 
+  os_profile_linux_config { 
+    disable_password_authentication = false 
+  } 
+ 
+  tags { 
+    environment = "Production" 
+    cost-center = "Ops" 
+  } 
+} 
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, enabled, rInt)
 }
 
 func testAccAzureRMVirtualMachine_winRMCerts(rString string, location string) string {
@@ -2080,4 +2164,79 @@ resource "azurerm_virtual_machine" "test" {
 
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachine_hasDiskInfoWhenStopped(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctest-rg-%d"
+    location = "%s"
+}
+    
+resource "azurerm_virtual_network" "test" {
+    name                = "acctestvn-%d"
+    address_space       = ["10.0.0.0/16"]
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+    
+resource "azurerm_subnet" "test" {
+    name                 = "internal"
+    resource_group_name  = "${azurerm_resource_group.test.name}"
+    virtual_network_name = "${azurerm_virtual_network.test.name}"
+    address_prefix       = "10.0.2.0/24"
+}
+    
+resource "azurerm_network_interface" "test" {
+    name                = "acctestni-%d"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    
+    ip_configuration {
+        name                          = "testconfiguration"
+        subnet_id                     = "${azurerm_subnet.test.id}"
+        private_ip_address_allocation = "dynamic"
+    }
+}
+    
+resource "azurerm_virtual_machine" "test" {
+    name                  = "acctestvm-%d"
+    location              = "${azurerm_resource_group.test.location}"
+    resource_group_name   = "${azurerm_resource_group.test.name}"
+    network_interface_ids = ["${azurerm_network_interface.test.id}"]
+    vm_size               = "Standard_DS1_v2"
+    
+    storage_image_reference {
+        publisher = "Canonical"
+        offer     = "UbuntuServer"
+        sku       = "16.04-LTS"
+        version   = "latest"
+    }
+    
+    storage_os_disk {
+        name              = "acctest-osdisk-%d"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "Standard_LRS"
+    }
+    
+    storage_data_disk {
+        name          = "acctest-datadisk-%d"
+        caching       = "ReadWrite"
+        create_option = "Empty"
+        lun           = 0
+        disk_size_gb  = 64
+    }
+    
+    os_profile {
+        computer_name  = "acctest-machine-%d"
+        admin_username = "testadmin"
+        admin_password = "Password1234!"
+    }
+    
+    os_profile_linux_config {
+        disable_password_authentication = false
+    }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
