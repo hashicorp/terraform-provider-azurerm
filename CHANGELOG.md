@@ -1,4 +1,9 @@
 ## 1.7.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_public_ip` - import not correctly reads the `domain_name_label` property into state [GH-1287]
+
 ## 1.6.0 (May 24, 2018)
 
 UPGRADE NOTES:
