@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,7 +25,7 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"vault_resource_group": {
+			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -54,82 +55,50 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 	}
 }
 
-func createKeyVaultAccessPolicy(d *schema.ResourceData) *keyvault.AccessPolicyEntry {
-
-	certificatePermissionsRaw := d.Get("certificate_permissions").([]interface{})
-	certificatePermissions := []keyvault.CertificatePermissions{}
-	for _, permission := range certificatePermissionsRaw {
-		certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
-	}
-
-	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
-	keyPermissions := []keyvault.KeyPermissions{}
-	for _, permission := range keyPermissionsRaw {
-		keyPermissions = append(keyPermissions, keyvault.KeyPermissions(permission.(string)))
-	}
-
-	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
-	secretPermissions := []keyvault.SecretPermissions{}
-	for _, permission := range secretPermissionsRaw {
-		secretPermissions = append(secretPermissions, keyvault.SecretPermissions(permission.(string)))
-	}
-
-	policy := keyvault.AccessPolicyEntry{
-		Permissions: &keyvault.Permissions{
-			Certificates: &certificatePermissions,
-			Keys:         &keyPermissions,
-			Secrets:      &secretPermissions,
-		},
-	}
-
-	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
-	policy.TenantID = &tenantUUID
-	objectUUID := d.Get("object_id").(string)
-	policy.ObjectID = &objectUUID
-
-	if v := d.Get("application_id"); v != "" {
-		applicationUUID := uuid.FromStringOrNil(v.(string))
-		policy.ApplicationID = &applicationUUID
-	}
-
-	return &policy
-
-}
-
 func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
 	client := meta.(*ArmClient).keyVaultClient
 	ctx := meta.(*ArmClient).StopContext
-	log.Printf("[INFO] preparing arguments for Azure ARM Policy: %s.", action)
+	log.Printf("[INFO]Preparing arguments for Key Vault Access Policy: %s.", action)
 
 	name := d.Get("vault_name").(string)
-	resGroup := d.Get("vault_resource_group").(string)
+	resGroup := d.Get("resource_group_name").(string)
+
+	accessPolicy := expandKeyVaultAccessPolicy(d)
+	accessPolicies := []keyvault.AccessPolicyEntry{accessPolicy}
+
+	log.Printf("SPEW: %s", spew.Sdump(accessPolicies))
 
 	parameters := keyvault.VaultAccessPolicyParameters{
 		Name: &name,
 		Properties: &keyvault.VaultAccessPolicyProperties{
-			AccessPolicies: &[]keyvault.AccessPolicyEntry{*createKeyVaultAccessPolicy(d)},
+			AccessPolicies: &accessPolicies,
 		},
 	}
 
+	//return fmt.Errorf("Error updating Key Vault Access Policy: %+v  ApplicationID: %s", accessPolicies, d.Get("application_id").(string))
+
+	azureRMLockByName(name, keyVaultResourceName)
+	defer azureRMUnlockByName(name, keyVaultResourceName)
+
 	_, err := client.UpdateAccessPolicy(ctx, resGroup, name, action, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating Key Vault Access Policy (Key Vault %q / Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resGroup, err)
 	}
+
 	if read.ID == nil {
 		return fmt.Errorf("cannot read KeyVault %s (resource group %s) ID", name, resGroup)
 	}
 
-	if action != keyvault.Remove {
+	if d.IsNewResource() {
 		d.SetId(*read.ID)
-		return resourceArmKeyVaultRead(d, meta)
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 func resourceArmKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interface{}) error {
@@ -166,11 +135,13 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
 	}
 
-	policy := findKeyVaultAccessPolicy(objectUUID, resp.Properties.AccessPolicies)
+	flattenedPolicy := flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies)
+	policy := findKeyVaultAccessPolicy(objectUUID, flattenedPolicy)
 
 	d.Set("vault_name", resp.Name)
-	d.Set("vault_resource_group", resGroup)
+	d.Set("resource_group_name", resGroup)
 	d.Set("tenant_id", resp.Properties.TenantID.String())
+
 	d.Set("application_id", policy["application_id"])
 	d.Set("key_permissions", policy["key_permissions"])
 	d.Set("secret_permissions", policy["secret_permissions"])
@@ -181,43 +152,34 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func findKeyVaultAccessPolicy(objectID string, policies *[]keyvault.AccessPolicyEntry) map[string]interface{} {
-
-	for _, policy := range *policies {
-		result := make(map[string]interface{})
-
-		if objectID != *policy.ObjectID {
-			continue
+func findKeyVaultAccessPolicy(objectID string, policies []map[string]interface{}) map[string]interface{} {
+	for _, policy := range policies {
+		if policy["object_id"] != nil || policy["object_id"] == objectID {
+			return policy
 		}
+	}
+	return nil
+}
 
-		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
-		for _, keyPermission := range *policy.Permissions.Keys {
-			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
-		}
+func expandKeyVaultAccessPolicy(d *schema.ResourceData) keyvault.AccessPolicyEntry {
 
-		secretPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Secrets))
-		for _, secretPermission := range *policy.Permissions.Secrets {
-			secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
-		}
-
-		result["tenant_id"] = policy.TenantID.String()
-		result["object_id"] = *policy.ObjectID
-		if policy.ApplicationID != nil {
-			result["application_id"] = policy.ApplicationID.String()
-		}
-		result["key_permissions"] = keyPermissionsRaw
-		result["secret_permissions"] = secretPermissionsRaw
-
-		if policy.Permissions.Certificates != nil {
-			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
-			for _, certificatePermission := range *policy.Permissions.Certificates {
-				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
-			}
-			result["certificate_permissions"] = certificatePermissionsRaw
-		}
-
-		return result
+	policy := keyvault.AccessPolicyEntry{
+		Permissions: &keyvault.Permissions{
+			Certificates: expandKeyVaultAccessPolicyCertificatePermissions(d.Get("certificate_permissions").([]interface{})),
+			Keys:         expandKeyVaultAccessPolicyKeyPermissions(d.Get("certificate_permissions").([]interface{})),
+			Secrets:      expandKeyVaultAccessPolicySecretPermissions(d.Get("certificate_permissions").([]interface{})),
+		},
 	}
 
-	return nil
+	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
+	policy.TenantID = &tenantUUID
+	objectUUID := d.Get("object_id").(string)
+	policy.ObjectID = &objectUUID
+
+	if v := d.Get("application_id"); v != "" {
+		applicationUUID := uuid.FromStringOrNil(v.(string))
+		policy.ApplicationID = &applicationUUID
+	}
+
+	return policy
 }

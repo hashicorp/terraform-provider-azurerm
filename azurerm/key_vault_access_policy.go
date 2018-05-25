@@ -82,3 +82,68 @@ func certificatePermissionsSchema() *schema.Schema {
 		},
 	}
 }
+
+func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(*policies))
+
+	for _, policy := range *policies {
+		policyRaw := make(map[string]interface{})
+
+		keyPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Keys))
+		for _, keyPermission := range *policy.Permissions.Keys {
+			keyPermissionsRaw = append(keyPermissionsRaw, string(keyPermission))
+		}
+
+		secretPermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Secrets))
+		for _, secretPermission := range *policy.Permissions.Secrets {
+			secretPermissionsRaw = append(secretPermissionsRaw, string(secretPermission))
+		}
+
+		policyRaw["tenant_id"] = policy.TenantID.String()
+		policyRaw["object_id"] = *policy.ObjectID
+		if policy.ApplicationID != nil {
+			policyRaw["application_id"] = policy.ApplicationID.String()
+		}
+		policyRaw["key_permissions"] = keyPermissionsRaw
+		policyRaw["secret_permissions"] = secretPermissionsRaw
+
+		if policy.Permissions.Certificates != nil {
+			certificatePermissionsRaw := make([]interface{}, 0, len(*policy.Permissions.Certificates))
+			for _, certificatePermission := range *policy.Permissions.Certificates {
+				certificatePermissionsRaw = append(certificatePermissionsRaw, string(certificatePermission))
+			}
+			policyRaw["certificate_permissions"] = certificatePermissionsRaw
+		}
+
+		result = append(result, policyRaw)
+	}
+
+	return result
+}
+
+func expandKeyVaultAccessPolicyCertificatePermissions(certificatePermissionsRaw []interface{}) *[]keyvault.CertificatePermissions {
+	certificatePermissions := []keyvault.CertificatePermissions{}
+
+	for _, permission := range certificatePermissionsRaw {
+		certificatePermissions = append(certificatePermissions, keyvault.CertificatePermissions(permission.(string)))
+	}
+	return &certificatePermissions
+}
+
+func expandKeyVaultAccessPolicyKeyPermissions(keyPermissionsRaw []interface{}) *[]keyvault.KeyPermissions {
+	keyPermissions := []keyvault.KeyPermissions{}
+
+	for _, permission := range keyPermissionsRaw {
+		keyPermissions = append(keyPermissions, keyvault.KeyPermissions(permission.(string)))
+	}
+	return &keyPermissions
+}
+
+func expandKeyVaultAccessPolicySecretPermissions(secretPermissionsRaw []interface{}) *[]keyvault.SecretPermissions {
+	secretPermissions := []keyvault.SecretPermissions{}
+
+	for _, permission := range secretPermissionsRaw {
+		secretPermissions = append(secretPermissions, keyvault.SecretPermissions(permission.(string)))
+	}
+	return &secretPermissions
+}

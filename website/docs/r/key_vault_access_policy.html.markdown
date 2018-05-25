@@ -1,18 +1,18 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_key_vault_policy"
-sidebar_current: "docs-azurerm-resource-key-vault-policy"
+page_title: "Azure Resource Manager: azurerm_key_vault_access_policy"
+sidebar_current: "docs-azurerm-resource-key-vault-access-policy"
 description: |-
-  Create a Key Vault Access Policy.
+  Manages a Key Vault Access Policy.
 ---
 
-# azurerm\_key\_vault\_policy
+# azurerm_key_vault_access_policy
 
-Create a Key Vault Access Policy.
+Manages a Key Vault Access Policy.
 
 ~> **NOTE on Key Vaults and Key Vault Policies:** Terraform currently
 provides both a standalone [Key Vault Policy Resource](key_vault_policy.html), and allows for Key Vault Access Polcies to be defined in-line within the [Key Vault Resource](key_vault.html).
-At this time you cannot define Key Vault Policy with in-line Key Vault in conjunction with any Key Vault Policy resources. Doing so may cause a conflict of rule settings and will overwrite rules.
+At this time you cannot define Key Vault Policy with in-line Key Vault in conjunction with any Key Vault Policy resources. Doing so may cause a conflict of Access Policies and will overwrite Access Policies.
 
 
 ## Example Usage
@@ -20,12 +20,12 @@ At this time you cannot define Key Vault Policy with in-line Key Vault in conjun
 ```hcl
 resource "azurerm_resource_group" "test" {
   name     = "resourceGroup1"
-  location = "West US"
+  location = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_key_vault" "test" {
   name                = "testvault"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
@@ -42,8 +42,8 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_policy" "test" {
-  vault_name            = "${azurerm_key_vault.test.name}"
-  vault_resource_group  = "${azurerm_key_vault.test.resource_group_name}"
+  vault_name           = "${azurerm_key_vault.test.name}"
+  resource_group_name  = "${azurerm_key_vault.test.resource_group_name}"
   
   tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
   object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
@@ -67,16 +67,17 @@ The following arguments are supported:
 * `vault_name` - (Required) Specifies the name of the Key Vault resource. Changing this
     forces a new resource to be created.
 
-* `vault_resource_group` - (Required) The name of the resource group in which to
+* `resource_group_name` - (Required) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used
-    for authenticating requests to the key vault. Must match the `tenant_id` used
-    above.
+    for authenticating requests to the key vault. Changing this forces a new resource 
+    to be created.
 
 * `object_id` - (Required) The object ID of a user, service principal or security
     group in the Azure Active Directory tenant for the vault. The object ID must
-    be unique for the list of access policies.
+    be unique for the list of access policies. Changing this forces a new resource 
+    to be created.
 
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
 
@@ -93,4 +94,4 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Vault ID.
+* `id` - Key Vault Access Policy ID.

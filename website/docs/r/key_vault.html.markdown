@@ -68,8 +68,12 @@ The following arguments are supported:
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be
     used for authenticating requests to the key vault.
 
-* `access_policy` - (Required) An access policy block as described below. A maximum of 16
+* `access_policy` - (Optional) An access policy block as described below. A maximum of 16
     may be declared.
+    
+~> **Please Note:** Access Policies can also be defined using the [Key Vault Access Policy Resource](key_vault_access_policy.html) 
+resource (however you cannot use the independent resource and the built-in access_policy 
+field together, since they'll conflict).
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual
     Machines are permitted to retrieve certificates stored as secrets from the key
