@@ -74,7 +74,7 @@ func testCheckAzureRMSqlAdministratorExists(name string) resource.TestCheckFunc 
 		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Get(ctx, resourceGroup, serverName, "activeDirectory")
+		_, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func testCheckAzureRMSqlAdministratorDisappears(name string) resource.TestCheckF
 		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		_, err := client.Delete(ctx, resourceGroup, serverName, "activeDirectory")
+		_, err := client.Delete(ctx, resourceGroup, serverName)
 		if err != nil {
 			return fmt.Errorf("Bad: Delete on sqlAdministratorClient: %+v", err)
 		}
@@ -117,7 +117,7 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup, serverName, "activeDirectory")
+		resp, err := client.Get(ctx, resourceGroup, serverName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

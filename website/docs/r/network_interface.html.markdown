@@ -88,6 +88,8 @@ The `ip_configuration` block supports:
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
+* `application_gateway_backend_address_pools_ids` - (Optional) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
+
 * `load_balancer_backend_address_pools_ids` - (Optional) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
 
 * `load_balancer_inbound_nat_rules_ids` - (Optional) List of Load Balancer Inbound Nat Rules IDs involving this NIC

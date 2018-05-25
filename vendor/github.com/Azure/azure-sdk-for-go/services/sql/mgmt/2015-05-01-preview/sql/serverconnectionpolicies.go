@@ -24,6 +24,7 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ServerConnectionPoliciesClient is the the Azure SQL Database management API provides a RESTful set of web services
 // that interact with Azure SQL Database services to manage your databases. The API enables you to create, retrieve,
 // update, and delete databases.
@@ -31,23 +32,26 @@ type ServerConnectionPoliciesClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewServerConnectionPoliciesClient creates an instance of the ServerConnectionPoliciesClient client.
 func NewServerConnectionPoliciesClient(subscriptionID string) ServerConnectionPoliciesClient {
 	return NewServerConnectionPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewServerConnectionPoliciesClientWithBaseURI creates an instance of the ServerConnectionPoliciesClient client.
 func NewServerConnectionPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ServerConnectionPoliciesClient {
 	return ServerConnectionPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdate creates or updates the server's connection policy.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. connectionPolicyName is the name of
-// the connection policy. parameters is the required parameters for updating a secure connection policy.
-func (client ServerConnectionPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, connectionPolicyName string, parameters ServerConnectionPolicy) (result ServerConnectionPolicy, err error) {
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, connectionPolicyName, parameters)
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. parameters is the required
+// parameters for updating a secure connection policy.
+func (client ServerConnectionPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, parameters ServerConnectionPolicy) (result ServerConnectionPolicy, err error) {
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerConnectionPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -68,10 +72,11 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdate(ctx context.Context,
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client ServerConnectionPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, connectionPolicyName string, parameters ServerConnectionPolicy) (*http.Request, error) {
+func (client ServerConnectionPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, parameters ServerConnectionPolicy) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"connectionPolicyName": autorest.Encode("path", connectionPolicyName),
+		"connectionPolicyName": autorest.Encode("path", "default"),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"serverName":           autorest.Encode("path", serverName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
@@ -83,7 +88,7 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdatePreparer(ctx context.
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/connectionPolicies/{connectionPolicyName}", pathParameters),
@@ -92,6 +97,7 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdatePreparer(ctx context.
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerConnectionPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -99,6 +105,7 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdateSender(req *http.Requ
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client ServerConnectionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServerConnectionPolicy, err error) {
@@ -112,13 +119,13 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdateResponder(resp *http.
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Get gets the server's secure connection policy.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. connectionPolicyName is the name of
-// the connection policy.
-func (client ServerConnectionPoliciesClient) Get(ctx context.Context, resourceGroupName string, serverName string, connectionPolicyName string) (result ServerConnectionPolicy, err error) {
-	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, connectionPolicyName)
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server.
+func (client ServerConnectionPoliciesClient) Get(ctx context.Context, resourceGroupName string, serverName string) (result ServerConnectionPolicy, err error) {
+	req, err := client.GetPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerConnectionPoliciesClient", "Get", nil, "Failure preparing request")
 		return
@@ -139,10 +146,11 @@ func (client ServerConnectionPoliciesClient) Get(ctx context.Context, resourceGr
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetPreparer prepares the Get request.
-func (client ServerConnectionPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, connectionPolicyName string) (*http.Request, error) {
+func (client ServerConnectionPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"connectionPolicyName": autorest.Encode("path", connectionPolicyName),
+		"connectionPolicyName": autorest.Encode("path", "default"),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"serverName":           autorest.Encode("path", serverName),
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
@@ -161,6 +169,7 @@ func (client ServerConnectionPoliciesClient) GetPreparer(ctx context.Context, re
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerConnectionPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -168,6 +177,7 @@ func (client ServerConnectionPoliciesClient) GetSender(req *http.Request) (*http
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ServerConnectionPoliciesClient) GetResponder(resp *http.Response) (result ServerConnectionPolicy, err error) {

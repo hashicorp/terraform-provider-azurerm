@@ -25,25 +25,29 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // TopicsClient is the azure EventGrid Management Client
 type TopicsClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // NewTopicsClient creates an instance of the TopicsClient client.
 func NewTopicsClient(subscriptionID string) TopicsClient {
 	return NewTopicsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // NewTopicsClientWithBaseURI creates an instance of the TopicsClient client.
 func NewTopicsClientWithBaseURI(baseURI string, subscriptionID string) TopicsClient {
 	return TopicsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // CreateOrUpdate asynchronously creates a new topic with the specified parameters.
 //
-// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the topic
-// topicInfo is topic information
+// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the
+// topic topicInfo is topic information
 func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, topicName string, topicInfo Topic) (result TopicsCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, topicName, topicInfo)
 	if err != nil {
@@ -60,6 +64,7 @@ func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, topicName string, topicInfo Topic) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -74,7 +79,7 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}", pathParameters),
@@ -83,6 +88,7 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) CreateOrUpdateSender(req *http.Request) (future TopicsCreateOrUpdateFuture, err error) {
@@ -98,6 +104,7 @@ func (client TopicsClient) CreateOrUpdateSender(req *http.Request) (future Topic
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result Topic, err error) {
@@ -111,9 +118,11 @@ func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result 
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // Delete delete existing topic
 //
-// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the topic
+// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the
+// topic
 func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string, topicName string) (result TopicsDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, topicName)
 	if err != nil {
@@ -130,6 +139,7 @@ func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string,
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // DeletePreparer prepares the Delete request.
 func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName string, topicName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -151,6 +161,7 @@ func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) DeleteSender(req *http.Request) (future TopicsDeleteFuture, err error) {
@@ -166,6 +177,7 @@ func (client TopicsClient) DeleteSender(req *http.Request) (future TopicsDeleteF
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -178,9 +190,11 @@ func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // Get get properties of a topic
 //
-// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the topic
+// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the
+// topic
 func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, topicName string) (result Topic, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, topicName)
 	if err != nil {
@@ -203,6 +217,7 @@ func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, to
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // GetPreparer prepares the Get request.
 func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName string, topicName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -224,6 +239,7 @@ func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName st
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -231,6 +247,7 @@ func (client TopicsClient) GetSender(req *http.Request) (*http.Response, error) 
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) GetResponder(resp *http.Response) (result Topic, err error) {
@@ -244,6 +261,7 @@ func (client TopicsClient) GetResponder(resp *http.Response) (result Topic, err 
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListByResourceGroup list all the topics under a resource group
 //
 // resourceGroupName is the name of the resource group within the user's subscription.
@@ -269,6 +287,7 @@ func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
 func (client TopicsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -289,6 +308,7 @@ func (client TopicsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
@@ -296,6 +316,7 @@ func (client TopicsClient) ListByResourceGroupSender(req *http.Request) (*http.R
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) ListByResourceGroupResponder(resp *http.Response) (result TopicsListResult, err error) {
@@ -309,6 +330,7 @@ func (client TopicsClient) ListByResourceGroupResponder(resp *http.Response) (re
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListBySubscription list all the topics under an Azure subscription
 func (client TopicsClient) ListBySubscription(ctx context.Context) (result TopicsListResult, err error) {
 	req, err := client.ListBySubscriptionPreparer(ctx)
@@ -332,6 +354,7 @@ func (client TopicsClient) ListBySubscription(ctx context.Context) (result Topic
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListBySubscriptionPreparer prepares the ListBySubscription request.
 func (client TopicsClient) ListBySubscriptionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -351,6 +374,7 @@ func (client TopicsClient) ListBySubscriptionPreparer(ctx context.Context) (*htt
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
@@ -358,6 +382,7 @@ func (client TopicsClient) ListBySubscriptionSender(req *http.Request) (*http.Re
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) ListBySubscriptionResponder(resp *http.Response) (result TopicsListResult, err error) {
@@ -371,10 +396,12 @@ func (client TopicsClient) ListBySubscriptionResponder(resp *http.Response) (res
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListEventTypes list event types for a topic
 //
-// resourceGroupName is the name of the resource group within the user's subscription. providerNamespace is namespace
-// of the provider of the topic resourceTypeName is name of the topic type resourceName is name of the topic
+// resourceGroupName is the name of the resource group within the user's subscription. providerNamespace is
+// namespace of the provider of the topic resourceTypeName is name of the topic type resourceName is name of the
+// topic
 func (client TopicsClient) ListEventTypes(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string) (result EventTypesListResult, err error) {
 	req, err := client.ListEventTypesPreparer(ctx, resourceGroupName, providerNamespace, resourceTypeName, resourceName)
 	if err != nil {
@@ -397,6 +424,7 @@ func (client TopicsClient) ListEventTypes(ctx context.Context, resourceGroupName
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListEventTypesPreparer prepares the ListEventTypes request.
 func (client TopicsClient) ListEventTypesPreparer(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -420,6 +448,7 @@ func (client TopicsClient) ListEventTypesPreparer(ctx context.Context, resourceG
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListEventTypesSender sends the ListEventTypes request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) ListEventTypesSender(req *http.Request) (*http.Response, error) {
@@ -427,6 +456,7 @@ func (client TopicsClient) ListEventTypesSender(req *http.Request) (*http.Respon
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListEventTypesResponder handles the response to the ListEventTypes request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) ListEventTypesResponder(resp *http.Response) (result EventTypesListResult, err error) {
@@ -440,9 +470,11 @@ func (client TopicsClient) ListEventTypesResponder(resp *http.Response) (result 
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListSharedAccessKeys list the two keys used to publish to a topic
 //
-// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the topic
+// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the
+// topic
 func (client TopicsClient) ListSharedAccessKeys(ctx context.Context, resourceGroupName string, topicName string) (result TopicSharedAccessKeys, err error) {
 	req, err := client.ListSharedAccessKeysPreparer(ctx, resourceGroupName, topicName)
 	if err != nil {
@@ -465,6 +497,7 @@ func (client TopicsClient) ListSharedAccessKeys(ctx context.Context, resourceGro
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListSharedAccessKeysPreparer prepares the ListSharedAccessKeys request.
 func (client TopicsClient) ListSharedAccessKeysPreparer(ctx context.Context, resourceGroupName string, topicName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -486,6 +519,7 @@ func (client TopicsClient) ListSharedAccessKeysPreparer(ctx context.Context, res
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListSharedAccessKeysSender sends the ListSharedAccessKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) ListSharedAccessKeysSender(req *http.Request) (*http.Response, error) {
@@ -493,6 +527,7 @@ func (client TopicsClient) ListSharedAccessKeysSender(req *http.Request) (*http.
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // ListSharedAccessKeysResponder handles the response to the ListSharedAccessKeys request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) ListSharedAccessKeysResponder(resp *http.Response) (result TopicSharedAccessKeys, err error) {
@@ -506,15 +541,16 @@ func (client TopicsClient) ListSharedAccessKeysResponder(resp *http.Response) (r
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // RegenerateKey regenerate a shared access key for a topic
 //
-// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the topic
-// regenerateKeyRequest is request body to regenerate key
+// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the
+// topic regenerateKeyRequest is request body to regenerate key
 func (client TopicsClient) RegenerateKey(ctx context.Context, resourceGroupName string, topicName string, regenerateKeyRequest TopicRegenerateKeyRequest) (result TopicSharedAccessKeys, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: regenerateKeyRequest,
 			Constraints: []validation.Constraint{{Target: "regenerateKeyRequest.KeyName", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventgrid.TopicsClient", "RegenerateKey")
+		return result, validation.NewError("eventgrid.TopicsClient", "RegenerateKey", err.Error())
 	}
 
 	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, topicName, regenerateKeyRequest)
@@ -538,6 +574,7 @@ func (client TopicsClient) RegenerateKey(ctx context.Context, resourceGroupName 
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // RegenerateKeyPreparer prepares the RegenerateKey request.
 func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGroupName string, topicName string, regenerateKeyRequest TopicRegenerateKeyRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -552,7 +589,7 @@ func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGr
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}/regenerateKey", pathParameters),
@@ -561,6 +598,7 @@ func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGr
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // RegenerateKeySender sends the RegenerateKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) RegenerateKeySender(req *http.Request) (*http.Response, error) {
@@ -568,6 +606,7 @@ func (client TopicsClient) RegenerateKeySender(req *http.Request) (*http.Respons
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // RegenerateKeyResponder handles the response to the RegenerateKey request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) RegenerateKeyResponder(resp *http.Response) (result TopicSharedAccessKeys, err error) {
@@ -581,10 +620,11 @@ func (client TopicsClient) RegenerateKeyResponder(resp *http.Response) (result T
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // Update asynchronously updates a topic with the specified parameters.
 //
-// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the topic
-// topicUpdateParameters is topic update information
+// resourceGroupName is the name of the resource group within the user's subscription. topicName is name of the
+// topic topicUpdateParameters is topic update information
 func (client TopicsClient) Update(ctx context.Context, resourceGroupName string, topicName string, topicUpdateParameters TopicUpdateParameters) (result TopicsUpdateFuture, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, topicName, topicUpdateParameters)
 	if err != nil {
@@ -601,6 +641,7 @@ func (client TopicsClient) Update(ctx context.Context, resourceGroupName string,
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // UpdatePreparer prepares the Update request.
 func (client TopicsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, topicName string, topicUpdateParameters TopicUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -615,7 +656,7 @@ func (client TopicsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventGrid/topics/{topicName}", pathParameters),
@@ -624,6 +665,7 @@ func (client TopicsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) UpdateSender(req *http.Request) (future TopicsUpdateFuture, err error) {
@@ -639,6 +681,7 @@ func (client TopicsClient) UpdateSender(req *http.Request) (future TopicsUpdateF
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2017-09-15-preview/eventgrid instead.
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client TopicsClient) UpdateResponder(resp *http.Response) (result Topic, err error) {

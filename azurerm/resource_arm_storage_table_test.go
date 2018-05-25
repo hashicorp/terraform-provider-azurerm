@@ -74,7 +74,8 @@ func testCheckAzureRMStorageTableExists(name string, t *storage.Table) resource.
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
-		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(resourceGroup, storageAccountName)
+		ctx := armClient.StopContext
+		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -113,6 +114,7 @@ func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.Te
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
+		ctx := armClient.StopContext
 
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -120,7 +122,7 @@ func testAccARMStorageTableDisappears(name string, t *storage.Table) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", t.Name)
 		}
 
-		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(resourceGroup, storageAccountName)
+		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -155,7 +157,8 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
-		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(resourceGroup, storageAccountName)
+		ctx := armClient.StopContext
+		tableClient, accountExists, err := armClient.getTableServiceClientForStorageAccount(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			//If we can't get keys then the table can't exist
 			return nil

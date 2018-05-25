@@ -57,9 +57,9 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	name := d.Get("name").(string)
 	virtualNetworkName := d.Get("virtual_network_name").(string)
-	resourceGroupName := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, name, "")
+	resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, name, "")
 	if err != nil {
 		return fmt.Errorf("Error reading Subnet: %+v", err)
 	}
@@ -68,14 +68,13 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Subnet %q (Virtual Network %q / Resource Group %q) was not found", name, resourceGroup, virtualNetworkName)
 		}
 		return fmt.Errorf("Error making Read request on Azure Subnet %q: %+v", name, err)
 	}
 
 	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroupName)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("virtual_network_name", virtualNetworkName)
 
 	if props := resp.SubnetPropertiesFormat; props != nil {

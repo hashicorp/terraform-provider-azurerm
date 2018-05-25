@@ -32,6 +32,10 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"resource_group_name": resourceGroupNameSchema(),
+
+			"location": locationSchema(),
+
 			"address_space": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -71,10 +75,6 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				Set: resourceAzureSubnetHash,
 			},
 
-			"location": locationSchema(),
-
-			"resource_group_name": resourceGroupNameSchema(),
-
 			"tags": tagsSchema(),
 		},
 	}
@@ -87,10 +87,10 @@ func resourceArmVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
-	vnetProperties, vnetPropsErr := getVirtualNetworkProperties(ctx, d, meta)
+	vnetProperties, vnetPropsErr := expandVirtualNetworkProperties(ctx, d, meta)
 	if vnetPropsErr != nil {
 		return vnetPropsErr
 	}
@@ -162,40 +162,27 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on Virtual Network %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	vnet := *resp.VirtualNetworkPropertiesFormat
-
-	// update appropriate values
-	d.Set("resource_group_name", resGroup)
 	d.Set("name", resp.Name)
-	d.Set("address_space", vnet.AddressSpace.AddressPrefixes)
-
+	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	subnets := &schema.Set{
-		F: resourceAzureSubnetHash,
-	}
-
-	for _, subnet := range *vnet.Subnets {
-		s := map[string]interface{}{}
-
-		s["name"] = *subnet.Name
-		s["address_prefix"] = *subnet.SubnetPropertiesFormat.AddressPrefix
-		if subnet.SubnetPropertiesFormat.NetworkSecurityGroup != nil {
-			s["security_group"] = *subnet.SubnetPropertiesFormat.NetworkSecurityGroup.ID
+	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
+		if space := props.AddressSpace; space != nil {
+			d.Set("address_space", space.AddressPrefixes)
 		}
 
-		subnets.Add(s)
-	}
-	d.Set("subnet", subnets)
-
-	if vnet.DhcpOptions != nil && vnet.DhcpOptions.DNSServers != nil {
-		dnses := []string{}
-		for _, dns := range *vnet.DhcpOptions.DNSServers {
-			dnses = append(dnses, dns)
+		subnets := flattenVirtualNetworkSubnets(props.Subnets)
+		if err := d.Set("subnet", subnets); err != nil {
+			return fmt.Errorf("Error setting `subnets`: %+v", err)
 		}
-		d.Set("dns_servers", dnses)
+
+		dnsServers := flattenVirtualNetworkDNSServers(props.DhcpOptions)
+		if err := d.Set("dns_servers", dnsServers); err != nil {
+			return fmt.Errorf("Error setting `dns_servers`: %+v", err)
+		}
+
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -235,7 +222,7 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func getVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData, meta interface{}) (*network.VirtualNetworkPropertiesFormat, error) {
+func expandVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData, meta interface{}) (*network.VirtualNetworkPropertiesFormat, error) {
 	// first; get address space prefixes:
 	prefixes := []string{}
 	for _, prefix := range d.Get("address_space").([]interface{}) {
@@ -301,15 +288,64 @@ func getVirtualNetworkProperties(ctx context.Context, d *schema.ResourceData, me
 	// finally; return the struct:
 	return properties, nil
 }
+func flattenVirtualNetworkSubnets(input *[]network.Subnet) *schema.Set {
+	results := &schema.Set{
+		F: resourceAzureSubnetHash,
+	}
+
+	if subnets := input; subnets != nil {
+		for _, subnet := range *input {
+			output := map[string]interface{}{}
+
+			if name := subnet.Name; name != nil {
+				output["name"] = *name
+			}
+
+			if props := subnet.SubnetPropertiesFormat; props != nil {
+				if prefix := props.AddressPrefix; prefix != nil {
+					output["address_prefix"] = *prefix
+				}
+
+				if nsg := props.NetworkSecurityGroup; nsg != nil {
+					if nsg.ID != nil {
+						output["security_group"] = *nsg.ID
+					}
+				}
+			}
+
+			results.Add(output)
+		}
+	}
+
+	return results
+}
+
+func flattenVirtualNetworkDNSServers(input *network.DhcpOptions) []string {
+	results := make([]string, 0)
+
+	if input != nil {
+		if servers := input.DNSServers; servers != nil {
+			for _, dns := range *servers {
+				results = append(results, dns)
+			}
+		}
+	}
+
+	return results
+}
 
 func resourceAzureSubnetHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s", m["address_prefix"].(string)))
-	if v, ok := m["security_group"]; ok {
-		buf.WriteString(v.(string))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s", m["address_prefix"].(string)))
+
+		if v, ok := m["security_group"]; ok {
+			buf.WriteString(v.(string))
+		}
 	}
+
 	return hashcode.String(buf.String())
 }
 
@@ -327,8 +363,9 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 		return nil, err
 	}
 
-	existingSubnet.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{}
-	existingSubnet.SubnetPropertiesFormat.AddressPrefix = resp.SubnetPropertiesFormat.AddressPrefix
+	existingSubnet.SubnetPropertiesFormat = &network.SubnetPropertiesFormat{
+		AddressPrefix: resp.SubnetPropertiesFormat.AddressPrefix,
+	}
 
 	if resp.SubnetPropertiesFormat.NetworkSecurityGroup != nil {
 		existingSubnet.SubnetPropertiesFormat.NetworkSecurityGroup = resp.SubnetPropertiesFormat.NetworkSecurityGroup
@@ -339,7 +376,7 @@ func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, su
 	}
 
 	if resp.SubnetPropertiesFormat.IPConfigurations != nil {
-		ips := make([]string, 0, len(*resp.SubnetPropertiesFormat.IPConfigurations))
+		ips := make([]string, 0)
 		for _, ip := range *resp.SubnetPropertiesFormat.IPConfigurations {
 			ips = append(ips, *ip.ID)
 		}

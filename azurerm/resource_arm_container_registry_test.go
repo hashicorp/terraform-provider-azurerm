@@ -144,6 +144,35 @@ func TestAccAzureRMContainerRegistry_basicPremium(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerRegistry_basicBasicUpgradePremium(t *testing.T) {
+	resourceName := "azurerm_container_registry.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Basic")
+	configUpdated := testAccAzureRMContainerRegistry_basicManaged(ri, testLocation(), "Premium")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
+				),
+			},
+			{
+				Config: configUpdated,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Premium"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerRegistry_complete(t *testing.T) {
 	ri := acctest.RandInt()
 	rs := acctest.RandString(4)

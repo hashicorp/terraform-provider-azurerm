@@ -25,6 +25,7 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GeoBackupPoliciesClient is the the Azure SQL Database management API provides a RESTful set of web services that
 // interact with Azure SQL Database services to manage your databases. The API enables you to create, retrieve, update,
 // and delete databases.
@@ -32,30 +33,32 @@ type GeoBackupPoliciesClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewGeoBackupPoliciesClient creates an instance of the GeoBackupPoliciesClient client.
 func NewGeoBackupPoliciesClient(subscriptionID string) GeoBackupPoliciesClient {
 	return NewGeoBackupPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewGeoBackupPoliciesClientWithBaseURI creates an instance of the GeoBackupPoliciesClient client.
 func NewGeoBackupPoliciesClientWithBaseURI(baseURI string, subscriptionID string) GeoBackupPoliciesClient {
 	return GeoBackupPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdate updates a database geo backup policy.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database. geoBackupPolicyName is the name of the geo backup policy. parameters is the required parameters for
-// creating or updating the geo backup policy.
-func (client GeoBackupPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, geoBackupPolicyName string, parameters GeoBackupPolicy) (result GeoBackupPolicy, err error) {
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database. parameters is the required parameters for creating or updating the geo backup policy.
+func (client GeoBackupPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters GeoBackupPolicy) (result GeoBackupPolicy, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.GeoBackupPolicyProperties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "sql.GeoBackupPoliciesClient", "CreateOrUpdate")
+		return result, validation.NewError("sql.GeoBackupPoliciesClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, databaseName, geoBackupPolicyName, parameters)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, databaseName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.GeoBackupPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -76,11 +79,12 @@ func (client GeoBackupPoliciesClient) CreateOrUpdate(ctx context.Context, resour
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client GeoBackupPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, geoBackupPolicyName string, parameters GeoBackupPolicy) (*http.Request, error) {
+func (client GeoBackupPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters GeoBackupPolicy) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":        autorest.Encode("path", databaseName),
-		"geoBackupPolicyName": autorest.Encode("path", geoBackupPolicyName),
+		"geoBackupPolicyName": autorest.Encode("path", "Default"),
 		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
 		"serverName":          autorest.Encode("path", serverName),
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
@@ -92,7 +96,7 @@ func (client GeoBackupPoliciesClient) CreateOrUpdatePreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/geoBackupPolicies/{geoBackupPolicyName}", pathParameters),
@@ -101,6 +105,7 @@ func (client GeoBackupPoliciesClient) CreateOrUpdatePreparer(ctx context.Context
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client GeoBackupPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -108,6 +113,7 @@ func (client GeoBackupPoliciesClient) CreateOrUpdateSender(req *http.Request) (*
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client GeoBackupPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result GeoBackupPolicy, err error) {
@@ -121,13 +127,14 @@ func (client GeoBackupPoliciesClient) CreateOrUpdateResponder(resp *http.Respons
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Get gets a geo backup policy.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database. geoBackupPolicyName is the name of the geo backup policy.
-func (client GeoBackupPoliciesClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string, geoBackupPolicyName string) (result GeoBackupPolicy, err error) {
-	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, databaseName, geoBackupPolicyName)
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database.
+func (client GeoBackupPoliciesClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result GeoBackupPolicy, err error) {
+	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, databaseName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.GeoBackupPoliciesClient", "Get", nil, "Failure preparing request")
 		return
@@ -148,11 +155,12 @@ func (client GeoBackupPoliciesClient) Get(ctx context.Context, resourceGroupName
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetPreparer prepares the Get request.
-func (client GeoBackupPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, geoBackupPolicyName string) (*http.Request, error) {
+func (client GeoBackupPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":        autorest.Encode("path", databaseName),
-		"geoBackupPolicyName": autorest.Encode("path", geoBackupPolicyName),
+		"geoBackupPolicyName": autorest.Encode("path", "Default"),
 		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
 		"serverName":          autorest.Encode("path", serverName),
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
@@ -171,6 +179,7 @@ func (client GeoBackupPoliciesClient) GetPreparer(ctx context.Context, resourceG
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client GeoBackupPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -178,6 +187,7 @@ func (client GeoBackupPoliciesClient) GetSender(req *http.Request) (*http.Respon
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client GeoBackupPoliciesClient) GetResponder(resp *http.Response) (result GeoBackupPolicy, err error) {
@@ -191,11 +201,12 @@ func (client GeoBackupPoliciesClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByDatabase returns a list of geo backup policies.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database.
 func (client GeoBackupPoliciesClient) ListByDatabase(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result GeoBackupPolicyListResult, err error) {
 	req, err := client.ListByDatabasePreparer(ctx, resourceGroupName, serverName, databaseName)
 	if err != nil {
@@ -218,6 +229,7 @@ func (client GeoBackupPoliciesClient) ListByDatabase(ctx context.Context, resour
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByDatabasePreparer prepares the ListByDatabase request.
 func (client GeoBackupPoliciesClient) ListByDatabasePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -240,6 +252,7 @@ func (client GeoBackupPoliciesClient) ListByDatabasePreparer(ctx context.Context
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByDatabaseSender sends the ListByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client GeoBackupPoliciesClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
@@ -247,6 +260,7 @@ func (client GeoBackupPoliciesClient) ListByDatabaseSender(req *http.Request) (*
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByDatabaseResponder handles the response to the ListByDatabase request. The method always
 // closes the http.Response Body.
 func (client GeoBackupPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result GeoBackupPolicyListResult, err error) {

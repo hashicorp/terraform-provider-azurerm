@@ -6,7 +6,7 @@ description: |-
   Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 ---
 
-# azurerm\_postgresql\_configuration
+# azurerm_postgresql_configuration
 
 Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 
@@ -24,9 +24,16 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "PGSQLB50"
-    capacity = 50
+    name = "B_Gen4_2"
+    capacity = 2
     tier = "Basic"
+    family = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 5120
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login = "psqladminun"

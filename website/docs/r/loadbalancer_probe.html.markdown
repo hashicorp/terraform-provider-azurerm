@@ -6,7 +6,7 @@ description: |-
   Create a LoadBalancer Probe Resource.
 ---
 
-# azurerm\_lb\_probe
+# azurerm_lb_probe
 
 Create a LoadBalancer Probe Resource.
 

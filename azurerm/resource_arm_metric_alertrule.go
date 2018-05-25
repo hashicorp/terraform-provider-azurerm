@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -138,7 +140,12 @@ func resourceArmMetricAlertRule() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateMetricAlertRuleTags,
+			},
 		},
 	}
 }
@@ -151,7 +158,7 @@ func resourceArmMetricAlertRuleCreateOrUpdate(d *schema.ResourceData, meta inter
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
@@ -206,7 +213,6 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -261,7 +267,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 
 				properties := make(map[string]string, 0)
 				if props := webhookAction.Properties; props != nil {
-					for k, v := range *props {
+					for k, v := range props {
 						if k != "$type" {
 							properties[k] = *v
 						}
@@ -277,7 +283,10 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("webhook_action", webhook_actions)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	// Return a new tag map filtered by the specified tag names.
+	tagMap := filterTags(resp.Tags, "$type")
+
+	flattenAndSetTags(d, tagMap)
 
 	return nil
 }
@@ -379,7 +388,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 
 		webhookAction := insights.RuleWebhookAction{
 			ServiceURI: &service_uri,
-			Properties: &webhook_properties,
+			Properties: webhook_properties,
 		}
 
 		actions = append(actions, webhookAction)
@@ -411,4 +420,19 @@ func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, er
 	resourceGroup := id.ResourceGroup
 
 	return resourceGroup, name, nil
+}
+
+func validateMetricAlertRuleTags(v interface{}, f string) (ws []string, es []error) {
+	// Normal validation required by any AzureRM resource.
+	ws, es = validateAzureRMTags(v, f)
+
+	tagsMap := v.(map[string]interface{})
+
+	for k := range tagsMap {
+		if strings.EqualFold(k, "$type") {
+			es = append(es, fmt.Errorf("the %q is not allowed as tag name", k))
+		}
+	}
+
+	return ws, es
 }

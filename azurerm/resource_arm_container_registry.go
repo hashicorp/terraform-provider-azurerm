@@ -41,7 +41,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"sku": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:         true,
 				Default:          string(containerregistry.Classic),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -95,8 +94,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 			},
 
 			"admin_password": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tagsSchema(),
@@ -111,7 +111,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
 	tags := d.Get("tags").(map[string]interface{})
@@ -182,6 +182,10 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
 		},
+		Sku: &containerregistry.Sku{
+			Name: containerregistry.SkuName(sku),
+			Tier: containerregistry.SkuTier(sku),
+		},
 		Tags: expandTags(tags),
 	}
 
@@ -243,7 +247,9 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
 

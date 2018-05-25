@@ -206,10 +206,11 @@ func expandAzureRmDnsMxRecords(d *schema.ResourceData) ([]dns.MxRecord, error) {
 
 func resourceArmDnsMxRecordHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["preference"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["preference"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["exchange"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }

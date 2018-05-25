@@ -6,7 +6,7 @@ description: |-
   Create a DNS AAAA Record.
 ---
 
-# azurerm\_dns\_aaaa\_record
+# azurerm_dns_aaaa_record
 
 Enables you to manage DNS AAAA Records within Azure DNS.
 

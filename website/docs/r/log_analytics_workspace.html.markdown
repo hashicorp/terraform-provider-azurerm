@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace"
 sidebar_current: "docs-azurerm-resource-oms-log-analytics-workspace"
 description: |-
-  Creates a new Log Analytics (formally Operational Insights) Workspace.
+  Manages a new Log Analytics (formally Operational Insights) Workspace.
 ---
 
 # azurerm_log_analytics_workspace
 
-Creates a new Log Analytics (formally Operational Insights) Workspace.
+Manages a new Log Analytics (formally Operational Insights) Workspace.
 
 ## Example Usage
 
@@ -56,3 +56,12 @@ The following attributes are exported:
 * `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
 
 * `portal_url` - The Portal URL for the Log Analytics Workspace.
+
+
+## Import
+
+Log Analytics Workspaces can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_log_analytics_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1
+```

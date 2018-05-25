@@ -1,9 +1,13 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -222,6 +226,16 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Computed: true,
 			},
 
+			"secret_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"certificate_data": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -260,6 +274,18 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		if err != nil {
 			return err
 		}
+
+		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, keyVaultBaseUrl)
+		stateConf := &resource.StateChangeConf{
+			Pending:    []string{"Provisioning"},
+			Target:     []string{"Ready"},
+			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
+			Timeout:    60 * time.Minute,
+			MinTimeout: 15 * time.Second,
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
+		}
 	}
 
 	resp, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
@@ -270,6 +296,21 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 	d.SetId(*resp.ID)
 
 	return resourceArmKeyVaultCertificateRead(d, meta)
+}
+
+func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client keyvault.BaseClient, keyVaultBaseUrl string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+		if err != nil {
+			return nil, "", fmt.Errorf("Error issuing read request in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
+		}
+
+		if res.Sid == nil || *res.Sid == "" {
+			return nil, "Provisioning", nil
+		}
+
+		return res, "Ready", nil
+	}
 }
 
 func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
@@ -302,6 +343,11 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	// Computed
 	d.Set("version", id.Version)
+	d.Set("secret_id", cert.Sid)
+
+	if contents := cert.Cer; contents != nil {
+		d.Set("certificate_data", string(*contents))
+	}
 	flattenAndSetTags(d, cert.Tags)
 
 	return nil

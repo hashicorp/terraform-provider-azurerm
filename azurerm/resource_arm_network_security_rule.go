@@ -37,7 +37,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLength(140),
+				ValidateFunc: validation.StringLenBetween(0, 140),
 			},
 
 			"protocol": {
@@ -263,10 +263,10 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 
 	read, err := client.Get(ctx, resGroup, nsgName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Security Group Rule %s/%s (resource group %s) ID", nsgName, name, resGroup)
+		return fmt.Errorf("Cannot read Network Security Rule %s (NSG %q / resource group %s) ID", name, nsgName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -292,7 +292,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Security Rule %q: %+v", sgRuleName, err)
+		return fmt.Errorf("Error making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, networkSGName, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -343,5 +343,5 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
-	return err
+	return nil
 }

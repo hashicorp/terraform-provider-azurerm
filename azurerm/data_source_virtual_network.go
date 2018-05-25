@@ -64,9 +64,10 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error making Read request on Azure virtual network %q (resource group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Error: Virtual Network %q (Resource Group %q) was not found", name, resGroup)
 		}
-		return err
+
+		return fmt.Errorf("Error making Read request on Virtual Network %q (resource group %q): %+v", name, resGroup, err)
 	}
 
 	d.SetId(*resp.ID)

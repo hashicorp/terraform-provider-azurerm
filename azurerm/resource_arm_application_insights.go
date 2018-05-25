@@ -51,8 +51,9 @@ func resourceArmApplicationInsights() *schema.Resource {
 			},
 
 			"instrumentation_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -67,7 +68,7 @@ func resourceArmApplicationInsightsCreateOrUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	applicationType := d.Get("application_type").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
@@ -126,7 +127,9 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.ApplicationInsightsComponentProperties; props != nil {
 		d.Set("application_type", string(props.ApplicationType))

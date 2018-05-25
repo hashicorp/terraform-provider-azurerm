@@ -24,6 +24,7 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // SyncMembersClient is the the Azure SQL Database management API provides a RESTful set of web services that interact
 // with Azure SQL Database services to manage your databases. The API enables you to create, retrieve, update, and
 // delete databases.
@@ -31,22 +32,26 @@ type SyncMembersClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewSyncMembersClient creates an instance of the SyncMembersClient client.
 func NewSyncMembersClient(subscriptionID string) SyncMembersClient {
 	return NewSyncMembersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewSyncMembersClientWithBaseURI creates an instance of the SyncMembersClient client.
 func NewSyncMembersClientWithBaseURI(baseURI string, subscriptionID string) SyncMembersClient {
 	return SyncMembersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdate creates or updates a sync member.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync member is
-// hosted. syncMemberName is the name of the sync member. parameters is the requested sync member resource state.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync
+// member is hosted. syncMemberName is the name of the sync member. parameters is the requested sync member
+// resource state.
 func (client SyncMembersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string, parameters SyncMember) (result SyncMembersCreateOrUpdateFuture, err error) {
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, databaseName, syncGroupName, syncMemberName, parameters)
 	if err != nil {
@@ -63,6 +68,7 @@ func (client SyncMembersClient) CreateOrUpdate(ctx context.Context, resourceGrou
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client SyncMembersClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string, parameters SyncMember) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -80,7 +86,7 @@ func (client SyncMembersClient) CreateOrUpdatePreparer(ctx context.Context, reso
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/syncGroups/{syncGroupName}/syncMembers/{syncMemberName}", pathParameters),
@@ -89,6 +95,7 @@ func (client SyncMembersClient) CreateOrUpdatePreparer(ctx context.Context, reso
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) CreateOrUpdateSender(req *http.Request) (future SyncMembersCreateOrUpdateFuture, err error) {
@@ -104,6 +111,7 @@ func (client SyncMembersClient) CreateOrUpdateSender(req *http.Request) (future 
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client SyncMembersClient) CreateOrUpdateResponder(resp *http.Response) (result SyncMember, err error) {
@@ -117,12 +125,13 @@ func (client SyncMembersClient) CreateOrUpdateResponder(resp *http.Response) (re
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Delete deletes a sync member.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync member is
-// hosted. syncMemberName is the name of the sync member.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync
+// member is hosted. syncMemberName is the name of the sync member.
 func (client SyncMembersClient) Delete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (result SyncMembersDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName, databaseName, syncGroupName, syncMemberName)
 	if err != nil {
@@ -139,6 +148,7 @@ func (client SyncMembersClient) Delete(ctx context.Context, resourceGroupName st
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // DeletePreparer prepares the Delete request.
 func (client SyncMembersClient) DeletePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -163,6 +173,7 @@ func (client SyncMembersClient) DeletePreparer(ctx context.Context, resourceGrou
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) DeleteSender(req *http.Request) (future SyncMembersDeleteFuture, err error) {
@@ -178,6 +189,7 @@ func (client SyncMembersClient) DeleteSender(req *http.Request) (future SyncMemb
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client SyncMembersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -190,12 +202,13 @@ func (client SyncMembersClient) DeleteResponder(resp *http.Response) (result aut
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Get gets a sync member.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync member is
-// hosted. syncMemberName is the name of the sync member.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync
+// member is hosted. syncMemberName is the name of the sync member.
 func (client SyncMembersClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (result SyncMember, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, databaseName, syncGroupName, syncMemberName)
 	if err != nil {
@@ -218,6 +231,7 @@ func (client SyncMembersClient) Get(ctx context.Context, resourceGroupName strin
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetPreparer prepares the Get request.
 func (client SyncMembersClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -242,6 +256,7 @@ func (client SyncMembersClient) GetPreparer(ctx context.Context, resourceGroupNa
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -249,6 +264,7 @@ func (client SyncMembersClient) GetSender(req *http.Request) (*http.Response, er
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client SyncMembersClient) GetResponder(resp *http.Response) (result SyncMember, err error) {
@@ -262,11 +278,12 @@ func (client SyncMembersClient) GetResponder(resp *http.Response) (result SyncMe
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListBySyncGroup lists sync members in the given sync group.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database on which the sync group is hosted. syncGroupName is the name of the sync group.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database on which the sync group is hosted. syncGroupName is the name of the sync group.
 func (client SyncMembersClient) ListBySyncGroup(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string) (result SyncMemberListResultPage, err error) {
 	result.fn = client.listBySyncGroupNextResults
 	req, err := client.ListBySyncGroupPreparer(ctx, resourceGroupName, serverName, databaseName, syncGroupName)
@@ -290,6 +307,7 @@ func (client SyncMembersClient) ListBySyncGroup(ctx context.Context, resourceGro
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListBySyncGroupPreparer prepares the ListBySyncGroup request.
 func (client SyncMembersClient) ListBySyncGroupPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -313,6 +331,7 @@ func (client SyncMembersClient) ListBySyncGroupPreparer(ctx context.Context, res
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListBySyncGroupSender sends the ListBySyncGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) ListBySyncGroupSender(req *http.Request) (*http.Response, error) {
@@ -320,6 +339,7 @@ func (client SyncMembersClient) ListBySyncGroupSender(req *http.Request) (*http.
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListBySyncGroupResponder handles the response to the ListBySyncGroup request. The method always
 // closes the http.Response Body.
 func (client SyncMembersClient) ListBySyncGroupResponder(resp *http.Response) (result SyncMemberListResult, err error) {
@@ -354,18 +374,20 @@ func (client SyncMembersClient) listBySyncGroupNextResults(lastResults SyncMembe
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListBySyncGroupComplete enumerates all values, automatically crossing page boundaries as required.
 func (client SyncMembersClient) ListBySyncGroupComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string) (result SyncMemberListResultIterator, err error) {
 	result.page, err = client.ListBySyncGroup(ctx, resourceGroupName, serverName, databaseName, syncGroupName)
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListMemberSchemas gets a sync member database schema.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync member is
-// hosted. syncMemberName is the name of the sync member.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync
+// member is hosted. syncMemberName is the name of the sync member.
 func (client SyncMembersClient) ListMemberSchemas(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (result SyncFullSchemaPropertiesListResultPage, err error) {
 	result.fn = client.listMemberSchemasNextResults
 	req, err := client.ListMemberSchemasPreparer(ctx, resourceGroupName, serverName, databaseName, syncGroupName, syncMemberName)
@@ -389,6 +411,7 @@ func (client SyncMembersClient) ListMemberSchemas(ctx context.Context, resourceG
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListMemberSchemasPreparer prepares the ListMemberSchemas request.
 func (client SyncMembersClient) ListMemberSchemasPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -413,6 +436,7 @@ func (client SyncMembersClient) ListMemberSchemasPreparer(ctx context.Context, r
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListMemberSchemasSender sends the ListMemberSchemas request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) ListMemberSchemasSender(req *http.Request) (*http.Response, error) {
@@ -420,6 +444,7 @@ func (client SyncMembersClient) ListMemberSchemasSender(req *http.Request) (*htt
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListMemberSchemasResponder handles the response to the ListMemberSchemas request. The method always
 // closes the http.Response Body.
 func (client SyncMembersClient) ListMemberSchemasResponder(resp *http.Response) (result SyncFullSchemaPropertiesListResult, err error) {
@@ -454,18 +479,20 @@ func (client SyncMembersClient) listMemberSchemasNextResults(lastResults SyncFul
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListMemberSchemasComplete enumerates all values, automatically crossing page boundaries as required.
 func (client SyncMembersClient) ListMemberSchemasComplete(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (result SyncFullSchemaPropertiesListResultIterator, err error) {
 	result.page, err = client.ListMemberSchemas(ctx, resourceGroupName, serverName, databaseName, syncGroupName, syncMemberName)
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // RefreshMemberSchema refreshes a sync member database schema.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync member is
-// hosted. syncMemberName is the name of the sync member.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync
+// member is hosted. syncMemberName is the name of the sync member.
 func (client SyncMembersClient) RefreshMemberSchema(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (result SyncMembersRefreshMemberSchemaFuture, err error) {
 	req, err := client.RefreshMemberSchemaPreparer(ctx, resourceGroupName, serverName, databaseName, syncGroupName, syncMemberName)
 	if err != nil {
@@ -482,6 +509,7 @@ func (client SyncMembersClient) RefreshMemberSchema(ctx context.Context, resourc
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // RefreshMemberSchemaPreparer prepares the RefreshMemberSchema request.
 func (client SyncMembersClient) RefreshMemberSchemaPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -506,6 +534,7 @@ func (client SyncMembersClient) RefreshMemberSchemaPreparer(ctx context.Context,
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // RefreshMemberSchemaSender sends the RefreshMemberSchema request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) RefreshMemberSchemaSender(req *http.Request) (future SyncMembersRefreshMemberSchemaFuture, err error) {
@@ -521,6 +550,7 @@ func (client SyncMembersClient) RefreshMemberSchemaSender(req *http.Request) (fu
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // RefreshMemberSchemaResponder handles the response to the RefreshMemberSchema request. The method always
 // closes the http.Response Body.
 func (client SyncMembersClient) RefreshMemberSchemaResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -533,12 +563,14 @@ func (client SyncMembersClient) RefreshMemberSchemaResponder(resp *http.Response
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Update updates an existing sync member.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync member is
-// hosted. syncMemberName is the name of the sync member. parameters is the requested sync member resource state.
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database on which the sync group is hosted. syncGroupName is the name of the sync group on which the sync
+// member is hosted. syncMemberName is the name of the sync member. parameters is the requested sync member
+// resource state.
 func (client SyncMembersClient) Update(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string, parameters SyncMember) (result SyncMembersUpdateFuture, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, serverName, databaseName, syncGroupName, syncMemberName, parameters)
 	if err != nil {
@@ -555,6 +587,7 @@ func (client SyncMembersClient) Update(ctx context.Context, resourceGroupName st
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // UpdatePreparer prepares the Update request.
 func (client SyncMembersClient) UpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, syncGroupName string, syncMemberName string, parameters SyncMember) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -572,7 +605,7 @@ func (client SyncMembersClient) UpdatePreparer(ctx context.Context, resourceGrou
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/syncGroups/{syncGroupName}/syncMembers/{syncMemberName}", pathParameters),
@@ -581,6 +614,7 @@ func (client SyncMembersClient) UpdatePreparer(ctx context.Context, resourceGrou
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client SyncMembersClient) UpdateSender(req *http.Request) (future SyncMembersUpdateFuture, err error) {
@@ -596,6 +630,7 @@ func (client SyncMembersClient) UpdateSender(req *http.Request) (future SyncMemb
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client SyncMembersClient) UpdateResponder(resp *http.Response) (result SyncMember, err error) {
