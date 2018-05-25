@@ -228,11 +228,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("fqdn", "")
 			}
 
-			if dnl := settings.DomainNameLabel; dnl != nil {
-				d.Set("domain_name_label", dnl)
-			} else {
-				d.Set("domain_name_label", "")
-			}
+			d.Set("domain_name_label", settings.DomainNameLabel)
 		}
 
 		if ip := props.IPAddress; ip != nil {
