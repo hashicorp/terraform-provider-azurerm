@@ -13,7 +13,7 @@ import (
 func Rfc3339Time(i interface{}, k string) (ws []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
 		return
 	}
 
@@ -28,7 +28,7 @@ func IntBetweenAndNot(min, max, not int) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (s []string, es []error) {
 		v, ok := i.(int)
 		if !ok {
-			es = append(es, fmt.Errorf("expected type of %s to be int", k))
+			es = append(es, fmt.Errorf("expected type of %q to be int", k))
 			return
 		}
 
@@ -46,10 +46,14 @@ func IntBetweenAndNot(min, max, not int) schema.SchemaValidateFunc {
 	}
 }
 
+func UrlIsHttp(i interface{}, k string) (ws []string, errors []error) {
+
+}
+
 func Url(i interface{}, k string) (ws []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
 		return
 	}
 

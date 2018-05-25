@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/supress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,6 +31,8 @@ func resourceArmSchedulerJob() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		CustomizeDiff: resourceArmSchedulerJobCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -105,7 +107,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 						"frequency": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: supress.CaseDifference,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(scheduler.Minute),
 								string(scheduler.Hour),
@@ -135,7 +137,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Computed:         true,
-							DiffSuppressFunc: supress.Rfc3339Time,
+							DiffSuppressFunc: suppress.Rfc3339Time,
 							ValidateFunc:     validate.Rfc3339Time,
 						},
 
@@ -229,7 +231,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true, //defaults to now in create function
-				DiffSuppressFunc: supress.Rfc3339Time,
+				DiffSuppressFunc: suppress.Rfc3339Time,
 				ValidateFunc:     validate.Rfc3339Time, //times in the past just start immediately
 			},
 
@@ -237,38 +239,14 @@ func resourceArmSchedulerJob() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: supress.CaseDifference,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(scheduler.JobStateEnabled),
 					string(scheduler.JobStateDisabled),
 					// JobStateFaulted & JobStateCompleted are also possible, but silly
 				}, true),
 			},
-
-			//status
-			"execution_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"failure_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"faulted_count": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"last_execution_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"next_execution_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
-
-		CustomizeDiff: resourceArmSchedulerJobCustomizeDiff,
 	}
 }
 
@@ -280,16 +258,14 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 			// both so we can determine the type and as azure requires it
 			"url": {
 				Type:             schema.TypeString,
-				Optional:         true,
-				DiffSuppressFunc: supress.CaseDifference,
+				Required:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validate.Url,
 			},
 
 			"method": {
 				Type:     schema.TypeString,
-				Optional: true,
-				//DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				Default: "Get", //todo have a default or force user to pick?
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Get", "Put", "Post", "Delete",
 				}, true),

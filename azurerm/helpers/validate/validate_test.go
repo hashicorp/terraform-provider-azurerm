@@ -37,7 +37,7 @@ func TestInternal_ValidateRFC3339Time(t *testing.T) {
 		_, errors := Rfc3339Time(tc.Time, "test")
 
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected Rfc3339Time to have an error for '%s'", tc.Time)
+			t.Fatalf("Expected Rfc3339Time to have an error for '%q'", tc.Time)
 		}
 	}
 }

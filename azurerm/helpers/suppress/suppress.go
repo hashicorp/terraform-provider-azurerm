@@ -1,10 +1,10 @@
-package supress
+package suppress
 
 import (
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"strings"
 )
 
 func CaseDifference(_, old, new string, _ *schema.ResourceData) bool {

@@ -1,4 +1,4 @@
-package supress
+package suppress
 
 import (
 	"testing"
@@ -39,7 +39,7 @@ func TestInternal_Suppress_CaseDifference(t *testing.T) {
 
 	for _, tc := range cases {
 		if CaseDifference("test", tc.StringA, tc.StringB, nil) != tc.Suppress {
-			t.Fatalf("Expected CaseDifference to return %t for '%s' == '%s'", tc.Suppress, tc.StringA, tc.StringB)
+			t.Fatalf("Expected CaseDifference to return %t for '%q' == '%q'", tc.Suppress, tc.StringA, tc.StringB)
 		}
 	}
 }
@@ -84,7 +84,7 @@ func TestInternal_Supress_Rfc3339Time(t *testing.T) {
 
 	for _, tc := range cases {
 		if Rfc3339Time("test", tc.TimeA, tc.TimeB, nil) != tc.Suppress {
-			t.Fatalf("Expected Rfc3339Time to return %t for '%s' == '%s'", tc.Suppress, tc.TimeA, tc.TimeB)
+			t.Fatalf("Expected Rfc3339Time to return %t for '%q' == '%q'", tc.Suppress, tc.TimeA, tc.TimeB)
 		}
 	}
 }
