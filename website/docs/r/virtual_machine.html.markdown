@@ -491,8 +491,13 @@ output "principal_id" {
 `os_profile_linux_config` supports the following:
 
 * `disable_password_authentication` - (Required) Specifies whether password authentication should be disabled. If set to `false`, an `admin_password` must be specified.
-* `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine.
-
+* `ssh_keys` - (Optional) Specifies a collection of `path` and `key_data` to be placed on the virtual machine. The `path` attribute sets the path of the destination file on the virtual machine, and the `key_data`-attribute sets the content of the destination file. An example of a working configuration (`<user>` needs to be replaced with the actual username):
+```hcl
+    ssh_keys {
+      key_data = "${file("/home/<user>/.ssh/authorized_keys")}"
+      path = "/home/<user>/.ssh/authorized_keys"
+    }
+```
 ~> **Note:** Please note that the only allowed `path` is `/home/<username>/.ssh/authorized_keys` due to a limitation of Azure.
 
 `os_profile_secrets` supports the following:
