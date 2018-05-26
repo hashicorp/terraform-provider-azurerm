@@ -605,9 +605,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", name, storageContainerName, storageAccountName, err)
 	}
-	if blob.Properties.ContentType != "" {
-		d.Set("content_type", blob.Properties.ContentType)
-	}
+	d.Set("content_type", blob.Properties.ContentType)
 
 	url := blob.GetURL()
 	if url == "" {
