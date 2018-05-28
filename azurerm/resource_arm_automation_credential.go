@@ -57,7 +57,6 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	client.ResourceGroupName = resGroup
 	accName := d.Get("account_name").(string)
 	user := d.Get("username").(string)
 	password := d.Get("password").(string)
@@ -72,12 +71,12 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 		Name: &name,
 	}
 
-	_, err := client.CreateOrUpdate(ctx, accName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, accName, name)
+	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		return err
 	}
@@ -99,11 +98,10 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["credentials"]
 
-	resp, err := client.Get(ctx, accName, name)
+	resp, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -133,11 +131,10 @@ func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["credentials"]
 
-	resp, err := client.Delete(ctx, accName, name)
+	resp, err := client.Delete(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil

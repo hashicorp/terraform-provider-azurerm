@@ -230,10 +230,6 @@ resource "azurerm_key_vault" "test" {
       "set",
     ]
   }
-
-  tags {
-    environment = "Production"
-  }
 }
 `, rInt, location, rInt)
 }

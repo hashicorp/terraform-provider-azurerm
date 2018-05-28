@@ -6,7 +6,7 @@ description: |-
   Create a LoadBalancer Backend Address Pool.
 ---
 
-# azurerm\_lb\_backend\_address\_pool
+# azurerm_lb_backend_address_pool
 
 Create a LoadBalancer Backend Address Pool.
 

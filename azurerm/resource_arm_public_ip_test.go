@@ -10,42 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestResourceAzureRMPublicIpAllocation_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "Random",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Static",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Dynamic",
-			ErrCount: 0,
-		},
-		{
-			Value:    "STATIC",
-			ErrCount: 0,
-		},
-		{
-			Value:    "static",
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validatePublicIpAllocation(tc.Value, "azurerm_public_ip")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM Public IP allocation to trigger a validation error")
-		}
-	}
-}
-
 func TestResourceAzureRMPublicIpDomainNameLabel_validation(t *testing.T) {
 	cases := []struct {
 		Value    string
@@ -94,6 +58,30 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 					testCheckAzureRMPublicIpExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+	ri := acctest.RandInt()
+	dnl := fmt.Sprintf("acctestdnl-%d", ri)
+	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation(), dnl)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "public_ip_address_allocation", "static"),
+					resource.TestCheckResourceAttr(resourceName, "domain_name_label", dnl),
 				),
 			},
 		},
@@ -332,17 +320,54 @@ func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
 func testAccAzureRMPublicIPStatic_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG-%d"
+    name     = "acctestRG-%d"
     location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-    name = "acctestpublicip-%d"
-    location = "${azurerm_resource_group.test.location}"
+    name                = "acctestpublicip-%d"
+    location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
+
     public_ip_address_allocation = "static"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_basic_withZone(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name                         = "acctestpublicip-%d"
+    location                     = "${azurerm_resource_group.test.location}"
+    resource_group_name          = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation = "static"
+
+    zones = ["1"]
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPublicIPStatic_basic_withDNSLabel(rInt int, location, dnsNameLabel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name        = "acctestRG-%d"
+    location    = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+    name                            = "acctestpublicip-%d"
+    location                        = "${azurerm_resource_group.test.location}"
+    resource_group_name             = "${azurerm_resource_group.test.name}"
+    public_ip_address_allocation    = "static"
+
+    domain_name_label = "%s"
+}
+`, rInt, location, rInt, dnsNameLabel)
 }
 
 func testAccAzureRMPublicIPStatic_standard(rInt int, location string) string {

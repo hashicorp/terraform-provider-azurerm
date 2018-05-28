@@ -44,10 +44,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"version": {
@@ -83,8 +79,9 @@ func resourceArmFunctionApp() *schema.Resource {
 							Required: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -108,9 +105,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			// TODO: (tombuildsstuff) support Update once the API is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/1697
-			"tags": tagsForceNewSchema(),
+			"tags": tagsSchema(),
 
 			"default_hostname": {
 				Type:     schema.TypeString,
@@ -120,6 +115,18 @@ func resourceArmFunctionApp() *schema.Resource {
 			"outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"client_affinity_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"site_config": {
@@ -134,6 +141,16 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"use_32_bit_worker_process": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"websockets_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -143,15 +160,32 @@ func resourceArmFunctionApp() *schema.Resource {
 
 func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appServicesClient
+	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
 
 	name := d.Get("name").(string)
+
+	availabilityRequest := web.ResourceNameAvailabilityRequest{
+		Name: utils.String(name),
+		Type: web.CheckNameResourceTypesMicrosoftWebsites,
+	}
+	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
+	if err != nil {
+		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+	}
+
+	if !*available.NameAvailable {
+		return fmt.Errorf("The name %q used for the Function App needs to be globally unique and isn't available: %s", name, *available.Message)
+	}
+
 	resGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	kind := "functionapp"
 	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
+	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	siteConfig := expandFunctionAppSiteConfig(d)
@@ -162,18 +196,15 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     expandTags(tags),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID: utils.String(appServicePlanID),
-			Enabled:      utils.Bool(enabled),
-			SiteConfig:   &siteConfig,
+			ServerFarmID:          utils.String(appServicePlanID),
+			Enabled:               utils.Bool(enabled),
+			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			HTTPSOnly:             utils.Bool(httpsOnly),
+			SiteConfig:            &siteConfig,
 		},
 	}
 
-	skipDNSRegistration := false
-	forceDNSRegistration := false
-	skipCustomDomainVerification := true
-	ttlInSeconds := "60"
-	ctx := meta.(*ArmClient).StopContext
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
+	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
 	}
@@ -208,16 +239,48 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	if d.HasChange("app_settings") || d.HasChange("version") {
-		appSettings := expandFunctionAppAppSettings(d)
-		settings := web.StringDictionary{
-			Properties: appSettings,
-		}
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+	kind := "functionapp"
+	appServicePlanID := d.Get("app_service_plan_id").(string)
+	enabled := d.Get("enabled").(bool)
+	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
+	tags := d.Get("tags").(map[string]interface{})
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig.AppSettings = &basicAppSettings
 
-		_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
-		if err != nil {
-			return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
-		}
+	siteEnvelope := web.Site{
+		Kind:     &kind,
+		Location: &location,
+		Tags:     expandTags(tags),
+		SiteProperties: &web.SiteProperties{
+			ServerFarmID:          utils.String(appServicePlanID),
+			Enabled:               utils.Bool(enabled),
+			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			HTTPSOnly:             utils.Bool(httpsOnly),
+			SiteConfig:            &siteConfig,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	if err != nil {
+		return err
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	appSettings := expandFunctionAppAppSettings(d)
+	settings := web.StringDictionary{
+		Properties: appSettings,
+	}
+
+	_, err = client.UpdateApplicationSettings(ctx, resGroup, name, settings)
+	if err != nil {
+		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
 	}
 
 	if d.HasChange("site_config") {
@@ -281,13 +344,17 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.SiteProperties; props != nil {
 		d.Set("app_service_plan_id", props.ServerFarmID)
 		d.Set("enabled", props.Enabled)
 		d.Set("default_hostname", props.DefaultHostName)
+		d.Set("https_only", props.HTTPSOnly)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
+		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
@@ -337,9 +404,8 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	skipDNSRegistration := true
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err
@@ -369,12 +435,12 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair 
 	}
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData) *map[string]*string {
+func expandFunctionAppAppSettings(d *schema.ResourceData) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
 	basicAppSettings := getBasicFunctionAppAppSettings(d)
 	for _, p := range basicAppSettings {
-		(*output)[*p.Name] = p.Value
+		output[*p.Name] = p.Value
 	}
 
 	return output
@@ -394,6 +460,14 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.AlwaysOn = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["use_32_bit_worker_process"]; ok {
+		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["websockets_enabled"]; ok {
+		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig
 }
 
@@ -410,11 +484,19 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 		result["always_on"] = *input.AlwaysOn
 	}
 
+	if input.Use32BitWorkerProcess != nil {
+		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
+	}
+
+	if input.WebSocketsEnabled != nil {
+		result["websockets_enabled"] = *input.WebSocketsEnabled
+	}
+
 	results = append(results, result)
 	return results
 }
 
-func expandFunctionAppConnectionStrings(d *schema.ResourceData) *map[string]*web.ConnStringValueTypePair {
+func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").([]interface{})
 	output := make(map[string]*web.ConnStringValueTypePair, len(input))
 
@@ -431,13 +513,13 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) *map[string]*web
 		}
 	}
 
-	return &output
+	return output
 }
 
-func flattenFunctionAppConnectionStrings(input *map[string]*web.ConnStringValueTypePair) interface{} {
+func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range *input {
+	for k, v := range input {
 		result := make(map[string]interface{}, 0)
 		result["name"] = k
 		result["type"] = string(v.Type)

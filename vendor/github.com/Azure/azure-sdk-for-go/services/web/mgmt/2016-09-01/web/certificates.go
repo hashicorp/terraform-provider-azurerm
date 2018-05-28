@@ -41,9 +41,10 @@ func NewCertificatesClientWithBaseURI(baseURI string, subscriptionID string) Cer
 }
 
 // CreateOrUpdate create or update a certificate.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the certificate.
-// certificateEnvelope is details of certificate, if it exists already.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the certificate.
+// certificateEnvelope - details of certificate, if it exists already.
 func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, name string, certificateEnvelope Certificate) (result Certificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -53,7 +54,7 @@ func (client CertificatesClient) CreateOrUpdate(ctx context.Context, resourceGro
 		{TargetValue: certificateEnvelope,
 			Constraints: []validation.Constraint{{Target: "certificateEnvelope.CertificateProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "certificateEnvelope.CertificateProperties.Password", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.CertificatesClient", "CreateOrUpdate")
+		return result, validation.NewError("web.CertificatesClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, name, certificateEnvelope)
@@ -91,7 +92,7 @@ func (client CertificatesClient) CreateOrUpdatePreparer(ctx context.Context, res
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/certificates/{name}", pathParameters),
@@ -121,15 +122,16 @@ func (client CertificatesClient) CreateOrUpdateResponder(resp *http.Response) (r
 }
 
 // Delete delete a certificate.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the certificate.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the certificate.
 func (client CertificatesClient) Delete(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.CertificatesClient", "Delete")
+		return result, validation.NewError("web.CertificatesClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, name)
@@ -194,15 +196,16 @@ func (client CertificatesClient) DeleteResponder(resp *http.Response) (result au
 }
 
 // Get get a certificate.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the certificate.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the certificate.
 func (client CertificatesClient) Get(ctx context.Context, resourceGroupName string, name string) (result Certificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.CertificatesClient", "Get")
+		return result, validation.NewError("web.CertificatesClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, name)
@@ -358,15 +361,15 @@ func (client CertificatesClient) ListComplete(ctx context.Context) (result Certi
 }
 
 // ListByResourceGroup get all certificates in a resource group.
-//
-// resourceGroupName is name of the resource group to which the resource belongs.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
 func (client CertificatesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result CertificateCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.CertificatesClient", "ListByResourceGroup")
+		return result, validation.NewError("web.CertificatesClient", "ListByResourceGroup", err.Error())
 	}
 
 	result.fn = client.listByResourceGroupNextResults
@@ -459,16 +462,17 @@ func (client CertificatesClient) ListByResourceGroupComplete(ctx context.Context
 }
 
 // Update create or update a certificate.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the certificate.
-// certificateEnvelope is details of certificate, if it exists already.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the certificate.
+// certificateEnvelope - details of certificate, if it exists already.
 func (client CertificatesClient) Update(ctx context.Context, resourceGroupName string, name string, certificateEnvelope CertificatePatchResource) (result Certificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.CertificatesClient", "Update")
+		return result, validation.NewError("web.CertificatesClient", "Update", err.Error())
 	}
 
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, name, certificateEnvelope)
@@ -506,7 +510,7 @@ func (client CertificatesClient) UpdatePreparer(ctx context.Context, resourceGro
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/certificates/{name}", pathParameters),

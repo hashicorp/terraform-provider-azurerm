@@ -109,7 +109,6 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	client.ResourceGroupName = resGroup
 
 	accName := d.Get("account_name").(string)
 	freqstr := d.Get("frequency").(string)
@@ -143,12 +142,12 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, accName, name, parameters)
+	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, accName, name)
+	read, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		return err
 	}
@@ -170,11 +169,10 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["schedules"]
 
-	resp, err := client.Get(ctx, accName, name)
+	resp, err := client.Get(ctx, resGroup, accName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -204,11 +202,10 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 	resGroup := id.ResourceGroup
-	client.ResourceGroupName = resGroup
 	accName := id.Path["automationAccounts"]
 	name := id.Path["schedules"]
 
-	resp, err := client.Delete(ctx, accName, name)
+	resp, err := client.Delete(ctx, resGroup, accName, name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {

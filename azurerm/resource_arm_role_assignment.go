@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -47,6 +48,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"role_definition_id"},
+				ValidateFunc:  validateRoleDefinitionName,
 			},
 
 			"principal_id": {
@@ -70,13 +72,14 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("role_definition_id"); ok {
 		roleDefinitionId = v.(string)
 	} else if v, ok := d.GetOk("role_definition_name"); ok {
-		filter := fmt.Sprintf("roleName eq '%s'", v.(string))
+		value := v.(string)
+		filter := fmt.Sprintf("roleName eq '%s'", value)
 		roleDefinitions, err := roleDefinitionsClient.List(ctx, "", filter)
 		if err != nil {
 			return fmt.Errorf("Error loading Role Definition List: %+v", err)
 		}
 		if len(roleDefinitions.Values()) != 1 {
-			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", name)
+			return fmt.Errorf("Error loading Role Definition List: could not find role '%s'", value)
 		}
 		roleDefinitionId = *roleDefinitions.Values()[0].ID
 	} else {
@@ -96,7 +99,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
-		Properties: &authorization.RoleAssignmentProperties{
+		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
 			RoleDefinitionID: utils.String(roleDefinitionId),
 			PrincipalID:      utils.String(principalId),
 		},
@@ -136,7 +139,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 
-	if props := resp.Properties; props != nil {
+	if props := resp.RoleAssignmentPropertiesWithScope; props != nil {
 		d.Set("scope", props.Scope)
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
@@ -160,4 +163,16 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
+	}
+
+	if ok := strings.Contains(v, "(Preview)"); ok {
+		return nil, []error{fmt.Errorf("Preview roles are not supported")}
+	}
+	return nil, nil
 }

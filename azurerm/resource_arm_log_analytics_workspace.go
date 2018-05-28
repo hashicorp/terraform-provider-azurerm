@@ -66,13 +66,15 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			},
 
 			"primary_shared_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_shared_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tagsSchema(),
@@ -86,7 +88,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics workspace creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
 	skuName := d.Get("sku").(string)
@@ -153,8 +155,11 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", resp.PortalURL)
 	if sku := resp.Sku; sku != nil {

@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -77,27 +78,41 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"azurerm_application_security_group": dataSourceArmApplicationSecurityGroup(),
-			"azurerm_app_service_plan":           dataSourceAppServicePlan(),
-			"azurerm_builtin_role_definition":    dataSourceArmBuiltInRoleDefinition(),
-			"azurerm_client_config":              dataSourceArmClientConfig(),
-			"azurerm_dns_zone":                   dataSourceArmDnsZone(),
-			"azurerm_eventhub_namespace":         dataSourceEventHubNamespace(),
-			"azurerm_image":                      dataSourceArmImage(),
-			"azurerm_key_vault_access_policy":    dataSourceArmKeyVaultAccessPolicy(),
-			"azurerm_managed_disk":               dataSourceArmManagedDisk(),
-			"azurerm_network_interface":          dataSourceArmNetworkInterface(),
-			"azurerm_network_security_group":     dataSourceArmNetworkSecurityGroup(),
-			"azurerm_platform_image":             dataSourceArmPlatformImage(),
-			"azurerm_public_ip":                  dataSourceArmPublicIP(),
-			"azurerm_resource_group":             dataSourceArmResourceGroup(),
-			"azurerm_role_definition":            dataSourceArmRoleDefinition(),
-			"azurerm_storage_account":            dataSourceArmStorageAccount(),
-			"azurerm_snapshot":                   dataSourceArmSnapshot(),
-			"azurerm_subnet":                     dataSourceArmSubnet(),
-			"azurerm_subscription":               dataSourceArmSubscription(),
-			"azurerm_virtual_network":            dataSourceArmVirtualNetwork(),
-			"azurerm_virtual_network_gateway":    dataSourceArmVirtualNetworkGateway(),
+			"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
+			"azurerm_app_service":                           dataSourceArmAppService(),
+			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
+			"azurerm_builtin_role_definition":               dataSourceArmBuiltInRoleDefinition(),
+			"azurerm_cdn_profile":                           dataSourceArmCdnProfile(),
+			"azurerm_client_config":                         dataSourceArmClientConfig(),
+			"azurerm_cosmosdb_account":                      dataSourceArmCosmosDBAccount(),
+			"azurerm_data_lake_store":                       dataSourceArmDataLakeStoreAccount(),
+			"azurerm_dns_zone":                              dataSourceArmDnsZone(),
+			"azurerm_eventhub_namespace":                    dataSourceEventHubNamespace(),
+			"azurerm_image":                                 dataSourceArmImage(),
+			"azurerm_key_vault":                             dataSourceArmKeyVault(),
+			"azurerm_key_vault_access_policy":               dataSourceArmKeyVaultAccessPolicy(),
+			"azurerm_key_vault_secret":                      dataSourceArmKeyVaultSecret(),
+			"azurerm_kubernetes_cluster":                    dataSourceArmKubernetesCluster(),
+			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
+			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
+			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
+			"azurerm_platform_image":                        dataSourceArmPlatformImage(),
+			"azurerm_public_ip":                             dataSourceArmPublicIP(),
+			"azurerm_public_ips":                            dataSourceArmPublicIPs(),
+			"azurerm_recovery_services_vault":               dataSourceArmRecoveryServicesVault(),
+			"azurerm_resource_group":                        dataSourceArmResourceGroup(),
+			"azurerm_role_definition":                       dataSourceArmRoleDefinition(),
+			"azurerm_route_table":                           dataSourceArmRouteTable(),
+			"azurerm_scheduler_job_collection":              dataSourceArmSchedulerJobCollection(),
+			"azurerm_snapshot":                              dataSourceArmSnapshot(),
+			"azurerm_storage_account":                       dataSourceArmStorageAccount(),
+			"azurerm_storage_account_sas":                   dataSourceArmStorageAccountSharedAccessSignature(),
+			"azurerm_subnet":                                dataSourceArmSubnet(),
+			"azurerm_subscription":                          dataSourceArmSubscription(),
+			"azurerm_subscriptions":                         dataSourceArmSubscriptions(),
+			"azurerm_traffic_manager_geographical_location": dataSourceArmTrafficManagerGeographicalLocation(),
+			"azurerm_virtual_network":                       dataSourceArmVirtualNetwork(),
+			"azurerm_virtual_network_gateway":               dataSourceArmVirtualNetworkGateway(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -107,6 +122,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_app_service":                         resourceArmAppService(),
 			"azurerm_app_service_plan":                    resourceArmAppServicePlan(),
 			"azurerm_app_service_active_slot":             resourceArmAppServiceActiveSlot(),
+			"azurerm_app_service_custom_hostname_binding": resourceArmAppServiceCustomHostnameBinding(),
 			"azurerm_app_service_slot":                    resourceArmAppServiceSlot(),
 			"azurerm_automation_account":                  resourceArmAutomationAccount(),
 			"azurerm_automation_credential":               resourceArmAutomationCredential(),
@@ -119,6 +135,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_container_service":                   resourceArmContainerService(),
 			"azurerm_container_group":                     resourceArmContainerGroup(),
 			"azurerm_cosmosdb_account":                    resourceArmCosmosDBAccount(),
+			"azurerm_data_lake_store":                     resourceArmDataLakeStore(),
 			"azurerm_dns_a_record":                        resourceArmDnsARecord(),
 			"azurerm_dns_aaaa_record":                     resourceArmDnsAAAARecord(),
 			"azurerm_dns_cname_record":                    resourceArmDnsCNameRecord(),
@@ -134,8 +151,11 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_consumer_group":             resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":                  resourceArmEventHubNamespace(),
 			"azurerm_express_route_circuit":               resourceArmExpressRouteCircuit(),
+			"azurerm_express_route_circuit_authorization": resourceArmExpressRouteCircuitAuthorization(),
+			"azurerm_express_route_circuit_peering":       resourceArmExpressRouteCircuitPeering(),
 			"azurerm_function_app":                        resourceArmFunctionApp(),
 			"azurerm_image":                               resourceArmImage(),
+			"azurerm_iothub":                              resourceArmIotHub(),
 			"azurerm_key_vault":                           resourceArmKeyVault(),
 			"azurerm_key_vault_certificate":               resourceArmKeyVaultCertificate(),
 			"azurerm_key_vault_key":                       resourceArmKeyVaultKey(),
@@ -148,6 +168,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_lb_probe":                            resourceArmLoadBalancerProbe(),
 			"azurerm_lb_rule":                             resourceArmLoadBalancerRule(),
 			"azurerm_local_network_gateway":               resourceArmLocalNetworkGateway(),
+			"azurerm_log_analytics_solution":              resourceArmLogAnalyticsSolution(),
 			"azurerm_log_analytics_workspace":             resourceArmLogAnalyticsWorkspace(),
 			"azurerm_managed_disk":                        resourceArmManagedDisk(),
 			"azurerm_management_lock":                     resourceArmManagementLock(),
@@ -160,11 +181,16 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_network_security_group":              resourceArmNetworkSecurityGroup(),
 			"azurerm_network_security_rule":               resourceArmNetworkSecurityRule(),
 			"azurerm_network_watcher":                     resourceArmNetworkWatcher(),
+			"azurerm_packet_capture":                      resourceArmPacketCapture(),
+			"azurerm_policy_assignment":                   resourceArmPolicyAssignment(),
+			"azurerm_policy_definition":                   resourceArmPolicyDefinition(),
 			"azurerm_postgresql_configuration":            resourceArmPostgreSQLConfiguration(),
 			"azurerm_postgresql_database":                 resourceArmPostgreSQLDatabase(),
 			"azurerm_postgresql_firewall_rule":            resourceArmPostgreSQLFirewallRule(),
 			"azurerm_postgresql_server":                   resourceArmPostgreSQLServer(),
 			"azurerm_public_ip":                           resourceArmPublicIp(),
+			"azurerm_relay_namespace":                     resourceArmRelayNamespace(),
+			"azurerm_recovery_services_vault":             resourceArmRecoveryServicesVault(),
 			"azurerm_redis_cache":                         resourceArmRedisCache(),
 			"azurerm_redis_firewall_rule":                 resourceArmRedisFirewallRule(),
 			"azurerm_resource_group":                      resourceArmResourceGroup(),
@@ -176,14 +202,17 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_namespace":                resourceArmServiceBusNamespace(),
 			"azurerm_servicebus_queue":                    resourceArmServiceBusQueue(),
 			"azurerm_servicebus_subscription":             resourceArmServiceBusSubscription(),
+			"azurerm_servicebus_subscription_rule":        resourceArmServiceBusSubscriptionRule(),
 			"azurerm_servicebus_topic":                    resourceArmServiceBusTopic(),
 			"azurerm_servicebus_topic_authorization_rule": resourceArmServiceBusTopicAuthorizationRule(),
 			"azurerm_snapshot":                            resourceArmSnapshot(),
+			"azurerm_scheduler_job_collection":            resourceArmSchedulerJobCollection(),
 			"azurerm_sql_database":                        resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":                     resourceArmSqlElasticPool(),
 			"azurerm_sql_firewall_rule":                   resourceArmSqlFirewallRule(),
 			"azurerm_sql_active_directory_administrator":  resourceArmSqlAdministrator(),
 			"azurerm_sql_server":                          resourceArmSqlServer(),
+			"azurerm_sql_virtual_network_rule":            resourceArmSqlVirtualNetworkRule(),
 			"azurerm_storage_account":                     resourceArmStorageAccount(),
 			"azurerm_storage_blob":                        resourceArmStorageBlob(),
 			"azurerm_storage_container":                   resourceArmStorageContainer(),
@@ -308,8 +337,10 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.ContainerInstance":   {},
 		"Microsoft.ContainerRegistry":   {},
 		"Microsoft.ContainerService":    {},
+		"Microsoft.DataLakeStore":       {},
 		"Microsoft.DBforMySQL":          {},
 		"Microsoft.DBforPostgreSQL":     {},
+		"Microsoft.Devices":             {},
 		"Microsoft.DocumentDB":          {},
 		"Microsoft.EventGrid":           {},
 		"Microsoft.EventHub":            {},
@@ -317,6 +348,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"microsoft.insights":            {},
 		"Microsoft.Network":             {},
 		"Microsoft.OperationalInsights": {},
+		"Microsoft.Relay":               {},
 		"Microsoft.Resources":           {},
 		"Microsoft.Search":              {},
 		"Microsoft.ServiceBus":          {},
@@ -368,16 +400,9 @@ func registerAzureResourceProvidersWithSubscription(ctx context.Context, provide
 // armMutexKV is the instance of MutexKV for ARM resources
 var armMutexKV = mutexkv.NewMutexKV()
 
-// Resource group names can be capitalised, but we store them in lowercase.
-// Use a custom diff function to avoid creation of new resources.
-func resourceAzurermResourceGroupNameDiffSuppress(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
-}
-
-// ignoreCaseDiffSuppressFunc is a DiffSuppressFunc from helper/schema that is
-// used to ignore any case-changes in a return value.
+// Deprecated - use `azschema.IgnoreCaseDiffSuppressFunc` instead
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
+	return azSchema.IgnoreCaseDiffSuppressFunc(k, old, new, d)
 }
 
 // ignoreCaseStateFunc is a StateFunc from helper/schema that converts the

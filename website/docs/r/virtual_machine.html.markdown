@@ -6,7 +6,7 @@ description: |-
   Create a Virtual Machine.
 ---
 
-# azurerm\_virtual\_machine
+# azurerm_virtual_machine
 
 Create a virtual machine.
 
@@ -179,7 +179,7 @@ resource "azurerm_virtual_machine" "test" {
   # Uncomment this line to delete the data disks automatically when deleting the VM
   # delete_data_disks_on_termination = true
 
-  storage_profile_image_reference {
+  storage_image_reference {
     id="${data.azurerm_image.image.id}"
   }
 
@@ -349,13 +349,16 @@ The following arguments are supported:
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 * `identity` - (Optional) An identity block as documented below.
 
-* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. The only allowable value, if supplied, is `Windows_Server`.
+* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 * `os_profile_windows_config` - (Required, when a Windows machine) A Windows config block as documented below.
 * `os_profile_linux_config` - (Required, when a Linux machine) A Linux config block as documented below.
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 * `network_interface_ids` - (Required) Specifies the list of resource IDs for the network interfaces associated with the virtual machine.
 * `primary_network_interface_id` - (Optional) Specifies the resource ID for the primary network interface associated with the virtual machine.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `zones` - (Optional) A collection containing the availability zone to allocate the Virtual Machine in.
+
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 
 For more information on the different example configurations, please check out the [azure documentation](https://msdn.microsoft.com/en-us/library/mt163591.aspx#Anchor_2)
 

@@ -85,6 +85,8 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
+						"zones": singleZonesSchema(),
 					},
 				},
 			},
@@ -125,7 +127,7 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] preparing arguments for Azure ARM LoadBalancer creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
@@ -200,7 +202,6 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", loadBalancer.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	if location := loadBalancer.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -290,9 +291,11 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
+		zones := expandZones(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name: &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
+			Zones: zones,
 		}
 
 		frontEndConfigs = append(frontEndConfigs, frontEndConfig)
@@ -306,6 +309,14 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 	for _, config := range *ipConfigs {
 		ipConfig := make(map[string]interface{})
 		ipConfig["name"] = *config.Name
+
+		zones := make([]string, 0)
+		if zs := config.Zones; zs != nil {
+			for _, zone := range *zs {
+				zones = append(zones, zone)
+			}
+		}
+		ipConfig["zones"] = zones
 
 		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
 			ipConfig["private_ip_address_allocation"] = props.PrivateIPAllocationMethod

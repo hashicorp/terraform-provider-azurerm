@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_network_gateway"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
-  Creates a new virtual network gateway to establish secure, cross-premises connectivity.
+  Manages a new virtual network gateway to establish secure, cross-premises connectivity.
 ---
 
 # azurerm_virtual_network_gateway
 
-Creates a new Virtual Network Gateway to establish secure, cross-premises connectivity.
+Manages a new Virtual Network Gateway to establish secure, cross-premises connectivity.
 
 -> **Note:** Please be aware that provisioning a Virtual Network Gateway takes a long time (between 30 minutes and 1 hour)
 
@@ -195,7 +195,7 @@ The `bgp_settings` block supports:
 * `peering_address` - (Optional) The BGP peer IP address of the virtual network
     gateway. This address is needed to configure the created gateway as a BGP Peer
     on the on-premises VPN devices. The IP address must be part of the subnet of
-    the Virtual Network Gateway.
+    the Virtual Network Gateway. Changing this forces a new resource to be created.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.

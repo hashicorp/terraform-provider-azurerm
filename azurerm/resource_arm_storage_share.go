@@ -44,11 +44,12 @@ func resourceArmStorageShare() *schema.Resource {
 }
 func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -80,11 +81,12 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -118,11 +120,12 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmStorageShareExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return false, err
 	}
@@ -151,11 +154,12 @@ func resourceArmStorageShareExists(d *schema.ResourceData, meta interface{}) (bo
 
 func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}

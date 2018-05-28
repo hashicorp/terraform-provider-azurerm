@@ -24,6 +24,7 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // DataMaskingPoliciesClient is the the Azure SQL Database management API provides a RESTful set of web services that
 // interact with Azure SQL Database services to manage your databases. The API enables you to create, retrieve, update,
 // and delete databases.
@@ -31,24 +32,26 @@ type DataMaskingPoliciesClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewDataMaskingPoliciesClient creates an instance of the DataMaskingPoliciesClient client.
 func NewDataMaskingPoliciesClient(subscriptionID string) DataMaskingPoliciesClient {
 	return NewDataMaskingPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewDataMaskingPoliciesClientWithBaseURI creates an instance of the DataMaskingPoliciesClient client.
 func NewDataMaskingPoliciesClientWithBaseURI(baseURI string, subscriptionID string) DataMaskingPoliciesClient {
 	return DataMaskingPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdate creates or updates a database data masking policy
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database. dataMaskingPolicyName is the name of the database for which the data masking rule applies. parameters is
-// parameters for creating or updating a data masking policy.
-func (client DataMaskingPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, dataMaskingPolicyName string, parameters DataMaskingPolicy) (result DataMaskingPolicy, err error) {
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, databaseName, dataMaskingPolicyName, parameters)
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database. parameters is parameters for creating or updating a data masking policy.
+func (client DataMaskingPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters DataMaskingPolicy) (result DataMaskingPolicy, err error) {
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, databaseName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DataMaskingPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -69,11 +72,12 @@ func (client DataMaskingPoliciesClient) CreateOrUpdate(ctx context.Context, reso
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client DataMaskingPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, dataMaskingPolicyName string, parameters DataMaskingPolicy) (*http.Request, error) {
+func (client DataMaskingPoliciesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, parameters DataMaskingPolicy) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":          autorest.Encode("path", databaseName),
-		"dataMaskingPolicyName": autorest.Encode("path", dataMaskingPolicyName),
+		"dataMaskingPolicyName": autorest.Encode("path", "Default"),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"serverName":            autorest.Encode("path", serverName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
@@ -85,7 +89,7 @@ func (client DataMaskingPoliciesClient) CreateOrUpdatePreparer(ctx context.Conte
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/databases/{databaseName}/dataMaskingPolicies/{dataMaskingPolicyName}", pathParameters),
@@ -94,6 +98,7 @@ func (client DataMaskingPoliciesClient) CreateOrUpdatePreparer(ctx context.Conte
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataMaskingPoliciesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -101,6 +106,7 @@ func (client DataMaskingPoliciesClient) CreateOrUpdateSender(req *http.Request) 
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client DataMaskingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result DataMaskingPolicy, err error) {
@@ -114,13 +120,14 @@ func (client DataMaskingPoliciesClient) CreateOrUpdateResponder(resp *http.Respo
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // Get gets a database data masking policy.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database. dataMaskingPolicyName is the name of the database for which the data masking rule applies.
-func (client DataMaskingPoliciesClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string, dataMaskingPolicyName string) (result DataMaskingPolicy, err error) {
-	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, databaseName, dataMaskingPolicyName)
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database.
+func (client DataMaskingPoliciesClient) Get(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result DataMaskingPolicy, err error) {
+	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, databaseName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.DataMaskingPoliciesClient", "Get", nil, "Failure preparing request")
 		return
@@ -141,11 +148,12 @@ func (client DataMaskingPoliciesClient) Get(ctx context.Context, resourceGroupNa
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetPreparer prepares the Get request.
-func (client DataMaskingPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, dataMaskingPolicyName string) (*http.Request, error) {
+func (client DataMaskingPoliciesClient) GetPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":          autorest.Encode("path", databaseName),
-		"dataMaskingPolicyName": autorest.Encode("path", dataMaskingPolicyName),
+		"dataMaskingPolicyName": autorest.Encode("path", "Default"),
 		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"serverName":            autorest.Encode("path", serverName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
@@ -164,6 +172,7 @@ func (client DataMaskingPoliciesClient) GetPreparer(ctx context.Context, resourc
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DataMaskingPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -171,6 +180,7 @@ func (client DataMaskingPoliciesClient) GetSender(req *http.Request) (*http.Resp
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client DataMaskingPoliciesClient) GetResponder(resp *http.Response) (result DataMaskingPolicy, err error) {

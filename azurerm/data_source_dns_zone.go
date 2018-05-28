@@ -1,8 +1,11 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,7 +20,11 @@ func dataSourceArmDnsZone() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 
 			"number_of_record_sets": {
 				Type:     schema.TypeString,
@@ -48,13 +55,29 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+	var (
+		resp dns.Zone
+		err  error
+	)
+	if resourceGroup != "" {
+		resp, err = client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error: DNS Zone %q (Resource Group %q) was not found", name, resourceGroup)
+			}
+			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
+	} else {
+		rgClient := meta.(*ArmClient).resourceGroupsClient
+
+		resp, resourceGroup, err = findZone(client, rgClient, ctx, name)
+		if err != nil {
+			return err
+		}
+
+		if resourceGroup == "" {
+			return fmt.Errorf("Error: DNS Zone %q was not found", name)
+		}
 	}
 
 	d.SetId(*resp.ID)
@@ -79,4 +102,28 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
+}
+
+func findZone(client dns.ZonesClient, rgClient resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {
+	groups, err := rgClient.List(ctx, "", nil)
+	if err != nil {
+		return dns.Zone{}, "", fmt.Errorf("Error listing Resource Groups: %+v", err)
+	}
+
+	for _, g := range groups.Values() {
+		resourceGroup := *g.Name
+
+		zones, err := client.ListByResourceGroup(ctx, resourceGroup, nil)
+		if err != nil {
+			return dns.Zone{}, "", fmt.Errorf("Error listing DNS Zones (Resource Group: %s): %+v", resourceGroup, err)
+		}
+
+		for _, z := range zones.Values() {
+			if *z.Name == name {
+				return z, resourceGroup, nil
+			}
+		}
+	}
+
+	return dns.Zone{}, "", nil
 }

@@ -3,12 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_profile"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-profile"
 description: |-
-  Creates a Traffic Manager Profile.
+  Manages a Traffic Manager Profile.
+
 ---
 
-# azurerm\_traffic\_manager\_profile
+# azurerm_traffic_manager_profile
 
-Creates a Traffic Manager Profile to which multiple endpoints can be attached.
+Manages a Traffic Manager Profile to which multiple endpoints can be attached.
 
 ## Example Usage
 
@@ -63,11 +64,10 @@ The following arguments are supported:
 
 * `traffic_routing_method` - (Required) Specifies the algorithm used to route
     traffic, possible values are:
-    - `Performance`- Traffic is routed via the User's closest Endpoint
-    - `Weighted` - Traffic is spread across Endpoints proportional to their
-        `weight` value.
-    - `Priority` - Traffic is routed to the Endpoint with the lowest
-        `priority` value.
+    - `Geographic` - Traffic is routed based on Geographic regions specified in the Endpoint.
+    - `Performance` - Traffic is routed via the User's closest Endpoint
+    - `Weighted` - Traffic is spread across Endpoints proportional to their `weight` value.
+    - `Priority` - Traffic is routed to the Endpoint with the lowest `priority` value.
 
 * `dns_config` - (Required) This block specifies the DNS configuration of the
     Profile, it supports the fields documented below.
@@ -89,7 +89,7 @@ The `dns_config` block supports:
 The `monitor_config` block supports:
 
 * `protocol` - (Required) The protocol used by the monitoring checks, supported
-    values are `HTTP`, `HTTPS` and `TCP``.
+    values are `HTTP`, `HTTPS` and `TCP`.
 
 * `port` - (Required) The port number used by the monitoring checks.
 

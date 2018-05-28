@@ -13,6 +13,8 @@ Terraform supports authenticating to Azure through a Service Principal or the Az
 
 We recommend [using a Service Principal when running in a shared environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and authenticating via the Azure CLI when you're running Terraform locally.
 
+~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
+
 When authenticating via the Azure CLI, Terraform will automatically connect to the Default Subscription - this can be changed by using the Azure CLI - and is documented below.
 
 ## Configuring the Azure CLI
@@ -34,6 +36,8 @@ Firstly, login to the Azure CLI using:
 ```shell
 $ az login
 ```
+
+~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
 
 This will prompt you to open a web browser, as shown below:
 

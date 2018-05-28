@@ -6,7 +6,7 @@ import (
 
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2016-04-01/redis"
+	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,6 +17,9 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 		Read:   resourceArmRedisFirewallRuleRead,
 		Update: resourceArmRedisFirewallRuleCreateUpdate,
 		Delete: resourceArmRedisFirewallRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -58,8 +61,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	startIP := d.Get("start_ip").(string)
 	endIP := d.Get("end_ip").(string)
 
-	parameters := redis.FirewallRule{
-		Name: &name,
+	parameters := redis.FirewallRuleCreateParameters{
 		FirewallRuleProperties: &redis.FirewallRuleProperties{
 			StartIP: utils.String(startIP),
 			EndIP:   utils.String(endIP),

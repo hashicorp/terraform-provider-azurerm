@@ -24,6 +24,7 @@ import (
 	"net/http"
 )
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // TransparentDataEncryptionActivitiesClient is the the Azure SQL Database management API provides a RESTful set of web
 // services that interact with Azure SQL Database services to manage your databases. The API enables you to create,
 // retrieve, update, and delete databases.
@@ -31,26 +32,28 @@ type TransparentDataEncryptionActivitiesClient struct {
 	BaseClient
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewTransparentDataEncryptionActivitiesClient creates an instance of the TransparentDataEncryptionActivitiesClient
 // client.
 func NewTransparentDataEncryptionActivitiesClient(subscriptionID string) TransparentDataEncryptionActivitiesClient {
 	return NewTransparentDataEncryptionActivitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // NewTransparentDataEncryptionActivitiesClientWithBaseURI creates an instance of the
 // TransparentDataEncryptionActivitiesClient client.
 func NewTransparentDataEncryptionActivitiesClientWithBaseURI(baseURI string, subscriptionID string) TransparentDataEncryptionActivitiesClient {
 	return TransparentDataEncryptionActivitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByConfiguration returns a database's transparent data encryption operation result.
 //
-// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from the
-// Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of the
-// database for which the transparent data encryption applies. transparentDataEncryptionName is the name of the
-// transparent data encryption configuration.
-func (client TransparentDataEncryptionActivitiesClient) ListByConfiguration(ctx context.Context, resourceGroupName string, serverName string, databaseName string, transparentDataEncryptionName string) (result TransparentDataEncryptionActivityListResult, err error) {
-	req, err := client.ListByConfigurationPreparer(ctx, resourceGroupName, serverName, databaseName, transparentDataEncryptionName)
+// resourceGroupName is the name of the resource group that contains the resource. You can obtain this value from
+// the Azure Resource Manager API or the portal. serverName is the name of the server. databaseName is the name of
+// the database for which the transparent data encryption applies.
+func (client TransparentDataEncryptionActivitiesClient) ListByConfiguration(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (result TransparentDataEncryptionActivityListResult, err error) {
+	req, err := client.ListByConfigurationPreparer(ctx, resourceGroupName, serverName, databaseName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.TransparentDataEncryptionActivitiesClient", "ListByConfiguration", nil, "Failure preparing request")
 		return
@@ -71,14 +74,15 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfiguration(ctx 
 	return
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByConfigurationPreparer prepares the ListByConfiguration request.
-func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string, transparentDataEncryptionName string) (*http.Request, error) {
+func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationPreparer(ctx context.Context, resourceGroupName string, serverName string, databaseName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"databaseName":                  autorest.Encode("path", databaseName),
 		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
 		"serverName":                    autorest.Encode("path", serverName),
 		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
-		"transparentDataEncryptionName": autorest.Encode("path", transparentDataEncryptionName),
+		"transparentDataEncryptionName": autorest.Encode("path", "current"),
 	}
 
 	const APIVersion = "2014-04-01"
@@ -94,6 +98,7 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationPrepa
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByConfigurationSender sends the ListByConfiguration request. The method will close the
 // http.Response Body if it receives an error.
 func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationSender(req *http.Request) (*http.Response, error) {
@@ -101,6 +106,7 @@ func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationSende
 		azure.DoRetryWithRegistration(client.Client))
 }
 
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql instead.
 // ListByConfigurationResponder handles the response to the ListByConfiguration request. The method always
 // closes the http.Response Body.
 func (client TransparentDataEncryptionActivitiesClient) ListByConfigurationResponder(resp *http.Response) (result TransparentDataEncryptionActivityListResult, err error) {

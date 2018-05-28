@@ -43,23 +43,27 @@ func dataSourceEventHubNamespace() *schema.Resource {
 			},
 
 			"default_primary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_secondary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_primary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_secondary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tagsForDataSourceSchema(),
@@ -77,8 +81,7 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: EventHub Namespace %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on EventHub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -87,8 +90,11 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("sku", string(resp.Sku.Name))
 	d.Set("capacity", resp.Sku.Capacity)
 

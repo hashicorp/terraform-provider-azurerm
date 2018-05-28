@@ -20,6 +20,27 @@ func getTrafficManagerFQDN(hostname string) (string, error) {
 	return fmt.Sprintf("%s.%s", hostname, dnsSuffix), nil
 }
 
+func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMTrafficManagerProfile_weighted(t *testing.T) {
 	resourceName := "azurerm_traffic_manager_profile.test"
 	ri := acctest.RandInt()
@@ -214,6 +235,32 @@ func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMTrafficManagerProfile_geographic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+    name = "acctesttmp%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    traffic_routing_method = "Geographic"
+
+    dns_config {
+        relative_name = "acctesttmp%d"
+        ttl = 30
+    }
+
+    monitor_config {
+        protocol = "https"
+        port = 443
+        path = "/"
+    }
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMTrafficManagerProfile_weighted(rInt int, location string) string {
