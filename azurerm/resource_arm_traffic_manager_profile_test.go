@@ -181,6 +181,78 @@ func TestAccAzureRMTrafficManagerProfile_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTrafficManagerProfile_performanceToGeographic(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMTrafficManagerProfile_performance(ri, testLocation())
+	postConfig := testAccAzureRMTrafficManagerProfile_geographic(ri, testLocation())
+
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Performance"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Geographic"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMTrafficManagerProfile_priorityToWeighted(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_profile.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMTrafficManagerProfile_priority(ri, testLocation())
+	postConfig := testAccAzureRMTrafficManagerProfile_weighted(ri, testLocation())
+
+	fqdn, err := getTrafficManagerFQDN(fmt.Sprintf("acctesttmp%d", ri))
+	if err != nil {
+		t.Fatalf("Error obtaining Azure Region: %+v", err)
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Priority"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "traffic_routing_method", "Weighted"),
+					resource.TestCheckResourceAttr(resourceName, "fqdn", fqdn),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMTrafficManagerProfileExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
