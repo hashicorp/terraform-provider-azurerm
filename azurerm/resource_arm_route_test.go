@@ -79,6 +79,34 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoute_removed(t *testing.T) {
+	ri := acctest.RandInt()
+	location := testLocation()
+	preConfig := testAccAzureRMRoute_basic(ri, location)
+	postConfig := testAccAzureRMRoute_basicUpdate(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRouteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteExists("azurerm_route.test"),
+				),
+			},
+
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteExists("azurerm_route.test1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -214,4 +242,25 @@ resource "azurerm_route" "test1" {
     next_hop_type = "none"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRoute_basicUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+    name = "acctestrt%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+
+    tags {
+	    environment = "Production"
+    }
+}
+
+
+`, rInt, location, rInt)
 }

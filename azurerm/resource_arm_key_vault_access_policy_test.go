@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
@@ -94,7 +96,8 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 
 func TestAccAzureRMKeyVaultAccessPolicy_policyRemoved(t *testing.T) {
 	rs := acctest.RandString(6)
-	resourceName := "azurerm_key_vault_access_policy.test"
+	policyResourceName := "azurerm_key_vault_access_policy.test"
+	vaultResourceName := "azurerm_key_vault.test"
 	preConfig := testAccAzureRMKeyVaultAccessPolicy_basic(rs, testLocation())
 	postConfig := testAccAzureRMKeyVaultAccessPolicy_policyRemoved(rs, testLocation())
 
@@ -107,16 +110,16 @@ func TestAccAzureRMKeyVaultAccessPolicy_policyRemoved(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id"),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(policyResourceName, "object_id"),
+					resource.TestCheckResourceAttr(policyResourceName, "key_permissions.0", "get"),
+					resource.TestCheckResourceAttr(policyResourceName, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(policyResourceName, "secret_permissions.1", "set"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyMissing(resourceName, "tags.policy_object_id"),
+					testCheckAzureRMKeyVaultAccessPolicyMissing(vaultResourceName, "tags.policy_object_id"),
 				),
 			},
 		},
@@ -163,6 +166,7 @@ func testCheckAzureRMKeyVaultAccessPolicyMissing(name string, policyObjectTag st
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
+		log.Printf("%s", spew.Sdump(rs))
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 
@@ -211,6 +215,7 @@ resource "azurerm_key_vault" "test" {
 
   tags {
     environment = "Production"
+    policy_object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
   }
 }
 

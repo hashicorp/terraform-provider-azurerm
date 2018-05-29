@@ -11,12 +11,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var keyVaultResourceName = "azurerm_key_vault"
+
 func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmKeyVaultAccessPolicyCreate,
 		Read:   resourceArmKeyVaultAccessPolicyRead,
 		Update: resourceArmKeyVaultAccessPolicyUpdate,
 		Delete: resourceArmKeyVaultAccessPolicyDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"vault_name": {
@@ -75,11 +80,6 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 		},
 	}
 
-	//return fmt.Errorf("Error updating Key Vault Access Policy: %+v  ApplicationID: %s", accessPolicies, d.Get("application_id").(string))
-
-	azureRMLockByName(name, keyVaultResourceName)
-	defer azureRMUnlockByName(name, keyVaultResourceName)
-
 	_, err := client.UpdateAccessPolicy(ctx, resGroup, name, action, parameters)
 	if err != nil {
 		return fmt.Errorf("Error updating Key Vault Access Policy (Key Vault %q / Resource Group %q): %+v", name, resGroup, err)
@@ -106,6 +106,9 @@ func resourceArmKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	azureRMLockByName(d.Get("vault_name").(string), keyVaultAccessPolicyResourceName)
+	defer azureRMUnlockByName(d.Get("vault_name").(string), keyVaultAccessPolicyResourceName)
+
 	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
 }
 
@@ -154,7 +157,7 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 
 func findKeyVaultAccessPolicy(objectID string, policies []map[string]interface{}) map[string]interface{} {
 	for _, policy := range policies {
-		if policy["object_id"] != nil || policy["object_id"] == objectID {
+		if policy["object_id"] != nil && policy["object_id"] == objectID {
 			return policy
 		}
 	}
@@ -166,8 +169,8 @@ func expandKeyVaultAccessPolicy(d *schema.ResourceData) keyvault.AccessPolicyEnt
 	policy := keyvault.AccessPolicyEntry{
 		Permissions: &keyvault.Permissions{
 			Certificates: expandKeyVaultAccessPolicyCertificatePermissions(d.Get("certificate_permissions").([]interface{})),
-			Keys:         expandKeyVaultAccessPolicyKeyPermissions(d.Get("certificate_permissions").([]interface{})),
-			Secrets:      expandKeyVaultAccessPolicySecretPermissions(d.Get("certificate_permissions").([]interface{})),
+			Keys:         expandKeyVaultAccessPolicyKeyPermissions(d.Get("key_permissions").([]interface{})),
+			Secrets:      expandKeyVaultAccessPolicySecretPermissions(d.Get("secret_permissions").([]interface{})),
 		},
 	}
 

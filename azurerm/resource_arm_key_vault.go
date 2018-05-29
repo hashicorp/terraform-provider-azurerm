@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
+	//"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -21,7 +22,7 @@ import (
 // https://github.com/Azure/azure-rest-api-specs/blob/master/arm-keyvault/2015-06-01/swagger/keyvault.json#L239
 var armKeyVaultSkuFamily = "A"
 
-var keyVaultResourceName = "azurerm_key_vault"
+var keyVaultAccessPolicyResourceName = "azurerm_key_vault_access_policy"
 
 func resourceArmKeyVault() *schema.Resource {
 	return &schema.Resource{
@@ -151,6 +152,8 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags: expandTags(tags),
 	}
 
+	//return fmt.Errorf("%s", spew.Sdump(parameters))
+
 	azureRMLockByName(name, keyVaultResourceName)
 	defer azureRMUnlockByName(name, keyVaultResourceName)
 
@@ -194,6 +197,9 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 
+	azureRMLockByName(d.Get("name").(string), keyVaultAccessPolicyResourceName)
+	defer azureRMUnlockByName(d.Get("name").(string), keyVaultAccessPolicyResourceName)
+
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -231,6 +237,9 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["vaults"]
+
+	azureRMLockByName(name, keyVaultResourceName)
+	defer azureRMUnlockByName(name, keyVaultResourceName)
 
 	_, err = client.Delete(ctx, resGroup, name)
 
