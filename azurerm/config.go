@@ -213,12 +213,13 @@ type ArmClient struct {
 	managementGroupsSubscriptionClient managementgroups.SubscriptionsClient
 
 	// Monitor
-	monitorActionGroupsClient       insights.ActionGroupsClient
-	monitorActivityLogAlertsClient  insights.ActivityLogAlertsClient
-	monitorAlertRulesClient         insights.AlertRulesClient
-	monitorDiagnosticSettingsClient insights.DiagnosticSettingsClient
-	monitorLogProfilesClient        insights.LogProfilesClient
-	monitorMetricAlertsClient       insights.MetricAlertsClient
+	monitorActionGroupsClient               insights.ActionGroupsClient
+	monitorActivityLogAlertsClient          insights.ActivityLogAlertsClient
+	monitorAlertRulesClient                 insights.AlertRulesClient
+	monitorDiagnosticSettingsClient         insights.DiagnosticSettingsClient
+	monitorDiagnosticSettingsCategoryClient insights.DiagnosticSettingsCategoryClient
+	monitorLogProfilesClient                insights.LogProfilesClient
+	monitorMetricAlertsClient               insights.MetricAlertsClient
 
 	// MSI
 	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
@@ -828,10 +829,12 @@ func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth
 	c.autoscaleSettingsClient = autoscaleSettingsClient
 
 	monitoringInsightsClient := insights.NewDiagnosticSettingsClientWithBaseURI(endpoint, subscriptionId)
-	setUserAgent(&monitoringInsightsClient.Client)
-	monitoringInsightsClient.Authorizer = auth
-	monitoringInsightsClient.Sender = autorest.CreateSender(withRequestLogging())
+	c.configureClient(&monitoringInsightsClient.Client, auth)
 	c.monitorDiagnosticSettingsClient = monitoringInsightsClient
+
+	monitoringCategorySettingsClient := insights.NewDiagnosticSettingsCategoryClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&monitoringCategorySettingsClient.Client, auth)
+	c.monitorDiagnosticSettingsCategoryClient = monitoringCategorySettingsClient
 }
 
 func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

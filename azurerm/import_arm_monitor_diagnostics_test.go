@@ -10,7 +10,9 @@ import (
 func TestAccAzureRMMonitorDiagnostics_importBasic(t *testing.T) {
 	resourceName := "azurerm_monitor_diagnostics.test"
 	ri := acctest.RandIntRange(10000, 99999)
-	config := testAccAzureRMMonitorDiagnostics_basic(ri, testLocation())
+	location := testLocation()
+
+	config := testAccAzureRMMonitorDiagnostics_basic(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

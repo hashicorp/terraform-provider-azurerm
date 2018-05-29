@@ -26,7 +26,7 @@ func resourceArmMonitorDiagnostics() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_id": {
+			"target_resource_id": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
@@ -54,46 +54,17 @@ func resourceArmMonitorDiagnostics() *schema.Resource {
 				Optional: true,
 			},
 
-			"metric_settings": {
-				Type:     schema.TypeSet,
+			"disabled_settings": {
+				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
-				MaxItems: 16,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"category": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"retention_days": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"time_grain": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
-			"log_settings": {
-				Type:     schema.TypeSet,
+			"retention_days": {
+				Type:     schema.TypeInt,
 				Optional: true,
-				MinItems: 1,
-				MaxItems: 16,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"category": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"retention_days": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-					},
-				},
 			},
 		},
 	}
@@ -105,23 +76,31 @@ func resourceArmMonitorDiagnosticsCreate(d *schema.ResourceData, meta interface{
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	name := d.Get("name").(string)
-	resourceId := d.Get("resource_id").(string)
+	targetResourceId := d.Get("target_resource_id").(string)
 	storageAccountId := d.Get("storage_account_id").(string)
 	eventHubName := d.Get("event_hub_name").(string)
 	eventHubAuthorizationRuleId := d.Get("event_hub_authorization_rule_id").(string)
 	workspaceId := d.Get("workspace_id").(string)
-	metricSettings := d.Get("metric_settings").(*schema.Set)
-	logSettings := d.Get("log_settings").(*schema.Set)
+	disabledSettings := d.Get("disabled_settings").([]interface{})
+	retentionDays := d.Get("retention_days").(int)
+
+	allMetricSettings, allLogSettings, err := getAllDiagnosticSettings(targetResourceId, meta)
+	if err != nil {
+		return err
+	}
+
+	allSettings := append(*allMetricSettings, *allLogSettings...)
+	if !utils.StringSliceContainsStringSlice(disabledSettings, allSettings) {
+		return fmt.Errorf("Invalid value for disabled settings provided, use one or multiple of: %q", allSettings)
+	}
+
+	if len(allSettings) == len(disabledSettings) {
+		return fmt.Errorf("You can not disable all settings, rather delete diagnostic logging")
+	}
 
 	diagnosticSettings := &insights.DiagnosticSettings{}
-
-	if metricSettings != nil {
-		diagnosticSettings.Metrics = expandMetricsConfiguration(metricSettings)
-	}
-
-	if logSettings != nil {
-		diagnosticSettings.Logs = expandLogConfiguration(logSettings)
-	}
+	diagnosticSettings.Metrics = expandMetricsConfiguration(*allMetricSettings, disabledSettings, retentionDays)
+	diagnosticSettings.Logs = expandLogConfiguration(*allLogSettings, disabledSettings, retentionDays)
 
 	if len(storageAccountId) > 0 {
 		diagnosticSettings.StorageAccountID = &storageAccountId
@@ -136,11 +115,10 @@ func resourceArmMonitorDiagnosticsCreate(d *schema.ResourceData, meta interface{
 		diagnosticSettings.EventHubName = &eventHubName
 	}
 
-	_, err := client.CreateOrUpdate(
+	_, err = client.CreateOrUpdate(
 		ctx,
-		resourceId,
+		targetResourceId,
 		insights.DiagnosticSettingsResource{
-			Name:               &name,
 			DiagnosticSettings: diagnosticSettings,
 		},
 		name)
@@ -148,7 +126,7 @@ func resourceArmMonitorDiagnosticsCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	read, err := client.Get(ctx, resourceId, name)
+	read, err := client.Get(ctx, targetResourceId, name)
 	if err != nil {
 		return err
 	}
@@ -176,12 +154,11 @@ func resourceArmMonitorDiagnosticsRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error making Read request on Diagnostic Setting %s: %+v", monitoringId.Name, err)
 	}
 
-	d.SetId(*resp.ID)
 	d.Set("name", *resp.Name)
 
 	// ID of base resource is not returned by API, so we have to guess here
 	monitoringId = parseMonitorDiagnosticId(d.Id())
-	d.Set("resource_id", monitoringId.ResourceID)
+	d.Set("target_resource_id", monitoringId.ResourceID)
 
 	if resp.StorageAccountID != nil {
 		d.Set("storage_account_id", *resp.StorageAccountID)
@@ -199,51 +176,47 @@ func resourceArmMonitorDiagnosticsRead(d *schema.ResourceData, meta interface{})
 		d.Set("workspace_id", *resp.WorkspaceID)
 	}
 
-	d.Set("metric_settings", flattenMetricsConfiguration(*resp.Metrics))
-	d.Set("log_settings", flattenLogConfiguration(*resp.Logs))
+	d.Set("disabled_settings", flattenDisabledSettings(*resp.Metrics, *resp.Logs))
+	d.Set("retention_days", flattenRetentionDays(*resp.Metrics, *resp.Logs))
 
 	return nil
 }
 
-func flattenMetricsConfiguration(metricSettings []insights.MetricSettings) []interface{} {
-	returnConfiguration := make([]interface{}, 0, len(metricSettings))
-
-	if metricSettings == nil {
-		return returnConfiguration
-	}
+func flattenDisabledSettings(metricSettings []insights.MetricSettings, logSettings []insights.LogSettings) []interface{} {
+	disabledSettings := make([]interface{}, 0)
 
 	for _, setting := range metricSettings {
-		currentSetting := make(map[string]interface{})
-
-		currentSetting["category"] = *setting.Category
-		currentSetting["retention_days"] = *setting.RetentionPolicy.Days
-		if setting.TimeGrain != nil {
-			currentSetting["time_grain"] = *setting.TimeGrain
+		category := *setting.Category
+		if !*setting.Enabled {
+			disabledSettings = append(disabledSettings, category)
 		}
-
-		returnConfiguration = append(returnConfiguration, currentSetting)
-	}
-
-	return returnConfiguration
-}
-
-func flattenLogConfiguration(logSettings []insights.LogSettings) []interface{} {
-	returnConfiguration := make([]interface{}, 0, len(logSettings))
-
-	if logSettings == nil {
-		return returnConfiguration
 	}
 
 	for _, setting := range logSettings {
-		currentSetting := make(map[string]interface{})
+		category := *setting.Category
+		if !*setting.Enabled {
+			disabledSettings = append(disabledSettings, category)
+		}
+	}
+	return disabledSettings
+}
 
-		currentSetting["category"] = *setting.Category
-		currentSetting["retention_days"] = *setting.RetentionPolicy.Days
+func flattenRetentionDays(metricSettings []insights.MetricSettings, logSettings []insights.LogSettings) int32 {
+	returnSetting := int32(0)
 
-		returnConfiguration = append(returnConfiguration, currentSetting)
+	for _, setting := range metricSettings {
+		if *setting.Enabled {
+			returnSetting = *setting.RetentionPolicy.Days
+		}
 	}
 
-	return returnConfiguration
+	for _, setting := range logSettings {
+		if *setting.Enabled {
+			returnSetting = *setting.RetentionPolicy.Days
+		}
+	}
+
+	return returnSetting
 }
 
 func resourceArmMonitorDiagnosticsDelete(d *schema.ResourceData, meta interface{}) error {
@@ -251,22 +224,23 @@ func resourceArmMonitorDiagnosticsDelete(d *schema.ResourceData, meta interface{
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	resource_id := d.Get("resource_id").(string)
+	targetResoureId := d.Get("target_resource_id").(string)
 
-	_, err := client.Delete(ctx, resource_id, name)
+	_, err := client.Delete(ctx, targetResoureId, name)
 
 	return err
 }
 
-func expandMetricsConfiguration(metricsSettings *schema.Set) *[]insights.MetricSettings {
-	returnMetricsSettings := make([]insights.MetricSettings, 0, metricsSettings.Len())
+func expandMetricsConfiguration(allMetricSettings, disabledSettings []interface{}, retentionDays int) *[]insights.MetricSettings {
+	returnMetricsSettings := make([]insights.MetricSettings, 0)
 
-	for _, setting := range metricsSettings.List() {
-		settingsMap := setting.(map[string]interface{})
-		category := settingsMap["category"].(string)
-		retentionDays := int32(settingsMap["retention_days"].(int))
-		timeGrain := settingsMap["time_grain"].(string)
+	for _, setting := range allMetricSettings {
+		settingAsString := setting.(string)
 		enabled := true
+		if utils.SliceContainsString(disabledSettings, settingAsString) {
+			enabled = false
+		}
+		retentionDays := int32(retentionDays)
 
 		retentionPolicy := insights.RetentionPolicy{
 			Days:    &retentionDays,
@@ -274,24 +248,25 @@ func expandMetricsConfiguration(metricsSettings *schema.Set) *[]insights.MetricS
 		}
 
 		metricSetting := insights.MetricSettings{
-			Category:        &category,
+			Category:        &settingAsString,
 			Enabled:         &enabled,
 			RetentionPolicy: &retentionPolicy,
-			TimeGrain:       &timeGrain,
 		}
 		returnMetricsSettings = append(returnMetricsSettings, metricSetting)
 	}
 	return &returnMetricsSettings
 }
 
-func expandLogConfiguration(logSettings *schema.Set) *[]insights.LogSettings {
-	returnLogSettings := make([]insights.LogSettings, 0, logSettings.Len())
+func expandLogConfiguration(allLogSettings, disabledSettings []interface{}, retentionDays int) *[]insights.LogSettings {
+	returnLogSettings := make([]insights.LogSettings, 0)
 
-	for _, setting := range logSettings.List() {
-		settingsMap := setting.(map[string]interface{})
-		category := settingsMap["category"].(string)
-		retentionDays := int32(settingsMap["retention_days"].(int))
+	for _, setting := range allLogSettings {
+		settingAsString := setting.(string)
 		enabled := true
+		if utils.SliceContainsString(disabledSettings, settingAsString) {
+			enabled = false
+		}
+		retentionDays := int32(retentionDays)
 
 		retentionPolicy := insights.RetentionPolicy{
 			Days:    &retentionDays,
@@ -299,7 +274,7 @@ func expandLogConfiguration(logSettings *schema.Set) *[]insights.LogSettings {
 		}
 
 		logSetting := insights.LogSettings{
-			Category:        &category,
+			Category:        &settingAsString,
 			Enabled:         &enabled,
 			RetentionPolicy: &retentionPolicy,
 		}
