@@ -1,13 +1,13 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_ad_application"
+page_title: "Azure Resource Manager: azurerm_azuread_application"
 sidebar_current: "docs-azurerm-resource-active-directory-application"
 description: |-
   Manage an Azure Active Directory Application.
 
 ---
 
-# azurerm_ad_application
+# azurerm_azuread_application
 
 Create a new application in Azure Active Directory. If your account is not an administrator in Active Directory an administrator must enable users to register applications within the User Settings. In addition, if you are using a Service Principal then it must have the following permissions under the `Windows Azure Active Directory` API:
 
@@ -17,7 +17,7 @@ Create a new application in Azure Active Directory. If your account is not an ad
 ## Example Usage
 
 ```hcl
-resource "azurerm_ad_application" "example" {
+resource "azurerm_azuread_application" "example" {
   display_name = "example"
 }
 ```
@@ -25,7 +25,7 @@ resource "azurerm_ad_application" "example" {
 ## Example Usage
 
 ```hcl
-resource "azurerm_ad_application" "example" {
+resource "azurerm_azuread_application" "example" {
   display_name = "example"
   homepage = "http://homepage"
   identifier_uris = ["http://uri"]
@@ -62,7 +62,7 @@ resource "tls_self_signed_cert" "example" {
   ]
 }
 
-resource "azurerm_ad_application" "example" {
+resource "azurerm_azuread_application" "example" {
   display_name = "example"
 
   key_credential {
@@ -77,7 +77,7 @@ resource "azurerm_ad_application" "example" {
 ## Example Usage with Password Credential Authentication
 
 ```hcl
-resource "azurerm_ad_application" "test" {
+resource "azurerm_azuread_application" "test" {
   display_name = "example"
 
   password_credential {
@@ -146,5 +146,5 @@ The following attributes are exported:
 Azure Active Directory Applications can be imported using the `object id`, e.g.
 
 ```shell
-terraform import azurerm_ad_application.test 00000000-0000-0000-0000-000000000000
+terraform import azurerm_azuread_application.test 00000000-0000-0000-0000-000000000000
 ```
