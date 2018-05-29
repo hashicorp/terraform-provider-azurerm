@@ -27,14 +27,16 @@ func resourceArmMonitorDiagnostics() *schema.Resource {
 			},
 
 			"resource_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"storage_account_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"event_hub_name": {
@@ -108,37 +110,37 @@ func resourceArmMonitorDiagnosticsCreate(d *schema.ResourceData, meta interface{
 	eventHubName := d.Get("event_hub_name").(string)
 	eventHubAuthorizationRuleId := d.Get("event_hub_authorization_rule_id").(string)
 	workspaceId := d.Get("workspace_id").(string)
-	metricSettings := d.Get("metric_settings")
-	logSettings := d.Get("log_settings")
+	metricSettings := d.Get("metric_settings").(*schema.Set)
+	logSettings := d.Get("log_settings").(*schema.Set)
 
 	diagnosticSettings := &insights.DiagnosticSettings{}
 
 	if metricSettings != nil {
-		diagnosticSettings.Metrics = expandMetricsConfiguration(metricSettings.(*schema.Set))
+		diagnosticSettings.Metrics = expandMetricsConfiguration(metricSettings)
 	}
 
 	if logSettings != nil {
-		diagnosticSettings.Logs = expandLogConfiguration(logSettings.(*schema.Set))
+		diagnosticSettings.Logs = expandLogConfiguration(logSettings)
 	}
 
 	if len(storageAccountId) > 0 {
-		diagnosticSettings.StorageAccountID = utils.String(storageAccountId)
+		diagnosticSettings.StorageAccountID = &storageAccountId
 	}
 
 	if len(workspaceId) > 0 {
-		diagnosticSettings.WorkspaceID = utils.String(workspaceId)
+		diagnosticSettings.WorkspaceID = &workspaceId
 	}
 
 	if len(eventHubAuthorizationRuleId) > 0 && len(eventHubName) > 0 {
-		diagnosticSettings.EventHubAuthorizationRuleID = utils.String(eventHubAuthorizationRuleId)
-		diagnosticSettings.EventHubName = utils.String(eventHubName)
+		diagnosticSettings.EventHubAuthorizationRuleID = &eventHubAuthorizationRuleId
+		diagnosticSettings.EventHubName = &eventHubName
 	}
 
 	_, err := client.CreateOrUpdate(
 		ctx,
 		resourceId,
 		insights.DiagnosticSettingsResource{
-			Name:               utils.String(name),
+			Name:               &name,
 			DiagnosticSettings: diagnosticSettings,
 		},
 		name)
@@ -163,56 +165,63 @@ func resourceArmMonitorDiagnosticsRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
-	resource_id := d.Get("resource_id").(string)
+	monitoringId := parseMonitorDiagnosticId(d.Id())
 
-	resp, err := client.Get(ctx, resource_id, name)
+	resp, err := client.Get(ctx, monitoringId.ResourceID, monitoringId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Diagnostic Setting %s: %+v", monitoringId.Name, err)
 	}
+
 	d.SetId(*resp.ID)
+	d.Set("name", *resp.Name)
 
-	if resp.DiagnosticSettings.StorageAccountID != nil {
-		d.Set("storage_account_id", *resp.DiagnosticSettings.StorageAccountID)
+	// ID of base resource is not returned by API, so we have to guess here
+	monitoringId = parseMonitorDiagnosticId(d.Id())
+	d.Set("resource_id", monitoringId.ResourceID)
+
+	if resp.StorageAccountID != nil {
+		d.Set("storage_account_id", *resp.StorageAccountID)
 	}
 
-	if resp.DiagnosticSettings.EventHubName != nil {
-		d.Set("event_hub_name", *resp.DiagnosticSettings.EventHubName)
+	if resp.EventHubName != nil {
+		d.Set("event_hub_name", *resp.EventHubName)
 	}
 
-	if resp.DiagnosticSettings.EventHubAuthorizationRuleID != nil {
-		d.Set("event_hub_authorization_rule_id", *resp.DiagnosticSettings.EventHubAuthorizationRuleID)
+	if resp.EventHubAuthorizationRuleID != nil {
+		d.Set("event_hub_authorization_rule_id", *resp.EventHubAuthorizationRuleID)
 	}
 
-	if resp.DiagnosticSettings.WorkspaceID != nil {
-		d.Set("workspace_id", *resp.DiagnosticSettings.WorkspaceID)
+	if resp.WorkspaceID != nil {
+		d.Set("workspace_id", *resp.WorkspaceID)
 	}
 
-	d.Set("metric_settings", flattenMetricsConfiguration(*resp.DiagnosticSettings.Metrics))
-	d.Set("log_settings", flattenLogConfiguration(*resp.DiagnosticSettings.Logs))
+	d.Set("metric_settings", flattenMetricsConfiguration(*resp.Metrics))
+	d.Set("log_settings", flattenLogConfiguration(*resp.Logs))
 
 	return nil
 }
 
-func flattenMetricsConfiguration(metricsSettings []insights.MetricSettings) []interface{} {
-	returnConfiguration := make([]interface{}, 0, len(metricsSettings))
+func flattenMetricsConfiguration(metricSettings []insights.MetricSettings) []interface{} {
+	returnConfiguration := make([]interface{}, 0, len(metricSettings))
 
-	if metricsSettings == nil {
+	if metricSettings == nil {
 		return returnConfiguration
 	}
 
-	for _, setting := range metricsSettings {
-		metricSetting := make(map[string]interface{})
+	for _, setting := range metricSettings {
+		currentSetting := make(map[string]interface{})
 
-		metricSetting["category"] = setting.Category
-		metricSetting["retention_days"] = setting.RetentionPolicy.Days
-		metricSetting["time_grain"] = setting.TimeGrain
+		currentSetting["category"] = *setting.Category
+		currentSetting["retention_days"] = *setting.RetentionPolicy.Days
+		if setting.TimeGrain != nil {
+			currentSetting["time_grain"] = *setting.TimeGrain
+		}
 
-		returnConfiguration = append(returnConfiguration, metricSetting)
+		returnConfiguration = append(returnConfiguration, currentSetting)
 	}
 
 	return returnConfiguration
@@ -226,12 +235,12 @@ func flattenLogConfiguration(logSettings []insights.LogSettings) []interface{} {
 	}
 
 	for _, setting := range logSettings {
-		logSetting := make(map[string]interface{})
+		currentSetting := make(map[string]interface{})
 
-		logSetting["category"] = setting.Category
-		logSetting["retention_days"] = setting.RetentionPolicy.Days
+		currentSetting["category"] = *setting.Category
+		currentSetting["retention_days"] = *setting.RetentionPolicy.Days
 
-		returnConfiguration = append(returnConfiguration, logSetting)
+		returnConfiguration = append(returnConfiguration, currentSetting)
 	}
 
 	return returnConfiguration
