@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"log"
-	"github.com/davecgh/go-spew/spew"
 )
 
 func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
