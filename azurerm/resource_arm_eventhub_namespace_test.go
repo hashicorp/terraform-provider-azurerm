@@ -397,7 +397,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Basic"
   tags {
 	environment = "Production"
-  	}
+  }
 }
 `, rInt, location, rInt)
 }
@@ -415,7 +415,7 @@ resource "azurerm_eventhub_namespace" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   sku                      = "Basic"
-  capacity                 = "20"
+  capacity                 = 20
 }
 `, rInt, location, rInt)
 }
@@ -433,7 +433,7 @@ resource "azurerm_eventhub_namespace" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   sku                      = "Basic"
-  capacity                 = "2"
+  capacity                 = 2
 }
 `, rInt, location, rInt)
 }
@@ -451,9 +451,9 @@ resource "azurerm_eventhub_namespace" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   sku                      = "Standard"
-  capacity                 = "1"
+  capacity                 = 1
   auto_inflate_enabled     = true
-  maximum_throughput_units = "1"
+  maximum_throughput_units = 1
 }
 `, rInt, location, rInt)
 }
