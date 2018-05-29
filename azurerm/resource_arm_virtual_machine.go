@@ -198,6 +198,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"managed_disk_type": {
 							Type:          schema.TypeString,
 							Optional:      true,
+							ForceNew:      true,
 							Computed:      true,
 							ConflictsWith: []string{"storage_os_disk.0.vhd_uri"},
 							ValidateFunc: validation.StringInSlice([]string{
@@ -226,6 +227,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"disk_size_gb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
+							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: validateDiskSizeGB,
 						},
