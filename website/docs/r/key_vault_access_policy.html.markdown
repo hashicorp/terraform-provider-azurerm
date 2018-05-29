@@ -11,7 +11,7 @@ description: |-
 Manages a Key Vault Access Policy.
 
 ~> **NOTE on Key Vaults and Key Vault Policies:** Terraform currently
-provides both a standalone [Key Vault Policy Resource](key_vault_policy.html), and allows for Key Vault Access Polcies to be defined in-line within the [Key Vault Resource](key_vault.html).
+provides both a standalone [Key Vault Policy Resource](key_vault_access_policy.html), and allows for Key Vault Access Polcies to be defined in-line within the [Key Vault Resource](key_vault.html).
 At this time you cannot define Key Vault Policy with in-line Key Vault in conjunction with any Key Vault Policy resources. Doing so may cause a conflict of Access Policies and will overwrite Access Policies.
 
 
@@ -41,7 +41,7 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_policy" "test" {
+resource "azurerm_key_vault_access_policy" "test" {
   vault_name           = "${azurerm_key_vault.test.name}"
   resource_group_name  = "${azurerm_key_vault.test.resource_group_name}"
   
