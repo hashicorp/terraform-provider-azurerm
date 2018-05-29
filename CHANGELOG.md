@@ -2,7 +2,7 @@
 
 BUG FIXES:
 
-* `azurerm_public_ip` - import not correctly reads the `domain_name_label` property into state [GH-1287]
+* `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
 
 ## 1.6.0 (May 24, 2018)
 
