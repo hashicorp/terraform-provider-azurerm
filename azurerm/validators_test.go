@@ -183,7 +183,7 @@ func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 	}
 }
 
-func TestValidateAzureVMTimeZone(t *testing.T) {
+func TestValidateAzureVirtualMachineTimeZone(t *testing.T) {
 	cases := []struct {
 		Value  string
 		Errors int
@@ -209,7 +209,7 @@ func TestValidateAzureVMTimeZone(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureVMTimeZone()(tc.Value, "unittest")
+		_, errors := validateAzureVirtualMachineTimeZone()(tc.Value, "unittest")
 
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected validateAzureVMTimeZone to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))

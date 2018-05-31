@@ -77,7 +77,7 @@ func validateIso8601Duration() schema.SchemaValidateFunc {
 	}
 }
 
-func validateAzureVMTimeZone() schema.SchemaValidateFunc {
+func validateAzureVirtualMachineTimeZone() schema.SchemaValidateFunc {
 	// Candidates are listed here: http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/
 	return validation.StringInSlice([]string{
 		"Afghanistan Standard Time",
