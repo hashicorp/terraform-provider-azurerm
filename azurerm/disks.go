@@ -19,6 +19,11 @@ func storageAccountNameForUnmanagedDisk(uri string, meta interface{}) (*Unmanage
 		return nil, fmt.Errorf("Cannot parse Disk VHD URI: %s", err)
 	}
 
+	blobDomainSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
+	if !strings.HasSuffix(strings.ToLower(vhdURL.Host), strings.ToLower(blobDomainSuffix)) {
+		return nil, fmt.Errorf("Error: Disk VHD URI %q doesn't appear to be a Blob Storage URI (%q) - expected a suffix of %q)", uri, vhdURL.Host, blobDomainSuffix)
+	}
+
 	// VHD URI is in the form: https://storageAccountName.blob.core.windows.net/containerName/blobName
 	storageAccountName := strings.Split(vhdURL.Host, ".")[0]
 	path := strings.Split(strings.TrimPrefix(vhdURL.Path, "/"), "/")

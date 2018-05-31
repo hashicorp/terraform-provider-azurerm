@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -12,11 +11,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_singleVHD(t *testing.T) {
+func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_singleVHD(ri, location)
+	config := testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -26,46 +25,11 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_singleVHD(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineDataDiskAttachment_singleManagedDisk(t *testing.T) {
-	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_singleManagedDisk(ri, location)
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMVirtualMachineDataDiskAttachment_existingManagedDisk(t *testing.T) {
-	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_existingManagedDisk(ri, location)
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "virtual_machine_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_disk_id"),
+					resource.TestCheckResourceAttr(resourceName, "lun", "0"),
+					resource.TestCheckResourceAttr(resourceName, "caching", "None"),
 				),
 			},
 		},
@@ -77,7 +41,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
 	ri := acctest.RandInt()
 	location := testLocation()
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location, 1, 2)
+	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -87,47 +51,52 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(firstResourceName),
-					resource.TestCheckResourceAttr(firstResourceName, "disk_size_gb", "10"),
+					resource.TestCheckResourceAttrSet(firstResourceName, "name"),
+					resource.TestCheckResourceAttrSet(firstResourceName, "virtual_machine_id"),
+					resource.TestCheckResourceAttrSet(firstResourceName, "managed_disk_id"),
+					resource.TestCheckResourceAttr(firstResourceName, "lun", "10"),
+					resource.TestCheckResourceAttr(firstResourceName, "caching", "None"),
+
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(secondResourceName),
-					resource.TestCheckResourceAttr(secondResourceName, "disk_size_gb", "20"),
+					resource.TestCheckResourceAttrSet(secondResourceName, "name"),
+					resource.TestCheckResourceAttrSet(secondResourceName, "virtual_machine_id"),
+					resource.TestCheckResourceAttrSet(secondResourceName, "managed_disk_id"),
+					resource.TestCheckResourceAttr(secondResourceName, "lun", "20"),
+					resource.TestCheckResourceAttr(secondResourceName, "caching", "ReadOnly"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisksUpdate(t *testing.T) {
-	firstResourceName := "azurerm_virtual_machine_data_disk_attachment.first"
-	secondResourceName := "azurerm_virtual_machine_data_disk_attachment.second"
+func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := acctest.RandInt()
 	location := testLocation()
-	config := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location, 1, 2)
-	updatedConfig := testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(ri, location, 3, 2)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(firstResourceName),
-					resource.TestCheckResourceAttr(firstResourceName, "disk_size_gb", "10"),
-					resource.TestCheckResourceAttr(firstResourceName, "lun", "1"),
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(secondResourceName),
-					resource.TestCheckResourceAttr(secondResourceName, "disk_size_gb", "20"),
-					resource.TestCheckResourceAttr(secondResourceName, "lun", "2"),
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "caching", "None"),
 				),
 			},
 			{
-				Config: updatedConfig,
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_readOnly(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(firstResourceName),
-					resource.TestCheckResourceAttr(firstResourceName, "disk_size_gb", "10"),
-					resource.TestCheckResourceAttr(firstResourceName, "lun", "3"),
-					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(secondResourceName),
-					resource.TestCheckResourceAttr(secondResourceName, "disk_size_gb", "20"),
-					resource.TestCheckResourceAttr(secondResourceName, "lun", "2"),
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "caching", "ReadOnly"),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_readWrite(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "caching", "ReadWrite"),
 				),
 			},
 		},
@@ -142,7 +111,6 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		diskName := rs.Primary.Attributes["name"]
 		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
 
 		id, err := parseAzureResourceID(virtualMachineId)
@@ -165,9 +133,16 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 			return fmt.Errorf("Bad: VirtualMachine %q (resource group: %q) does not exist", virtualMachineName, resourceGroup)
 		}
 
-		// does the disk exist?
+		diskId, err := parseAzureResourceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		diskName := diskId.Path["dataDisks"]
+
+		// deliberately not using strings.Equals as this is case sensitive
 		for _, disk := range *resp.StorageProfile.DataDisks {
-			if strings.EqualFold(*disk.Name, diskName) {
+			if *disk.Name == diskName {
 				return nil
 			}
 		}
@@ -182,7 +157,6 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 			continue
 		}
 
-		diskName := rs.Primary.Attributes["name"]
 		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
 
 		id, err := parseAzureResourceID(virtualMachineId)
@@ -205,9 +179,16 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
 		}
 
-		// does the disk exist?
+		diskId, err := parseAzureResourceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		diskName := diskId.Path["dataDisks"]
+
 		for _, disk := range *resp.StorageProfile.DataDisks {
-			if strings.EqualFold(*disk.Name, diskName) {
+			// deliberately not using strings.Equals as this is case sensitive
+			if *disk.Name == diskName {
 				return fmt.Errorf("Disk %q is still attached to Virtual Machine %q (Resource Group %q)", diskName, virtualMachineName, resourceGroup)
 			}
 		}
@@ -216,174 +197,79 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 	return nil
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_singleVHD(rInt int, location string) string {
+func testAccAzureRMVirtualMachineDataDiskAttachment_basic(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name = "acctvn-%d"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name = "acctsub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
-}
-
-resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
-  }
-}
-
-resource "azurerm_storage_account" "test" {
-  name = "accsa%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
-  account_tier = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name = "vhds"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_F2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
-  }
-
-  storage_os_disk {
-    name = "osd-%d"
-    vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    caching = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb = "45"
-  }
-
-  os_profile {
-    computer_name = "hn%d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-}
+%s
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  name               = "disk1-%d"
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  vhd_uri            = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/mydatadisk1.vhd"
-  disk_size_gb       = 10
-  lun                = 1
+  lun                = "0"
+  caching            = "None"
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, template)
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_singleManagedDisk(rInt int, location string) string {
+func testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
+%s
+
+resource "azurerm_virtual_machine_data_disk_attachment" "first" {
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+  lun                = "10"
+  caching            = "None"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name = "acctvn-%d"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_managed_disk" "second" {
+  name                 = "%d-disk2"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
 }
 
-resource "azurerm_subnet" "test" {
-  name = "acctsub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
+resource "azurerm_virtual_machine_data_disk_attachment" "second" {
+  managed_disk_id    = "${azurerm_managed_disk.second.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+  lun                = "20"
+  caching            = "ReadOnly"
+}
+`, template, rInt)
 }
 
-resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
-  }
-}
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_F2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
-  }
-
-  storage_os_disk {
-    name = "osd-%d"
-    caching = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb = "50"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name = "hn%d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-}
+func testAccAzureRMVirtualMachineDataDiskAttachment_readOnly(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(rInt, location)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  name               = "disk1-%d"
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
   virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  managed_disk_type  = "Standard_LRS"
-  disk_size_gb       = 10
-  lun                = 1
+  lun                = "0"
+  caching            = "ReadOnly"
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, template)
 }
 
-func testAccAzureRMVirtualMachineDataDiskAttachment_existingManagedDisk(rInt int, location string) string {
+func testAccAzureRMVirtualMachineDataDiskAttachment_readWrite(rInt int, location string) string {
+	template := testAccAzureRMVirtualMachineDataDiskAttachment_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
+  lun                = "0"
+  caching            = "ReadWrite"
+}
+`, template)
+}
+
+func testAccAzureRMVirtualMachineDataDiskAttachment_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestRG-%d"
@@ -431,10 +317,9 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name = "osd-%d"
-    caching = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb = "50"
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
   }
 
@@ -450,104 +335,12 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_managed_disk" "test" {
-  name = "acctestd-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "%d-disk1"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Empty"
-  disk_size_gb = 10
+  create_option        = "Empty"
+  disk_size_gb         = 10
 }
-
-resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  name               = "${azurerm_managed_disk.test.name}"
-  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  managed_disk_id    = "${azurerm_managed_disk.test.id}"
-  managed_disk_type  = "Standard_LRS"
-  lun                = 1
-}
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
-}
-
-func testAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(rInt int, location string, firstDiskLun int, secondDiskLun int) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name = "acctvn-%d"
-  address_space = ["10.0.0.0/16"]
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name = "acctsub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.2.0/24"
-}
-
-resource "azurerm_network_interface" "test" {
-  name = "acctni-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  ip_configuration {
-    name = "testconfiguration1"
-    subnet_id = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
-  }
-}
-
-resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_F2"
-
-  storage_image_reference {
-    publisher = "Canonical"
-    offer = "UbuntuServer"
-    sku = "16.04-LTS"
-    version = "latest"
-  }
-
-  storage_os_disk {
-    name = "osd-%d"
-    caching = "ReadWrite"
-    create_option = "FromImage"
-    disk_size_gb = "50"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name = "hn%d"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
-  }
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "first" {
-  name               = "disk1-%d"
-  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  managed_disk_type  = "Standard_LRS"
-  disk_size_gb       = 10
-  lun                = %d
-}
-
-resource "azurerm_virtual_machine_data_disk_attachment" "second" {
-  name               = "disk2-%d"
-  virtual_machine_id = "${azurerm_virtual_machine.test.id}"
-  managed_disk_type  = "Standard_LRS"
-  disk_size_gb       = 20
-  lun                = %d
-}
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, firstDiskLun, rInt, secondDiskLun)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }

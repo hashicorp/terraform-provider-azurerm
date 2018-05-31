@@ -12,6 +12,8 @@ Manages attaching a Disk to a Virtual Machine.
 
 ~> **NOTE:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
+-> **Please Note:** only Managed Disks are supported via this separate resource, Unmanaged Disks can be attached using the `storage_data_disk` block in the `azurerm_virtual_machine` resource.
+
 ## Example Usage
 
 ```hcl
@@ -86,13 +88,20 @@ resource "azurerm_virtual_machine" "test" {
   }
 }
 
+resource "azurerm_managed_disk" "test" {
+  name                 = "${local.vm_name}-disk1"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
 resource "azurerm_virtual_machine_data_disk_attachment" "test" {
-  name               = "${local.vm_name}-data1"
-  virtual_machine_id = "${azurerm_virtual_machine.main.id}"
-  create_option      = "Empty"
-  managed_disk_type  = "Standard_LRS"
-  disk_size_gb       = 10
-  lun                = 1
+  managed_disk_id    = "${azurerm_managed_disk.test.id}"
+  virtual_machine_id = "${azurerm_virtual_machine.windows.id}"
+  lun                = "10"
+  caching            = "ReadWrite"
 }
 ```
 
@@ -100,23 +109,15 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Disk Attachment, which needs to be unique within the Virtual Machine. Changing this forces a new resource to be created.
-
 * `virtual_machine_id` - (Required) The ID of the Virtual Machine to which the Data Disk should be attached. Changing this forces a new resource to be created.
 
-* `create_option` - (Required) The Create Option of the Data Disk, such as `Empty` or `Attach`. Changing this forces a new resource to be created.
+* `managed_disk_id` - (Required) The ID of an existing Managed Disk which should be attached. Changing this forces a new resource to be created.
 
-* `lun` - (Required) The Logical Unit Number of the Data Disk, which needs to be unique within the Virtual Machine.
+* `lun` - (Required) The Logical Unit Number of the Data Disk, which needs to be unique within the Virtual Machine. Changing this forces a new resource to be created.
 
-* `vhd_uri` - (Optional) The URI of a Blob in a Storage Account where the VHD for this Disk should be placed. Cannot be specified when `managed_disk_id` or `managed_disk_type` is specified.
+* `caching` - (Required) Specifies the caching requirements for this Data Disk. Possible values include `None`, `ReadOnly` and `ReadWrite`.
 
-* `managed_disk_id` - (Optional) The ID of an existing Managed Disk which should be attached. When set, `create_option` should be set to `Attach`.
-
-* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Value you must be either `Standard_LRS` or `Premium_LRS`. Cannot be used when `vhd_uri` is specified.
-
-* `caching` - (Optional) Specifies the caching requirements for this Data Disk, such as `ReadWrite`.
-
-* `disk_size_gb` - (Optional) Specifies the size of the Data Disk in GB.
+* `create_option` - (Optional) The Create Option of the Data Disk, such as `Empty` or `Attach`. Defaults to `Attach`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -131,3 +132,5 @@ Virtual Machines Data Disk Attachments can be imported using the `resource id`, 
 ```hcl
 terraform import azurerm_virtual_machine_data_disk_attachment.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/virtualMachines/machine1/dataDisks/disk1
 ```
+
+-> **Please Note:** This is a Terraform Unique ID matching the format: `{virtualMachineID}/dataDisks/{diskName}`

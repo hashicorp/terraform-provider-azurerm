@@ -2,11 +2,7 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
-	"strings"
-
-	"context"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -25,10 +21,11 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+			"managed_disk_id": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"virtual_machine_id": {
@@ -38,48 +35,30 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 			},
 
 			"lun": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
-			"vhd_uri": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ConflictsWith: []string{"managed_disk_id", "managed_disk_type"},
-			},
-
-			"managed_disk_id": {
+			"create_option": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				ForceNew:         true,
-				Computed:         true,
+				Default:          string(compute.DiskCreateOptionTypesAttach),
+				ValidateFunc:     validation.StringInSlice([]string{}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				ConflictsWith:    []string{"vhd_uri"},
-			},
-
-			"managed_disk_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.PremiumLRS),
-					string(compute.StandardLRS),
-				}, true),
-				ConflictsWith: []string{"vhd_uri"},
 			},
 
 			"caching": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"disk_size_gb": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateDiskSizeGB,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.CachingTypesNone),
+					string(compute.CachingTypesReadOnly),
+					string(compute.CachingTypesReadWrite),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 		},
 	}
@@ -92,8 +71,9 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	virtualMachineId := d.Get("virtual_machine_id").(string)
 	parsedVirtualMachineId, err := parseAzureResourceID(virtualMachineId)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
 	}
+
 	resourceGroup := parsedVirtualMachineId.ResourceGroup
 	virtualMachineName := parsedVirtualMachineId.Path["virtualMachines"]
 
@@ -109,70 +89,67 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Error loading Virtual Machine %q (Resource Group %q): %+v", virtualMachineName, resourceGroup, err)
 	}
 
-	name := d.Get("name").(string)
+	managedDiskId := d.Get("managed_disk_id").(string)
+	managedDisk, err := retrieveDataDiskAttachmentManagedDisk(meta, managedDiskId)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Managed Disk %q: %+v", managedDiskId, err)
+	}
+
+	if managedDisk.Sku == nil {
+		return fmt.Errorf("Error: unable to determine Storage Account Type for Managed Disk %q: %+v", managedDiskId, err)
+	}
+
+	name := *managedDisk.Name
 	lun := int32(d.Get("lun").(int))
+	caching := d.Get("caching").(string)
+	createOption := compute.DiskCreateOptionTypes(d.Get("create_option").(string))
 
 	expandedDisk := compute.DataDisk{
-		Name: utils.String(name),
-		Lun:  utils.Int32(lun),
-	}
-	if v, ok := d.GetOk("vhd_uri"); ok {
-		expandedDisk.Vhd = &compute.VirtualHardDisk{
-			URI: utils.String(v.(string)),
-		}
-	} else {
-		storageAccountType := d.Get("managed_disk_type").(string)
-		expandedDisk.ManagedDisk = &compute.ManagedDiskParameters{
-			StorageAccountType: compute.StorageAccountTypes(storageAccountType),
-		}
-
-		if v, ok := d.GetOk("managed_disk_id"); ok {
-			expandedDisk.ManagedDisk.ID = utils.String(v.(string))
-		}
-	}
-
-	if v, ok := d.GetOk("caching"); ok {
-		expandedDisk.Caching = compute.CachingTypes(v.(string))
-	}
-
-	if v, ok := d.GetOk("disk_size_gb"); ok {
-		expandedDisk.DiskSizeGB = utils.Int32(int32(v.(int)))
-	}
-
-	createOption, err := determineAzureDataDiskCreateOption(ctx, meta, expandedDisk)
-	if err != nil {
-		return fmt.Errorf("Error determining Create Option for Data Disk %q: %+v", name, err)
-	}
-	if createOption != nil {
-		expandedDisk.CreateOption = compute.DiskCreateOptionTypes(*createOption)
+		Name:         utils.String(name),
+		Caching:      compute.CachingTypes(caching),
+		CreateOption: createOption,
+		Lun:          utils.Int32(lun),
+		ManagedDisk: &compute.ManagedDiskParameters{
+			ID:                 utils.String(managedDiskId),
+			StorageAccountType: managedDisk.Sku.Name,
+		},
 	}
 
 	disks := *virtualMachine.StorageProfile.DataDisks
-	if !d.IsNewResource() {
-		// find the existing disk, remove it from the array
-		dataDisks := make([]compute.DataDisk, 0)
-		for _, dataDisk := range disks {
-			if !strings.EqualFold(*dataDisk.Name, *expandedDisk.Name) {
-				disks = append(dataDisks, dataDisk)
+	if d.IsNewResource() {
+		disks = append(disks, expandedDisk)
+	} else {
+		// iterate over the disks and swap it out in-place
+		existingIndex := -1
+		for i, disk := range disks {
+			if *disk.Name == name {
+				existingIndex = i
+				break
 			}
 		}
-		disks = dataDisks
+
+		if existingIndex == -1 {
+			return fmt.Errorf("Unable to find Disk %q attached to Virtual Machine %q (Resource Group %q)", name, virtualMachineName, resourceGroup)
+		}
+
+		disks[existingIndex] = expandedDisk
 	}
 
-	disks = append(disks, expandedDisk)
 	virtualMachine.StorageProfile.DataDisks = &disks
 
+	// if there's too many disks we get a 409 back with:
+	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, virtualMachine)
 	if err != nil {
-		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, *expandedDisk.Name, err)
+		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, *expandedDisk.Name, err)
+		return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
 	}
 
-	d.SetId(fmt.Sprintf("%s/dataDisks/%s", virtualMachineId, *expandedDisk.Name))
+	d.SetId(fmt.Sprintf("%s/dataDisks/%s", virtualMachineId, name))
 
 	return resourceArmVirtualMachineDataDiskAttachmentRead(d, meta)
 }
@@ -203,7 +180,8 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	if profile := virtualMachine.StorageProfile; profile != nil {
 		if dataDisks := profile.DataDisks; dataDisks != nil {
 			for _, dataDisk := range *dataDisks {
-				if strings.EqualFold(*dataDisk.Name, name) {
+				// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.Equals`
+				if *dataDisk.Name == name {
 					disk = &dataDisk
 					break
 				}
@@ -212,27 +190,19 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	}
 
 	if disk == nil {
-		log.Printf("[DEBUG] Disk %q was not found on Virtual Machine %q (Resource Group %q) - removing from state", name, virtualMachineName, resourceGroup)
+		log.Printf("[DEBUG] Data Disk %q was not found on Virtual Machine %q (Resource Group %q) - removing from state", name, virtualMachineName, resourceGroup)
 		d.SetId("")
 		return nil
 	}
 
-	d.Set("name", name)
 	d.Set("virtual_machine_id", virtualMachine.ID)
-
-	if vhd := disk.Vhd; vhd != nil {
-		d.Set("vhd_uri", vhd.URI)
-	}
+	d.Set("caching", string(disk.Caching))
+	d.Set("create_option", string(disk.CreateOption))
 
 	if managedDisk := disk.ManagedDisk; managedDisk != nil {
 		d.Set("managed_disk_id", managedDisk.ID)
-		d.Set("managed_disk_type", string(managedDisk.StorageAccountType))
 	}
 
-	d.Set("caching", string(disk.Caching))
-	if diskSizeGb := disk.DiskSizeGB; diskSizeGb != nil {
-		d.Set("disk_size_gb", int(*diskSizeGb))
-	}
 	if lun := disk.Lun; lun != nil {
 		d.Set("lun", int(*lun))
 	}
@@ -267,7 +237,8 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 
 	dataDisks := make([]compute.DataDisk, 0)
 	for _, dataDisk := range *virtualMachine.StorageProfile.DataDisks {
-		if !strings.EqualFold(*dataDisk.Name, name) {
+		// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.Equals`
+		if *dataDisk.Name != name {
 			dataDisks = append(dataDisks, dataDisk)
 		}
 	}
@@ -287,53 +258,25 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	return nil
 }
 
-func determineAzureDataDiskCreateOption(ctx context.Context, meta interface{}, disk compute.DataDisk) (*string, error) {
-	attach := string(compute.DiskCreateOptionTypesAttach)
+func retrieveDataDiskAttachmentManagedDisk(meta interface{}, id string) (*compute.Disk, error) {
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
 
-	if disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
-		diskId := *disk.ManagedDisk.ID
-		id, err := parseAzureResourceID(diskId)
-		if err != nil {
-			return nil, fmt.Errorf("Error parsing Managed Disk Resource ID %q: %+v", diskId, err)
+	parsedId, err := parseAzureResourceID(id)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing Managed Disk ID %q: %+v", id, err)
+	}
+	resourceGroup := parsedId.ResourceGroup
+	name := parsedId.Path["disks"]
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil, fmt.Errorf("Error Managed Disk %q (Resource Group %q) was not found!", name, resourceGroup)
 		}
 
-		client := meta.(*ArmClient).diskClient
-		resourceGroup := id.ResourceGroup
-		name := id.Path["disks"]
-
-		_, err = client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			return nil, fmt.Errorf("Error loading Data Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		return &attach, nil
+		return nil, fmt.Errorf("Error making Read request on Azure Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if disk.Vhd != nil && disk.Vhd.URI != nil {
-		diskId := *disk.Vhd.URI
-		metadata, err := storageAccountNameForUnmanagedDisk(diskId, meta)
-		if err != nil {
-			return nil, fmt.Errorf("Error locating Storage Account for Unmanaged Disk %q: %+v", diskId, err)
-		}
-
-		client := meta.(*ArmClient)
-		storageClient, _, err := client.getBlobStorageClientForStorageAccount(ctx, metadata.ResourceGroupName, metadata.StorageAccountName)
-		if err != nil {
-			return nil, fmt.Errorf("Error getting Blob Storage Client for Account %q (Resource Group %q): %+v", metadata.StorageAccountName, metadata.ResourceGroupName, err)
-		}
-
-		container := storageClient.GetContainerReference(metadata.StorageContainerName)
-		blob := container.GetBlobReference(metadata.BlobName)
-		exists, err := blob.Exists()
-		if err != nil {
-			return nil, fmt.Errorf("Error locating Blob for Unmanaged Disk %q: %+v", diskId, err)
-		}
-
-		if exists {
-			return &attach, nil
-		}
-	}
-
-	empty := string(compute.DiskCreateOptionTypesEmpty)
-	return &empty, nil
+	return &resp, nil
 }
