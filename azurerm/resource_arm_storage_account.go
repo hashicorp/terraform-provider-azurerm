@@ -28,8 +28,16 @@ func resourceArmStorageAccount() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"name_prefix"},
+				ValidateFunc:  validateArmStorageAccountName,
+			},
+			"name_prefix": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validateArmStorageAccountName,
 			},
@@ -232,7 +240,18 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*ArmClient).storageServiceClient
 
 	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("name").(string)
+
+	var storageAccountName string
+	if v, ok := d.GetOk("name"); ok {
+		storageAccountName = v.(string)
+	} else if v, ok := d.GetOk("name_prefix"); ok {
+		storageAccountName = resource.PrefixedUniqueId(v.(string))
+	} else {
+		storageAccountName = resource.UniqueId()
+	}
+	storageAccountName = storageAccountName[:23]
+	d.Set("name", storageAccountName)
+
 	accountKind := d.Get("account_kind").(string)
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
