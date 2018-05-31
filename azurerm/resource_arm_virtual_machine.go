@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
@@ -842,27 +843,44 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
-	metadata, err := storageAccountNameForUnmanagedDisk(uri, meta)
-	if err != nil {
-		return err
-	}
-
 	armClient := meta.(*ArmClient)
 	ctx := armClient.StopContext
+	environment := armClient.environment
 
-	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, metadata.ResourceGroupName, metadata.StorageAccountName)
+	vhdURL, err := url.Parse(uri)
+	if err != nil {
+		return fmt.Errorf("Cannot parse Disk VHD URI: %s", err)
+	}
+
+	blobDomainSuffix := environment.StorageEndpointSuffix
+	if !strings.HasSuffix(strings.ToLower(vhdURL.Host), strings.ToLower(blobDomainSuffix)) {
+		return fmt.Errorf("Error: Disk VHD URI %q doesn't appear to be a Blob Storage URI (%q) - expected a suffix of %q)", uri, vhdURL.Host, blobDomainSuffix)
+	}
+
+	// VHD URI is in the form: https://storageAccountName.blob.core.windows.net/containerName/blobName
+	storageAccountName := strings.Split(vhdURL.Host, ".")[0]
+	path := strings.Split(strings.TrimPrefix(vhdURL.Path, "/"), "/")
+	containerName := path[0]
+	blobName := path[1]
+
+	resourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
+	if err != nil {
+		return fmt.Errorf("Error finding resource group for storage account %s: %+v", storageAccountName, err)
+	}
+
+	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error creating blob store client for VHD deletion: %+v", err)
 	}
 
 	if !saExists {
-		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", metadata.StorageAccountName, metadata.ResourceGroupName)
+		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", storageAccountName, resourceGroupName)
 		return nil
 	}
 
-	log.Printf("[INFO] Deleting VHD blob %s", metadata.BlobName)
-	container := blobClient.GetContainerReference(metadata.StorageContainerName)
-	blob := container.GetBlobReference(metadata.BlobName)
+	log.Printf("[INFO] Deleting VHD blob %s", blobName)
+	container := blobClient.GetContainerReference(containerName)
+	blob := container.GetBlobReference(blobName)
 	options := &storage.DeleteBlobOptions{}
 	err = blob.Delete(options)
 	if err != nil {
