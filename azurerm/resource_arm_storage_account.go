@@ -223,6 +223,11 @@ func resourceArmStorageAccount() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"object_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -494,6 +499,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 	d.Set("account_kind", resp.Kind)
+
+	log.Printf("[INFO] Identity is %q", resp.Identity)
+	if identity := resp.Identity; identity != nil {
+		d.Set("object_id", identity.PrincipalID)
+	}
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("account_type", sku.Name)
