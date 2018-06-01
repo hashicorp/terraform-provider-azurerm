@@ -15,6 +15,12 @@ FEATURES:
 
 * `azurerm_virtual_machine` - support for `write_accelerator_enabled` on Premium disks attached to MS-series machines [GH-964]
 
+IMPROVEMENTS:
+
+* dependencies: migrating to the un-deprecated Preview's for Container Instance, EventGrid, Log Analytics and SQL [GH-1322]
+* dependencies: upgrading to `2018-01-01` of the EventGrid API [GH-1322]
+* dependencies: upgrading to `2018-03-01` of the Monitor API [GH-1322]
+
 ## 1.6.0 (May 24, 2018)
 
 UPGRADE NOTES:
