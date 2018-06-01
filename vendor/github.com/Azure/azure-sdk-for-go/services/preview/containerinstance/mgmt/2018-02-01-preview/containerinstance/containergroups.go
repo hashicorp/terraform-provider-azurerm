@@ -25,29 +25,26 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ContainerGroupsClient is the client for the ContainerGroups methods of the Containerinstance service.
 type ContainerGroupsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // NewContainerGroupsClient creates an instance of the ContainerGroupsClient client.
 func NewContainerGroupsClient(subscriptionID string) ContainerGroupsClient {
 	return NewContainerGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // NewContainerGroupsClientWithBaseURI creates an instance of the ContainerGroupsClient client.
 func NewContainerGroupsClientWithBaseURI(baseURI string, subscriptionID string) ContainerGroupsClient {
 	return ContainerGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // CreateOrUpdate create or update container groups with specified configurations.
-//
-// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
-// containerGroup is the properties of the container group to be created or updated.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// containerGroupName - the name of the container group.
+// containerGroup - the properties of the container group to be created or updated.
 func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, containerGroupName string, containerGroup ContainerGroup) (result ContainerGroupsCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: containerGroup,
@@ -76,7 +73,6 @@ func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resource
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client ContainerGroupsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerGroup ContainerGroup) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -100,7 +96,6 @@ func (client ContainerGroupsClient) CreateOrUpdatePreparer(ctx context.Context, 
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerGroupsClient) CreateOrUpdateSender(req *http.Request) (future ContainerGroupsCreateOrUpdateFuture, err error) {
@@ -116,7 +111,6 @@ func (client ContainerGroupsClient) CreateOrUpdateSender(req *http.Request) (fut
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client ContainerGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result ContainerGroup, err error) {
@@ -130,11 +124,11 @@ func (client ContainerGroupsClient) CreateOrUpdateResponder(resp *http.Response)
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // Delete delete the specified container group in the specified subscription and resource group. The operation does not
 // delete other resources provided by the user, such as volumes.
-//
-// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// containerGroupName - the name of the container group.
 func (client ContainerGroupsClient) Delete(ctx context.Context, resourceGroupName string, containerGroupName string) (result ContainerGroup, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, containerGroupName)
 	if err != nil {
@@ -157,7 +151,6 @@ func (client ContainerGroupsClient) Delete(ctx context.Context, resourceGroupNam
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // DeletePreparer prepares the Delete request.
 func (client ContainerGroupsClient) DeletePreparer(ctx context.Context, resourceGroupName string, containerGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -179,7 +172,6 @@ func (client ContainerGroupsClient) DeletePreparer(ctx context.Context, resource
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerGroupsClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -187,7 +179,6 @@ func (client ContainerGroupsClient) DeleteSender(req *http.Request) (*http.Respo
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client ContainerGroupsClient) DeleteResponder(resp *http.Response) (result ContainerGroup, err error) {
@@ -201,12 +192,12 @@ func (client ContainerGroupsClient) DeleteResponder(resp *http.Response) (result
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // Get gets the properties of the specified container group in the specified subscription and resource group. The
 // operation returns the properties of each container group including containers, image registry credentials, restart
 // policy, IP address type, OS type, state, and volumes.
-//
-// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// containerGroupName - the name of the container group.
 func (client ContainerGroupsClient) Get(ctx context.Context, resourceGroupName string, containerGroupName string) (result ContainerGroup, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, containerGroupName)
 	if err != nil {
@@ -229,7 +220,6 @@ func (client ContainerGroupsClient) Get(ctx context.Context, resourceGroupName s
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // GetPreparer prepares the Get request.
 func (client ContainerGroupsClient) GetPreparer(ctx context.Context, resourceGroupName string, containerGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -251,7 +241,6 @@ func (client ContainerGroupsClient) GetPreparer(ctx context.Context, resourceGro
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerGroupsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -259,7 +248,6 @@ func (client ContainerGroupsClient) GetSender(req *http.Request) (*http.Response
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ContainerGroupsClient) GetResponder(resp *http.Response) (result ContainerGroup, err error) {
@@ -273,7 +261,6 @@ func (client ContainerGroupsClient) GetResponder(resp *http.Response) (result Co
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // List get a list of container groups in the specified subscription. This operation returns properties of each
 // container group including containers, image registry credentials, restart policy, IP address type, OS type, state,
 // and volumes.
@@ -300,7 +287,6 @@ func (client ContainerGroupsClient) List(ctx context.Context) (result ContainerG
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListPreparer prepares the List request.
 func (client ContainerGroupsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -320,7 +306,6 @@ func (client ContainerGroupsClient) ListPreparer(ctx context.Context) (*http.Req
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerGroupsClient) ListSender(req *http.Request) (*http.Response, error) {
@@ -328,7 +313,6 @@ func (client ContainerGroupsClient) ListSender(req *http.Request) (*http.Respons
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
 func (client ContainerGroupsClient) ListResponder(resp *http.Response) (result ContainerGroupListResult, err error) {
@@ -363,19 +347,17 @@ func (client ContainerGroupsClient) listNextResults(lastResults ContainerGroupLi
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ContainerGroupsClient) ListComplete(ctx context.Context) (result ContainerGroupListResultIterator, err error) {
 	result.page, err = client.List(ctx)
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListByResourceGroup get a list of container groups in a specified subscription and resource group. This operation
 // returns properties of each container group including containers, image registry credentials, restart policy, IP
 // address type, OS type, state, and volumes.
-//
-// resourceGroupName is the name of the resource group.
+// Parameters:
+// resourceGroupName - the name of the resource group.
 func (client ContainerGroupsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ContainerGroupListResultPage, err error) {
 	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
@@ -399,7 +381,6 @@ func (client ContainerGroupsClient) ListByResourceGroup(ctx context.Context, res
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
 func (client ContainerGroupsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -420,7 +401,6 @@ func (client ContainerGroupsClient) ListByResourceGroupPreparer(ctx context.Cont
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerGroupsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
@@ -428,7 +408,6 @@ func (client ContainerGroupsClient) ListByResourceGroupSender(req *http.Request)
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
 func (client ContainerGroupsClient) ListByResourceGroupResponder(resp *http.Response) (result ContainerGroupListResult, err error) {
@@ -463,18 +442,17 @@ func (client ContainerGroupsClient) listByResourceGroupNextResults(lastResults C
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ContainerGroupsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string) (result ContainerGroupListResultIterator, err error) {
 	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName)
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // Update updates container group tags with specified values.
-//
-// resourceGroupName is the name of the resource group. containerGroupName is the name of the container group.
-// resource is the container group resource with just the tags to be updated.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// containerGroupName - the name of the container group.
+// resource - the container group resource with just the tags to be updated.
 func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupName string, containerGroupName string, resource Resource) (result ContainerGroup, err error) {
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, containerGroupName, resource)
 	if err != nil {
@@ -497,7 +475,6 @@ func (client ContainerGroupsClient) Update(ctx context.Context, resourceGroupNam
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // UpdatePreparer prepares the Update request.
 func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, containerGroupName string, resource Resource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -521,7 +498,6 @@ func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resource
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerGroupsClient) UpdateSender(req *http.Request) (*http.Response, error) {
@@ -529,7 +505,6 @@ func (client ContainerGroupsClient) UpdateSender(req *http.Request) (*http.Respo
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance instead.
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client ContainerGroupsClient) UpdateResponder(resp *http.Response) (result ContainerGroup, err error) {

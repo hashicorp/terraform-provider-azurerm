@@ -35,14 +35,6 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "17kDQcToCpJ8yGuAd7nP1QkOO6M=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-02-01-preview/containerinstance",
-			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
-			"revisionTime": "2018-05-04T19:14:26Z",
-			"version": "v16.2.1",
-			"versionExact": "v16.2.1"
-		},
-		{
 			"checksumSHA1": "Uafz6z4ARTszbiN4lBDe9XzLvpc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
@@ -181,6 +173,14 @@
 		{
 			"checksumSHA1": "e4hCajXDSuWNkUvwA35jMHGm20E=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
+			"checksumSHA1": "2EwO2k5V9qpFrSTYzVgCNWGKvxk=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/containerinstance/mgmt/2018-02-01-preview/containerinstance",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",
