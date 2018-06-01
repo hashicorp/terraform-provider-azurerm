@@ -24,25 +24,25 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DiagnosticSettingsClient is the monitor Management Client
 type DiagnosticSettingsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewDiagnosticSettingsClient creates an instance of the DiagnosticSettingsClient client.
 func NewDiagnosticSettingsClient(subscriptionID string) DiagnosticSettingsClient {
 	return NewDiagnosticSettingsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewDiagnosticSettingsClientWithBaseURI creates an instance of the DiagnosticSettingsClient client.
 func NewDiagnosticSettingsClientWithBaseURI(baseURI string, subscriptionID string) DiagnosticSettingsClient {
 	return DiagnosticSettingsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdate creates or updates diagnostic settings for the specified resource.
 //
 // resourceURI is the identifier of the resource. parameters is parameters supplied to the operation. name is the
@@ -69,12 +69,12 @@ func (client DiagnosticSettingsClient) CreateOrUpdate(ctx context.Context, resou
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client DiagnosticSettingsClient) CreateOrUpdatePreparer(ctx context.Context, resourceURI string, parameters DiagnosticSettingsResource, name string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":        autorest.Encode("path", name),
-		"resourceUri": autorest.Encode("path", resourceURI),
+		"resourceUri": resourceURI,
 	}
 
 	const APIVersion = "2017-05-01-preview"
@@ -92,7 +92,7 @@ func (client DiagnosticSettingsClient) CreateOrUpdatePreparer(ctx context.Contex
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticSettingsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -100,7 +100,7 @@ func (client DiagnosticSettingsClient) CreateOrUpdateSender(req *http.Request) (
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client DiagnosticSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result DiagnosticSettingsResource, err error) {
@@ -114,7 +114,7 @@ func (client DiagnosticSettingsClient) CreateOrUpdateResponder(resp *http.Respon
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Delete deletes existing diagnostic settings for the specified resource.
 //
 // resourceURI is the identifier of the resource. name is the name of the diagnostic setting.
@@ -140,12 +140,12 @@ func (client DiagnosticSettingsClient) Delete(ctx context.Context, resourceURI s
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeletePreparer prepares the Delete request.
 func (client DiagnosticSettingsClient) DeletePreparer(ctx context.Context, resourceURI string, name string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":        autorest.Encode("path", name),
-		"resourceUri": autorest.Encode("path", resourceURI),
+		"resourceUri": resourceURI,
 	}
 
 	const APIVersion = "2017-05-01-preview"
@@ -161,7 +161,7 @@ func (client DiagnosticSettingsClient) DeletePreparer(ctx context.Context, resou
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticSettingsClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -169,7 +169,7 @@ func (client DiagnosticSettingsClient) DeleteSender(req *http.Request) (*http.Re
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client DiagnosticSettingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -182,7 +182,7 @@ func (client DiagnosticSettingsClient) DeleteResponder(resp *http.Response) (res
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Get gets the active diagnostic settings for the specified resource.
 //
 // resourceURI is the identifier of the resource. name is the name of the diagnostic setting.
@@ -208,12 +208,12 @@ func (client DiagnosticSettingsClient) Get(ctx context.Context, resourceURI stri
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetPreparer prepares the Get request.
 func (client DiagnosticSettingsClient) GetPreparer(ctx context.Context, resourceURI string, name string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":        autorest.Encode("path", name),
-		"resourceUri": autorest.Encode("path", resourceURI),
+		"resourceUri": resourceURI,
 	}
 
 	const APIVersion = "2017-05-01-preview"
@@ -229,7 +229,7 @@ func (client DiagnosticSettingsClient) GetPreparer(ctx context.Context, resource
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticSettingsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -237,7 +237,7 @@ func (client DiagnosticSettingsClient) GetSender(req *http.Request) (*http.Respo
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client DiagnosticSettingsClient) GetResponder(resp *http.Response) (result DiagnosticSettingsResource, err error) {
@@ -251,7 +251,7 @@ func (client DiagnosticSettingsClient) GetResponder(resp *http.Response) (result
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // List gets the active diagnostic settings list for the specified resource.
 //
 // resourceURI is the identifier of the resource.
@@ -277,11 +277,11 @@ func (client DiagnosticSettingsClient) List(ctx context.Context, resourceURI str
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListPreparer prepares the List request.
 func (client DiagnosticSettingsClient) ListPreparer(ctx context.Context, resourceURI string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceUri": autorest.Encode("path", resourceURI),
+		"resourceUri": resourceURI,
 	}
 
 	const APIVersion = "2017-05-01-preview"
@@ -297,7 +297,7 @@ func (client DiagnosticSettingsClient) ListPreparer(ctx context.Context, resourc
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticSettingsClient) ListSender(req *http.Request) (*http.Response, error) {
@@ -305,7 +305,7 @@ func (client DiagnosticSettingsClient) ListSender(req *http.Request) (*http.Resp
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
 func (client DiagnosticSettingsClient) ListResponder(resp *http.Response) (result DiagnosticSettingsResourceCollection, err error) {

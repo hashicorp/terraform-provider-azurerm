@@ -131,8 +131,8 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "vAkF/ng9NforhX2dTdVfNWMZmKo=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights",
+			"checksumSHA1": "E+QgVQ3X1EvmDta96Xa2aPHrkt4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",

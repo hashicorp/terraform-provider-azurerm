@@ -25,25 +25,25 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // AlertRulesClient is the monitor Management Client
 type AlertRulesClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewAlertRulesClient creates an instance of the AlertRulesClient client.
 func NewAlertRulesClient(subscriptionID string) AlertRulesClient {
 	return NewAlertRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewAlertRulesClientWithBaseURI creates an instance of the AlertRulesClient client.
 func NewAlertRulesClientWithBaseURI(baseURI string, subscriptionID string) AlertRulesClient {
 	return AlertRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdate creates or updates an alert rule.
 //
 // resourceGroupName is the name of the resource group. ruleName is the name of the rule. parameters is the
@@ -80,7 +80,7 @@ func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client AlertRulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, ruleName string, parameters AlertRuleResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -104,7 +104,7 @@ func (client AlertRulesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -112,7 +112,7 @@ func (client AlertRulesClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client AlertRulesClient) CreateOrUpdateResponder(resp *http.Response) (result AlertRuleResource, err error) {
@@ -126,7 +126,7 @@ func (client AlertRulesClient) CreateOrUpdateResponder(resp *http.Response) (res
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Delete deletes an alert rule
 //
 // resourceGroupName is the name of the resource group. ruleName is the name of the rule.
@@ -152,7 +152,7 @@ func (client AlertRulesClient) Delete(ctx context.Context, resourceGroupName str
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeletePreparer prepares the Delete request.
 func (client AlertRulesClient) DeletePreparer(ctx context.Context, resourceGroupName string, ruleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -174,7 +174,7 @@ func (client AlertRulesClient) DeletePreparer(ctx context.Context, resourceGroup
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -182,7 +182,7 @@ func (client AlertRulesClient) DeleteSender(req *http.Request) (*http.Response, 
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client AlertRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -195,7 +195,7 @@ func (client AlertRulesClient) DeleteResponder(resp *http.Response) (result auto
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Get gets an alert rule
 //
 // resourceGroupName is the name of the resource group. ruleName is the name of the rule.
@@ -221,7 +221,7 @@ func (client AlertRulesClient) Get(ctx context.Context, resourceGroupName string
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetPreparer prepares the Get request.
 func (client AlertRulesClient) GetPreparer(ctx context.Context, resourceGroupName string, ruleName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -243,7 +243,7 @@ func (client AlertRulesClient) GetPreparer(ctx context.Context, resourceGroupNam
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -251,7 +251,7 @@ func (client AlertRulesClient) GetSender(req *http.Request) (*http.Response, err
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client AlertRulesClient) GetResponder(resp *http.Response) (result AlertRuleResource, err error) {
@@ -265,7 +265,7 @@ func (client AlertRulesClient) GetResponder(resp *http.Response) (result AlertRu
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroup list the alert rules within a resource group.
 //
 // resourceGroupName is the name of the resource group.
@@ -291,7 +291,7 @@ func (client AlertRulesClient) ListByResourceGroup(ctx context.Context, resource
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
 func (client AlertRulesClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -312,7 +312,7 @@ func (client AlertRulesClient) ListByResourceGroupPreparer(ctx context.Context, 
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
@@ -320,7 +320,7 @@ func (client AlertRulesClient) ListByResourceGroupSender(req *http.Request) (*ht
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
 func (client AlertRulesClient) ListByResourceGroupResponder(resp *http.Response) (result AlertRuleResourceCollection, err error) {
@@ -334,7 +334,7 @@ func (client AlertRulesClient) ListByResourceGroupResponder(resp *http.Response)
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Update updates an existing AlertRuleResource. To update other fields use the CreateOrUpdate method.
 //
 // resourceGroupName is the name of the resource group. ruleName is the name of the rule. alertRulesResource is
@@ -361,7 +361,7 @@ func (client AlertRulesClient) Update(ctx context.Context, resourceGroupName str
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdatePreparer prepares the Update request.
 func (client AlertRulesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, ruleName string, alertRulesResource AlertRuleResourcePatch) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -385,7 +385,7 @@ func (client AlertRulesClient) UpdatePreparer(ctx context.Context, resourceGroup
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client AlertRulesClient) UpdateSender(req *http.Request) (*http.Response, error) {
@@ -393,7 +393,7 @@ func (client AlertRulesClient) UpdateSender(req *http.Request) (*http.Response, 
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client AlertRulesClient) UpdateResponder(resp *http.Response) (result AlertRuleResource, err error) {

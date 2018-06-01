@@ -25,25 +25,25 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActionGroupsClient is the monitor Management Client
 type ActionGroupsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewActionGroupsClient creates an instance of the ActionGroupsClient client.
 func NewActionGroupsClient(subscriptionID string) ActionGroupsClient {
 	return NewActionGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewActionGroupsClientWithBaseURI creates an instance of the ActionGroupsClient client.
 func NewActionGroupsClientWithBaseURI(baseURI string, subscriptionID string) ActionGroupsClient {
 	return ActionGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdate create a new action group or update an existing one.
 //
 // resourceGroupName is the name of the resource group. actionGroupName is the name of the action group.
@@ -80,7 +80,7 @@ func (client ActionGroupsClient) CreateOrUpdate(ctx context.Context, resourceGro
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client ActionGroupsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, actionGroupName string, actionGroup ActionGroupResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -89,7 +89,7 @@ func (client ActionGroupsClient) CreateOrUpdatePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2018-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -104,7 +104,7 @@ func (client ActionGroupsClient) CreateOrUpdatePreparer(ctx context.Context, res
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -112,7 +112,7 @@ func (client ActionGroupsClient) CreateOrUpdateSender(req *http.Request) (*http.
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client ActionGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result ActionGroupResource, err error) {
@@ -126,7 +126,7 @@ func (client ActionGroupsClient) CreateOrUpdateResponder(resp *http.Response) (r
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Delete delete an action group.
 //
 // resourceGroupName is the name of the resource group. actionGroupName is the name of the action group.
@@ -152,7 +152,7 @@ func (client ActionGroupsClient) Delete(ctx context.Context, resourceGroupName s
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeletePreparer prepares the Delete request.
 func (client ActionGroupsClient) DeletePreparer(ctx context.Context, resourceGroupName string, actionGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -161,7 +161,7 @@ func (client ActionGroupsClient) DeletePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2018-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -174,7 +174,7 @@ func (client ActionGroupsClient) DeletePreparer(ctx context.Context, resourceGro
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -182,7 +182,7 @@ func (client ActionGroupsClient) DeleteSender(req *http.Request) (*http.Response
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client ActionGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -195,8 +195,9 @@ func (client ActionGroupsClient) DeleteResponder(resp *http.Response) (result au
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EnableReceiver enable a receiver in an action group. This changes the receiver's status from Disabled to Enabled.
+// This operation is only supported for Email or SMS receivers.
 //
 // resourceGroupName is the name of the resource group. actionGroupName is the name of the action group.
 // enableRequest is the receiver to re-enable.
@@ -228,7 +229,7 @@ func (client ActionGroupsClient) EnableReceiver(ctx context.Context, resourceGro
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EnableReceiverPreparer prepares the EnableReceiver request.
 func (client ActionGroupsClient) EnableReceiverPreparer(ctx context.Context, resourceGroupName string, actionGroupName string, enableRequest EnableRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -237,7 +238,7 @@ func (client ActionGroupsClient) EnableReceiverPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2018-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -252,7 +253,7 @@ func (client ActionGroupsClient) EnableReceiverPreparer(ctx context.Context, res
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EnableReceiverSender sends the EnableReceiver request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) EnableReceiverSender(req *http.Request) (*http.Response, error) {
@@ -260,7 +261,7 @@ func (client ActionGroupsClient) EnableReceiverSender(req *http.Request) (*http.
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // EnableReceiverResponder handles the response to the EnableReceiver request. The method always
 // closes the http.Response Body.
 func (client ActionGroupsClient) EnableReceiverResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -273,7 +274,7 @@ func (client ActionGroupsClient) EnableReceiverResponder(resp *http.Response) (r
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Get get an action group.
 //
 // resourceGroupName is the name of the resource group. actionGroupName is the name of the action group.
@@ -299,7 +300,7 @@ func (client ActionGroupsClient) Get(ctx context.Context, resourceGroupName stri
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetPreparer prepares the Get request.
 func (client ActionGroupsClient) GetPreparer(ctx context.Context, resourceGroupName string, actionGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -308,7 +309,7 @@ func (client ActionGroupsClient) GetPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2018-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -321,7 +322,7 @@ func (client ActionGroupsClient) GetPreparer(ctx context.Context, resourceGroupN
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -329,7 +330,7 @@ func (client ActionGroupsClient) GetSender(req *http.Request) (*http.Response, e
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ActionGroupsClient) GetResponder(resp *http.Response) (result ActionGroupResource, err error) {
@@ -343,7 +344,7 @@ func (client ActionGroupsClient) GetResponder(resp *http.Response) (result Actio
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroup get a list of all action groups in a resource group.
 //
 // resourceGroupName is the name of the resource group.
@@ -369,7 +370,7 @@ func (client ActionGroupsClient) ListByResourceGroup(ctx context.Context, resour
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
 func (client ActionGroupsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -377,7 +378,7 @@ func (client ActionGroupsClient) ListByResourceGroupPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2018-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -390,7 +391,7 @@ func (client ActionGroupsClient) ListByResourceGroupPreparer(ctx context.Context
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
@@ -398,7 +399,7 @@ func (client ActionGroupsClient) ListByResourceGroupSender(req *http.Request) (*
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
 func (client ActionGroupsClient) ListByResourceGroupResponder(resp *http.Response) (result ActionGroupList, err error) {
@@ -412,7 +413,7 @@ func (client ActionGroupsClient) ListByResourceGroupResponder(resp *http.Respons
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionID get a list of all action groups in a subscription.
 func (client ActionGroupsClient) ListBySubscriptionID(ctx context.Context) (result ActionGroupList, err error) {
 	req, err := client.ListBySubscriptionIDPreparer(ctx)
@@ -436,14 +437,14 @@ func (client ActionGroupsClient) ListBySubscriptionID(ctx context.Context) (resu
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionIDPreparer prepares the ListBySubscriptionID request.
 func (client ActionGroupsClient) ListBySubscriptionIDPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2018-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -456,7 +457,7 @@ func (client ActionGroupsClient) ListBySubscriptionIDPreparer(ctx context.Contex
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionIDSender sends the ListBySubscriptionID request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) ListBySubscriptionIDSender(req *http.Request) (*http.Response, error) {
@@ -464,7 +465,7 @@ func (client ActionGroupsClient) ListBySubscriptionIDSender(req *http.Request) (
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionIDResponder handles the response to the ListBySubscriptionID request. The method always
 // closes the http.Response Body.
 func (client ActionGroupsClient) ListBySubscriptionIDResponder(resp *http.Response) (result ActionGroupList, err error) {
@@ -478,7 +479,7 @@ func (client ActionGroupsClient) ListBySubscriptionIDResponder(resp *http.Respon
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Update updates an existing action group's tags. To update other fields use the CreateOrUpdate method.
 //
 // resourceGroupName is the name of the resource group. actionGroupName is the name of the action group.
@@ -505,7 +506,7 @@ func (client ActionGroupsClient) Update(ctx context.Context, resourceGroupName s
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdatePreparer prepares the Update request.
 func (client ActionGroupsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, actionGroupName string, actionGroupPatch ActionGroupPatchBody) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -514,7 +515,7 @@ func (client ActionGroupsClient) UpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-01"
+	const APIVersion = "2018-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -529,7 +530,7 @@ func (client ActionGroupsClient) UpdatePreparer(ctx context.Context, resourceGro
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActionGroupsClient) UpdateSender(req *http.Request) (*http.Response, error) {
@@ -537,7 +538,7 @@ func (client ActionGroupsClient) UpdateSender(req *http.Request) (*http.Response
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client ActionGroupsClient) UpdateResponder(resp *http.Response) (result ActionGroupResource, err error) {

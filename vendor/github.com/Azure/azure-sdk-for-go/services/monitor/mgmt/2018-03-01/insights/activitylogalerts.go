@@ -25,25 +25,25 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ActivityLogAlertsClient is the monitor Management Client
 type ActivityLogAlertsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewActivityLogAlertsClient creates an instance of the ActivityLogAlertsClient client.
 func NewActivityLogAlertsClient(subscriptionID string) ActivityLogAlertsClient {
 	return NewActivityLogAlertsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // NewActivityLogAlertsClientWithBaseURI creates an instance of the ActivityLogAlertsClient client.
 func NewActivityLogAlertsClientWithBaseURI(baseURI string, subscriptionID string) ActivityLogAlertsClient {
 	return ActivityLogAlertsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdate create a new activity log alert or update an existing one.
 //
 // resourceGroupName is the name of the resource group. activityLogAlertName is the name of the activity log alert.
@@ -81,7 +81,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdate(ctx context.Context, resour
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client ActivityLogAlertsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlert ActivityLogAlertResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -105,7 +105,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdatePreparer(ctx context.Context
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityLogAlertsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -113,7 +113,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdateSender(req *http.Request) (*
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client ActivityLogAlertsClient) CreateOrUpdateResponder(resp *http.Response) (result ActivityLogAlertResource, err error) {
@@ -127,7 +127,7 @@ func (client ActivityLogAlertsClient) CreateOrUpdateResponder(resp *http.Respons
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Delete delete an activity log alert.
 //
 // resourceGroupName is the name of the resource group. activityLogAlertName is the name of the activity log alert.
@@ -153,7 +153,7 @@ func (client ActivityLogAlertsClient) Delete(ctx context.Context, resourceGroupN
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeletePreparer prepares the Delete request.
 func (client ActivityLogAlertsClient) DeletePreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -175,7 +175,7 @@ func (client ActivityLogAlertsClient) DeletePreparer(ctx context.Context, resour
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityLogAlertsClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -183,7 +183,7 @@ func (client ActivityLogAlertsClient) DeleteSender(req *http.Request) (*http.Res
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client ActivityLogAlertsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -196,7 +196,7 @@ func (client ActivityLogAlertsClient) DeleteResponder(resp *http.Response) (resu
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Get get an activity log alert.
 //
 // resourceGroupName is the name of the resource group. activityLogAlertName is the name of the activity log alert.
@@ -222,7 +222,7 @@ func (client ActivityLogAlertsClient) Get(ctx context.Context, resourceGroupName
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetPreparer prepares the Get request.
 func (client ActivityLogAlertsClient) GetPreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -244,7 +244,7 @@ func (client ActivityLogAlertsClient) GetPreparer(ctx context.Context, resourceG
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityLogAlertsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -252,7 +252,7 @@ func (client ActivityLogAlertsClient) GetSender(req *http.Request) (*http.Respon
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ActivityLogAlertsClient) GetResponder(resp *http.Response) (result ActivityLogAlertResource, err error) {
@@ -266,7 +266,7 @@ func (client ActivityLogAlertsClient) GetResponder(resp *http.Response) (result 
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroup get a list of all activity log alerts in a resource group.
 //
 // resourceGroupName is the name of the resource group.
@@ -292,7 +292,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroup(ctx context.Context, r
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
 func (client ActivityLogAlertsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -313,7 +313,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroupPreparer(ctx context.Co
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityLogAlertsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
@@ -321,7 +321,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroupSender(req *http.Reques
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
 func (client ActivityLogAlertsClient) ListByResourceGroupResponder(resp *http.Response) (result ActivityLogAlertList, err error) {
@@ -335,7 +335,7 @@ func (client ActivityLogAlertsClient) ListByResourceGroupResponder(resp *http.Re
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionID get a list of all activity log alerts in a subscription.
 func (client ActivityLogAlertsClient) ListBySubscriptionID(ctx context.Context) (result ActivityLogAlertList, err error) {
 	req, err := client.ListBySubscriptionIDPreparer(ctx)
@@ -359,7 +359,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionID(ctx context.Context) 
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionIDPreparer prepares the ListBySubscriptionID request.
 func (client ActivityLogAlertsClient) ListBySubscriptionIDPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -379,7 +379,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDPreparer(ctx context.C
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionIDSender sends the ListBySubscriptionID request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityLogAlertsClient) ListBySubscriptionIDSender(req *http.Request) (*http.Response, error) {
@@ -387,7 +387,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDSender(req *http.Reque
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // ListBySubscriptionIDResponder handles the response to the ListBySubscriptionID request. The method always
 // closes the http.Response Body.
 func (client ActivityLogAlertsClient) ListBySubscriptionIDResponder(resp *http.Response) (result ActivityLogAlertList, err error) {
@@ -401,7 +401,7 @@ func (client ActivityLogAlertsClient) ListBySubscriptionIDResponder(resp *http.R
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // Update updates an existing ActivityLogAlertResource's tags. To update other fields use the CreateOrUpdate method.
 //
 // resourceGroupName is the name of the resource group. activityLogAlertName is the name of the activity log alert.
@@ -428,7 +428,7 @@ func (client ActivityLogAlertsClient) Update(ctx context.Context, resourceGroupN
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdatePreparer prepares the Update request.
 func (client ActivityLogAlertsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, activityLogAlertName string, activityLogAlertPatch ActivityLogAlertPatchBody) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -452,7 +452,7 @@ func (client ActivityLogAlertsClient) UpdatePreparer(ctx context.Context, resour
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ActivityLogAlertsClient) UpdateSender(req *http.Request) (*http.Response, error) {
@@ -460,7 +460,7 @@ func (client ActivityLogAlertsClient) UpdateSender(req *http.Request) (*http.Res
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2017-05-01-preview/insights instead.
+// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights instead.
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
 func (client ActivityLogAlertsClient) UpdateResponder(resp *http.Response) (result ActivityLogAlertResource, err error) {
