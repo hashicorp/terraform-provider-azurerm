@@ -353,6 +353,8 @@ func TestAccAzureRMNetworkInterface_IPAddressesBug1286(t *testing.T) {
 				Config: testAccAzureRMNetworkInterface_withIPAddressesUpdate(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkInterfaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.private_ip_address", ""),
+					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.public_ip_address_id", ""),
 				),
 			},
 		},
