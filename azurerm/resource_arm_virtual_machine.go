@@ -1302,7 +1302,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 		config.EnableAutomaticUpdates = &update
 	}
 
-	if v := osProfileConfig["timezone"]; v != nil {
+	if v := osProfileConfig["timezone"]; v != nil && v.(string) != "" {
 		config.TimeZone = utils.String(v.(string))
 	}
 
