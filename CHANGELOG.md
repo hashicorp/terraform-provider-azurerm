@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
 * `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
 
 ## 1.6.0 (May 24, 2018)
