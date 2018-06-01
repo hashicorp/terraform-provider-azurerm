@@ -25,9 +25,6 @@ func resourceArmVirtualMachine() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		MigrateState:  resourceAzureRMVirtualMachineMigrateState,
-		SchemaVersion: 1,
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -381,9 +378,8 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							ForceNew:         true,
-							Default:          "UTC",
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
+							ValidateFunc:     validateAzureVirtualMachineTimeZone(true),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
@@ -1294,9 +1290,7 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 	osProfilesWindowsConfig := d.Get("os_profile_windows_config").(*schema.Set).List()
 
 	osProfileConfig := osProfilesWindowsConfig[0].(map[string]interface{})
-	config := &compute.WindowsConfiguration{
-		TimeZone: utils.String(osProfileConfig["timezone"].(string)),
-	}
+	config := &compute.WindowsConfiguration{}
 
 	if v := osProfileConfig["provision_vm_agent"]; v != nil {
 		provision := v.(bool)
@@ -1306,6 +1300,10 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 	if v := osProfileConfig["enable_automatic_upgrades"]; v != nil {
 		update := v.(bool)
 		config.EnableAutomaticUpdates = &update
+	}
+
+	if v := osProfileConfig["timezone"]; v != nil {
+		config.TimeZone = utils.String(v.(string))
 	}
 
 	if v := osProfileConfig["winrm"]; v != nil {
@@ -1612,7 +1610,9 @@ func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) i
 		if v, ok := m["enable_automatic_upgrades"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 		}
-		buf.WriteString(fmt.Sprintf("%s-", m["timezone"].(string)))
+		if v, ok := m["timezone"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
 	}
 
 	return hashcode.String(buf.String())

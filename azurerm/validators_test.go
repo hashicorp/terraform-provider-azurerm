@@ -186,30 +186,45 @@ func TestValidateIntBetweenDivisibleBy(t *testing.T) {
 func TestValidateAzureVirtualMachineTimeZone(t *testing.T) {
 	cases := []struct {
 		Value  string
+		Empty  bool
 		Errors int
 	}{
 		{
+			Value:  "",
+			Empty:  true,
+			Errors: 0,
+		},
+		{
+			Value:  "",
+			Empty:  false,
+			Errors: 1,
+		},
+		{
 			Value:  "UTC",
+			Empty:  true,
 			Errors: 0,
 		},
 		{
 			Value:  "China Standard Time",
+			Empty:  false,
 			Errors: 0,
 		},
 		{
 			// Valid UTC time zone
 			Value:  "utc-11",
+			Empty:  true,
 			Errors: 0,
 		},
 		{
 			// Invalid UTC time zone
 			Value:  "UTC-30",
+			Empty:  false,
 			Errors: 1,
 		},
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAzureVirtualMachineTimeZone()(tc.Value, "unittest")
+		_, errors := validateAzureVirtualMachineTimeZone(tc.Empty)(tc.Value, "unittest")
 
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected validateAzureVMTimeZone to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
