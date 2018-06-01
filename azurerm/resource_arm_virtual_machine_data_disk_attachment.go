@@ -139,6 +139,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 
 	// if there's too many disks we get a 409 back with:
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
+	// which we're intentionally not wrapping, since the errors good.
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, virtualMachine)
 	if err != nil {
 		return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, name, err)
