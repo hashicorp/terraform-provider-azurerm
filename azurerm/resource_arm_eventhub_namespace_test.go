@@ -149,7 +149,7 @@ func TestAccAzureRMEventHubNamespace_BasicWithTagsUpdate(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMEventHubNamespace_basicWithCapacity(ri, testLocation())
+	config := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -170,8 +170,8 @@ func TestAccAzureRMEventHubNamespace_BasicWithCapacity(t *testing.T) {
 func TestAccAzureRMEventHubNamespace_BasicWithCapacityUpdate(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := acctest.RandInt()
-	preConfig := testAccAzureRMEventHubNamespace_basicWithCapacity(ri, testLocation())
-	postConfig := testAccAzureRMEventHubNamespace_basicWithCapacityUpdate(ri, testLocation())
+	preConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 20)
+	postConfig := testAccAzureRMEventHubNamespace_capacity(ri, testLocation(), 2)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -402,7 +402,7 @@ resource "azurerm_eventhub_namespace" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMEventHubNamespace_basicWithCapacity(rInt int, location string) string {
+func testAccAzureRMEventHubNamespace_capacity(rInt int, location string, capacity int) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -415,27 +415,9 @@ resource "azurerm_eventhub_namespace" "test" {
   location                 = "${azurerm_resource_group.test.location}"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   sku                      = "Basic"
-  capacity                 = 20
+  capacity                 = %d
 }
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMEventHubNamespace_basicWithCapacityUpdate(rInt int, location string) string {
-	return fmt.Sprintf(`
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                     = "acctesteventhubnamespace-%d"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  sku                      = "Basic"
-  capacity                 = 2
-}
-`, rInt, location, rInt)
+`, rInt, location, rInt, capacity)
 }
 
 func testAccAzureRMEventHubNamespace_maximumThroughputUnitsUpdate(rInt int, location string) string {
