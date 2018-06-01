@@ -260,7 +260,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.Url,
+				ValidateFunc:     validate.UrlIsHttpOrHttps(),
 			},
 
 			"method": {
@@ -375,7 +375,7 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 						"audience": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "https://management.core.windows.net/",
+							Computed: true, //is defaulted to the ServiceManagementEndpoint in create
 						},
 					},
 				},
@@ -424,13 +424,13 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 
 	//action
 	if b, ok := d.GetOk("action_web"); ok {
-		job.Properties.Action.Request, job.Properties.Action.Type = expandAzureArmSchedulerJobActionRequest(b)
+		job.Properties.Action.Request, job.Properties.Action.Type = expandAzureArmSchedulerJobActionRequest(meta, b)
 	}
 
 	//error action
 	if b, ok := d.GetOk("error_action_web"); ok {
 		job.Properties.Action.ErrorAction = &scheduler.JobErrorAction{}
-		job.Properties.Action.ErrorAction.Request, job.Properties.Action.ErrorAction.Type = expandAzureArmSchedulerJobActionRequest(b)
+		job.Properties.Action.ErrorAction.Request, job.Properties.Action.ErrorAction.Type = expandAzureArmSchedulerJobActionRequest(meta, b)
 	}
 
 	//retry policy
@@ -502,74 +502,51 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 
 	//check & get properties
 	properties := job.Properties
-	if properties == nil {
-		return fmt.Errorf("job properties is nil")
-	}
+	if properties != nil {
 
-	//action
-	action := properties.Action
-	if action == nil {
-		return fmt.Errorf("job action is nil")
-	}
-	actionType := strings.ToLower(string(action.Type))
-	if strings.EqualFold(actionType, string(scheduler.HTTP)) || strings.EqualFold(actionType, string(scheduler.HTTPS)) {
-		d.Set("action_web", flattenAzureArmSchedulerJobActionRequest(action.Request, d.Get("action_web")))
-	} else {
-		return fmt.Errorf("Unknown job type %q for scheduler job %q action (Resource Group %q)", action.Type, name, resourceGroup)
-	}
+		//action
+		action := properties.Action
+		if action != nil {
+			actionType := strings.ToLower(string(action.Type))
+			if strings.EqualFold(actionType, string(scheduler.HTTP)) || strings.EqualFold(actionType, string(scheduler.HTTPS)) {
+				if err := d.Set("action_web", flattenAzureArmSchedulerJobActionRequest(action.Request)); err != nil {
+					return err
+				}
+			}
 
-	//error action
-	if errorAction := action.ErrorAction; errorAction != nil {
-		if strings.EqualFold(actionType, string(scheduler.HTTP)) || strings.EqualFold(actionType, string(scheduler.HTTPS)) {
-			d.Set("error_action_web", flattenAzureArmSchedulerJobActionRequest(errorAction.Request, d.Get("error_action_web")))
-		} else {
-			return fmt.Errorf("Unknown job type %q for scheduler job %q error action (Resource Group %q)", errorAction.Type, name, resourceGroup)
-		}
-	}
+			//error action
+			if errorAction := action.ErrorAction; errorAction != nil {
+				if strings.EqualFold(actionType, string(scheduler.HTTP)) || strings.EqualFold(actionType, string(scheduler.HTTPS)) {
+					if err := d.Set("error_action_web", flattenAzureArmSchedulerJobActionRequest(errorAction.Request)); err != nil {
+						return err
+					}
+				}
+			}
 
-	//retry
-	if retry := properties.Action.RetryPolicy; retry != nil {
-		//if its not fixed we should not have a retry block
-		if retry.RetryType == scheduler.Fixed {
-			d.Set("retry", flattenAzureArmSchedulerJobActionRetry(retry))
-		}
-	}
-
-	//schedule
-	if recurrence := properties.Recurrence; recurrence != nil {
-		d.Set("recurrence", flattenAzureArmSchedulerJobSchedule(recurrence))
-	}
-
-	if v := properties.StartTime; v != nil {
-		d.Set("start_time", (*v).Format(time.RFC3339))
-	}
-
-	//status && state
-	d.Set("state", properties.State)
-
-	status := properties.Status
-	if status != nil {
-		if v := status.ExecutionCount; v != nil {
-			d.Set("execution_count", *v)
-		}
-		if v := status.FailureCount; v != nil {
-			d.Set("failure_count", *v)
-		}
-		if v := status.FaultedCount; v != nil {
-			d.Set("faulted_count", *v)
+			//retry
+			if retry := action.RetryPolicy; retry != nil {
+				//if its not fixed we should not have a retry block
+				if retry.RetryType == scheduler.Fixed {
+					if err := d.Set("retry", flattenAzureArmSchedulerJobActionRetry(retry)); err != nil {
+						return err
+					}
+				}
+			}
 		}
 
-		//these can be nil, if so set to empty so any outputs referencing them won't explode
-		if v := status.LastExecutionTime; v != nil {
-			d.Set("last_execution_time", (*v).Format(time.RFC3339))
-		} else {
-			d.Set("last_execution_time", "")
+		//schedule
+		if recurrence := properties.Recurrence; recurrence != nil {
+			if err := d.Set("recurrence", flattenAzureArmSchedulerJobSchedule(recurrence)); err != nil {
+				return err
+			}
 		}
-		if v := status.NextExecutionTime; v != nil {
-			d.Set("next_execution_time", (*v).Format(time.RFC3339))
-		} else {
-			d.Set("next_execution_time", "")
+
+		if v := properties.StartTime; v != nil {
+			d.Set("start_time", (*v).Format(time.RFC3339))
 		}
+
+		//status && state
+		d.Set("state", properties.State)
 	}
 
 	return nil
@@ -601,7 +578,7 @@ func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 //expand (terraform -> API)
-func expandAzureArmSchedulerJobActionRequest(b interface{}) (*scheduler.HTTPRequest, scheduler.JobActionType) {
+func expandAzureArmSchedulerJobActionRequest(meta interface{}, b interface{}) (*scheduler.HTTPRequest, scheduler.JobActionType) {
 
 	block := b.([]interface{})[0].(map[string]interface{})
 
@@ -655,13 +632,21 @@ func expandAzureArmSchedulerJobActionRequest(b interface{}) (*scheduler.HTTPRequ
 
 	if v, ok := block["authentication_active_directory"].([]interface{}); ok && len(v) > 0 {
 		b := v[0].(map[string]interface{})
-		request.Authentication = &scheduler.OAuthAuthentication{
+		oauth := &scheduler.OAuthAuthentication{
 			Type:     scheduler.TypeActiveDirectoryOAuth,
 			Tenant:   utils.String(b["tenant_id"].(string)),
 			ClientID: utils.String(b["client_id"].(string)),
-			Audience: utils.String(b["audience"].(string)),
 			Secret:   utils.String(b["secret"].(string)),
 		}
+
+		//default to the service Management Endpoint
+		if v, ok := b["audience"].(string); ok {
+			oauth.Audience = utils.String(v)
+		} else {
+			oauth.Audience = utils.String(meta.(*ArmClient).environment.ServiceManagementEndpoint)
+		}
+
+		request.Authentication = oauth
 	}
 
 	return &request, jobType
@@ -746,12 +731,7 @@ func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrenc
 
 // flatten (API --> terraform)
 
-func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest, ob interface{}) []interface{} {
-	oldBlock := map[string]interface{}{}
-
-	if v, ok := ob.([]interface{}); ok && len(v) > 0 {
-		oldBlock = v[0].(map[string]interface{})
-	}
+func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []interface{} {
 
 	block := map[string]interface{}{}
 
@@ -785,21 +765,11 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest, ob
 				authBlock["username"] = *v
 			}
 
-			//password is always blank, so preserve state
-			if v, ok := oldBlock["authentication_basic"].([]interface{}); ok && len(v) > 0 {
-				oab := v[0].(map[string]interface{})
-				authBlock["password"] = oab["password"]
-			}
+			//password is always blank, so blank it
+			authBlock["password"] = ""
 
 		} else if cert, ok := auth.AsClientCertAuthentication(); ok {
 			block["authentication_certificate"] = []interface{}{authBlock}
-
-			//pfx and password are always empty, so preserve state
-			if v, ok := oldBlock["authentication_certificate"].([]interface{}); ok && len(v) > 0 {
-				oab := v[0].(map[string]interface{})
-				authBlock["pfx"] = oab["pfx"]
-				authBlock["password"] = oab["password"]
-			}
 
 			if v := cert.CertificateThumbprint; v != nil {
 				authBlock["thumbprint"] = *v
@@ -810,6 +780,10 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest, ob
 			if v := cert.CertificateSubjectName; v != nil {
 				authBlock["subject_name"] = *v
 			}
+
+			//always empty so blank it
+			authBlock["pfx"] = ""
+			authBlock["password"] = ""
 
 		} else if oauth, ok := auth.AsOAuthAuthentication(); ok {
 			block["authentication_active_directory"] = []interface{}{authBlock}
@@ -824,11 +798,8 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest, ob
 				authBlock["tenant_id"] = *v
 			}
 
-			//secret is always empty, so preserve state
-			if v, ok := oldBlock["authentication_active_directory"].([]interface{}); ok && len(v) > 0 {
-				oab := v[0].(map[string]interface{})
-				authBlock["secret"] = oab["secret"]
-			}
+			//secret is always empty, so blank it
+			authBlock["secret"] = ""
 		}
 	}
 
