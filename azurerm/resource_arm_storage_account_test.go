@@ -845,13 +845,13 @@ resource "azurerm_storage_account" "testsa" {
 
     location = "${azurerm_resource_group.testrg.location}"
     account_tier = "Standard"
-	account_replication_type = "LRS"
+    account_replication_type = "LRS"
 	
-	network_rules {
-		ip_rules = ["127.0.0.1", "127.0.0.2"]
-		bypass = ["Logging", "Metrics"]
-		default_access_enabled = true
-	}
+    network_rules {
+        ip_rules = ["127.0.0.1", "127.0.0.2"]
+        bypass = ["Logging", "Metrics"]
+        default_access_enabled = true
+    }
 
     tags {
         environment = "production"
