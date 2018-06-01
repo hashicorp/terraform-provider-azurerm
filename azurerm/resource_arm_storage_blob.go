@@ -547,7 +547,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error getting storage account %s: %+v", storageAccountName, err)
 	}
 	if !accountExists {
-		return fmt.Errorf("Storage account %s not found", storageAccountName)
+		return fmt.Errorf("Storage account %s not found in resource group %s", storageAccountName, resourceGroupName)
 	}
 
 	name := d.Get("name").(string)
@@ -560,7 +560,8 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		blob.Properties.ContentType = d.Get("content_type").(string)
 	}
 
-	err = blob.SetProperties(nil)
+	options := &storage.SetBlobPropertiesOptions{}
+	err = blob.SetProperties(options)
 	if err != nil {
 		return fmt.Errorf("Error setting properties of blob %s (container %s, storage account %s): %+v", name, storageContainerName, storageAccountName, err)
 	}
@@ -601,7 +602,8 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	container := blobClient.GetContainerReference(storageContainerName)
 	blob := container.GetBlobReference(name)
 
-	err = blob.GetProperties(nil)
+	options := &storage.GetBlobPropertiesOptions{}
+	err = blob.GetProperties(options)
 	if err != nil {
 		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", name, storageContainerName, storageAccountName, err)
 	}

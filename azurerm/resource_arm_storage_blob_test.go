@@ -333,8 +333,8 @@ func TestAccAzureRMStorageBlobBlock_blockContentType(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, sourceBlob.Name(), testLocation(), "text/plain")
-	updateConfig := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, sourceBlob.Name(), testLocation(), "text/vnd.terraform.acctest.tmpfile")
+	config := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, testLocation(), sourceBlob.Name(), "text/plain")
+	updateConfig := testAccAzureRMStorageBlobPage_blockContentType(ri, rs1, testLocation(), sourceBlob.Name(), "text/vnd.terraform.acctest.tmpfile")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -712,7 +712,7 @@ resource "azurerm_storage_blob" "destination" {
 `, rInt, location, rString, sourceBlobName)
 }
 
-func testAccAzureRMStorageBlobPage_blockContentType(rInt int, rString, sourceBlobName, location, contentType string) string {
+func testAccAzureRMStorageBlobPage_blockContentType(rInt int, rString, location string, sourceBlobName, contentType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
