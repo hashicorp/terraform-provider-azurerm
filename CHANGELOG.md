@@ -10,6 +10,10 @@ BUG FIXES:
 * `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
 * `azurerm_virtual_machine_scale_set` - the field `overprovision` has been updated to `true` by default rather than `false` to match Azure [GH-1322]
 
+FEATURES:
+
+* `azurerm_virtual_machine` - support for `write_accelerator_enabled` on Premium disks attached to MS-series machines [GH-964]
+
 ## 1.6.0 (May 24, 2018)
 
 UPGRADE NOTES:
