@@ -1,9 +1,14 @@
 ## 1.7.0 (Unreleased)
 
+UPGRADE NOTES:
+
+~> **Please Note:** The field `overprovision` on the `azurerm_virtual_machine_scale_set` resource has changed from `false` to `true` to match the behaviour of Azure in this release. [GH-1322]
+
 BUG FIXES:
 
 * `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
 * `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
+* `azurerm_virtual_machine_scale_set` - the field `overprovision` has been updated to `true` by default rather than `false` to match Azure [GH-1322]
 
 ## 1.6.0 (May 24, 2018)
 
