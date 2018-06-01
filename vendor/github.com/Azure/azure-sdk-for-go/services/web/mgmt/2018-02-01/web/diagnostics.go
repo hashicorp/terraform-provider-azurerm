@@ -92,7 +92,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -187,7 +187,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisSlotPreparer(ctx context.Cont
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -280,7 +280,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -375,7 +375,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSlotPreparer(ctx context.Cont
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -407,97 +407,6 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSlotSender(req *http.Request)
 // ExecuteSiteDetectorSlotResponder handles the response to the ExecuteSiteDetectorSlot request. The method always
 // closes the http.Response Body.
 func (client DiagnosticsClient) ExecuteSiteDetectorSlotResponder(resp *http.Response) (result DiagnosticDetectorResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetHostingEnvironmentDetectorResponse get Hosting Environment Detector Response
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - app Service Environment Name
-// detectorName - detector Resource Name
-// startTime - start Time
-// endTime - end Time
-// timeGrain - time Grain
-func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponse(ctx context.Context, resourceGroupName string, name string, detectorName string, startTime *date.Time, endTime *date.Time, timeGrain string) (result DetectorResponse, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
-		{TargetValue: timeGrain,
-			Constraints: []validation.Constraint{{Target: "timeGrain", Name: validation.Pattern, Rule: `PT[1-9][0-9]+[SMH]`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.DiagnosticsClient", "GetHostingEnvironmentDetectorResponse", err.Error())
-	}
-
-	req, err := client.GetHostingEnvironmentDetectorResponsePreparer(ctx, resourceGroupName, name, detectorName, startTime, endTime, timeGrain)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetHostingEnvironmentDetectorResponse", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetHostingEnvironmentDetectorResponseSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetHostingEnvironmentDetectorResponse", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetHostingEnvironmentDetectorResponseResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetHostingEnvironmentDetectorResponse", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// GetHostingEnvironmentDetectorResponsePreparer prepares the GetHostingEnvironmentDetectorResponse request.
-func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponsePreparer(ctx context.Context, resourceGroupName string, name string, detectorName string, startTime *date.Time, endTime *date.Time, timeGrain string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"detectorName":      autorest.Encode("path", detectorName),
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-03-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if startTime != nil {
-		queryParameters["startTime"] = autorest.Encode("query", *startTime)
-	}
-	if endTime != nil {
-		queryParameters["endTime"] = autorest.Encode("query", *endTime)
-	}
-	if len(timeGrain) > 0 {
-		queryParameters["timeGrain"] = autorest.Encode("query", timeGrain)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/detectors/{detectorName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetHostingEnvironmentDetectorResponseSender sends the GetHostingEnvironmentDetectorResponse request. The method will close the
-// http.Response Body if it receives an error.
-func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetHostingEnvironmentDetectorResponseResponder handles the response to the GetHostingEnvironmentDetectorResponse request. The method always
-// closes the http.Response Body.
-func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponseResponder(resp *http.Response) (result DetectorResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -554,7 +463,7 @@ func (client DiagnosticsClient) GetSiteAnalysisPreparer(ctx context.Context, res
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -635,7 +544,7 @@ func (client DiagnosticsClient) GetSiteAnalysisSlotPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -715,7 +624,7 @@ func (client DiagnosticsClient) GetSiteDetectorPreparer(ctx context.Context, res
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -775,190 +684,6 @@ func (client DiagnosticsClient) GetSiteDetectorComplete(ctx context.Context, res
 	return
 }
 
-// GetSiteDetectorResponse get site detector response
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// siteName - site Name
-// detectorName - detector Resource Name
-// startTime - start Time
-// endTime - end Time
-// timeGrain - time Grain
-func (client DiagnosticsClient) GetSiteDetectorResponse(ctx context.Context, resourceGroupName string, siteName string, detectorName string, startTime *date.Time, endTime *date.Time, timeGrain string) (result DetectorResponse, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
-		{TargetValue: timeGrain,
-			Constraints: []validation.Constraint{{Target: "timeGrain", Name: validation.Pattern, Rule: `PT[1-9][0-9]+[SMH]`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.DiagnosticsClient", "GetSiteDetectorResponse", err.Error())
-	}
-
-	req, err := client.GetSiteDetectorResponsePreparer(ctx, resourceGroupName, siteName, detectorName, startTime, endTime, timeGrain)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorResponse", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetSiteDetectorResponseSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorResponse", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetSiteDetectorResponseResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorResponse", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// GetSiteDetectorResponsePreparer prepares the GetSiteDetectorResponse request.
-func (client DiagnosticsClient) GetSiteDetectorResponsePreparer(ctx context.Context, resourceGroupName string, siteName string, detectorName string, startTime *date.Time, endTime *date.Time, timeGrain string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"detectorName":      autorest.Encode("path", detectorName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"siteName":          autorest.Encode("path", siteName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-03-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if startTime != nil {
-		queryParameters["startTime"] = autorest.Encode("query", *startTime)
-	}
-	if endTime != nil {
-		queryParameters["endTime"] = autorest.Encode("query", *endTime)
-	}
-	if len(timeGrain) > 0 {
-		queryParameters["timeGrain"] = autorest.Encode("query", timeGrain)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName}/detectors/{detectorName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetSiteDetectorResponseSender sends the GetSiteDetectorResponse request. The method will close the
-// http.Response Body if it receives an error.
-func (client DiagnosticsClient) GetSiteDetectorResponseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetSiteDetectorResponseResponder handles the response to the GetSiteDetectorResponse request. The method always
-// closes the http.Response Body.
-func (client DiagnosticsClient) GetSiteDetectorResponseResponder(resp *http.Response) (result DetectorResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetSiteDetectorResponseSlot get site detector response
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// siteName - site Name
-// detectorName - detector Resource Name
-// slot - slot Name
-// startTime - start Time
-// endTime - end Time
-// timeGrain - time Grain
-func (client DiagnosticsClient) GetSiteDetectorResponseSlot(ctx context.Context, resourceGroupName string, siteName string, detectorName string, slot string, startTime *date.Time, endTime *date.Time, timeGrain string) (result DetectorResponse, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
-		{TargetValue: timeGrain,
-			Constraints: []validation.Constraint{{Target: "timeGrain", Name: validation.Pattern, Rule: `PT[1-9][0-9]+[SMH]`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.DiagnosticsClient", "GetSiteDetectorResponseSlot", err.Error())
-	}
-
-	req, err := client.GetSiteDetectorResponseSlotPreparer(ctx, resourceGroupName, siteName, detectorName, slot, startTime, endTime, timeGrain)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorResponseSlot", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetSiteDetectorResponseSlotSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorResponseSlot", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetSiteDetectorResponseSlotResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "GetSiteDetectorResponseSlot", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// GetSiteDetectorResponseSlotPreparer prepares the GetSiteDetectorResponseSlot request.
-func (client DiagnosticsClient) GetSiteDetectorResponseSlotPreparer(ctx context.Context, resourceGroupName string, siteName string, detectorName string, slot string, startTime *date.Time, endTime *date.Time, timeGrain string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"detectorName":      autorest.Encode("path", detectorName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"siteName":          autorest.Encode("path", siteName),
-		"slot":              autorest.Encode("path", slot),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-03-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-	if startTime != nil {
-		queryParameters["startTime"] = autorest.Encode("query", *startTime)
-	}
-	if endTime != nil {
-		queryParameters["endTime"] = autorest.Encode("query", *endTime)
-	}
-	if len(timeGrain) > 0 {
-		queryParameters["timeGrain"] = autorest.Encode("query", timeGrain)
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName}/slots/{slot}/detectors/{detectorName}", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetSiteDetectorResponseSlotSender sends the GetSiteDetectorResponseSlot request. The method will close the
-// http.Response Body if it receives an error.
-func (client DiagnosticsClient) GetSiteDetectorResponseSlotSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetSiteDetectorResponseSlotResponder handles the response to the GetSiteDetectorResponseSlot request. The method always
-// closes the http.Response Body.
-func (client DiagnosticsClient) GetSiteDetectorResponseSlotResponder(resp *http.Response) (result DetectorResponse, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
 // GetSiteDetectorSlot get Detector
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -1008,7 +733,7 @@ func (client DiagnosticsClient) GetSiteDetectorSlotPreparer(ctx context.Context,
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1112,7 +837,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategoryPreparer(ctx context.Co
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1191,7 +916,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotPreparer(ctx contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1221,109 +946,6 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotResponder(resp *htt
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// ListHostingEnvironmentDetectorResponses list Hosting Environment Detector Responses
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - site Name
-func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponses(ctx context.Context, resourceGroupName string, name string) (result DetectorResponseCollectionPage, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.DiagnosticsClient", "ListHostingEnvironmentDetectorResponses", err.Error())
-	}
-
-	result.fn = client.listHostingEnvironmentDetectorResponsesNextResults
-	req, err := client.ListHostingEnvironmentDetectorResponsesPreparer(ctx, resourceGroupName, name)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListHostingEnvironmentDetectorResponses", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListHostingEnvironmentDetectorResponsesSender(req)
-	if err != nil {
-		result.drc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListHostingEnvironmentDetectorResponses", resp, "Failure sending request")
-		return
-	}
-
-	result.drc, err = client.ListHostingEnvironmentDetectorResponsesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListHostingEnvironmentDetectorResponses", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListHostingEnvironmentDetectorResponsesPreparer prepares the ListHostingEnvironmentDetectorResponses request.
-func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-03-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/hostingEnvironments/{name}/detectors", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListHostingEnvironmentDetectorResponsesSender sends the ListHostingEnvironmentDetectorResponses request. The method will close the
-// http.Response Body if it receives an error.
-func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListHostingEnvironmentDetectorResponsesResponder handles the response to the ListHostingEnvironmentDetectorResponses request. The method always
-// closes the http.Response Body.
-func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesResponder(resp *http.Response) (result DetectorResponseCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listHostingEnvironmentDetectorResponsesNextResults retrieves the next set of results, if any.
-func (client DiagnosticsClient) listHostingEnvironmentDetectorResponsesNextResults(lastResults DetectorResponseCollection) (result DetectorResponseCollection, err error) {
-	req, err := lastResults.detectorResponseCollectionPreparer()
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listHostingEnvironmentDetectorResponsesNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListHostingEnvironmentDetectorResponsesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listHostingEnvironmentDetectorResponsesNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListHostingEnvironmentDetectorResponsesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listHostingEnvironmentDetectorResponsesNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListHostingEnvironmentDetectorResponsesComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesComplete(ctx context.Context, resourceGroupName string, name string) (result DetectorResponseCollectionIterator, err error) {
-	result.page, err = client.ListHostingEnvironmentDetectorResponses(ctx, resourceGroupName, name)
 	return
 }
 
@@ -1372,7 +994,7 @@ func (client DiagnosticsClient) ListSiteAnalysesPreparer(ctx context.Context, re
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1479,7 +1101,7 @@ func (client DiagnosticsClient) ListSiteAnalysesSlotPreparer(ctx context.Context
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1539,214 +1161,6 @@ func (client DiagnosticsClient) ListSiteAnalysesSlotComplete(ctx context.Context
 	return
 }
 
-// ListSiteDetectorResponses list Site Detector Responses
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// siteName - site Name
-func (client DiagnosticsClient) ListSiteDetectorResponses(ctx context.Context, resourceGroupName string, siteName string) (result DetectorResponseCollectionPage, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.DiagnosticsClient", "ListSiteDetectorResponses", err.Error())
-	}
-
-	result.fn = client.listSiteDetectorResponsesNextResults
-	req, err := client.ListSiteDetectorResponsesPreparer(ctx, resourceGroupName, siteName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponses", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListSiteDetectorResponsesSender(req)
-	if err != nil {
-		result.drc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponses", resp, "Failure sending request")
-		return
-	}
-
-	result.drc, err = client.ListSiteDetectorResponsesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponses", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListSiteDetectorResponsesPreparer prepares the ListSiteDetectorResponses request.
-func (client DiagnosticsClient) ListSiteDetectorResponsesPreparer(ctx context.Context, resourceGroupName string, siteName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"siteName":          autorest.Encode("path", siteName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-03-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName}/detectors", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListSiteDetectorResponsesSender sends the ListSiteDetectorResponses request. The method will close the
-// http.Response Body if it receives an error.
-func (client DiagnosticsClient) ListSiteDetectorResponsesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListSiteDetectorResponsesResponder handles the response to the ListSiteDetectorResponses request. The method always
-// closes the http.Response Body.
-func (client DiagnosticsClient) ListSiteDetectorResponsesResponder(resp *http.Response) (result DetectorResponseCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listSiteDetectorResponsesNextResults retrieves the next set of results, if any.
-func (client DiagnosticsClient) listSiteDetectorResponsesNextResults(lastResults DetectorResponseCollection) (result DetectorResponseCollection, err error) {
-	req, err := lastResults.detectorResponseCollectionPreparer()
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listSiteDetectorResponsesNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListSiteDetectorResponsesSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listSiteDetectorResponsesNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListSiteDetectorResponsesResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listSiteDetectorResponsesNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListSiteDetectorResponsesComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DiagnosticsClient) ListSiteDetectorResponsesComplete(ctx context.Context, resourceGroupName string, siteName string) (result DetectorResponseCollectionIterator, err error) {
-	result.page, err = client.ListSiteDetectorResponses(ctx, resourceGroupName, siteName)
-	return
-}
-
-// ListSiteDetectorResponsesSlot list Site Detector Responses
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// siteName - site Name
-// slot - slot Name
-func (client DiagnosticsClient) ListSiteDetectorResponsesSlot(ctx context.Context, resourceGroupName string, siteName string, slot string) (result DetectorResponseCollectionPage, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.DiagnosticsClient", "ListSiteDetectorResponsesSlot", err.Error())
-	}
-
-	result.fn = client.listSiteDetectorResponsesSlotNextResults
-	req, err := client.ListSiteDetectorResponsesSlotPreparer(ctx, resourceGroupName, siteName, slot)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponsesSlot", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListSiteDetectorResponsesSlotSender(req)
-	if err != nil {
-		result.drc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponsesSlot", resp, "Failure sending request")
-		return
-	}
-
-	result.drc, err = client.ListSiteDetectorResponsesSlotResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "ListSiteDetectorResponsesSlot", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListSiteDetectorResponsesSlotPreparer prepares the ListSiteDetectorResponsesSlot request.
-func (client DiagnosticsClient) ListSiteDetectorResponsesSlotPreparer(ctx context.Context, resourceGroupName string, siteName string, slot string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"siteName":          autorest.Encode("path", siteName),
-		"slot":              autorest.Encode("path", slot),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-03-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{siteName}/slots/{slot}/detectors", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListSiteDetectorResponsesSlotSender sends the ListSiteDetectorResponsesSlot request. The method will close the
-// http.Response Body if it receives an error.
-func (client DiagnosticsClient) ListSiteDetectorResponsesSlotSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListSiteDetectorResponsesSlotResponder handles the response to the ListSiteDetectorResponsesSlot request. The method always
-// closes the http.Response Body.
-func (client DiagnosticsClient) ListSiteDetectorResponsesSlotResponder(resp *http.Response) (result DetectorResponseCollection, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listSiteDetectorResponsesSlotNextResults retrieves the next set of results, if any.
-func (client DiagnosticsClient) listSiteDetectorResponsesSlotNextResults(lastResults DetectorResponseCollection) (result DetectorResponseCollection, err error) {
-	req, err := lastResults.detectorResponseCollectionPreparer()
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listSiteDetectorResponsesSlotNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListSiteDetectorResponsesSlotSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listSiteDetectorResponsesSlotNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListSiteDetectorResponsesSlotResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.DiagnosticsClient", "listSiteDetectorResponsesSlotNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListSiteDetectorResponsesSlotComplete enumerates all values, automatically crossing page boundaries as required.
-func (client DiagnosticsClient) ListSiteDetectorResponsesSlotComplete(ctx context.Context, resourceGroupName string, siteName string, slot string) (result DetectorResponseCollectionIterator, err error) {
-	result.page, err = client.ListSiteDetectorResponsesSlot(ctx, resourceGroupName, siteName, slot)
-	return
-}
-
 // ListSiteDetectors get Detectors
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -1792,7 +1206,7 @@ func (client DiagnosticsClient) ListSiteDetectorsPreparer(ctx context.Context, r
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1899,7 +1313,7 @@ func (client DiagnosticsClient) ListSiteDetectorsSlotPreparer(ctx context.Contex
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2002,7 +1416,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2107,7 +1521,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlotPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

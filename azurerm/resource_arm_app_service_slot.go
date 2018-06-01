@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
@@ -51,30 +51,18 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"https_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"app_settings": {
@@ -120,9 +108,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				},
 			},
 
-			// TODO: (tombuildsstuff) support Update once the API is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/1697
-			"tags": tagsForceNewSchema(),
+			"tags": tagsSchema(),
 
 			"default_site_hostname": {
 				Type:     schema.TypeString,
@@ -164,10 +150,6 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// NOTE: these seem like sensible defaults, in lieu of any better documentation.
-	skipDNSRegistration := false
-	forceDNSRegistration := false
-	skipCustomDomainVerification := true
-	ttlInSeconds := "60"
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, resGroup, appServiceName)
@@ -178,7 +160,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error making Read request on AzureRM App Service %q: %+v", appServiceName, err)
 	}
 
-	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot, &skipDNSRegistration, &skipCustomDomainVerification, &forceDNSRegistration, ttlInSeconds)
+	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot)
 	if err != nil {
 		return err
 	}
@@ -213,8 +195,36 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	resGroup := id.ResourceGroup
 	appServiceName := id.Path["sites"]
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+	appServicePlanId := d.Get("app_service_plan_id").(string)
 	slot := id.Path["slots"]
+	siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	enabled := d.Get("enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
+	tags := d.Get("tags").(map[string]interface{})
+	siteEnvelope := web.Site{
+		Location: &location,
+		Tags:     expandTags(tags),
+		SiteProperties: &web.SiteProperties{
+			ServerFarmID: utils.String(appServicePlanId),
+			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
+			SiteConfig:   &siteConfig,
+		},
+	}
+	if v, ok := d.GetOk("client_affinity_enabled"); ok {
+		enabled := v.(bool)
+		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
+	}
+	createFuture, err := client.CreateOrUpdateSlot(ctx, resGroup, appServiceName, siteEnvelope, slot)
+	if err != nil {
+		return err
+	}
 
+	err = createFuture.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
 	if d.HasChange("site_config") {
 		// update the main configuration
 		siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
@@ -224,6 +234,20 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		_, err := client.CreateOrUpdateConfigurationSlot(ctx, resGroup, appServiceName, siteConfigResource, slot)
 		if err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service Slot %q/%q: %+v", appServiceName, slot, err)
+		}
+	}
+
+	if d.HasChange("client_affinity_enabled") {
+		affinity := d.Get("client_affinity_enabled").(bool)
+		sitePatchResource := web.SitePatchResource{
+			ID: utils.String(d.Id()),
+			SitePatchResourceProperties: &web.SitePatchResourceProperties{
+				ClientAffinityEnabled: &affinity,
+			},
+		}
+		_, err := client.UpdateSlot(ctx, resGroup, appServiceName, sitePatchResource, slot)
+		if err != nil {
+			return fmt.Errorf("Error updating App Service ARR Affinity setting %q: %+v", slot, err)
 		}
 	}
 
@@ -341,9 +365,8 @@ func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) e
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	skipDNSRegistration := true
 	ctx := meta.(*ArmClient).StopContext
-	resp, err := client.DeleteSlot(ctx, resGroup, appServiceName, slot, &deleteMetrics, &deleteEmptyServerFarm, &skipDNSRegistration)
+	resp, err := client.DeleteSlot(ctx, resGroup, appServiceName, slot, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return err

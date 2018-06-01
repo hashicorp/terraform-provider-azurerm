@@ -82,7 +82,7 @@ func (client RecommendationsClient) DisableAllForWebAppPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -158,7 +158,7 @@ func (client RecommendationsClient) DisableRecommendationForSitePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -223,7 +223,7 @@ func (client RecommendationsClient) DisableRecommendationForSubscriptionPreparer
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -302,7 +302,7 @@ func (client RecommendationsClient) GetRuleDetailsByWebAppPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -377,7 +377,7 @@ func (client RecommendationsClient) ListPreparer(ctx context.Context, featured *
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -447,10 +447,12 @@ func (client RecommendationsClient) ListComplete(ctx context.Context, featured *
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // siteName - name of the app.
+// expiredOnly - specify <code>false</code> to return all recommendations. The default is <code>true</code>,
+// which returns only expired recommendations.
 // filter - filter is specified by using OData syntax. Example: $filter=channels eq 'Api' or channel eq
 // 'Notification' and startTime eq '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z' and timeGrain
 // eq duration'[PT1H|PT1M|P1D]
-func (client RecommendationsClient) ListHistoryForWebApp(ctx context.Context, resourceGroupName string, siteName string, filter string) (result RecommendationCollectionPage, err error) {
+func (client RecommendationsClient) ListHistoryForWebApp(ctx context.Context, resourceGroupName string, siteName string, expiredOnly *bool, filter string) (result RecommendationCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -460,7 +462,7 @@ func (client RecommendationsClient) ListHistoryForWebApp(ctx context.Context, re
 	}
 
 	result.fn = client.listHistoryForWebAppNextResults
-	req, err := client.ListHistoryForWebAppPreparer(ctx, resourceGroupName, siteName, filter)
+	req, err := client.ListHistoryForWebAppPreparer(ctx, resourceGroupName, siteName, expiredOnly, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.RecommendationsClient", "ListHistoryForWebApp", nil, "Failure preparing request")
 		return
@@ -482,16 +484,19 @@ func (client RecommendationsClient) ListHistoryForWebApp(ctx context.Context, re
 }
 
 // ListHistoryForWebAppPreparer prepares the ListHistoryForWebApp request.
-func (client RecommendationsClient) ListHistoryForWebAppPreparer(ctx context.Context, resourceGroupName string, siteName string, filter string) (*http.Request, error) {
+func (client RecommendationsClient) ListHistoryForWebAppPreparer(ctx context.Context, resourceGroupName string, siteName string, expiredOnly *bool, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"siteName":          autorest.Encode("path", siteName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if expiredOnly != nil {
+		queryParameters["expiredOnly"] = autorest.Encode("query", *expiredOnly)
 	}
 	if len(filter) > 0 {
 		queryParameters["$filter"] = filter
@@ -547,8 +552,8 @@ func (client RecommendationsClient) listHistoryForWebAppNextResults(lastResults 
 }
 
 // ListHistoryForWebAppComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RecommendationsClient) ListHistoryForWebAppComplete(ctx context.Context, resourceGroupName string, siteName string, filter string) (result RecommendationCollectionIterator, err error) {
-	result.page, err = client.ListHistoryForWebApp(ctx, resourceGroupName, siteName, filter)
+func (client RecommendationsClient) ListHistoryForWebAppComplete(ctx context.Context, resourceGroupName string, siteName string, expiredOnly *bool, filter string) (result RecommendationCollectionIterator, err error) {
+	result.page, err = client.ListHistoryForWebApp(ctx, resourceGroupName, siteName, expiredOnly, filter)
 	return
 }
 
@@ -599,7 +604,7 @@ func (client RecommendationsClient) ListRecommendedRulesForWebAppPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -694,7 +699,7 @@ func (client RecommendationsClient) ResetAllFiltersPreparer(ctx context.Context)
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -768,7 +773,7 @@ func (client RecommendationsClient) ResetAllFiltersForWebAppPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
