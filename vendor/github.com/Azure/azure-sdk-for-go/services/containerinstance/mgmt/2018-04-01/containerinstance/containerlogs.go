@@ -77,7 +77,7 @@ func (client ContainerLogsClient) ListPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01-preview"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

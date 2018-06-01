@@ -77,7 +77,7 @@ func (client StartContainerClient) LaunchExecPreparer(ctx context.Context, resou
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-01-preview"
+	const APIVersion = "2018-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

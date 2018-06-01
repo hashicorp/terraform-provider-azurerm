@@ -178,10 +178,10 @@ type ContainerExecRequest struct {
 
 // ContainerExecRequestTerminalSize the size of the terminal.
 type ContainerExecRequestTerminalSize struct {
-	// Rows - The row size of the terminal
-	Rows *int32 `json:"rows,omitempty"`
-	// Cols - The column size of the terminal
-	Cols *int32 `json:"cols,omitempty"`
+	// Row - The row size of the terminal
+	Row *int32 `json:"row,omitempty"`
+	// Column - The column size of the terminal
+	Column *int32 `json:"column,omitempty"`
 }
 
 // ContainerExecResponse the information for the container exec command.
