@@ -155,14 +155,6 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "0ubEDR8ye1PhBuUd5aVsGa3GLJs=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement",
-			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
-			"revisionTime": "2018-05-04T19:14:26Z",
-			"version": "v16.2.1",
-			"versionExact": "v16.2.1"
-		},
-		{
 			"checksumSHA1": "q0OKr6uBD4lgnHN/EIDrv0GQWW8=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
@@ -181,6 +173,14 @@
 		{
 			"checksumSHA1": "EoE/UnsEm8MDYl+ox/+aIvs1HSY=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
+			"checksumSHA1": "ZKp5VA/YRkH75e8KjQ90X7mKJMs=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",

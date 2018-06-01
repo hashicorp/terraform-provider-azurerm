@@ -25,30 +25,26 @@ import (
 	"net/http"
 )
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // ManagementConfigurationsClient is the operations Management Client
 type ManagementConfigurationsClient struct {
 	BaseClient
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // NewManagementConfigurationsClient creates an instance of the ManagementConfigurationsClient client.
 func NewManagementConfigurationsClient(subscriptionID string, providerName string, resourceType string, resourceName string) ManagementConfigurationsClient {
 	return NewManagementConfigurationsClientWithBaseURI(DefaultBaseURI, subscriptionID, providerName, resourceType, resourceName)
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // NewManagementConfigurationsClientWithBaseURI creates an instance of the ManagementConfigurationsClient client.
 func NewManagementConfigurationsClientWithBaseURI(baseURI string, subscriptionID string, providerName string, resourceType string, resourceName string) ManagementConfigurationsClient {
 	return ManagementConfigurationsClient{NewWithBaseURI(baseURI, subscriptionID, providerName, resourceType, resourceName)}
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // CreateOrUpdate creates or updates the ManagementConfiguration.
-//
-// resourceGroupName is the name of the resource group to get. The name is case insensitive.
-// managementConfigurationName is user Management Configuration Name. parameters is the parameters required to
-// create OMS Solution.
+// Parameters:
+// resourceGroupName - the name of the resource group to get. The name is case insensitive.
+// managementConfigurationName - user Management Configuration Name.
+// parameters - the parameters required to create OMS Solution.
 func (client ManagementConfigurationsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, managementConfigurationName string, parameters ManagementConfiguration) (result ManagementConfiguration, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -85,7 +81,6 @@ func (client ManagementConfigurationsClient) CreateOrUpdate(ctx context.Context,
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
 func (client ManagementConfigurationsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, managementConfigurationName string, parameters ManagementConfiguration) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -109,7 +104,6 @@ func (client ManagementConfigurationsClient) CreateOrUpdatePreparer(ctx context.
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementConfigurationsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
@@ -117,7 +111,6 @@ func (client ManagementConfigurationsClient) CreateOrUpdateSender(req *http.Requ
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
 func (client ManagementConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagementConfiguration, err error) {
@@ -131,11 +124,10 @@ func (client ManagementConfigurationsClient) CreateOrUpdateResponder(resp *http.
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // Delete deletes the ManagementConfiguration in the subscription.
-//
-// resourceGroupName is the name of the resource group to get. The name is case insensitive.
-// managementConfigurationName is user Management Configuration Name.
+// Parameters:
+// resourceGroupName - the name of the resource group to get. The name is case insensitive.
+// managementConfigurationName - user Management Configuration Name.
 func (client ManagementConfigurationsClient) Delete(ctx context.Context, resourceGroupName string, managementConfigurationName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -166,7 +158,6 @@ func (client ManagementConfigurationsClient) Delete(ctx context.Context, resourc
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // DeletePreparer prepares the Delete request.
 func (client ManagementConfigurationsClient) DeletePreparer(ctx context.Context, resourceGroupName string, managementConfigurationName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -188,7 +179,6 @@ func (client ManagementConfigurationsClient) DeletePreparer(ctx context.Context,
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementConfigurationsClient) DeleteSender(req *http.Request) (*http.Response, error) {
@@ -196,7 +186,6 @@ func (client ManagementConfigurationsClient) DeleteSender(req *http.Request) (*h
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
 func (client ManagementConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
@@ -209,11 +198,10 @@ func (client ManagementConfigurationsClient) DeleteResponder(resp *http.Response
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // Get retrieves the user ManagementConfiguration.
-//
-// resourceGroupName is the name of the resource group to get. The name is case insensitive.
-// managementConfigurationName is user Management Configuration Name.
+// Parameters:
+// resourceGroupName - the name of the resource group to get. The name is case insensitive.
+// managementConfigurationName - user Management Configuration Name.
 func (client ManagementConfigurationsClient) Get(ctx context.Context, resourceGroupName string, managementConfigurationName string) (result ManagementConfiguration, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -244,7 +232,6 @@ func (client ManagementConfigurationsClient) Get(ctx context.Context, resourceGr
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // GetPreparer prepares the Get request.
 func (client ManagementConfigurationsClient) GetPreparer(ctx context.Context, resourceGroupName string, managementConfigurationName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -266,7 +253,6 @@ func (client ManagementConfigurationsClient) GetPreparer(ctx context.Context, re
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementConfigurationsClient) GetSender(req *http.Request) (*http.Response, error) {
@@ -274,7 +260,6 @@ func (client ManagementConfigurationsClient) GetSender(req *http.Request) (*http
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ManagementConfigurationsClient) GetResponder(resp *http.Response) (result ManagementConfiguration, err error) {
@@ -288,7 +273,6 @@ func (client ManagementConfigurationsClient) GetResponder(resp *http.Response) (
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // ListBySubscription retrieves the ManagementConfigurations list.
 func (client ManagementConfigurationsClient) ListBySubscription(ctx context.Context) (result ManagementConfigurationPropertiesList, err error) {
 	req, err := client.ListBySubscriptionPreparer(ctx)
@@ -312,7 +296,6 @@ func (client ManagementConfigurationsClient) ListBySubscription(ctx context.Cont
 	return
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // ListBySubscriptionPreparer prepares the ListBySubscription request.
 func (client ManagementConfigurationsClient) ListBySubscriptionPreparer(ctx context.Context) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
@@ -332,7 +315,6 @@ func (client ManagementConfigurationsClient) ListBySubscriptionPreparer(ctx cont
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementConfigurationsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
@@ -340,7 +322,6 @@ func (client ManagementConfigurationsClient) ListBySubscriptionSender(req *http.
 		azure.DoRetryWithRegistration(client.Client))
 }
 
-// Deprecated: Please use package github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement instead.
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
 // closes the http.Response Body.
 func (client ManagementConfigurationsClient) ListBySubscriptionResponder(resp *http.Response) (result ManagementConfigurationPropertiesList, err error) {
