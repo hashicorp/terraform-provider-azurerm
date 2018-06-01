@@ -60,12 +60,12 @@ resource "azurerm_storage_account" "testsa" {
 
     location = "${azurerm_resource_group.testrg.location}"
     account_tier = "Standard"
-	account_replication_type = "LRS"
+    account_replication_type = "LRS"
 	
-	network_rules {
-		ip_rules = ["127.0.0.1"]
-		virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
-	}
+    network_rules {
+        ip_rules = ["127.0.0.1"]
+        virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    }
 
     tags {
         environment = "staging"

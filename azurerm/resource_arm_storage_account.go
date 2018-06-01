@@ -145,6 +145,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bypass": {
@@ -165,7 +166,7 @@ func resourceArmStorageAccount() *schema.Resource {
 						"default_access_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 						"ip_rules": {
 							Type:     schema.TypeSet,
@@ -705,10 +706,12 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 	networkRuleSet.IPRules = expandStorageAccountIPRules(networkRule)
 	networkRuleSet.VirtualNetworkRules = expandStorageAccountVirtualNetworks(networkRule)
 	networkRuleSet.Bypass = expandStorageAccountBypass(networkRule)
-	if networkRule["default_access_enabled"].(bool) {
-		networkRuleSet.DefaultAction = storage.DefaultActionAllow
-	} else {
-		networkRuleSet.DefaultAction = storage.DefaultActionDeny
+	if val, ok := networkRule["default_access_enabled"]; ok {
+		if val.(bool) {
+			networkRuleSet.DefaultAction = storage.DefaultActionAllow
+		} else {
+			networkRuleSet.DefaultAction = storage.DefaultActionDeny
+		}
 	}
 
 	return networkRuleSet
