@@ -106,6 +106,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			"overprovision": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"single_placement_group": {
