@@ -345,6 +345,42 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_networkRulesUpdate(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_access_enabled", "false"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_access_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.bypass.#", "2"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -737,4 +773,89 @@ resource "azurerm_storage_account" "testsa" {
     }
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_networkRules(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctestvirtnet%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.testrg.location}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+}
+
+resource "azurerm_subnet" "test" {
+	name                 = "acctestsubnet%d"
+	resource_group_name  = "${azurerm_resource_group.testrg.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Storage"]
+  }
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+	account_replication_type = "LRS"
+	
+	network_rules {
+		ip_rules = ["127.0.0.1"]
+		virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+	}
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rInt, rInt, rString)
+}
+
+func testAccAzureRMStorageAccount_networkRulesUpdate(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "acctestvirtnet%d"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.testrg.location}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+}
+
+resource "azurerm_subnet" "test" {
+	name                 = "acctestsubnet%d"
+	resource_group_name  = "${azurerm_resource_group.testrg.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Storage"]
+  }
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+	account_replication_type = "LRS"
+	
+	network_rules {
+		ip_rules = ["127.0.0.1", "127.0.0.2"]
+		bypass = ["Logging", "Metrics"]
+		default_access_enabled = true
+	}
+
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rInt, rInt, rString)
 }
