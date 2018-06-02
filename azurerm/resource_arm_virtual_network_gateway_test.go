@@ -12,6 +12,7 @@ import (
 
 func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -22,7 +23,8 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
 				),
 			},
 		},
@@ -31,6 +33,7 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -41,7 +44,8 @@ func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Basic" ),
 				),
 			},
 		},
@@ -50,6 +54,7 @@ func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 
 func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 	ri := acctest.RandInt()
+	resourceName := "azurerm_virtual_network_gateway.test"
 	config := testAccAzureRMVirtualNetworkGateway_vpnGw1(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
@@ -60,7 +65,9 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_configuration.0.radius_server_address",  "1.2.3.4" ),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "2" ),
 				),
 			},
 		},
@@ -268,6 +275,14 @@ resource "azurerm_virtual_network_gateway" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
     private_ip_address_allocation = "Dynamic"
     subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  vpn_client_configuration {
+	address_space = ["10.2.0.0/24"]
+	vpn_client_protocols = ["SSTP", "IkeV2"]
+
+	radius_server_address = "1.2.3.4"
+    radius_server_secret = "1234"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
