@@ -203,7 +203,7 @@ func TestAccAzureRMStorageBlobBlock_source(t *testing.T) {
 		t.Fatalf("Failed to close source blob")
 	}
 
-	config := testAccAzureRMStorageBlobBlock_source(ri, rs1, sourceBlob.Name(), testLocation())
+	config := testAccAzureRMStorageBlobBlock_source(ri, rs1, testLocation(), sourceBlob.Name())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -581,7 +581,7 @@ resource "azurerm_storage_blob" "test" {
 `, rInt, location, rString)
 }
 
-func testAccAzureRMStorageBlobBlock_source(rInt int, rString string, sourceBlobName string, location string) string {
+func testAccAzureRMStorageBlobBlock_source(rInt int, rString string, location string, sourceBlobName string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
     name = "acctestRG-%d"
