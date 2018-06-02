@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -340,6 +341,69 @@ func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 				Config:             preConfig,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: false,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_enableIdentity(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMStorageAccount_identity(ri, rs, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+
+	basicResourceNoManagedIdentity := testAccAzureRMStorageAccount_basic(ri, rs, testLocation())
+	managedIdentityEnabled := testAccAzureRMStorageAccount_identity(ri, rs, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: basicResourceNoManagedIdentity,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.#", "0"),
+				),
+			},
+			{
+				Config: managedIdentityEnabled,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
+				),
 			},
 		},
 	})
@@ -732,6 +796,32 @@ resource "azurerm_storage_account" "testsa" {
     location = "${azurerm_resource_group.testrg.location}"
     account_tier = "standard"
     account_replication_type = "lrs"
+    tags {
+        environment = "production"
+    }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_identity(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+    name = "testAccAzureRMSA-%d"
+    location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+    name = "unlikely23exst2acct%s"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+
+		identity {
+			type = "SystemAssigned"
+		}
+
     tags {
         environment = "production"
     }
