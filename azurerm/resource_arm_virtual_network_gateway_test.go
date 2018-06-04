@@ -45,7 +45,7 @@ func TestAccAzureRMVirtualNetworkGateway_lowerCaseSubnetName(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku", "Basic" ),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Basic"),
 				),
 			},
 		},
@@ -66,8 +66,8 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw1(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "vpn_client_configuration.0.radius_server_address",  "1.2.3.4" ),
-					resource.TestCheckResourceAttr(resourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "2" ),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_configuration.0.radius_server_address", "1.2.3.4"),
+					resource.TestCheckResourceAttr(resourceName, "vpn_client_configuration.0.vpn_client_protocols.#", "2"),
 				),
 			},
 		},
