@@ -123,7 +123,7 @@ func resourceArmMonitorDiagnosticsCreate(d *schema.ResourceData, meta interface{
 		},
 		name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Diagnostics Setting %q (Resource ID %q): %+v", name, targetResourceId, err)
 	}
 
 	read, err := client.Get(ctx, targetResourceId, name)
@@ -131,7 +131,7 @@ func resourceArmMonitorDiagnosticsCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Diagnostic Settings")
+		return fmt.Errorf("Cannot read ID for Monitor Diagnostics %q", name)
 	}
 
 	d.SetId(*read.ID)
