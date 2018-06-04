@@ -630,7 +630,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 		networkRules := props.NetworkRuleSet
 		if networkRules != nil && len(*networkRules.IPRules) > 0 && len(*networkRules.VirtualNetworkRules) > 0 {
-			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(d, networkRules)); err != nil {
+			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
 				return fmt.Errorf("Error flattening `network_rules`: %+v", err)
 			}
 		}
@@ -751,7 +751,7 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func flattenStorageAccountNetworkRules(d *schema.ResourceData, input *storage.NetworkRuleSet) []interface{} {
+func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
 	networkRules := make(map[string]interface{}, 0)
 
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
