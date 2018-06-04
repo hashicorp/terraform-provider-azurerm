@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job"
 sidebar_current: "docs-azurerm-resource-scheduler_job
 description: |-
-  Create or modify a Scheduler Job.
+  Manages a Scheduler Job.
 ---
 
 # azurerm_scheduler_job
 
-Create or modify a Scheduler Job.
+Manages a Scheduler Job.
 
 ## Example Usage (single web get now)
 
@@ -129,7 +129,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Scheduler Job. Changing this forces a new resource to be created.
 
-* `job_collection_name` - (Required) Specifies the Scheduler Job Collection to add the job to. Changing this forces a new resource to be created.
+* `job_collection_name` - (Required) Specifies the name of the Scheduler Job Collection in which the Job should exist. Changing this forces a new resource to be created.
 
 * `action_web` - (Required) A `action_web` block defining the job action as described below. Note this is identical to an `error_action_web` block.
 
@@ -141,7 +141,7 @@ The following arguments are supported:
 
 * `start_time` - (Optional) The time the first instance of the job is to start running at. Omitting this causes the job to start now.
 
-* `state` - (Optional) The sets or gets the current state of the job. Could be one of: `Enabled`, `Completed`, `Disabled`, `Faulted`
+* `state` - (Optional) The sets or gets the current state of the job. Can be set to either `Enabled` or `Completed`
 
 
 `web_action` & `error_web_action` block supports the following:
@@ -158,23 +158,20 @@ The following arguments are supported:
 `authentication_basic` block supports the following:
 
 * `username` - (Required) Specifies the username to use.
-* `password` - (Required) Specifies the password t use. Cannot be imported.
+* `password` - (Required) Specifies the password to use.
 
 
 `authentication_certificate` block supports the following:
 
-* `pfx` - (Required) Specifies the pfx certificate. Cannot be imported.
-* `password` - (Required) Specifies the certificate password. Cannot be imported.
-* `thumbprint` - (Computed) The certificate thumbprint.
-* `expiration` - (Computed)  The certificate expiration date.
-* `subject_name` - (Computed) The certificate's certificate subject name.
+* `pfx` - (Required) Specifies the pfx certificate in base-64 format.
+* `password` - (Required) Specifies the certificate password.
 
 
 `authentication_active_directory` block supports the following:
 
 * `client_id` - (Required) Specifies the client ID to use.
 * `tenant_id` - (Required) Specifies the tenant ID to use.
-* `secret` - (Required) Specifies the secret to use. Cannot be imported.
+* `client_secret` - (Required) Specifies the secret to use.
 * `audience` - (Optional) Specifies the audience.
 
 
@@ -192,13 +189,13 @@ The following arguments are supported:
 * `minutes` - (Optional) Specifies the minutes of the hour that the job should execute at. Must be between `0` and `59`
 * `hours` - (Optional) Specifies the hours of the day that the job should execute at. Must be between `0` and `23`
 * `week_days` - (Optional) Specifies the days of the week that the job should execute on. Must be one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`. Only applies when `Week` is used for frequency.
-* `month_days` - (Optional) Specifies the days of the month that the job should execute on. Must be non zero and between ``-1` and `31`. Only applies when `Month` is used for frequency.
+* `month_days` - (Optional) Specifies the days of the month that the job should execute on. Must be non zero and between `-1` and `31`. Only applies when `Month` is used for frequency.
 * `monthly_occurrences` - (Optional) Specifies specific monthly occurrences like "last sunday of the month" with `monthly_occurrences` blocks. Only applies when `Month` is used for frequency.
 
 `monthly_occurrences` block supports the following:
 
 * `day` - (Optional) Specifies the day of the week that the job should execute on. Must be one of  one of `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, `Sunday`.
-* `occurrence` - (Optional) Specifies the week the job should run on. For example  1 for the first week, -1 for the last week of the month. Must be between -5 and 5.
+* `occurrence` - (Optional) Specifies the week the job should run on. For example  `1` for the first week, `-1` for the last week of the month. Must be between `-5` and `5`.
 
 
 ## Attributes Reference
@@ -207,15 +204,11 @@ The following attributes are exported:
 
 * `id` - The Scheduler Job ID.
 
-* `execution_count` - The number of times this job has executed.
+`authentication_certificate` block exports the following:
 
-* `failure_count` - The number of times this job has failed.
-
-* `faulted_count` - The number of faulted occurrences (occurrences that were retried and failed as many times as the retry policy states).
-
-* `last_execution_time` - The time the last occurrence executed in ISO-8601 format. Could be empty if job has not run yet.
-
-* `next_execution_time` - The time of the next occurrence. Could be empty if the job is completed..
+* `thumbprint` - (Computed) The certificate thumbprint.
+* `expiration` - (Computed)  The certificate expiration date.
+* `subject_name` - (Computed) The certificate's certificate subject name.
 
 ## Import
 

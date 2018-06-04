@@ -450,7 +450,7 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 					"", "", ""),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId, secret),
+					checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId),
 				),
 			},
 			{
@@ -696,22 +696,22 @@ func testCheckAzureRMSchedulerJobExists(name string) resource.TestCheckFunc {
 
 func testAccAzureRMSchedulerJob_base(rInt int, location, block1, block2, block3, block4 string) string {
 	return fmt.Sprintf(` 
-resource "azurerm_resource_group" "rg" { 
+resource "azurerm_resource_group" "test" { 
   name     = "acctestRG-%[1]d" 
   location = "%[2]s" 
 } 
  
-resource "azurerm_scheduler_job_collection" "jc" {
+resource "azurerm_scheduler_job_collection" "test" {
     name                = "acctestRG-%[1]d-job_collection"
-    location            = "${azurerm_resource_group.rg.location}"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
+    location            = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
     sku                 = "standard"
 }
 
 resource "azurerm_scheduler_job" "test" {
     name                = "acctestRG-%[1]d-job"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
 
     %[3]s
 
@@ -891,7 +891,8 @@ func testAccAzureRMSchedulerJob_block_actionWeb_basic(blockName string) string {
 	//need a valid URL here otherwise on a slow connection job might fault before the test check
 	return fmt.Sprintf(`
   %s {
-    url = "http://example.com"
+    url    = "http://example.com"
+    method = "get"
   } 
 `, blockName)
 }
@@ -988,13 +989,13 @@ func testAccAzureRMSchedulerJob_block_actionWeb_authAd(tenantId, clientId, secre
 `, tenantId, clientId, secret)
 }
 
-func checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId, secret string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.tenant_id", tenantId),
 		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.client_id", clientId),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.secret", secret),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.audience", "https://management.core.windows.net/"),
+		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_active_directory.0.secret"),
+		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_active_directory.0.audience"),
 	)
 }

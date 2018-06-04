@@ -577,7 +577,6 @@ func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-//expand (terraform -> API)
 func expandAzureArmSchedulerJobActionRequest(meta interface{}, b interface{}) (*scheduler.HTTPRequest, scheduler.JobActionType) {
 
 	block := b.([]interface{})[0].(map[string]interface{})
@@ -595,15 +594,13 @@ func expandAzureArmSchedulerJobActionRequest(meta interface{}, b interface{}) (*
 	var jobType scheduler.JobActionType
 	if strings.HasPrefix(strings.ToLower(url), "https://") {
 		jobType = scheduler.HTTPS
-		//} else if strings.HasPrefix(strings.ToLower(url), "http://") {
 	} else {
 		jobType = scheduler.HTTP
 	}
 
 	//load headers
-	//if v, ok := block["headers"].(map[string]interface{}); ok { //check doesn't seem to be needed
 	for k, v := range block["headers"].(map[string]interface{}) {
-		(request.Headers)[k] = utils.String(v.(string))
+		request.Headers[k] = utils.String(v.(string))
 	}
 
 	//only valid for a set
@@ -670,14 +667,10 @@ func expandAzureArmSchedulerJobActionRetry(b interface{}) *scheduler.RetryPolicy
 
 func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrence {
 	block := b.([]interface{})[0].(map[string]interface{})
-	recurrence := scheduler.JobRecurrence{}
-	schedule := scheduler.JobRecurrenceSchedule{}
 
-	if v, ok := block["frequency"].(string); ok && v != "" {
-		recurrence.Frequency = scheduler.RecurrenceFrequency(v)
-	}
-	if v, ok := block["interval"].(int); ok {
-		recurrence.Interval = utils.Int32(int32(v))
+	recurrence := scheduler.JobRecurrence{
+		Frequency: scheduler.RecurrenceFrequency(block["frequency"].(string)),
+		Interval:  utils.Int32(int32(block["interval"].(int))),
 	}
 	if v, ok := block["count"].(int); ok {
 		recurrence.Count = utils.Int32(int32(v))
@@ -687,11 +680,12 @@ func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrenc
 		recurrence.EndTime = &date.Time{Time: endTime}
 	}
 
+	schedule := scheduler.JobRecurrenceSchedule{}
 	if s, ok := block["minutes"].(*schema.Set); ok && s.Len() > 0 {
-		schedule.Minutes = setToSliceInt32P(s)
+		schedule.Minutes = set.ToSliceInt32P(s)
 	}
 	if s, ok := block["hours"].(*schema.Set); ok && s.Len() > 0 {
-		schedule.Hours = setToSliceInt32P(s)
+		schedule.Hours = set.ToSliceInt32P(s)
 	}
 
 	if s, ok := block["week_days"].(*schema.Set); ok && s.Len() > 0 {
@@ -703,7 +697,7 @@ func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrenc
 	}
 
 	if s, ok := block["month_days"].(*schema.Set); ok && s.Len() > 0 {
-		schedule.MonthDays = setToSliceInt32P(s)
+		schedule.MonthDays = set.ToSliceInt32P(s)
 	}
 	if s, ok := block["monthly_occurrences"].(*schema.Set); ok && s.Len() > 0 {
 		var slice []scheduler.JobRecurrenceScheduleMonthlyOccurrence
@@ -765,7 +759,7 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []
 				authBlock["username"] = *v
 			}
 
-			//password is always blank, so blank it
+			//password is not returned
 			authBlock["password"] = ""
 
 		} else if cert, ok := auth.AsClientCertAuthentication(); ok {
@@ -781,7 +775,7 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []
 				authBlock["subject_name"] = *v
 			}
 
-			//always empty so blank it
+			//properties not returned
 			authBlock["pfx"] = ""
 			authBlock["password"] = ""
 
@@ -798,7 +792,7 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []
 				authBlock["tenant_id"] = *v
 			}
 
-			//secret is always empty, so blank it
+			//properties not returned
 			authBlock["secret"] = ""
 		}
 	}
@@ -838,10 +832,10 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 	if schedule := recurrence.Schedule; schedule != nil {
 
 		if v := schedule.Minutes; v != nil {
-			block["minutes"] = sliceToSetInt32(*v)
+			block["minutes"] = set.FromInt32Slice(*v)
 		}
 		if v := schedule.Hours; v != nil {
-			block["hours"] = sliceToSetInt32(*v)
+			block["hours"] = set.FromInt32Slice(*v)
 		}
 
 		if v := schedule.WeekDays; v != nil {
@@ -852,7 +846,7 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 			block["week_days"] = set
 		}
 		if v := schedule.MonthDays; v != nil {
-			block["month_days"] = sliceToSetInt32(*v)
+			block["month_days"] = set.FromInt32Slice(*v)
 		}
 
 		if monthly := schedule.MonthlyOccurrences; monthly != nil {
@@ -885,21 +879,4 @@ func resourceAzureRMSchedulerJobMonthlyOccurrenceHash(v interface{}) int {
 	buf.WriteString(fmt.Sprintf("%d-", m["occurrence"].(int)))
 
 	return hashcode.String(buf.String())
-}
-
-//todo where to put these?
-func sliceToSetInt32(slice []int32) *schema.Set {
-	set := &schema.Set{F: set.HashInt}
-	for _, v := range slice {
-		set.Add(int(v))
-	}
-	return set
-}
-
-func setToSliceInt32P(set *schema.Set) *[]int32 {
-	var slice []int32
-	for _, m := range set.List() {
-		slice = append(slice, int32(m.(int)))
-	}
-	return &slice
 }
