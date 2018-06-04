@@ -364,7 +364,6 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_access_enabled", "false"),
 				),
 			},
 			{
@@ -373,8 +372,39 @@ func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 					testCheckAzureRMStorageAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "network_rules.0.default_access_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "network_rules.0.bypass.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_networkRules(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_basic(ri, rs, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.ip_rules.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.0.virtual_network_subnet_ids.#", "1"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "network_rules.#", "0"),
 				),
 			},
 		},
@@ -850,7 +880,6 @@ resource "azurerm_storage_account" "testsa" {
     network_rules {
         ip_rules = ["127.0.0.1", "127.0.0.2"]
         bypass = ["Logging", "Metrics"]
-        default_access_enabled = true
     }
 
     tags {

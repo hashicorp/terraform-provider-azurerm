@@ -145,7 +145,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bypass": {
@@ -162,11 +161,6 @@ func resourceArmStorageAccount() *schema.Resource {
 								}, true),
 							},
 							Set: schema.HashString,
-						},
-						"default_access_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
 						},
 						"ip_rules": {
 							Type:     schema.TypeSet,
@@ -634,8 +628,9 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			}
 		}
 
-		if networkRules := props.NetworkRuleSet; networkRules != nil {
-			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
+		networkRules := props.NetworkRuleSet
+		if networkRules != nil && len(*networkRules.IPRules) > 0 && len(*networkRules.VirtualNetworkRules) > 0 {
+			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(d, networkRules)); err != nil {
 				return fmt.Errorf("Error flattening `network_rules`: %+v", err)
 			}
 		}
@@ -697,7 +692,8 @@ func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{
 func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
 	networkRules := d.Get("network_rules").([]interface{})
 	if networkRules == nil || len(networkRules) == 0 {
-		return nil
+		// Default access is enabled when no network rules are set.
+		return &storage.NetworkRuleSet{DefaultAction: storage.DefaultActionAllow}
 	}
 
 	networkRule := networkRules[0].(map[string]interface{})
@@ -706,13 +702,8 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 	networkRuleSet.IPRules = expandStorageAccountIPRules(networkRule)
 	networkRuleSet.VirtualNetworkRules = expandStorageAccountVirtualNetworks(networkRule)
 	networkRuleSet.Bypass = expandStorageAccountBypass(networkRule)
-	if val, ok := networkRule["default_access_enabled"]; ok {
-		if val.(bool) {
-			networkRuleSet.DefaultAction = storage.DefaultActionAllow
-		} else {
-			networkRuleSet.DefaultAction = storage.DefaultActionDeny
-		}
-	}
+	// Default Access is disabled when network rules are set.
+	networkRuleSet.DefaultAction = storage.DefaultActionDeny
 
 	return networkRuleSet
 }
@@ -760,15 +751,13 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
-func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
+func flattenStorageAccountNetworkRules(d *schema.ResourceData, input *storage.NetworkRuleSet) []interface{} {
 	networkRules := make(map[string]interface{}, 0)
 
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
-	if input.DefaultAction != "" {
-		networkRules["default_access_enabled"] = (input.DefaultAction == storage.DefaultActionAllow)
-	}
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
+
 	return []interface{}{networkRules}
 }
 
