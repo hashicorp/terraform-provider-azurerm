@@ -137,6 +137,9 @@ type ArmClient struct {
 	sqlServerAzureADAdministratorsClient sql.ServerAzureADAdministratorsClient
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
+	// Graphrbac
+	applicationsClient graphrbac.ApplicationsClient
+
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
 	keyVaultManagementClient keyVault.BaseClient
@@ -292,6 +295,13 @@ func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConf
 	}
 
 	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig, c.ClientID, endpoint, *c.AccessToken)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = spt.Refresh()
+
 	if err != nil {
 		return nil, err
 	}
@@ -374,6 +384,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerGraphRbacClients(graphEndpoint, c.TenantID, graphAuth, sender)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth, sender)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
@@ -674,6 +685,15 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 	ehnc.Sender = sender
 	ehnc.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.eventHubNamespacesClient = ehnc
+}
+
+func (c *ArmClient) registerGraphRbacClients(graphEndpoint, tenantId string, graphAuth autorest.Authorizer, sender autorest.Sender) {
+	applicationsClient := graphrbac.NewApplicationsClientWithBaseURI(graphEndpoint, tenantId)
+	setUserAgent(&applicationsClient.Client)
+	applicationsClient.Authorizer = graphAuth
+	applicationsClient.Sender = sender
+	applicationsClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.applicationsClient = applicationsClient
 }
 
 func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, auth autorest.Authorizer, keyVaultAuth autorest.Authorizer, sender autorest.Sender) {
