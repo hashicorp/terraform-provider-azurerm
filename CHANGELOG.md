@@ -17,6 +17,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
+* `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]
 * dependencies: migrating to the un-deprecated Preview's for Container Instance, EventGrid, Log Analytics and SQL [GH-1322]
 * dependencies: upgrading to `2018-01-01` of the EventGrid API [GH-1322]
 * dependencies: upgrading to `2018-03-01` of the Monitor API [GH-1322]
