@@ -3741,12 +3741,6 @@ resource "azurerm_image" "test" {
   }
 }
 
-
- data "azurerm_image" "test" {
-  name = "${azurerm_image.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
 resource "azurerm_virtual_machine_scale_set" "test" {
   name = "acctvmss-%[1]d"
   location = "${azurerm_resource_group.test.location}"
@@ -3754,7 +3748,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
 	storage_profile_image_reference {
-   id = "${data.azurerm_image.test.id}"
+      id = "${azurerm_image.test.id}"
 	}
 
   sku {
