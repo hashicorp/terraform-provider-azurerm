@@ -100,11 +100,44 @@ func TestAccAzureRMRoute_removed(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRouteExists("azurerm_route.test1"),
+					testCheckAzureRMRouteIsEmpty("azurerm_route_table.test"),
 				),
 			},
 		},
 	})
+}
+
+func testCheckAzureRMRouteIsEmpty(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %q", name)
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, resourceGroup, name, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Route %q (resource group: %q) does not exist", name, resourceGroup)
+			}
+			return fmt.Errorf("Bad: Get on routesClient: %+v", err)
+		}
+
+		if len(*resp.Routes) != 0 {
+			return fmt.Errorf("Bad: Expected No Routes found: %d", len(*resp.Routes))
+		}
+
+		return nil
+	}
 }
 
 func testCheckAzureRMRouteExists(name string) resource.TestCheckFunc {
