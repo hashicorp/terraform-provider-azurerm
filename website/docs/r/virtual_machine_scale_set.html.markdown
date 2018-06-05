@@ -353,10 +353,14 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - (Required) An ip_configuration block as documented below
+* `ip_configuration` - (Required) An ip_configuration block as documented below.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `dns_settings` - (Optional) An dns_settings block as documented below.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
-`false`.
+
+`dns_settings` supports the following:
+
+* `dns_servers` - (Required) Specifies an array of dns servers.
 
 `ip_configuration` supports the following:
 
@@ -451,7 +455,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 The following attributes are exported:
 
 * `id` - The virtual machine scale set ID.
-
 
 ## Import
 
