@@ -31,6 +31,48 @@ resource "azurerm_storage_account" "testsa" {
 }
 ```
 
+## Example Usage with Network Rules
+
+```hcl
+resource "azurerm_resource_group" "testrg" {
+  name     = "resourceGroupName"
+  location = "westus"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "virtnetname"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.testrg.location}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+}
+
+resource "azurerm_subnet" "test" {
+	name                 = "subnetname"
+	resource_group_name  = "${azurerm_resource_group.testrg.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Sql","Microsoft.Storage"]
+  }
+
+resource "azurerm_storage_account" "testsa" {
+    name = "storageaccountname"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+	
+    network_rules {
+        ip_rules = ["127.0.0.1"]
+        virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    }
+
+    tags {
+        environment = "staging"
+    }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -70,6 +112,8 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
+* `network_rules` - (Optional) A `network_rules` block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -78,6 +122,15 @@ The following arguments are supported:
 
 * `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
+
+---
+
+* `network_rules` supports the following:
+
+* `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
+any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
+* `ip_rules` - (Optional) List of IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed.
+* `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
