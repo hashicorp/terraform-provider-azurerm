@@ -26,7 +26,6 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.5"),
-					resource.TestCheckResourceAttr(resourceName, "storage_mb", "51200"),
 					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
@@ -50,7 +49,6 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
-					resource.TestCheckResourceAttr(resourceName, "storage_mb", "51200"),
 					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
@@ -74,7 +72,6 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
-					resource.TestCheckResourceAttr(resourceName, "storage_mb", "947200"),
 					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
 				),
 			},
@@ -82,10 +79,30 @@ func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_standard(t *testing.T) {
+func TestAccAzureRMPostgreSQLServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLServer_standard(ri, testLocation())
+	config := testAccAzureRMPostgreSQLServer_generalPurpose(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLServer_memoryOptimized(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPostgreSQLServer_memoryOptimized(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -107,7 +124,35 @@ func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
-	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(ri, location)
+	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
+	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedSKU(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -201,15 +246,21 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
+    name     = "B_Gen4_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
@@ -228,21 +279,27 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
+    name     = "B_Gen4_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(rInt int, location string) string {
+func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -255,18 +312,57 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
+    name     = "B_Gen4_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "R3dH0TCh1l1P3pp3rs!"
   version                      = "9.6"
-  storage_mb                   = 51200
   ssl_enforcement              = "Disabled"
 }
 
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedSKU(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "B_Gen4_1"
+    capacity = 1
+    tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  ssl_enforcement              = "Enabled"
+}
 `, rInt, location, rInt)
 }
 
@@ -283,21 +379,27 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
+    name     = "B_Gen4_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 947200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  storage_mb                   = 947200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMPostgreSQLServer_standard(rInt int, location string) string {
+func testAccAzureRMPostgreSQLServer_generalPurpose(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -310,15 +412,54 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLS400"
-    capacity = 400
-    tier     = "Standard"
+    name     = "GP_Gen5_32"
+    capacity = 32
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb = 640000
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  storage_mb                   = 640000
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMPostgreSQLServer_memoryOptimized(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "MO_Gen5_16"
+    capacity = 16
+    tier     = "MemoryOptimized"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb = 1048576
+    backup_retention_days = 7
+    geo_redundant_backup = "Enabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)

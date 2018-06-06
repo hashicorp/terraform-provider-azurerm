@@ -126,6 +126,45 @@ func TestAccDataSourceAzureRMAppService_connectionString(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
+	dataSourceName := "data.azurerm_app_service.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAppService_ipRestriction(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "ip_restriction.0.ip_address", "10.10.10.10"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_restriction.0.subnet_mask", "255.255.255.255"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
+	dataSourceName := "data.azurerm_app_service.test"
+	rInt := acctest.RandInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAppService_http2Enabled(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "site_config.0.http2_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAppService_basic(rInt int, location string) string {
 	config := testAccAzureRMAppService_basic(rInt, location)
 	return fmt.Sprintf(`
@@ -188,6 +227,30 @@ data "azurerm_app_service" "test" {
 
 func testAccDataSourceAppService_connectionStrings(rInt int, location string) string {
 	config := testAccAzureRMAppService_connectionStrings(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_app_service" "test" {
+  name                = "${azurerm_app_service.test.name}"
+  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+}
+`, config)
+}
+
+func testAccDataSourceAppService_ipRestriction(rInt int, location string) string {
+	config := testAccAzureRMAppService_oneIpRestriction(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_app_service" "test" {
+  name                = "${azurerm_app_service.test.name}"
+  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+}
+`, config)
+}
+
+func testAccDataSourceAppService_http2Enabled(rInt int, location string) string {
+	config := testAccAzureRMAppService_http2Enabled(rInt, location)
 	return fmt.Sprintf(`
 %s
 

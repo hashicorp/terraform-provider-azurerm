@@ -2,10 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -90,10 +89,10 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	assignableScopes := expandRoleDefinitionAssignableScopes(d)
 
 	properties := authorization.RoleDefinition{
-		Properties: &authorization.RoleDefinitionProperties{
+		RoleDefinitionProperties: &authorization.RoleDefinitionProperties{
 			RoleName:         utils.String(name),
 			Description:      utils.String(description),
-			Type:             utils.String(roleType),
+			RoleType:         utils.String(roleType),
 			Permissions:      &permissions,
 			AssignableScopes: &assignableScopes,
 		},
@@ -131,7 +130,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error loading Role Definition %q: %+v", d.Id(), err)
 	}
 
-	if props := resp.Properties; props != nil {
+	if props := resp.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
 

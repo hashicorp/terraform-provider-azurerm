@@ -48,8 +48,7 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 	vault, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(vault.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Recovery Services Vault %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)

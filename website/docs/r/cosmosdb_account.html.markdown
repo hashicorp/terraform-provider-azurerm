@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
 sidebar_current: "docs-azurerm-resource-cosmosdb-account"
 description: |-
-  Creates a new CosmosDB (formally DocumentDB) Account.
+  Manages a new CosmosDB (formally DocumentDB) Account.
 ---
 
-# azurerm\_cosmos\_db\_account
+# azurerm_cosmos_db_account
 
-Creates a new CosmosDB (formally DocumentDB) Account.
+Manages a new CosmosDB (formally DocumentDB) Account.
 
 ## Example Usage
 
@@ -110,6 +110,8 @@ The following attributes are exported:
 * `primary_readonly_master_key` - The Primary read-only master Key for the CosmosDB Account.
 
 * `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
+
+* `connection_strings` - A list of connection strings available for this CosmosDB account. If the kind is `GlobalDocumentDB`, this will be empty.
 
 
 ## Import

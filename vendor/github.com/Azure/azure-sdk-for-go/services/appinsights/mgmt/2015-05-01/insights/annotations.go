@@ -40,10 +40,11 @@ func NewAnnotationsClientWithBaseURI(baseURI string, subscriptionID string) Anno
 }
 
 // Create create an Annotation of an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. annotationProperties is properties that need to be specified to create an annotation of a
-// Application Insights component.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// annotationProperties - properties that need to be specified to create an annotation of a Application
+// Insights component.
 func (client AnnotationsClient) Create(ctx context.Context, resourceGroupName string, resourceName string, annotationProperties Annotation) (result ListAnnotation, err error) {
 	req, err := client.CreatePreparer(ctx, resourceGroupName, resourceName, annotationProperties)
 	if err != nil {
@@ -110,10 +111,10 @@ func (client AnnotationsClient) CreateResponder(resp *http.Response) (result Lis
 }
 
 // Delete delete an Annotation of an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. annotationID is the unique annotation ID. This is unique within a Application Insights
-// component.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// annotationID - the unique annotation ID. This is unique within a Application Insights component.
 func (client AnnotationsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, annotationID string) (result SetObject, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, annotationID)
 	if err != nil {
@@ -179,10 +180,10 @@ func (client AnnotationsClient) DeleteResponder(resp *http.Response) (result Set
 }
 
 // Get get the annotation for given id.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. annotationID is the unique annotation ID. This is unique within a Application Insights
-// component.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// annotationID - the unique annotation ID. This is unique within a Application Insights component.
 func (client AnnotationsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, annotationID string) (result ListAnnotation, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName, annotationID)
 	if err != nil {
@@ -248,10 +249,11 @@ func (client AnnotationsClient) GetResponder(resp *http.Response) (result ListAn
 }
 
 // List gets the list of annotations for a component for given time range
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. start is the start time to query from for annotations, cannot be older than 90 days from
-// current date. end is the end time to query for annotations.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// start - the start time to query from for annotations, cannot be older than 90 days from current date.
+// end - the end time to query for annotations.
 func (client AnnotationsClient) List(ctx context.Context, resourceGroupName string, resourceName string, start string, end string) (result ListAnnotation, err error) {
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName, start, end)
 	if err != nil {

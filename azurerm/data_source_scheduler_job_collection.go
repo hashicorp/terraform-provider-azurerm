@@ -54,9 +54,15 @@ func dataSourceArmSchedulerJobCollection() *schema.Resource {
 							Computed: true,
 						},
 
-						//this is MaxRecurrance.Interval, property is named this as the documentation in the api states:
-						//  Gets or sets the interval between retries.
+						// API documentation states the MaxRecurrence.Interval "Gets or sets the interval between retries."
+						// however it does appear it is the max interval allowed for recurrences
 						"max_retry_interval": {
+							Type:       schema.TypeInt,
+							Deprecated: "Renamed to `max_recurrence_interval` to match azure",
+							Computed:   true,
+						},
+
+						"max_recurrence_interval": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
@@ -77,8 +83,7 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 	collection, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(collection.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Scheduler Job Collection %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on Scheduler Job Collection %q (Resource Group %q): %+v", name, resourceGroup, err)

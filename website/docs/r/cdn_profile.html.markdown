@@ -6,7 +6,7 @@ description: |-
   Create a CDN Profile to create a collection of CDN Endpoints.
 ---
 
-# azurerm\_cdn\_profile
+# azurerm_cdn_profile
 
 Create a CDN Profile to create a collection of CDN Endpoints.
 

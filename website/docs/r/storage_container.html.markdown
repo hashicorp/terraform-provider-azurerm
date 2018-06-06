@@ -6,7 +6,7 @@ description: |-
   Create a Azure Storage Container.
 ---
 
-# azurerm\_storage\_container
+# azurerm_storage_container
 
 Create an Azure Storage Container.
 
