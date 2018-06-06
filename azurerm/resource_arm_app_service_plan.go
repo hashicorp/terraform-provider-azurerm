@@ -314,8 +314,8 @@ func flattenAppServiceProperties(props *web.AppServicePlanProperties) []interfac
 func validateAppServicePlanName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z-_]{1,60}$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores up to 60 characters", k))
 	}
 
 	return
