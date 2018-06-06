@@ -5,6 +5,7 @@
 
 variable "resource_group" {
   description = "The name of the resource group in which to create the virtual network."
+  default     = "tfex-vmss-ubuntu"
 }
 
 variable "location" {
@@ -24,6 +25,7 @@ variable "storage_replication_type" {
 
 variable "hostname" {
   description = "A string that determines the hostname/IP address of the origin server. This string could be a domain name, IPv4 address or IPv6 address."
+  default     = "tfex-vmss-ubuntu"
 }
 
 variable "vm_sku" {
@@ -48,6 +50,7 @@ variable "image_offer" {
 
 variable "vmss_name" {
   description = "String used as a base for naming resources. Must be 3-61 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
+  default     = "tfex-vmss-ubuntu"
 }
 
 variable "instance_count" {
@@ -57,8 +60,10 @@ variable "instance_count" {
 
 variable "admin_username" {
   description = "Admin username on all VMs."
+  default     = "kt"
 }
 
 variable "admin_password" {
   description = "Admin password on all VMs."
+  default     = "passWORD123!@#"
 }

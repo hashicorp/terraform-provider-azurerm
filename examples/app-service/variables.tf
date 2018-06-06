@@ -6,8 +6,9 @@ variable "location" {
   type = "string"
 }
 
-variable "app_service_name" {
+variable "app_service_name_prefix" {
   type = "string"
+  default = "tfex-appservice-"
 }
 
 variable "app_service_plan_sku_tier" {

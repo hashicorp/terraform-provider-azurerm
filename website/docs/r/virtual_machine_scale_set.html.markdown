@@ -90,14 +90,18 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   # automatic rolling upgrade
-  upgrade_policy_mode  = "Rolling"
   automatic_os_upgrade = true
+  upgrade_policy_mode  = "Rolling"
   rolling_upgrade_policy {
     max_batch_instance_percent              = 20
     max_unhealthy_instance_percent          = 20
     max_unhealthy_upgraded_instance_percent = 5
     pause_time_between_batches              = "PT0S"
   }
+  
+  # required when using rolling upgrade policy
+  health_probe_id = "${azurerm_lb_probe.test.id}"
+      
 
   sku {
     name     = "Standard_A0"
@@ -151,9 +155,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
       load_balancer_inbound_nat_rules_ids    = ["${element(azurerm_lb_nat_pool.lbnatpool.*.id, count.index)}"]
     }
-
-    # required when using rolling upgrade policy
-    health_probe_id = "${azurerm_lb_probe.test.id}"
   }
 
   tags {
@@ -267,6 +268,7 @@ The following arguments are supported:
 * `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Rolling`, `Manual`, or `Automatic`. When choosing `Rolling`, you will need to set a health probe.
 * `automatic_os_upgrade` - (Optional) Automatic OS patches can be applied by Azure to your scaleset. This is particularly useful when `upgrade_policy_mode` is set to `Rolling`. Defaults to `false`.
 * `rolling_upgrade_policy` - (Optional) Ignored unless `upgrade_policy_mode` is set to `Rolling`.
+* `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
 * `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
 * `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Default is true. Changing this forces a
   new resource to be created. See [documentation](http://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information.
@@ -294,7 +296,7 @@ The following arguments are supported:
 * `max_batch_instance_percent` - (Optional) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability. Defaults to `20`.
 * `max_unhealthy_instance_percent` - (Optional) The maximum percentage of the total virtual machine instances in the scale set that can be simultaneously unhealthy, either as a result of being upgraded, or by being found in an unhealthy state by the virtual machine health checks before the rolling upgrade aborts. This constraint will be checked prior to starting any batch. Defaults to `20`.
 * `max_unhealthy_upgraded_instance_percent` - (Optional) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts. Defaults to `5`.
-* `pause_time_between_batches` - (Optional) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format for duration (https://en.wikipedia.org/wiki/ISO_8601#Durations). Defaults to 0 seconds represented as `PT0S`.
+* `pause_time_between_batches` - (Optional) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format for duration (https://en.wikipedia.org/wiki/ISO_8601#Durations). Defaults to `0` seconds represented as `PT0S`.
 
 `os_profile` supports the following:
 
@@ -345,7 +347,6 @@ The following arguments are supported:
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 * `ip_configuration` - (Required) An ip_configuration block as documented below
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
-* `health_probe_id` - (Optional) Specifies the identifier for the load balancer health probe. Required when using `Rolling` as your `upgrade_policy_mode`.
 
 `ip_configuration` supports the following:
 
