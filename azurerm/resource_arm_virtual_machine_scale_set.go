@@ -106,6 +106,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			"overprovision": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"single_placement_group": {
@@ -113,6 +114,17 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
+			},
+
+			"priority": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(compute.Regular),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Low),
+					string(compute.Regular),
+				}, true),
 			},
 
 			"os_profile": {
@@ -291,9 +303,30 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Optional: true,
 						},
 
+						"ip_forwarding": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"network_security_group_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+
+						"dns_settings": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"dns_servers": {
+										Type:     schema.TypeList,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
 						},
 
 						"ip_configuration": {
@@ -651,6 +684,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	updatePolicy := d.Get("upgrade_policy_mode").(string)
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
+	priority := d.Get("priority").(string)
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
@@ -661,6 +695,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 			StorageProfile:   &storageProfile,
 			OsProfile:        osProfile,
 			ExtensionProfile: extensions,
+			Priority:         compute.VirtualMachinePriorityTypes(priority),
 		},
 		Overprovision:        &overprovision,
 		SinglePlacementGroup: &singlePlacementGroup,
@@ -762,12 +797,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
 		}
-
 		d.Set("overprovision", properties.Overprovision)
 		d.Set("single_placement_group", properties.SinglePlacementGroup)
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
+			d.Set("priority", profile.Priority)
 
 			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
 			if err := d.Set("os_profile", osProfile); err != nil {
@@ -1021,8 +1056,25 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 			s["accelerated_networking"] = *v
 		}
 
+		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.EnableIPForwarding; v != nil {
+			s["ip_forwarding"] = *v
+		}
+
 		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.NetworkSecurityGroup; v != nil {
 			s["network_security_group_id"] = *v.ID
+		}
+
+		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings != nil {
+			dnsSetting := make(map[string]interface{})
+			dnsServers := make([]string, 0, len(*netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers))
+			if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers != nil {
+				for _, dnsServer := range *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers {
+					dnsServers = append(dnsServers, dnsServer)
+				}
+				dnsSetting["dns_servers"] = dnsServers
+			}
+
+			s["dns_settings"] = []interface{}{dnsSetting}
 		}
 
 		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations != nil {
@@ -1379,7 +1431,25 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 		name := config["name"].(string)
 		primary := config["primary"].(bool)
 		acceleratedNetworking := config["accelerated_networking"].(bool)
+		ipForwarding := config["ip_forwarding"].(bool)
 
+		dnsSettingsConfigs := config["dns_settings"].([]interface{})
+		dnsSettings := compute.VirtualMachineScaleSetNetworkConfigurationDNSSettings{}
+		for _, dnsSettingsConfig := range dnsSettingsConfigs {
+			dns_settings := dnsSettingsConfig.(map[string]interface{})
+
+			if v := dns_settings["dns_servers"]; v != nil {
+				dns_servers := dns_settings["dns_servers"].([]interface{})
+				if len(dns_servers) > 0 {
+					var dnsServers []string
+					for _, v := range dns_servers {
+						str := v.(string)
+						dnsServers = append(dnsServers, str)
+					}
+					dnsSettings.DNSServers = &dnsServers
+				}
+			}
+		}
 		ipConfigurationConfigs := config["ip_configuration"].([]interface{})
 		ipConfigurations := make([]compute.VirtualMachineScaleSetIPConfiguration, 0, len(ipConfigurationConfigs))
 		for _, ipConfigConfig := range ipConfigurationConfigs {
@@ -1471,6 +1541,8 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 				Primary:                     &primary,
 				IPConfigurations:            &ipConfigurations,
 				EnableAcceleratedNetworking: &acceleratedNetworking,
+				EnableIPForwarding:          &ipForwarding,
+				DNSSettings:                 &dnsSettings,
 			},
 		}
 

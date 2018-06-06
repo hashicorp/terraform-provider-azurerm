@@ -79,10 +79,10 @@ func dataSourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*role.ID)
 
-	if props := role.Properties; props != nil {
+	if props := role.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
-		d.Set("type", props.Type)
+		d.Set("type", props.RoleType)
 
 		permissions := flattenRoleDefinitionPermissions(props.Permissions)
 		if err := d.Set("permissions", permissions); err != nil {

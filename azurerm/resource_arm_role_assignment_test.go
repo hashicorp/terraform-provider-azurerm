@@ -16,10 +16,11 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 	// Azure only being happy about provisioning a couple at a time
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
-			"emptyName": testAccAzureRMRoleAssignment_emptyName,
-			"roleName":  testAccAzureRMRoleAssignment_roleName,
-			"builtin":   testAccAzureRMRoleAssignment_builtin,
-			"custom":    testAccAzureRMRoleAssignment_custom,
+			"emptyName":   testAccAzureRMRoleAssignment_emptyName,
+			"roleName":    testAccAzureRMRoleAssignment_roleName,
+			"dataActions": testAccAzureRMRoleAssignment_dataActions,
+			"builtin":     testAccAzureRMRoleAssignment_builtin,
+			"custom":      testAccAzureRMRoleAssignment_custom,
 		},
 		"import": {
 			"basic":  testAccAzureRMRoleAssignment_importBasic,
@@ -64,6 +65,27 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 	id := uuid.New().String()
 	resourceName := "azurerm_role_assignment.test"
 	config := testAccAzureRMRoleAssignment_roleNameConfig(id)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleAssignmentExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "role_definition_id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
+	id := uuid.New().String()
+	resourceName := "azurerm_role_assignment.test"
+	config := testAccAzureRMRoleAssignment_dataActionsConfig(id)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -180,7 +202,7 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_builtin_role_definition" "test" {
-  name = "Reader"
+  name = "Monitoring Reader"
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -200,7 +222,22 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = "${data.azurerm_subscription.primary.id}"
-  role_definition_name = "Reader"
+  role_definition_name = "Log Analytics Reader"
+  principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+}
+`, id)
+}
+
+func testAccAzureRMRoleAssignment_dataActionsConfig(id string) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_role_assignment" "test" {
+  name                 = "%s"
+  scope                = "${data.azurerm_subscription.primary.id}"
+  role_definition_name = "Virtual Machine User Login"
   principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
 `, id)
@@ -213,7 +250,7 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_builtin_role_definition" "test" {
-  name = "Reader"
+  name = "Site Recovery Reader"
 }
 
 resource "azurerm_role_assignment" "test" {

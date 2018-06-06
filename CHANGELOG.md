@@ -1,4 +1,31 @@
-## 1.6.0 (Unreleased)
+## 1.7.0 (Unreleased)
+
+UPGRADE NOTES:
+
+~> **Please Note:** The field `overprovision` on the `azurerm_virtual_machine_scale_set` resource has changed from `false` to `true` to match the behaviour of Azure in this release. [GH-1322]
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - `dns_prefix` is now required [GH-1333]
+* `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
+* `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
+* `azurerm_virtual_machine_scale_set` - the field `overprovision` has been updated to `true` by default rather than `false` to match Azure [GH-1322]
+
+FEATURES:
+
+* `azurerm_virtual_machine` - support for `write_accelerator_enabled` on Premium disks attached to MS-series machines [GH-964]
+
+IMPROVEMENTS:
+
+* `azurerm_dns_ns_record` - deprecated `record` properties in favor of a `records` list [GH-991]
+* `azurerm_storage_account` - adding the `network_rules` property [GH-1334]
+* `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
+* `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]
+* dependencies: migrating to the un-deprecated Preview's for Container Instance, EventGrid, Log Analytics and SQL [GH-1322]
+* dependencies: upgrading to `2018-01-01` of the EventGrid API [GH-1322]
+* dependencies: upgrading to `2018-03-01` of the Monitor API [GH-1322]
+
+## 1.6.0 (May 24, 2018)
 
 UPGRADE NOTES:
 
@@ -6,29 +33,35 @@ UPGRADE NOTES:
 
 ~> **Please Note:** The `azurerm_postgresql_server` resource has been updated from the Preview API's to the GA API's - which requires code changes in your Terraform Configuration to use the new Pricing SKU's. Upon updating to v1.6.0 - you'll need to update the configuration from the Preview SKU's to the GA SKU's.
 
-* `azurerm_scheduler_job_collection` - the property `max_retry_interval` has been deprecated in favour of `max_recurrence_interval` to better match Azure [GH-1218]
+* `azurerm_scheduler_job_collection` - the property `max_retry_interval` on both the resource and datasource has been deprecated in favour of `max_recurrence_interval` to better match Azure ([#1218](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1218))
 
 FEATURES:
 
-* **New Data Source:** `azurerm_storage_account_sas` [GH-1011]
-* **New Resource:** `azurerm_data_lake_store` [GH-1219]
-* **New Resource:** `azurerm_relay_namespace` [GH-1233]
+* **New Data Source:** `azurerm_storage_account_sas` ([#1011](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1011))
+* **New Resource:** `azurerm_data_lake_store` ([#1219](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1219))
+* **New Resource:** `azurerm_relay_namespace` ([#1233](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1233))
 
 BUG FIXES:
 
-* across data-sources and resources: making Connection Strings, Keys and Passwords sensitive fields [GH-1242]
-* `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic [GH-1224]
+* across data-sources and resources: making Connection Strings, Keys and Passwords sensitive fields ([#1242](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1242))
+* `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic ([#1224](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1224))
 
 IMPROVEMENTS:
 
-* `azurerm_app_service` - adding support for `ip_restriction`'s [GH-1231]
-* `azurerm_container_registry` - no longer forces a new resource on SKU change [GH-1264]
-* `azurerm_dns_zone` - datasource's `resource_group` field is now optional [GH-1180]
-* `azurerm_mysql_server` - support for the new GA Pricing SKU's [GH-1154]
-* `azurerm_postgresql_server` - support for the new GA Pricing SKU's [GH-1190]
-* `azurerm_public_ip` - computed values now default to an empy string [GH-1247]
-* `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` [GH-1235]
-* `azurerm_virtual_machine_scale_set` - adding the `licence_type` property [GH-1245]
+* authorization: upgrading to API version `2018-01-01-preview`
+* `azurerm_app_service` - adding support for `ip_restriction`'s ([#1231](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1231))
+* `azurerm_app_service_slot` - adding support for `ip_restriction`'s ([#1246](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1246))
+* `azurerm_container_registry` - no longer forces a new resource on SKU change ([#1264](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1264))
+* `azurerm_dns_zone` - datasource's `resource_group` field is now optional ([#1180](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1180))
+* `azurerm_mysql_database` - ignoring casing for the `charset` field ([#1281](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1281))
+* `azurerm_mysql_server` - support for the new GA Pricing SKU's ([#1154](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1154))
+* `azurerm_postgresql_database` - ignoring the casing on the `collation` field ([#1255](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1255))
+* `azurerm_postgresql_server` - support for the new GA Pricing SKU's ([#1190](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1190))
+* `azurerm_public_ip` - computed values now default to an empy string ([#1247](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1247))
+* `azurerm_role_assignment` - support for roles containing DataActions ([#1284](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1284))
+* `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` ([#1235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1235))
+* `azurerm_virtual_machine_scale_set` - adding the `licence_type` property ([#1245](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1245))
+* `azurerm_virtual_machine_scale_set` - adding the `priority` property ([#1250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1250))
 
 ## 1.5.0 (May 14, 2018)
 
@@ -145,7 +178,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - allow changing `client_affinity_enabled` without requiring a resource recreation ([#993](https://github.com/terraform-providers/terraform-provider-azurerm/issues/993))
 * `azurerm_app_service` - support for configuring `LocalSCM` source control ([#826](https://github.com/terraform-providers/terraform-provider-azurerm/issues/826))
 * `azurerm_app_service` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
-* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [[#1000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1000)] 
+* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [[#1000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1000)]
 * `azurerm_function_app` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
 * `azurerm_network_interface` - support for attaching to Application Gateways ([#1027](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1027))
 * `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` ([#986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/986))
@@ -323,4 +356,4 @@ IMPROVEMENTS:
 * core - Upgrading `Azure/azure-sdk-for-go` to v11.2.2-beta ([#594](https://github.com/terraform-providers/terraform-provider-azurerm/issues/594))
 * core - upgrading `Azure/go-autorest` to v9.5.2 ([#617](https://github.com/terraform-providers/terraform-provider-azurerm/issues/617))
 * core - skipping Resource Provider Registration in AutoRest when opted-out ([#630](https://github.com/terraform-providers/terraform-provider-azurerm/issues/630))
-* `azurerm_app_service` - exposing the Default Hostname as a Computed field 
+* `azurerm_app_service` - exposing the Default Hostname as a Computed field
