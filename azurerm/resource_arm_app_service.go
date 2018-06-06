@@ -341,11 +341,11 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			"ext_scm_token": {
+			"personal_access_token": {
 				Type:      schema.TypeList,
 				Optional:  true,
 				Sensitive: true,
-				MaxItems: 1,
+				MaxItems:  1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -539,20 +539,20 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	if d.HasChange("personal_access_token") {
+		scmCred := expandAppServiceExternalSCMToken(d)
+
+		if _, err := client.BaseClient.UpdateSourceControl(ctx, *scmCred.Name, scmCred); err != nil {
+			return fmt.Errorf("error updating external scm token for app service %q: %+v", name, err)
+		}
+	}
+
 	if d.HasChange("source_control") {
 		scm := expandAppServiceSourceControl(d)
 		if _, err := client.UpdateSourceControl(ctx, resGroup, name, scm); err != nil {
 			return fmt.Errorf("error updating source control for app service %q: %+v", name, err)
 		}
 
-	}
-
-	if d.HasChange("ext_scm_token") {
-		scmCred := expandAppServiceExternalSCMToken(d)
-
-		if _, err := client.BaseClient.UpdateSourceControl(ctx, *scmCred.Name, scmCred); err != nil {
-			return fmt.Errorf("error updating external scm token for app service %q: %+v", name, err)
-		}
 	}
 
 	if d.HasChange("identity") {
@@ -899,6 +899,7 @@ func expandAppServiceSourceControl(d *schema.ResourceData) web.SiteSourceControl
 		scmRet.Branch = utils.String(v.(string))
 	}
 
+	log.Printf("expaned soure control.....")
 	return scmRet
 }
 
@@ -924,7 +925,7 @@ func flattenAppServiceSourceControl(input *web.SiteSourceControl) []interface{} 
 }
 
 func expandAppServiceExternalSCMToken(d *schema.ResourceData) web.SourceControl {
-	credList := d.Get("ext_scm_token").([]interface{})
+	credList := d.Get("personal_access_token").([]interface{})
 	credRet := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{},
 	}
