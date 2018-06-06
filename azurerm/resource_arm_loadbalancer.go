@@ -16,7 +16,7 @@ import (
 func resourceArmLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLoadBalancerCreate,
-		Read:   resourecArmLoadBalancerRead,
+		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerCreate,
 		Delete: resourceArmLoadBalancerDelete,
 		Importer: &schema.ResourceImporter{
@@ -181,10 +181,10 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error waiting for LoadBalancer (%q - Resource Group %q) to become available: %s", name, resGroup, err)
 	}
 
-	return resourecArmLoadBalancerRead(d, meta)
+	return resourceArmLoadBalancerRead(d, meta)
 }
 
-func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
