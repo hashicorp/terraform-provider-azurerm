@@ -607,7 +607,7 @@ func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
 	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,60}$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters", k))
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
 	}
 
 	return
