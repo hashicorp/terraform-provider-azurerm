@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// peerMutex is used to prevet multiple Peering resources being creaed, updated
+// peerMutex is used to prevent multiple Peering resources being created, updated
 // or deleted at the same time
 var peerMutex = &sync.Mutex{}
 
