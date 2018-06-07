@@ -39,7 +39,6 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version = "9.5"
-  storage_mb = "51200"
   ssl_enforcement = "Enabled"
 }
 ```
