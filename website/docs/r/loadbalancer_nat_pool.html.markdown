@@ -6,7 +6,7 @@ description: |-
   Create a LoadBalancer NAT Pool.
 ---
 
-# azurerm\_lb\_nat\_pool
+# azurerm_lb_nat_pool
 
 Create a LoadBalancer NAT pool.
 

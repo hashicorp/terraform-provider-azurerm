@@ -6,7 +6,7 @@ description: |-
   Create an Application Insights component.
 ---
 
-# azurerm\_application\_insights
+# azurerm_application_insights
 
 Create an Application Insights component.
 

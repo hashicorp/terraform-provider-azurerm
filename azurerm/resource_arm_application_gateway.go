@@ -686,7 +686,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	log.Printf("[INFO] preparing arguments for AzureRM ApplicationGateway creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -762,7 +762,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", applicationGateway.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", applicationGateway.Location)
+	if location := applicationGateway.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+
 	d.Set("sku", schema.NewSet(hashApplicationGatewaySku, flattenApplicationGatewaySku(applicationGateway.ApplicationGatewayPropertiesFormat.Sku)))
 	d.Set("disabled_ssl_protocols", flattenApplicationGatewaySslPolicy(applicationGateway.ApplicationGatewayPropertiesFormat.SslPolicy))
 	d.Set("gateway_ip_configuration", flattenApplicationGatewayIPConfigurations(applicationGateway.ApplicationGatewayPropertiesFormat.GatewayIPConfigurations))
@@ -1359,9 +1362,11 @@ func flattenApplicationGatewayWafConfig(waf *network.ApplicationGatewayWebApplic
 func flattenApplicationGatewaySslPolicy(policy *network.ApplicationGatewaySslPolicy) []interface{} {
 	result := make([]interface{}, 0)
 
-	if protocols := policy.DisabledSslProtocols; protocols != nil {
-		for _, proto := range *protocols {
-			result = append(result, string(proto))
+	if pol := policy; policy != nil {
+		if protocols := pol.DisabledSslProtocols; protocols != nil {
+			for _, proto := range *protocols {
+				result = append(result, string(proto))
+			}
 		}
 	}
 

@@ -24,7 +24,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -37,7 +37,7 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_public_ip" "test" {
   name                         = "test"
-  location                     = "West US 2"
+  location                     = "${azurerm_resource_group.test.location}"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   public_ip_address_allocation = "static"
   domain_name_label            = "${azurerm_resource_group.test.name}"
@@ -49,7 +49,7 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_lb" "test" {
   name                = "test"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   frontend_ip_configuration {
@@ -86,7 +86,7 @@ resource "azurerm_lb_probe" "test" {
 
 resource "azurerm_virtual_machine_scale_set" "test" {
   name                = "mytestscaleset-1"
-  location            = "West US 2"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   # automatic rolling upgrade
@@ -124,7 +124,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   storage_profile_data_disk {
-	  lun 		   = 0
+    lun 		   = 0
     caching        = "ReadWrite"
     create_option  = "Empty"
     disk_size_gb   = 10
@@ -272,6 +272,7 @@ The following arguments are supported:
 * `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
 * `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Default is true. Changing this forces a
   new resource to be created. See [documentation](http://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information.
+* `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 * `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 * `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
@@ -283,7 +284,11 @@ The following arguments are supported:
 * `extension` - (Optional) Can be specified multiple times to add extension profiles to the scale set. Each `extension` block supports the fields documented below.
 * `boot_diagnostics` - (Optional) A boot diagnostics profile block as referenced below.
 * `plan` - (Optional) A plan block as documented below.
+* `priority` - (Optional) Specifies the priority for the virtual machines in the scale set, defaults to `Regular`. Possible values are `Low` and `Regular`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+* `zones` - (Optional) A collection of availability zones to spread the Virtual Machines over.
+
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 
 `sku` supports the following:
 
@@ -298,11 +303,44 @@ The following arguments are supported:
 * `max_unhealthy_upgraded_instance_percent` - (Optional) The maximum percentage of upgraded virtual machine instances that can be found to be in an unhealthy state. This check will happen after each batch is upgraded. If this percentage is ever exceeded, the rolling update aborts. Defaults to `5`.
 * `pause_time_between_batches` - (Optional) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 format for duration (https://en.wikipedia.org/wiki/ISO_8601#Durations). Defaults to `0` seconds represented as `PT0S`.
 
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. The only allowable value is `SystemAssigned`. To enable Managed Service Identity (MSI) on all machines in the scale set, an extension with the type "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added. The scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created.
+
+```hcl
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "vm-scaleset"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "${var.vm_sku}"
+    tier     = "Standard"
+    capacity = "${var.instance_count}"
+  }
+
+  identity {
+    type = "systemAssigned"
+  }
+
+  extension {
+    name                 = "MSILinuxExtension"
+    publisher            = "Microsoft.ManagedIdentity"
+    type                 = "ManagedIdentityExtensionForLinux"
+    type_handler_version = "1.0"
+    settings             = "{\"port\": 50342}"
+  }
+
+  output "principal_id" {
+    value = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
+  }
+```
+
 `os_profile` supports the following:
 
-* `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 15 characters long.
+* `computer_name_prefix` - (Required) Specifies the computer name prefix for all of the virtual machines in the scale set. Computer name prefixes must be 1 to 9 characters long for windows images and 1 - 58 for linux. Changing this forces a new resource to be created.
 * `admin_username` - (Required) Specifies the administrator account name to use for all the instances of virtual machines in the scale set.
-* `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set..
+* `admin_password` - (Required) Specifies the administrator password to use for all the instances of virtual machines in a scale set.
 * `custom_data` - (Optional) Specifies custom data to supply to the machine. On linux-based systems, this can be used as a cloud-init script. On other systems, this will be copied as a file on disk. Internally, Terraform will base64 encode this value before sending it to the API. The maximum length of the binary array is 65535 bytes.
 
 `os_profile_secrets` supports the following:
@@ -345,13 +383,20 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - (Required) An ip_configuration block as documented below
+* `ip_configuration` - (Required) An ip_configuration block as documented below.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `dns_settings` - (Optional) An dns_settings block as documented below.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
+
+`dns_settings` supports the following:
+
+* `dns_servers` - (Required) Specifies an array of dns servers.
 
 `ip_configuration` supports the following:
 
 * `name` - (Required) Specifies name of the IP configuration.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
+* `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of one application gateway. Multiple scale sets cannot use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
 * `primary` - (Optional) Specifies if this ip_configuration is the primary one.

@@ -45,9 +45,23 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 							Computed: true,
 						},
 
+						"source_port_ranges": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"destination_port_range": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+
+						"destination_port_ranges": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 						},
 
 						"source_address_prefix": {
@@ -55,9 +69,37 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 							Computed: true,
 						},
 
+						"source_address_prefixes": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"source_application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"destination_address_prefix": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+
+						"destination_address_prefixes": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"destination_application_security_group_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 						},
 
 						"access": {
@@ -93,7 +135,7 @@ func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
+			return fmt.Errorf("Error: Network Security Group %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on Network Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -102,10 +144,15 @@ func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interfac
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
-		d.Set("security_rule", flattenNetworkSecurityRules(props.SecurityRules))
+		flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
+		if err := d.Set("security_rule", flattenedRules); err != nil {
+			return fmt.Errorf("Error flattening `security_rule`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)

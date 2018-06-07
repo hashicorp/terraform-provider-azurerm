@@ -149,6 +149,44 @@ func TestAccAzureRMNetworkSecurityGroup_addingExtraRules(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkSecurityGroup_augmented(t *testing.T) {
+	resourceName := "azurerm_network_security_group.test"
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityGroup_augmented(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
+	resourceName := "azurerm_network_security_group.test"
+	rInt := acctest.RandInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "security_rule.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMNetworkSecurityGroupExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
@@ -376,4 +414,70 @@ resource "azurerm_network_security_group" "test" {
 }
 
 `, rInt, location)
+}
+
+func testAccAzureRMNetworkSecurityGroup_augmented(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  security_rule {
+    name                         = "test123"
+    priority                     = 100
+    direction                    = "Inbound"
+    access                       = "Allow"
+    protocol                     = "Tcp"
+    source_port_ranges           = [ "10000-40000" ]
+    destination_port_ranges      = [ "80", "443", "8080", "8190" ]
+    source_address_prefixes      = [ "10.0.0.0/8", "192.168.0.0/16" ]
+    destination_address_prefixes = [ "172.16.0.0/20", "8.8.8.8" ]
+  }
+}
+`, rInt, location)
+}
+
+func testAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_security_group" "first" {
+  name                = "acctest-first%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_application_security_group" "second" {
+  name                = "acctest-second%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  security_rule {
+    name                                       = "test123"
+    priority                                   = 100
+    direction                                  = "Inbound"
+    access                                     = "Allow"
+    protocol                                   = "Tcp"
+    source_application_security_group_ids      = ["${azurerm_application_security_group.first.id}"]
+    destination_application_security_group_ids = ["${azurerm_application_security_group.second.id}"]
+    source_port_ranges                         = [ "10000-40000" ]
+    destination_port_ranges                    = [ "80", "443", "8080", "8190" ]
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
 }

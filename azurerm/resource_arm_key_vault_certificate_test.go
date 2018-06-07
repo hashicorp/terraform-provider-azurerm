@@ -24,6 +24,7 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
 			},
 		},
@@ -44,6 +45,8 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "secret_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
 			},
 		},
@@ -64,6 +67,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),

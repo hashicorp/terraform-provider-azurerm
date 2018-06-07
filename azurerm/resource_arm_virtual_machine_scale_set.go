@@ -36,6 +36,31 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"zones": zonesSchema(),
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"sku": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -61,6 +86,17 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					},
 				},
 				Set: resourceArmVirtualMachineScaleSetSkuHash,
+			},
+
+			"license_type": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Windows_Client",
+					"Windows_Server",
+				}, true),
 			},
 
 			"upgrade_policy_mode": {
@@ -118,6 +154,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			"overprovision": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"single_placement_group": {
@@ -125,6 +162,17 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Optional: true,
 				Default:  true,
 				ForceNew: true,
+			},
+
+			"priority": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(compute.Regular),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Low),
+					string(compute.Regular),
+				}, true),
 			},
 
 			"os_profile": {
@@ -136,6 +184,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						"computer_name_prefix": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"admin_username": {
@@ -307,9 +356,30 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Optional: true,
 						},
 
+						"ip_forwarding": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"network_security_group_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+						},
+
+						"dns_settings": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"dns_servers": {
+										Type:     schema.TypeList,
+										Required: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+									},
+								},
+							},
 						},
 
 						"ip_configuration": {
@@ -325,6 +395,13 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 									"subnet_id": {
 										Type:     schema.TypeString,
 										Required: true,
+									},
+
+									"application_gateway_backend_address_pool_ids": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem:     &schema.Schema{Type: schema.TypeString},
+										Set:      schema.HashString,
 									},
 
 									"load_balancer_backend_address_pool_ids": {
@@ -614,9 +691,10 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
+	zones := expandZones(d.Get("zones").([]interface{}))
 
 	sku, err := expandVirtualMachineScaleSetSku(d)
 	if err != nil {
@@ -661,6 +739,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
+	priority := d.Get("priority").(string)
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
@@ -673,6 +752,7 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 			StorageProfile:   &storageProfile,
 			OsProfile:        osProfile,
 			ExtensionProfile: extensions,
+			Priority:         compute.VirtualMachinePriorityTypes(priority),
 		},
 		Overprovision:        &overprovision,
 		SinglePlacementGroup: &singlePlacementGroup,
@@ -689,12 +769,21 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	scaleSetParams := compute.VirtualMachineScaleSet{
+	properties := compute.VirtualMachineScaleSet{
 		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
 		Sku:      sku,
 		VirtualMachineScaleSetProperties: &scaleSetProps,
+		Zones: zones,
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		properties.Identity = expandAzureRmVirtualMachineScaleSetIdentity(d)
+	}
+
+	if v, ok := d.GetOk("license_type"); ok {
+		properties.VirtualMachineProfile.LicenseType = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("plan"); ok {
@@ -703,10 +792,10 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 			return err
 		}
 
-		scaleSetParams.Plan = plan
+		properties.Plan = plan
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, scaleSetParams)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, properties)
 	if err != nil {
 		return err
 	}
@@ -752,10 +841,13 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
+	d.Set("zones", resp.Zones)
 
 	if err := d.Set("sku", flattenAzureRmVirtualMachineScaleSetSku(resp.Sku)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Sku error: %#v", err)
+		return fmt.Errorf("[DEBUG] Error setting `sku`: %#v", err)
 	}
 
 	properties := resp.VirtualMachineScaleSetProperties
@@ -765,14 +857,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	d.Set("overprovision", properties.Overprovision)
 	d.Set("single_placement_group", properties.SinglePlacementGroup)
 
-	osProfile, err := flattenAzureRMVirtualMachineScaleSetOsProfile(d, properties.VirtualMachineProfile.OsProfile)
-	if err != nil {
-		return fmt.Errorf("[DEBUG] Error flattening Virtual Machine Scale Set OS Profile. Error: %#v", err)
+	flattenedIdentity := flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
 	}
 
-	if err := d.Set("os_profile", osProfile); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile error: %#v", err)
-	}
+	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
 
 	if properties.UpgradePolicy.RollingUpgradePolicy != nil {
 		if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(properties.UpgradePolicy.RollingUpgradePolicy)); err != nil {
@@ -780,33 +870,34 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if properties.VirtualMachineProfile.OsProfile.Secrets != nil {
-		if err := d.Set("os_profile_secrets", flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(properties.VirtualMachineProfile.OsProfile.Secrets)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Secrets error: %#v", err)
+		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
+			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
 		}
-	}
+		d.Set("overprovision", properties.Overprovision)
+		d.Set("single_placement_group", properties.SinglePlacementGroup)
 
-	if properties.VirtualMachineProfile.DiagnosticsProfile != nil {
-		if err := d.Set("boot_diagnostics", flattenAzureRmVirtualMachineScaleSetBootDiagnostics(properties.VirtualMachineProfile.DiagnosticsProfile.BootDiagnostics)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virutal Machine Scale Set Boot Diagnostics: %#v", err)
-		}
-	}
+		if profile := properties.VirtualMachineProfile; profile != nil {
+			d.Set("license_type", profile.LicenseType)
+			d.Set("priority", profile.Priority)
 
-	if properties.VirtualMachineProfile.OsProfile.WindowsConfiguration != nil {
-		if err := d.Set("os_profile_windows_config", flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(properties.VirtualMachineProfile.OsProfile.WindowsConfiguration)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Windows config error: %#v", err)
-		}
-	}
+			osProfile := flattenAzureRMVirtualMachineScaleSetOsProfile(d, profile.OsProfile)
+			if err := d.Set("os_profile", osProfile); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting `os_profile`: %#v", err)
+			}
 
-	if properties.VirtualMachineProfile.OsProfile.LinuxConfiguration != nil {
-		if err := d.Set("os_profile_linux_config", flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(properties.VirtualMachineProfile.OsProfile.LinuxConfiguration)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set OS Profile Linux config error: %#v", err)
-		}
-	}
+			if osProfile := profile.OsProfile; osProfile != nil {
+				if linuxConfiguration := osProfile.LinuxConfiguration; linuxConfiguration != nil {
+					flattenedLinuxConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(linuxConfiguration)
+					if err := d.Set("os_profile_linux_config", flattenedLinuxConfiguration); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `os_profile_linux_config`: %#v", err)
+					}
+				}
 
-	if err := d.Set("network_profile", flattenAzureRmVirtualMachineScaleSetNetworkProfile(properties.VirtualMachineProfile.NetworkProfile)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Network Profile error: %#v", err)
-	}
+				if secrets := osProfile.Secrets; secrets != nil {
+					flattenedSecrets := flattenAzureRmVirtualMachineScaleSetOsProfileSecrets(secrets)
+					if err := d.Set("os_profile_secrets", flattenedSecrets); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `os_profile_secrets`: %#v", err)
+					}
 
 	if np := properties.VirtualMachineProfile.NetworkProfile; np != nil {
 		if hp := np.HealthProbe; hp != nil {
@@ -816,33 +907,71 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	if properties.VirtualMachineProfile.StorageProfile.ImageReference != nil {
-		if err := d.Set("storage_profile_image_reference", flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(properties.VirtualMachineProfile.StorageProfile.ImageReference)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Storage Profile Image Reference error: %#v", err)
+
+				if windowsConfiguration := osProfile.WindowsConfiguration; windowsConfiguration != nil {
+					flattenedWindowsConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(windowsConfiguration)
+					if err := d.Set("os_profile_windows_config", flattenedWindowsConfiguration); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `os_profile_windows_config`: %#v", err)
+					}
+				}
+			}
+
+			if diagnosticsProfile := profile.DiagnosticsProfile; diagnosticsProfile != nil {
+				if bootDiagnostics := diagnosticsProfile.BootDiagnostics; bootDiagnostics != nil {
+					flattenedDiagnostics := flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostics)
+					// TODO: rename this field to `diagnostics_profile`
+					if err := d.Set("boot_diagnostics", flattenedDiagnostics); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `boot_diagnostics`: %#v", err)
+					}
+				}
+			}
+
+			if networkProfile := profile.NetworkProfile; networkProfile != nil {
+				flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)
+				if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
+					return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
+				}
+			}
+
+			if storageProfile := profile.StorageProfile; storageProfile != nil {
+				if dataDisks := resp.VirtualMachineProfile.StorageProfile.DataDisks; dataDisks != nil {
+					flattenedDataDisks := flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(dataDisks)
+					if err := d.Set("storage_profile_data_disk", flattenedDataDisks); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `storage_profile_data_disk`: %#v", err)
+					}
+				}
+
+				if imageRef := storageProfile.ImageReference; imageRef != nil {
+					flattenedImageRef := flattenAzureRmVirtualMachineScaleSetStorageProfileImageReference(imageRef)
+					if err := d.Set("storage_profile_image_reference", flattenedImageRef); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `storage_profile_image_reference`: %#v", err)
+					}
+				}
+
+				if osDisk := storageProfile.OsDisk; osDisk != nil {
+					flattenedOSDisk := flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(osDisk)
+					if err := d.Set("storage_profile_os_disk", flattenedOSDisk); err != nil {
+						return fmt.Errorf("[DEBUG] Error setting `storage_profile_os_disk`: %#v", err)
+					}
+				}
+			}
+
+			if extensionProfile := properties.VirtualMachineProfile.ExtensionProfile; extensionProfile != nil {
+				extension, err := flattenAzureRmVirtualMachineScaleSetExtensionProfile(extensionProfile)
+				if err != nil {
+					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Extension Profile error: %#v", err)
+				}
+				if err := d.Set("extension", extension); err != nil {
+					return fmt.Errorf("[DEBUG] Error setting `extension`: %#v", err)
+				}
+			}
 		}
 	}
 
-	if err := d.Set("storage_profile_os_disk", flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(properties.VirtualMachineProfile.StorageProfile.OsDisk)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Storage Profile OS Disk error: %#v", err)
-	}
-
-	if resp.VirtualMachineProfile.StorageProfile.DataDisks != nil {
-		if err := d.Set("storage_profile_data_disk", flattenAzureRmVirtualMachineScaleSetStorageProfileDataDisk(properties.VirtualMachineProfile.StorageProfile.DataDisks)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Storage Profile Data Disk error: %#v", err)
-		}
-	}
-
-	if properties.VirtualMachineProfile.ExtensionProfile != nil {
-		extension, err := flattenAzureRmVirtualMachineScaleSetExtensionProfile(properties.VirtualMachineProfile.ExtensionProfile)
-		if err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Extension Profile error: %#v", err)
-		}
-		d.Set("extension", extension)
-	}
-
-	if resp.Plan != nil {
-		if err := d.Set("plan", flattenAzureRmVirtualMachineScaleSetPlan(resp.Plan)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Plan. Error: %#v", err)
+	if plan := resp.Plan; plan != nil {
+		flattenedPlan := flattenAzureRmVirtualMachineScaleSetPlan(plan)
+		if err := d.Set("plan", flattenedPlan); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting `plan`: %#v", err)
 		}
 	}
 
@@ -873,6 +1002,20 @@ func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interf
 	}
 
 	return nil
+}
+
+func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachineScaleSetIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+
+	return []interface{}{result}
 }
 
 func flattenAzureRmVirtualMachineScaleSetOsProfileLinuxConfig(config *compute.LinuxConfiguration) []interface{} {
@@ -1007,8 +1150,25 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 			s["accelerated_networking"] = *v
 		}
 
+		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.EnableIPForwarding; v != nil {
+			s["ip_forwarding"] = *v
+		}
+
 		if v := netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.NetworkSecurityGroup; v != nil {
 			s["network_security_group_id"] = *v.ID
+		}
+
+		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings != nil {
+			dnsSetting := make(map[string]interface{})
+			dnsServers := make([]string, 0, len(*netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers))
+			if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers != nil {
+				for _, dnsServer := range *netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.DNSSettings.DNSServers {
+					dnsServers = append(dnsServers, dnsServer)
+				}
+				dnsSetting["dns_servers"] = dnsServers
+			}
+
+			s["dns_settings"] = []interface{}{dnsSetting}
 		}
 
 		if netConfig.VirtualMachineScaleSetNetworkConfigurationProperties.IPConfigurations != nil {
@@ -1022,6 +1182,14 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 				if ipConfig.VirtualMachineScaleSetIPConfigurationProperties.Subnet != nil {
 					config["subnet_id"] = *properties.Subnet.ID
 				}
+
+				addressPools := make([]interface{}, 0)
+				if properties.ApplicationGatewayBackendAddressPools != nil {
+					for _, pool := range *properties.ApplicationGatewayBackendAddressPools {
+						addressPools = append(addressPools, *pool.ID)
+					}
+				}
+				config["application_gateway_backend_address_pool_ids"] = schema.NewSet(schema.HashString, addressPools)
 
 				if properties.LoadBalancerBackendAddressPools != nil {
 					addressPools := make([]interface{}, 0, len(*properties.LoadBalancerBackendAddressPools))
@@ -1065,7 +1233,7 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 	return result
 }
 
-func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) ([]interface{}, error) {
+func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profile *compute.VirtualMachineScaleSetOSProfile) []interface{} {
 	result := make(map[string]interface{})
 
 	result["computer_name_prefix"] = *profile.ComputerNamePrefix
@@ -1088,7 +1256,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profi
 		result["custom_data"] = value
 	}
 
-	return []interface{}{result}, nil
+	return []interface{}{result}
 }
 
 func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *compute.VirtualMachineScaleSetOSDisk) []interface{} {
@@ -1192,12 +1360,13 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 				e["auto_upgrade_minor_version"] = *properties.AutoUpgradeMinorVersion
 			}
 
-			if properties.Settings != nil {
-				settings, err := structure.FlattenJsonToString(*properties.Settings)
+			if settings := properties.Settings; settings != nil {
+				settingsVal := settings.(map[string]interface{})
+				settingsJson, err := structure.FlattenJsonToString(settingsVal)
 				if err != nil {
 					return nil, err
 				}
-				e["settings"] = settings
+				e["settings"] = settingsJson
 			}
 		}
 
@@ -1209,44 +1378,52 @@ func flattenAzureRmVirtualMachineScaleSetExtensionProfile(profile *compute.Virtu
 
 func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if m["publisher"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["publisher"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["offer"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["sku"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["version"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
 	}
-	if m["offer"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
-	}
-	if m["sku"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
-	}
-	if m["version"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["version"].(string)))
-	}
-	if m["id"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
-	}
+
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetSkuHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	if m["tier"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["tier"].(string))))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["capacity"].(int)))
+
+		if v, ok := m["tier"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
+		}
 	}
-	buf.WriteString(fmt.Sprintf("%d-", m["capacity"].(int)))
 
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 
-	if m["vhd_containers"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["vhd_containers"].(*schema.Set).List()))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+
+		if v, ok := m["vhd_containers"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(*schema.Set).List()))
+		}
 	}
 
 	return hashcode.String(buf.String())
@@ -1254,51 +1431,62 @@ func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) in
 
 func resourceArmVirtualMachineScaleSetNetworkConfigurationHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%t-", m["primary"].(bool)))
+	}
+
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if m["provision_vm_agent"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["provision_vm_agent"].(bool)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["provision_vm_agent"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["enable_automatic_upgrades"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
 	}
-	if m["enable_automatic_upgrades"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["enable_automatic_upgrades"].(bool)))
-	}
+
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
-	if m["auto_upgrade_minor_version"] != nil {
-		buf.WriteString(fmt.Sprintf("%t-", m["auto_upgrade_minor_version"].(bool)))
-	}
 
-	// we need to ensure the whitespace is consistent
-	settings := m["settings"].(string)
-	if settings != "" {
-		expandedSettings, err := structure.ExpandJsonFromString(settings)
-		if err == nil {
-			serialisedSettings, err := structure.FlattenJsonToString(expandedSettings)
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type"].(string)))
+		buf.WriteString(fmt.Sprintf("%s-", m["type_handler_version"].(string)))
+
+		if v, ok := m["auto_upgrade_minor_version"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+
+		// we need to ensure the whitespace is consistent
+		settings := m["settings"].(string)
+		if settings != "" {
+			expandedSettings, err := structure.ExpandJsonFromString(settings)
 			if err == nil {
-				buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
+				serialisedSettings, err := structure.FlattenJsonToString(expandedSettings)
+				if err == nil {
+					buf.WriteString(fmt.Sprintf("%s-", serialisedSettings))
+				}
 			}
 		}
 	}
@@ -1354,7 +1542,25 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 		primary := config["primary"].(bool)
 
 		acceleratedNetworking := config["accelerated_networking"].(bool)
+		ipForwarding := config["ip_forwarding"].(bool)
 
+		dnsSettingsConfigs := config["dns_settings"].([]interface{})
+		dnsSettings := compute.VirtualMachineScaleSetNetworkConfigurationDNSSettings{}
+		for _, dnsSettingsConfig := range dnsSettingsConfigs {
+			dns_settings := dnsSettingsConfig.(map[string]interface{})
+
+			if v := dns_settings["dns_servers"]; v != nil {
+				dns_servers := dns_settings["dns_servers"].([]interface{})
+				if len(dns_servers) > 0 {
+					var dnsServers []string
+					for _, v := range dns_servers {
+						str := v.(string)
+						dnsServers = append(dnsServers, str)
+					}
+					dnsSettings.DNSServers = &dnsServers
+				}
+			}
+		}
 		ipConfigurationConfigs := config["ip_configuration"].([]interface{})
 		ipConfigurations := make([]compute.VirtualMachineScaleSetIPConfiguration, 0, len(ipConfigurationConfigs))
 		for _, ipConfigConfig := range ipConfigurationConfigs {
@@ -1369,6 +1575,18 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 						ID: &subnetId,
 					},
 				},
+			}
+
+			if v := ipconfig["application_gateway_backend_address_pool_ids"]; v != nil {
+				pools := v.(*schema.Set).List()
+				resources := make([]compute.SubResource, 0, len(pools))
+				for _, p := range pools {
+					id := p.(string)
+					resources = append(resources, compute.SubResource{
+						ID: &id,
+					})
+				}
+				ipConfiguration.ApplicationGatewayBackendAddressPools = &resources
 			}
 
 			if v := ipconfig["load_balancer_backend_address_pool_ids"]; v != nil {
@@ -1434,6 +1652,8 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 				Primary:                     &primary,
 				IPConfigurations:            &ipConfigurations,
 				EnableAcceleratedNetworking: &acceleratedNetworking,
+				EnableIPForwarding:          &ipForwarding,
+				DNSSettings:                 &dnsSettings,
 			},
 		}
 
@@ -1520,6 +1740,16 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceDat
 	}
 
 	return diagnosticsProfile
+}
+
+func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *compute.VirtualMachineScaleSetIdentity {
+	v := d.Get("identity")
+	identities := v.([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &compute.VirtualMachineScaleSetIdentity{
+		Type: compute.ResourceIdentityType(identityType),
+	}
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {

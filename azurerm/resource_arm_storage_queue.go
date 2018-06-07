@@ -64,11 +64,12 @@ func validateArmStorageQueueName(v interface{}, k string) (ws []string, errors [
 
 func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -107,11 +108,12 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmStorageQueueExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return false, err
 	}
@@ -140,11 +142,12 @@ func resourceArmStorageQueueExists(d *schema.ResourceData, meta interface{}) (bo
 
 func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+	queueClient, accountExists, err := armClient.getQueueServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-02-01-preview/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -25,11 +25,7 @@ func resourceArmContainerGroup() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"ip_address_type": {
 				Type:             schema.TypeString,
@@ -204,7 +200,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	// container group properties
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -276,7 +272,9 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	flattenAndSetTags(d, resp.Tags)
 
 	d.Set("os_type", string(resp.OsType))

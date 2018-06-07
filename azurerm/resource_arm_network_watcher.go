@@ -41,7 +41,7 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 
 	watcher := network.Watcher{
@@ -88,7 +88,9 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 

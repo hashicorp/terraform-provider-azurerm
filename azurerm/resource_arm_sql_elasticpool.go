@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -86,7 +86,7 @@ func resourceArmSqlElasticPoolCreate(d *schema.ResourceData, meta interface{}) e
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -140,7 +140,9 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azureRMNormalizeLocation(*location))
+	}
 	d.Set("server_name", serverName)
 
 	if elasticPool := resp.ElasticPoolProperties; elasticPool != nil {

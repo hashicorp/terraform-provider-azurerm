@@ -14,7 +14,7 @@ Use this data source to obtain information about an App Service Plan (formerly k
 
 ```hcl
 data "azurerm_app_service_plan" "test" {
-  name                = "search-app-service"
+  name                = "search-app-service-plan"
   resource_group_name = "search-service"
 }
 
@@ -40,7 +40,7 @@ output "app_service_plan_id" {
 
 * `properties` - A `properties` block as documented below.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.
 
 * `maximum_number_of_workers` - The maximum number of workers supported with the App Service Plan's sku.
 

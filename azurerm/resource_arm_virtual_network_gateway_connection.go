@@ -28,11 +28,7 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
 
@@ -55,8 +51,9 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			},
 
 			"authorization_key": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
 			},
 
 			"express_route_circuit_id": {
@@ -79,19 +76,128 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			"enable_bgp": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
+			},
+
+			"use_policy_based_traffic_selectors": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"routing_weight": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  10,
+				Computed: true,
 			},
 
 			"shared_key": {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
+			},
+
+			"ipsec_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"dh_group": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.DHGroup1),
+								string(network.DHGroup14),
+								string(network.DHGroup2),
+								string(network.DHGroup2048),
+								string(network.DHGroup24),
+								string(network.ECP256),
+								string(network.ECP384),
+								string(network.None),
+							}, true),
+						},
+						"ike_encryption": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.AES128),
+								string(network.AES192),
+								string(network.AES256),
+								string(network.DES),
+								string(network.DES3),
+							}, true),
+						},
+						"ike_integrity": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.MD5),
+								string(network.SHA1),
+								string(network.SHA256),
+								string(network.SHA384),
+							}, true),
+						},
+						"ipsec_encryption": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.IpsecEncryptionAES128),
+								string(network.IpsecEncryptionAES192),
+								string(network.IpsecEncryptionAES256),
+								string(network.IpsecEncryptionDES),
+								string(network.IpsecEncryptionDES3),
+								string(network.IpsecEncryptionGCMAES128),
+								string(network.IpsecEncryptionGCMAES192),
+								string(network.IpsecEncryptionGCMAES256),
+								string(network.IpsecEncryptionNone),
+							}, true),
+						},
+						"ipsec_integrity": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.IpsecIntegrityGCMAES128),
+								string(network.IpsecIntegrityGCMAES192),
+								string(network.IpsecIntegrityGCMAES256),
+								string(network.IpsecIntegrityMD5),
+								string(network.IpsecIntegritySHA1),
+								string(network.IpsecIntegritySHA256),
+							}, true),
+						},
+						"pfs_group": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.PfsGroupECP256),
+								string(network.PfsGroupECP384),
+								string(network.PfsGroupNone),
+								string(network.PfsGroupPFS1),
+								string(network.PfsGroupPFS2),
+								string(network.PfsGroupPFS2048),
+								string(network.PfsGroupPFS24),
+							}, true),
+						},
+						"sa_datasize": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntAtLeast(1024),
+						},
+						"sa_lifetime": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntAtLeast(300),
+						},
+					},
+				},
 			},
 
 			"tags": tagsSchema(),
@@ -106,7 +212,7 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -167,7 +273,6 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -180,7 +285,9 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("virtual_network_gateway_id", conn.VirtualNetworkGateway1.ID)
 	}
 
-	d.Set("authorization_key", conn.AuthorizationKey)
+	if conn.AuthorizationKey != nil {
+		d.Set("authorization_key", conn.AuthorizationKey)
+	}
 
 	if conn.Peer != nil {
 		d.Set("express_route_circuit_id", conn.Peer.ID)
@@ -194,9 +301,29 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("local_network_gateway_id", conn.LocalNetworkGateway2.ID)
 	}
 
-	d.Set("enable_bgp", conn.EnableBgp)
-	d.Set("routing_weight", conn.RoutingWeight)
-	d.Set("shared_key", conn.SharedKey)
+	if conn.EnableBgp != nil {
+		d.Set("enable_bgp", conn.EnableBgp)
+	}
+
+	if conn.UsePolicyBasedTrafficSelectors != nil {
+		d.Set("use_policy_based_traffic_selectors", conn.UsePolicyBasedTrafficSelectors)
+	}
+
+	if conn.RoutingWeight != nil {
+		d.Set("routing_weight", conn.RoutingWeight)
+	}
+
+	if conn.SharedKey != nil {
+		d.Set("shared_key", conn.SharedKey)
+	}
+
+	if conn.IpsecPolicies != nil {
+		ipsecPolicies := flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(conn.IpsecPolicies)
+
+		if err := d.Set("ipsec_policy", ipsecPolicies); err != nil {
+			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
+		}
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -227,11 +354,9 @@ func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, me
 
 func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*network.VirtualNetworkGatewayConnectionPropertiesFormat, error) {
 	connectionType := network.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
-	enableBgp := d.Get("enable_bgp").(bool)
 
 	props := &network.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType: connectionType,
-		EnableBgp:      &enableBgp,
 	}
 
 	if v, ok := d.GetOk("virtual_network_gateway_id"); ok {
@@ -294,14 +419,22 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		}
 	}
 
+	props.EnableBgp = utils.Bool(d.Get("enable_bgp").(bool))
+
+	props.UsePolicyBasedTrafficSelectors = utils.Bool(d.Get("use_policy_based_traffic_selectors").(bool))
+
 	if v, ok := d.GetOk("routing_weight"); ok {
 		routingWeight := int32(v.(int))
 		props.RoutingWeight = &routingWeight
 	}
 
 	if v, ok := d.GetOk("shared_key"); ok {
-		sharedKey := v.(string)
-		props.SharedKey = &sharedKey
+		props.SharedKey = utils.String(v.(string))
+	}
+
+	if v, ok := d.GetOk("ipsec_policy"); ok {
+		ipsecPolicies := v.([]interface{})
+		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies)
 	}
 
 	if props.ConnectionType == network.ExpressRoute {
@@ -338,4 +471,80 @@ func resourceGroupAndVirtualNetworkGatewayConnectionFromId(virtualNetworkGateway
 	resGroup := id.ResourceGroup
 
 	return resGroup, name, nil
+}
+
+func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies []interface{}) *[]network.IpsecPolicy {
+	ipsecPolicies := make([]network.IpsecPolicy, 0, len(schemaIpsecPolicies))
+
+	for _, d := range schemaIpsecPolicies {
+		schemaIpsecPolicy := d.(map[string]interface{})
+		ipsecPolicy := &network.IpsecPolicy{}
+
+		if dhGroup, ok := schemaIpsecPolicy["dh_group"].(string); ok && dhGroup != "" {
+			ipsecPolicy.DhGroup = network.DhGroup(dhGroup)
+		}
+
+		if ikeEncryption, ok := schemaIpsecPolicy["ike_encryption"].(string); ok && ikeEncryption != "" {
+			ipsecPolicy.IkeEncryption = network.IkeEncryption(ikeEncryption)
+		}
+
+		if ikeIntegrity, ok := schemaIpsecPolicy["ike_integrity"].(string); ok && ikeIntegrity != "" {
+			ipsecPolicy.IkeIntegrity = network.IkeIntegrity(ikeIntegrity)
+		}
+
+		if ipsecEncryption, ok := schemaIpsecPolicy["ipsec_encryption"].(string); ok && ipsecEncryption != "" {
+			ipsecPolicy.IpsecEncryption = network.IpsecEncryption(ipsecEncryption)
+		}
+
+		if ipsecIntegrity, ok := schemaIpsecPolicy["ipsec_integrity"].(string); ok && ipsecIntegrity != "" {
+			ipsecPolicy.IpsecIntegrity = network.IpsecIntegrity(ipsecIntegrity)
+		}
+
+		if pfsGroup, ok := schemaIpsecPolicy["pfs_group"].(string); ok && pfsGroup != "" {
+			ipsecPolicy.PfsGroup = network.PfsGroup(pfsGroup)
+		}
+
+		if v, ok := schemaIpsecPolicy["sa_datasize"].(int); ok {
+			saDatasize := int32(v)
+			ipsecPolicy.SaDataSizeKilobytes = &saDatasize
+		}
+
+		if v, ok := schemaIpsecPolicy["sa_lifetime"].(int); ok {
+			saLifetime := int32(v)
+			ipsecPolicy.SaLifeTimeSeconds = &saLifetime
+		}
+
+		ipsecPolicies = append(ipsecPolicies, *ipsecPolicy)
+	}
+
+	return &ipsecPolicies
+}
+
+func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
+	schemaIpsecPolicies := make([]interface{}, 0)
+
+	if ipsecPolicies != nil {
+		for _, ipsecPolicy := range *ipsecPolicies {
+			schemaIpsecPolicy := make(map[string]interface{})
+
+			schemaIpsecPolicy["dh_group"] = string(ipsecPolicy.DhGroup)
+			schemaIpsecPolicy["ike_encryption"] = string(ipsecPolicy.IkeEncryption)
+			schemaIpsecPolicy["ike_integrity"] = string(ipsecPolicy.IkeIntegrity)
+			schemaIpsecPolicy["ipsec_encryption"] = string(ipsecPolicy.IpsecEncryption)
+			schemaIpsecPolicy["ipsec_integrity"] = string(ipsecPolicy.IpsecIntegrity)
+			schemaIpsecPolicy["pfs_group"] = string(ipsecPolicy.PfsGroup)
+
+			if ipsecPolicy.SaDataSizeKilobytes != nil {
+				schemaIpsecPolicy["sa_datasize"] = int(*ipsecPolicy.SaDataSizeKilobytes)
+			}
+
+			if ipsecPolicy.SaLifeTimeSeconds != nil {
+				schemaIpsecPolicy["sa_lifetime"] = int(*ipsecPolicy.SaLifeTimeSeconds)
+			}
+
+			schemaIpsecPolicies = append(schemaIpsecPolicies, schemaIpsecPolicy)
+		}
+	}
+
+	return schemaIpsecPolicies
 }

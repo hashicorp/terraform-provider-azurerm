@@ -6,7 +6,7 @@ description: |-
   Create a DNS CNAME Record.
 ---
 
-# azurerm\_dns\_cname\_record
+# azurerm_dns_cname_record
 
 Enables you to manage DNS CNAME Records within Azure DNS.
 

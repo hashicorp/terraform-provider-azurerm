@@ -31,25 +31,25 @@ type DatabaseAccountsClient struct {
 }
 
 // NewDatabaseAccountsClient creates an instance of the DatabaseAccountsClient client.
-func NewDatabaseAccountsClient(subscriptionID string, filter string, filter1 string, databaseRid string, collectionRid string, region string) DatabaseAccountsClient {
-	return NewDatabaseAccountsClientWithBaseURI(DefaultBaseURI, subscriptionID, filter, filter1, databaseRid, collectionRid, region)
+func NewDatabaseAccountsClient(subscriptionID string) DatabaseAccountsClient {
+	return NewDatabaseAccountsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewDatabaseAccountsClientWithBaseURI creates an instance of the DatabaseAccountsClient client.
-func NewDatabaseAccountsClientWithBaseURI(baseURI string, subscriptionID string, filter string, filter1 string, databaseRid string, collectionRid string, region string) DatabaseAccountsClient {
-	return DatabaseAccountsClient{NewWithBaseURI(baseURI, subscriptionID, filter, filter1, databaseRid, collectionRid, region)}
+func NewDatabaseAccountsClientWithBaseURI(baseURI string, subscriptionID string) DatabaseAccountsClient {
+	return DatabaseAccountsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CheckNameExists checks that the Azure Cosmos DB account name already exists. A valid account name may contain only
 // lowercase letters, numbers, and the '-' character, and must be between 3 and 50 characters.
-//
-// accountName is cosmos DB database account name.
+// Parameters:
+// accountName - cosmos DB database account name.
 func (client DatabaseAccountsClient) CheckNameExists(ctx context.Context, accountName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "CheckNameExists")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "CheckNameExists", err.Error())
 	}
 
 	req, err := client.CheckNameExistsPreparer(ctx, accountName)
@@ -112,9 +112,10 @@ func (client DatabaseAccountsClient) CheckNameExistsResponder(resp *http.Respons
 }
 
 // CreateOrUpdate creates or updates an Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-// createUpdateParameters is the parameters to provide for the current database account.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// createUpdateParameters - the parameters to provide for the current database account.
 func (client DatabaseAccountsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, createUpdateParameters DatabaseAccountCreateUpdateParameters) (result DatabaseAccountsCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -139,7 +140,7 @@ func (client DatabaseAccountsClient) CreateOrUpdate(ctx context.Context, resourc
 					{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.Locations", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "createUpdateParameters.DatabaseAccountCreateUpdateProperties.DatabaseAccountOfferType", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "CreateOrUpdate")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, accountName, createUpdateParameters)
@@ -171,7 +172,7 @@ func (client DatabaseAccountsClient) CreateOrUpdatePreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}", pathParameters),
@@ -209,8 +210,9 @@ func (client DatabaseAccountsClient) CreateOrUpdateResponder(resp *http.Response
 }
 
 // Delete deletes an existing Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
 func (client DatabaseAccountsClient) Delete(ctx context.Context, resourceGroupName string, accountName string) (result DatabaseAccountsDeleteFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -220,7 +222,7 @@ func (client DatabaseAccountsClient) Delete(ctx context.Context, resourceGroupNa
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "Delete")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName)
@@ -289,9 +291,10 @@ func (client DatabaseAccountsClient) DeleteResponder(resp *http.Response) (resul
 // FailoverPriorityChange changes the failover priority for the Azure Cosmos DB database account. A failover priority
 // of 0 indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover
 // priority values must be unique for each of the regions in which the database account exists.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-// failoverParameters is the new failover policies for the database account.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// failoverParameters - the new failover policies for the database account.
 func (client DatabaseAccountsClient) FailoverPriorityChange(ctx context.Context, resourceGroupName string, accountName string, failoverParameters FailoverPolicies) (result DatabaseAccountsFailoverPriorityChangeFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -300,8 +303,10 @@ func (client DatabaseAccountsClient) FailoverPriorityChange(ctx context.Context,
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "FailoverPriorityChange")
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: failoverParameters,
+			Constraints: []validation.Constraint{{Target: "failoverParameters.FailoverPolicies", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "FailoverPriorityChange", err.Error())
 	}
 
 	req, err := client.FailoverPriorityChangePreparer(ctx, resourceGroupName, accountName, failoverParameters)
@@ -333,7 +338,7 @@ func (client DatabaseAccountsClient) FailoverPriorityChangePreparer(ctx context.
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/failoverPriorityChange", pathParameters),
@@ -370,8 +375,9 @@ func (client DatabaseAccountsClient) FailoverPriorityChangeResponder(resp *http.
 }
 
 // Get retrieves the properties of an existing Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
 func (client DatabaseAccountsClient) Get(ctx context.Context, resourceGroupName string, accountName string) (result DatabaseAccount, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -381,7 +387,7 @@ func (client DatabaseAccountsClient) Get(ctx context.Context, resourceGroupName 
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "Get")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, accountName)
@@ -509,15 +515,15 @@ func (client DatabaseAccountsClient) ListResponder(resp *http.Response) (result 
 }
 
 // ListByResourceGroup lists all the Azure Cosmos DB database accounts available under the given resource group.
-//
-// resourceGroupName is name of an Azure resource group.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
 func (client DatabaseAccountsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result DatabaseAccountsListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "ListByResourceGroup")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "ListByResourceGroup", err.Error())
 	}
 
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
@@ -582,8 +588,9 @@ func (client DatabaseAccountsClient) ListByResourceGroupResponder(resp *http.Res
 }
 
 // ListConnectionStrings lists the connection strings for the specified Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
 func (client DatabaseAccountsClient) ListConnectionStrings(ctx context.Context, resourceGroupName string, accountName string) (result DatabaseAccountListConnectionStringsResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -593,7 +600,7 @@ func (client DatabaseAccountsClient) ListConnectionStrings(ctx context.Context, 
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "ListConnectionStrings")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "ListConnectionStrings", err.Error())
 	}
 
 	req, err := client.ListConnectionStringsPreparer(ctx, resourceGroupName, accountName)
@@ -659,8 +666,9 @@ func (client DatabaseAccountsClient) ListConnectionStringsResponder(resp *http.R
 }
 
 // ListKeys lists the access keys for the specified Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
 func (client DatabaseAccountsClient) ListKeys(ctx context.Context, resourceGroupName string, accountName string) (result DatabaseAccountListKeysResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -670,7 +678,7 @@ func (client DatabaseAccountsClient) ListKeys(ctx context.Context, resourceGroup
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "ListKeys")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "ListKeys", err.Error())
 	}
 
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, accountName)
@@ -736,8 +744,9 @@ func (client DatabaseAccountsClient) ListKeysResponder(resp *http.Response) (res
 }
 
 // ListMetricDefinitions retrieves metric defintions for the given database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
 func (client DatabaseAccountsClient) ListMetricDefinitions(ctx context.Context, resourceGroupName string, accountName string) (result MetricDefinitionsListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -747,7 +756,7 @@ func (client DatabaseAccountsClient) ListMetricDefinitions(ctx context.Context, 
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "ListMetricDefinitions")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "ListMetricDefinitions", err.Error())
 	}
 
 	req, err := client.ListMetricDefinitionsPreparer(ctx, resourceGroupName, accountName)
@@ -813,9 +822,13 @@ func (client DatabaseAccountsClient) ListMetricDefinitionsResponder(resp *http.R
 }
 
 // ListMetrics retrieves the metrics determined by the given filter for the given database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-func (client DatabaseAccountsClient) ListMetrics(ctx context.Context, resourceGroupName string, accountName string) (result MetricListResult, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// filter - an OData filter expression that describes a subset of metrics to return. The parameters that can be
+// filtered are name.value (name of the metric, can have an or of multiple names), startTime, endTime, and
+// timeGrain. The supported operator is eq.
+func (client DatabaseAccountsClient) ListMetrics(ctx context.Context, resourceGroupName string, accountName string, filter string) (result MetricListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -824,10 +837,10 @@ func (client DatabaseAccountsClient) ListMetrics(ctx context.Context, resourceGr
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "ListMetrics")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "ListMetrics", err.Error())
 	}
 
-	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, accountName)
+	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, accountName, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "ListMetrics", nil, "Failure preparing request")
 		return
@@ -849,7 +862,7 @@ func (client DatabaseAccountsClient) ListMetrics(ctx context.Context, resourceGr
 }
 
 // ListMetricsPreparer prepares the ListMetrics request.
-func (client DatabaseAccountsClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client DatabaseAccountsClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, accountName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -858,7 +871,7 @@ func (client DatabaseAccountsClient) ListMetricsPreparer(ctx context.Context, re
 
 	const APIVersion = "2015-04-08"
 	queryParameters := map[string]interface{}{
-		"$filter":     autorest.Encode("query", client.Filter),
+		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,
 	}
 
@@ -891,8 +904,9 @@ func (client DatabaseAccountsClient) ListMetricsResponder(resp *http.Response) (
 }
 
 // ListReadOnlyKeys lists the read-only access keys for the specified Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
 func (client DatabaseAccountsClient) ListReadOnlyKeys(ctx context.Context, resourceGroupName string, accountName string) (result DatabaseAccountListReadOnlyKeysResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -902,7 +916,7 @@ func (client DatabaseAccountsClient) ListReadOnlyKeys(ctx context.Context, resou
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "ListReadOnlyKeys")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "ListReadOnlyKeys", err.Error())
 	}
 
 	req, err := client.ListReadOnlyKeysPreparer(ctx, resourceGroupName, accountName)
@@ -968,9 +982,12 @@ func (client DatabaseAccountsClient) ListReadOnlyKeysResponder(resp *http.Respon
 }
 
 // ListUsages retrieves the usages (most recent data) for the given database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-func (client DatabaseAccountsClient) ListUsages(ctx context.Context, resourceGroupName string, accountName string) (result UsagesResult, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// filter - an OData filter expression that describes a subset of usages to return. The supported parameter is
+// name.value (name of the metric, can have an or of multiple names).
+func (client DatabaseAccountsClient) ListUsages(ctx context.Context, resourceGroupName string, accountName string, filter string) (result UsagesResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -979,10 +996,10 @@ func (client DatabaseAccountsClient) ListUsages(ctx context.Context, resourceGro
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "ListUsages")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "ListUsages", err.Error())
 	}
 
-	req, err := client.ListUsagesPreparer(ctx, resourceGroupName, accountName)
+	req, err := client.ListUsagesPreparer(ctx, resourceGroupName, accountName, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "ListUsages", nil, "Failure preparing request")
 		return
@@ -1004,7 +1021,7 @@ func (client DatabaseAccountsClient) ListUsages(ctx context.Context, resourceGro
 }
 
 // ListUsagesPreparer prepares the ListUsages request.
-func (client DatabaseAccountsClient) ListUsagesPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client DatabaseAccountsClient) ListUsagesPreparer(ctx context.Context, resourceGroupName string, accountName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -1015,8 +1032,8 @@ func (client DatabaseAccountsClient) ListUsagesPreparer(ctx context.Context, res
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
-	if len(client.Filter) > 0 {
-		queryParameters["$filter"] = autorest.Encode("query", client.Filter)
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1048,9 +1065,10 @@ func (client DatabaseAccountsClient) ListUsagesResponder(resp *http.Response) (r
 }
 
 // Patch patches the properties of an existing Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-// updateParameters is the tags parameter to patch for the current database account.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// updateParameters - the tags parameter to patch for the current database account.
 func (client DatabaseAccountsClient) Patch(ctx context.Context, resourceGroupName string, accountName string, updateParameters DatabaseAccountPatchParameters) (result DatabaseAccountsPatchFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -1060,7 +1078,7 @@ func (client DatabaseAccountsClient) Patch(ctx context.Context, resourceGroupNam
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "Patch")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "Patch", err.Error())
 	}
 
 	req, err := client.PatchPreparer(ctx, resourceGroupName, accountName, updateParameters)
@@ -1092,7 +1110,7 @@ func (client DatabaseAccountsClient) PatchPreparer(ctx context.Context, resource
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}", pathParameters),
@@ -1130,9 +1148,10 @@ func (client DatabaseAccountsClient) PatchResponder(resp *http.Response) (result
 }
 
 // RegenerateKey regenerates an access key for the specified Azure Cosmos DB database account.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-// keyToRegenerate is the name of the key to regenerate.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// keyToRegenerate - the name of the key to regenerate.
 func (client DatabaseAccountsClient) RegenerateKey(ctx context.Context, resourceGroupName string, accountName string, keyToRegenerate DatabaseAccountRegenerateKeyParameters) (result DatabaseAccountsRegenerateKeyFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -1142,7 +1161,7 @@ func (client DatabaseAccountsClient) RegenerateKey(ctx context.Context, resource
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseAccountsClient", "RegenerateKey")
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "RegenerateKey", err.Error())
 	}
 
 	req, err := client.RegenerateKeyPreparer(ctx, resourceGroupName, accountName, keyToRegenerate)
@@ -1174,7 +1193,7 @@ func (client DatabaseAccountsClient) RegenerateKeyPreparer(ctx context.Context, 
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/regenerateKey", pathParameters),

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"time"
 
@@ -48,22 +49,6 @@ func validateUUID(v interface{}, k string) (ws []string, errors []error) {
 	return
 }
 
-func validateDBAccountName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	r, _ := regexp.Compile("^[a-z0-9\\-]+$")
-	if !r.MatchString(value) {
-		errors = append(errors, fmt.Errorf("Account Name can only contain lower-case characters, numbers and the `-` character."))
-	}
-
-	length := len(value)
-	if length > 50 || 3 > length {
-		errors = append(errors, fmt.Errorf("Account Name can only be between 3 and 50 seconds."))
-	}
-
-	return
-}
-
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) {
 	_, es := validateFunc(i, k)
 
@@ -72,17 +57,6 @@ func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.Sch
 	}
 
 	return true, nil
-}
-
-func validateStringLength(maxLength int) schema.SchemaValidateFunc {
-	return func(v interface{}, k string) (ws []string, errors []error) {
-		value := v.(string)
-		if len(value) > maxLength {
-			errors = append(errors, fmt.Errorf(
-				"The %q can be no longer than %d chars", k, maxLength))
-		}
-		return
-	}
 }
 
 func validateIso8601Duration() schema.SchemaValidateFunc {
@@ -98,6 +72,49 @@ func validateIso8601Duration() schema.SchemaValidateFunc {
 		if !matched {
 			es = append(es, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
 		}
+		return
+	}
+}
+
+// intBetweenDivisibleBy returns a SchemaValidateFunc which tests if the provided value
+// is of type int and is between min and max (inclusive) and is divisible by a given number
+func validateIntBetweenDivisibleBy(min, max, divisor int) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(int)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be int", k))
+			return
+		}
+
+		if v < min || v > max {
+			es = append(es, fmt.Errorf("expected %s to be in the range (%d - %d), got %d", k, min, max, v))
+			return
+		}
+
+		if math.Mod(float64(v), float64(divisor)) != 0 {
+			es = append(es, fmt.Errorf("expected %s to be divisible by %d", k, divisor))
+			return
+		}
+
+		return
+	}
+}
+
+func validateCollation() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		matched, _ := regexp.MatchString(`^[A-Za-z0-9_. ]+$`, v)
+
+		if !matched {
+			es = append(es, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
+			return
+		}
+
 		return
 	}
 }

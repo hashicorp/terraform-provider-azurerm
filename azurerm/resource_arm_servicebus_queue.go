@@ -86,6 +86,19 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"requires_session": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"dead_lettering_on_message_expiration": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
+			},
+
 			// TODO: remove these in the next major release
 			"enable_batched_operations": {
 				Type:       schema.TypeBool,
@@ -114,14 +127,18 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	enablePartitioning := d.Get("enable_partitioning").(bool)
 	maxSize := int32(d.Get("max_size_in_megabytes").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
+	requiresSession := d.Get("requires_session").(bool)
+	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 
 	parameters := servicebus.SBQueue{
 		Name: &name,
 		SBQueueProperties: &servicebus.SBQueueProperties{
-			EnableExpress:              &enableExpress,
-			EnablePartitioning:         &enablePartitioning,
-			MaxSizeInMegabytes:         &maxSize,
-			RequiresDuplicateDetection: &requiresDuplicateDetection,
+			EnableExpress:                    &enableExpress,
+			EnablePartitioning:               &enablePartitioning,
+			MaxSizeInMegabytes:               &maxSize,
+			RequiresDuplicateDetection:       &requiresDuplicateDetection,
+			RequiresSession:                  &requiresSession,
+			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
 		},
 	}
 
@@ -213,6 +230,8 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("enable_express", props.EnableExpress)
 		d.Set("enable_partitioning", props.EnablePartitioning)
 		d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
+		d.Set("requires_session", props.RequiresSession)
+		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 
 		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
 			maxSize := int(*maxSizeMB)

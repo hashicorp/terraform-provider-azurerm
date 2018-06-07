@@ -37,7 +37,7 @@ output "location" {
 
 * `security_rule` - One or more `security_rule` blocks as defined below.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.
 
 
 The `security_rule` block supports:
@@ -55,6 +55,10 @@ The `security_rule` block supports:
 * `source_address_prefix` - CIDR or source IP range or * to match any IP.
 
 * `destination_address_prefix` - CIDR or destination IP range or * to match any IP.
+
+* `source_application_security_group_ids` - A List of source Application Security Group ID's
+
+* `destination_application_security_group_ids` - A List of destination Application Security Group ID's
 
 * `access` - Is network traffic is allowed or denied?
 
