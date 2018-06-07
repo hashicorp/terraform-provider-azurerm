@@ -269,7 +269,7 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 	}
 
 	if tagsInf, ok := d.GetOk("tags"); ok {
-		job.Tags = *expandTags(tagsInf.(map[string]interface{}))
+		job.Tags = expandTags(tagsInf.(map[string]interface{}))
 	}
 
 	// TODO: try to make this whole creation as atomic as possible
@@ -415,7 +415,7 @@ func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 
 	if d.HasChange("tags") {
 		if tagsInf, ok := d.GetOk("tags"); ok {
-			job.Tags = *expandTags(tagsInf.(map[string]interface{}))
+			job.Tags = expandTags(tagsInf.(map[string]interface{}))
 		}
 	}
 
@@ -443,7 +443,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	flattenAndSetTags(d, &job.Tags)
+	flattenAndSetTags(d, job.Tags)
 
 	d.Set("job_state", *job.JobState)
 	return nil

@@ -659,12 +659,6 @@ func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth 
 	c.iothubResourceClient = iotClient
 }
 
-func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	iotClient := devices.NewIotHubResourceClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&iotClient.Client, auth)
-	c.iothubResourceClient = iotClient
-}
-
 func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
 	dn := dns.NewRecordSetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&dn.Client, auth)
