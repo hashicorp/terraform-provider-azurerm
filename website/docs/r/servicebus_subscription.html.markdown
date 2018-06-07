@@ -6,7 +6,7 @@ description: |-
   Create a ServiceBus Subscription.
 ---
 
-# azurerm\_servicebus\_subscription
+# azurerm_servicebus_subscription
 
 Create a ServiceBus Subscription.
 

@@ -54,7 +54,7 @@ output "virtual_network_gateway_id" {
 
 * `vpn_client_configuration` - A `vpn_client_configuration` block which is documented below.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.
 
 The `ip_configuration` block supports:
 

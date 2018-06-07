@@ -37,7 +37,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLength(140),
+				ValidateFunc: validation.StringLenBetween(0, 140),
 			},
 
 			"protocol": {
@@ -105,6 +105,20 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				Elem:          &schema.Schema{Type: schema.TypeString},
 				Set:           schema.HashString,
 				ConflictsWith: []string{"destination_address_prefix"},
+			},
+
+			"source_application_security_group_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
+			},
+
+			"destination_application_security_group_ids": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			"access": {
@@ -215,6 +229,28 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		rule.SecurityRulePropertiesFormat.DestinationAddressPrefixes = &destinationAddressPrefixes
 	}
 
+	if r, ok := d.GetOk("source_application_security_group_ids"); ok {
+		var sourceApplicationSecurityGroups []network.ApplicationSecurityGroup
+		for _, v := range r.(*schema.Set).List() {
+			sg := network.ApplicationSecurityGroup{
+				ID: utils.String(v.(string)),
+			}
+			sourceApplicationSecurityGroups = append(sourceApplicationSecurityGroups, sg)
+		}
+		rule.SourceApplicationSecurityGroups = &sourceApplicationSecurityGroups
+	}
+
+	if r, ok := d.GetOk("destination_application_security_group_ids"); ok {
+		var destinationApplicationSecurityGroups []network.ApplicationSecurityGroup
+		for _, v := range r.(*schema.Set).List() {
+			sg := network.ApplicationSecurityGroup{
+				ID: utils.String(v.(string)),
+			}
+			destinationApplicationSecurityGroups = append(destinationApplicationSecurityGroups, sg)
+		}
+		rule.DestinationApplicationSecurityGroups = &destinationApplicationSecurityGroups
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, nsgName, name, rule)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
@@ -227,10 +263,10 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 
 	read, err := client.Get(ctx, resGroup, nsgName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Security Group Rule %s/%s (resource group %s) ID", nsgName, name, resGroup)
+		return fmt.Errorf("Cannot read Network Security Rule %s (NSG %q / resource group %s) ID", name, nsgName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -256,26 +292,27 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Security Rule %q: %+v", sgRuleName, err)
+		return fmt.Errorf("Error making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, networkSGName, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+	d.Set("network_security_group_name", networkSGName)
 
 	if props := resp.SecurityRulePropertiesFormat; props != nil {
-		d.Set("access", string(props.Access))
-		d.Set("destination_address_prefix", props.DestinationAddressPrefix)
-		d.Set("destination_port_range", props.DestinationPortRange)
-		d.Set("direction", string(props.Direction))
 		d.Set("description", props.Description)
-		d.Set("priority", int(*props.Priority))
 		d.Set("protocol", string(props.Protocol))
-		d.Set("source_address_prefix", props.SourceAddressPrefix)
-		d.Set("source_port_range", props.SourcePortRange)
-		d.Set("source_address_prefixes", props.SourceAddressPrefixes)
+		d.Set("destination_address_prefix", props.DestinationAddressPrefix)
 		d.Set("destination_address_prefixes", props.DestinationAddressPrefixes)
-		d.Set("source_port_ranges", props.SourcePortRanges)
+		d.Set("destination_port_range", props.DestinationPortRange)
 		d.Set("destination_port_ranges", props.DestinationPortRanges)
+		d.Set("source_address_prefix", props.SourceAddressPrefix)
+		d.Set("source_address_prefixes", props.SourceAddressPrefixes)
+		d.Set("source_port_range", props.SourcePortRange)
+		d.Set("source_port_ranges", props.SourcePortRanges)
+		d.Set("access", string(props.Access))
+		d.Set("priority", int(*props.Priority))
+		d.Set("direction", string(props.Direction))
 	}
 
 	return nil
@@ -306,5 +343,5 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
-	return err
+	return nil
 }

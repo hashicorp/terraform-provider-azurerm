@@ -41,13 +41,13 @@ func NewUsagesClientWithBaseURI(baseURI string, subscriptionID string) UsagesCli
 }
 
 // List list network usages for a subscription.
-//
-// location is the location where resource usage is queried.
+// Parameters:
+// location - the location where resource usage is queried.
 func (client UsagesClient) List(ctx context.Context, location string) (result UsagesListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: location,
 			Constraints: []validation.Constraint{{Target: "location", Name: validation.Pattern, Rule: `^[-\w\._ ]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "network.UsagesClient", "List")
+		return result, validation.NewError("network.UsagesClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults

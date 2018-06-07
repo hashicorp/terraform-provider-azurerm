@@ -31,24 +31,24 @@ type StatisticsClient struct {
 }
 
 // NewStatisticsClient creates an instance of the StatisticsClient client.
-func NewStatisticsClient(subscriptionID string, resourceGroupName string) StatisticsClient {
-	return NewStatisticsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
+func NewStatisticsClient(subscriptionID string) StatisticsClient {
+	return NewStatisticsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewStatisticsClientWithBaseURI creates an instance of the StatisticsClient client.
-func NewStatisticsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) StatisticsClient {
-	return StatisticsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
+func NewStatisticsClientWithBaseURI(baseURI string, subscriptionID string) StatisticsClient {
+	return StatisticsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // ListByAutomationAccount retrieve the statistics for the account.
 //
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. filter is the
-// filter to apply on the operation.
+// resourceGroupName is the resource group name. automationAccountName is the automation account name. filter is
+// the filter to apply on the operation.
 func (client StatisticsClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result StatisticsListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.StatisticsClient", "ListByAutomationAccount")
+		return result, validation.NewError("automation.StatisticsClient", "ListByAutomationAccount", err.Error())
 	}
 
 	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter)

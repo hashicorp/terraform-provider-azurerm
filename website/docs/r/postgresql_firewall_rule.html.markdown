@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-postgresql-firewall-rule"
 description: |-
-  Creates a Firewall Rule for a PostgreSQL Server.
+  Manages a Firewall Rule for a PostgreSQL Server.
 ---
 
-# azurerm\_postgresql\_firewall\_rule
+# azurerm_postgresql_firewall_rule
 
-Creates a Firewall Rule for a PostgreSQL Server
+Manages a Firewall Rule for a PostgreSQL Server
 
 ## Example Usage (Single IP Address)
 

@@ -47,8 +47,9 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(trafficmanager.Performance),
+					string(trafficmanager.Geographic),
 					string(trafficmanager.Weighted),
+					string(trafficmanager.Performance),
 					string(trafficmanager.Priority),
 				}, false),
 			},
@@ -281,23 +282,25 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 
 func resourceAzureRMTrafficManagerDNSConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", m["relative_name"].(string)))
-	buf.WriteString(fmt.Sprintf("%d-", m["ttl"].(int)))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["relative_name"].(string)))
+		buf.WriteString(fmt.Sprintf("%d-", m["ttl"].(int)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceAzureRMTrafficManagerMonitorConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["protocol"].(string))))
-	buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["protocol"].(string))))
+		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
 
-	if m["path"] != "" {
-		buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+		if v, ok := m["path"]; ok && v != "" {
+			buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+		}
 	}
 
 	return hashcode.String(buf.String())

@@ -323,6 +323,30 @@ resource "azurerm_managed_disk" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMManagedDisk_empty_withZone(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG-%d"
+    location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+    name = "acctestd-%d"
+    location = "${azurerm_resource_group.test.location}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    storage_account_type = "Standard_LRS"
+    create_option = "Empty"
+    disk_size_gb = "1"
+    zones = ["1"]
+
+    tags {
+        environment = "acctest"
+        cost-center = "ops"
+    }
+}
+`, rInt, location, rInt)
+}
+
 func testAccAzureRMManagedDisk_import(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {

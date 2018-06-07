@@ -27,7 +27,9 @@ output "dns_zone_id" {
 ## Argument Reference
 
 * `name` - (Required) The name of the DNS Zone.
-* `resource_group_name` - (Required) The Name of the Resource Group where the DNS Zone exists.
+* `resource_group_name` - (Optional) The Name of the Resource Group where the DNS Zone exists.
+If the Name of the Resource Group is not provided, the first DNS Zone from the list of DNS Zones
+in your subscription that matches `name` will be returned.
 
 ## Attributes Reference
 

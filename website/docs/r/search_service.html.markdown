@@ -6,7 +6,7 @@ description: |-
   Manage a Search Service.
 ---
 
-# azurerm\_search\_service
+# azurerm_search_service
 
 Allows you to manage an Azure Search Service
 

@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_machine_extension"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
-    Creates a new Virtual Machine Extension to provide post deployment
+    Manages a new Virtual Machine Extension to provide post deployment
     configuration and run automated tasks.
 ---
 
 # azurerm_virtual_machine_extension
 
-Creates a new Virtual Machine Extension to provide post deployment configuration
+Manages a new Virtual Machine Extension to provide post deployment configuration
 and run automated tasks.
 
 ~> **Please Note:** The CustomScript extensions for Linux & Windows require that the `commandToExecute` returns a `0` exit code to be classified as successfully deployed. You can achieve this by appending `exit 0` to the end of your `commandToExecute`.
@@ -108,13 +108,13 @@ resource "azurerm_virtual_machine_extension" "test" {
   location             = "West US"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_machine_name = "${azurerm_virtual_machine.test.name}"
-  publisher            = "Microsoft.OSTCExtensions"
-  type                 = "CustomScriptForLinux"
-  type_handler_version = "1.2"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
   settings = <<SETTINGS
 	{
-		"commandToExecute": "hostname"
+		"commandToExecute": "hostname && uptime"
 	}
 SETTINGS
 

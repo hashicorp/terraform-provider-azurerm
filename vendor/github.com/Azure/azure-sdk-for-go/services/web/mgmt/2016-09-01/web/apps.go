@@ -41,16 +41,18 @@ func NewAppsClientWithBaseURI(baseURI string, subscriptionID string) AppsClient 
 }
 
 // AddPremierAddOn updates a named add-on of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// premierAddOnName is add-on name. premierAddOn is a JSON representation of the edited premier add-on.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// premierAddOnName - add-on name.
+// premierAddOn - a JSON representation of the edited premier add-on.
 func (client AppsClient) AddPremierAddOn(ctx context.Context, resourceGroupName string, name string, premierAddOnName string, premierAddOn PremierAddOn) (result PremierAddOn, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "AddPremierAddOn")
+		return result, validation.NewError("web.AppsClient", "AddPremierAddOn", err.Error())
 	}
 
 	req, err := client.AddPremierAddOnPreparer(ctx, resourceGroupName, name, premierAddOnName, premierAddOn)
@@ -89,7 +91,7 @@ func (client AppsClient) AddPremierAddOnPreparer(ctx context.Context, resourceGr
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/premieraddons/{premierAddOnName}", pathParameters),
@@ -119,17 +121,20 @@ func (client AppsClient) AddPremierAddOnResponder(resp *http.Response) (result P
 }
 
 // AddPremierAddOnSlot updates a named add-on of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// premierAddOnName is add-on name. premierAddOn is a JSON representation of the edited premier add-on. slot is name of
-// the deployment slot. If a slot is not specified, the API will update the named add-on for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// premierAddOnName - add-on name.
+// premierAddOn - a JSON representation of the edited premier add-on.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the named add-on for the
+// production slot.
 func (client AppsClient) AddPremierAddOnSlot(ctx context.Context, resourceGroupName string, name string, premierAddOnName string, premierAddOn PremierAddOn, slot string) (result PremierAddOn, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "AddPremierAddOnSlot")
+		return result, validation.NewError("web.AppsClient", "AddPremierAddOnSlot", err.Error())
 	}
 
 	req, err := client.AddPremierAddOnSlotPreparer(ctx, resourceGroupName, name, premierAddOnName, premierAddOn, slot)
@@ -169,7 +174,7 @@ func (client AppsClient) AddPremierAddOnSlotPreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/premieraddons/{premierAddOnName}", pathParameters),
@@ -199,16 +204,17 @@ func (client AppsClient) AddPremierAddOnSlotResponder(resp *http.Response) (resu
 }
 
 // AnalyzeCustomHostname analyze a custom hostname.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. hostName is
-// custom hostname.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// hostName - custom hostname.
 func (client AppsClient) AnalyzeCustomHostname(ctx context.Context, resourceGroupName string, name string, hostName string) (result CustomHostnameAnalysisResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "AnalyzeCustomHostname")
+		return result, validation.NewError("web.AppsClient", "AnalyzeCustomHostname", err.Error())
 	}
 
 	req, err := client.AnalyzeCustomHostnamePreparer(ctx, resourceGroupName, name, hostName)
@@ -277,16 +283,18 @@ func (client AppsClient) AnalyzeCustomHostnameResponder(resp *http.Response) (re
 }
 
 // AnalyzeCustomHostnameSlot analyze a custom hostname.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot. hostName is custom hostname.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
+// hostName - custom hostname.
 func (client AppsClient) AnalyzeCustomHostnameSlot(ctx context.Context, resourceGroupName string, name string, slot string, hostName string) (result CustomHostnameAnalysisResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "AnalyzeCustomHostnameSlot")
+		return result, validation.NewError("web.AppsClient", "AnalyzeCustomHostnameSlot", err.Error())
 	}
 
 	req, err := client.AnalyzeCustomHostnameSlotPreparer(ctx, resourceGroupName, name, slot, hostName)
@@ -356,9 +364,10 @@ func (client AppsClient) AnalyzeCustomHostnameSlotResponder(resp *http.Response)
 }
 
 // ApplySlotConfigToProduction applies the configuration settings from the target slot onto the current slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// slotSwapEntity is JSON object that contains the target slot name. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slotSwapEntity - JSON object that contains the target slot name. See example.
 func (client AppsClient) ApplySlotConfigToProduction(ctx context.Context, resourceGroupName string, name string, slotSwapEntity CsmSlotEntity) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -368,7 +377,7 @@ func (client AppsClient) ApplySlotConfigToProduction(ctx context.Context, resour
 		{TargetValue: slotSwapEntity,
 			Constraints: []validation.Constraint{{Target: "slotSwapEntity.TargetSlot", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "slotSwapEntity.PreserveVnet", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ApplySlotConfigToProduction")
+		return result, validation.NewError("web.AppsClient", "ApplySlotConfigToProduction", err.Error())
 	}
 
 	req, err := client.ApplySlotConfigToProductionPreparer(ctx, resourceGroupName, name, slotSwapEntity)
@@ -406,7 +415,7 @@ func (client AppsClient) ApplySlotConfigToProductionPreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/applySlotConfig", pathParameters),
@@ -435,10 +444,11 @@ func (client AppsClient) ApplySlotConfigToProductionResponder(resp *http.Respons
 }
 
 // ApplySlotConfigurationSlot applies the configuration settings from the target slot onto the current slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// slotSwapEntity is JSON object that contains the target slot name. See example. slot is name of the source slot. If a
-// slot is not specified, the production slot is used as the source slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slotSwapEntity - JSON object that contains the target slot name. See example.
+// slot - name of the source slot. If a slot is not specified, the production slot is used as the source slot.
 func (client AppsClient) ApplySlotConfigurationSlot(ctx context.Context, resourceGroupName string, name string, slotSwapEntity CsmSlotEntity, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -448,7 +458,7 @@ func (client AppsClient) ApplySlotConfigurationSlot(ctx context.Context, resourc
 		{TargetValue: slotSwapEntity,
 			Constraints: []validation.Constraint{{Target: "slotSwapEntity.TargetSlot", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "slotSwapEntity.PreserveVnet", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ApplySlotConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "ApplySlotConfigurationSlot", err.Error())
 	}
 
 	req, err := client.ApplySlotConfigurationSlotPreparer(ctx, resourceGroupName, name, slotSwapEntity, slot)
@@ -487,7 +497,7 @@ func (client AppsClient) ApplySlotConfigurationSlotPreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/applySlotConfig", pathParameters),
@@ -516,9 +526,10 @@ func (client AppsClient) ApplySlotConfigurationSlotResponder(resp *http.Response
 }
 
 // Backup creates a backup of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. request is
-// backup configuration. You can use the JSON response from the POST action as input here.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - backup configuration. You can use the JSON response from the POST action as input here.
 func (client AppsClient) Backup(ctx context.Context, resourceGroupName string, name string, request BackupRequest) (result BackupItem, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -535,7 +546,7 @@ func (client AppsClient) Backup(ctx context.Context, resourceGroupName string, n
 							{Target: "request.BackupRequestProperties.BackupSchedule.RetentionPeriodInDays", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Backup")
+		return result, validation.NewError("web.AppsClient", "Backup", err.Error())
 	}
 
 	req, err := client.BackupPreparer(ctx, resourceGroupName, name, request)
@@ -573,7 +584,7 @@ func (client AppsClient) BackupPreparer(ctx context.Context, resourceGroupName s
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/backup", pathParameters),
@@ -603,10 +614,12 @@ func (client AppsClient) BackupResponder(resp *http.Response) (result BackupItem
 }
 
 // BackupSlot creates a backup of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. request is
-// backup configuration. You can use the JSON response from the POST action as input here. slot is name of the
-// deployment slot. If a slot is not specified, the API will create a backup for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - backup configuration. You can use the JSON response from the POST action as input here.
+// slot - name of the deployment slot. If a slot is not specified, the API will create a backup for the
+// production slot.
 func (client AppsClient) BackupSlot(ctx context.Context, resourceGroupName string, name string, request BackupRequest, slot string) (result BackupItem, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -623,7 +636,7 @@ func (client AppsClient) BackupSlot(ctx context.Context, resourceGroupName strin
 							{Target: "request.BackupRequestProperties.BackupSchedule.RetentionPeriodInDays", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "BackupSlot")
+		return result, validation.NewError("web.AppsClient", "BackupSlot", err.Error())
 	}
 
 	req, err := client.BackupSlotPreparer(ctx, resourceGroupName, name, request, slot)
@@ -662,7 +675,7 @@ func (client AppsClient) BackupSlotPreparer(ctx context.Context, resourceGroupNa
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/backup", pathParameters),
@@ -692,16 +705,18 @@ func (client AppsClient) BackupSlotResponder(resp *http.Response) (result Backup
 }
 
 // CreateDeployment create a deployment for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is ID of
-// an existing deployment. deployment is deployment details.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - ID of an existing deployment.
+// deployment - deployment details.
 func (client AppsClient) CreateDeployment(ctx context.Context, resourceGroupName string, name string, ID string, deployment Deployment) (result Deployment, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateDeployment")
+		return result, validation.NewError("web.AppsClient", "CreateDeployment", err.Error())
 	}
 
 	req, err := client.CreateDeploymentPreparer(ctx, resourceGroupName, name, ID, deployment)
@@ -740,7 +755,7 @@ func (client AppsClient) CreateDeploymentPreparer(ctx context.Context, resourceG
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/deployments/{id}", pathParameters),
@@ -770,17 +785,20 @@ func (client AppsClient) CreateDeploymentResponder(resp *http.Response) (result 
 }
 
 // CreateDeploymentSlot create a deployment for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is ID of
-// an existing deployment. slot is name of the deployment slot. If a slot is not specified, the API creates a
-// deployment for the production slot. deployment is deployment details.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - ID of an existing deployment.
+// slot - name of the deployment slot. If a slot is not specified, the API creates a deployment for the
+// production slot.
+// deployment - deployment details.
 func (client AppsClient) CreateDeploymentSlot(ctx context.Context, resourceGroupName string, name string, ID string, slot string, deployment Deployment) (result Deployment, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateDeploymentSlot")
+		return result, validation.NewError("web.AppsClient", "CreateDeploymentSlot", err.Error())
 	}
 
 	req, err := client.CreateDeploymentSlotPreparer(ctx, resourceGroupName, name, ID, slot, deployment)
@@ -820,7 +838,7 @@ func (client AppsClient) CreateDeploymentSlotPreparer(ctx context.Context, resou
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/deployments/{id}", pathParameters),
@@ -850,16 +868,18 @@ func (client AppsClient) CreateDeploymentSlotResponder(resp *http.Response) (res
 }
 
 // CreateFunction create function for web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name. functionEnvelope is function details.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
+// functionEnvelope - function details.
 func (client AppsClient) CreateFunction(ctx context.Context, resourceGroupName string, name string, functionName string, functionEnvelope FunctionEnvelope) (result AppsCreateFunctionFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateFunction")
+		return result, validation.NewError("web.AppsClient", "CreateFunction", err.Error())
 	}
 
 	req, err := client.CreateFunctionPreparer(ctx, resourceGroupName, name, functionName, functionEnvelope)
@@ -892,7 +912,7 @@ func (client AppsClient) CreateFunctionPreparer(ctx context.Context, resourceGro
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/functions/{functionName}", pathParameters),
@@ -930,17 +950,20 @@ func (client AppsClient) CreateFunctionResponder(resp *http.Response) (result Fu
 }
 
 // CreateInstanceFunctionSlot create function for web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
-// production slot. functionEnvelope is function details.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
+// functionEnvelope - function details.
 func (client AppsClient) CreateInstanceFunctionSlot(ctx context.Context, resourceGroupName string, name string, functionName string, slot string, functionEnvelope FunctionEnvelope) (result AppsCreateInstanceFunctionSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateInstanceFunctionSlot")
+		return result, validation.NewError("web.AppsClient", "CreateInstanceFunctionSlot", err.Error())
 	}
 
 	req, err := client.CreateInstanceFunctionSlotPreparer(ctx, resourceGroupName, name, functionName, slot, functionEnvelope)
@@ -974,7 +997,7 @@ func (client AppsClient) CreateInstanceFunctionSlotPreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/functions/{functionName}", pathParameters),
@@ -1012,16 +1035,18 @@ func (client AppsClient) CreateInstanceFunctionSlotResponder(resp *http.Response
 }
 
 // CreateInstanceMSDeployOperation invoke the MSDeploy web app extension.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. instanceID
-// is ID of web app instance. mSDeploy is details of MSDeploy operation
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// instanceID - ID of web app instance.
+// mSDeploy - details of MSDeploy operation
 func (client AppsClient) CreateInstanceMSDeployOperation(ctx context.Context, resourceGroupName string, name string, instanceID string, mSDeploy MSDeploy) (result AppsCreateInstanceMSDeployOperationFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateInstanceMSDeployOperation")
+		return result, validation.NewError("web.AppsClient", "CreateInstanceMSDeployOperation", err.Error())
 	}
 
 	req, err := client.CreateInstanceMSDeployOperationPreparer(ctx, resourceGroupName, name, instanceID, mSDeploy)
@@ -1054,7 +1079,7 @@ func (client AppsClient) CreateInstanceMSDeployOperationPreparer(ctx context.Con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/instances/{instanceId}/extensions/MSDeploy", pathParameters),
@@ -1092,17 +1117,19 @@ func (client AppsClient) CreateInstanceMSDeployOperationResponder(resp *http.Res
 }
 
 // CreateInstanceMSDeployOperationSlot invoke the MSDeploy web app extension.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot. instanceID is ID of web app instance.
-// mSDeploy is details of MSDeploy operation
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
+// instanceID - ID of web app instance.
+// mSDeploy - details of MSDeploy operation
 func (client AppsClient) CreateInstanceMSDeployOperationSlot(ctx context.Context, resourceGroupName string, name string, slot string, instanceID string, mSDeploy MSDeploy) (result AppsCreateInstanceMSDeployOperationSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateInstanceMSDeployOperationSlot")
+		return result, validation.NewError("web.AppsClient", "CreateInstanceMSDeployOperationSlot", err.Error())
 	}
 
 	req, err := client.CreateInstanceMSDeployOperationSlotPreparer(ctx, resourceGroupName, name, slot, instanceID, mSDeploy)
@@ -1136,7 +1163,7 @@ func (client AppsClient) CreateInstanceMSDeployOperationSlotPreparer(ctx context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/instances/{instanceId}/extensions/MSDeploy", pathParameters),
@@ -1174,16 +1201,17 @@ func (client AppsClient) CreateInstanceMSDeployOperationSlotResponder(resp *http
 }
 
 // CreateMSDeployOperation invoke the MSDeploy web app extension.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. mSDeploy is
-// details of MSDeploy operation
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// mSDeploy - details of MSDeploy operation
 func (client AppsClient) CreateMSDeployOperation(ctx context.Context, resourceGroupName string, name string, mSDeploy MSDeploy) (result AppsCreateMSDeployOperationFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateMSDeployOperation")
+		return result, validation.NewError("web.AppsClient", "CreateMSDeployOperation", err.Error())
 	}
 
 	req, err := client.CreateMSDeployOperationPreparer(ctx, resourceGroupName, name, mSDeploy)
@@ -1215,7 +1243,7 @@ func (client AppsClient) CreateMSDeployOperationPreparer(ctx context.Context, re
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/extensions/MSDeploy", pathParameters),
@@ -1253,16 +1281,18 @@ func (client AppsClient) CreateMSDeployOperationResponder(resp *http.Response) (
 }
 
 // CreateMSDeployOperationSlot invoke the MSDeploy web app extension.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot. mSDeploy is details of MSDeploy operation
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
+// mSDeploy - details of MSDeploy operation
 func (client AppsClient) CreateMSDeployOperationSlot(ctx context.Context, resourceGroupName string, name string, slot string, mSDeploy MSDeploy) (result AppsCreateMSDeployOperationSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateMSDeployOperationSlot")
+		return result, validation.NewError("web.AppsClient", "CreateMSDeployOperationSlot", err.Error())
 	}
 
 	req, err := client.CreateMSDeployOperationSlotPreparer(ctx, resourceGroupName, name, slot, mSDeploy)
@@ -1295,7 +1325,7 @@ func (client AppsClient) CreateMSDeployOperationSlotPreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/extensions/MSDeploy", pathParameters),
@@ -1333,15 +1363,12 @@ func (client AppsClient) CreateMSDeployOperationSlotResponder(resp *http.Respons
 }
 
 // CreateOrUpdate creates a new web, mobile, or API app in an existing resource group, or updates an existing app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is unique name of the app to
-// create or update. To create or update a deployment slot, use the {slot} parameter. siteEnvelope is a JSON
-// representation of the app properties. See example. skipDNSRegistration is if true web app hostname is not registered
-// with DNS on creation. This parameter is
-// only used for app creation. skipCustomDomainVerification is if true, custom (non *.azurewebsites.net) domains
-// associated with web app are not verified. forceDNSRegistration is if true, web app hostname is force registered with
-// DNS. TTLInSeconds is time to live in seconds for web app's default domain name.
-func (client AppsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (result AppsCreateOrUpdateFuture, err error) {
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - unique name of the app to create or update. To create or update a deployment slot, use the {slot}
+// parameter.
+// siteEnvelope - a JSON representation of the app properties. See example.
+func (client AppsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site) (result AppsCreateOrUpdateFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -1362,10 +1389,10 @@ func (client AppsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 							Chain: []validation.Constraint{{Target: "siteEnvelope.SiteProperties.SnapshotInfo.SnapshotRecoveryRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdate")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, name, siteEnvelope, skipDNSRegistration, skipCustomDomainVerification, forceDNSRegistration, TTLInSeconds)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, name, siteEnvelope)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -1381,7 +1408,7 @@ func (client AppsClient) CreateOrUpdate(ctx context.Context, resourceGroupName s
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (*http.Request, error) {
+func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -1392,21 +1419,9 @@ func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
-	if skipDNSRegistration != nil {
-		queryParameters["skipDnsRegistration"] = autorest.Encode("query", *skipDNSRegistration)
-	}
-	if skipCustomDomainVerification != nil {
-		queryParameters["skipCustomDomainVerification"] = autorest.Encode("query", *skipCustomDomainVerification)
-	}
-	if forceDNSRegistration != nil {
-		queryParameters["forceDnsRegistration"] = autorest.Encode("query", *forceDNSRegistration)
-	}
-	if len(TTLInSeconds) > 0 {
-		queryParameters["ttlInSeconds"] = autorest.Encode("query", TTLInSeconds)
-	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}", pathParameters),
@@ -1444,9 +1459,10 @@ func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result Si
 }
 
 // CreateOrUpdateConfiguration updates the configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. siteConfig
-// is JSON representation of a SiteConfig object. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteConfig - JSON representation of a SiteConfig object. See example.
 func (client AppsClient) CreateOrUpdateConfiguration(ctx context.Context, resourceGroupName string, name string, siteConfig SiteConfigResource) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -1460,7 +1476,7 @@ func (client AppsClient) CreateOrUpdateConfiguration(ctx context.Context, resour
 						Chain: []validation.Constraint{{Target: "siteConfig.SiteConfig.Push.PushSettingsProperties.IsPushEnabled", Name: validation.Null, Rule: true, Chain: nil}}},
 					}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateConfiguration")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateConfiguration", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateConfigurationPreparer(ctx, resourceGroupName, name, siteConfig)
@@ -1498,7 +1514,7 @@ func (client AppsClient) CreateOrUpdateConfigurationPreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/web", pathParameters),
@@ -1528,10 +1544,12 @@ func (client AppsClient) CreateOrUpdateConfigurationResponder(resp *http.Respons
 }
 
 // CreateOrUpdateConfigurationSlot updates the configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. siteConfig
-// is JSON representation of a SiteConfig object. See example. slot is name of the deployment slot. If a slot is not
-// specified, the API will update configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteConfig - JSON representation of a SiteConfig object. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will update configuration for the
+// production slot.
 func (client AppsClient) CreateOrUpdateConfigurationSlot(ctx context.Context, resourceGroupName string, name string, siteConfig SiteConfigResource, slot string) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -1545,7 +1563,7 @@ func (client AppsClient) CreateOrUpdateConfigurationSlot(ctx context.Context, re
 						Chain: []validation.Constraint{{Target: "siteConfig.SiteConfig.Push.PushSettingsProperties.IsPushEnabled", Name: validation.Null, Rule: true, Chain: nil}}},
 					}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateConfigurationSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateConfigurationSlotPreparer(ctx, resourceGroupName, name, siteConfig, slot)
@@ -1584,7 +1602,7 @@ func (client AppsClient) CreateOrUpdateConfigurationSlotPreparer(ctx context.Con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/web", pathParameters),
@@ -1615,17 +1633,18 @@ func (client AppsClient) CreateOrUpdateConfigurationSlotResponder(resp *http.Res
 
 // CreateOrUpdateDomainOwnershipIdentifier creates a domain ownership identifier for web app, or updates an existing
 // ownership identifier.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier. domainOwnershipIdentifier is a JSON
-// representation of the domain ownership properties.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
+// domainOwnershipIdentifier - a JSON representation of the domain ownership properties.
 func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifier(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string, domainOwnershipIdentifier Identifier) (result Identifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateDomainOwnershipIdentifier")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateDomainOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateDomainOwnershipIdentifierPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName, domainOwnershipIdentifier)
@@ -1664,7 +1683,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierPreparer(ctx con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/domainOwnershipIdentifiers/{domainOwnershipIdentifierName}", pathParameters),
@@ -1695,18 +1714,20 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierResponder(resp *
 
 // CreateOrUpdateDomainOwnershipIdentifierSlot creates a domain ownership identifier for web app, or updates an
 // existing ownership identifier.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier. domainOwnershipIdentifier is a JSON
-// representation of the domain ownership properties. slot is name of the deployment slot. If a slot is not specified,
-// the API will delete the binding for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
+// domainOwnershipIdentifier - a JSON representation of the domain ownership properties.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the binding for the
+// production slot.
 func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlot(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string, domainOwnershipIdentifier Identifier, slot string) (result Identifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateDomainOwnershipIdentifierSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateDomainOwnershipIdentifierSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateDomainOwnershipIdentifierSlotPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName, domainOwnershipIdentifier, slot)
@@ -1746,7 +1767,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlotPreparer(ctx
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/domainOwnershipIdentifiers/{domainOwnershipIdentifierName}", pathParameters),
@@ -1776,17 +1797,18 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlotResponder(re
 }
 
 // CreateOrUpdateHostNameBinding creates a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. hostName is
-// hostname in the hostname binding. hostNameBinding is binding details. This is the JSON representation of a
-// HostNameBinding object.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// hostName - hostname in the hostname binding.
+// hostNameBinding - binding details. This is the JSON representation of a HostNameBinding object.
 func (client AppsClient) CreateOrUpdateHostNameBinding(ctx context.Context, resourceGroupName string, name string, hostName string, hostNameBinding HostNameBinding) (result HostNameBinding, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateHostNameBinding")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateHostNameBinding", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateHostNameBindingPreparer(ctx, resourceGroupName, name, hostName, hostNameBinding)
@@ -1825,7 +1847,7 @@ func (client AppsClient) CreateOrUpdateHostNameBindingPreparer(ctx context.Conte
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/hostNameBindings/{hostName}", pathParameters),
@@ -1855,18 +1877,20 @@ func (client AppsClient) CreateOrUpdateHostNameBindingResponder(resp *http.Respo
 }
 
 // CreateOrUpdateHostNameBindingSlot creates a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. hostName is
-// hostname in the hostname binding. hostNameBinding is binding details. This is the JSON representation of a
-// HostNameBinding object. slot is name of the deployment slot. If a slot is not specified, the API will create a
-// binding for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// hostName - hostname in the hostname binding.
+// hostNameBinding - binding details. This is the JSON representation of a HostNameBinding object.
+// slot - name of the deployment slot. If a slot is not specified, the API will create a binding for the
+// production slot.
 func (client AppsClient) CreateOrUpdateHostNameBindingSlot(ctx context.Context, resourceGroupName string, name string, hostName string, hostNameBinding HostNameBinding, slot string) (result HostNameBinding, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateHostNameBindingSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateHostNameBindingSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateHostNameBindingSlotPreparer(ctx, resourceGroupName, name, hostName, hostNameBinding, slot)
@@ -1906,7 +1930,7 @@ func (client AppsClient) CreateOrUpdateHostNameBindingSlotPreparer(ctx context.C
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/hostNameBindings/{hostName}", pathParameters),
@@ -1936,17 +1960,19 @@ func (client AppsClient) CreateOrUpdateHostNameBindingSlotResponder(resp *http.R
 }
 
 // CreateOrUpdateHybridConnection creates a new Hybrid Connection using a Service Bus relay.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
-// connectionEnvelope is the details of the hybrid connection.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
+// connectionEnvelope - the details of the hybrid connection.
 func (client AppsClient) CreateOrUpdateHybridConnection(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string, connectionEnvelope HybridConnection) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateHybridConnection")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateHybridConnection", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateHybridConnectionPreparer(ctx, resourceGroupName, name, namespaceName, relayName, connectionEnvelope)
@@ -1986,7 +2012,7 @@ func (client AppsClient) CreateOrUpdateHybridConnectionPreparer(ctx context.Cont
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/hybridConnectionNamespaces/{namespaceName}/relays/{relayName}", pathParameters),
@@ -2016,17 +2042,20 @@ func (client AppsClient) CreateOrUpdateHybridConnectionResponder(resp *http.Resp
 }
 
 // CreateOrUpdateHybridConnectionSlot creates a new Hybrid Connection using a Service Bus relay.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
-// connectionEnvelope is the details of the hybrid connection. slot is the name of the slot for the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
+// connectionEnvelope - the details of the hybrid connection.
+// slot - the name of the slot for the web app.
 func (client AppsClient) CreateOrUpdateHybridConnectionSlot(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string, connectionEnvelope HybridConnection, slot string) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateHybridConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateHybridConnectionSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateHybridConnectionSlotPreparer(ctx, resourceGroupName, name, namespaceName, relayName, connectionEnvelope, slot)
@@ -2067,7 +2096,7 @@ func (client AppsClient) CreateOrUpdateHybridConnectionSlotPreparer(ctx context.
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/hybridConnectionNamespaces/{namespaceName}/relays/{relayName}", pathParameters),
@@ -2097,17 +2126,19 @@ func (client AppsClient) CreateOrUpdateHybridConnectionSlotResponder(resp *http.
 }
 
 // CreateOrUpdatePublicCertificate creates a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// publicCertificateName is public certificate name. publicCertificate is public certificate details. This is the JSON
-// representation of a PublicCertificate object.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// publicCertificateName - public certificate name.
+// publicCertificate - public certificate details. This is the JSON representation of a PublicCertificate
+// object.
 func (client AppsClient) CreateOrUpdatePublicCertificate(ctx context.Context, resourceGroupName string, name string, publicCertificateName string, publicCertificate PublicCertificate) (result PublicCertificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdatePublicCertificate")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdatePublicCertificate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePublicCertificatePreparer(ctx, resourceGroupName, name, publicCertificateName, publicCertificate)
@@ -2146,7 +2177,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificatePreparer(ctx context.Con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/publicCertificates/{publicCertificateName}", pathParameters),
@@ -2176,18 +2207,21 @@ func (client AppsClient) CreateOrUpdatePublicCertificateResponder(resp *http.Res
 }
 
 // CreateOrUpdatePublicCertificateSlot creates a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// publicCertificateName is public certificate name. publicCertificate is public certificate details. This is the JSON
-// representation of a PublicCertificate object. slot is name of the deployment slot. If a slot is not specified, the
-// API will create a binding for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// publicCertificateName - public certificate name.
+// publicCertificate - public certificate details. This is the JSON representation of a PublicCertificate
+// object.
+// slot - name of the deployment slot. If a slot is not specified, the API will create a binding for the
+// production slot.
 func (client AppsClient) CreateOrUpdatePublicCertificateSlot(ctx context.Context, resourceGroupName string, name string, publicCertificateName string, publicCertificate PublicCertificate, slot string) (result PublicCertificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdatePublicCertificateSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdatePublicCertificateSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePublicCertificateSlotPreparer(ctx, resourceGroupName, name, publicCertificateName, publicCertificate, slot)
@@ -2227,7 +2261,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificateSlotPreparer(ctx context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/publicCertificates/{publicCertificateName}", pathParameters),
@@ -2258,17 +2292,18 @@ func (client AppsClient) CreateOrUpdatePublicCertificateSlotResponder(resp *http
 
 // CreateOrUpdateRelayServiceConnection creates a new hybrid connection configuration (PUT), or updates an existing one
 // (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection configuration. connectionEnvelope is details of the hybrid connection
-// configuration.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection configuration.
+// connectionEnvelope - details of the hybrid connection configuration.
 func (client AppsClient) CreateOrUpdateRelayServiceConnection(ctx context.Context, resourceGroupName string, name string, entityName string, connectionEnvelope RelayServiceConnectionEntity) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateRelayServiceConnection")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateRelayServiceConnection", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateRelayServiceConnectionPreparer(ctx, resourceGroupName, name, entityName, connectionEnvelope)
@@ -2307,7 +2342,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionPreparer(ctx contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/hybridconnection/{entityName}", pathParameters),
@@ -2338,18 +2373,20 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionResponder(resp *htt
 
 // CreateOrUpdateRelayServiceConnectionSlot creates a new hybrid connection configuration (PUT), or updates an existing
 // one (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection configuration. connectionEnvelope is details of the hybrid connection
-// configuration. slot is name of the deployment slot. If a slot is not specified, the API will create or update a
-// hybrid connection for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection configuration.
+// connectionEnvelope - details of the hybrid connection configuration.
+// slot - name of the deployment slot. If a slot is not specified, the API will create or update a hybrid
+// connection for the production slot.
 func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlot(ctx context.Context, resourceGroupName string, name string, entityName string, connectionEnvelope RelayServiceConnectionEntity, slot string) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateRelayServiceConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateRelayServiceConnectionSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateRelayServiceConnectionSlotPreparer(ctx, resourceGroupName, name, entityName, connectionEnvelope, slot)
@@ -2389,7 +2426,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlotPreparer(ctx co
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/hybridconnection/{entityName}", pathParameters),
@@ -2419,15 +2456,19 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlotResponder(resp 
 }
 
 // CreateOrUpdateSlot creates a new web, mobile, or API app in an existing resource group, or updates an existing app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is unique name of the app to
-// create or update. To create or update a deployment slot, use the {slot} parameter. siteEnvelope is a JSON
-// representation of the app properties. See example. slot is name of the deployment slot to create or update. By
-// default, this API attempts to create or modify the production slot. skipDNSRegistration is if true web app hostname
-// is not registered with DNS on creation. This parameter is
-// only used for app creation. skipCustomDomainVerification is if true, custom (non *.azurewebsites.net) domains
-// associated with web app are not verified. forceDNSRegistration is if true, web app hostname is force registered with
-// DNS. TTLInSeconds is time to live in seconds for web app's default domain name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - unique name of the app to create or update. To create or update a deployment slot, use the {slot}
+// parameter.
+// siteEnvelope - a JSON representation of the app properties. See example.
+// slot - name of the deployment slot to create or update. By default, this API attempts to create or modify
+// the production slot.
+// skipDNSRegistration - if true web app hostname is not registered with DNS on creation. This parameter is
+// only used for app creation.
+// skipCustomDomainVerification - if true, custom (non *.azurewebsites.net) domains associated with web app are
+// not verified.
+// forceDNSRegistration - if true, web app hostname is force registered with DNS.
+// TTLInSeconds - time to live in seconds for web app's default domain name.
 func (client AppsClient) CreateOrUpdateSlot(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site, slot string, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (result AppsCreateOrUpdateSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -2449,7 +2490,7 @@ func (client AppsClient) CreateOrUpdateSlot(ctx context.Context, resourceGroupNa
 							Chain: []validation.Constraint{{Target: "siteEnvelope.SiteProperties.SnapshotInfo.SnapshotRecoveryRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateSlotPreparer(ctx, resourceGroupName, name, siteEnvelope, slot, skipDNSRegistration, skipCustomDomainVerification, forceDNSRegistration, TTLInSeconds)
@@ -2494,7 +2535,7 @@ func (client AppsClient) CreateOrUpdateSlotPreparer(ctx context.Context, resourc
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}", pathParameters),
@@ -2532,16 +2573,17 @@ func (client AppsClient) CreateOrUpdateSlotResponder(resp *http.Response) (resul
 }
 
 // CreateOrUpdateSourceControl updates the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// siteSourceControl is JSON representation of a SiteSourceControl object. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteSourceControl - JSON representation of a SiteSourceControl object. See example.
 func (client AppsClient) CreateOrUpdateSourceControl(ctx context.Context, resourceGroupName string, name string, siteSourceControl SiteSourceControl) (result AppsCreateOrUpdateSourceControlFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateSourceControl")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateSourceControl", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateSourceControlPreparer(ctx, resourceGroupName, name, siteSourceControl)
@@ -2573,7 +2615,7 @@ func (client AppsClient) CreateOrUpdateSourceControlPreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/sourcecontrols/web", pathParameters),
@@ -2593,7 +2635,7 @@ func (client AppsClient) CreateOrUpdateSourceControlSender(req *http.Request) (f
 		return
 	}
 	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted))
 	return
 }
 
@@ -2603,7 +2645,7 @@ func (client AppsClient) CreateOrUpdateSourceControlResponder(resp *http.Respons
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -2611,17 +2653,19 @@ func (client AppsClient) CreateOrUpdateSourceControlResponder(resp *http.Respons
 }
 
 // CreateOrUpdateSourceControlSlot updates the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// siteSourceControl is JSON representation of a SiteSourceControl object. See example. slot is name of the deployment
-// slot. If a slot is not specified, the API will update the source control configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteSourceControl - JSON representation of a SiteSourceControl object. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the source control
+// configuration for the production slot.
 func (client AppsClient) CreateOrUpdateSourceControlSlot(ctx context.Context, resourceGroupName string, name string, siteSourceControl SiteSourceControl, slot string) (result AppsCreateOrUpdateSourceControlSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateSourceControlSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateSourceControlSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateSourceControlSlotPreparer(ctx, resourceGroupName, name, siteSourceControl, slot)
@@ -2654,7 +2698,7 @@ func (client AppsClient) CreateOrUpdateSourceControlSlotPreparer(ctx context.Con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/sourcecontrols/web", pathParameters),
@@ -2674,7 +2718,7 @@ func (client AppsClient) CreateOrUpdateSourceControlSlotSender(req *http.Request
 		return
 	}
 	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted))
 	return
 }
 
@@ -2684,7 +2728,7 @@ func (client AppsClient) CreateOrUpdateSourceControlSlotResponder(resp *http.Res
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -2693,17 +2737,18 @@ func (client AppsClient) CreateOrUpdateSourceControlSlotResponder(resp *http.Res
 
 // CreateOrUpdateVnetConnection adds a Virtual Network connection to an app or slot (PUT) or updates the connection
 // properties (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of an existing Virtual Network. connectionEnvelope is properties of the Virtual Network connection. See
-// example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of an existing Virtual Network.
+// connectionEnvelope - properties of the Virtual Network connection. See example.
 func (client AppsClient) CreateOrUpdateVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo) (result VnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateVnetConnection")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateVnetConnection", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateVnetConnectionPreparer(ctx, resourceGroupName, name, vnetName, connectionEnvelope)
@@ -2742,7 +2787,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionPreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/virtualNetworkConnections/{vnetName}", pathParameters),
@@ -2772,10 +2817,12 @@ func (client AppsClient) CreateOrUpdateVnetConnectionResponder(resp *http.Respon
 }
 
 // CreateOrUpdateVnetConnectionGateway adds a gateway to a connected Virtual Network (PUT) or updates it (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the Virtual Network. gatewayName is name of the gateway. Currently, the only supported string is "primary".
-// connectionEnvelope is the properties to update this gateway with.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the Virtual Network.
+// gatewayName - name of the gateway. Currently, the only supported string is "primary".
+// connectionEnvelope - the properties to update this gateway with.
 func (client AppsClient) CreateOrUpdateVnetConnectionGateway(ctx context.Context, resourceGroupName string, name string, vnetName string, gatewayName string, connectionEnvelope VnetGateway) (result VnetGateway, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -2785,7 +2832,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGateway(ctx context.Context
 		{TargetValue: connectionEnvelope,
 			Constraints: []validation.Constraint{{Target: "connectionEnvelope.VnetGatewayProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "connectionEnvelope.VnetGatewayProperties.VpnPackageURI", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateVnetConnectionGateway")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateVnetConnectionGateway", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateVnetConnectionGatewayPreparer(ctx, resourceGroupName, name, vnetName, gatewayName, connectionEnvelope)
@@ -2825,7 +2872,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewayPreparer(ctx context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/virtualNetworkConnections/{vnetName}/gateways/{gatewayName}", pathParameters),
@@ -2855,11 +2902,14 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewayResponder(resp *http
 }
 
 // CreateOrUpdateVnetConnectionGatewaySlot adds a gateway to a connected Virtual Network (PUT) or updates it (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the Virtual Network. gatewayName is name of the gateway. Currently, the only supported string is "primary".
-// connectionEnvelope is the properties to update this gateway with. slot is name of the deployment slot. If a slot is
-// not specified, the API will add or update a gateway for the production slot's Virtual Network.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the Virtual Network.
+// gatewayName - name of the gateway. Currently, the only supported string is "primary".
+// connectionEnvelope - the properties to update this gateway with.
+// slot - name of the deployment slot. If a slot is not specified, the API will add or update a gateway for the
+// production slot's Virtual Network.
 func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlot(ctx context.Context, resourceGroupName string, name string, vnetName string, gatewayName string, connectionEnvelope VnetGateway, slot string) (result VnetGateway, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -2869,7 +2919,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlot(ctx context.Con
 		{TargetValue: connectionEnvelope,
 			Constraints: []validation.Constraint{{Target: "connectionEnvelope.VnetGatewayProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "connectionEnvelope.VnetGatewayProperties.VpnPackageURI", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateVnetConnectionGatewaySlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateVnetConnectionGatewaySlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateVnetConnectionGatewaySlotPreparer(ctx, resourceGroupName, name, vnetName, gatewayName, connectionEnvelope, slot)
@@ -2910,7 +2960,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlotPreparer(ctx con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/virtualNetworkConnections/{vnetName}/gateways/{gatewayName}", pathParameters),
@@ -2941,10 +2991,12 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlotResponder(resp *
 
 // CreateOrUpdateVnetConnectionSlot adds a Virtual Network connection to an app or slot (PUT) or updates the connection
 // properties (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of an existing Virtual Network. connectionEnvelope is properties of the Virtual Network connection. See
-// example. slot is name of the deployment slot. If a slot is not specified, the API will add or update connections for
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of an existing Virtual Network.
+// connectionEnvelope - properties of the Virtual Network connection. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will add or update connections for
 // the production slot.
 func (client AppsClient) CreateOrUpdateVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo, slot string) (result VnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -2952,7 +3004,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlot(ctx context.Context, r
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "CreateOrUpdateVnetConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "CreateOrUpdateVnetConnectionSlot", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateVnetConnectionSlotPreparer(ctx, resourceGroupName, name, vnetName, connectionEnvelope, slot)
@@ -2992,7 +3044,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlotPreparer(ctx context.Co
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/virtualNetworkConnections/{vnetName}", pathParameters),
@@ -3022,21 +3074,22 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlotResponder(resp *http.Re
 }
 
 // Delete deletes a web, mobile, or API app, or one of the deployment slots.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app to delete.
-// deleteMetrics is if true, web app metrics are also deleted. deleteEmptyServerFarm is specify true if the App Service
-// plan will be empty after app deletion and you want to delete the empty App Service plan. By default, the empty App
-// Service plan is not deleted. skipDNSRegistration is if true, DNS registration is skipped.
-func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, name string, deleteMetrics *bool, deleteEmptyServerFarm *bool, skipDNSRegistration *bool) (result autorest.Response, err error) {
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app to delete.
+// deleteMetrics - if true, web app metrics are also deleted.
+// deleteEmptyServerFarm - specify true if the App Service plan will be empty after app deletion and you want
+// to delete the empty App Service plan. By default, the empty App Service plan is not deleted.
+func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, name string, deleteMetrics *bool, deleteEmptyServerFarm *bool) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Delete")
+		return result, validation.NewError("web.AppsClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, name, deleteMetrics, deleteEmptyServerFarm, skipDNSRegistration)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, name, deleteMetrics, deleteEmptyServerFarm)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -3058,7 +3111,7 @@ func (client AppsClient) Delete(ctx context.Context, resourceGroupName string, n
 }
 
 // DeletePreparer prepares the Delete request.
-func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName string, name string, deleteMetrics *bool, deleteEmptyServerFarm *bool, skipDNSRegistration *bool) (*http.Request, error) {
+func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName string, name string, deleteMetrics *bool, deleteEmptyServerFarm *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -3074,9 +3127,6 @@ func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 	}
 	if deleteEmptyServerFarm != nil {
 		queryParameters["deleteEmptyServerFarm"] = autorest.Encode("query", *deleteEmptyServerFarm)
-	}
-	if skipDNSRegistration != nil {
-		queryParameters["skipDnsRegistration"] = autorest.Encode("query", *skipDNSRegistration)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -3107,16 +3157,17 @@ func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.R
 }
 
 // DeleteBackup deletes a backup of an app by its ID.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. backupID is
-// ID of the backup.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// backupID - ID of the backup.
 func (client AppsClient) DeleteBackup(ctx context.Context, resourceGroupName string, name string, backupID string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteBackup")
+		return result, validation.NewError("web.AppsClient", "DeleteBackup", err.Error())
 	}
 
 	req, err := client.DeleteBackupPreparer(ctx, resourceGroupName, name, backupID)
@@ -3182,15 +3233,16 @@ func (client AppsClient) DeleteBackupResponder(resp *http.Response) (result auto
 }
 
 // DeleteBackupConfiguration deletes the backup configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) DeleteBackupConfiguration(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteBackupConfiguration")
+		return result, validation.NewError("web.AppsClient", "DeleteBackupConfiguration", err.Error())
 	}
 
 	req, err := client.DeleteBackupConfigurationPreparer(ctx, resourceGroupName, name)
@@ -3255,17 +3307,18 @@ func (client AppsClient) DeleteBackupConfigurationResponder(resp *http.Response)
 }
 
 // DeleteBackupConfigurationSlot deletes the backup configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will delete the backup configuration for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the backup configuration
+// for the production slot.
 func (client AppsClient) DeleteBackupConfigurationSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteBackupConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteBackupConfigurationSlot", err.Error())
 	}
 
 	req, err := client.DeleteBackupConfigurationSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -3331,17 +3384,19 @@ func (client AppsClient) DeleteBackupConfigurationSlotResponder(resp *http.Respo
 }
 
 // DeleteBackupSlot deletes a backup of an app by its ID.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. backupID is
-// ID of the backup. slot is name of the deployment slot. If a slot is not specified, the API will delete a backup of
-// the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// backupID - ID of the backup.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete a backup of the
+// production slot.
 func (client AppsClient) DeleteBackupSlot(ctx context.Context, resourceGroupName string, name string, backupID string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteBackupSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteBackupSlot", err.Error())
 	}
 
 	req, err := client.DeleteBackupSlotPreparer(ctx, resourceGroupName, name, backupID, slot)
@@ -3408,16 +3463,17 @@ func (client AppsClient) DeleteBackupSlotResponder(resp *http.Response) (result 
 }
 
 // DeleteContinuousWebJob delete a continuous web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) DeleteContinuousWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteContinuousWebJob")
+		return result, validation.NewError("web.AppsClient", "DeleteContinuousWebJob", err.Error())
 	}
 
 	req, err := client.DeleteContinuousWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -3483,9 +3539,11 @@ func (client AppsClient) DeleteContinuousWebJobResponder(resp *http.Response) (r
 }
 
 // DeleteContinuousWebJobSlot delete a continuous web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) DeleteContinuousWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -3493,7 +3551,7 @@ func (client AppsClient) DeleteContinuousWebJobSlot(ctx context.Context, resourc
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteContinuousWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteContinuousWebJobSlot", err.Error())
 	}
 
 	req, err := client.DeleteContinuousWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -3560,16 +3618,17 @@ func (client AppsClient) DeleteContinuousWebJobSlotResponder(resp *http.Response
 }
 
 // DeleteDeployment delete a deployment by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is
-// deployment ID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - deployment ID.
 func (client AppsClient) DeleteDeployment(ctx context.Context, resourceGroupName string, name string, ID string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteDeployment")
+		return result, validation.NewError("web.AppsClient", "DeleteDeployment", err.Error())
 	}
 
 	req, err := client.DeleteDeploymentPreparer(ctx, resourceGroupName, name, ID)
@@ -3635,9 +3694,11 @@ func (client AppsClient) DeleteDeploymentResponder(resp *http.Response) (result 
 }
 
 // DeleteDeploymentSlot delete a deployment by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is
-// deployment ID. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - deployment ID.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) DeleteDeploymentSlot(ctx context.Context, resourceGroupName string, name string, ID string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -3645,7 +3706,7 @@ func (client AppsClient) DeleteDeploymentSlot(ctx context.Context, resourceGroup
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteDeploymentSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteDeploymentSlot", err.Error())
 	}
 
 	req, err := client.DeleteDeploymentSlotPreparer(ctx, resourceGroupName, name, ID, slot)
@@ -3712,16 +3773,17 @@ func (client AppsClient) DeleteDeploymentSlotResponder(resp *http.Response) (res
 }
 
 // DeleteDomainOwnershipIdentifier deletes a domain ownership identifier for a web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
 func (client AppsClient) DeleteDomainOwnershipIdentifier(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteDomainOwnershipIdentifier")
+		return result, validation.NewError("web.AppsClient", "DeleteDomainOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.DeleteDomainOwnershipIdentifierPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName)
@@ -3787,17 +3849,19 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierResponder(resp *http.Res
 }
 
 // DeleteDomainOwnershipIdentifierSlot deletes a domain ownership identifier for a web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier. slot is name of the deployment slot. If a slot
-// is not specified, the API will delete the binding for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the binding for the
+// production slot.
 func (client AppsClient) DeleteDomainOwnershipIdentifierSlot(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteDomainOwnershipIdentifierSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteDomainOwnershipIdentifierSlot", err.Error())
 	}
 
 	req, err := client.DeleteDomainOwnershipIdentifierSlotPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName, slot)
@@ -3864,16 +3928,17 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierSlotResponder(resp *http
 }
 
 // DeleteFunction delete a function for web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
 func (client AppsClient) DeleteFunction(ctx context.Context, resourceGroupName string, name string, functionName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteFunction")
+		return result, validation.NewError("web.AppsClient", "DeleteFunction", err.Error())
 	}
 
 	req, err := client.DeleteFunctionPreparer(ctx, resourceGroupName, name, functionName)
@@ -3939,16 +4004,17 @@ func (client AppsClient) DeleteFunctionResponder(resp *http.Response) (result au
 }
 
 // DeleteHostNameBinding deletes a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. hostName is
-// hostname in the hostname binding.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// hostName - hostname in the hostname binding.
 func (client AppsClient) DeleteHostNameBinding(ctx context.Context, resourceGroupName string, name string, hostName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteHostNameBinding")
+		return result, validation.NewError("web.AppsClient", "DeleteHostNameBinding", err.Error())
 	}
 
 	req, err := client.DeleteHostNameBindingPreparer(ctx, resourceGroupName, name, hostName)
@@ -4014,17 +4080,19 @@ func (client AppsClient) DeleteHostNameBindingResponder(resp *http.Response) (re
 }
 
 // DeleteHostNameBindingSlot deletes a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will delete the binding for the production slot.
-// hostName is hostname in the hostname binding.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the binding for the
+// production slot.
+// hostName - hostname in the hostname binding.
 func (client AppsClient) DeleteHostNameBindingSlot(ctx context.Context, resourceGroupName string, name string, slot string, hostName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteHostNameBindingSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteHostNameBindingSlot", err.Error())
 	}
 
 	req, err := client.DeleteHostNameBindingSlotPreparer(ctx, resourceGroupName, name, slot, hostName)
@@ -4091,16 +4159,18 @@ func (client AppsClient) DeleteHostNameBindingSlotResponder(resp *http.Response)
 }
 
 // DeleteHybridConnection removes a Hybrid Connection from this site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
 func (client AppsClient) DeleteHybridConnection(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteHybridConnection")
+		return result, validation.NewError("web.AppsClient", "DeleteHybridConnection", err.Error())
 	}
 
 	req, err := client.DeleteHybridConnectionPreparer(ctx, resourceGroupName, name, namespaceName, relayName)
@@ -4167,17 +4237,19 @@ func (client AppsClient) DeleteHybridConnectionResponder(resp *http.Response) (r
 }
 
 // DeleteHybridConnectionSlot removes a Hybrid Connection from this site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
-// slot is the name of the slot for the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
+// slot - the name of the slot for the web app.
 func (client AppsClient) DeleteHybridConnectionSlot(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteHybridConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteHybridConnectionSlot", err.Error())
 	}
 
 	req, err := client.DeleteHybridConnectionSlotPreparer(ctx, resourceGroupName, name, namespaceName, relayName, slot)
@@ -4245,9 +4317,11 @@ func (client AppsClient) DeleteHybridConnectionSlotResponder(resp *http.Response
 }
 
 // DeleteInstanceFunctionSlot delete a function for web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) DeleteInstanceFunctionSlot(ctx context.Context, resourceGroupName string, name string, functionName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -4255,7 +4329,7 @@ func (client AppsClient) DeleteInstanceFunctionSlot(ctx context.Context, resourc
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteInstanceFunctionSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteInstanceFunctionSlot", err.Error())
 	}
 
 	req, err := client.DeleteInstanceFunctionSlotPreparer(ctx, resourceGroupName, name, functionName, slot)
@@ -4323,17 +4397,19 @@ func (client AppsClient) DeleteInstanceFunctionSlotResponder(resp *http.Response
 
 // DeleteInstanceProcess terminate a process by its ID for a web site, or a deployment slot, or specific scaled-out
 // instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON response from
-// "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) DeleteInstanceProcess(ctx context.Context, resourceGroupName string, name string, processID string, instanceID string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteInstanceProcess")
+		return result, validation.NewError("web.AppsClient", "DeleteInstanceProcess", err.Error())
 	}
 
 	req, err := client.DeleteInstanceProcessPreparer(ctx, resourceGroupName, name, processID, instanceID)
@@ -4401,10 +4477,13 @@ func (client AppsClient) DeleteInstanceProcessResponder(resp *http.Response) (re
 
 // DeleteInstanceProcessSlot terminate a process by its ID for a web site, or a deployment slot, or specific scaled-out
 // instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot. instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
 // response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) DeleteInstanceProcessSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string, instanceID string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -4412,7 +4491,7 @@ func (client AppsClient) DeleteInstanceProcessSlot(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteInstanceProcessSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteInstanceProcessSlot", err.Error())
 	}
 
 	req, err := client.DeleteInstanceProcessSlotPreparer(ctx, resourceGroupName, name, processID, slot, instanceID)
@@ -4480,16 +4559,17 @@ func (client AppsClient) DeleteInstanceProcessSlotResponder(resp *http.Response)
 }
 
 // DeletePremierAddOn delete a premier add-on from an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// premierAddOnName is add-on name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// premierAddOnName - add-on name.
 func (client AppsClient) DeletePremierAddOn(ctx context.Context, resourceGroupName string, name string, premierAddOnName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeletePremierAddOn")
+		return result, validation.NewError("web.AppsClient", "DeletePremierAddOn", err.Error())
 	}
 
 	req, err := client.DeletePremierAddOnPreparer(ctx, resourceGroupName, name, premierAddOnName)
@@ -4555,17 +4635,19 @@ func (client AppsClient) DeletePremierAddOnResponder(resp *http.Response) (resul
 }
 
 // DeletePremierAddOnSlot delete a premier add-on from an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// premierAddOnName is add-on name. slot is name of the deployment slot. If a slot is not specified, the API will
-// delete the named add-on for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// premierAddOnName - add-on name.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the named add-on for the
+// production slot.
 func (client AppsClient) DeletePremierAddOnSlot(ctx context.Context, resourceGroupName string, name string, premierAddOnName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeletePremierAddOnSlot")
+		return result, validation.NewError("web.AppsClient", "DeletePremierAddOnSlot", err.Error())
 	}
 
 	req, err := client.DeletePremierAddOnSlotPreparer(ctx, resourceGroupName, name, premierAddOnName, slot)
@@ -4633,15 +4715,17 @@ func (client AppsClient) DeletePremierAddOnSlotResponder(resp *http.Response) (r
 
 // DeleteProcess terminate a process by its ID for a web site, or a deployment slot, or specific scaled-out instance in
 // a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
 func (client AppsClient) DeleteProcess(ctx context.Context, resourceGroupName string, name string, processID string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteProcess")
+		return result, validation.NewError("web.AppsClient", "DeleteProcess", err.Error())
 	}
 
 	req, err := client.DeleteProcessPreparer(ctx, resourceGroupName, name, processID)
@@ -4708,17 +4792,19 @@ func (client AppsClient) DeleteProcessResponder(resp *http.Response) (result aut
 
 // DeleteProcessSlot terminate a process by its ID for a web site, or a deployment slot, or specific scaled-out
 // instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) DeleteProcessSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteProcessSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteProcessSlot", err.Error())
 	}
 
 	req, err := client.DeleteProcessSlotPreparer(ctx, resourceGroupName, name, processID, slot)
@@ -4785,16 +4871,17 @@ func (client AppsClient) DeleteProcessSlotResponder(resp *http.Response) (result
 }
 
 // DeletePublicCertificate deletes a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// publicCertificateName is public certificate name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// publicCertificateName - public certificate name.
 func (client AppsClient) DeletePublicCertificate(ctx context.Context, resourceGroupName string, name string, publicCertificateName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeletePublicCertificate")
+		return result, validation.NewError("web.AppsClient", "DeletePublicCertificate", err.Error())
 	}
 
 	req, err := client.DeletePublicCertificatePreparer(ctx, resourceGroupName, name, publicCertificateName)
@@ -4860,17 +4947,19 @@ func (client AppsClient) DeletePublicCertificateResponder(resp *http.Response) (
 }
 
 // DeletePublicCertificateSlot deletes a hostname binding for an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will delete the binding for the production slot.
-// publicCertificateName is public certificate name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the binding for the
+// production slot.
+// publicCertificateName - public certificate name.
 func (client AppsClient) DeletePublicCertificateSlot(ctx context.Context, resourceGroupName string, name string, slot string, publicCertificateName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeletePublicCertificateSlot")
+		return result, validation.NewError("web.AppsClient", "DeletePublicCertificateSlot", err.Error())
 	}
 
 	req, err := client.DeletePublicCertificateSlotPreparer(ctx, resourceGroupName, name, slot, publicCertificateName)
@@ -4937,16 +5026,17 @@ func (client AppsClient) DeletePublicCertificateSlotResponder(resp *http.Respons
 }
 
 // DeleteRelayServiceConnection deletes a relay service connection by its name.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection configuration.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection configuration.
 func (client AppsClient) DeleteRelayServiceConnection(ctx context.Context, resourceGroupName string, name string, entityName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteRelayServiceConnection")
+		return result, validation.NewError("web.AppsClient", "DeleteRelayServiceConnection", err.Error())
 	}
 
 	req, err := client.DeleteRelayServiceConnectionPreparer(ctx, resourceGroupName, name, entityName)
@@ -5012,17 +5102,19 @@ func (client AppsClient) DeleteRelayServiceConnectionResponder(resp *http.Respon
 }
 
 // DeleteRelayServiceConnectionSlot deletes a relay service connection by its name.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection configuration. slot is name of the deployment slot. If a slot is not specified, the
-// API will delete a hybrid connection for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection configuration.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete a hybrid connection for
+// the production slot.
 func (client AppsClient) DeleteRelayServiceConnectionSlot(ctx context.Context, resourceGroupName string, name string, entityName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteRelayServiceConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteRelayServiceConnectionSlot", err.Error())
 	}
 
 	req, err := client.DeleteRelayServiceConnectionSlotPreparer(ctx, resourceGroupName, name, entityName, slot)
@@ -5089,16 +5181,17 @@ func (client AppsClient) DeleteRelayServiceConnectionSlotResponder(resp *http.Re
 }
 
 // DeleteSiteExtension remove a site extension from a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. siteExtensionID is
-// site extension name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// siteExtensionID - site extension name.
 func (client AppsClient) DeleteSiteExtension(ctx context.Context, resourceGroupName string, name string, siteExtensionID string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteSiteExtension")
+		return result, validation.NewError("web.AppsClient", "DeleteSiteExtension", err.Error())
 	}
 
 	req, err := client.DeleteSiteExtensionPreparer(ctx, resourceGroupName, name, siteExtensionID)
@@ -5164,17 +5257,19 @@ func (client AppsClient) DeleteSiteExtensionResponder(resp *http.Response) (resu
 }
 
 // DeleteSiteExtensionSlot remove a site extension from a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. siteExtensionID is
-// site extension name. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment
-// for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// siteExtensionID - site extension name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) DeleteSiteExtensionSlot(ctx context.Context, resourceGroupName string, name string, siteExtensionID string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteSiteExtensionSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteSiteExtensionSlot", err.Error())
 	}
 
 	req, err := client.DeleteSiteExtensionSlotPreparer(ctx, resourceGroupName, name, siteExtensionID, slot)
@@ -5241,19 +5336,21 @@ func (client AppsClient) DeleteSiteExtensionSlotResponder(resp *http.Response) (
 }
 
 // DeleteSlot deletes a web, mobile, or API app, or one of the deployment slots.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app to delete.
-// slot is name of the deployment slot to delete. By default, the API deletes the production slot. deleteMetrics is if
-// true, web app metrics are also deleted. deleteEmptyServerFarm is specify true if the App Service plan will be empty
-// after app deletion and you want to delete the empty App Service plan. By default, the empty App Service plan is not
-// deleted. skipDNSRegistration is if true, DNS registration is skipped.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app to delete.
+// slot - name of the deployment slot to delete. By default, the API deletes the production slot.
+// deleteMetrics - if true, web app metrics are also deleted.
+// deleteEmptyServerFarm - specify true if the App Service plan will be empty after app deletion and you want
+// to delete the empty App Service plan. By default, the empty App Service plan is not deleted.
+// skipDNSRegistration - if true, DNS registration is skipped.
 func (client AppsClient) DeleteSlot(ctx context.Context, resourceGroupName string, name string, slot string, deleteMetrics *bool, deleteEmptyServerFarm *bool, skipDNSRegistration *bool) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteSlot", err.Error())
 	}
 
 	req, err := client.DeleteSlotPreparer(ctx, resourceGroupName, name, slot, deleteMetrics, deleteEmptyServerFarm, skipDNSRegistration)
@@ -5328,15 +5425,16 @@ func (client AppsClient) DeleteSlotResponder(resp *http.Response) (result autore
 }
 
 // DeleteSourceControl deletes the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) DeleteSourceControl(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteSourceControl")
+		return result, validation.NewError("web.AppsClient", "DeleteSourceControl", err.Error())
 	}
 
 	req, err := client.DeleteSourceControlPreparer(ctx, resourceGroupName, name)
@@ -5401,17 +5499,18 @@ func (client AppsClient) DeleteSourceControlResponder(resp *http.Response) (resu
 }
 
 // DeleteSourceControlSlot deletes the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will delete the source control configuration for the
-// production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the source control
+// configuration for the production slot.
 func (client AppsClient) DeleteSourceControlSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteSourceControlSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteSourceControlSlot", err.Error())
 	}
 
 	req, err := client.DeleteSourceControlSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -5477,16 +5576,17 @@ func (client AppsClient) DeleteSourceControlSlotResponder(resp *http.Response) (
 }
 
 // DeleteTriggeredWebJob delete a triggered web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) DeleteTriggeredWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteTriggeredWebJob")
+		return result, validation.NewError("web.AppsClient", "DeleteTriggeredWebJob", err.Error())
 	}
 
 	req, err := client.DeleteTriggeredWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -5552,9 +5652,11 @@ func (client AppsClient) DeleteTriggeredWebJobResponder(resp *http.Response) (re
 }
 
 // DeleteTriggeredWebJobSlot delete a triggered web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) DeleteTriggeredWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -5562,7 +5664,7 @@ func (client AppsClient) DeleteTriggeredWebJobSlot(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteTriggeredWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteTriggeredWebJobSlot", err.Error())
 	}
 
 	req, err := client.DeleteTriggeredWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -5629,16 +5731,17 @@ func (client AppsClient) DeleteTriggeredWebJobSlotResponder(resp *http.Response)
 }
 
 // DeleteVnetConnection deletes a connection from an app (or deployment slot to a named virtual network.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the virtual network.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the virtual network.
 func (client AppsClient) DeleteVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteVnetConnection")
+		return result, validation.NewError("web.AppsClient", "DeleteVnetConnection", err.Error())
 	}
 
 	req, err := client.DeleteVnetConnectionPreparer(ctx, resourceGroupName, name, vnetName)
@@ -5704,17 +5807,19 @@ func (client AppsClient) DeleteVnetConnectionResponder(resp *http.Response) (res
 }
 
 // DeleteVnetConnectionSlot deletes a connection from an app (or deployment slot to a named virtual network.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the virtual network. slot is name of the deployment slot. If a slot is not specified, the API will delete
-// the connection for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the virtual network.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the connection for the
+// production slot.
 func (client AppsClient) DeleteVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DeleteVnetConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "DeleteVnetConnectionSlot", err.Error())
 	}
 
 	req, err := client.DeleteVnetConnectionSlotPreparer(ctx, resourceGroupName, name, vnetName, slot)
@@ -5781,9 +5886,10 @@ func (client AppsClient) DeleteVnetConnectionSlotResponder(resp *http.Response) 
 }
 
 // DiscoverRestore discovers an existing app backup that can be restored from a blob in Azure storage.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. request is a
-// RestoreRequest object that includes Azure storage URL and blog name for discovery of backup.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - a RestoreRequest object that includes Azure storage URL and blog name for discovery of backup.
 func (client AppsClient) DiscoverRestore(ctx context.Context, resourceGroupName string, name string, request RestoreRequest) (result RestoreRequest, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -5795,7 +5901,7 @@ func (client AppsClient) DiscoverRestore(ctx context.Context, resourceGroupName 
 				Chain: []validation.Constraint{{Target: "request.RestoreRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.RestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DiscoverRestore")
+		return result, validation.NewError("web.AppsClient", "DiscoverRestore", err.Error())
 	}
 
 	req, err := client.DiscoverRestorePreparer(ctx, resourceGroupName, name, request)
@@ -5833,7 +5939,7 @@ func (client AppsClient) DiscoverRestorePreparer(ctx context.Context, resourceGr
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/backups/discover", pathParameters),
@@ -5863,10 +5969,12 @@ func (client AppsClient) DiscoverRestoreResponder(resp *http.Response) (result R
 }
 
 // DiscoverRestoreSlot discovers an existing app backup that can be restored from a blob in Azure storage.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. request is a
-// RestoreRequest object that includes Azure storage URL and blog name for discovery of backup. slot is name of the
-// deployment slot. If a slot is not specified, the API will perform discovery for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - a RestoreRequest object that includes Azure storage URL and blog name for discovery of backup.
+// slot - name of the deployment slot. If a slot is not specified, the API will perform discovery for the
+// production slot.
 func (client AppsClient) DiscoverRestoreSlot(ctx context.Context, resourceGroupName string, name string, request RestoreRequest, slot string) (result RestoreRequest, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -5878,7 +5986,7 @@ func (client AppsClient) DiscoverRestoreSlot(ctx context.Context, resourceGroupN
 				Chain: []validation.Constraint{{Target: "request.RestoreRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.RestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "DiscoverRestoreSlot")
+		return result, validation.NewError("web.AppsClient", "DiscoverRestoreSlot", err.Error())
 	}
 
 	req, err := client.DiscoverRestoreSlotPreparer(ctx, resourceGroupName, name, request, slot)
@@ -5917,7 +6025,7 @@ func (client AppsClient) DiscoverRestoreSlotPreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/backups/discover", pathParameters),
@@ -5947,15 +6055,16 @@ func (client AppsClient) DiscoverRestoreSlotResponder(resp *http.Response) (resu
 }
 
 // GenerateNewSitePublishingPassword generates a new publishing password for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) GenerateNewSitePublishingPassword(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GenerateNewSitePublishingPassword")
+		return result, validation.NewError("web.AppsClient", "GenerateNewSitePublishingPassword", err.Error())
 	}
 
 	req, err := client.GenerateNewSitePublishingPasswordPreparer(ctx, resourceGroupName, name)
@@ -6021,17 +6130,18 @@ func (client AppsClient) GenerateNewSitePublishingPasswordResponder(resp *http.R
 
 // GenerateNewSitePublishingPasswordSlot generates a new publishing password for an app (or deployment slot, if
 // specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API generate a new publishing password for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API generate a new publishing password
+// for the production slot.
 func (client AppsClient) GenerateNewSitePublishingPasswordSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GenerateNewSitePublishingPasswordSlot")
+		return result, validation.NewError("web.AppsClient", "GenerateNewSitePublishingPasswordSlot", err.Error())
 	}
 
 	req, err := client.GenerateNewSitePublishingPasswordSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -6097,15 +6207,16 @@ func (client AppsClient) GenerateNewSitePublishingPasswordSlotResponder(resp *ht
 }
 
 // Get gets the details of a web, mobile, or API app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) Get(ctx context.Context, resourceGroupName string, name string) (result Site, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Get")
+		return result, validation.NewError("web.AppsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, name)
@@ -6171,15 +6282,16 @@ func (client AppsClient) GetResponder(resp *http.Response) (result Site, err err
 }
 
 // GetAuthSettings gets the Authentication/Authorization settings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) GetAuthSettings(ctx context.Context, resourceGroupName string, name string) (result SiteAuthSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetAuthSettings")
+		return result, validation.NewError("web.AppsClient", "GetAuthSettings", err.Error())
 	}
 
 	req, err := client.GetAuthSettingsPreparer(ctx, resourceGroupName, name)
@@ -6245,16 +6357,18 @@ func (client AppsClient) GetAuthSettingsResponder(resp *http.Response) (result S
 }
 
 // GetAuthSettingsSlot gets the Authentication/Authorization settings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the settings for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the settings for the
+// production slot.
 func (client AppsClient) GetAuthSettingsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteAuthSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetAuthSettingsSlot")
+		return result, validation.NewError("web.AppsClient", "GetAuthSettingsSlot", err.Error())
 	}
 
 	req, err := client.GetAuthSettingsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -6321,15 +6435,16 @@ func (client AppsClient) GetAuthSettingsSlotResponder(resp *http.Response) (resu
 }
 
 // GetBackupConfiguration gets the backup configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) GetBackupConfiguration(ctx context.Context, resourceGroupName string, name string) (result BackupRequest, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetBackupConfiguration")
+		return result, validation.NewError("web.AppsClient", "GetBackupConfiguration", err.Error())
 	}
 
 	req, err := client.GetBackupConfigurationPreparer(ctx, resourceGroupName, name)
@@ -6395,17 +6510,18 @@ func (client AppsClient) GetBackupConfigurationResponder(resp *http.Response) (r
 }
 
 // GetBackupConfigurationSlot gets the backup configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the backup configuration for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the backup configuration
+// for the production slot.
 func (client AppsClient) GetBackupConfigurationSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result BackupRequest, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetBackupConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "GetBackupConfigurationSlot", err.Error())
 	}
 
 	req, err := client.GetBackupConfigurationSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -6472,16 +6588,17 @@ func (client AppsClient) GetBackupConfigurationSlotResponder(resp *http.Response
 }
 
 // GetBackupStatus gets a backup of an app by its ID.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. backupID is
-// ID of the backup.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// backupID - ID of the backup.
 func (client AppsClient) GetBackupStatus(ctx context.Context, resourceGroupName string, name string, backupID string) (result BackupItem, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetBackupStatus")
+		return result, validation.NewError("web.AppsClient", "GetBackupStatus", err.Error())
 	}
 
 	req, err := client.GetBackupStatusPreparer(ctx, resourceGroupName, name, backupID)
@@ -6548,17 +6665,19 @@ func (client AppsClient) GetBackupStatusResponder(resp *http.Response) (result B
 }
 
 // GetBackupStatusSlot gets a backup of an app by its ID.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. backupID is
-// ID of the backup. slot is name of the deployment slot. If a slot is not specified, the API will get a backup of the
-// production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// backupID - ID of the backup.
+// slot - name of the deployment slot. If a slot is not specified, the API will get a backup of the production
+// slot.
 func (client AppsClient) GetBackupStatusSlot(ctx context.Context, resourceGroupName string, name string, backupID string, slot string) (result BackupItem, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetBackupStatusSlot")
+		return result, validation.NewError("web.AppsClient", "GetBackupStatusSlot", err.Error())
 	}
 
 	req, err := client.GetBackupStatusSlotPreparer(ctx, resourceGroupName, name, backupID, slot)
@@ -6627,15 +6746,16 @@ func (client AppsClient) GetBackupStatusSlotResponder(resp *http.Response) (resu
 
 // GetConfiguration gets the configuration of an app, such as platform version and bitness, default documents, virtual
 // applications, Always On, etc.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) GetConfiguration(ctx context.Context, resourceGroupName string, name string) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetConfiguration")
+		return result, validation.NewError("web.AppsClient", "GetConfiguration", err.Error())
 	}
 
 	req, err := client.GetConfigurationPreparer(ctx, resourceGroupName, name)
@@ -6702,16 +6822,18 @@ func (client AppsClient) GetConfigurationResponder(resp *http.Response) (result 
 
 // GetConfigurationSlot gets the configuration of an app, such as platform version and bitness, default documents,
 // virtual applications, Always On, etc.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will return configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will return configuration for the
+// production slot.
 func (client AppsClient) GetConfigurationSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "GetConfigurationSlot", err.Error())
 	}
 
 	req, err := client.GetConfigurationSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -6778,16 +6900,17 @@ func (client AppsClient) GetConfigurationSlotResponder(resp *http.Response) (res
 }
 
 // GetConfigurationSnapshot gets a snapshot of the configuration of an app at a previous point in time.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. snapshotID
-// is the ID of the snapshot to read.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// snapshotID - the ID of the snapshot to read.
 func (client AppsClient) GetConfigurationSnapshot(ctx context.Context, resourceGroupName string, name string, snapshotID string) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetConfigurationSnapshot")
+		return result, validation.NewError("web.AppsClient", "GetConfigurationSnapshot", err.Error())
 	}
 
 	req, err := client.GetConfigurationSnapshotPreparer(ctx, resourceGroupName, name, snapshotID)
@@ -6854,17 +6977,19 @@ func (client AppsClient) GetConfigurationSnapshotResponder(resp *http.Response) 
 }
 
 // GetConfigurationSnapshotSlot gets a snapshot of the configuration of an app at a previous point in time.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. snapshotID
-// is the ID of the snapshot to read. slot is name of the deployment slot. If a slot is not specified, the API will
-// return configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// snapshotID - the ID of the snapshot to read.
+// slot - name of the deployment slot. If a slot is not specified, the API will return configuration for the
+// production slot.
 func (client AppsClient) GetConfigurationSnapshotSlot(ctx context.Context, resourceGroupName string, name string, snapshotID string, slot string) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetConfigurationSnapshotSlot")
+		return result, validation.NewError("web.AppsClient", "GetConfigurationSnapshotSlot", err.Error())
 	}
 
 	req, err := client.GetConfigurationSnapshotSlotPreparer(ctx, resourceGroupName, name, snapshotID, slot)
@@ -6932,16 +7057,17 @@ func (client AppsClient) GetConfigurationSnapshotSlotResponder(resp *http.Respon
 }
 
 // GetContinuousWebJob gets a continuous web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) GetContinuousWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result ContinuousWebJob, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetContinuousWebJob")
+		return result, validation.NewError("web.AppsClient", "GetContinuousWebJob", err.Error())
 	}
 
 	req, err := client.GetContinuousWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -7008,9 +7134,11 @@ func (client AppsClient) GetContinuousWebJobResponder(resp *http.Response) (resu
 }
 
 // GetContinuousWebJobSlot gets a continuous web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) GetContinuousWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result ContinuousWebJob, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -7018,7 +7146,7 @@ func (client AppsClient) GetContinuousWebJobSlot(ctx context.Context, resourceGr
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetContinuousWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "GetContinuousWebJobSlot", err.Error())
 	}
 
 	req, err := client.GetContinuousWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -7086,16 +7214,17 @@ func (client AppsClient) GetContinuousWebJobSlotResponder(resp *http.Response) (
 }
 
 // GetDeployment get a deployment by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is
-// deployment ID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - deployment ID.
 func (client AppsClient) GetDeployment(ctx context.Context, resourceGroupName string, name string, ID string) (result Deployment, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetDeployment")
+		return result, validation.NewError("web.AppsClient", "GetDeployment", err.Error())
 	}
 
 	req, err := client.GetDeploymentPreparer(ctx, resourceGroupName, name, ID)
@@ -7162,17 +7291,19 @@ func (client AppsClient) GetDeploymentResponder(resp *http.Response) (result Dep
 }
 
 // GetDeploymentSlot get a deployment by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is
-// deployment ID. slot is name of the deployment slot. If a slot is not specified, the API gets a deployment for the
-// production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - deployment ID.
+// slot - name of the deployment slot. If a slot is not specified, the API gets a deployment for the production
+// slot.
 func (client AppsClient) GetDeploymentSlot(ctx context.Context, resourceGroupName string, name string, ID string, slot string) (result Deployment, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetDeploymentSlot")
+		return result, validation.NewError("web.AppsClient", "GetDeploymentSlot", err.Error())
 	}
 
 	req, err := client.GetDeploymentSlotPreparer(ctx, resourceGroupName, name, ID, slot)
@@ -7240,15 +7371,16 @@ func (client AppsClient) GetDeploymentSlotResponder(resp *http.Response) (result
 }
 
 // GetDiagnosticLogsConfiguration gets the logging configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) GetDiagnosticLogsConfiguration(ctx context.Context, resourceGroupName string, name string) (result SiteLogsConfig, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetDiagnosticLogsConfiguration")
+		return result, validation.NewError("web.AppsClient", "GetDiagnosticLogsConfiguration", err.Error())
 	}
 
 	req, err := client.GetDiagnosticLogsConfigurationPreparer(ctx, resourceGroupName, name)
@@ -7314,17 +7446,18 @@ func (client AppsClient) GetDiagnosticLogsConfigurationResponder(resp *http.Resp
 }
 
 // GetDiagnosticLogsConfigurationSlot gets the logging configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the logging configuration for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the logging configuration
+// for the production slot.
 func (client AppsClient) GetDiagnosticLogsConfigurationSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteLogsConfig, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetDiagnosticLogsConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "GetDiagnosticLogsConfigurationSlot", err.Error())
 	}
 
 	req, err := client.GetDiagnosticLogsConfigurationSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -7391,16 +7524,17 @@ func (client AppsClient) GetDiagnosticLogsConfigurationSlotResponder(resp *http.
 }
 
 // GetDomainOwnershipIdentifier get domain ownership identifier for web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
 func (client AppsClient) GetDomainOwnershipIdentifier(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string) (result Identifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetDomainOwnershipIdentifier")
+		return result, validation.NewError("web.AppsClient", "GetDomainOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.GetDomainOwnershipIdentifierPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName)
@@ -7467,17 +7601,19 @@ func (client AppsClient) GetDomainOwnershipIdentifierResponder(resp *http.Respon
 }
 
 // GetDomainOwnershipIdentifierSlot get domain ownership identifier for web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier. slot is name of the deployment slot. If a slot
-// is not specified, the API will delete the binding for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the binding for the
+// production slot.
 func (client AppsClient) GetDomainOwnershipIdentifierSlot(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string, slot string) (result Identifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetDomainOwnershipIdentifierSlot")
+		return result, validation.NewError("web.AppsClient", "GetDomainOwnershipIdentifierSlot", err.Error())
 	}
 
 	req, err := client.GetDomainOwnershipIdentifierSlotPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName, slot)
@@ -7545,16 +7681,17 @@ func (client AppsClient) GetDomainOwnershipIdentifierSlotResponder(resp *http.Re
 }
 
 // GetFunction get function information by its ID for web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
 func (client AppsClient) GetFunction(ctx context.Context, resourceGroupName string, name string, functionName string) (result FunctionEnvelope, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetFunction")
+		return result, validation.NewError("web.AppsClient", "GetFunction", err.Error())
 	}
 
 	req, err := client.GetFunctionPreparer(ctx, resourceGroupName, name, functionName)
@@ -7621,15 +7758,16 @@ func (client AppsClient) GetFunctionResponder(resp *http.Response) (result Funct
 }
 
 // GetFunctionsAdminToken fetch a short lived token that can be exchanged for a master key.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) GetFunctionsAdminToken(ctx context.Context, resourceGroupName string, name string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetFunctionsAdminToken")
+		return result, validation.NewError("web.AppsClient", "GetFunctionsAdminToken", err.Error())
 	}
 
 	req, err := client.GetFunctionsAdminTokenPreparer(ctx, resourceGroupName, name)
@@ -7695,16 +7833,17 @@ func (client AppsClient) GetFunctionsAdminTokenResponder(resp *http.Response) (r
 }
 
 // GetFunctionsAdminTokenSlot fetch a short lived token that can be exchanged for a master key.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) GetFunctionsAdminTokenSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetFunctionsAdminTokenSlot")
+		return result, validation.NewError("web.AppsClient", "GetFunctionsAdminTokenSlot", err.Error())
 	}
 
 	req, err := client.GetFunctionsAdminTokenSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -7771,16 +7910,17 @@ func (client AppsClient) GetFunctionsAdminTokenSlotResponder(resp *http.Response
 }
 
 // GetHostNameBinding get the named hostname binding for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. hostName is
-// hostname in the hostname binding.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// hostName - hostname in the hostname binding.
 func (client AppsClient) GetHostNameBinding(ctx context.Context, resourceGroupName string, name string, hostName string) (result HostNameBinding, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetHostNameBinding")
+		return result, validation.NewError("web.AppsClient", "GetHostNameBinding", err.Error())
 	}
 
 	req, err := client.GetHostNameBindingPreparer(ctx, resourceGroupName, name, hostName)
@@ -7847,17 +7987,19 @@ func (client AppsClient) GetHostNameBindingResponder(resp *http.Response) (resul
 }
 
 // GetHostNameBindingSlot get the named hostname binding for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API the named binding for the production slot. hostName is
-// hostname in the hostname binding.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API the named binding for the production
+// slot.
+// hostName - hostname in the hostname binding.
 func (client AppsClient) GetHostNameBindingSlot(ctx context.Context, resourceGroupName string, name string, slot string, hostName string) (result HostNameBinding, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetHostNameBindingSlot")
+		return result, validation.NewError("web.AppsClient", "GetHostNameBindingSlot", err.Error())
 	}
 
 	req, err := client.GetHostNameBindingSlotPreparer(ctx, resourceGroupName, name, slot, hostName)
@@ -7925,16 +8067,18 @@ func (client AppsClient) GetHostNameBindingSlotResponder(resp *http.Response) (r
 }
 
 // GetHybridConnection retrieves a specific Service Bus Hybrid Connection used by this Web App.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
 func (client AppsClient) GetHybridConnection(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetHybridConnection")
+		return result, validation.NewError("web.AppsClient", "GetHybridConnection", err.Error())
 	}
 
 	req, err := client.GetHybridConnectionPreparer(ctx, resourceGroupName, name, namespaceName, relayName)
@@ -8002,17 +8146,19 @@ func (client AppsClient) GetHybridConnectionResponder(resp *http.Response) (resu
 }
 
 // GetHybridConnectionSlot retrieves a specific Service Bus Hybrid Connection used by this Web App.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
-// slot is the name of the slot for the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
+// slot - the name of the slot for the web app.
 func (client AppsClient) GetHybridConnectionSlot(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string, slot string) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetHybridConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "GetHybridConnectionSlot", err.Error())
 	}
 
 	req, err := client.GetHybridConnectionSlotPreparer(ctx, resourceGroupName, name, namespaceName, relayName, slot)
@@ -8081,9 +8227,11 @@ func (client AppsClient) GetHybridConnectionSlotResponder(resp *http.Response) (
 }
 
 // GetInstanceFunctionSlot get function information by its ID for web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) GetInstanceFunctionSlot(ctx context.Context, resourceGroupName string, name string, functionName string, slot string) (result FunctionEnvelope, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -8091,7 +8239,7 @@ func (client AppsClient) GetInstanceFunctionSlot(ctx context.Context, resourceGr
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceFunctionSlot")
+		return result, validation.NewError("web.AppsClient", "GetInstanceFunctionSlot", err.Error())
 	}
 
 	req, err := client.GetInstanceFunctionSlotPreparer(ctx, resourceGroupName, name, functionName, slot)
@@ -8159,16 +8307,17 @@ func (client AppsClient) GetInstanceFunctionSlotResponder(resp *http.Response) (
 }
 
 // GetInstanceMSDeployLog get the MSDeploy Log for the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. instanceID
-// is ID of web app instance.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// instanceID - ID of web app instance.
 func (client AppsClient) GetInstanceMSDeployLog(ctx context.Context, resourceGroupName string, name string, instanceID string) (result MSDeployLog, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceMSDeployLog")
+		return result, validation.NewError("web.AppsClient", "GetInstanceMSDeployLog", err.Error())
 	}
 
 	req, err := client.GetInstanceMSDeployLogPreparer(ctx, resourceGroupName, name, instanceID)
@@ -8235,16 +8384,18 @@ func (client AppsClient) GetInstanceMSDeployLogResponder(resp *http.Response) (r
 }
 
 // GetInstanceMSDeployLogSlot get the MSDeploy Log for the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot. instanceID is ID of web app instance.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
+// instanceID - ID of web app instance.
 func (client AppsClient) GetInstanceMSDeployLogSlot(ctx context.Context, resourceGroupName string, name string, slot string, instanceID string) (result MSDeployLog, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceMSDeployLogSlot")
+		return result, validation.NewError("web.AppsClient", "GetInstanceMSDeployLogSlot", err.Error())
 	}
 
 	req, err := client.GetInstanceMSDeployLogSlotPreparer(ctx, resourceGroupName, name, slot, instanceID)
@@ -8312,16 +8463,17 @@ func (client AppsClient) GetInstanceMSDeployLogSlotResponder(resp *http.Response
 }
 
 // GetInstanceMsDeployStatus get the status of the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. instanceID
-// is ID of web app instance.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// instanceID - ID of web app instance.
 func (client AppsClient) GetInstanceMsDeployStatus(ctx context.Context, resourceGroupName string, name string, instanceID string) (result MSDeployStatus, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceMsDeployStatus")
+		return result, validation.NewError("web.AppsClient", "GetInstanceMsDeployStatus", err.Error())
 	}
 
 	req, err := client.GetInstanceMsDeployStatusPreparer(ctx, resourceGroupName, name, instanceID)
@@ -8388,16 +8540,18 @@ func (client AppsClient) GetInstanceMsDeployStatusResponder(resp *http.Response)
 }
 
 // GetInstanceMsDeployStatusSlot get the status of the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot. instanceID is ID of web app instance.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
+// instanceID - ID of web app instance.
 func (client AppsClient) GetInstanceMsDeployStatusSlot(ctx context.Context, resourceGroupName string, name string, slot string, instanceID string) (result MSDeployStatus, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceMsDeployStatusSlot")
+		return result, validation.NewError("web.AppsClient", "GetInstanceMsDeployStatusSlot", err.Error())
 	}
 
 	req, err := client.GetInstanceMsDeployStatusSlotPreparer(ctx, resourceGroupName, name, slot, instanceID)
@@ -8465,17 +8619,19 @@ func (client AppsClient) GetInstanceMsDeployStatusSlotResponder(resp *http.Respo
 }
 
 // GetInstanceProcess get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON response from
-// "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcess(ctx context.Context, resourceGroupName string, name string, processID string, instanceID string) (result ProcessInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcess")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcess", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessPreparer(ctx, resourceGroupName, name, processID, instanceID)
@@ -8543,17 +8699,19 @@ func (client AppsClient) GetInstanceProcessResponder(resp *http.Response) (resul
 }
 
 // GetInstanceProcessDump get a memory dump of a process by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON response from
-// "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcessDump(ctx context.Context, resourceGroupName string, name string, processID string, instanceID string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcessDump")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcessDump", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessDumpPreparer(ctx, resourceGroupName, name, processID, instanceID)
@@ -8621,10 +8779,13 @@ func (client AppsClient) GetInstanceProcessDumpResponder(resp *http.Response) (r
 
 // GetInstanceProcessDumpSlot get a memory dump of a process by its ID for a specific scaled-out instance in a web
 // site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot. instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
 // response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcessDumpSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string, instanceID string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -8632,7 +8793,7 @@ func (client AppsClient) GetInstanceProcessDumpSlot(ctx context.Context, resourc
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcessDumpSlot")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcessDumpSlot", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessDumpSlotPreparer(ctx, resourceGroupName, name, processID, slot, instanceID)
@@ -8700,17 +8861,20 @@ func (client AppsClient) GetInstanceProcessDumpSlotResponder(resp *http.Response
 }
 
 // GetInstanceProcessModule get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// baseAddress is module base address. instanceID is ID of a specific scaled-out instance. This is the value of the
-// name property in the JSON response from "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// baseAddress - module base address.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcessModule(ctx context.Context, resourceGroupName string, name string, processID string, baseAddress string, instanceID string) (result ProcessModuleInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcessModule")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcessModule", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessModulePreparer(ctx, resourceGroupName, name, processID, baseAddress, instanceID)
@@ -8779,18 +8943,22 @@ func (client AppsClient) GetInstanceProcessModuleResponder(resp *http.Response) 
 }
 
 // GetInstanceProcessModuleSlot get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// baseAddress is module base address. slot is name of the deployment slot. If a slot is not specified, the API returns
-// deployments for the production slot. instanceID is ID of a specific scaled-out instance. This is the value of the
-// name property in the JSON response from "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// baseAddress - module base address.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcessModuleSlot(ctx context.Context, resourceGroupName string, name string, processID string, baseAddress string, slot string, instanceID string) (result ProcessModuleInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcessModuleSlot")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcessModuleSlot", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessModuleSlotPreparer(ctx, resourceGroupName, name, processID, baseAddress, slot, instanceID)
@@ -8860,10 +9028,13 @@ func (client AppsClient) GetInstanceProcessModuleSlotResponder(resp *http.Respon
 }
 
 // GetInstanceProcessSlot get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot. instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
 // response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcessSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string, instanceID string) (result ProcessInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -8871,7 +9042,7 @@ func (client AppsClient) GetInstanceProcessSlot(ctx context.Context, resourceGro
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcessSlot")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcessSlot", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessSlotPreparer(ctx, resourceGroupName, name, processID, slot, instanceID)
@@ -8941,17 +9112,20 @@ func (client AppsClient) GetInstanceProcessSlotResponder(resp *http.Response) (r
 
 // GetInstanceProcessThread get thread information by Thread ID for a specific process, in a specific scaled-out
 // instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// threadID is tID. instanceID is ID of a specific scaled-out instance. This is the value of the name property in the
-// JSON response from "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// threadID - tID.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcessThread(ctx context.Context, resourceGroupName string, name string, processID string, threadID string, instanceID string) (result ProcessThreadInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcessThread")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcessThread", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessThreadPreparer(ctx, resourceGroupName, name, processID, threadID, instanceID)
@@ -9021,18 +9195,22 @@ func (client AppsClient) GetInstanceProcessThreadResponder(resp *http.Response) 
 
 // GetInstanceProcessThreadSlot get thread information by Thread ID for a specific process, in a specific scaled-out
 // instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// threadID is tID. slot is name of the deployment slot. If a slot is not specified, the API returns deployments for
-// the production slot. instanceID is ID of a specific scaled-out instance. This is the value of the name property in
-// the JSON response from "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// threadID - tID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) GetInstanceProcessThreadSlot(ctx context.Context, resourceGroupName string, name string, processID string, threadID string, slot string, instanceID string) (result ProcessThreadInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetInstanceProcessThreadSlot")
+		return result, validation.NewError("web.AppsClient", "GetInstanceProcessThreadSlot", err.Error())
 	}
 
 	req, err := client.GetInstanceProcessThreadSlotPreparer(ctx, resourceGroupName, name, processID, threadID, slot, instanceID)
@@ -9103,15 +9281,16 @@ func (client AppsClient) GetInstanceProcessThreadSlotResponder(resp *http.Respon
 
 // GetMigrateMySQLStatus returns the status of MySql in app migration, if one is active, and whether or not MySql in
 // app is enabled
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) GetMigrateMySQLStatus(ctx context.Context, resourceGroupName string, name string) (result MigrateMySQLStatus, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetMigrateMySQLStatus")
+		return result, validation.NewError("web.AppsClient", "GetMigrateMySQLStatus", err.Error())
 	}
 
 	req, err := client.GetMigrateMySQLStatusPreparer(ctx, resourceGroupName, name)
@@ -9178,16 +9357,17 @@ func (client AppsClient) GetMigrateMySQLStatusResponder(resp *http.Response) (re
 
 // GetMigrateMySQLStatusSlot returns the status of MySql in app migration, if one is active, and whether or not MySql
 // in app is enabled
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of the deployment slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of the deployment slot.
 func (client AppsClient) GetMigrateMySQLStatusSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result MigrateMySQLStatus, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetMigrateMySQLStatusSlot")
+		return result, validation.NewError("web.AppsClient", "GetMigrateMySQLStatusSlot", err.Error())
 	}
 
 	req, err := client.GetMigrateMySQLStatusSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -9254,15 +9434,16 @@ func (client AppsClient) GetMigrateMySQLStatusSlotResponder(resp *http.Response)
 }
 
 // GetMSDeployLog get the MSDeploy Log for the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) GetMSDeployLog(ctx context.Context, resourceGroupName string, name string) (result MSDeployLog, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetMSDeployLog")
+		return result, validation.NewError("web.AppsClient", "GetMSDeployLog", err.Error())
 	}
 
 	req, err := client.GetMSDeployLogPreparer(ctx, resourceGroupName, name)
@@ -9328,16 +9509,17 @@ func (client AppsClient) GetMSDeployLogResponder(resp *http.Response) (result MS
 }
 
 // GetMSDeployLogSlot get the MSDeploy Log for the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) GetMSDeployLogSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result MSDeployLog, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetMSDeployLogSlot")
+		return result, validation.NewError("web.AppsClient", "GetMSDeployLogSlot", err.Error())
 	}
 
 	req, err := client.GetMSDeployLogSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -9404,15 +9586,16 @@ func (client AppsClient) GetMSDeployLogSlotResponder(resp *http.Response) (resul
 }
 
 // GetMSDeployStatus get the status of the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) GetMSDeployStatus(ctx context.Context, resourceGroupName string, name string) (result MSDeployStatus, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetMSDeployStatus")
+		return result, validation.NewError("web.AppsClient", "GetMSDeployStatus", err.Error())
 	}
 
 	req, err := client.GetMSDeployStatusPreparer(ctx, resourceGroupName, name)
@@ -9478,16 +9661,17 @@ func (client AppsClient) GetMSDeployStatusResponder(resp *http.Response) (result
 }
 
 // GetMSDeployStatusSlot get the status of the last MSDeploy operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) GetMSDeployStatusSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result MSDeployStatus, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetMSDeployStatusSlot")
+		return result, validation.NewError("web.AppsClient", "GetMSDeployStatusSlot", err.Error())
 	}
 
 	req, err := client.GetMSDeployStatusSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -9554,16 +9738,17 @@ func (client AppsClient) GetMSDeployStatusSlotResponder(resp *http.Response) (re
 }
 
 // GetPremierAddOn gets a named add-on of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// premierAddOnName is add-on name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// premierAddOnName - add-on name.
 func (client AppsClient) GetPremierAddOn(ctx context.Context, resourceGroupName string, name string, premierAddOnName string) (result PremierAddOn, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetPremierAddOn")
+		return result, validation.NewError("web.AppsClient", "GetPremierAddOn", err.Error())
 	}
 
 	req, err := client.GetPremierAddOnPreparer(ctx, resourceGroupName, name, premierAddOnName)
@@ -9630,17 +9815,19 @@ func (client AppsClient) GetPremierAddOnResponder(resp *http.Response) (result P
 }
 
 // GetPremierAddOnSlot gets a named add-on of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// premierAddOnName is add-on name. slot is name of the deployment slot. If a slot is not specified, the API will get
-// the named add-on for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// premierAddOnName - add-on name.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the named add-on for the
+// production slot.
 func (client AppsClient) GetPremierAddOnSlot(ctx context.Context, resourceGroupName string, name string, premierAddOnName string, slot string) (result PremierAddOn, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetPremierAddOnSlot")
+		return result, validation.NewError("web.AppsClient", "GetPremierAddOnSlot", err.Error())
 	}
 
 	req, err := client.GetPremierAddOnSlotPreparer(ctx, resourceGroupName, name, premierAddOnName, slot)
@@ -9708,15 +9895,17 @@ func (client AppsClient) GetPremierAddOnSlotResponder(resp *http.Response) (resu
 }
 
 // GetProcess get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
 func (client AppsClient) GetProcess(ctx context.Context, resourceGroupName string, name string, processID string) (result ProcessInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcess")
+		return result, validation.NewError("web.AppsClient", "GetProcess", err.Error())
 	}
 
 	req, err := client.GetProcessPreparer(ctx, resourceGroupName, name, processID)
@@ -9783,15 +9972,17 @@ func (client AppsClient) GetProcessResponder(resp *http.Response) (result Proces
 }
 
 // GetProcessDump get a memory dump of a process by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
 func (client AppsClient) GetProcessDump(ctx context.Context, resourceGroupName string, name string, processID string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcessDump")
+		return result, validation.NewError("web.AppsClient", "GetProcessDump", err.Error())
 	}
 
 	req, err := client.GetProcessDumpPreparer(ctx, resourceGroupName, name, processID)
@@ -9857,17 +10048,19 @@ func (client AppsClient) GetProcessDumpResponder(resp *http.Response) (result Re
 }
 
 // GetProcessDumpSlot get a memory dump of a process by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) GetProcessDumpSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcessDumpSlot")
+		return result, validation.NewError("web.AppsClient", "GetProcessDumpSlot", err.Error())
 	}
 
 	req, err := client.GetProcessDumpSlotPreparer(ctx, resourceGroupName, name, processID, slot)
@@ -9934,16 +10127,18 @@ func (client AppsClient) GetProcessDumpSlotResponder(resp *http.Response) (resul
 }
 
 // GetProcessModule get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// baseAddress is module base address.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// baseAddress - module base address.
 func (client AppsClient) GetProcessModule(ctx context.Context, resourceGroupName string, name string, processID string, baseAddress string) (result ProcessModuleInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcessModule")
+		return result, validation.NewError("web.AppsClient", "GetProcessModule", err.Error())
 	}
 
 	req, err := client.GetProcessModulePreparer(ctx, resourceGroupName, name, processID, baseAddress)
@@ -10011,17 +10206,20 @@ func (client AppsClient) GetProcessModuleResponder(resp *http.Response) (result 
 }
 
 // GetProcessModuleSlot get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// baseAddress is module base address. slot is name of the deployment slot. If a slot is not specified, the API returns
-// deployments for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// baseAddress - module base address.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) GetProcessModuleSlot(ctx context.Context, resourceGroupName string, name string, processID string, baseAddress string, slot string) (result ProcessModuleInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcessModuleSlot")
+		return result, validation.NewError("web.AppsClient", "GetProcessModuleSlot", err.Error())
 	}
 
 	req, err := client.GetProcessModuleSlotPreparer(ctx, resourceGroupName, name, processID, baseAddress, slot)
@@ -10090,17 +10288,19 @@ func (client AppsClient) GetProcessModuleSlotResponder(resp *http.Response) (res
 }
 
 // GetProcessSlot get process information by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) GetProcessSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string) (result ProcessInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcessSlot")
+		return result, validation.NewError("web.AppsClient", "GetProcessSlot", err.Error())
 	}
 
 	req, err := client.GetProcessSlotPreparer(ctx, resourceGroupName, name, processID, slot)
@@ -10169,16 +10369,18 @@ func (client AppsClient) GetProcessSlotResponder(resp *http.Response) (result Pr
 
 // GetProcessThread get thread information by Thread ID for a specific process, in a specific scaled-out instance in a
 // web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// threadID is tID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// threadID - tID.
 func (client AppsClient) GetProcessThread(ctx context.Context, resourceGroupName string, name string, processID string, threadID string) (result ProcessThreadInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcessThread")
+		return result, validation.NewError("web.AppsClient", "GetProcessThread", err.Error())
 	}
 
 	req, err := client.GetProcessThreadPreparer(ctx, resourceGroupName, name, processID, threadID)
@@ -10247,17 +10449,20 @@ func (client AppsClient) GetProcessThreadResponder(resp *http.Response) (result 
 
 // GetProcessThreadSlot get thread information by Thread ID for a specific process, in a specific scaled-out instance
 // in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// threadID is tID. slot is name of the deployment slot. If a slot is not specified, the API returns deployments for
-// the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// threadID - tID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) GetProcessThreadSlot(ctx context.Context, resourceGroupName string, name string, processID string, threadID string, slot string) (result ProcessThreadInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetProcessThreadSlot")
+		return result, validation.NewError("web.AppsClient", "GetProcessThreadSlot", err.Error())
 	}
 
 	req, err := client.GetProcessThreadSlotPreparer(ctx, resourceGroupName, name, processID, threadID, slot)
@@ -10326,16 +10531,17 @@ func (client AppsClient) GetProcessThreadSlotResponder(resp *http.Response) (res
 }
 
 // GetPublicCertificate get the named public certificate for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// publicCertificateName is public certificate name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// publicCertificateName - public certificate name.
 func (client AppsClient) GetPublicCertificate(ctx context.Context, resourceGroupName string, name string, publicCertificateName string) (result PublicCertificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetPublicCertificate")
+		return result, validation.NewError("web.AppsClient", "GetPublicCertificate", err.Error())
 	}
 
 	req, err := client.GetPublicCertificatePreparer(ctx, resourceGroupName, name, publicCertificateName)
@@ -10402,17 +10608,19 @@ func (client AppsClient) GetPublicCertificateResponder(resp *http.Response) (res
 }
 
 // GetPublicCertificateSlot get the named public certificate for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API the named binding for the production slot.
-// publicCertificateName is public certificate name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API the named binding for the production
+// slot.
+// publicCertificateName - public certificate name.
 func (client AppsClient) GetPublicCertificateSlot(ctx context.Context, resourceGroupName string, name string, slot string, publicCertificateName string) (result PublicCertificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetPublicCertificateSlot")
+		return result, validation.NewError("web.AppsClient", "GetPublicCertificateSlot", err.Error())
 	}
 
 	req, err := client.GetPublicCertificateSlotPreparer(ctx, resourceGroupName, name, slot, publicCertificateName)
@@ -10480,16 +10688,17 @@ func (client AppsClient) GetPublicCertificateSlotResponder(resp *http.Response) 
 }
 
 // GetRelayServiceConnection gets a hybrid connection configuration by its name.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection.
 func (client AppsClient) GetRelayServiceConnection(ctx context.Context, resourceGroupName string, name string, entityName string) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetRelayServiceConnection")
+		return result, validation.NewError("web.AppsClient", "GetRelayServiceConnection", err.Error())
 	}
 
 	req, err := client.GetRelayServiceConnectionPreparer(ctx, resourceGroupName, name, entityName)
@@ -10556,17 +10765,19 @@ func (client AppsClient) GetRelayServiceConnectionResponder(resp *http.Response)
 }
 
 // GetRelayServiceConnectionSlot gets a hybrid connection configuration by its name.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection. slot is name of the deployment slot. If a slot is not specified, the API will get
-// a hybrid connection for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection.
+// slot - name of the deployment slot. If a slot is not specified, the API will get a hybrid connection for the
+// production slot.
 func (client AppsClient) GetRelayServiceConnectionSlot(ctx context.Context, resourceGroupName string, name string, entityName string, slot string) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetRelayServiceConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "GetRelayServiceConnectionSlot", err.Error())
 	}
 
 	req, err := client.GetRelayServiceConnectionSlotPreparer(ctx, resourceGroupName, name, entityName, slot)
@@ -10634,16 +10845,17 @@ func (client AppsClient) GetRelayServiceConnectionSlotResponder(resp *http.Respo
 }
 
 // GetSiteExtension get site extension information by its ID for a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. siteExtensionID is
-// site extension name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// siteExtensionID - site extension name.
 func (client AppsClient) GetSiteExtension(ctx context.Context, resourceGroupName string, name string, siteExtensionID string) (result SiteExtensionInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetSiteExtension")
+		return result, validation.NewError("web.AppsClient", "GetSiteExtension", err.Error())
 	}
 
 	req, err := client.GetSiteExtensionPreparer(ctx, resourceGroupName, name, siteExtensionID)
@@ -10710,17 +10922,19 @@ func (client AppsClient) GetSiteExtensionResponder(resp *http.Response) (result 
 }
 
 // GetSiteExtensionSlot get site extension information by its ID for a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. siteExtensionID is
-// site extension name. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment
-// for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// siteExtensionID - site extension name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) GetSiteExtensionSlot(ctx context.Context, resourceGroupName string, name string, siteExtensionID string, slot string) (result SiteExtensionInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetSiteExtensionSlot")
+		return result, validation.NewError("web.AppsClient", "GetSiteExtensionSlot", err.Error())
 	}
 
 	req, err := client.GetSiteExtensionSlotPreparer(ctx, resourceGroupName, name, siteExtensionID, slot)
@@ -10788,15 +11002,16 @@ func (client AppsClient) GetSiteExtensionSlotResponder(resp *http.Response) (res
 }
 
 // GetSitePhpErrorLogFlag gets web app's event logs.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) GetSitePhpErrorLogFlag(ctx context.Context, resourceGroupName string, name string) (result SitePhpErrorLogFlag, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetSitePhpErrorLogFlag")
+		return result, validation.NewError("web.AppsClient", "GetSitePhpErrorLogFlag", err.Error())
 	}
 
 	req, err := client.GetSitePhpErrorLogFlagPreparer(ctx, resourceGroupName, name)
@@ -10862,16 +11077,17 @@ func (client AppsClient) GetSitePhpErrorLogFlagResponder(resp *http.Response) (r
 }
 
 // GetSitePhpErrorLogFlagSlot gets web app's event logs.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) GetSitePhpErrorLogFlagSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SitePhpErrorLogFlag, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetSitePhpErrorLogFlagSlot")
+		return result, validation.NewError("web.AppsClient", "GetSitePhpErrorLogFlagSlot", err.Error())
 	}
 
 	req, err := client.GetSitePhpErrorLogFlagSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -10938,16 +11154,17 @@ func (client AppsClient) GetSitePhpErrorLogFlagSlotResponder(resp *http.Response
 }
 
 // GetSlot gets the details of a web, mobile, or API app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. By default, this API returns the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. By default, this API returns the production slot.
 func (client AppsClient) GetSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result Site, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetSlot")
+		return result, validation.NewError("web.AppsClient", "GetSlot", err.Error())
 	}
 
 	req, err := client.GetSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -11014,15 +11231,16 @@ func (client AppsClient) GetSlotResponder(resp *http.Response) (result Site, err
 }
 
 // GetSourceControl gets the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) GetSourceControl(ctx context.Context, resourceGroupName string, name string) (result SiteSourceControl, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetSourceControl")
+		return result, validation.NewError("web.AppsClient", "GetSourceControl", err.Error())
 	}
 
 	req, err := client.GetSourceControlPreparer(ctx, resourceGroupName, name)
@@ -11080,7 +11298,7 @@ func (client AppsClient) GetSourceControlResponder(resp *http.Response) (result 
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -11088,17 +11306,18 @@ func (client AppsClient) GetSourceControlResponder(resp *http.Response) (result 
 }
 
 // GetSourceControlSlot gets the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the source control configuration for the
-// production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the source control
+// configuration for the production slot.
 func (client AppsClient) GetSourceControlSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteSourceControl, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetSourceControlSlot")
+		return result, validation.NewError("web.AppsClient", "GetSourceControlSlot", err.Error())
 	}
 
 	req, err := client.GetSourceControlSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -11157,7 +11376,7 @@ func (client AppsClient) GetSourceControlSlotResponder(resp *http.Response) (res
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -11165,16 +11384,17 @@ func (client AppsClient) GetSourceControlSlotResponder(resp *http.Response) (res
 }
 
 // GetTriggeredWebJob gets a triggered web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) GetTriggeredWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result TriggeredWebJob, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetTriggeredWebJob")
+		return result, validation.NewError("web.AppsClient", "GetTriggeredWebJob", err.Error())
 	}
 
 	req, err := client.GetTriggeredWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -11241,16 +11461,18 @@ func (client AppsClient) GetTriggeredWebJobResponder(resp *http.Response) (resul
 }
 
 // GetTriggeredWebJobHistory gets a triggered web job's history by its ID for an app, , or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. ID is history ID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// ID - history ID.
 func (client AppsClient) GetTriggeredWebJobHistory(ctx context.Context, resourceGroupName string, name string, webJobName string, ID string) (result TriggeredJobHistory, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetTriggeredWebJobHistory")
+		return result, validation.NewError("web.AppsClient", "GetTriggeredWebJobHistory", err.Error())
 	}
 
 	req, err := client.GetTriggeredWebJobHistoryPreparer(ctx, resourceGroupName, name, webJobName, ID)
@@ -11318,17 +11540,20 @@ func (client AppsClient) GetTriggeredWebJobHistoryResponder(resp *http.Response)
 }
 
 // GetTriggeredWebJobHistorySlot gets a triggered web job's history by its ID for an app, , or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. ID is history ID. slot is name of the deployment slot. If a slot is not specified, the API deletes a
-// deployment for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// ID - history ID.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) GetTriggeredWebJobHistorySlot(ctx context.Context, resourceGroupName string, name string, webJobName string, ID string, slot string) (result TriggeredJobHistory, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetTriggeredWebJobHistorySlot")
+		return result, validation.NewError("web.AppsClient", "GetTriggeredWebJobHistorySlot", err.Error())
 	}
 
 	req, err := client.GetTriggeredWebJobHistorySlotPreparer(ctx, resourceGroupName, name, webJobName, ID, slot)
@@ -11397,9 +11622,11 @@ func (client AppsClient) GetTriggeredWebJobHistorySlotResponder(resp *http.Respo
 }
 
 // GetTriggeredWebJobSlot gets a triggered web job by its ID for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) GetTriggeredWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result TriggeredWebJob, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -11407,7 +11634,7 @@ func (client AppsClient) GetTriggeredWebJobSlot(ctx context.Context, resourceGro
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetTriggeredWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "GetTriggeredWebJobSlot", err.Error())
 	}
 
 	req, err := client.GetTriggeredWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -11475,16 +11702,17 @@ func (client AppsClient) GetTriggeredWebJobSlotResponder(resp *http.Response) (r
 }
 
 // GetVnetConnection gets a virtual network the app (or deployment slot) is connected to by name.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the virtual network.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the virtual network.
 func (client AppsClient) GetVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string) (result VnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetVnetConnection")
+		return result, validation.NewError("web.AppsClient", "GetVnetConnection", err.Error())
 	}
 
 	req, err := client.GetVnetConnectionPreparer(ctx, resourceGroupName, name, vnetName)
@@ -11551,16 +11779,18 @@ func (client AppsClient) GetVnetConnectionResponder(resp *http.Response) (result
 }
 
 // GetVnetConnectionGateway gets an app's Virtual Network gateway.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the Virtual Network. gatewayName is name of the gateway. Currently, the only supported string is "primary".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the Virtual Network.
+// gatewayName - name of the gateway. Currently, the only supported string is "primary".
 func (client AppsClient) GetVnetConnectionGateway(ctx context.Context, resourceGroupName string, name string, vnetName string, gatewayName string) (result VnetGateway, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetVnetConnectionGateway")
+		return result, validation.NewError("web.AppsClient", "GetVnetConnectionGateway", err.Error())
 	}
 
 	req, err := client.GetVnetConnectionGatewayPreparer(ctx, resourceGroupName, name, vnetName, gatewayName)
@@ -11628,18 +11858,20 @@ func (client AppsClient) GetVnetConnectionGatewayResponder(resp *http.Response) 
 }
 
 // GetVnetConnectionGatewaySlot gets an app's Virtual Network gateway.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the Virtual Network. gatewayName is name of the gateway. Currently, the only supported string is "primary".
-// slot is name of the deployment slot. If a slot is not specified, the API will get a gateway for the production
-// slot's Virtual Network.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the Virtual Network.
+// gatewayName - name of the gateway. Currently, the only supported string is "primary".
+// slot - name of the deployment slot. If a slot is not specified, the API will get a gateway for the
+// production slot's Virtual Network.
 func (client AppsClient) GetVnetConnectionGatewaySlot(ctx context.Context, resourceGroupName string, name string, vnetName string, gatewayName string, slot string) (result VnetGateway, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetVnetConnectionGatewaySlot")
+		return result, validation.NewError("web.AppsClient", "GetVnetConnectionGatewaySlot", err.Error())
 	}
 
 	req, err := client.GetVnetConnectionGatewaySlotPreparer(ctx, resourceGroupName, name, vnetName, gatewayName, slot)
@@ -11708,17 +11940,19 @@ func (client AppsClient) GetVnetConnectionGatewaySlotResponder(resp *http.Respon
 }
 
 // GetVnetConnectionSlot gets a virtual network the app (or deployment slot) is connected to by name.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the virtual network. slot is name of the deployment slot. If a slot is not specified, the API will get the
-// named virtual network for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the virtual network.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the named virtual network
+// for the production slot.
 func (client AppsClient) GetVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, slot string) (result VnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetVnetConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "GetVnetConnectionSlot", err.Error())
 	}
 
 	req, err := client.GetVnetConnectionSlotPreparer(ctx, resourceGroupName, name, vnetName, slot)
@@ -11786,16 +12020,17 @@ func (client AppsClient) GetVnetConnectionSlotResponder(resp *http.Response) (re
 }
 
 // GetWebJob get webjob information for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of the web job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of the web job.
 func (client AppsClient) GetWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result Job, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetWebJob")
+		return result, validation.NewError("web.AppsClient", "GetWebJob", err.Error())
 	}
 
 	req, err := client.GetWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -11862,9 +12097,11 @@ func (client AppsClient) GetWebJobResponder(resp *http.Response) (result Job, er
 }
 
 // GetWebJobSlot get webjob information for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of the web job. slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of the web job.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
 // production slot.
 func (client AppsClient) GetWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result Job, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -11872,7 +12109,7 @@ func (client AppsClient) GetWebJobSlot(ctx context.Context, resourceGroupName st
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "GetWebJobSlot", err.Error())
 	}
 
 	req, err := client.GetWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -11940,15 +12177,16 @@ func (client AppsClient) GetWebJobSlotResponder(resp *http.Response) (result Job
 }
 
 // GetWebSiteContainerLogs gets the last lines of docker logs for the given site
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) GetWebSiteContainerLogs(ctx context.Context, resourceGroupName string, name string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetWebSiteContainerLogs")
+		return result, validation.NewError("web.AppsClient", "GetWebSiteContainerLogs", err.Error())
 	}
 
 	req, err := client.GetWebSiteContainerLogsPreparer(ctx, resourceGroupName, name)
@@ -12013,16 +12251,17 @@ func (client AppsClient) GetWebSiteContainerLogsResponder(resp *http.Response) (
 }
 
 // GetWebSiteContainerLogsSlot gets the last lines of docker logs for the given site
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) GetWebSiteContainerLogsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetWebSiteContainerLogsSlot")
+		return result, validation.NewError("web.AppsClient", "GetWebSiteContainerLogsSlot", err.Error())
 	}
 
 	req, err := client.GetWebSiteContainerLogsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -12088,15 +12327,16 @@ func (client AppsClient) GetWebSiteContainerLogsSlotResponder(resp *http.Respons
 }
 
 // GetWebSiteContainerLogsZip gets the ZIP archived docker log files for the given site
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) GetWebSiteContainerLogsZip(ctx context.Context, resourceGroupName string, name string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetWebSiteContainerLogsZip")
+		return result, validation.NewError("web.AppsClient", "GetWebSiteContainerLogsZip", err.Error())
 	}
 
 	req, err := client.GetWebSiteContainerLogsZipPreparer(ctx, resourceGroupName, name)
@@ -12161,16 +12401,17 @@ func (client AppsClient) GetWebSiteContainerLogsZipResponder(resp *http.Response
 }
 
 // GetWebSiteContainerLogsZipSlot gets the ZIP archived docker log files for the given site
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) GetWebSiteContainerLogsZipSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "GetWebSiteContainerLogsZipSlot")
+		return result, validation.NewError("web.AppsClient", "GetWebSiteContainerLogsZipSlot", err.Error())
 	}
 
 	req, err := client.GetWebSiteContainerLogsZipSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -12236,16 +12477,17 @@ func (client AppsClient) GetWebSiteContainerLogsZipSlotResponder(resp *http.Resp
 }
 
 // InstallSiteExtension install site extension on a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. siteExtensionID is
-// site extension name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// siteExtensionID - site extension name.
 func (client AppsClient) InstallSiteExtension(ctx context.Context, resourceGroupName string, name string, siteExtensionID string) (result AppsInstallSiteExtensionFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "InstallSiteExtension")
+		return result, validation.NewError("web.AppsClient", "InstallSiteExtension", err.Error())
 	}
 
 	req, err := client.InstallSiteExtensionPreparer(ctx, resourceGroupName, name, siteExtensionID)
@@ -12314,17 +12556,19 @@ func (client AppsClient) InstallSiteExtensionResponder(resp *http.Response) (res
 }
 
 // InstallSiteExtensionSlot install site extension on a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. siteExtensionID is
-// site extension name. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment
-// for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// siteExtensionID - site extension name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) InstallSiteExtensionSlot(ctx context.Context, resourceGroupName string, name string, siteExtensionID string, slot string) (result AppsInstallSiteExtensionSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "InstallSiteExtensionSlot")
+		return result, validation.NewError("web.AppsClient", "InstallSiteExtensionSlot", err.Error())
 	}
 
 	req, err := client.InstallSiteExtensionSlotPreparer(ctx, resourceGroupName, name, siteExtensionID, slot)
@@ -12394,15 +12638,16 @@ func (client AppsClient) InstallSiteExtensionSlotResponder(resp *http.Response) 
 }
 
 // IsCloneable shows whether an app can be cloned to another resource group or subscription.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) IsCloneable(ctx context.Context, resourceGroupName string, name string) (result SiteCloneability, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "IsCloneable")
+		return result, validation.NewError("web.AppsClient", "IsCloneable", err.Error())
 	}
 
 	req, err := client.IsCloneablePreparer(ctx, resourceGroupName, name)
@@ -12468,16 +12713,17 @@ func (client AppsClient) IsCloneableResponder(resp *http.Response) (result SiteC
 }
 
 // IsCloneableSlot shows whether an app can be cloned to another resource group or subscription.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. By default, this API returns information on the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. By default, this API returns information on the production slot.
 func (client AppsClient) IsCloneableSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteCloneability, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "IsCloneableSlot")
+		return result, validation.NewError("web.AppsClient", "IsCloneableSlot", err.Error())
 	}
 
 	req, err := client.IsCloneableSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -12634,15 +12880,16 @@ func (client AppsClient) ListComplete(ctx context.Context) (result AppCollection
 }
 
 // ListApplicationSettings gets the application settings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListApplicationSettings(ctx context.Context, resourceGroupName string, name string) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListApplicationSettings")
+		return result, validation.NewError("web.AppsClient", "ListApplicationSettings", err.Error())
 	}
 
 	req, err := client.ListApplicationSettingsPreparer(ctx, resourceGroupName, name)
@@ -12708,17 +12955,18 @@ func (client AppsClient) ListApplicationSettingsResponder(resp *http.Response) (
 }
 
 // ListApplicationSettingsSlot gets the application settings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the application settings for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the application settings
+// for the production slot.
 func (client AppsClient) ListApplicationSettingsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListApplicationSettingsSlot")
+		return result, validation.NewError("web.AppsClient", "ListApplicationSettingsSlot", err.Error())
 	}
 
 	req, err := client.ListApplicationSettingsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -12785,15 +13033,16 @@ func (client AppsClient) ListApplicationSettingsSlotResponder(resp *http.Respons
 }
 
 // ListBackups gets existing backups of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListBackups(ctx context.Context, resourceGroupName string, name string) (result BackupItemCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListBackups")
+		return result, validation.NewError("web.AppsClient", "ListBackups", err.Error())
 	}
 
 	result.fn = client.listBackupsNextResults
@@ -12887,16 +13136,18 @@ func (client AppsClient) ListBackupsComplete(ctx context.Context, resourceGroupN
 }
 
 // ListBackupsSlot gets existing backups of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get backups of the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get backups of the production
+// slot.
 func (client AppsClient) ListBackupsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result BackupItemCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListBackupsSlot")
+		return result, validation.NewError("web.AppsClient", "ListBackupsSlot", err.Error())
 	}
 
 	result.fn = client.listBackupsSlotNextResults
@@ -12993,9 +13244,11 @@ func (client AppsClient) ListBackupsSlotComplete(ctx context.Context, resourceGr
 // ListBackupStatusSecrets gets status of a web app backup that may be in progress, including secrets associated with
 // the backup, such as the Azure Storage SAS URL. Also can be used to update the SAS URL for the backup if a new URL is
 // passed in the request body.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. backupID is
-// ID of backup. request is information on backup request.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// backupID - ID of backup.
+// request - information on backup request.
 func (client AppsClient) ListBackupStatusSecrets(ctx context.Context, resourceGroupName string, name string, backupID string, request BackupRequest) (result BackupItem, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -13012,7 +13265,7 @@ func (client AppsClient) ListBackupStatusSecrets(ctx context.Context, resourceGr
 							{Target: "request.BackupRequestProperties.BackupSchedule.RetentionPeriodInDays", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListBackupStatusSecrets")
+		return result, validation.NewError("web.AppsClient", "ListBackupStatusSecrets", err.Error())
 	}
 
 	req, err := client.ListBackupStatusSecretsPreparer(ctx, resourceGroupName, name, backupID, request)
@@ -13051,7 +13304,7 @@ func (client AppsClient) ListBackupStatusSecretsPreparer(ctx context.Context, re
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/backups/{backupId}/list", pathParameters),
@@ -13083,10 +13336,12 @@ func (client AppsClient) ListBackupStatusSecretsResponder(resp *http.Response) (
 // ListBackupStatusSecretsSlot gets status of a web app backup that may be in progress, including secrets associated
 // with the backup, such as the Azure Storage SAS URL. Also can be used to update the SAS URL for the backup if a new
 // URL is passed in the request body.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. backupID is
-// ID of backup. request is information on backup request. slot is name of web app slot. If not specified then will
-// default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// backupID - ID of backup.
+// request - information on backup request.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) ListBackupStatusSecretsSlot(ctx context.Context, resourceGroupName string, name string, backupID string, request BackupRequest, slot string) (result BackupItem, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -13103,7 +13358,7 @@ func (client AppsClient) ListBackupStatusSecretsSlot(ctx context.Context, resour
 							{Target: "request.BackupRequestProperties.BackupSchedule.RetentionPeriodInDays", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListBackupStatusSecretsSlot")
+		return result, validation.NewError("web.AppsClient", "ListBackupStatusSecretsSlot", err.Error())
 	}
 
 	req, err := client.ListBackupStatusSecretsSlotPreparer(ctx, resourceGroupName, name, backupID, request, slot)
@@ -13143,7 +13398,7 @@ func (client AppsClient) ListBackupStatusSecretsSlotPreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/backups/{backupId}/list", pathParameters),
@@ -13173,17 +13428,17 @@ func (client AppsClient) ListBackupStatusSecretsSlotResponder(resp *http.Respons
 }
 
 // ListByResourceGroup gets all web, mobile, and API apps in the specified resource group.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. includeSlots is specify
-// <strong>true</strong> to include deployment slots in results. The default is false, which only gives you the
-// production slot of all apps.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// includeSlots - specify <strong>true</strong> to include deployment slots in results. The default is false,
+// which only gives you the production slot of all apps.
 func (client AppsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, includeSlots *bool) (result AppCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListByResourceGroup")
+		return result, validation.NewError("web.AppsClient", "ListByResourceGroup", err.Error())
 	}
 
 	result.fn = client.listByResourceGroupNextResults
@@ -13279,15 +13534,16 @@ func (client AppsClient) ListByResourceGroupComplete(ctx context.Context, resour
 }
 
 // ListConfigurations list the configurations of an app
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListConfigurations(ctx context.Context, resourceGroupName string, name string) (result SiteConfigResourceCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListConfigurations")
+		return result, validation.NewError("web.AppsClient", "ListConfigurations", err.Error())
 	}
 
 	result.fn = client.listConfigurationsNextResults
@@ -13382,15 +13638,16 @@ func (client AppsClient) ListConfigurationsComplete(ctx context.Context, resourc
 
 // ListConfigurationSnapshotInfo gets a list of web app configuration snapshots identifiers. Each element of the list
 // contains a timestamp and the ID of the snapshot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListConfigurationSnapshotInfo(ctx context.Context, resourceGroupName string, name string) (result SiteConfigurationSnapshotInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListConfigurationSnapshotInfo")
+		return result, validation.NewError("web.AppsClient", "ListConfigurationSnapshotInfo", err.Error())
 	}
 
 	result.fn = client.listConfigurationSnapshotInfoNextResults
@@ -13485,16 +13742,18 @@ func (client AppsClient) ListConfigurationSnapshotInfoComplete(ctx context.Conte
 
 // ListConfigurationSnapshotInfoSlot gets a list of web app configuration snapshots identifiers. Each element of the
 // list contains a timestamp and the ID of the snapshot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will return configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will return configuration for the
+// production slot.
 func (client AppsClient) ListConfigurationSnapshotInfoSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteConfigurationSnapshotInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListConfigurationSnapshotInfoSlot")
+		return result, validation.NewError("web.AppsClient", "ListConfigurationSnapshotInfoSlot", err.Error())
 	}
 
 	result.fn = client.listConfigurationSnapshotInfoSlotNextResults
@@ -13589,16 +13848,18 @@ func (client AppsClient) ListConfigurationSnapshotInfoSlotComplete(ctx context.C
 }
 
 // ListConfigurationsSlot list the configurations of an app
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will return configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will return configuration for the
+// production slot.
 func (client AppsClient) ListConfigurationsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteConfigResourceCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListConfigurationsSlot")
+		return result, validation.NewError("web.AppsClient", "ListConfigurationsSlot", err.Error())
 	}
 
 	result.fn = client.listConfigurationsSlotNextResults
@@ -13693,15 +13954,16 @@ func (client AppsClient) ListConfigurationsSlotComplete(ctx context.Context, res
 }
 
 // ListConnectionStrings gets the connection strings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListConnectionStrings(ctx context.Context, resourceGroupName string, name string) (result ConnectionStringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListConnectionStrings")
+		return result, validation.NewError("web.AppsClient", "ListConnectionStrings", err.Error())
 	}
 
 	req, err := client.ListConnectionStringsPreparer(ctx, resourceGroupName, name)
@@ -13767,17 +14029,18 @@ func (client AppsClient) ListConnectionStringsResponder(resp *http.Response) (re
 }
 
 // ListConnectionStringsSlot gets the connection strings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the connection settings for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the connection settings for
+// the production slot.
 func (client AppsClient) ListConnectionStringsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ConnectionStringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListConnectionStringsSlot")
+		return result, validation.NewError("web.AppsClient", "ListConnectionStringsSlot", err.Error())
 	}
 
 	req, err := client.ListConnectionStringsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -13844,15 +14107,16 @@ func (client AppsClient) ListConnectionStringsSlotResponder(resp *http.Response)
 }
 
 // ListContinuousWebJobs list continuous web jobs for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
 func (client AppsClient) ListContinuousWebJobs(ctx context.Context, resourceGroupName string, name string) (result ContinuousWebJobCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListContinuousWebJobs")
+		return result, validation.NewError("web.AppsClient", "ListContinuousWebJobs", err.Error())
 	}
 
 	result.fn = client.listContinuousWebJobsNextResults
@@ -13946,16 +14210,18 @@ func (client AppsClient) ListContinuousWebJobsComplete(ctx context.Context, reso
 }
 
 // ListContinuousWebJobsSlot list continuous web jobs for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. slot is name of
-// the deployment slot. If a slot is not specified, the API deletes a deployment for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) ListContinuousWebJobsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ContinuousWebJobCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListContinuousWebJobsSlot")
+		return result, validation.NewError("web.AppsClient", "ListContinuousWebJobsSlot", err.Error())
 	}
 
 	result.fn = client.listContinuousWebJobsSlotNextResults
@@ -14050,9 +14316,10 @@ func (client AppsClient) ListContinuousWebJobsSlotComplete(ctx context.Context, 
 }
 
 // ListDeploymentLog list deployment log for specific deployment for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is the ID
-// of a specific deployment. This is the value of the name property in the JSON response from "GET
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - the ID of a specific deployment. This is the value of the name property in the JSON response from "GET
 // /api/sites/{siteName}/deployments".
 func (client AppsClient) ListDeploymentLog(ctx context.Context, resourceGroupName string, name string, ID string) (result Deployment, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -14060,7 +14327,7 @@ func (client AppsClient) ListDeploymentLog(ctx context.Context, resourceGroupNam
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListDeploymentLog")
+		return result, validation.NewError("web.AppsClient", "ListDeploymentLog", err.Error())
 	}
 
 	req, err := client.ListDeploymentLogPreparer(ctx, resourceGroupName, name, ID)
@@ -14127,18 +14394,20 @@ func (client AppsClient) ListDeploymentLogResponder(resp *http.Response) (result
 }
 
 // ListDeploymentLogSlot list deployment log for specific deployment for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. ID is the ID
-// of a specific deployment. This is the value of the name property in the JSON response from "GET
-// /api/sites/{siteName}/deployments". slot is name of the deployment slot. If a slot is not specified, the API returns
-// deployments for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// ID - the ID of a specific deployment. This is the value of the name property in the JSON response from "GET
+// /api/sites/{siteName}/deployments".
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) ListDeploymentLogSlot(ctx context.Context, resourceGroupName string, name string, ID string, slot string) (result Deployment, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListDeploymentLogSlot")
+		return result, validation.NewError("web.AppsClient", "ListDeploymentLogSlot", err.Error())
 	}
 
 	req, err := client.ListDeploymentLogSlotPreparer(ctx, resourceGroupName, name, ID, slot)
@@ -14206,15 +14475,16 @@ func (client AppsClient) ListDeploymentLogSlotResponder(resp *http.Response) (re
 }
 
 // ListDeployments list deployments for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListDeployments(ctx context.Context, resourceGroupName string, name string) (result DeploymentCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListDeployments")
+		return result, validation.NewError("web.AppsClient", "ListDeployments", err.Error())
 	}
 
 	result.fn = client.listDeploymentsNextResults
@@ -14308,16 +14578,18 @@ func (client AppsClient) ListDeploymentsComplete(ctx context.Context, resourceGr
 }
 
 // ListDeploymentsSlot list deployments for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API returns deployments for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) ListDeploymentsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result DeploymentCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListDeploymentsSlot")
+		return result, validation.NewError("web.AppsClient", "ListDeploymentsSlot", err.Error())
 	}
 
 	result.fn = client.listDeploymentsSlotNextResults
@@ -14412,15 +14684,16 @@ func (client AppsClient) ListDeploymentsSlotComplete(ctx context.Context, resour
 }
 
 // ListDomainOwnershipIdentifiers lists ownership identifiers for domain associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListDomainOwnershipIdentifiers(ctx context.Context, resourceGroupName string, name string) (result IdentifierCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListDomainOwnershipIdentifiers")
+		return result, validation.NewError("web.AppsClient", "ListDomainOwnershipIdentifiers", err.Error())
 	}
 
 	result.fn = client.listDomainOwnershipIdentifiersNextResults
@@ -14514,16 +14787,18 @@ func (client AppsClient) ListDomainOwnershipIdentifiersComplete(ctx context.Cont
 }
 
 // ListDomainOwnershipIdentifiersSlot lists ownership identifiers for domain associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will delete the binding for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the binding for the
+// production slot.
 func (client AppsClient) ListDomainOwnershipIdentifiersSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result IdentifierCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListDomainOwnershipIdentifiersSlot")
+		return result, validation.NewError("web.AppsClient", "ListDomainOwnershipIdentifiersSlot", err.Error())
 	}
 
 	result.fn = client.listDomainOwnershipIdentifiersSlotNextResults
@@ -14618,15 +14893,16 @@ func (client AppsClient) ListDomainOwnershipIdentifiersSlotComplete(ctx context.
 }
 
 // ListFunctions list the functions for a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
 func (client AppsClient) ListFunctions(ctx context.Context, resourceGroupName string, name string) (result FunctionEnvelopeCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListFunctions")
+		return result, validation.NewError("web.AppsClient", "ListFunctions", err.Error())
 	}
 
 	result.fn = client.listFunctionsNextResults
@@ -14720,16 +14996,17 @@ func (client AppsClient) ListFunctionsComplete(ctx context.Context, resourceGrou
 }
 
 // ListFunctionSecrets get function secrets for a function in a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
 func (client AppsClient) ListFunctionSecrets(ctx context.Context, resourceGroupName string, name string, functionName string) (result FunctionSecrets, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListFunctionSecrets")
+		return result, validation.NewError("web.AppsClient", "ListFunctionSecrets", err.Error())
 	}
 
 	req, err := client.ListFunctionSecretsPreparer(ctx, resourceGroupName, name, functionName)
@@ -14796,9 +15073,11 @@ func (client AppsClient) ListFunctionSecretsResponder(resp *http.Response) (resu
 }
 
 // ListFunctionSecretsSlot get function secrets for a function in a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. functionName is
-// function name. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// functionName - function name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) ListFunctionSecretsSlot(ctx context.Context, resourceGroupName string, name string, functionName string, slot string) (result FunctionSecrets, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -14806,7 +15085,7 @@ func (client AppsClient) ListFunctionSecretsSlot(ctx context.Context, resourceGr
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListFunctionSecretsSlot")
+		return result, validation.NewError("web.AppsClient", "ListFunctionSecretsSlot", err.Error())
 	}
 
 	req, err := client.ListFunctionSecretsSlotPreparer(ctx, resourceGroupName, name, functionName, slot)
@@ -14874,15 +15153,16 @@ func (client AppsClient) ListFunctionSecretsSlotResponder(resp *http.Response) (
 }
 
 // ListHostNameBindings get hostname bindings for an app or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListHostNameBindings(ctx context.Context, resourceGroupName string, name string) (result HostNameBindingCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListHostNameBindings")
+		return result, validation.NewError("web.AppsClient", "ListHostNameBindings", err.Error())
 	}
 
 	result.fn = client.listHostNameBindingsNextResults
@@ -14976,16 +15256,18 @@ func (client AppsClient) ListHostNameBindingsComplete(ctx context.Context, resou
 }
 
 // ListHostNameBindingsSlot get hostname bindings for an app or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API gets hostname bindings for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API gets hostname bindings for the
+// production slot.
 func (client AppsClient) ListHostNameBindingsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result HostNameBindingCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListHostNameBindingsSlot")
+		return result, validation.NewError("web.AppsClient", "ListHostNameBindingsSlot", err.Error())
 	}
 
 	result.fn = client.listHostNameBindingsSlotNextResults
@@ -15080,16 +15362,18 @@ func (client AppsClient) ListHostNameBindingsSlotComplete(ctx context.Context, r
 }
 
 // ListHybridConnectionKeys gets the send key name and value for a Hybrid Connection.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
 func (client AppsClient) ListHybridConnectionKeys(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string) (result HybridConnectionKey, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListHybridConnectionKeys")
+		return result, validation.NewError("web.AppsClient", "ListHybridConnectionKeys", err.Error())
 	}
 
 	req, err := client.ListHybridConnectionKeysPreparer(ctx, resourceGroupName, name, namespaceName, relayName)
@@ -15157,17 +15441,19 @@ func (client AppsClient) ListHybridConnectionKeysResponder(resp *http.Response) 
 }
 
 // ListHybridConnectionKeysSlot gets the send key name and value for a Hybrid Connection.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
-// slot is the name of the slot for the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
+// slot - the name of the slot for the web app.
 func (client AppsClient) ListHybridConnectionKeysSlot(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string, slot string) (result HybridConnectionKey, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListHybridConnectionKeysSlot")
+		return result, validation.NewError("web.AppsClient", "ListHybridConnectionKeysSlot", err.Error())
 	}
 
 	req, err := client.ListHybridConnectionKeysSlotPreparer(ctx, resourceGroupName, name, namespaceName, relayName, slot)
@@ -15236,15 +15522,16 @@ func (client AppsClient) ListHybridConnectionKeysSlotResponder(resp *http.Respon
 }
 
 // ListHybridConnections retrieves all Service Bus Hybrid Connections used by this Web App.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
 func (client AppsClient) ListHybridConnections(ctx context.Context, resourceGroupName string, name string) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListHybridConnections")
+		return result, validation.NewError("web.AppsClient", "ListHybridConnections", err.Error())
 	}
 
 	req, err := client.ListHybridConnectionsPreparer(ctx, resourceGroupName, name)
@@ -15310,16 +15597,17 @@ func (client AppsClient) ListHybridConnectionsResponder(resp *http.Response) (re
 }
 
 // ListHybridConnectionsSlot retrieves all Service Bus Hybrid Connections used by this Web App.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app. slot
-// is the name of the slot for the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// slot - the name of the slot for the web app.
 func (client AppsClient) ListHybridConnectionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListHybridConnectionsSlot")
+		return result, validation.NewError("web.AppsClient", "ListHybridConnectionsSlot", err.Error())
 	}
 
 	req, err := client.ListHybridConnectionsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -15386,16 +15674,18 @@ func (client AppsClient) ListHybridConnectionsSlotResponder(resp *http.Response)
 }
 
 // ListInstanceFunctionsSlot list the functions for a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. slot is name of
-// the deployment slot. If a slot is not specified, the API deletes a deployment for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) ListInstanceFunctionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result FunctionEnvelopeCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceFunctionsSlot")
+		return result, validation.NewError("web.AppsClient", "ListInstanceFunctionsSlot", err.Error())
 	}
 
 	result.fn = client.listInstanceFunctionsSlotNextResults
@@ -15490,15 +15780,16 @@ func (client AppsClient) ListInstanceFunctionsSlotComplete(ctx context.Context, 
 }
 
 // ListInstanceIdentifiers gets all scale-out instances of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListInstanceIdentifiers(ctx context.Context, resourceGroupName string, name string) (result AppInstanceCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceIdentifiers")
+		return result, validation.NewError("web.AppsClient", "ListInstanceIdentifiers", err.Error())
 	}
 
 	result.fn = client.listInstanceIdentifiersNextResults
@@ -15592,16 +15883,17 @@ func (client AppsClient) ListInstanceIdentifiersComplete(ctx context.Context, re
 }
 
 // ListInstanceIdentifiersSlot gets all scale-out instances of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API gets the production slot instances.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API gets the production slot instances.
 func (client AppsClient) ListInstanceIdentifiersSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result AppInstanceCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceIdentifiersSlot")
+		return result, validation.NewError("web.AppsClient", "ListInstanceIdentifiersSlot", err.Error())
 	}
 
 	result.fn = client.listInstanceIdentifiersSlotNextResults
@@ -15697,17 +15989,18 @@ func (client AppsClient) ListInstanceIdentifiersSlotComplete(ctx context.Context
 
 // ListInstanceProcesses get list of processes for a web site, or a deployment slot, or for a specific scaled-out
 // instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. instanceID is ID
-// of a specific scaled-out instance. This is the value of the name property in the JSON response from "GET
-// api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) ListInstanceProcesses(ctx context.Context, resourceGroupName string, name string, instanceID string) (result ProcessInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceProcesses")
+		return result, validation.NewError("web.AppsClient", "ListInstanceProcesses", err.Error())
 	}
 
 	result.fn = client.listInstanceProcessesNextResults
@@ -15803,18 +16096,20 @@ func (client AppsClient) ListInstanceProcessesComplete(ctx context.Context, reso
 
 // ListInstanceProcessesSlot get list of processes for a web site, or a deployment slot, or for a specific scaled-out
 // instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. slot is name of
-// the deployment slot. If a slot is not specified, the API returns deployments for the production slot. instanceID is
-// ID of a specific scaled-out instance. This is the value of the name property in the JSON response from "GET
-// api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) ListInstanceProcessesSlot(ctx context.Context, resourceGroupName string, name string, slot string, instanceID string) (result ProcessInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceProcessesSlot")
+		return result, validation.NewError("web.AppsClient", "ListInstanceProcessesSlot", err.Error())
 	}
 
 	result.fn = client.listInstanceProcessesSlotNextResults
@@ -15911,17 +16206,19 @@ func (client AppsClient) ListInstanceProcessesSlotComplete(ctx context.Context, 
 
 // ListInstanceProcessModules list module information for a process by its ID for a specific scaled-out instance in a
 // web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON response from
-// "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) ListInstanceProcessModules(ctx context.Context, resourceGroupName string, name string, processID string, instanceID string) (result ProcessModuleInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceProcessModules")
+		return result, validation.NewError("web.AppsClient", "ListInstanceProcessModules", err.Error())
 	}
 
 	result.fn = client.listInstanceProcessModulesNextResults
@@ -16018,10 +16315,13 @@ func (client AppsClient) ListInstanceProcessModulesComplete(ctx context.Context,
 
 // ListInstanceProcessModulesSlot list module information for a process by its ID for a specific scaled-out instance in
 // a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot. instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
 // response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) ListInstanceProcessModulesSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string, instanceID string) (result ProcessModuleInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -16029,7 +16329,7 @@ func (client AppsClient) ListInstanceProcessModulesSlot(ctx context.Context, res
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceProcessModulesSlot")
+		return result, validation.NewError("web.AppsClient", "ListInstanceProcessModulesSlot", err.Error())
 	}
 
 	result.fn = client.listInstanceProcessModulesSlotNextResults
@@ -16126,17 +16426,19 @@ func (client AppsClient) ListInstanceProcessModulesSlotComplete(ctx context.Cont
 }
 
 // ListInstanceProcessThreads list the threads in a process by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON response from
-// "GET api/sites/{siteName}/instances".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) ListInstanceProcessThreads(ctx context.Context, resourceGroupName string, name string, processID string, instanceID string) (result ProcessThreadInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceProcessThreads")
+		return result, validation.NewError("web.AppsClient", "ListInstanceProcessThreads", err.Error())
 	}
 
 	result.fn = client.listInstanceProcessThreadsNextResults
@@ -16233,10 +16535,13 @@ func (client AppsClient) ListInstanceProcessThreadsComplete(ctx context.Context,
 
 // ListInstanceProcessThreadsSlot list the threads in a process by its ID for a specific scaled-out instance in a web
 // site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot. instanceID is ID of a specific scaled-out instance. This is the value of the name property in the JSON
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
+// instanceID - ID of a specific scaled-out instance. This is the value of the name property in the JSON
 // response from "GET api/sites/{siteName}/instances".
 func (client AppsClient) ListInstanceProcessThreadsSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string, instanceID string) (result ProcessThreadInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -16244,7 +16549,7 @@ func (client AppsClient) ListInstanceProcessThreadsSlot(ctx context.Context, res
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListInstanceProcessThreadsSlot")
+		return result, validation.NewError("web.AppsClient", "ListInstanceProcessThreadsSlot", err.Error())
 	}
 
 	result.fn = client.listInstanceProcessThreadsSlotNextResults
@@ -16341,15 +16646,16 @@ func (client AppsClient) ListInstanceProcessThreadsSlotComplete(ctx context.Cont
 }
 
 // ListMetadata gets the metadata of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListMetadata(ctx context.Context, resourceGroupName string, name string) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListMetadata")
+		return result, validation.NewError("web.AppsClient", "ListMetadata", err.Error())
 	}
 
 	req, err := client.ListMetadataPreparer(ctx, resourceGroupName, name)
@@ -16415,16 +16721,18 @@ func (client AppsClient) ListMetadataResponder(resp *http.Response) (result Stri
 }
 
 // ListMetadataSlot gets the metadata of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the metadata for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the metadata for the
+// production slot.
 func (client AppsClient) ListMetadataSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListMetadataSlot")
+		return result, validation.NewError("web.AppsClient", "ListMetadataSlot", err.Error())
 	}
 
 	req, err := client.ListMetadataSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -16491,15 +16799,16 @@ func (client AppsClient) ListMetadataSlotResponder(resp *http.Response) (result 
 }
 
 // ListMetricDefinitions gets all metric definitions of an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListMetricDefinitions(ctx context.Context, resourceGroupName string, name string) (result ResourceMetricDefinitionCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListMetricDefinitions")
+		return result, validation.NewError("web.AppsClient", "ListMetricDefinitions", err.Error())
 	}
 
 	result.fn = client.listMetricDefinitionsNextResults
@@ -16593,16 +16902,18 @@ func (client AppsClient) ListMetricDefinitionsComplete(ctx context.Context, reso
 }
 
 // ListMetricDefinitionsSlot gets all metric definitions of an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get metric definitions of the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get metric definitions of the
+// production slot.
 func (client AppsClient) ListMetricDefinitionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ResourceMetricDefinitionCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListMetricDefinitionsSlot")
+		return result, validation.NewError("web.AppsClient", "ListMetricDefinitionsSlot", err.Error())
 	}
 
 	result.fn = client.listMetricDefinitionsSlotNextResults
@@ -16697,19 +17008,20 @@ func (client AppsClient) ListMetricDefinitionsSlotComplete(ctx context.Context, 
 }
 
 // ListMetrics gets performance metrics of an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. details is
-// specify "true" to include metric details in the response. It is "false" by default. filter is return only metrics
-// specified in the filter (using OData syntax). For example: $filter=(name.value eq 'Metric1' or name.value eq
-// 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z' and timeGrain eq
-// duration'[Hour|Minute|Day]'.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// details - specify "true" to include metric details in the response. It is "false" by default.
+// filter - return only metrics specified in the filter (using OData syntax). For example: $filter=(name.value
+// eq 'Metric1' or name.value eq 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and endTime eq
+// '2014-12-31T23:59:59Z' and timeGrain eq duration'[Hour|Minute|Day]'.
 func (client AppsClient) ListMetrics(ctx context.Context, resourceGroupName string, name string, details *bool, filter string) (result ResourceMetricCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListMetrics")
+		return result, validation.NewError("web.AppsClient", "ListMetrics", err.Error())
 	}
 
 	result.fn = client.listMetricsNextResults
@@ -16809,20 +17121,22 @@ func (client AppsClient) ListMetricsComplete(ctx context.Context, resourceGroupN
 }
 
 // ListMetricsSlot gets performance metrics of an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get metrics of the production slot. details is
-// specify "true" to include metric details in the response. It is "false" by default. filter is return only metrics
-// specified in the filter (using OData syntax). For example: $filter=(name.value eq 'Metric1' or name.value eq
-// 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z' and timeGrain eq
-// duration'[Hour|Minute|Day]'.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get metrics of the production
+// slot.
+// details - specify "true" to include metric details in the response. It is "false" by default.
+// filter - return only metrics specified in the filter (using OData syntax). For example: $filter=(name.value
+// eq 'Metric1' or name.value eq 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and endTime eq
+// '2014-12-31T23:59:59Z' and timeGrain eq duration'[Hour|Minute|Day]'.
 func (client AppsClient) ListMetricsSlot(ctx context.Context, resourceGroupName string, name string, slot string, details *bool, filter string) (result ResourceMetricCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListMetricsSlot")
+		return result, validation.NewError("web.AppsClient", "ListMetricsSlot", err.Error())
 	}
 
 	result.fn = client.listMetricsSlotNextResults
@@ -16923,16 +17237,17 @@ func (client AppsClient) ListMetricsSlotComplete(ctx context.Context, resourceGr
 }
 
 // ListNetworkFeatures gets all network features used by the app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. view is the
-// type of view. This can either be "summary" or "detailed".
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// view - the type of view. This can either be "summary" or "detailed".
 func (client AppsClient) ListNetworkFeatures(ctx context.Context, resourceGroupName string, name string, view string) (result NetworkFeatures, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListNetworkFeatures")
+		return result, validation.NewError("web.AppsClient", "ListNetworkFeatures", err.Error())
 	}
 
 	req, err := client.ListNetworkFeaturesPreparer(ctx, resourceGroupName, name, view)
@@ -16999,17 +17314,19 @@ func (client AppsClient) ListNetworkFeaturesResponder(resp *http.Response) (resu
 }
 
 // ListNetworkFeaturesSlot gets all network features used by the app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. view is the
-// type of view. This can either be "summary" or "detailed". slot is name of the deployment slot. If a slot is not
-// specified, the API will get network features for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// view - the type of view. This can either be "summary" or "detailed".
+// slot - name of the deployment slot. If a slot is not specified, the API will get network features for the
+// production slot.
 func (client AppsClient) ListNetworkFeaturesSlot(ctx context.Context, resourceGroupName string, name string, view string, slot string) (result NetworkFeatures, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListNetworkFeaturesSlot")
+		return result, validation.NewError("web.AppsClient", "ListNetworkFeaturesSlot", err.Error())
 	}
 
 	req, err := client.ListNetworkFeaturesSlotPreparer(ctx, resourceGroupName, name, view, slot)
@@ -17077,17 +17394,19 @@ func (client AppsClient) ListNetworkFeaturesSlotResponder(resp *http.Response) (
 }
 
 // ListPerfMonCounters gets perfmon counters for web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. filter is
-// return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example: $filter=(startTime eq
-// '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z' and timeGrain eq duration'[Hour|Minute|Day]'.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// filter - return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example:
+// $filter=(startTime eq '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z' and timeGrain eq
+// duration'[Hour|Minute|Day]'.
 func (client AppsClient) ListPerfMonCounters(ctx context.Context, resourceGroupName string, name string, filter string) (result PerfMonCounterCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPerfMonCounters")
+		return result, validation.NewError("web.AppsClient", "ListPerfMonCounters", err.Error())
 	}
 
 	result.fn = client.listPerfMonCountersNextResults
@@ -17184,18 +17503,20 @@ func (client AppsClient) ListPerfMonCountersComplete(ctx context.Context, resour
 }
 
 // ListPerfMonCountersSlot gets perfmon counters for web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot. filter is return only usages/metrics
-// specified in the filter. Filter conforms to odata syntax. Example: $filter=(startTime eq '2014-01-01T00:00:00Z' and
-// endTime eq '2014-12-31T23:59:59Z' and timeGrain eq duration'[Hour|Minute|Day]'.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
+// filter - return only usages/metrics specified in the filter. Filter conforms to odata syntax. Example:
+// $filter=(startTime eq '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z' and timeGrain eq
+// duration'[Hour|Minute|Day]'.
 func (client AppsClient) ListPerfMonCountersSlot(ctx context.Context, resourceGroupName string, name string, slot string, filter string) (result PerfMonCounterCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPerfMonCountersSlot")
+		return result, validation.NewError("web.AppsClient", "ListPerfMonCountersSlot", err.Error())
 	}
 
 	result.fn = client.listPerfMonCountersSlotNextResults
@@ -17293,15 +17614,16 @@ func (client AppsClient) ListPerfMonCountersSlotComplete(ctx context.Context, re
 }
 
 // ListPremierAddOns gets the premier add-ons of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListPremierAddOns(ctx context.Context, resourceGroupName string, name string) (result PremierAddOn, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPremierAddOns")
+		return result, validation.NewError("web.AppsClient", "ListPremierAddOns", err.Error())
 	}
 
 	req, err := client.ListPremierAddOnsPreparer(ctx, resourceGroupName, name)
@@ -17367,16 +17689,18 @@ func (client AppsClient) ListPremierAddOnsResponder(resp *http.Response) (result
 }
 
 // ListPremierAddOnsSlot gets the premier add-ons of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the premier add-ons for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the premier add-ons for the
+// production slot.
 func (client AppsClient) ListPremierAddOnsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result PremierAddOn, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPremierAddOnsSlot")
+		return result, validation.NewError("web.AppsClient", "ListPremierAddOnsSlot", err.Error())
 	}
 
 	req, err := client.ListPremierAddOnsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -17444,15 +17768,16 @@ func (client AppsClient) ListPremierAddOnsSlotResponder(resp *http.Response) (re
 
 // ListProcesses get list of processes for a web site, or a deployment slot, or for a specific scaled-out instance in a
 // web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
 func (client AppsClient) ListProcesses(ctx context.Context, resourceGroupName string, name string) (result ProcessInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListProcesses")
+		return result, validation.NewError("web.AppsClient", "ListProcesses", err.Error())
 	}
 
 	result.fn = client.listProcessesNextResults
@@ -17547,16 +17872,18 @@ func (client AppsClient) ListProcessesComplete(ctx context.Context, resourceGrou
 
 // ListProcessesSlot get list of processes for a web site, or a deployment slot, or for a specific scaled-out instance
 // in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. slot is name of
-// the deployment slot. If a slot is not specified, the API returns deployments for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) ListProcessesSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ProcessInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListProcessesSlot")
+		return result, validation.NewError("web.AppsClient", "ListProcessesSlot", err.Error())
 	}
 
 	result.fn = client.listProcessesSlotNextResults
@@ -17651,15 +17978,17 @@ func (client AppsClient) ListProcessesSlotComplete(ctx context.Context, resource
 }
 
 // ListProcessModules list module information for a process by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
 func (client AppsClient) ListProcessModules(ctx context.Context, resourceGroupName string, name string, processID string) (result ProcessModuleInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListProcessModules")
+		return result, validation.NewError("web.AppsClient", "ListProcessModules", err.Error())
 	}
 
 	result.fn = client.listProcessModulesNextResults
@@ -17755,17 +18084,19 @@ func (client AppsClient) ListProcessModulesComplete(ctx context.Context, resourc
 
 // ListProcessModulesSlot list module information for a process by its ID for a specific scaled-out instance in a web
 // site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) ListProcessModulesSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string) (result ProcessModuleInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListProcessModulesSlot")
+		return result, validation.NewError("web.AppsClient", "ListProcessModulesSlot", err.Error())
 	}
 
 	result.fn = client.listProcessModulesSlotNextResults
@@ -17861,15 +18192,17 @@ func (client AppsClient) ListProcessModulesSlotComplete(ctx context.Context, res
 }
 
 // ListProcessThreads list the threads in a process by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
 func (client AppsClient) ListProcessThreads(ctx context.Context, resourceGroupName string, name string, processID string) (result ProcessThreadInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListProcessThreads")
+		return result, validation.NewError("web.AppsClient", "ListProcessThreads", err.Error())
 	}
 
 	result.fn = client.listProcessThreadsNextResults
@@ -17964,17 +18297,19 @@ func (client AppsClient) ListProcessThreadsComplete(ctx context.Context, resourc
 }
 
 // ListProcessThreadsSlot list the threads in a process by its ID for a specific scaled-out instance in a web site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. processID is pID.
-// slot is name of the deployment slot. If a slot is not specified, the API returns deployments for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// processID - pID.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) ListProcessThreadsSlot(ctx context.Context, resourceGroupName string, name string, processID string, slot string) (result ProcessThreadInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListProcessThreadsSlot")
+		return result, validation.NewError("web.AppsClient", "ListProcessThreadsSlot", err.Error())
 	}
 
 	result.fn = client.listProcessThreadsSlotNextResults
@@ -18070,15 +18405,16 @@ func (client AppsClient) ListProcessThreadsSlotComplete(ctx context.Context, res
 }
 
 // ListPublicCertificates get public certificates for an app or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListPublicCertificates(ctx context.Context, resourceGroupName string, name string) (result PublicCertificateCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPublicCertificates")
+		return result, validation.NewError("web.AppsClient", "ListPublicCertificates", err.Error())
 	}
 
 	result.fn = client.listPublicCertificatesNextResults
@@ -18172,16 +18508,18 @@ func (client AppsClient) ListPublicCertificatesComplete(ctx context.Context, res
 }
 
 // ListPublicCertificatesSlot get public certificates for an app or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API gets hostname bindings for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API gets hostname bindings for the
+// production slot.
 func (client AppsClient) ListPublicCertificatesSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result PublicCertificateCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPublicCertificatesSlot")
+		return result, validation.NewError("web.AppsClient", "ListPublicCertificatesSlot", err.Error())
 	}
 
 	result.fn = client.listPublicCertificatesSlotNextResults
@@ -18276,15 +18614,16 @@ func (client AppsClient) ListPublicCertificatesSlotComplete(ctx context.Context,
 }
 
 // ListPublishingCredentials gets the Git/FTP publishing credentials of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListPublishingCredentials(ctx context.Context, resourceGroupName string, name string) (result AppsListPublishingCredentialsFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPublishingCredentials")
+		return result, validation.NewError("web.AppsClient", "ListPublishingCredentials", err.Error())
 	}
 
 	req, err := client.ListPublishingCredentialsPreparer(ctx, resourceGroupName, name)
@@ -18352,17 +18691,18 @@ func (client AppsClient) ListPublishingCredentialsResponder(resp *http.Response)
 }
 
 // ListPublishingCredentialsSlot gets the Git/FTP publishing credentials of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get the publishing credentials for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the publishing credentials
+// for the production slot.
 func (client AppsClient) ListPublishingCredentialsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result AppsListPublishingCredentialsSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPublishingCredentialsSlot")
+		return result, validation.NewError("web.AppsClient", "ListPublishingCredentialsSlot", err.Error())
 	}
 
 	req, err := client.ListPublishingCredentialsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -18431,17 +18771,18 @@ func (client AppsClient) ListPublishingCredentialsSlotResponder(resp *http.Respo
 }
 
 // ListPublishingProfileXMLWithSecrets gets the publishing profile for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// publishingProfileOptions is specifies publishingProfileOptions for publishing profile. For example, use {"format":
-// "FileZilla3"} to get a FileZilla publishing profile.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// publishingProfileOptions - specifies publishingProfileOptions for publishing profile. For example, use
+// {"format": "FileZilla3"} to get a FileZilla publishing profile.
 func (client AppsClient) ListPublishingProfileXMLWithSecrets(ctx context.Context, resourceGroupName string, name string, publishingProfileOptions CsmPublishingProfileOptions) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPublishingProfileXMLWithSecrets")
+		return result, validation.NewError("web.AppsClient", "ListPublishingProfileXMLWithSecrets", err.Error())
 	}
 
 	req, err := client.ListPublishingProfileXMLWithSecretsPreparer(ctx, resourceGroupName, name, publishingProfileOptions)
@@ -18479,7 +18820,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsPreparer(ctx context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/publishxml", pathParameters),
@@ -18508,18 +18849,20 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsResponder(resp *http
 }
 
 // ListPublishingProfileXMLWithSecretsSlot gets the publishing profile for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// publishingProfileOptions is specifies publishingProfileOptions for publishing profile. For example, use {"format":
-// "FileZilla3"} to get a FileZilla publishing profile. slot is name of the deployment slot. If a slot is not
-// specified, the API will get the publishing profile for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// publishingProfileOptions - specifies publishingProfileOptions for publishing profile. For example, use
+// {"format": "FileZilla3"} to get a FileZilla publishing profile.
+// slot - name of the deployment slot. If a slot is not specified, the API will get the publishing profile for
+// the production slot.
 func (client AppsClient) ListPublishingProfileXMLWithSecretsSlot(ctx context.Context, resourceGroupName string, name string, publishingProfileOptions CsmPublishingProfileOptions, slot string) (result ReadCloser, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListPublishingProfileXMLWithSecretsSlot")
+		return result, validation.NewError("web.AppsClient", "ListPublishingProfileXMLWithSecretsSlot", err.Error())
 	}
 
 	req, err := client.ListPublishingProfileXMLWithSecretsSlotPreparer(ctx, resourceGroupName, name, publishingProfileOptions, slot)
@@ -18558,7 +18901,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsSlotPreparer(ctx con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/publishxml", pathParameters),
@@ -18587,15 +18930,16 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsSlotResponder(resp *
 }
 
 // ListRelayServiceConnections gets hybrid connections configured for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListRelayServiceConnections(ctx context.Context, resourceGroupName string, name string) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListRelayServiceConnections")
+		return result, validation.NewError("web.AppsClient", "ListRelayServiceConnections", err.Error())
 	}
 
 	req, err := client.ListRelayServiceConnectionsPreparer(ctx, resourceGroupName, name)
@@ -18661,16 +19005,18 @@ func (client AppsClient) ListRelayServiceConnectionsResponder(resp *http.Respons
 }
 
 // ListRelayServiceConnectionsSlot gets hybrid connections configured for an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get hybrid connections for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get hybrid connections for the
+// production slot.
 func (client AppsClient) ListRelayServiceConnectionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListRelayServiceConnectionsSlot")
+		return result, validation.NewError("web.AppsClient", "ListRelayServiceConnectionsSlot", err.Error())
 	}
 
 	req, err := client.ListRelayServiceConnectionsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -18737,15 +19083,16 @@ func (client AppsClient) ListRelayServiceConnectionsSlotResponder(resp *http.Res
 }
 
 // ListSiteExtensions get list of siteextensions for a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
 func (client AppsClient) ListSiteExtensions(ctx context.Context, resourceGroupName string, name string) (result SiteExtensionInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSiteExtensions")
+		return result, validation.NewError("web.AppsClient", "ListSiteExtensions", err.Error())
 	}
 
 	result.fn = client.listSiteExtensionsNextResults
@@ -18839,16 +19186,18 @@ func (client AppsClient) ListSiteExtensionsComplete(ctx context.Context, resourc
 }
 
 // ListSiteExtensionsSlot get list of siteextensions for a web site, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. slot is name of
-// the deployment slot. If a slot is not specified, the API deletes a deployment for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) ListSiteExtensionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SiteExtensionInfoCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSiteExtensionsSlot")
+		return result, validation.NewError("web.AppsClient", "ListSiteExtensionsSlot", err.Error())
 	}
 
 	result.fn = client.listSiteExtensionsSlotNextResults
@@ -18943,15 +19292,16 @@ func (client AppsClient) ListSiteExtensionsSlotComplete(ctx context.Context, res
 }
 
 // ListSitePushSettings gets the Push settings associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) ListSitePushSettings(ctx context.Context, resourceGroupName string, name string) (result PushSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSitePushSettings")
+		return result, validation.NewError("web.AppsClient", "ListSitePushSettings", err.Error())
 	}
 
 	req, err := client.ListSitePushSettingsPreparer(ctx, resourceGroupName, name)
@@ -19017,16 +19367,17 @@ func (client AppsClient) ListSitePushSettingsResponder(resp *http.Response) (res
 }
 
 // ListSitePushSettingsSlot gets the Push settings associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) ListSitePushSettingsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result PushSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSitePushSettingsSlot")
+		return result, validation.NewError("web.AppsClient", "ListSitePushSettingsSlot", err.Error())
 	}
 
 	req, err := client.ListSitePushSettingsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -19094,15 +19445,16 @@ func (client AppsClient) ListSitePushSettingsSlotResponder(resp *http.Response) 
 
 // ListSlotConfigurationNames gets the names of app settings and connection strings that stick to the slot (not
 // swapped).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListSlotConfigurationNames(ctx context.Context, resourceGroupName string, name string) (result SlotConfigNamesResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSlotConfigurationNames")
+		return result, validation.NewError("web.AppsClient", "ListSlotConfigurationNames", err.Error())
 	}
 
 	req, err := client.ListSlotConfigurationNamesPreparer(ctx, resourceGroupName, name)
@@ -19168,9 +19520,10 @@ func (client AppsClient) ListSlotConfigurationNamesResponder(resp *http.Response
 }
 
 // ListSlotDifferencesFromProduction get the difference in configuration settings between two web app slots.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// slotSwapEntity is JSON object that contains the target slot name. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slotSwapEntity - JSON object that contains the target slot name. See example.
 func (client AppsClient) ListSlotDifferencesFromProduction(ctx context.Context, resourceGroupName string, name string, slotSwapEntity CsmSlotEntity) (result SlotDifferenceCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -19180,7 +19533,7 @@ func (client AppsClient) ListSlotDifferencesFromProduction(ctx context.Context, 
 		{TargetValue: slotSwapEntity,
 			Constraints: []validation.Constraint{{Target: "slotSwapEntity.TargetSlot", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "slotSwapEntity.PreserveVnet", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSlotDifferencesFromProduction")
+		return result, validation.NewError("web.AppsClient", "ListSlotDifferencesFromProduction", err.Error())
 	}
 
 	result.fn = client.listSlotDifferencesFromProductionNextResults
@@ -19219,7 +19572,7 @@ func (client AppsClient) ListSlotDifferencesFromProductionPreparer(ctx context.C
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slotsdiffs", pathParameters),
@@ -19276,10 +19629,11 @@ func (client AppsClient) ListSlotDifferencesFromProductionComplete(ctx context.C
 }
 
 // ListSlotDifferencesSlot get the difference in configuration settings between two web app slots.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// slotSwapEntity is JSON object that contains the target slot name. See example. slot is name of the source slot. If a
-// slot is not specified, the production slot is used as the source slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slotSwapEntity - JSON object that contains the target slot name. See example.
+// slot - name of the source slot. If a slot is not specified, the production slot is used as the source slot.
 func (client AppsClient) ListSlotDifferencesSlot(ctx context.Context, resourceGroupName string, name string, slotSwapEntity CsmSlotEntity, slot string) (result SlotDifferenceCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -19289,7 +19643,7 @@ func (client AppsClient) ListSlotDifferencesSlot(ctx context.Context, resourceGr
 		{TargetValue: slotSwapEntity,
 			Constraints: []validation.Constraint{{Target: "slotSwapEntity.TargetSlot", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "slotSwapEntity.PreserveVnet", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSlotDifferencesSlot")
+		return result, validation.NewError("web.AppsClient", "ListSlotDifferencesSlot", err.Error())
 	}
 
 	result.fn = client.listSlotDifferencesSlotNextResults
@@ -19329,7 +19683,7 @@ func (client AppsClient) ListSlotDifferencesSlotPreparer(ctx context.Context, re
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/slotsdiffs", pathParameters),
@@ -19386,15 +19740,16 @@ func (client AppsClient) ListSlotDifferencesSlotComplete(ctx context.Context, re
 }
 
 // ListSlots gets an app's deployment slots.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListSlots(ctx context.Context, resourceGroupName string, name string) (result AppCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSlots")
+		return result, validation.NewError("web.AppsClient", "ListSlots", err.Error())
 	}
 
 	result.fn = client.listSlotsNextResults
@@ -19488,15 +19843,16 @@ func (client AppsClient) ListSlotsComplete(ctx context.Context, resourceGroupNam
 }
 
 // ListSnapshots returns all Snapshots to the user.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is website Name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - website Name.
 func (client AppsClient) ListSnapshots(ctx context.Context, resourceGroupName string, name string) (result SnapshotCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSnapshots")
+		return result, validation.NewError("web.AppsClient", "ListSnapshots", err.Error())
 	}
 
 	result.fn = client.listSnapshotsNextResults
@@ -19590,16 +19946,17 @@ func (client AppsClient) ListSnapshotsComplete(ctx context.Context, resourceGrou
 }
 
 // ListSnapshotsSlot returns all Snapshots to the user.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is website Name. slot is website
-// Slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - website Name.
+// slot - website Slot.
 func (client AppsClient) ListSnapshotsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SnapshotCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSnapshotsSlot")
+		return result, validation.NewError("web.AppsClient", "ListSnapshotsSlot", err.Error())
 	}
 
 	result.fn = client.listSnapshotsSlotNextResults
@@ -19694,15 +20051,16 @@ func (client AppsClient) ListSnapshotsSlotComplete(ctx context.Context, resource
 }
 
 // ListSyncFunctionTriggers this is to allow calling via powershell and ARM template.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListSyncFunctionTriggers(ctx context.Context, resourceGroupName string, name string) (result FunctionSecrets, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSyncFunctionTriggers")
+		return result, validation.NewError("web.AppsClient", "ListSyncFunctionTriggers", err.Error())
 	}
 
 	req, err := client.ListSyncFunctionTriggersPreparer(ctx, resourceGroupName, name)
@@ -19768,16 +20126,18 @@ func (client AppsClient) ListSyncFunctionTriggersResponder(resp *http.Response) 
 }
 
 // ListSyncFunctionTriggersSlot this is to allow calling via powershell and ARM template.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will restore a backup of the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will restore a backup of the
+// production slot.
 func (client AppsClient) ListSyncFunctionTriggersSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result FunctionSecrets, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListSyncFunctionTriggersSlot")
+		return result, validation.NewError("web.AppsClient", "ListSyncFunctionTriggersSlot", err.Error())
 	}
 
 	req, err := client.ListSyncFunctionTriggersSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -19844,16 +20204,17 @@ func (client AppsClient) ListSyncFunctionTriggersSlotResponder(resp *http.Respon
 }
 
 // ListTriggeredWebJobHistory list a triggered web job's history for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) ListTriggeredWebJobHistory(ctx context.Context, resourceGroupName string, name string, webJobName string) (result TriggeredJobHistoryCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListTriggeredWebJobHistory")
+		return result, validation.NewError("web.AppsClient", "ListTriggeredWebJobHistory", err.Error())
 	}
 
 	result.fn = client.listTriggeredWebJobHistoryNextResults
@@ -19948,9 +20309,11 @@ func (client AppsClient) ListTriggeredWebJobHistoryComplete(ctx context.Context,
 }
 
 // ListTriggeredWebJobHistorySlot list a triggered web job's history for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) ListTriggeredWebJobHistorySlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result TriggeredJobHistoryCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -19958,7 +20321,7 @@ func (client AppsClient) ListTriggeredWebJobHistorySlot(ctx context.Context, res
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListTriggeredWebJobHistorySlot")
+		return result, validation.NewError("web.AppsClient", "ListTriggeredWebJobHistorySlot", err.Error())
 	}
 
 	result.fn = client.listTriggeredWebJobHistorySlotNextResults
@@ -20054,15 +20417,16 @@ func (client AppsClient) ListTriggeredWebJobHistorySlotComplete(ctx context.Cont
 }
 
 // ListTriggeredWebJobs list triggered web jobs for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
 func (client AppsClient) ListTriggeredWebJobs(ctx context.Context, resourceGroupName string, name string) (result TriggeredWebJobCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListTriggeredWebJobs")
+		return result, validation.NewError("web.AppsClient", "ListTriggeredWebJobs", err.Error())
 	}
 
 	result.fn = client.listTriggeredWebJobsNextResults
@@ -20156,16 +20520,18 @@ func (client AppsClient) ListTriggeredWebJobsComplete(ctx context.Context, resou
 }
 
 // ListTriggeredWebJobsSlot list triggered web jobs for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. slot is name of
-// the deployment slot. If a slot is not specified, the API deletes a deployment for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// production slot.
 func (client AppsClient) ListTriggeredWebJobsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result TriggeredWebJobCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListTriggeredWebJobsSlot")
+		return result, validation.NewError("web.AppsClient", "ListTriggeredWebJobsSlot", err.Error())
 	}
 
 	result.fn = client.listTriggeredWebJobsSlotNextResults
@@ -20260,18 +20626,19 @@ func (client AppsClient) ListTriggeredWebJobsSlotComplete(ctx context.Context, r
 }
 
 // ListUsages gets the quota usage information of an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. filter is
-// return only information specified in the filter (using OData syntax). For example: $filter=(name.value eq 'Metric1'
-// or name.value eq 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z' and
-// timeGrain eq duration'[Hour|Minute|Day]'.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// filter - return only information specified in the filter (using OData syntax). For example:
+// $filter=(name.value eq 'Metric1' or name.value eq 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and
+// endTime eq '2014-12-31T23:59:59Z' and timeGrain eq duration'[Hour|Minute|Day]'.
 func (client AppsClient) ListUsages(ctx context.Context, resourceGroupName string, name string, filter string) (result CsmUsageQuotaCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListUsages")
+		return result, validation.NewError("web.AppsClient", "ListUsages", err.Error())
 	}
 
 	result.fn = client.listUsagesNextResults
@@ -20368,19 +20735,21 @@ func (client AppsClient) ListUsagesComplete(ctx context.Context, resourceGroupNa
 }
 
 // ListUsagesSlot gets the quota usage information of an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get quota information of the production slot.
-// filter is return only information specified in the filter (using OData syntax). For example: $filter=(name.value eq
-// 'Metric1' or name.value eq 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and endTime eq '2014-12-31T23:59:59Z'
-// and timeGrain eq duration'[Hour|Minute|Day]'.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get quota information of the
+// production slot.
+// filter - return only information specified in the filter (using OData syntax). For example:
+// $filter=(name.value eq 'Metric1' or name.value eq 'Metric2') and startTime eq '2014-01-01T00:00:00Z' and
+// endTime eq '2014-12-31T23:59:59Z' and timeGrain eq duration'[Hour|Minute|Day]'.
 func (client AppsClient) ListUsagesSlot(ctx context.Context, resourceGroupName string, name string, slot string, filter string) (result CsmUsageQuotaCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListUsagesSlot")
+		return result, validation.NewError("web.AppsClient", "ListUsagesSlot", err.Error())
 	}
 
 	result.fn = client.listUsagesSlotNextResults
@@ -20478,15 +20847,16 @@ func (client AppsClient) ListUsagesSlotComplete(ctx context.Context, resourceGro
 }
 
 // ListVnetConnections gets the virtual networks the app (or deployment slot) is connected to.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ListVnetConnections(ctx context.Context, resourceGroupName string, name string) (result ListVnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListVnetConnections")
+		return result, validation.NewError("web.AppsClient", "ListVnetConnections", err.Error())
 	}
 
 	req, err := client.ListVnetConnectionsPreparer(ctx, resourceGroupName, name)
@@ -20552,17 +20922,18 @@ func (client AppsClient) ListVnetConnectionsResponder(resp *http.Response) (resu
 }
 
 // ListVnetConnectionsSlot gets the virtual networks the app (or deployment slot) is connected to.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will get virtual network connections for the production
-// slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will get virtual network connections
+// for the production slot.
 func (client AppsClient) ListVnetConnectionsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ListVnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListVnetConnectionsSlot")
+		return result, validation.NewError("web.AppsClient", "ListVnetConnectionsSlot", err.Error())
 	}
 
 	req, err := client.ListVnetConnectionsSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -20629,15 +21000,16 @@ func (client AppsClient) ListVnetConnectionsSlotResponder(resp *http.Response) (
 }
 
 // ListWebJobs list webjobs for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
 func (client AppsClient) ListWebJobs(ctx context.Context, resourceGroupName string, name string) (result JobCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListWebJobs")
+		return result, validation.NewError("web.AppsClient", "ListWebJobs", err.Error())
 	}
 
 	result.fn = client.listWebJobsNextResults
@@ -20731,16 +21103,18 @@ func (client AppsClient) ListWebJobsComplete(ctx context.Context, resourceGroupN
 }
 
 // ListWebJobsSlot list webjobs for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. slot is name of
-// the deployment slot. If a slot is not specified, the API returns deployments for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// slot - name of the deployment slot. If a slot is not specified, the API returns deployments for the
+// production slot.
 func (client AppsClient) ListWebJobsSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result JobCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ListWebJobsSlot")
+		return result, validation.NewError("web.AppsClient", "ListWebJobsSlot", err.Error())
 	}
 
 	result.fn = client.listWebJobsSlotNextResults
@@ -20835,9 +21209,10 @@ func (client AppsClient) ListWebJobsSlotComplete(ctx context.Context, resourceGr
 }
 
 // MigrateMySQL migrates a local (in-app) MySql database to a remote MySql database.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
-// migrationRequestEnvelope is mySql migration options.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// migrationRequestEnvelope - mySql migration options.
 func (client AppsClient) MigrateMySQL(ctx context.Context, resourceGroupName string, name string, migrationRequestEnvelope MigrateMySQLRequest) (result AppsMigrateMySQLFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -20847,7 +21222,7 @@ func (client AppsClient) MigrateMySQL(ctx context.Context, resourceGroupName str
 		{TargetValue: migrationRequestEnvelope,
 			Constraints: []validation.Constraint{{Target: "migrationRequestEnvelope.MigrateMySQLRequestProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "migrationRequestEnvelope.MigrateMySQLRequestProperties.ConnectionString", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "MigrateMySQL")
+		return result, validation.NewError("web.AppsClient", "MigrateMySQL", err.Error())
 	}
 
 	req, err := client.MigrateMySQLPreparer(ctx, resourceGroupName, name, migrationRequestEnvelope)
@@ -20879,7 +21254,7 @@ func (client AppsClient) MigrateMySQLPreparer(ctx context.Context, resourceGroup
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/migratemysql", pathParameters),
@@ -20917,9 +21292,11 @@ func (client AppsClient) MigrateMySQLResponder(resp *http.Response) (result Oper
 }
 
 // MigrateStorage restores a web app.
-//
-// subscriptionName is azure subscription. resourceGroupName is name of the resource group to which the resource
-// belongs. name is name of web app. migrationOptions is migration migrationOptions.
+// Parameters:
+// subscriptionName - azure subscription.
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// migrationOptions - migration migrationOptions.
 func (client AppsClient) MigrateStorage(ctx context.Context, subscriptionName string, resourceGroupName string, name string, migrationOptions StorageMigrationOptions) (result AppsMigrateStorageFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -20931,7 +21308,7 @@ func (client AppsClient) MigrateStorage(ctx context.Context, subscriptionName st
 				Chain: []validation.Constraint{{Target: "migrationOptions.StorageMigrationOptionsProperties.AzurefilesConnectionString", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "migrationOptions.StorageMigrationOptionsProperties.AzurefilesShare", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "MigrateStorage")
+		return result, validation.NewError("web.AppsClient", "MigrateStorage", err.Error())
 	}
 
 	req, err := client.MigrateStoragePreparer(ctx, subscriptionName, resourceGroupName, name, migrationOptions)
@@ -20964,7 +21341,7 @@ func (client AppsClient) MigrateStoragePreparer(ctx context.Context, subscriptio
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/migrate", pathParameters),
@@ -21002,9 +21379,10 @@ func (client AppsClient) MigrateStorageResponder(resp *http.Response) (result St
 }
 
 // Recover recovers a web app to a previous snapshot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
-// recoveryEntity is snapshot data used for web app recovery. Snapshot information can be obtained by calling
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// recoveryEntity - snapshot data used for web app recovery. Snapshot information can be obtained by calling
 // GetDeletedSites or GetSiteSnapshots API.
 func (client AppsClient) Recover(ctx context.Context, resourceGroupName string, name string, recoveryEntity SnapshotRecoveryRequest) (result AppsRecoverFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -21015,7 +21393,7 @@ func (client AppsClient) Recover(ctx context.Context, resourceGroupName string, 
 		{TargetValue: recoveryEntity,
 			Constraints: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Recover")
+		return result, validation.NewError("web.AppsClient", "Recover", err.Error())
 	}
 
 	req, err := client.RecoverPreparer(ctx, resourceGroupName, name, recoveryEntity)
@@ -21047,7 +21425,7 @@ func (client AppsClient) RecoverPreparer(ctx context.Context, resourceGroupName 
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/recover", pathParameters),
@@ -21084,16 +21462,17 @@ func (client AppsClient) RecoverResponder(resp *http.Response) (result autorest.
 }
 
 // RecoverSiteConfigurationSnapshot reverts the configuration of an app to a previous snapshot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. snapshotID
-// is the ID of the snapshot to read.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// snapshotID - the ID of the snapshot to read.
 func (client AppsClient) RecoverSiteConfigurationSnapshot(ctx context.Context, resourceGroupName string, name string, snapshotID string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "RecoverSiteConfigurationSnapshot")
+		return result, validation.NewError("web.AppsClient", "RecoverSiteConfigurationSnapshot", err.Error())
 	}
 
 	req, err := client.RecoverSiteConfigurationSnapshotPreparer(ctx, resourceGroupName, name, snapshotID)
@@ -21159,17 +21538,19 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotResponder(resp *http.Re
 }
 
 // RecoverSiteConfigurationSnapshotSlot reverts the configuration of an app to a previous snapshot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. snapshotID
-// is the ID of the snapshot to read. slot is name of the deployment slot. If a slot is not specified, the API will
-// return configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// snapshotID - the ID of the snapshot to read.
+// slot - name of the deployment slot. If a slot is not specified, the API will return configuration for the
+// production slot.
 func (client AppsClient) RecoverSiteConfigurationSnapshotSlot(ctx context.Context, resourceGroupName string, name string, snapshotID string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "RecoverSiteConfigurationSnapshotSlot")
+		return result, validation.NewError("web.AppsClient", "RecoverSiteConfigurationSnapshotSlot", err.Error())
 	}
 
 	req, err := client.RecoverSiteConfigurationSnapshotSlotPreparer(ctx, resourceGroupName, name, snapshotID, slot)
@@ -21236,11 +21617,12 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotSlotResponder(resp *htt
 }
 
 // RecoverSlot recovers a web app to a previous snapshot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
-// recoveryEntity is snapshot data used for web app recovery. Snapshot information can be obtained by calling
-// GetDeletedSites or GetSiteSnapshots API. slot is name of web app slot. If not specified then will default to
-// production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// recoveryEntity - snapshot data used for web app recovery. Snapshot information can be obtained by calling
+// GetDeletedSites or GetSiteSnapshots API.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) RecoverSlot(ctx context.Context, resourceGroupName string, name string, recoveryEntity SnapshotRecoveryRequest, slot string) (result AppsRecoverSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -21250,7 +21632,7 @@ func (client AppsClient) RecoverSlot(ctx context.Context, resourceGroupName stri
 		{TargetValue: recoveryEntity,
 			Constraints: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "RecoverSlot")
+		return result, validation.NewError("web.AppsClient", "RecoverSlot", err.Error())
 	}
 
 	req, err := client.RecoverSlotPreparer(ctx, resourceGroupName, name, recoveryEntity, slot)
@@ -21283,7 +21665,7 @@ func (client AppsClient) RecoverSlotPreparer(ctx context.Context, resourceGroupN
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/recover", pathParameters),
@@ -21321,15 +21703,16 @@ func (client AppsClient) RecoverSlotResponder(resp *http.Response) (result autor
 
 // ResetProductionSlotConfig resets the configuration settings of the current slot if they were previously modified by
 // calling the API with POST.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) ResetProductionSlotConfig(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ResetProductionSlotConfig")
+		return result, validation.NewError("web.AppsClient", "ResetProductionSlotConfig", err.Error())
 	}
 
 	req, err := client.ResetProductionSlotConfigPreparer(ctx, resourceGroupName, name)
@@ -21395,16 +21778,18 @@ func (client AppsClient) ResetProductionSlotConfigResponder(resp *http.Response)
 
 // ResetSlotConfigurationSlot resets the configuration settings of the current slot if they were previously modified by
 // calling the API with POST.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API resets configuration settings for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API resets configuration settings for
+// the production slot.
 func (client AppsClient) ResetSlotConfigurationSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "ResetSlotConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "ResetSlotConfigurationSlot", err.Error())
 	}
 
 	req, err := client.ResetSlotConfigurationSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -21470,18 +21855,20 @@ func (client AppsClient) ResetSlotConfigurationSlotResponder(resp *http.Response
 }
 
 // Restart restarts an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. softRestart
-// is specify true to apply the configuration settings and restarts the app only if necessary. By default, the API
-// always restarts and reprovisions the app. synchronous is specify true to block until the app is restarted. By
-// default, it is set to false, and the API responds immediately (asynchronous).
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// softRestart - specify true to apply the configuration settings and restarts the app only if necessary. By
+// default, the API always restarts and reprovisions the app.
+// synchronous - specify true to block until the app is restarted. By default, it is set to false, and the API
+// responds immediately (asynchronous).
 func (client AppsClient) Restart(ctx context.Context, resourceGroupName string, name string, softRestart *bool, synchronous *bool) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Restart")
+		return result, validation.NewError("web.AppsClient", "Restart", err.Error())
 	}
 
 	req, err := client.RestartPreparer(ctx, resourceGroupName, name, softRestart, synchronous)
@@ -21552,19 +21939,21 @@ func (client AppsClient) RestartResponder(resp *http.Response) (result autorest.
 }
 
 // RestartSlot restarts an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will restart the production slot. softRestart is specify
-// true to apply the configuration settings and restarts the app only if necessary. By default, the API always restarts
-// and reprovisions the app. synchronous is specify true to block until the app is restarted. By default, it is set to
-// false, and the API responds immediately (asynchronous).
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will restart the production slot.
+// softRestart - specify true to apply the configuration settings and restarts the app only if necessary. By
+// default, the API always restarts and reprovisions the app.
+// synchronous - specify true to block until the app is restarted. By default, it is set to false, and the API
+// responds immediately (asynchronous).
 func (client AppsClient) RestartSlot(ctx context.Context, resourceGroupName string, name string, slot string, softRestart *bool, synchronous *bool) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "RestartSlot")
+		return result, validation.NewError("web.AppsClient", "RestartSlot", err.Error())
 	}
 
 	req, err := client.RestartSlotPreparer(ctx, resourceGroupName, name, slot, softRestart, synchronous)
@@ -21636,9 +22025,11 @@ func (client AppsClient) RestartSlotResponder(resp *http.Response) (result autor
 }
 
 // Restore restores a specific backup to another app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. backupID is
-// ID of the backup. request is information on restore request .
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// backupID - ID of the backup.
+// request - information on restore request .
 func (client AppsClient) Restore(ctx context.Context, resourceGroupName string, name string, backupID string, request RestoreRequest) (result AppsRestoreFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -21650,7 +22041,7 @@ func (client AppsClient) Restore(ctx context.Context, resourceGroupName string, 
 				Chain: []validation.Constraint{{Target: "request.RestoreRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.RestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Restore")
+		return result, validation.NewError("web.AppsClient", "Restore", err.Error())
 	}
 
 	req, err := client.RestorePreparer(ctx, resourceGroupName, name, backupID, request)
@@ -21683,7 +22074,7 @@ func (client AppsClient) RestorePreparer(ctx context.Context, resourceGroupName 
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/backups/{backupId}/restore", pathParameters),
@@ -21721,10 +22112,13 @@ func (client AppsClient) RestoreResponder(resp *http.Response) (result RestoreRe
 }
 
 // RestoreSlot restores a specific backup to another app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. backupID is
-// ID of the backup. request is information on restore request . slot is name of the deployment slot. If a slot is not
-// specified, the API will restore a backup of the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// backupID - ID of the backup.
+// request - information on restore request .
+// slot - name of the deployment slot. If a slot is not specified, the API will restore a backup of the
+// production slot.
 func (client AppsClient) RestoreSlot(ctx context.Context, resourceGroupName string, name string, backupID string, request RestoreRequest, slot string) (result AppsRestoreSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -21736,7 +22130,7 @@ func (client AppsClient) RestoreSlot(ctx context.Context, resourceGroupName stri
 				Chain: []validation.Constraint{{Target: "request.RestoreRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.RestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "RestoreSlot")
+		return result, validation.NewError("web.AppsClient", "RestoreSlot", err.Error())
 	}
 
 	req, err := client.RestoreSlotPreparer(ctx, resourceGroupName, name, backupID, request, slot)
@@ -21770,7 +22164,7 @@ func (client AppsClient) RestoreSlotPreparer(ctx context.Context, resourceGroupN
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/backups/{backupId}/restore", pathParameters),
@@ -21808,16 +22202,17 @@ func (client AppsClient) RestoreSlotResponder(resp *http.Response) (result Resto
 }
 
 // RunTriggeredWebJob run a triggered web job for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) RunTriggeredWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "RunTriggeredWebJob")
+		return result, validation.NewError("web.AppsClient", "RunTriggeredWebJob", err.Error())
 	}
 
 	req, err := client.RunTriggeredWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -21883,9 +22278,11 @@ func (client AppsClient) RunTriggeredWebJobResponder(resp *http.Response) (resul
 }
 
 // RunTriggeredWebJobSlot run a triggered web job for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) RunTriggeredWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -21893,7 +22290,7 @@ func (client AppsClient) RunTriggeredWebJobSlot(ctx context.Context, resourceGro
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "RunTriggeredWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "RunTriggeredWebJobSlot", err.Error())
 	}
 
 	req, err := client.RunTriggeredWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -21960,15 +22357,16 @@ func (client AppsClient) RunTriggeredWebJobSlotResponder(resp *http.Response) (r
 }
 
 // Start starts an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) Start(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Start")
+		return result, validation.NewError("web.AppsClient", "Start", err.Error())
 	}
 
 	req, err := client.StartPreparer(ctx, resourceGroupName, name)
@@ -22033,16 +22431,17 @@ func (client AppsClient) StartResponder(resp *http.Response) (result autorest.Re
 }
 
 // StartContinuousWebJob start a continuous web job for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) StartContinuousWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StartContinuousWebJob")
+		return result, validation.NewError("web.AppsClient", "StartContinuousWebJob", err.Error())
 	}
 
 	req, err := client.StartContinuousWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -22108,9 +22507,11 @@ func (client AppsClient) StartContinuousWebJobResponder(resp *http.Response) (re
 }
 
 // StartContinuousWebJobSlot start a continuous web job for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) StartContinuousWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -22118,7 +22519,7 @@ func (client AppsClient) StartContinuousWebJobSlot(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StartContinuousWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "StartContinuousWebJobSlot", err.Error())
 	}
 
 	req, err := client.StartContinuousWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -22185,16 +22586,17 @@ func (client AppsClient) StartContinuousWebJobSlotResponder(resp *http.Response)
 }
 
 // StartSlot starts an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will start the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will start the production slot.
 func (client AppsClient) StartSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StartSlot")
+		return result, validation.NewError("web.AppsClient", "StartSlot", err.Error())
 	}
 
 	req, err := client.StartSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -22260,17 +22662,19 @@ func (client AppsClient) StartSlotResponder(resp *http.Response) (result autores
 }
 
 // StartWebSiteNetworkTrace start capturing network packets for the site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// durationInSeconds is the duration to keep capturing in seconds. maxFrameLength is the maximum frame length in bytes
-// (Optional). sasURL is the Blob URL to store capture file.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// durationInSeconds - the duration to keep capturing in seconds.
+// maxFrameLength - the maximum frame length in bytes (Optional).
+// sasURL - the Blob URL to store capture file.
 func (client AppsClient) StartWebSiteNetworkTrace(ctx context.Context, resourceGroupName string, name string, durationInSeconds *int32, maxFrameLength *int32, sasURL string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StartWebSiteNetworkTrace")
+		return result, validation.NewError("web.AppsClient", "StartWebSiteNetworkTrace", err.Error())
 	}
 
 	req, err := client.StartWebSiteNetworkTracePreparer(ctx, resourceGroupName, name, durationInSeconds, maxFrameLength, sasURL)
@@ -22345,17 +22749,20 @@ func (client AppsClient) StartWebSiteNetworkTraceResponder(resp *http.Response) 
 }
 
 // StartWebSiteNetworkTraceSlot start capturing network packets for the site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app. slot
-// is the name of the slot for this web app. durationInSeconds is the duration to keep capturing in seconds.
-// maxFrameLength is the maximum frame length in bytes (Optional). sasURL is the Blob URL to store capture file.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// slot - the name of the slot for this web app.
+// durationInSeconds - the duration to keep capturing in seconds.
+// maxFrameLength - the maximum frame length in bytes (Optional).
+// sasURL - the Blob URL to store capture file.
 func (client AppsClient) StartWebSiteNetworkTraceSlot(ctx context.Context, resourceGroupName string, name string, slot string, durationInSeconds *int32, maxFrameLength *int32, sasURL string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StartWebSiteNetworkTraceSlot")
+		return result, validation.NewError("web.AppsClient", "StartWebSiteNetworkTraceSlot", err.Error())
 	}
 
 	req, err := client.StartWebSiteNetworkTraceSlotPreparer(ctx, resourceGroupName, name, slot, durationInSeconds, maxFrameLength, sasURL)
@@ -22431,15 +22838,16 @@ func (client AppsClient) StartWebSiteNetworkTraceSlotResponder(resp *http.Respon
 }
 
 // Stop stops an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) Stop(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Stop")
+		return result, validation.NewError("web.AppsClient", "Stop", err.Error())
 	}
 
 	req, err := client.StopPreparer(ctx, resourceGroupName, name)
@@ -22504,16 +22912,17 @@ func (client AppsClient) StopResponder(resp *http.Response) (result autorest.Res
 }
 
 // StopContinuousWebJob stop a continuous web job for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
 func (client AppsClient) StopContinuousWebJob(ctx context.Context, resourceGroupName string, name string, webJobName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StopContinuousWebJob")
+		return result, validation.NewError("web.AppsClient", "StopContinuousWebJob", err.Error())
 	}
 
 	req, err := client.StopContinuousWebJobPreparer(ctx, resourceGroupName, name, webJobName)
@@ -22579,9 +22988,11 @@ func (client AppsClient) StopContinuousWebJobResponder(resp *http.Response) (res
 }
 
 // StopContinuousWebJobSlot stop a continuous web job for an app, or a deployment slot.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is site name. webJobName is name
-// of Web Job. slot is name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - site name.
+// webJobName - name of Web Job.
+// slot - name of the deployment slot. If a slot is not specified, the API deletes a deployment for the
 // production slot.
 func (client AppsClient) StopContinuousWebJobSlot(ctx context.Context, resourceGroupName string, name string, webJobName string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -22589,7 +23000,7 @@ func (client AppsClient) StopContinuousWebJobSlot(ctx context.Context, resourceG
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StopContinuousWebJobSlot")
+		return result, validation.NewError("web.AppsClient", "StopContinuousWebJobSlot", err.Error())
 	}
 
 	req, err := client.StopContinuousWebJobSlotPreparer(ctx, resourceGroupName, name, webJobName, slot)
@@ -22656,16 +23067,17 @@ func (client AppsClient) StopContinuousWebJobSlotResponder(resp *http.Response) 
 }
 
 // StopSlot stops an app (or deployment slot, if specified).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will stop the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will stop the production slot.
 func (client AppsClient) StopSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StopSlot")
+		return result, validation.NewError("web.AppsClient", "StopSlot", err.Error())
 	}
 
 	req, err := client.StopSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -22731,15 +23143,16 @@ func (client AppsClient) StopSlotResponder(resp *http.Response) (result autorest
 }
 
 // StopWebSiteNetworkTrace stop ongoing capturing network packets for the site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
 func (client AppsClient) StopWebSiteNetworkTrace(ctx context.Context, resourceGroupName string, name string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StopWebSiteNetworkTrace")
+		return result, validation.NewError("web.AppsClient", "StopWebSiteNetworkTrace", err.Error())
 	}
 
 	req, err := client.StopWebSiteNetworkTracePreparer(ctx, resourceGroupName, name)
@@ -22805,16 +23218,17 @@ func (client AppsClient) StopWebSiteNetworkTraceResponder(resp *http.Response) (
 }
 
 // StopWebSiteNetworkTraceSlot stop ongoing capturing network packets for the site.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app. slot
-// is the name of the slot for this web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// slot - the name of the slot for this web app.
 func (client AppsClient) StopWebSiteNetworkTraceSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result String, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "StopWebSiteNetworkTraceSlot")
+		return result, validation.NewError("web.AppsClient", "StopWebSiteNetworkTraceSlot", err.Error())
 	}
 
 	req, err := client.StopWebSiteNetworkTraceSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -22881,10 +23295,11 @@ func (client AppsClient) StopWebSiteNetworkTraceSlotResponder(resp *http.Respons
 }
 
 // SwapSlotSlot swaps two deployment slots of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// slotSwapEntity is JSON object that contains the target slot name. See example. slot is name of the source slot. If a
-// slot is not specified, the production slot is used as the source slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slotSwapEntity - JSON object that contains the target slot name. See example.
+// slot - name of the source slot. If a slot is not specified, the production slot is used as the source slot.
 func (client AppsClient) SwapSlotSlot(ctx context.Context, resourceGroupName string, name string, slotSwapEntity CsmSlotEntity, slot string) (result AppsSwapSlotSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -22894,7 +23309,7 @@ func (client AppsClient) SwapSlotSlot(ctx context.Context, resourceGroupName str
 		{TargetValue: slotSwapEntity,
 			Constraints: []validation.Constraint{{Target: "slotSwapEntity.TargetSlot", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "slotSwapEntity.PreserveVnet", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "SwapSlotSlot")
+		return result, validation.NewError("web.AppsClient", "SwapSlotSlot", err.Error())
 	}
 
 	req, err := client.SwapSlotSlotPreparer(ctx, resourceGroupName, name, slotSwapEntity, slot)
@@ -22927,7 +23342,7 @@ func (client AppsClient) SwapSlotSlotPreparer(ctx context.Context, resourceGroup
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/slotsswap", pathParameters),
@@ -22964,9 +23379,10 @@ func (client AppsClient) SwapSlotSlotResponder(resp *http.Response) (result auto
 }
 
 // SwapSlotWithProduction swaps two deployment slots of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// slotSwapEntity is JSON object that contains the target slot name. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slotSwapEntity - JSON object that contains the target slot name. See example.
 func (client AppsClient) SwapSlotWithProduction(ctx context.Context, resourceGroupName string, name string, slotSwapEntity CsmSlotEntity) (result AppsSwapSlotWithProductionFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -22976,7 +23392,7 @@ func (client AppsClient) SwapSlotWithProduction(ctx context.Context, resourceGro
 		{TargetValue: slotSwapEntity,
 			Constraints: []validation.Constraint{{Target: "slotSwapEntity.TargetSlot", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "slotSwapEntity.PreserveVnet", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "SwapSlotWithProduction")
+		return result, validation.NewError("web.AppsClient", "SwapSlotWithProduction", err.Error())
 	}
 
 	req, err := client.SwapSlotWithProductionPreparer(ctx, resourceGroupName, name, slotSwapEntity)
@@ -23008,7 +23424,7 @@ func (client AppsClient) SwapSlotWithProductionPreparer(ctx context.Context, res
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slotsswap", pathParameters),
@@ -23045,15 +23461,16 @@ func (client AppsClient) SwapSlotWithProductionResponder(resp *http.Response) (r
 }
 
 // SyncFunctionTriggers syncs function trigger metadata to the scale controller
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
 func (client AppsClient) SyncFunctionTriggers(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "SyncFunctionTriggers")
+		return result, validation.NewError("web.AppsClient", "SyncFunctionTriggers", err.Error())
 	}
 
 	req, err := client.SyncFunctionTriggersPreparer(ctx, resourceGroupName, name)
@@ -23118,16 +23535,18 @@ func (client AppsClient) SyncFunctionTriggersResponder(resp *http.Response) (res
 }
 
 // SyncFunctionTriggersSlot syncs function trigger metadata to the scale controller
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. slot is name
-// of the deployment slot. If a slot is not specified, the API will restore a backup of the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will restore a backup of the
+// production slot.
 func (client AppsClient) SyncFunctionTriggersSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "SyncFunctionTriggersSlot")
+		return result, validation.NewError("web.AppsClient", "SyncFunctionTriggersSlot", err.Error())
 	}
 
 	req, err := client.SyncFunctionTriggersSlotPreparer(ctx, resourceGroupName, name, slot)
@@ -23193,15 +23612,16 @@ func (client AppsClient) SyncFunctionTriggersSlotResponder(resp *http.Response) 
 }
 
 // SyncRepository sync web app repository.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client AppsClient) SyncRepository(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "SyncRepository")
+		return result, validation.NewError("web.AppsClient", "SyncRepository", err.Error())
 	}
 
 	req, err := client.SyncRepositoryPreparer(ctx, resourceGroupName, name)
@@ -23266,16 +23686,17 @@ func (client AppsClient) SyncRepositoryResponder(resp *http.Response) (result au
 }
 
 // SyncRepositorySlot sync web app repository.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is name
-// of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) SyncRepositorySlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "SyncRepositorySlot")
+		return result, validation.NewError("web.AppsClient", "SyncRepositorySlot", err.Error())
 	}
 
 	req, err := client.SyncRepositorySlotPreparer(ctx, resourceGroupName, name, slot)
@@ -23341,24 +23762,21 @@ func (client AppsClient) SyncRepositorySlotResponder(resp *http.Response) (resul
 }
 
 // Update creates a new web, mobile, or API app in an existing resource group, or updates an existing app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is unique name of the app to
-// create or update. To create or update a deployment slot, use the {slot} parameter. siteEnvelope is a JSON
-// representation of the app properties. See example. skipDNSRegistration is if true web app hostname is not registered
-// with DNS on creation. This parameter is
-// only used for app creation. skipCustomDomainVerification is if true, custom (non *.azurewebsites.net) domains
-// associated with web app are not verified. forceDNSRegistration is if true, web app hostname is force registered with
-// DNS. TTLInSeconds is time to live in seconds for web app's default domain name.
-func (client AppsClient) Update(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (result Site, err error) {
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - unique name of the app to create or update. To create or update a deployment slot, use the {slot}
+// parameter.
+// siteEnvelope - a JSON representation of the app properties. See example.
+func (client AppsClient) Update(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource) (result Site, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "Update")
+		return result, validation.NewError("web.AppsClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, name, siteEnvelope, skipDNSRegistration, skipCustomDomainVerification, forceDNSRegistration, TTLInSeconds)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, name, siteEnvelope)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "Update", nil, "Failure preparing request")
 		return
@@ -23380,7 +23798,7 @@ func (client AppsClient) Update(ctx context.Context, resourceGroupName string, n
 }
 
 // UpdatePreparer prepares the Update request.
-func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (*http.Request, error) {
+func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -23391,21 +23809,9 @@ func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
-	if skipDNSRegistration != nil {
-		queryParameters["skipDnsRegistration"] = autorest.Encode("query", *skipDNSRegistration)
-	}
-	if skipCustomDomainVerification != nil {
-		queryParameters["skipCustomDomainVerification"] = autorest.Encode("query", *skipCustomDomainVerification)
-	}
-	if forceDNSRegistration != nil {
-		queryParameters["forceDnsRegistration"] = autorest.Encode("query", *forceDNSRegistration)
-	}
-	if len(TTLInSeconds) > 0 {
-		queryParameters["ttlInSeconds"] = autorest.Encode("query", TTLInSeconds)
-	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}", pathParameters),
@@ -23435,16 +23841,17 @@ func (client AppsClient) UpdateResponder(resp *http.Response) (result Site, err 
 }
 
 // UpdateApplicationSettings replaces the application settings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. appSettings
-// is application settings of the app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// appSettings - application settings of the app.
 func (client AppsClient) UpdateApplicationSettings(ctx context.Context, resourceGroupName string, name string, appSettings StringDictionary) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateApplicationSettings")
+		return result, validation.NewError("web.AppsClient", "UpdateApplicationSettings", err.Error())
 	}
 
 	req, err := client.UpdateApplicationSettingsPreparer(ctx, resourceGroupName, name, appSettings)
@@ -23482,7 +23889,7 @@ func (client AppsClient) UpdateApplicationSettingsPreparer(ctx context.Context, 
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/appsettings", pathParameters),
@@ -23512,17 +23919,19 @@ func (client AppsClient) UpdateApplicationSettingsResponder(resp *http.Response)
 }
 
 // UpdateApplicationSettingsSlot replaces the application settings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. appSettings
-// is application settings of the app. slot is name of the deployment slot. If a slot is not specified, the API will
-// update the application settings for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// appSettings - application settings of the app.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the application settings
+// for the production slot.
 func (client AppsClient) UpdateApplicationSettingsSlot(ctx context.Context, resourceGroupName string, name string, appSettings StringDictionary, slot string) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateApplicationSettingsSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateApplicationSettingsSlot", err.Error())
 	}
 
 	req, err := client.UpdateApplicationSettingsSlotPreparer(ctx, resourceGroupName, name, appSettings, slot)
@@ -23561,7 +23970,7 @@ func (client AppsClient) UpdateApplicationSettingsSlotPreparer(ctx context.Conte
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/appsettings", pathParameters),
@@ -23591,16 +24000,17 @@ func (client AppsClient) UpdateApplicationSettingsSlotResponder(resp *http.Respo
 }
 
 // UpdateAuthSettings updates the Authentication / Authorization settings associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
-// siteAuthSettings is auth settings associated with web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// siteAuthSettings - auth settings associated with web app.
 func (client AppsClient) UpdateAuthSettings(ctx context.Context, resourceGroupName string, name string, siteAuthSettings SiteAuthSettings) (result SiteAuthSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateAuthSettings")
+		return result, validation.NewError("web.AppsClient", "UpdateAuthSettings", err.Error())
 	}
 
 	req, err := client.UpdateAuthSettingsPreparer(ctx, resourceGroupName, name, siteAuthSettings)
@@ -23638,7 +24048,7 @@ func (client AppsClient) UpdateAuthSettingsPreparer(ctx context.Context, resourc
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/authsettings", pathParameters),
@@ -23668,17 +24078,18 @@ func (client AppsClient) UpdateAuthSettingsResponder(resp *http.Response) (resul
 }
 
 // UpdateAuthSettingsSlot updates the Authentication / Authorization settings associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
-// siteAuthSettings is auth settings associated with web app. slot is name of web app slot. If not specified then will
-// default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// siteAuthSettings - auth settings associated with web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) UpdateAuthSettingsSlot(ctx context.Context, resourceGroupName string, name string, siteAuthSettings SiteAuthSettings, slot string) (result SiteAuthSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateAuthSettingsSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateAuthSettingsSlot", err.Error())
 	}
 
 	req, err := client.UpdateAuthSettingsSlotPreparer(ctx, resourceGroupName, name, siteAuthSettings, slot)
@@ -23717,7 +24128,7 @@ func (client AppsClient) UpdateAuthSettingsSlotPreparer(ctx context.Context, res
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/authsettings", pathParameters),
@@ -23747,9 +24158,10 @@ func (client AppsClient) UpdateAuthSettingsSlotResponder(resp *http.Response) (r
 }
 
 // UpdateBackupConfiguration updates the backup configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. request is
-// edited backup configuration.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - edited backup configuration.
 func (client AppsClient) UpdateBackupConfiguration(ctx context.Context, resourceGroupName string, name string, request BackupRequest) (result BackupRequest, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -23766,7 +24178,7 @@ func (client AppsClient) UpdateBackupConfiguration(ctx context.Context, resource
 							{Target: "request.BackupRequestProperties.BackupSchedule.RetentionPeriodInDays", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateBackupConfiguration")
+		return result, validation.NewError("web.AppsClient", "UpdateBackupConfiguration", err.Error())
 	}
 
 	req, err := client.UpdateBackupConfigurationPreparer(ctx, resourceGroupName, name, request)
@@ -23804,7 +24216,7 @@ func (client AppsClient) UpdateBackupConfigurationPreparer(ctx context.Context, 
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/backup", pathParameters),
@@ -23834,10 +24246,12 @@ func (client AppsClient) UpdateBackupConfigurationResponder(resp *http.Response)
 }
 
 // UpdateBackupConfigurationSlot updates the backup configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. request is
-// edited backup configuration. slot is name of the deployment slot. If a slot is not specified, the API will update
-// the backup configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - edited backup configuration.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the backup configuration
+// for the production slot.
 func (client AppsClient) UpdateBackupConfigurationSlot(ctx context.Context, resourceGroupName string, name string, request BackupRequest, slot string) (result BackupRequest, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -23854,7 +24268,7 @@ func (client AppsClient) UpdateBackupConfigurationSlot(ctx context.Context, reso
 							{Target: "request.BackupRequestProperties.BackupSchedule.RetentionPeriodInDays", Name: validation.Null, Rule: true, Chain: nil},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateBackupConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateBackupConfigurationSlot", err.Error())
 	}
 
 	req, err := client.UpdateBackupConfigurationSlotPreparer(ctx, resourceGroupName, name, request, slot)
@@ -23893,7 +24307,7 @@ func (client AppsClient) UpdateBackupConfigurationSlotPreparer(ctx context.Conte
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/backup", pathParameters),
@@ -23923,16 +24337,17 @@ func (client AppsClient) UpdateBackupConfigurationSlotResponder(resp *http.Respo
 }
 
 // UpdateConfiguration updates the configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. siteConfig
-// is JSON representation of a SiteConfig object. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteConfig - JSON representation of a SiteConfig object. See example.
 func (client AppsClient) UpdateConfiguration(ctx context.Context, resourceGroupName string, name string, siteConfig SiteConfigResource) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateConfiguration")
+		return result, validation.NewError("web.AppsClient", "UpdateConfiguration", err.Error())
 	}
 
 	req, err := client.UpdateConfigurationPreparer(ctx, resourceGroupName, name, siteConfig)
@@ -23970,7 +24385,7 @@ func (client AppsClient) UpdateConfigurationPreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/web", pathParameters),
@@ -24000,17 +24415,19 @@ func (client AppsClient) UpdateConfigurationResponder(resp *http.Response) (resu
 }
 
 // UpdateConfigurationSlot updates the configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. siteConfig
-// is JSON representation of a SiteConfig object. See example. slot is name of the deployment slot. If a slot is not
-// specified, the API will update configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteConfig - JSON representation of a SiteConfig object. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will update configuration for the
+// production slot.
 func (client AppsClient) UpdateConfigurationSlot(ctx context.Context, resourceGroupName string, name string, siteConfig SiteConfigResource, slot string) (result SiteConfigResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateConfigurationSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateConfigurationSlot", err.Error())
 	}
 
 	req, err := client.UpdateConfigurationSlotPreparer(ctx, resourceGroupName, name, siteConfig, slot)
@@ -24049,7 +24466,7 @@ func (client AppsClient) UpdateConfigurationSlotPreparer(ctx context.Context, re
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/web", pathParameters),
@@ -24079,16 +24496,17 @@ func (client AppsClient) UpdateConfigurationSlotResponder(resp *http.Response) (
 }
 
 // UpdateConnectionStrings replaces the connection strings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// connectionStrings is connection strings of the app or deployment slot. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// connectionStrings - connection strings of the app or deployment slot. See example.
 func (client AppsClient) UpdateConnectionStrings(ctx context.Context, resourceGroupName string, name string, connectionStrings ConnectionStringDictionary) (result ConnectionStringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateConnectionStrings")
+		return result, validation.NewError("web.AppsClient", "UpdateConnectionStrings", err.Error())
 	}
 
 	req, err := client.UpdateConnectionStringsPreparer(ctx, resourceGroupName, name, connectionStrings)
@@ -24126,7 +24544,7 @@ func (client AppsClient) UpdateConnectionStringsPreparer(ctx context.Context, re
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/connectionstrings", pathParameters),
@@ -24156,17 +24574,19 @@ func (client AppsClient) UpdateConnectionStringsResponder(resp *http.Response) (
 }
 
 // UpdateConnectionStringsSlot replaces the connection strings of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// connectionStrings is connection strings of the app or deployment slot. See example. slot is name of the deployment
-// slot. If a slot is not specified, the API will update the connection settings for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// connectionStrings - connection strings of the app or deployment slot. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the connection settings
+// for the production slot.
 func (client AppsClient) UpdateConnectionStringsSlot(ctx context.Context, resourceGroupName string, name string, connectionStrings ConnectionStringDictionary, slot string) (result ConnectionStringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateConnectionStringsSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateConnectionStringsSlot", err.Error())
 	}
 
 	req, err := client.UpdateConnectionStringsSlotPreparer(ctx, resourceGroupName, name, connectionStrings, slot)
@@ -24205,7 +24625,7 @@ func (client AppsClient) UpdateConnectionStringsSlotPreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/connectionstrings", pathParameters),
@@ -24235,10 +24655,11 @@ func (client AppsClient) UpdateConnectionStringsSlotResponder(resp *http.Respons
 }
 
 // UpdateDiagnosticLogsConfig updates the logging configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// siteLogsConfig is a SiteLogsConfig JSON object that contains the logging configuration to change in the "properties"
-// property.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteLogsConfig - a SiteLogsConfig JSON object that contains the logging configuration to change in the
+// "properties" property.
 func (client AppsClient) UpdateDiagnosticLogsConfig(ctx context.Context, resourceGroupName string, name string, siteLogsConfig SiteLogsConfig) (result SiteLogsConfig, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -24260,7 +24681,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfig(ctx context.Context, resourc
 							}},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateDiagnosticLogsConfig")
+		return result, validation.NewError("web.AppsClient", "UpdateDiagnosticLogsConfig", err.Error())
 	}
 
 	req, err := client.UpdateDiagnosticLogsConfigPreparer(ctx, resourceGroupName, name, siteLogsConfig)
@@ -24298,7 +24719,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigPreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/logs", pathParameters),
@@ -24328,10 +24749,12 @@ func (client AppsClient) UpdateDiagnosticLogsConfigResponder(resp *http.Response
 }
 
 // UpdateDiagnosticLogsConfigSlot updates the logging configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// siteLogsConfig is a SiteLogsConfig JSON object that contains the logging configuration to change in the "properties"
-// property. slot is name of the deployment slot. If a slot is not specified, the API will update the logging
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteLogsConfig - a SiteLogsConfig JSON object that contains the logging configuration to change in the
+// "properties" property.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the logging
 // configuration for the production slot.
 func (client AppsClient) UpdateDiagnosticLogsConfigSlot(ctx context.Context, resourceGroupName string, name string, siteLogsConfig SiteLogsConfig, slot string) (result SiteLogsConfig, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -24354,7 +24777,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSlot(ctx context.Context, res
 							}},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateDiagnosticLogsConfigSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateDiagnosticLogsConfigSlot", err.Error())
 	}
 
 	req, err := client.UpdateDiagnosticLogsConfigSlotPreparer(ctx, resourceGroupName, name, siteLogsConfig, slot)
@@ -24393,7 +24816,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSlotPreparer(ctx context.Cont
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/logs", pathParameters),
@@ -24424,17 +24847,18 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSlotResponder(resp *http.Resp
 
 // UpdateDomainOwnershipIdentifier creates a domain ownership identifier for web app, or updates an existing ownership
 // identifier.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier. domainOwnershipIdentifier is a JSON
-// representation of the domain ownership properties.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
+// domainOwnershipIdentifier - a JSON representation of the domain ownership properties.
 func (client AppsClient) UpdateDomainOwnershipIdentifier(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string, domainOwnershipIdentifier Identifier) (result Identifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateDomainOwnershipIdentifier")
+		return result, validation.NewError("web.AppsClient", "UpdateDomainOwnershipIdentifier", err.Error())
 	}
 
 	req, err := client.UpdateDomainOwnershipIdentifierPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName, domainOwnershipIdentifier)
@@ -24473,7 +24897,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierPreparer(ctx context.Con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/domainOwnershipIdentifiers/{domainOwnershipIdentifierName}", pathParameters),
@@ -24504,18 +24928,20 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierResponder(resp *http.Res
 
 // UpdateDomainOwnershipIdentifierSlot creates a domain ownership identifier for web app, or updates an existing
 // ownership identifier.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// domainOwnershipIdentifierName is name of domain ownership identifier. domainOwnershipIdentifier is a JSON
-// representation of the domain ownership properties. slot is name of the deployment slot. If a slot is not specified,
-// the API will delete the binding for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// domainOwnershipIdentifierName - name of domain ownership identifier.
+// domainOwnershipIdentifier - a JSON representation of the domain ownership properties.
+// slot - name of the deployment slot. If a slot is not specified, the API will delete the binding for the
+// production slot.
 func (client AppsClient) UpdateDomainOwnershipIdentifierSlot(ctx context.Context, resourceGroupName string, name string, domainOwnershipIdentifierName string, domainOwnershipIdentifier Identifier, slot string) (result Identifier, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateDomainOwnershipIdentifierSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateDomainOwnershipIdentifierSlot", err.Error())
 	}
 
 	req, err := client.UpdateDomainOwnershipIdentifierSlotPreparer(ctx, resourceGroupName, name, domainOwnershipIdentifierName, domainOwnershipIdentifier, slot)
@@ -24555,7 +24981,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSlotPreparer(ctx context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/domainOwnershipIdentifiers/{domainOwnershipIdentifierName}", pathParameters),
@@ -24585,17 +25011,19 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSlotResponder(resp *http
 }
 
 // UpdateHybridConnection creates a new Hybrid Connection using a Service Bus relay.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
-// connectionEnvelope is the details of the hybrid connection.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
+// connectionEnvelope - the details of the hybrid connection.
 func (client AppsClient) UpdateHybridConnection(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string, connectionEnvelope HybridConnection) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateHybridConnection")
+		return result, validation.NewError("web.AppsClient", "UpdateHybridConnection", err.Error())
 	}
 
 	req, err := client.UpdateHybridConnectionPreparer(ctx, resourceGroupName, name, namespaceName, relayName, connectionEnvelope)
@@ -24635,7 +25063,7 @@ func (client AppsClient) UpdateHybridConnectionPreparer(ctx context.Context, res
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/hybridConnectionNamespaces/{namespaceName}/relays/{relayName}", pathParameters),
@@ -24665,17 +25093,20 @@ func (client AppsClient) UpdateHybridConnectionResponder(resp *http.Response) (r
 }
 
 // UpdateHybridConnectionSlot creates a new Hybrid Connection using a Service Bus relay.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is the name of the web app.
-// namespaceName is the namespace for this hybrid connection. relayName is the relay name for this hybrid connection.
-// connectionEnvelope is the details of the hybrid connection. slot is the name of the slot for the web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// namespaceName - the namespace for this hybrid connection.
+// relayName - the relay name for this hybrid connection.
+// connectionEnvelope - the details of the hybrid connection.
+// slot - the name of the slot for the web app.
 func (client AppsClient) UpdateHybridConnectionSlot(ctx context.Context, resourceGroupName string, name string, namespaceName string, relayName string, connectionEnvelope HybridConnection, slot string) (result HybridConnection, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateHybridConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateHybridConnectionSlot", err.Error())
 	}
 
 	req, err := client.UpdateHybridConnectionSlotPreparer(ctx, resourceGroupName, name, namespaceName, relayName, connectionEnvelope, slot)
@@ -24716,7 +25147,7 @@ func (client AppsClient) UpdateHybridConnectionSlotPreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/hybridConnectionNamespaces/{namespaceName}/relays/{relayName}", pathParameters),
@@ -24746,16 +25177,17 @@ func (client AppsClient) UpdateHybridConnectionSlotResponder(resp *http.Response
 }
 
 // UpdateMetadata replaces the metadata of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. metadata is
-// edited metadata of the app or deployment slot. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// metadata - edited metadata of the app or deployment slot. See example.
 func (client AppsClient) UpdateMetadata(ctx context.Context, resourceGroupName string, name string, metadata StringDictionary) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateMetadata")
+		return result, validation.NewError("web.AppsClient", "UpdateMetadata", err.Error())
 	}
 
 	req, err := client.UpdateMetadataPreparer(ctx, resourceGroupName, name, metadata)
@@ -24793,7 +25225,7 @@ func (client AppsClient) UpdateMetadataPreparer(ctx context.Context, resourceGro
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/metadata", pathParameters),
@@ -24823,17 +25255,19 @@ func (client AppsClient) UpdateMetadataResponder(resp *http.Response) (result St
 }
 
 // UpdateMetadataSlot replaces the metadata of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. metadata is
-// edited metadata of the app or deployment slot. See example. slot is name of the deployment slot. If a slot is not
-// specified, the API will update the metadata for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// metadata - edited metadata of the app or deployment slot. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the metadata for the
+// production slot.
 func (client AppsClient) UpdateMetadataSlot(ctx context.Context, resourceGroupName string, name string, metadata StringDictionary, slot string) (result StringDictionary, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateMetadataSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateMetadataSlot", err.Error())
 	}
 
 	req, err := client.UpdateMetadataSlotPreparer(ctx, resourceGroupName, name, metadata, slot)
@@ -24872,7 +25306,7 @@ func (client AppsClient) UpdateMetadataSlotPreparer(ctx context.Context, resourc
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/metadata", pathParameters),
@@ -24903,17 +25337,18 @@ func (client AppsClient) UpdateMetadataSlotResponder(resp *http.Response) (resul
 
 // UpdateRelayServiceConnection creates a new hybrid connection configuration (PUT), or updates an existing one
 // (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection configuration. connectionEnvelope is details of the hybrid connection
-// configuration.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection configuration.
+// connectionEnvelope - details of the hybrid connection configuration.
 func (client AppsClient) UpdateRelayServiceConnection(ctx context.Context, resourceGroupName string, name string, entityName string, connectionEnvelope RelayServiceConnectionEntity) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateRelayServiceConnection")
+		return result, validation.NewError("web.AppsClient", "UpdateRelayServiceConnection", err.Error())
 	}
 
 	req, err := client.UpdateRelayServiceConnectionPreparer(ctx, resourceGroupName, name, entityName, connectionEnvelope)
@@ -24952,7 +25387,7 @@ func (client AppsClient) UpdateRelayServiceConnectionPreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/hybridconnection/{entityName}", pathParameters),
@@ -24983,18 +25418,20 @@ func (client AppsClient) UpdateRelayServiceConnectionResponder(resp *http.Respon
 
 // UpdateRelayServiceConnectionSlot creates a new hybrid connection configuration (PUT), or updates an existing one
 // (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. entityName
-// is name of the hybrid connection configuration. connectionEnvelope is details of the hybrid connection
-// configuration. slot is name of the deployment slot. If a slot is not specified, the API will create or update a
-// hybrid connection for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// entityName - name of the hybrid connection configuration.
+// connectionEnvelope - details of the hybrid connection configuration.
+// slot - name of the deployment slot. If a slot is not specified, the API will create or update a hybrid
+// connection for the production slot.
 func (client AppsClient) UpdateRelayServiceConnectionSlot(ctx context.Context, resourceGroupName string, name string, entityName string, connectionEnvelope RelayServiceConnectionEntity, slot string) (result RelayServiceConnectionEntity, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateRelayServiceConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateRelayServiceConnectionSlot", err.Error())
 	}
 
 	req, err := client.UpdateRelayServiceConnectionSlotPreparer(ctx, resourceGroupName, name, entityName, connectionEnvelope, slot)
@@ -25034,7 +25471,7 @@ func (client AppsClient) UpdateRelayServiceConnectionSlotPreparer(ctx context.Co
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/hybridconnection/{entityName}", pathParameters),
@@ -25064,9 +25501,10 @@ func (client AppsClient) UpdateRelayServiceConnectionSlotResponder(resp *http.Re
 }
 
 // UpdateSitePushSettings updates the Push settings associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. pushSettings
-// is push settings associated with web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// pushSettings - push settings associated with web app.
 func (client AppsClient) UpdateSitePushSettings(ctx context.Context, resourceGroupName string, name string, pushSettings PushSettings) (result PushSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -25076,7 +25514,7 @@ func (client AppsClient) UpdateSitePushSettings(ctx context.Context, resourceGro
 		{TargetValue: pushSettings,
 			Constraints: []validation.Constraint{{Target: "pushSettings.PushSettingsProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "pushSettings.PushSettingsProperties.IsPushEnabled", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateSitePushSettings")
+		return result, validation.NewError("web.AppsClient", "UpdateSitePushSettings", err.Error())
 	}
 
 	req, err := client.UpdateSitePushSettingsPreparer(ctx, resourceGroupName, name, pushSettings)
@@ -25114,7 +25552,7 @@ func (client AppsClient) UpdateSitePushSettingsPreparer(ctx context.Context, res
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/pushsettings", pathParameters),
@@ -25144,10 +25582,11 @@ func (client AppsClient) UpdateSitePushSettingsResponder(resp *http.Response) (r
 }
 
 // UpdateSitePushSettingsSlot updates the Push settings associated with web app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. pushSettings
-// is push settings associated with web app. slot is name of web app slot. If not specified then will default to
-// production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// pushSettings - push settings associated with web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client AppsClient) UpdateSitePushSettingsSlot(ctx context.Context, resourceGroupName string, name string, pushSettings PushSettings, slot string) (result PushSettings, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -25157,7 +25596,7 @@ func (client AppsClient) UpdateSitePushSettingsSlot(ctx context.Context, resourc
 		{TargetValue: pushSettings,
 			Constraints: []validation.Constraint{{Target: "pushSettings.PushSettingsProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "pushSettings.PushSettingsProperties.IsPushEnabled", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateSitePushSettingsSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateSitePushSettingsSlot", err.Error())
 	}
 
 	req, err := client.UpdateSitePushSettingsSlotPreparer(ctx, resourceGroupName, name, pushSettings, slot)
@@ -25196,7 +25635,7 @@ func (client AppsClient) UpdateSitePushSettingsSlotPreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/config/pushsettings", pathParameters),
@@ -25226,22 +25665,26 @@ func (client AppsClient) UpdateSitePushSettingsSlotResponder(resp *http.Response
 }
 
 // UpdateSlot creates a new web, mobile, or API app in an existing resource group, or updates an existing app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is unique name of the app to
-// create or update. To create or update a deployment slot, use the {slot} parameter. siteEnvelope is a JSON
-// representation of the app properties. See example. slot is name of the deployment slot to create or update. By
-// default, this API attempts to create or modify the production slot. skipDNSRegistration is if true web app hostname
-// is not registered with DNS on creation. This parameter is
-// only used for app creation. skipCustomDomainVerification is if true, custom (non *.azurewebsites.net) domains
-// associated with web app are not verified. forceDNSRegistration is if true, web app hostname is force registered with
-// DNS. TTLInSeconds is time to live in seconds for web app's default domain name.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - unique name of the app to create or update. To create or update a deployment slot, use the {slot}
+// parameter.
+// siteEnvelope - a JSON representation of the app properties. See example.
+// slot - name of the deployment slot to create or update. By default, this API attempts to create or modify
+// the production slot.
+// skipDNSRegistration - if true web app hostname is not registered with DNS on creation. This parameter is
+// only used for app creation.
+// skipCustomDomainVerification - if true, custom (non *.azurewebsites.net) domains associated with web app are
+// not verified.
+// forceDNSRegistration - if true, web app hostname is force registered with DNS.
+// TTLInSeconds - time to live in seconds for web app's default domain name.
 func (client AppsClient) UpdateSlot(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource, slot string, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (result Site, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateSlot", err.Error())
 	}
 
 	req, err := client.UpdateSlotPreparer(ctx, resourceGroupName, name, siteEnvelope, slot, skipDNSRegistration, skipCustomDomainVerification, forceDNSRegistration, TTLInSeconds)
@@ -25292,7 +25735,7 @@ func (client AppsClient) UpdateSlotPreparer(ctx context.Context, resourceGroupNa
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}", pathParameters),
@@ -25323,16 +25766,17 @@ func (client AppsClient) UpdateSlotResponder(resp *http.Response) (result Site, 
 
 // UpdateSlotConfigurationNames updates the names of application settings and connection string that remain with the
 // slot during swap operation.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// slotConfigNames is names of application settings and connection strings. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// slotConfigNames - names of application settings and connection strings. See example.
 func (client AppsClient) UpdateSlotConfigurationNames(ctx context.Context, resourceGroupName string, name string, slotConfigNames SlotConfigNamesResource) (result SlotConfigNamesResource, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateSlotConfigurationNames")
+		return result, validation.NewError("web.AppsClient", "UpdateSlotConfigurationNames", err.Error())
 	}
 
 	req, err := client.UpdateSlotConfigurationNamesPreparer(ctx, resourceGroupName, name, slotConfigNames)
@@ -25370,7 +25814,7 @@ func (client AppsClient) UpdateSlotConfigurationNamesPreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/config/slotConfigNames", pathParameters),
@@ -25400,16 +25844,17 @@ func (client AppsClient) UpdateSlotConfigurationNamesResponder(resp *http.Respon
 }
 
 // UpdateSourceControl updates the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// siteSourceControl is JSON representation of a SiteSourceControl object. See example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteSourceControl - JSON representation of a SiteSourceControl object. See example.
 func (client AppsClient) UpdateSourceControl(ctx context.Context, resourceGroupName string, name string, siteSourceControl SiteSourceControl) (result SiteSourceControl, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateSourceControl")
+		return result, validation.NewError("web.AppsClient", "UpdateSourceControl", err.Error())
 	}
 
 	req, err := client.UpdateSourceControlPreparer(ctx, resourceGroupName, name, siteSourceControl)
@@ -25447,7 +25892,7 @@ func (client AppsClient) UpdateSourceControlPreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/sourcecontrols/web", pathParameters),
@@ -25477,17 +25922,19 @@ func (client AppsClient) UpdateSourceControlResponder(resp *http.Response) (resu
 }
 
 // UpdateSourceControlSlot updates the source control configuration of an app.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app.
-// siteSourceControl is JSON representation of a SiteSourceControl object. See example. slot is name of the deployment
-// slot. If a slot is not specified, the API will update the source control configuration for the production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// siteSourceControl - JSON representation of a SiteSourceControl object. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will update the source control
+// configuration for the production slot.
 func (client AppsClient) UpdateSourceControlSlot(ctx context.Context, resourceGroupName string, name string, siteSourceControl SiteSourceControl, slot string) (result SiteSourceControl, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateSourceControlSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateSourceControlSlot", err.Error())
 	}
 
 	req, err := client.UpdateSourceControlSlotPreparer(ctx, resourceGroupName, name, siteSourceControl, slot)
@@ -25526,7 +25973,7 @@ func (client AppsClient) UpdateSourceControlSlotPreparer(ctx context.Context, re
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/sourcecontrols/web", pathParameters),
@@ -25557,17 +26004,18 @@ func (client AppsClient) UpdateSourceControlSlotResponder(resp *http.Response) (
 
 // UpdateVnetConnection adds a Virtual Network connection to an app or slot (PUT) or updates the connection properties
 // (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of an existing Virtual Network. connectionEnvelope is properties of the Virtual Network connection. See
-// example.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of an existing Virtual Network.
+// connectionEnvelope - properties of the Virtual Network connection. See example.
 func (client AppsClient) UpdateVnetConnection(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo) (result VnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateVnetConnection")
+		return result, validation.NewError("web.AppsClient", "UpdateVnetConnection", err.Error())
 	}
 
 	req, err := client.UpdateVnetConnectionPreparer(ctx, resourceGroupName, name, vnetName, connectionEnvelope)
@@ -25606,7 +26054,7 @@ func (client AppsClient) UpdateVnetConnectionPreparer(ctx context.Context, resou
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/virtualNetworkConnections/{vnetName}", pathParameters),
@@ -25636,17 +26084,19 @@ func (client AppsClient) UpdateVnetConnectionResponder(resp *http.Response) (res
 }
 
 // UpdateVnetConnectionGateway adds a gateway to a connected Virtual Network (PUT) or updates it (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the Virtual Network. gatewayName is name of the gateway. Currently, the only supported string is "primary".
-// connectionEnvelope is the properties to update this gateway with.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the Virtual Network.
+// gatewayName - name of the gateway. Currently, the only supported string is "primary".
+// connectionEnvelope - the properties to update this gateway with.
 func (client AppsClient) UpdateVnetConnectionGateway(ctx context.Context, resourceGroupName string, name string, vnetName string, gatewayName string, connectionEnvelope VnetGateway) (result VnetGateway, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateVnetConnectionGateway")
+		return result, validation.NewError("web.AppsClient", "UpdateVnetConnectionGateway", err.Error())
 	}
 
 	req, err := client.UpdateVnetConnectionGatewayPreparer(ctx, resourceGroupName, name, vnetName, gatewayName, connectionEnvelope)
@@ -25686,7 +26136,7 @@ func (client AppsClient) UpdateVnetConnectionGatewayPreparer(ctx context.Context
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/virtualNetworkConnections/{vnetName}/gateways/{gatewayName}", pathParameters),
@@ -25716,18 +26166,21 @@ func (client AppsClient) UpdateVnetConnectionGatewayResponder(resp *http.Respons
 }
 
 // UpdateVnetConnectionGatewaySlot adds a gateway to a connected Virtual Network (PUT) or updates it (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of the Virtual Network. gatewayName is name of the gateway. Currently, the only supported string is "primary".
-// connectionEnvelope is the properties to update this gateway with. slot is name of the deployment slot. If a slot is
-// not specified, the API will add or update a gateway for the production slot's Virtual Network.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of the Virtual Network.
+// gatewayName - name of the gateway. Currently, the only supported string is "primary".
+// connectionEnvelope - the properties to update this gateway with.
+// slot - name of the deployment slot. If a slot is not specified, the API will add or update a gateway for the
+// production slot's Virtual Network.
 func (client AppsClient) UpdateVnetConnectionGatewaySlot(ctx context.Context, resourceGroupName string, name string, vnetName string, gatewayName string, connectionEnvelope VnetGateway, slot string) (result VnetGateway, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateVnetConnectionGatewaySlot")
+		return result, validation.NewError("web.AppsClient", "UpdateVnetConnectionGatewaySlot", err.Error())
 	}
 
 	req, err := client.UpdateVnetConnectionGatewaySlotPreparer(ctx, resourceGroupName, name, vnetName, gatewayName, connectionEnvelope, slot)
@@ -25768,7 +26221,7 @@ func (client AppsClient) UpdateVnetConnectionGatewaySlotPreparer(ctx context.Con
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/virtualNetworkConnections/{vnetName}/gateways/{gatewayName}", pathParameters),
@@ -25799,10 +26252,12 @@ func (client AppsClient) UpdateVnetConnectionGatewaySlotResponder(resp *http.Res
 
 // UpdateVnetConnectionSlot adds a Virtual Network connection to an app or slot (PUT) or updates the connection
 // properties (PATCH).
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of the app. vnetName is
-// name of an existing Virtual Network. connectionEnvelope is properties of the Virtual Network connection. See
-// example. slot is name of the deployment slot. If a slot is not specified, the API will add or update connections for
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// vnetName - name of an existing Virtual Network.
+// connectionEnvelope - properties of the Virtual Network connection. See example.
+// slot - name of the deployment slot. If a slot is not specified, the API will add or update connections for
 // the production slot.
 func (client AppsClient) UpdateVnetConnectionSlot(ctx context.Context, resourceGroupName string, name string, vnetName string, connectionEnvelope VnetInfo, slot string) (result VnetInfo, err error) {
 	if err := validation.Validate([]validation.Validation{
@@ -25810,7 +26265,7 @@ func (client AppsClient) UpdateVnetConnectionSlot(ctx context.Context, resourceG
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.AppsClient", "UpdateVnetConnectionSlot")
+		return result, validation.NewError("web.AppsClient", "UpdateVnetConnectionSlot", err.Error())
 	}
 
 	req, err := client.UpdateVnetConnectionSlotPreparer(ctx, resourceGroupName, name, vnetName, connectionEnvelope, slot)
@@ -25850,7 +26305,7 @@ func (client AppsClient) UpdateVnetConnectionSlotPreparer(ctx context.Context, r
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/virtualNetworkConnections/{vnetName}", pathParameters),

@@ -55,13 +55,13 @@ func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 }
 
 // CheckNameAvailability check if a resource name is available.
-//
-// request is name availability request.
+// Parameters:
+// request - name availability request.
 func (client BaseClient) CheckNameAvailability(ctx context.Context, request ResourceNameAvailabilityRequest) (result ResourceNameAvailability, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: request,
 			Constraints: []validation.Constraint{{Target: "request.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.BaseClient", "CheckNameAvailability")
+		return result, validation.NewError("web.BaseClient", "CheckNameAvailability", err.Error())
 	}
 
 	req, err := client.CheckNameAvailabilityPreparer(ctx, request)
@@ -97,7 +97,7 @@ func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, requ
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Web/checknameavailability", pathParameters),
@@ -185,8 +185,8 @@ func (client BaseClient) GetPublishingUserResponder(resp *http.Response) (result
 }
 
 // GetSourceControl gets source control token
-//
-// sourceControlType is type of source control
+// Parameters:
+// sourceControlType - type of source control
 func (client BaseClient) GetSourceControl(ctx context.Context, sourceControlType string) (result SourceControl, err error) {
 	req, err := client.GetSourceControlPreparer(ctx, sourceControlType)
 	if err != nil {
@@ -311,9 +311,10 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsResponder(resp *http.
 }
 
 // ListGeoRegions get a list of available geographical regions.
-//
-// sku is name of SKU used to filter the regions. linuxWorkersEnabled is specify <code>true</code> if you want to
-// filter to only regions that support Linux workers.
+// Parameters:
+// sku - name of SKU used to filter the regions.
+// linuxWorkersEnabled - specify <code>true</code> if you want to filter to only regions that support Linux
+// workers.
 func (client BaseClient) ListGeoRegions(ctx context.Context, sku SkuName, linuxWorkersEnabled *bool) (result GeoRegionCollectionPage, err error) {
 	result.fn = client.listGeoRegionsNextResults
 	req, err := client.ListGeoRegionsPreparer(ctx, sku, linuxWorkersEnabled)
@@ -499,6 +500,100 @@ func (client BaseClient) ListPremierAddOnOffersComplete(ctx context.Context) (re
 	return
 }
 
+// ListSiteIdentifiersAssignedToHostName list all apps that are assigned to a hostname.
+// Parameters:
+// nameIdentifier - hostname information.
+func (client BaseClient) ListSiteIdentifiersAssignedToHostName(ctx context.Context, nameIdentifier NameIdentifier) (result IdentifierCollectionPage, err error) {
+	result.fn = client.listSiteIdentifiersAssignedToHostNameNextResults
+	req, err := client.ListSiteIdentifiersAssignedToHostNamePreparer(ctx, nameIdentifier)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ListSiteIdentifiersAssignedToHostName", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListSiteIdentifiersAssignedToHostNameSender(req)
+	if err != nil {
+		result.ic.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ListSiteIdentifiersAssignedToHostName", resp, "Failure sending request")
+		return
+	}
+
+	result.ic, err = client.ListSiteIdentifiersAssignedToHostNameResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ListSiteIdentifiersAssignedToHostName", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListSiteIdentifiersAssignedToHostNamePreparer prepares the ListSiteIdentifiersAssignedToHostName request.
+func (client BaseClient) ListSiteIdentifiersAssignedToHostNamePreparer(ctx context.Context, nameIdentifier NameIdentifier) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2016-03-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Web/listSitesAssignedToHostName", pathParameters),
+		autorest.WithJSON(nameIdentifier),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListSiteIdentifiersAssignedToHostNameSender sends the ListSiteIdentifiersAssignedToHostName request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) ListSiteIdentifiersAssignedToHostNameSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListSiteIdentifiersAssignedToHostNameResponder handles the response to the ListSiteIdentifiersAssignedToHostName request. The method always
+// closes the http.Response Body.
+func (client BaseClient) ListSiteIdentifiersAssignedToHostNameResponder(resp *http.Response) (result IdentifierCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listSiteIdentifiersAssignedToHostNameNextResults retrieves the next set of results, if any.
+func (client BaseClient) listSiteIdentifiersAssignedToHostNameNextResults(lastResults IdentifierCollection) (result IdentifierCollection, err error) {
+	req, err := lastResults.identifierCollectionPreparer()
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "web.BaseClient", "listSiteIdentifiersAssignedToHostNameNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListSiteIdentifiersAssignedToHostNameSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "web.BaseClient", "listSiteIdentifiersAssignedToHostNameNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListSiteIdentifiersAssignedToHostNameResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "listSiteIdentifiersAssignedToHostNameNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListSiteIdentifiersAssignedToHostNameComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) ListSiteIdentifiersAssignedToHostNameComplete(ctx context.Context, nameIdentifier NameIdentifier) (result IdentifierCollectionIterator, err error) {
+	result.page, err = client.ListSiteIdentifiersAssignedToHostName(ctx, nameIdentifier)
+	return
+}
+
 // ListSkus list all SKUs.
 func (client BaseClient) ListSkus(ctx context.Context) (result SkuInfos, err error) {
 	req, err := client.ListSkusPreparer(ctx)
@@ -648,9 +743,9 @@ func (client BaseClient) ListSourceControlsComplete(ctx context.Context) (result
 }
 
 // Move move resources between resource groups.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. moveResourceEnvelope is object that
-// represents the resource to move.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// moveResourceEnvelope - object that represents the resource to move.
 func (client BaseClient) Move(ctx context.Context, resourceGroupName string, moveResourceEnvelope CsmMoveResourceEnvelope) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -663,7 +758,7 @@ func (client BaseClient) Move(ctx context.Context, resourceGroupName string, mov
 					{Target: "moveResourceEnvelope.TargetResourceGroup", Name: validation.MinLength, Rule: 1, Chain: nil},
 					{Target: "moveResourceEnvelope.TargetResourceGroup", Name: validation.Pattern, Rule: ` ^[-\w\._\(\)]+[^\.]$`, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.BaseClient", "Move")
+		return result, validation.NewError("web.BaseClient", "Move", err.Error())
 	}
 
 	req, err := client.MovePreparer(ctx, resourceGroupName, moveResourceEnvelope)
@@ -700,7 +795,7 @@ func (client BaseClient) MovePreparer(ctx context.Context, resourceGroupName str
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/moveResources", pathParameters),
@@ -729,14 +824,14 @@ func (client BaseClient) MoveResponder(resp *http.Response) (result autorest.Res
 }
 
 // UpdatePublishingUser updates publishing user
-//
-// userDetails is details of publishing user
+// Parameters:
+// userDetails - details of publishing user
 func (client BaseClient) UpdatePublishingUser(ctx context.Context, userDetails User) (result User, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: userDetails,
 			Constraints: []validation.Constraint{{Target: "userDetails.UserProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "userDetails.UserProperties.PublishingUserName", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.BaseClient", "UpdatePublishingUser")
+		return result, validation.NewError("web.BaseClient", "UpdatePublishingUser", err.Error())
 	}
 
 	req, err := client.UpdatePublishingUserPreparer(ctx, userDetails)
@@ -768,7 +863,7 @@ func (client BaseClient) UpdatePublishingUserPreparer(ctx context.Context, userD
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPath("/providers/Microsoft.Web/publishingUsers/web"),
@@ -798,8 +893,9 @@ func (client BaseClient) UpdatePublishingUserResponder(resp *http.Response) (res
 }
 
 // UpdateSourceControl updates source control token
-//
-// sourceControlType is type of source control requestMessage is source control token information
+// Parameters:
+// sourceControlType - type of source control
+// requestMessage - source control token information
 func (client BaseClient) UpdateSourceControl(ctx context.Context, sourceControlType string, requestMessage SourceControl) (result SourceControl, err error) {
 	req, err := client.UpdateSourceControlPreparer(ctx, sourceControlType, requestMessage)
 	if err != nil {
@@ -834,7 +930,7 @@ func (client BaseClient) UpdateSourceControlPreparer(ctx context.Context, source
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/providers/Microsoft.Web/sourcecontrols/{sourceControlType}", pathParameters),
@@ -864,9 +960,9 @@ func (client BaseClient) UpdateSourceControlResponder(resp *http.Response) (resu
 }
 
 // Validate validate if a resource can be created.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. validateRequest is request with the
-// resources to validate.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// validateRequest - request with the resources to validate.
 func (client BaseClient) Validate(ctx context.Context, resourceGroupName string, validateRequest ValidateRequest) (result ValidateResponse, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -880,7 +976,7 @@ func (client BaseClient) Validate(ctx context.Context, resourceGroupName string,
 					Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.Capacity", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "validateRequest.ValidateProperties.Capacity", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
 					}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.BaseClient", "Validate")
+		return result, validation.NewError("web.BaseClient", "Validate", err.Error())
 	}
 
 	req, err := client.ValidatePreparer(ctx, resourceGroupName, validateRequest)
@@ -917,7 +1013,7 @@ func (client BaseClient) ValidatePreparer(ctx context.Context, resourceGroupName
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/validate", pathParameters),
@@ -947,9 +1043,9 @@ func (client BaseClient) ValidateResponder(resp *http.Response) (result Validate
 }
 
 // ValidateMove validate whether a resource can be moved.
-//
-// resourceGroupName is name of the resource group to which the resource belongs. moveResourceEnvelope is object that
-// represents the resource to move.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// moveResourceEnvelope - object that represents the resource to move.
 func (client BaseClient) ValidateMove(ctx context.Context, resourceGroupName string, moveResourceEnvelope CsmMoveResourceEnvelope) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -962,7 +1058,7 @@ func (client BaseClient) ValidateMove(ctx context.Context, resourceGroupName str
 					{Target: "moveResourceEnvelope.TargetResourceGroup", Name: validation.MinLength, Rule: 1, Chain: nil},
 					{Target: "moveResourceEnvelope.TargetResourceGroup", Name: validation.Pattern, Rule: ` ^[-\w\._\(\)]+[^\.]$`, Chain: nil},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "web.BaseClient", "ValidateMove")
+		return result, validation.NewError("web.BaseClient", "ValidateMove", err.Error())
 	}
 
 	req, err := client.ValidateMovePreparer(ctx, resourceGroupName, moveResourceEnvelope)
@@ -999,7 +1095,7 @@ func (client BaseClient) ValidateMovePreparer(ctx context.Context, resourceGroup
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/validateMoveResources", pathParameters),
@@ -1029,8 +1125,8 @@ func (client BaseClient) ValidateMoveResponder(resp *http.Response) (result auto
 
 // VerifyHostingEnvironmentVnet verifies if this VNET is compatible with an App Service Environment by analyzing the
 // Network Security Group rules.
-//
-// parameters is VNET information
+// Parameters:
+// parameters - VNET information
 func (client BaseClient) VerifyHostingEnvironmentVnet(ctx context.Context, parameters VnetParameters) (result VnetValidationFailureDetails, err error) {
 	req, err := client.VerifyHostingEnvironmentVnetPreparer(ctx, parameters)
 	if err != nil {
@@ -1065,7 +1161,7 @@ func (client BaseClient) VerifyHostingEnvironmentVnetPreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Web/verifyHostingEnvironmentVnet", pathParameters),
