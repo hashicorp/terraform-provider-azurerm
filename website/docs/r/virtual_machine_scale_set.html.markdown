@@ -400,8 +400,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
 * `primary` - (Optional) Specifies if this ip_configuration is the primary one.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
-  false.
 * `public_ip_address_configuration` - (Optional) describes a virtual machines scale set IP Configuration's
   PublicIPAddress configuration. The public_ip_address_configuration is documented below.
 

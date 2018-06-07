@@ -736,7 +736,6 @@ func resourceArmVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interf
 
 	updatePolicy := d.Get("upgrade_policy_mode").(string)
 	automaticOsUpgrade := d.Get("automatic_os_upgrade").(bool)
-
 	overprovision := d.Get("overprovision").(bool)
 	singlePlacementGroup := d.Get("single_placement_group").(bool)
 	priority := d.Get("priority").(string)
@@ -850,13 +849,6 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("[DEBUG] Error setting `sku`: %#v", err)
 	}
 
-	properties := resp.VirtualMachineScaleSetProperties
-
-	d.Set("upgrade_policy_mode", properties.UpgradePolicy.Mode)
-	d.Set("automatic_os_upgrade", properties.UpgradePolicy.AutomaticOSUpgrade)
-	d.Set("overprovision", properties.Overprovision)
-	d.Set("single_placement_group", properties.SinglePlacementGroup)
-
 	flattenedIdentity := flattenAzureRmVirtualMachineScaleSetIdentity(resp.Identity)
 	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting `identity`: %+v", err)
@@ -864,17 +856,17 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
 
-	if properties.UpgradePolicy.RollingUpgradePolicy != nil {
-		if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(properties.UpgradePolicy.RollingUpgradePolicy)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
-		}
-	}
+		d.Set("overprovision", properties.Overprovision)
+		d.Set("single_placement_group", properties.SinglePlacementGroup)
 
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
+			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgrade)
+
+			if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(upgradePolicy.RollingUpgradePolicy)); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
+			}
 		}
-		d.Set("overprovision", properties.Overprovision)
-		d.Set("single_placement_group", properties.SinglePlacementGroup)
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
@@ -898,15 +890,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 					if err := d.Set("os_profile_secrets", flattenedSecrets); err != nil {
 						return fmt.Errorf("[DEBUG] Error setting `os_profile_secrets`: %#v", err)
 					}
-
-	if np := properties.VirtualMachineProfile.NetworkProfile; np != nil {
-		if hp := np.HealthProbe; hp != nil {
-			if id := hp.ID; id != nil {
-				d.Set("health_probe_id", id)
-			}
-		}
-	}
-
+				}
 
 				if windowsConfiguration := osProfile.WindowsConfiguration; windowsConfiguration != nil {
 					flattenedWindowsConfiguration := flattenAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(windowsConfiguration)
@@ -927,6 +911,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 			}
 
 			if networkProfile := profile.NetworkProfile; networkProfile != nil {
+				if hp := networkProfile.HealthProbe; hp != nil {
+					if id := hp.ID; id != nil {
+						d.Set("health_probe_id", id)
+					}
+				}
+
 				flattenedNetworkProfile := flattenAzureRmVirtualMachineScaleSetNetworkProfile(networkProfile)
 				if err := d.Set("network_profile", flattenedNetworkProfile); err != nil {
 					return fmt.Errorf("[DEBUG] Error setting `network_profile`: %#v", err)
@@ -966,6 +956,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 				}
 			}
 		}
+
 	}
 
 	if plan := resp.Plan; plan != nil {
@@ -1525,7 +1516,6 @@ func expandAzureRmRollingUpgradePolicy(d *schema.ResourceData) *compute.RollingU
 			MaxUnhealthyUpgradedInstancePercent: utils.Int32(int32(config["max_unhealthy_upgraded_instance_percent"].(int))),
 			PauseTimeBetweenBatches:             utils.String(config["pause_time_between_batches"].(string)),
 		}
-
 	} else {
 		return nil
 	}
@@ -1533,7 +1523,7 @@ func expandAzureRmRollingUpgradePolicy(d *schema.ResourceData) *compute.RollingU
 
 func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *compute.VirtualMachineScaleSetNetworkProfile {
 	scaleSetNetworkProfileConfigs := d.Get("network_profile").(*schema.Set).List()
-	networkConfigurations := make([]compute.VirtualMachineScaleSetNetworkConfiguration, 0, len(scaleSetNetworkProfileConfigs))
+	networkProfileConfig := make([]compute.VirtualMachineScaleSetNetworkConfiguration, 0, len(scaleSetNetworkProfileConfigs))
 
 	for _, npProfileConfig := range scaleSetNetworkProfileConfigs {
 		config := npProfileConfig.(map[string]interface{})
@@ -1664,11 +1654,11 @@ func expandAzureRmVirtualMachineScaleSetNetworkProfile(d *schema.ResourceData) *
 			nProfile.VirtualMachineScaleSetNetworkConfigurationProperties.NetworkSecurityGroup = &networkSecurityGroupId
 		}
 
-		networkConfigurations = append(networkConfigurations, nProfile)
+		networkProfileConfig = append(networkProfileConfig, nProfile)
 	}
 
 	return &compute.VirtualMachineScaleSetNetworkProfile{
-		NetworkInterfaceConfigurations: &networkConfigurations,
+		NetworkInterfaceConfigurations: &networkProfileConfig,
 	}
 }
 
