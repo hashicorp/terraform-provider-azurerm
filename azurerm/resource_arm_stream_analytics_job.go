@@ -157,15 +157,12 @@ func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
-		job, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
+		_, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
 		if err != nil {
 			return err
 		}
 
-		jobParams := &streamanalytics.StartStreamingJobParameters{
-			OutputStartMode: job.OutputStartMode,
-			OutputStartTime: job.OutputStartTime,
-		}
+		jobParams := &streamanalytics.StartStreamingJobParameters{}
 
 		switch jobStateStr {
 		case "Running":
@@ -214,6 +211,27 @@ func handleStoppedJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 				return fmt.Errorf("Error stopping job %q", jobName)
 			}
 		}
+	}
+	return nil
+}
+
+func stopJob(d *schema.ResourceData, client *ArmClient, rg, jobName string) error {
+	ctx := client.StopContext
+	streamClient := client.streamAnalyticsJobsClient
+
+	future, err := client.streamAnalyticsJobsClient.Stop(ctx, rg, jobName)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return err
+	}
+	err = future.WaitForCompletion(ctx, streamClient.Client)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error stopping job %q", jobName)
 	}
 	return nil
 }
@@ -297,6 +315,11 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
+	jobResp, err = client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
+	if err != nil {
+		return err
+	}
+
 	// This solves the chicken and egg situation going on
 	err = setJobState(d, client, rg, jobName)
 	if err != nil {
@@ -321,6 +344,11 @@ func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
+	err := stopJob(d, client, rg, jobName)
+	if err != nil {
+		return err
+	}
+
 	if d.HasChange("job_input") {
 		err := setInputs(d, client, rg, jobName)
 		if err != nil {
@@ -342,7 +370,7 @@ func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	err := manageProps(d, client, rg, jobName)
+	err = manageProps(d, client, rg, jobName)
 	if err != nil {
 		return err
 	}
@@ -355,11 +383,9 @@ func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	// if state is to start the job then that should start at the end else no changes can be applied
-	if d.HasChange("job_state") {
-		err := handleRunningJobState(d, client, rg, jobName)
-		if err != nil {
-			return err
-		}
+	err = handleRunningJobState(d, client, rg, jobName)
+	if err != nil {
+		return err
 	}
 
 	return nil
