@@ -2,8 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"log"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -369,40 +370,34 @@ func manageProps(d *schema.ResourceData, client *ArmClient, rg, jobName string) 
 	ctx := client.StopContext
 	jobProps := &streamanalytics.StreamingJobProperties{}
 
-	// Get our current Stream analytics instance and update a property if one is not set
-	streamID := d.Id()
-	resourceID, err := parseAzureResourceID(streamID)
-	if err != nil {
-		return err
+	if d.HasChange("events_out_of_order_max_delay_in_seconds") {
+		if sec, ok := d.GetOk("events_out_of_order_max_delay_in_seconds"); ok {
+			seci := int32(sec.(int))
+			jobProps.EventsOutOfOrderMaxDelayInSeconds = &seci
+		}
 	}
 
-	currentJob, err := client.streamAnalyticsJobsClient.Get(ctx, resourceID.ResourceGroup, resourceID.Path["streamingjobs"], "")
-	if err != nil {
-		return err
-	}
-
-	if sec, ok := d.GetOk("events_out_of_order_max_delay_in_seconds"); ok {
-		seci := int32(sec.(int))
-		jobProps.EventsOutOfOrderMaxDelayInSeconds = &seci
-	} else {
-		jobProps.EventsOutOfOrderMaxDelayInSeconds = currentJob.StreamingJobProperties.EventsOutOfOrderMaxDelayInSeconds
-	}
-
-	if evpolicy, ok := d.GetOk("events_out_of_order_policy"); ok {
-		jobProps.EventsOutOfOrderPolicy = streamanalytics.EventsOutOfOrderPolicy(evpolicy.(string))
+	if d.HasChange("events_out_of_order_policy") {
+		if evpolicy, ok := d.GetOk("events_out_of_order_policy"); ok {
+			jobProps.EventsOutOfOrderPolicy = streamanalytics.EventsOutOfOrderPolicy(evpolicy.(string))
+		}
 	}
 
 	job := streamanalytics.StreamingJob{
 		StreamingJobProperties: jobProps,
 	}
 
-	if tagsInf, ok := d.GetOk("tags"); ok {
-		job.Tags = *expandTags(tagsInf.(map[string]interface{}))
+	if d.HasChange("tags") {
+		if tagsInf, ok := d.GetOk("tags"); ok {
+			job.Tags = *expandTags(tagsInf.(map[string]interface{}))
+		}
 	}
 
-	// This causes an error each time it runs with no changes. We will display the error and continue
-	_, err = client.streamAnalyticsJobsClient.Update(ctx, job, rg, jobName, "")
-	return err
+	if jobProps.EventsOutOfOrderMaxDelayInSeconds != nil || (jobProps.EventsOutOfOrderPolicy != "") || (job.Tags != nil) {
+		_, err := client.streamAnalyticsJobsClient.Update(ctx, job, rg, jobName, "")
+		return err
+	}
+	return nil
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
