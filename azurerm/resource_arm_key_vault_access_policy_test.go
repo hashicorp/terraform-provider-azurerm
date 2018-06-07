@@ -25,7 +25,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id", "application_id"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
@@ -36,7 +36,8 @@ func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_complete(t *testing.T) {
-	resourceName := "azurerm_key_vault_access_policy.test"
+	resourceName1 := "azurerm_key_vault_access_policy.test_with_application_id"
+	resourceName2 := "azurerm_key_vault_access_policy.test_no_application_id"
 	rs := acctest.RandString(6)
 	config := testAccAzureRMKeyVaultAccessPolicy_complete(rs, testLocation())
 
@@ -48,13 +49,21 @@ func TestAccAzureRMKeyVaultAccessPolicy_complete(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id"),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "create"),
-					resource.TestCheckResourceAttr(resourceName, "key_permissions.1", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
-					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "delete"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_permissions.0", "create"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_permissions.1", "delete"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName1, "object_id", "application_id"),
+					resource.TestCheckResourceAttr(resourceName1, "key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(resourceName1, "key_permissions.1", "get"),
+					resource.TestCheckResourceAttr(resourceName1, "secret_permissions.0", "get"),
+					resource.TestCheckResourceAttr(resourceName1, "secret_permissions.1", "delete"),
+					resource.TestCheckResourceAttr(resourceName1, "certificate_permissions.0", "create"),
+					resource.TestCheckResourceAttr(resourceName1, "certificate_permissions.1", "delete"),
+
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName2, "object_id", "application_id"),
+					resource.TestCheckResourceAttr(resourceName2, "key_permissions.0", "list"),
+					resource.TestCheckResourceAttr(resourceName2, "key_permissions.1", "encrypt"),
+					resource.TestCheckResourceAttr(resourceName2, "secret_permissions.0", "list"),
+					resource.TestCheckResourceAttr(resourceName2, "secret_permissions.1", "delete"),
+					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.0", "list"),
+					resource.TestCheckResourceAttr(resourceName2, "certificate_permissions.1", "delete"),
 				),
 			},
 		},
@@ -76,7 +85,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id", "application_id"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "secret_permissions.1", "set"),
@@ -85,7 +94,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_update(t *testing.T) {
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(resourceName, "object_id", "application_id"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.0", "list"),
 					resource.TestCheckResourceAttr(resourceName, "key_permissions.1", "encrypt"),
 				),
@@ -110,7 +119,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_policyRemoved(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKeyVaultAccessPolicyExists(policyResourceName, "object_id"),
+					testCheckAzureRMKeyVaultAccessPolicyExists(policyResourceName, "object_id", "application_id"),
 					resource.TestCheckResourceAttr(policyResourceName, "key_permissions.0", "get"),
 					resource.TestCheckResourceAttr(policyResourceName, "secret_permissions.0", "get"),
 					resource.TestCheckResourceAttr(policyResourceName, "secret_permissions.1", "set"),
@@ -126,7 +135,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_policyRemoved(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKeyVaultAccessPolicyExists(name string, policyObjectTag string) resource.TestCheckFunc {
+func testCheckAzureRMKeyVaultAccessPolicyExists(name string, policyObjectTag string, policyApplicationTag string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -149,7 +158,14 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(name string, policyObjectTag str
 		}
 
 		objectId := rs.Primary.Attributes[policyObjectTag]
-		policy := findKeyVaultAccessPolicy(objectId, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
+
+		var policy map[string]interface{}
+
+		if applicationId, ok := rs.Primary.Attributes[policyApplicationTag]; ok {
+			policy = findKeyVaultAccessPolicyWithApplicationId(objectId, applicationId, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
+		} else {
+			policy = findKeyVaultAccessPolicy(objectId, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
+		}
 
 		if policy == nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", name, resGroup, objectId)
@@ -263,7 +279,7 @@ resource "azurerm_key_vault" "test" {
 	}
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
+resource "azurerm_key_vault_access_policy" "test_with_application_id" {
 	vault_name                = "${azurerm_key_vault.test.name}"
 	resource_group_name      = "${azurerm_resource_group.test.name}"
 	
@@ -283,6 +299,29 @@ resource "azurerm_key_vault_access_policy" "test" {
 	]
 	
 	application_id 	= "${data.azurerm_client_config.current.service_principal_application_id}"
+	tenant_id		= "${data.azurerm_client_config.current.tenant_id}"
+	object_id 		= "${data.azurerm_client_config.current.service_principal_object_id}"
+}
+
+resource "azurerm_key_vault_access_policy" "test_no_application_id" {
+	vault_name                = "${azurerm_key_vault.test.name}"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	
+	key_permissions = [
+	  "list",
+	  "encrypt"
+	]
+	
+	secret_permissions = [
+	  "list",
+	  "delete"
+	]
+	
+	certificate_permissions = [
+		"list", 
+		"delete"
+	]
+	
 	tenant_id		= "${data.azurerm_client_config.current.tenant_id}"
 	object_id 		= "${data.azurerm_client_config.current.service_principal_object_id}"
 }
