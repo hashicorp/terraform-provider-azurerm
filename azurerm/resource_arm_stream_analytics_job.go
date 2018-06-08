@@ -157,9 +157,14 @@ func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
-		_, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
+		job, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
 		if err != nil {
 			return err
+		}
+
+		if job.Outputs == nil || job.Inputs == nil || job.Transformation == nil {
+			log.Printf("Missing Output, Input, or Transformation. Cannot start StreamAnalytics job %#v", jobName)
+			return nil
 		}
 
 		jobParams := &streamanalytics.StartStreamingJobParameters{}
