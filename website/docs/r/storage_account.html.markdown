@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the Storage Account has been created. More details are available below.
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
 
 ## Attributes Reference
 
