@@ -157,20 +157,11 @@ func handleRunningJobState(d *schema.ResourceData, client *ArmClient, rg, jobNam
 	if jobState, ok := d.GetOk("job_state"); ok {
 		jobStateStr := jobState.(string)
 
-		job, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
-		if err != nil {
-			return err
-		}
-
-		if job.Outputs == nil || job.Inputs == nil || job.Transformation == nil {
-			log.Printf("Missing Output, Input, or Transformation. Cannot start StreamAnalytics job %#v", jobName)
-			return nil
-		}
-
 		jobParams := &streamanalytics.StartStreamingJobParameters{}
 
 		switch jobStateStr {
 		case "Running":
+			log.Printf("Missing Output, Input, or Transformation. Cannot start StreamAnalytics job %#v", jobName)
 			future, err := client.streamAnalyticsJobsClient.Start(ctx, rg, jobName, jobParams)
 			if err != nil {
 				if response.WasNotFound(future.Response()) {
@@ -320,11 +311,6 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	jobResp, err = client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
-	if err != nil {
-		return err
-	}
-
 	// This solves the chicken and egg situation going on
 	err = setJobState(d, client, rg, jobName)
 	if err != nil {
@@ -336,22 +322,30 @@ func resourceArmStreamAnalyticsJobCreate(d *schema.ResourceData, meta interface{
 
 func resourceArmStreamAnalyticsJobUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-
+	ctx := client.StopContext
 	jobName := d.Get("name").(string)
 	rg := d.Get("resource_group_name").(string)
 
 	// if state is to stop the job then it should happen in the beginning
 	if d.HasChange("job_state") {
-
 		err := handleStoppedJobState(d, client, rg, jobName)
 		if err != nil {
 			return err
 		}
 	}
 
-	err := stopJob(d, client, rg, jobName)
+	jobResp, err := client.streamAnalyticsJobsClient.Get(ctx, rg, jobName, "")
 	if err != nil {
 		return err
+	}
+	jobState := *jobResp.StreamingJobProperties.JobState
+	log.Printf("Job State %#v", jobState)
+
+	if jobState == "Running" {
+		err = stopJob(d, client, rg, jobName)
+		if err != nil {
+			return err
+		}
 	}
 
 	if d.HasChange("job_input") {
