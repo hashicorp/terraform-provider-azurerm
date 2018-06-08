@@ -95,3 +95,16 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - Key Vault Access Policy ID.
+
+## Import
+
+Routes can be imported using the `resource id` of the keyvault with additional metadata containing
+the service principal objectId and the applicationId if applicable, e.g.
+
+```shell
+terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/00000000-0000-0000-0000-000000000000
+```
+
+```shell
+terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/00000000-0000-0000-0000-000000000000/applicationId/00000000-0000-0000-0000-000000000000
+```

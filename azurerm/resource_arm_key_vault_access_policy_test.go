@@ -158,14 +158,11 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(name string, policyObjectTag str
 		}
 
 		objectId := rs.Primary.Attributes[policyObjectTag]
+		applicationId := rs.Primary.Attributes[policyApplicationTag]
 
-		var policy map[string]interface{}
+		policyIdentity := getPolicyIdentity(&objectId, &applicationId)
 
-		if applicationId, ok := rs.Primary.Attributes[policyApplicationTag]; ok {
-			policy = findKeyVaultAccessPolicyWithApplicationId(objectId, applicationId, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
-		} else {
-			policy = findKeyVaultAccessPolicy(objectId, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
-		}
+		policy := findKeyVaultAccessPolicy(policyIdentity, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
 
 		if policy == nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", name, resGroup, objectId)
@@ -349,6 +346,7 @@ resource "azurerm_key_vault" "test" {
 
   tags {
     environment = "Production"
+    policy_object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
   }
 }
 

@@ -92,6 +92,9 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	}
 
 	if d.IsNewResource() {
+		// This is because azure doesn't have an 'id' for a keyvault access policy
+		// In order to compensate for this and allow importing of this resource we are artificially
+		// creating an identity for a key vault policy object
 		resourceId := fmt.Sprintf("%s/objectId/%s", *read.ID, d.Get("object_id"))
 		if applicationId, ok := d.GetOk("application_id"); ok {
 			resourceId = fmt.Sprintf(
@@ -143,12 +146,11 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 
 	flattenedPolicy := flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies)
 
-	var policy map[string]interface{}
-	if applicationId, ok := id.Path["applicationId"]; ok {
-		policy = findKeyVaultAccessPolicyWithApplicationId(id.Path["objectId"], applicationId, flattenedPolicy)
-	} else {
-		policy = findKeyVaultAccessPolicy(id.Path["objectId"], flattenedPolicy)
-	}
+	policyObjectId := id.Path["objectId"]
+	policyApplicationId := id.Path["applicationId"]
+	policyId := getPolicyIdentity(&policyObjectId, &policyApplicationId)
+
+	policy := findKeyVaultAccessPolicy(policyId, flattenedPolicy)
 
 	if policy == nil {
 		d.SetId("")
@@ -157,9 +159,9 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 
 	d.Set("vault_name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("object_id", id.Path["objectId"])
+	d.Set("object_id", policyObjectId)
 	d.Set("tenant_id", resp.Properties.TenantID.String())
-	d.Set("application_id", policy["application_id"])
+	d.Set("application_id", policyApplicationId)
 	d.Set("key_permissions", policy["key_permissions"])
 	d.Set("secret_permissions", policy["secret_permissions"])
 	d.Set("certificate_permissions", policy["certificate_permissions"])
@@ -169,18 +171,29 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func findKeyVaultAccessPolicy(objectId string, policies []map[string]interface{}) map[string]interface{} {
-	for _, policy := range policies {
-		if policy["object_id"] != nil && policy["object_id"] == objectId {
-			return policy
-		}
+func getPolicyIdentity(objectId *string, applicationId *string) string {
+
+	if applicationId != nil && *applicationId != "" {
+		return fmt.Sprintf("%s/%s", *objectId, *applicationId)
+	} else {
+		return fmt.Sprintf("%s", *objectId)
 	}
-	return nil
 }
 
-func findKeyVaultAccessPolicyWithApplicationId(objectId string, applicationId string, policies []map[string]interface{}) map[string]interface{} {
+func matchAccessPolicy(policyString string, policy map[string]interface{}) bool {
+
+	policyObjectId := policy["object_id"].(string)
+
+	if policyApplicationId, ok := policy["application_id"]; ok {
+		return policyString == fmt.Sprintf("%s/%s", policyObjectId, policyApplicationId)
+	} else {
+		return policyString == policyObjectId
+	}
+}
+
+func findKeyVaultAccessPolicy(policyString string, policies []map[string]interface{}) map[string]interface{} {
 	for _, policy := range policies {
-		if policy["object_id"] != nil && policy["application_id"] != nil && policy["object_id"] == objectId && policy["application_id"] == applicationId {
+		if matchAccessPolicy(policyString, policy) {
 			return policy
 		}
 	}
