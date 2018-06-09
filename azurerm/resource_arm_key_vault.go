@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
-	//"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -152,8 +151,8 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		Tags: expandTags(tags),
 	}
 
-	//return fmt.Errorf("%s", spew.Sdump(parameters))
-
+	// Locking this resource so we don't make modifications to it at the same time if there is a
+	// key vault access policy trying to update it as well
 	azureRMLockByName(name, keyVaultResourceName)
 	defer azureRMUnlockByName(name, keyVaultResourceName)
 
@@ -175,6 +174,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	if d.IsNewResource() {
 		if props := read.Properties; props != nil {
 			if vault := props.VaultURI; vault != nil {
+				log.Printf("[DEBUG] Waiting for Key Vault %q (Resource Group %q) to become available", name, resGroup)
 				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
 				if err != nil {
 					return err

@@ -1,9 +1,10 @@
-package azurerm
+package keyvault
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"strings"
 )
 
 func keyPermissionsSchema() *schema.Schema {
@@ -146,4 +147,10 @@ func expandKeyVaultAccessPolicySecretPermissions(secretPermissionsRaw []interfac
 		secretPermissions = append(secretPermissions, keyvault.SecretPermissions(permission.(string)))
 	}
 	return &secretPermissions
+}
+
+// ignoreCaseDiffSuppressFunc is a DiffSuppressFunc from helper/schema that is
+// used to ignore any case-changes in a return value.
+func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+	return strings.ToLower(old) == strings.ToLower(new)
 }
