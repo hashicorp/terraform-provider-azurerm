@@ -336,12 +336,16 @@ func flattenVirtualNetworkDNSServers(input *network.DhcpOptions) []string {
 
 func resourceAzureSubnetHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%s", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s", m["address_prefix"].(string)))
-	if v, ok := m["security_group"]; ok {
-		buf.WriteString(v.(string))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s", m["name"].(string)))
+		buf.WriteString(fmt.Sprintf("%s", m["address_prefix"].(string)))
+
+		if v, ok := m["security_group"]; ok {
+			buf.WriteString(v.(string))
+		}
 	}
+
 	return hashcode.String(buf.String())
 }
 

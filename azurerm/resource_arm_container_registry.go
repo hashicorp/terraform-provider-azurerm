@@ -41,7 +41,6 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"sku": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:         true,
 				Default:          string(containerregistry.Classic),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -95,8 +94,9 @@ func resourceArmContainerRegistry() *schema.Resource {
 			},
 
 			"admin_password": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": tagsSchema(),
@@ -181,6 +181,10 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
+		},
+		Sku: &containerregistry.Sku{
+			Name: containerregistry.SkuName(sku),
+			Tier: containerregistry.SkuTier(sku),
 		},
 		Tags: expandTags(tags),
 	}

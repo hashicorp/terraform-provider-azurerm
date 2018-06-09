@@ -79,8 +79,9 @@ func resourceArmFunctionApp() *schema.Resource {
 							Required: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -99,6 +100,33 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.SQLServer),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+					},
+				},
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.SystemAssigned),
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -203,6 +231,12 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
+	if v, ok := d.GetOk("identity.0.type"); ok {
+		siteEnvelope.Identity = &web.ManagedServiceIdentity{
+			Type: web.ManagedServiceIdentityType(v.(string)),
+		}
+	}
+
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
@@ -260,6 +294,12 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			HTTPSOnly:             utils.Bool(httpsOnly),
 			SiteConfig:            &siteConfig,
 		},
+	}
+
+	if v, ok := d.GetOk("identity.0.type"); ok {
+		siteEnvelope.Identity = &web.ManagedServiceIdentity{
+			Type: web.ManagedServiceIdentityType(v.(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
@@ -354,6 +394,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("https_only", props.HTTPSOnly)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
+	}
+
+	if err := d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
+		return err
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
@@ -527,4 +571,22 @@ func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTy
 	}
 
 	return results
+}
+
+func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }

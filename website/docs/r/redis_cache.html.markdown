@@ -3,93 +3,65 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_cache"
 sidebar_current: "docs-azurerm-resource-redis-cache"
 description: |-
-  Creates a new Redis Cache Resource
+  Manages a Redis Cache
+
 ---
 
-# azurerm\_redis\_cache
+# azurerm_redis_cache
 
-Creates a new Redis Cache Resource
+Manages a Redis Cache.
 
 ## Example Usage (Basic)
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
+  name     = "redis-resources"
   location = "West US"
 }
 
+# NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "test" {
-  name                = "${random_id.server.hex}"
+  name                = "tf-redis-basic"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 0
   family              = "C"
   sku_name            = "Basic"
   enable_non_ssl_port = false
-
-  redis_configuration {
-    maxclients = 256
-  }
 }
 ```
 
 ## Example Usage (Standard)
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
+  name     = "redis-resources"
   location = "West US"
 }
 
+# NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "test" {
-  name                = "${random_id.server.hex}"
+  name                = "tf-redis-standard"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 2
   family              = "C"
   sku_name            = "Standard"
   enable_non_ssl_port = false
-
-  redis_configuration {
-    maxclients = 1000
-  }
 }
 ```
 
 ## Example Usage (Premium with Clustering)
 
 ```hcl
-resource "random_id" "server" {
-  keepers = {
-    azi_id = 1
-  }
-
-  byte_length = 8
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
+  name     = "redis-resources"
   location = "West US"
 }
 
+# NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "test" {
-  name                = "${random_id.server.hex}"
+  name                = "tf-redis-premium"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 1
@@ -99,7 +71,6 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxclients         = 7500
     maxmemory_reserved = 2
     maxmemory_delta    = 2
     maxmemory_policy   = "allkeys-lru"
@@ -111,7 +82,7 @@ resource "azurerm_redis_cache" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "redisrg"
+  name     = "redis-resources"
   location = "West US"
 }
 
@@ -123,8 +94,9 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "GRS"
 }
 
+# NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "test" {
-  name                = "example-redis"
+  name                = "tf-redis-pbkup"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   capacity            = 3
@@ -132,7 +104,6 @@ resource "azurerm_redis_cache" "test" {
   sku_name            = "Premium"
   enable_non_ssl_port = false
   redis_configuration {
-    maxclients                    = 256
     rdb_backup_enabled            = true
     rdb_backup_frequency          = 60
     rdb_backup_max_snapshot_count = 1

@@ -68,7 +68,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"private_ip_address": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 
 						"private_ip_address_allocation": {
@@ -85,7 +84,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"public_ip_address_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 
 						"application_gateway_backend_address_pools_ids": {

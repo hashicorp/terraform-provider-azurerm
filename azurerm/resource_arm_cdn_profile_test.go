@@ -138,6 +138,56 @@ func TestAccAzureRMCdnProfile_NonStandardCasing(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCdnProfile_basicToStandardAkamai(t *testing.T) {
+	resourceName := "azurerm_cdn_profile.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMCdnProfile_basic(ri, testLocation())
+	postConfig := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Verizon"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Akamai"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
+	resourceName := "azurerm_cdn_profile.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMCdnProfile_standardAkamai(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Akamai"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -263,6 +313,22 @@ resource "azurerm_cdn_profile" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "standard_verizon"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMCdnProfile_standardAkamai(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Akamai"
 }
 `, rInt, location, rInt)
 }
