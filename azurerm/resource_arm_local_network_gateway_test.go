@@ -193,7 +193,7 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 	})
 }
 
-// testCheckAzureRMLocalNetworkGatewayExists returns the resurce.TestCheckFunc
+// testCheckAzureRMLocalNetworkGatewayExists returns the resource.TestCheckFunc
 // which checks whether or not the expected local network gateway exists both
 // in the schema, and on Azure.
 func testCheckAzureRMLocalNetworkGatewayExists(name string) resource.TestCheckFunc {

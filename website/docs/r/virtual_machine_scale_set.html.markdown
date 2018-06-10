@@ -245,8 +245,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 * `sku` - (Required) A sku block as documented below.
 * `upgrade_policy_mode` - (Required) Specifies the mode of an upgrade to virtual machines in the scale set. Possible values, `Manual` or `Automatic`.
-* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
-* `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Default is true. Changing this forces a
+* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned. Defaults to `true`.
+* `single_placement_group` - (Optional) Specifies whether the scale set is limited to a single placement group with a maximum size of 100 virtual machines. If set to false, managed disks must be used. Defaults to `true`. Changing this forces a
     new resource to be created. See [documentation](http://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-placement-groups) for more information.
 * `license_type` - (Optional, when a Windows machine) Specifies the Windows OS license type. If supplied, the only allowed values are `Windows_Client` and `Windows_Server`.
 * `os_profile` - (Required) A Virtual Machine OS Profile block as documented below.
@@ -353,10 +353,14 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 * `name` - (Required) Specifies the name of the network interface configuration.
 * `primary` - (Required) Indicates whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - (Required) An ip_configuration block as documented below
+* `ip_configuration` - (Required) An ip_configuration block as documented below.
+* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to `false`.
+* `dns_settings` - (Optional) An dns_settings block as documented below.
 * `network_security_group_id` - (Optional) Specifies the identifier for the network security group.
-* `accelerated_networking` - (Optional) Specifies whether to enable accelerated networking or not. Defaults to
-`false`.
+
+`dns_settings` supports the following:
+
+* `dns_servers` - (Required) Specifies an array of dns servers.
 
 `ip_configuration` supports the following:
 
@@ -451,7 +455,6 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 The following attributes are exported:
 
 * `id` - The virtual machine scale set ID.
-
 
 ## Import
 
