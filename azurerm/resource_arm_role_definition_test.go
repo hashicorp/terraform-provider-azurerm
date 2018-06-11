@@ -229,7 +229,7 @@ func testAccAzureRMRoleDefinition_emptyId(rInt int) string {
 data "azurerm_subscription" "primary" {}
 
 resource "azurerm_role_definition" "test" {
-  role_definition_id = "hi"
+  role_definition_id = "fbda02370fbdf6f76e80f2d42708669a"
   name               = "acctestrd-%d"
   scope              = "${data.azurerm_subscription.primary.id}"
 
