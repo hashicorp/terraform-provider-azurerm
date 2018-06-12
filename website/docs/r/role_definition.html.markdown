@@ -36,7 +36,7 @@ resource "azurerm_role_definition" "test" {
 
 The following arguments are supported:
 
-* `role_definition_id` - (Optional) A unique UUID/GUID which identifies this role - one will be generated if not specified.. Changing this forces a new resource to be created.
+* `role_definition_id` - (Optional) A unique UUID/GUID which identifies this role - one will be generated if not specified. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name of the Role Definition. Changing this forces a new resource to be created.
 
