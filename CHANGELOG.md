@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_dns_ns_record` - deprecated `record` properties in favor of a `records` list [GH-991]
 * `azurerm_function_app` - adding the `identity` property [GH-1369]
 * `azurerm_storage_account` - adding the `network_rules` property [GH-1334]
+* `azurerm_storage_blob` - adding the `content_type` property [GH-1304]
 * `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
 * `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]
 * dependencies: migrating to the un-deprecated Preview's for Container Instance, EventGrid, Log Analytics and SQL [GH-1322]
