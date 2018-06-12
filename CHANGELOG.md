@@ -9,6 +9,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - `dns_prefix` is now required [GH-1333]
 * `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
 * `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
+* `azurerm_storage_account` - encryption is now explicity `true` by default [GH-1380]
 * `azurerm_virtual_machine_scale_set` - the field `overprovision` has been updated to `true` by default rather than `false` to match Azure [GH-1322]
 * `resource_arm_app_service_plan` - validation will now allow understores in the `name` property [GH-1351]
 
