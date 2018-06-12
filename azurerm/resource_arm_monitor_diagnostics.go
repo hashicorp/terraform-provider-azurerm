@@ -11,9 +11,9 @@ import (
 
 func resourceArmMonitorDiagnostics() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorDiagnosticsCreate,
+		Create: resourceArmMonitorDiagnosticsCreateUpdate,
 		Read:   resourceArmMonitorDiagnosticsRead,
-		Update: resourceArmMonitorDiagnosticsCreate,
+		Update: resourceArmMonitorDiagnosticsCreateUpdate,
 		Delete: resourceArmMonitorDiagnosticsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -70,7 +70,7 @@ func resourceArmMonitorDiagnostics() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorDiagnosticsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorDiagnosticsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
