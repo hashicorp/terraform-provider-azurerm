@@ -99,3 +99,22 @@ func validateIntBetweenDivisibleBy(min, max, divisor int) schema.SchemaValidateF
 		return
 	}
 }
+
+func validateCollation() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		v, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		matched, _ := regexp.MatchString(`^[A-Za-z0-9_. ]+$`, v)
+
+		if !matched {
+			es = append(es, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
+			return
+		}
+
+		return
+	}
+}

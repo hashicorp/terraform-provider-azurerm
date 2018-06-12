@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit_authorization"
 sidebar_current: "docs-azurerm-resource-network-express-route-circuit-authorization"
 description: |-
-  Creates an ExpressRoute Circuit Authorization.
+  Manages an ExpressRoute Circuit Authorization.
 ---
 
 # azurerm_express_route_circuit_authorization
 
-Creates an ExpressRoute Circuit Authorization.
+Manages an ExpressRoute Circuit Authorization.
 
 ## Example Usage
 

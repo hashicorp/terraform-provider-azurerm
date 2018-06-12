@@ -6,7 +6,7 @@ description: |-
   Create a DNS Zone.
 ---
 
-# azurerm\_dns\_zone
+# azurerm_dns_zone
 
 Enables you to manage DNS zones within Azure DNS. These zones are hosted on Azure's name servers to which you can delegate the zone from the parent domain.
 

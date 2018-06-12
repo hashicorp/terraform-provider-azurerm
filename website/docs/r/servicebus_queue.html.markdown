@@ -6,7 +6,7 @@ description: |-
   Create a ServiceBus Queue.
 ---
 
-# azurerm\_servicebus\_queue
+# azurerm_servicebus_queue
 
 Create and manage a ServiceBus Queue.
 

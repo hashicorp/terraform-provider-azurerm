@@ -90,6 +90,36 @@ func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
+	updatedConfig := testAccAzureRMMySQLServer_basicFiveSevenUpdated(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+//
+
 func testCheckAzureRMMySQLServerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -193,6 +223,39 @@ resource "azurerm_mysql_server" "test" {
   sku {
     name     = "B_Gen5_2"
     capacity = 2
+    tier     = "Basic"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.7"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_basicFiveSevenUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "B_Gen5_1"
+    capacity = 1
     tier     = "Basic"
     family   = "Gen5"
   }

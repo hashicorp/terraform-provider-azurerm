@@ -6,7 +6,7 @@ description: |-
   Create a SQL Elastic Pool.
 ---
 
-# azurerm\_sql\_elasticpool
+# azurerm_sql_elasticpool
 
 Allows you to manage an Azure SQL Elastic Pool.
 

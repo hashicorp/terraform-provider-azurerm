@@ -47,8 +47,6 @@ output "app_service_id" {
 
 * `https_only` - Can the App Service only be accessed via HTTPS?
 
-* `ip_restriction` - A `ip_restriction` block as defined below.
-
 * `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
@@ -65,14 +63,6 @@ output "app_service_id" {
 
 ---
 
-`ip_restriction` exports the following:
-
-* `ip_address` - The IP Address used for this IP Restriction.
-
-* `subnet_mask` - The Subnet mask used for this IP Restriction.
-
----
-
 `site_config` supports the following:
 
 * `always_on` - Is the app be loaded at all times?
@@ -82,6 +72,8 @@ output "app_service_id" {
 * `dotnet_framework_version` - The version of the .net framework's CLR used in this App Service.
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
+
+* `ip_restriction` - One or more `ip_restriction` blocks as defined below.
 
 * `java_version` - The version of Java in use.
 
@@ -106,3 +98,11 @@ output "app_service_id" {
 * `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
+
+---
+
+`ip_restriction` exports the following:
+
+* `ip_address` - The IP Address used for this IP Restriction.
+
+* `subnet_mask` - The Subnet mask used for this IP Restriction.

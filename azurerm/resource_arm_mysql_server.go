@@ -32,7 +32,7 @@ func resourceArmMySqlServer() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -67,6 +67,7 @@ func resourceArmMySqlServer() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 							ValidateFunc: validateIntInSlice([]int{
+								1,
 								2,
 								4,
 								8,
@@ -78,6 +79,7 @@ func resourceArmMySqlServer() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.Basic),
 								string(mysql.GeneralPurpose),
@@ -89,6 +91,7 @@ func resourceArmMySqlServer() *schema.Resource {
 						"family": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
@@ -190,7 +193,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	tags := d.Get("tags").(map[string]interface{})
 
 	sku := expandMySQLServerSku(d)
-	storageprofile := expandMySQLStorageProfile(d)
+	storageProfile := expandMySQLStorageProfile(d)
 
 	properties := mysql.ServerForCreate{
 		Location: &location,
@@ -199,7 +202,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
 			Version:                    mysql.ServerVersion(version),
 			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
-			StorageProfile:             storageprofile,
+			StorageProfile:             storageProfile,
 			CreateMode:                 mysql.CreateMode(createMode),
 		},
 		Sku:  sku,
@@ -208,20 +211,21 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for creation of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Server %q (resource group %q) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read MySQL Server %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -242,12 +246,12 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	sku := expandMySQLServerSku(d)
-	storageprofile := expandMySQLStorageProfile(d)
+	storageProfile := expandMySQLStorageProfile(d)
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := mysql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
-			StorageProfile:             storageprofile,
+			StorageProfile:             storageProfile,
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
 			Version:                    mysql.ServerVersion(version),
 			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
@@ -258,20 +262,21 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for MySQL Server %q (Resource Group %q) to finish updating: %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Server %q (resource group %q) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read MySQL Server %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -296,6 +301,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Azure MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -310,11 +316,11 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
 
-	if err := d.Set("sku", flattenMySQLServerSku(d, resp.Sku)); err != nil {
+	if err := d.Set("sku", flattenMySQLServerSku(resp.Sku)); err != nil {
 		return fmt.Errorf("Error flattening `sku`: %+v", err)
 	}
 
-	if err := d.Set("storage_profile", flattenMySQLStorageProfile(d, resp.StorageProfile)); err != nil {
+	if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
 		return fmt.Errorf("Error flattening `storage_profile`: %+v", err)
 	}
 
@@ -339,19 +345,19 @@ func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) erro
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error deleting MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for deletion of MySQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
 }
 
 func expandMySQLServerSku(d *schema.ResourceData) *mysql.Sku {
-	skus := d.Get("sku").(*schema.Set).List()
+	skus := d.Get("sku").([]interface{})
 	sku := skus[0].(map[string]interface{})
 
 	name := sku["name"].(string)
@@ -382,7 +388,7 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 	}
 }
 
-func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{} {
+func flattenMySQLServerSku(resp *mysql.Sku) []interface{} {
 	values := map[string]interface{}{}
 
 	if name := resp.Name; name != nil {
@@ -402,7 +408,7 @@ func flattenMySQLServerSku(d *schema.ResourceData, resp *mysql.Sku) []interface{
 	return []interface{}{values}
 }
 
-func flattenMySQLStorageProfile(d *schema.ResourceData, resp *mysql.StorageProfile) []interface{} {
+func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
 
 	if storageMB := resp.StorageMB; storageMB != nil {
