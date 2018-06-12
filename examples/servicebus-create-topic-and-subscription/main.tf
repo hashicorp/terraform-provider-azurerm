@@ -13,11 +13,11 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "tfex-servicebus${random_integer.ri.result}"
   location            = "${var.location}"
   resource_group_name = "${var.resource_group}"
-  sku                 = "premium"
+  sku                 = "standard"
   capacity            = 1
 }
 
-
+/*
 resource "azurerm_servicebus_topic" "test" {
   name                = "tfex_servicebus${random_integer.ri.result}_topic"
   resource_group_name = "${var.resource_group}"
@@ -43,3 +43,4 @@ resource "azurerm_servicebus_topic" "forward_to" {
 
   enable_partitioning = true
 }
+*/

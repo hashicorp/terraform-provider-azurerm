@@ -58,9 +58,8 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 			},
 
 			"capacity": {
-				Type:     schema.TypeInt,
-				Optional: true,
-
+				Type:         schema.TypeInt,
+				Optional:     true,
 				ValidateFunc: validateIntInSlice([]int{1, 2, 4}),
 			},
 
@@ -90,12 +89,27 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+
+			//If the SKU is not premium the API will always return 0 for capacity
+			//so lets only allow it to be set if the SKU is premium
+			if _, ok := d.GetOk("capacity"); ok {
+				sku := d.Get("sku").(string)
+				if strings.ToLower(sku) != strings.ToLower(string(servicebus.Premium)) {
+					return fmt.Errorf("`capacity` can only be set for a Premium SKU")
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
 func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).serviceBusNamespacesClient
 	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
 
 	name := d.Get("name").(string)
@@ -113,15 +127,8 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 		Tags: expandTags(tags),
 	}
 
-	capacity := d.Get("capacity").(int)
-	if capacity > 0 {
-		/*skuName := strings.ToLower(string(parameters.Sku.Name))
-		premiumSku := strings.ToLower(string(servicebus.Premium))
-		if skuName != premiumSku {
-			return fmt.Errorf("`capacity` can only be set for a Premium SKU")
-		}*/
-
-		parameters.Sku.Capacity = utils.Int32(int32(capacity))
+	if capacity, ok := d.GetOk("capacity"); ok {
+		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
