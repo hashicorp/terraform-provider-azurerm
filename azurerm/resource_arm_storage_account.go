@@ -127,13 +127,13 @@ func resourceArmStorageAccount() *schema.Resource {
 			"enable_blob_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"enable_file_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"enable_https_traffic_only": {
@@ -275,6 +275,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
+	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 
 	accountTier := d.Get("account_tier").(string)
@@ -296,18 +297,15 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				Services: &storage.EncryptionServices{
 					Blob: &storage.EncryptionService{
 						Enabled: utils.Bool(enableBlobEncryption),
+					},
+					File: &storage.EncryptionService{
+						Enabled: utils.Bool(enableFileEncryption),
 					}},
 				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         networkRules,
 		},
-	}
-
-	if v, ok := d.GetOk("enable_file_encryption"); ok {
-		parameters.Encryption.Services.File = &storage.EncryptionService{
-			Enabled: utils.Bool(v.(bool)),
-		}
 	}
 
 	if _, ok := d.GetOk("custom_domain"); ok {
