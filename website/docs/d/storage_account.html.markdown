@@ -35,13 +35,13 @@ output "storage_account_tier" {
 
 * `location` - The Azure location where the Storage Account exists
 
-* `account_kind` - Defines the Kind of account, either `BlobStorage` or `Storage`.
+* `account_kind` - The Kind of account.
 
-* `account_tier` - Defines the Tier of this storage account.
+* `account_tier` - The Tier of this storage account.
 
-* `account_replication_type` - Defines the type of replication used for this storage account.
+* `account_replication_type` - The type of replication used for this storage account.
 
-* `access_tier` - Defines the access tier for `BlobStorage` accounts.
+* `access_tier` - The access tier for `BlobStorage` accounts.
 
 * `enable_blob_encryption` - Are Encryption Services are enabled for Blob storage? See [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
     for more information.

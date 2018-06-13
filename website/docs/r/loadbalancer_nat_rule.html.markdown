@@ -6,7 +6,7 @@ description: |-
   Create a LoadBalancer NAT Rule.
 ---
 
-# azurerm\_lb\_nat\_rule
+# azurerm_lb_nat_rule
 
 Create a LoadBalancer NAT Rule.
 

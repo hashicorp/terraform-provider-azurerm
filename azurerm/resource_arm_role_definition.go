@@ -2,10 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/authorization/mgmt/2015-07-01/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,7 +23,8 @@ func resourceArmRoleDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"role_definition_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
@@ -82,6 +83,15 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
+	if roleDefinitionId == "" {
+		uuid, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+		}
+
+		roleDefinitionId = uuid
+	}
+
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 	description := d.Get("description").(string)
@@ -90,10 +100,10 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	assignableScopes := expandRoleDefinitionAssignableScopes(d)
 
 	properties := authorization.RoleDefinition{
-		Properties: &authorization.RoleDefinitionProperties{
+		RoleDefinitionProperties: &authorization.RoleDefinitionProperties{
 			RoleName:         utils.String(name),
 			Description:      utils.String(description),
-			Type:             utils.String(roleType),
+			RoleType:         utils.String(roleType),
 			Permissions:      &permissions,
 			AssignableScopes: &assignableScopes,
 		},
@@ -131,7 +141,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error loading Role Definition %q: %+v", d.Id(), err)
 	}
 
-	if props := resp.Properties; props != nil {
+	if props := resp.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
 

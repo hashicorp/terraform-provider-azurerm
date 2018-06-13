@@ -1,28 +1,114 @@
-## 1.5.0 (Unreleased)
+## 1.7.0 (Unreleased)
+
+UPGRADE NOTES:
+
+~> **Please Note:** The field `overprovision` on the `azurerm_virtual_machine_scale_set` resource has changed from `false` to `true` to match the behaviour of Azure in this release. [GH-1322]
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - `dns_prefix` is now required [GH-1333]
+* `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
+* `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
+* `azurerm_storage_account` - encryption is now explicity `true` by default [GH-1380]
+* `azurerm_servicebus_namespace` - the `capacity` propety no longer unnecessarily creates a new resource when changed [GH-1382]
+* `azurerm_virtual_machine_scale_set` - the field `overprovision` has been updated to `true` by default rather than `false` to match Azure [GH-1322]
+* `resource_arm_app_service_plan` - validation will now allow understores in the `name` property [GH-1351]
 
 FEATURES:
 
-* **New Data Source:** `azurerm_cosmosdb_account` [GH-1056]
-* **New Data Source:** `azurerm_kubernetes_cluster` [GH-1204]
-* **New Data Source:** `azurerm_route_table` [GH-1203]
+* `azurerm_virtual_machine` - support for `write_accelerator_enabled` on Premium disks attached to MS-series machines [GH-964]
 
 IMPROVEMENTS:
 
-* dependencies - upgrading to v16.2.1 of `Azure/azure-sdk-for-go` [GH-1198]
-* dependencies - upgrading to v10.8.1 of `Azure/go-autorest` [GH-1198]
-* `azurerm_app_service` - support for HTTP2 [GH-1188]
-* `azurerm_app_service` - support for Managed Service Identity [GH-1130]
-* `azurerm_app_service_slot` - support for HTTP2 [GH-1205]
-* `azurerm_cosmosdb_account` - added support for the `connection_strings` property [GH-1194]
-* `azurerm_key_vault_certificate` - exposing the `certificate_data` [GH-1200]
-* `azurerm_virtual_network` - guarding against nil-objects in the response [GH-1208]
-* `azurerm_virtual_network_gateway` - ignoring the case of the `GatewaySubnet` [GH-1141]
+* `azurerm_dns_ns_record` - deprecated `record` properties in favor of a `records` list [GH-991]
+* `azurerm_function_app` - adding the `identity` property [GH-1369]
+* `azurerm_role_definition` - the `role_definition_id` property is now optional. The resource will now generate a random UUID if it is ommited [GH-1378]
+* `azurerm_storage_account` - adding the `network_rules` property [GH-1334]
+* `azurerm_storage_blob` - adding the `content_type` property [GH-1304]
+* `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
+* `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]
+* dependencies: migrating to the un-deprecated Preview's for Container Instance, EventGrid, Log Analytics and SQL [GH-1322]
+* dependencies: upgrading to `2018-01-01` of the EventGrid API [GH-1322]
+* dependencies: upgrading to `2018-03-01` of the Monitor API [GH-1322]
+
+## 1.6.0 (May 24, 2018)
+
+UPGRADE NOTES:
+
+~> **Please Note:** The `azurerm_mysql_server` resource has been updated from the Preview API's to the GA API's - which requires code changes in your Terraform Configuration to use the new Pricing SKU's. Upon updating to v1.6.0 - you'll need to update the configuration from the Preview SKU's to the GA SKU's.
+
+~> **Please Note:** The `azurerm_postgresql_server` resource has been updated from the Preview API's to the GA API's - which requires code changes in your Terraform Configuration to use the new Pricing SKU's. Upon updating to v1.6.0 - you'll need to update the configuration from the Preview SKU's to the GA SKU's.
+
+* `azurerm_scheduler_job_collection` - the property `max_retry_interval` on both the resource and datasource has been deprecated in favour of `max_recurrence_interval` to better match Azure ([#1218](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1218))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_storage_account_sas` ([#1011](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1011))
+* **New Resource:** `azurerm_data_lake_store` ([#1219](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1219))
+* **New Resource:** `azurerm_relay_namespace` ([#1233](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1233))
+
+BUG FIXES:
+
+* across data-sources and resources: making Connection Strings, Keys and Passwords sensitive fields ([#1242](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1242))
+* `azurerm_virtual_machine_scale_set` - an empty `os_profile_windows_config` block no longer causes a panic ([#1224](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1224))
+
+IMPROVEMENTS:
+
+* authorization: upgrading to API version `2018-01-01-preview`
+* `azurerm_app_service` - adding support for `ip_restriction`'s ([#1231](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1231))
+* `azurerm_app_service_slot` - adding support for `ip_restriction`'s ([#1246](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1246))
+* `azurerm_container_registry` - no longer forces a new resource on SKU change ([#1264](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1264))
+* `azurerm_dns_zone` - datasource's `resource_group` field is now optional ([#1180](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1180))
+* `azurerm_mysql_database` - ignoring casing for the `charset` field ([#1281](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1281))
+* `azurerm_mysql_server` - support for the new GA Pricing SKU's ([#1154](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1154))
+* `azurerm_postgresql_database` - ignoring the casing on the `collation` field ([#1255](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1255))
+* `azurerm_postgresql_server` - support for the new GA Pricing SKU's ([#1190](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1190))
+* `azurerm_public_ip` - computed values now default to an empy string ([#1247](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1247))
+* `azurerm_role_assignment` - support for roles containing DataActions ([#1284](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1284))
+* `azurerm_servicebus_queue` - adding `dead_lettering_on_message_expiration` ([#1235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1235))
+* `azurerm_virtual_machine_scale_set` - adding the `licence_type` property ([#1245](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1245))
+* `azurerm_virtual_machine_scale_set` - adding the `priority` property ([#1250](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1250))
+
+## 1.5.0 (May 14, 2018)
+
+UPGRADE NOTES:
+
+~> **Please Note:** Prior to v1.5 Data Sources in the AzureRM Provider returned `nil` rather than an error message when a Resource didn't exist, which was a bug. In order to bring this into line with other Providers - starting in v1.5 the AzureRM Provider will return an error message when a resource doesn't exist.
+
+~> **Please Note:** This release fixes a bug in the `azurerm_redis_cache` resource where changes to fields weren't detected; as such you may see changes in the `redis_configuration` block, particularly with the `rdb_storage_connection_string` field. There's a bug tracking this inconsistency in [the Azure Rest API Specs Repository](https://github.com/Azure/azure-rest-api-specs/issues/3037).
+
+FEATURES:
+
+* **New Data Source:** `azurerm_cosmosdb_account` ([#1056](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1056))
+* **New Data Source:** `azurerm_kubernetes_cluster` ([#1204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1204))
+* **New Data Source:** `azurerm_key_vault` ([#1202](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1202))
+* **New Data Source:** `azurerm_key_vault_secret` ([#1202](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1202))
+* **New Data Source:** `azurerm_route_table` ([#1203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1203))
+
+BUG FIXES:
+
+* `azurerm_redis_cache` - changes to the `redis_configuration` block are now detected - please see the note above for more information ([#1211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1211))
+
+IMPROVEMENTS:
+
+* dependencies - upgrading to v16.2.1 of `Azure/azure-sdk-for-go` ([#1198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1198))
+* dependencies - upgrading to v10.8.1 of `Azure/go-autorest` ([#1198](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1198))
+* `azurerm_app_service` - support for HTTP2 ([#1188](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1188))
+* `azurerm_app_service` - support for Managed Service Identity ([#1130](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1130))
+* `azurerm_app_service_slot` - support for HTTP2 ([#1205](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1205))
+* `azurerm_cosmosdb_account` - added support for the `connection_strings` property ([#1194](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1194))
+* `azurerm_key_vault_certificate` - exposing the `certificate_data` ([#1200](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1200))
+* `azurerm_kubernetes_cluster` - making `kube_config_raw` a sensitive field ([#1225](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1225))
+* `azurerm_redis_cache` - Redis Caches can now be Imported ([#1211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1211))
+* `azurerm_redis_firewall_rule` - Redis Firewall Rules can now be Imported ([#1211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1211))
+* `azurerm_virtual_network` - guarding against nil-objects in the response ([#1208](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1208))
+* `azurerm_virtual_network_gateway` - ignoring the case of the `GatewaySubnet` ([#1141](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1141))
 
 ## 1.4.0 (April 26, 2018)
 
 UPGRADE NOTES:
 
-* `azurerm_cosmosdb_account` - the field `failover_policy` has been deprecated in favour of `geo_locations` to better match Azure.
+* `azurerm_cosmosdb_account` - the field `failover_policy` has been deprecated in favour of `geo_locations` to better match Azure
 
 FEATURES:
 
@@ -98,7 +184,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - allow changing `client_affinity_enabled` without requiring a resource recreation ([#993](https://github.com/terraform-providers/terraform-provider-azurerm/issues/993))
 * `azurerm_app_service` - support for configuring `LocalSCM` source control ([#826](https://github.com/terraform-providers/terraform-provider-azurerm/issues/826))
 * `azurerm_app_service` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
-* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [[#1000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1000)] 
+* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [[#1000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1000)]
 * `azurerm_function_app` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
 * `azurerm_network_interface` - support for attaching to Application Gateways ([#1027](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1027))
 * `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` ([#986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/986))
@@ -276,4 +362,4 @@ IMPROVEMENTS:
 * core - Upgrading `Azure/azure-sdk-for-go` to v11.2.2-beta ([#594](https://github.com/terraform-providers/terraform-provider-azurerm/issues/594))
 * core - upgrading `Azure/go-autorest` to v9.5.2 ([#617](https://github.com/terraform-providers/terraform-provider-azurerm/issues/617))
 * core - skipping Resource Provider Registration in AutoRest when opted-out ([#630](https://github.com/terraform-providers/terraform-provider-azurerm/issues/630))
-* `azurerm_app_service` - exposing the Default Hostname as a Computed field 
+* `azurerm_app_service` - exposing the Default Hostname as a Computed field

@@ -37,8 +37,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"dns_prefix": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 
 			"fqdn": {
@@ -67,16 +66,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 						"password": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_certificate": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"client_key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
 							Type:     schema.TypeString,
@@ -87,8 +88,9 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config_raw": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"linux_profile": {
@@ -566,10 +568,10 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	clientId := m["client_id"].(string)
-	buf.WriteString(fmt.Sprintf("%s-", clientId))
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["client_id"].(string)))
+	}
 
 	return hashcode.String(buf.String())
 }

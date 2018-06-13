@@ -47,7 +47,7 @@ output "app_service_id" {
 
 * `https_only` - Can the App Service only be accessed via HTTPS?
 
-* `site_config` - A `site_config` object as defined below.
+* `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
 
@@ -73,6 +73,8 @@ output "app_service_id" {
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
 
+* `ip_restriction` - One or more `ip_restriction` blocks as defined below.
+
 * `java_version` - The version of Java in use.
 
 * `java_container` - The Java Container in use.
@@ -96,3 +98,11 @@ output "app_service_id" {
 * `use_32_bit_worker_process` - Does the App Service run in 32 bit mode, rather than 64 bit mode?
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
+
+---
+
+`ip_restriction` exports the following:
+
+* `ip_address` - The IP Address used for this IP Restriction.
+
+* `subnet_mask` - The Subnet mask used for this IP Restriction.

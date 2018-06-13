@@ -278,16 +278,22 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	d.Set("tenant_id", resp.Properties.TenantID.String())
-	d.Set("enabled_for_deployment", resp.Properties.EnabledForDeployment)
-	d.Set("enabled_for_disk_encryption", resp.Properties.EnabledForDiskEncryption)
-	d.Set("enabled_for_template_deployment", resp.Properties.EnabledForTemplateDeployment)
-	d.Set("sku", flattenKeyVaultSku(resp.Properties.Sku))
-	d.Set("access_policy", flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
-	d.Set("vault_uri", resp.Properties.VaultURI)
+
+	if props := resp.Properties; props != nil {
+		d.Set("tenant_id", props.TenantID.String())
+		d.Set("enabled_for_deployment", props.EnabledForDeployment)
+		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
+		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
+			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
+		}
+		if err := d.Set("access_policy", flattenKeyVaultAccessPolicies(props.AccessPolicies)); err != nil {
+			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
+		}
+		d.Set("vault_uri", props.VaultURI)
+	}
 
 	flattenAndSetTags(d, resp.Tags)
-
 	return nil
 }
 

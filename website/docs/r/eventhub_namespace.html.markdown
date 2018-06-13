@@ -6,7 +6,7 @@ description: |-
   Create an EventHub Namespace.
 ---
 
-# azurerm\_eventhub\_namespace
+# azurerm_eventhub_namespace
 
 Create an EventHub Namespace.
 

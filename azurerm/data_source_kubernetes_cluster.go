@@ -52,16 +52,18 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 						"password": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"client_certificate": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"client_key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 						"cluster_ca_certificate": {
 							Type:     schema.TypeString,
@@ -72,8 +74,9 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config_raw": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"linux_profile": {
@@ -174,8 +177,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	resp, err := kubernetesClustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: AKS Managed Cluster %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)

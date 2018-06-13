@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm\_eventgrid\_topic
+# azurerm_eventgrid_topic
 
 Manages an EventGrid Topic
 

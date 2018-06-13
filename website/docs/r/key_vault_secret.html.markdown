@@ -7,9 +7,12 @@ description: |-
 
 ---
 
-# azurerm\_key\_vault\_secret
+# azurerm_key_vault_secret
 
 Manages a Key Vault Secret.
+
+~> **Note:** All arguments including the secret value will be stored in the raw state as plain-text.
+[Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 ## Example Usage
 

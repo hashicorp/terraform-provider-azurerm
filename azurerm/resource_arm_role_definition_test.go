@@ -87,6 +87,28 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
+	resourceName := "azurerm_role_definition.test"
+
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleDefinition_emptyId(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleDefinitionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "id"),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMRoleDefinitionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -200,4 +222,24 @@ resource "azurerm_role_definition" "test" {
   ]
 }
 `, id, rInt)
+}
+
+func testAccAzureRMRoleDefinition_emptyId(rInt int) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+resource "azurerm_role_definition" "test" {
+  name               = "acctestrd-%d"
+  scope              = "${data.azurerm_subscription.primary.id}"
+
+  permissions {
+    actions     = ["*"]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    "${data.azurerm_subscription.primary.id}",
+  ]
+}
+`, rInt)
 }

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_network_gateway"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
-  Creates a new virtual network gateway to establish secure, cross-premises connectivity.
+  Manages a new virtual network gateway to establish secure, cross-premises connectivity.
 ---
 
 # azurerm_virtual_network_gateway
 
-Creates a new Virtual Network Gateway to establish secure, cross-premises connectivity.
+Manages a new Virtual Network Gateway to establish secure, cross-premises connectivity.
 
 -> **Note:** Please be aware that provisioning a Virtual Network Gateway takes a long time (between 30 minutes and 1 hour)
 
