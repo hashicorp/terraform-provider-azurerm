@@ -408,7 +408,7 @@ func TestAccAzureRMStorageAccount_updateResourceByEnablingIdentity(t *testing.T)
 		},
 	})
 }
-      
+
 func TestAccAzureRMStorageAccount_networkRules(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := acctest.RandInt()
@@ -473,7 +473,7 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 			},
 		},
 	})
-}      
+}
 
 func testCheckAzureRMStorageAccountExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {

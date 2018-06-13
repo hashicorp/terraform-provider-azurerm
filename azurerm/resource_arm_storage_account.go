@@ -533,7 +533,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("enable_https_traffic_only")
 	}
 
-  if d.HasChange("identity") {
+	if d.HasChange("identity") {
 		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
 
 		opts := storage.AccountUpdateParameters{
@@ -543,9 +543,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account identity %q: %+v", storageAccountName, err)
 		}
-  }
-  
-  if d.HasChange("network_rules") {
+	}
+
+	if d.HasChange("network_rules") {
 		networkRules := expandStorageAccountNetworkRules(d)
 
 		opts := storage.AccountUpdateParameters{
