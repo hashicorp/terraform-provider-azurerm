@@ -502,7 +502,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Partial(false)
-	return nil
+	return resourceArmStorageAccountRead(d, meta)
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
