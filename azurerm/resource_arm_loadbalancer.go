@@ -334,21 +334,21 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 			}
 
 			if rules := props.LoadBalancingRules; rules != nil {
-				loadBalancingRules := make([]string, 0, len(*rules))
+				loadBalancingRules := make([]interface{}, 0, len(*rules))
 				for _, rule := range *rules {
 					loadBalancingRules = append(loadBalancingRules, *rule.ID)
 				}
 
-				ipConfig["load_balancer_rules"] = loadBalancingRules
+				ipConfig["load_balancer_rules"] = schema.NewSet(schema.HashString, loadBalancingRules)
 			}
 
 			if rules := props.InboundNatRules; rules != nil {
-				inboundNatRules := make([]string, 0, len(*rules))
+				inboundNatRules := make([]interface{}, 0, len(*rules))
 				for _, rule := range *rules {
 					inboundNatRules = append(inboundNatRules, *rule.ID)
 				}
 
-				ipConfig["inbound_nat_rules"] = inboundNatRules
+				ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
 
 			}
 		}
