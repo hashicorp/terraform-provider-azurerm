@@ -9,6 +9,8 @@ import (
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"regexp"
 	"strings"
@@ -23,33 +25,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
-		},
-
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
-			interval, _ := diff.GetOk("interval")
-			if strings.ToLower(diff.Get("frequency").(string)) == "onetime" && interval.(int) > 0 {
-				return fmt.Errorf("interval canot be set when frequency is not OneTime")
-			}
-
-			_, hasAccount := diff.GetOk("automation_account_name")
-			_, hasAutomationAccountWeb := diff.GetOk("account_name")
-			if !hasAccount && !hasAutomationAccountWeb {
-				return fmt.Errorf("`automation_account_name` must be set")
-			}
-
-			//if automation_account_name changed or account_name chnaged not to or from nil force a new resource
-			oAan, nAan := diff.GetChange("automation_account_name")
-			if oAan != "" && nAan != "" {
-				diff.ForceNew("automation_account_name")
-			}
-
-			oAn, nAn := diff.GetChange("account_name")
-			if oAn != "" && nAn != "" {
-				diff.ForceNew("automation_account_name")
-			}
-
-			return nil
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -69,7 +44,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"account_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to better match the azure API",
+				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
 				ConflictsWith: []string{"automation_account_name"},
 			},
 
@@ -83,7 +58,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"frequency": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.Day),
 					string(automation.Hour),
@@ -105,8 +80,8 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: compareDataAsUTCSuppressFunc,
-				ValidateFunc:     validateRFC3339DateInFutureBy(time.Duration(5) * time.Minute),
+				DiffSuppressFunc: suppress.Rfc3339Time,
+				ValidateFunc:     validate.Rfc3339DateInFutureBy(time.Duration(5) * time.Minute),
 				//defaults to now + 7 minutes in create function if not set
 			},
 
@@ -114,8 +89,8 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true, //same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
-				DiffSuppressFunc: compareDataAsUTCSuppressFunc,
-				ValidateFunc:     validateRFC3339Date,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validate.Rfc3339Time,
 			},
 
 			"description": {
@@ -127,52 +102,40 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "UTC",
-				//ValidateFunc: validateTimezone,
-				//go uses a different list
+				//todo figure out how to validate this properly
 			},
 
-			//todo missing fields: week_days, month_days, month_week_day from advanced automation section
-			//also next_run may be useful
+			//todo missing properties: week_days, month_days, month_week_day from advanced automation section
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			interval, _ := diff.GetOk("interval")
+			if strings.ToLower(diff.Get("frequency").(string)) == "onetime" && interval.(int) > 0 {
+				return fmt.Errorf("interval canot be set when frequency is not OneTime")
+			}
+
+			_, hasAccount := diff.GetOk("automation_account_name")
+			_, hasAutomationAccountWeb := diff.GetOk("account_name")
+			if !hasAccount && !hasAutomationAccountWeb {
+				return fmt.Errorf("`automation_account_name` must be set")
+			}
+
+			//if automation_account_name changed or account_name changed to or from nil force a new resource
+			//remove once we remove the deprecated property
+			oAan, nAan := diff.GetChange("automation_account_name")
+			if oAan != "" && nAan != "" {
+				diff.ForceNew("automation_account_name")
+			}
+
+			oAn, nAn := diff.GetChange("account_name")
+			if oAn != "" && nAn != "" {
+				diff.ForceNew("automation_account_name")
+			}
+
+			return nil
 		},
 	}
-}
-
-//todo move to internal package validate
-func compareDataAsUTCSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
-	ot, oerr := time.Parse(time.RFC3339, old)
-	nt, nerr := time.Parse(time.RFC3339, new)
-	if oerr != nil || nerr != nil {
-		return false
-	}
-
-	return nt.Equal(ot)
-}
-
-//todo move to internal package validate
-func validateRFC3339DateInFutureBy(d time.Duration) schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (s []string, errors []error) {
-		t, err := time.Parse(time.RFC3339, i.(string))
-		if err != nil {
-			errors = append(errors, fmt.Errorf("%q has the invalid RFC3339 date format %q: %+v", k, i, err))
-		}
-
-		if time.Until(t) < d {
-			errors = append(errors, fmt.Errorf("%q is %q but should be at least %q in the future", k, i, d))
-		}
-
-		return
-	}
-}
-
-//todo move to internal package validate
-func validateTimezone(v interface{}, k string) (ws []string, errors []error) {
-	locationString := v.(string)
-
-	if _, err := time.LoadLocation(locationString); err != nil {
-		errors = append(errors, fmt.Errorf("%q is the invalid timezone  %q: %+v", k, v, err))
-	}
-
-	return
 }
 
 func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {

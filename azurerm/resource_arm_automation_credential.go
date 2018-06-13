@@ -15,6 +15,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 		Read:   resourceArmAutomationCredentialRead,
 		Update: resourceArmAutomationCredentialCreateUpdate,
 		Delete: resourceArmAutomationCredentialDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -25,7 +26,9 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
+
 			"account_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -42,6 +45,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Required:  true,
 				Sensitive: true,
 			},
+
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -53,6 +57,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationCredentialClient
 	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
 
 	name := d.Get("name").(string)
@@ -93,6 +98,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationCredentialClient
 	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err

@@ -28,7 +28,8 @@ func resourceArmAutomationAccount() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[0-9a-zA-Z][-0-9a-zA-Z]{0,48}[0-9a-zA-Z]$`), //todo will not allow single character names, even thou they are valid
+					//todo this will not allow single character names, even thou they are valid
+					regexp.MustCompile(`^[0-9a-zA-Z][-0-9a-zA-Z]{0,48}[0-9a-zA-Z]$`),
 					`The account name must not be empty, and must not exceed 50 characters in length.  The account name must start with a letter or number.  The account name can contain letters, numbers, and dashes. The final character must be a letter or a number.`,
 				),
 			},
@@ -37,7 +38,6 @@ func resourceArmAutomationAccount() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			//can we somehow default this?
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -65,6 +65,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationAccountClient
 	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Account creation.")
 
 	name := d.Get("name").(string)
@@ -105,6 +106,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationAccountClient
 	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -161,7 +163,6 @@ func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-//todo remove when deprecated field
 func flattenAndSetAutomationAccountSku(d *schema.ResourceData, sku *automation.Sku) {
 	results := make([]interface{}, 1)
 

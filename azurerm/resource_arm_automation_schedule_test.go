@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -24,7 +23,7 @@ func TestAccAzureRMAutomationSchedule_oneTime(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAutomationScheduleExistsAndFrequencyType("azurerm_automation_schedule.test", automation.OneTime),
+
 				),
 			},
 		},
