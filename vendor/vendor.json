@@ -35,8 +35,8 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "17kDQcToCpJ8yGuAd7nP1QkOO6M=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-02-01-preview/containerinstance",
+			"checksumSHA1": "9e+rC0Kd+zgxMrEwaP5l3DXxHM4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",
@@ -83,8 +83,8 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "NieGKPVYPaCrPLxkzS+fEMidE3M=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2017-09-15-preview/eventgrid",
+			"checksumSHA1": "E1YgAbqCDO5VSl+BTF7YgJ1gDds=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",
@@ -131,8 +131,8 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "vAkF/ng9NforhX2dTdVfNWMZmKo=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights",
+			"checksumSHA1": "E+QgVQ3X1EvmDta96Xa2aPHrkt4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",
@@ -155,22 +155,6 @@
 			"versionExact": "v16.2.1"
 		},
 		{
-			"checksumSHA1": "DzVfhx2cwj/AgX9m6fvrecc7VyU=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights",
-			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
-			"revisionTime": "2018-05-04T19:14:26Z",
-			"version": "v16.2.1",
-			"versionExact": "v16.2.1"
-		},
-		{
-			"checksumSHA1": "0ubEDR8ye1PhBuUd5aVsGa3GLJs=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement",
-			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
-			"revisionTime": "2018-05-04T19:14:26Z",
-			"version": "v16.2.1",
-			"versionExact": "v16.2.1"
-		},
-		{
 			"checksumSHA1": "q0OKr6uBD4lgnHN/EIDrv0GQWW8=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
@@ -181,6 +165,30 @@
 		{
 			"checksumSHA1": "e4hCajXDSuWNkUvwA35jMHGm20E=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
+			"checksumSHA1": "EoE/UnsEm8MDYl+ox/+aIvs1HSY=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
+			"checksumSHA1": "ZKp5VA/YRkH75e8KjQ90X7mKJMs=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
+			"checksumSHA1": "BMQkuDh8dNIdR68pKFIJp28n8yg=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",
@@ -261,14 +269,6 @@
 		{
 			"checksumSHA1": "47wZjqF3UfIT1Xs56kXJ11zpCNc=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus",
-			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
-			"revisionTime": "2018-05-04T19:14:26Z",
-			"version": "v16.2.1",
-			"versionExact": "v16.2.1"
-		},
-		{
-			"checksumSHA1": "9CF6+vlasWn5NLNO3WGhLAFqp2w=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",

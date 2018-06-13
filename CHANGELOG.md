@@ -1,8 +1,35 @@
 ## 1.7.0 (Unreleased)
 
+UPGRADE NOTES:
+
+~> **Please Note:** The field `overprovision` on the `azurerm_virtual_machine_scale_set` resource has changed from `false` to `true` to match the behaviour of Azure in this release. [GH-1322]
+
 BUG FIXES:
 
+* `azurerm_kubernetes_cluster` - `dns_prefix` is now required [GH-1333]
+* `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
 * `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
+* `azurerm_storage_account` - encryption is now explicity `true` by default [GH-1380]
+* `azurerm_servicebus_namespace` - the `capacity` propety no longer unnecessarily creates a new resource when changed [GH-1382]
+* `azurerm_virtual_machine_scale_set` - the field `overprovision` has been updated to `true` by default rather than `false` to match Azure [GH-1322]
+* `resource_arm_app_service_plan` - validation will now allow understores in the `name` property [GH-1351]
+
+FEATURES:
+
+* `azurerm_virtual_machine` - support for `write_accelerator_enabled` on Premium disks attached to MS-series machines [GH-964]
+
+IMPROVEMENTS:
+
+* `azurerm_dns_ns_record` - deprecated `record` properties in favor of a `records` list [GH-991]
+* `azurerm_function_app` - adding the `identity` property [GH-1369]
+* `azurerm_role_definition` - the `role_definition_id` property is now optional. The resource will now generate a random UUID if it is ommited [GH-1378]
+* `azurerm_storage_account` - adding the `network_rules` property [GH-1334]
+* `azurerm_storage_blob` - adding the `content_type` property [GH-1304]
+* `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
+* `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]
+* dependencies: migrating to the un-deprecated Preview's for Container Instance, EventGrid, Log Analytics and SQL [GH-1322]
+* dependencies: upgrading to `2018-01-01` of the EventGrid API [GH-1322]
+* dependencies: upgrading to `2018-03-01` of the Monitor API [GH-1322]
 
 ## 1.6.0 (May 24, 2018)
 
@@ -157,7 +184,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - allow changing `client_affinity_enabled` without requiring a resource recreation ([#993](https://github.com/terraform-providers/terraform-provider-azurerm/issues/993))
 * `azurerm_app_service` - support for configuring `LocalSCM` source control ([#826](https://github.com/terraform-providers/terraform-provider-azurerm/issues/826))
 * `azurerm_app_service` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
-* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [[#1000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1000)] 
+* `azurerm_cosmosdb_account` - increasing the maximum value for `max_interval_in_seconds` from 100s to 86400s (1 day) [[#1000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1000)]
 * `azurerm_function_app` - returning a clearer error message when the name (which needs to be globally unique) is in use ([#1037](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1037))
 * `azurerm_network_interface` - support for attaching to Application Gateways ([#1027](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1027))
 * `azurerm_traffic_manager_endpoint` - adding support for `geo_mappings` ([#986](https://github.com/terraform-providers/terraform-provider-azurerm/issues/986))
@@ -335,4 +362,4 @@ IMPROVEMENTS:
 * core - Upgrading `Azure/azure-sdk-for-go` to v11.2.2-beta ([#594](https://github.com/terraform-providers/terraform-provider-azurerm/issues/594))
 * core - upgrading `Azure/go-autorest` to v9.5.2 ([#617](https://github.com/terraform-providers/terraform-provider-azurerm/issues/617))
 * core - skipping Resource Provider Registration in AutoRest when opted-out ([#630](https://github.com/terraform-providers/terraform-provider-azurerm/issues/630))
-* `azurerm_app_service` - exposing the Default Hostname as a Computed field 
+* `azurerm_app_service` - exposing the Default Hostname as a Computed field

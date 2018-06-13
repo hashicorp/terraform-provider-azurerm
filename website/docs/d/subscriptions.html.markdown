@@ -6,9 +6,9 @@ description: |-
   Get information about the available subscriptions.
 ---
 
-# Data Source: azurerm_subscription
+# Data Source: azurerm_subscriptions
 
-Use this data source to access a list of all Azure subscription currently available.
+Use this data source to access a list of all Azure subscriptions currently available.
 
 ## Example Usage
 

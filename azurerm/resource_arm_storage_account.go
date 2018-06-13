@@ -127,18 +127,55 @@ func resourceArmStorageAccount() *schema.Resource {
 			"enable_blob_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"enable_file_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  true,
 			},
 
 			"enable_https_traffic_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
+			},
+
+			"network_rules": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"bypass": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(storage.AzureServices),
+									string(storage.Logging),
+									string(storage.Metrics),
+									string(storage.None),
+								}, true),
+							},
+							Set: schema.HashString,
+						},
+						"ip_rules": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+						"virtual_network_subnet_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+					},
+				},
 			},
 
 			"primary_location": {
@@ -265,12 +302,15 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := azureRMNormalizeLocation(d.Get("location").(string))
 	tags := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
+	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
+
+	networkRules := expandStorageAccountNetworkRules(d)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -284,10 +324,14 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				Services: &storage.EncryptionServices{
 					Blob: &storage.EncryptionService{
 						Enabled: utils.Bool(enableBlobEncryption),
+					},
+					File: &storage.EncryptionService{
+						Enabled: utils.Bool(enableFileEncryption),
 					}},
 				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
+			NetworkRuleSet:         networkRules,
 		},
 	}
 
@@ -489,7 +533,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("enable_https_traffic_only")
 	}
 
-	if d.HasChange("identity") {
+  if d.HasChange("identity") {
 		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
 
 		opts := storage.AccountUpdateParameters{
@@ -499,6 +543,22 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		if err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account identity %q: %+v", storageAccountName, err)
 		}
+  }
+  
+  if d.HasChange("network_rules") {
+		networkRules := expandStorageAccountNetworkRules(d)
+
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				NetworkRuleSet: networkRules,
+			},
+		}
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("network_rules")
 	}
 
 	d.Partial(false)
@@ -615,6 +675,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 				d.Set("secondary_table_endpoint", "")
 			}
 		}
+
+		networkRules := props.NetworkRuleSet
+		if networkRules != nil && len(*networkRules.IPRules) > 0 && len(*networkRules.VirtualNetworkRules) > 0 {
+			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
+				return fmt.Errorf("Error flattening `network_rules`: %+v", err)
+			}
+		}
 	}
 
 	d.Set("primary_access_key", accessKeys[0].Value)
@@ -673,6 +740,107 @@ func flattenStorageAccountCustomDomain(input *storage.CustomDomain) []interface{
 	// use_subdomain isn't returned
 
 	return []interface{}{domain}
+}
+
+func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRuleSet {
+	networkRules := d.Get("network_rules").([]interface{})
+	if networkRules == nil || len(networkRules) == 0 {
+		// Default access is enabled when no network rules are set.
+		return &storage.NetworkRuleSet{DefaultAction: storage.DefaultActionAllow}
+	}
+
+	networkRule := networkRules[0].(map[string]interface{})
+	networkRuleSet := &storage.NetworkRuleSet{}
+
+	networkRuleSet.IPRules = expandStorageAccountIPRules(networkRule)
+	networkRuleSet.VirtualNetworkRules = expandStorageAccountVirtualNetworks(networkRule)
+	networkRuleSet.Bypass = expandStorageAccountBypass(networkRule)
+	// Default Access is disabled when network rules are set.
+	networkRuleSet.DefaultAction = storage.DefaultActionDeny
+
+	return networkRuleSet
+}
+
+func expandStorageAccountIPRules(networkRule map[string]interface{}) *[]storage.IPRule {
+	ipRulesInfo := networkRule["ip_rules"].(*schema.Set).List()
+	ipRules := make([]storage.IPRule, len(ipRulesInfo))
+
+	for i, ipRuleConfig := range ipRulesInfo {
+		attrs := ipRuleConfig.(string)
+		ipRule := storage.IPRule{
+			IPAddressOrRange: utils.String(attrs),
+			Action:           storage.Allow,
+		}
+		ipRules[i] = ipRule
+	}
+
+	return &ipRules
+}
+
+func expandStorageAccountVirtualNetworks(networkRule map[string]interface{}) *[]storage.VirtualNetworkRule {
+	virtualNetworkInfo := networkRule["virtual_network_subnet_ids"].(*schema.Set).List()
+	virtualNetworks := make([]storage.VirtualNetworkRule, len(virtualNetworkInfo))
+
+	for i, virtualNetworkConfig := range virtualNetworkInfo {
+		attrs := virtualNetworkConfig.(string)
+		virtualNetwork := storage.VirtualNetworkRule{
+			VirtualNetworkResourceID: utils.String(attrs),
+			Action: storage.Allow,
+		}
+		virtualNetworks[i] = virtualNetwork
+	}
+
+	return &virtualNetworks
+}
+
+func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypass {
+	bypassInfo := networkRule["bypass"].(*schema.Set).List()
+
+	var bypassValues []string
+	for _, bypassConfig := range bypassInfo {
+		bypassValues = append(bypassValues, bypassConfig.(string))
+	}
+
+	return storage.Bypass(strings.Join(bypassValues, ", "))
+}
+
+func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
+	networkRules := make(map[string]interface{}, 0)
+
+	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
+	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
+	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
+
+	return []interface{}{networkRules}
+}
+
+func flattenStorageAccountIPRules(input *[]storage.IPRule) []interface{} {
+	ipRules := make([]interface{}, len(*input))
+	for i, ipRule := range *input {
+		ipRules[i] = *ipRule.IPAddressOrRange
+	}
+
+	return ipRules
+}
+
+func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) []interface{} {
+	virtualNetworks := make([]interface{}, len(*input))
+	for i, virtualNetwork := range *input {
+		virtualNetworks[i] = *virtualNetwork.VirtualNetworkResourceID
+	}
+
+	return virtualNetworks
+}
+
+func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
+	bypassValues := strings.Split(string(input), ", ")
+	bypass := make([]interface{}, len(bypassValues))
+
+	for i, value := range bypassValues {
+		bypass[i] = value
+	}
+
+	return bypass
 }
 
 func validateArmStorageAccountName(v interface{}, k string) (ws []string, es []error) {
