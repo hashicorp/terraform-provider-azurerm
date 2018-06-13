@@ -59,10 +59,8 @@ variable "instance_count" {
 
 variable "admin_username" {
   description = "Admin username on all VMs."
-  default     = "kt"
 }
 
 variable "admin_password" {
   description = "Admin password on all VMs."
-  default     = "passWORD123!@#"
 }
