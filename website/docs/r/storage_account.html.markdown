@@ -87,8 +87,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the
     resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`, 
-    `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created. 
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`,
+    `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created.
     Defaults to `Storage`.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
@@ -112,6 +112,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
 ---
 
 * `custom_domain` supports the following:
@@ -129,6 +131,14 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+
+---
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
 
 ## Attributes Reference
 
@@ -150,6 +160,17 @@ The following attributes are exported in addition to the arguments listed above:
 * `secondary_connection_string` - The connection string associated with the secondary location
 * `primary_blob_connection_string` - The connection string associated with the primary blob location
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location
+* `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
+
+---
+
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
+
+-> You can access the Principal ID via `${azurerm_storage_account.test.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.test.identity.0.tenant_id}`
 
 ## Import
 
