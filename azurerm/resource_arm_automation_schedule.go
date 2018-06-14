@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"regexp"
 	"strings"
 )
 
@@ -32,10 +31,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
+				/*ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[^<>*%&:\\?.+/]{0,127}[^<>*%&:\\?.+/\s]$`),
 					`The name length must be from 1 to 128 characters. The name cannot contain special characters < > * % & : \ ? . + / and cannot end with a whitespace character.`,
-				),
+				),*/
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -44,6 +43,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"account_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true,
 				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
 				ConflictsWith: []string{"automation_account_name"},
 			},
@@ -51,6 +51,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			"automation_account_name": {
 				Type:     schema.TypeString,
 				Optional: true, //todo change to required once account_name has been removed
+				Computed: true,
 				//ForceNew:      true, //todo this needs to come back once account_name has been removed
 				ConflictsWith: []string{"account_name"},
 			},
@@ -123,15 +124,19 @@ func resourceArmAutomationSchedule() *schema.Resource {
 
 			//if automation_account_name changed or account_name changed to or from nil force a new resource
 			//remove once we remove the deprecated property
+			//if diff.HasChange("automation_account_name") {
 			oAan, nAan := diff.GetChange("automation_account_name")
 			if oAan != "" && nAan != "" {
 				diff.ForceNew("automation_account_name")
 			}
+			//}
 
+			//if diff.HasChange("account_name") {
 			oAn, nAn := diff.GetChange("account_name")
 			if oAn != "" && nAn != "" {
-				diff.ForceNew("automation_account_name")
+				diff.ForceNew("account_name")
 			}
+			//}
 
 			return nil
 		},
@@ -158,7 +163,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		accountName = v.(string)
 	} else if v, ok := d.GetOk("account_name"); ok {
 		accountName = v.(string)
-	} //CustomizeDiff should enforce one of these two being set
+	}
 
 	parameters := automation.ScheduleCreateOrUpdateParameters{
 		Name: &name,
@@ -235,12 +240,8 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	//todo remove once `account_name` is removed
-	if _, ok := d.GetOk("automation_account_name"); ok {
-		d.Set("automation_account_name", accountName)
-	} else {
-		d.Set("account_name", accountName)
-	}
+	d.Set("automation_account_name", accountName)
+	d.Set("account_name", accountName) //todo remove once `account_name` is removed
 	d.Set("frequency", string(resp.Frequency))
 
 	if v := resp.StartTime; v != nil {

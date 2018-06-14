@@ -19,7 +19,6 @@ resource "azurerm_automation_schedule" "one-time" {
     resource_group_name     = "${azurerm_resource_group.rg.name}"
     automation_account_name = "${azurerm_automation_account.account.name}"
     frequency	            = "OneTime"
-    timezone	            = "UTC+10"
     //defaults start_time to now + 7 min
 }
 
