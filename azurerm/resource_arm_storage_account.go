@@ -339,13 +339,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
 		parameters.Identity = storageAccountIdentity
 	}
-
-	if v, ok := d.GetOk("enable_file_encryption"); ok {
-		parameters.Encryption.Services.File = &storage.EncryptionService{
-			Enabled: utils.Bool(v.(bool)),
-		}
-	}
-
+	
 	if _, ok := d.GetOk("custom_domain"); ok {
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
