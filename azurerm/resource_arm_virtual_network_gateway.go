@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
@@ -11,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"regexp"
 )
 
 func resourceArmVirtualNetworkGateway() *schema.Resource {
@@ -202,9 +202,10 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
 							},
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"),
+								"The radius server address must be a valid IPv4 address",
+							),
 						},
 						"radius_server_secret": {
 							Type:     schema.TypeString,
@@ -212,9 +213,6 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							ConflictsWith: []string{
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
-							},
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
 							},
 						},
 					},
@@ -641,8 +639,13 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 	}
 	flat["vpn_client_protocols"] = vpnClientProtocols
 
-	flat["radius_server_address"] = *cfg.RadiusServerAddress
-	flat["radius_server_secret"] = *cfg.RadiusServerSecret
+	if v := cfg.RadiusServerAddress; v != nil {
+		flat["radius_server_address"] = *v
+	}
+
+	if v := cfg.RadiusServerSecret; v != nil {
+		flat["radius_server_secret"] = *v
+	}
 
 	return []interface{}{flat}
 }
@@ -733,30 +736,17 @@ func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, v 
 
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
-			if vpnClientConfig["radius_server_address"] != "" {
-				if !validIP4(vpnClientConfig["radius_server_address"].(string)) {
-					return fmt.Errorf("radius_server_address is not an IPv4 address")
+			if vpnClientConfig["radius_server_address"] != "" || vpnClientConfig["radius_server_secret"] != "" {
+				// If the vpn client gateway is using a radius server then both value should be set
+				if vpnClientConfig["radius_server_address"] == "" {
+					return fmt.Errorf("the radius_server_address must be set ")
 				}
 				if vpnClientConfig["radius_server_secret"] == "" {
-					return fmt.Errorf("radius_server_secret cannot be empty")
-				}
-			} else {
-				if vpnClientConfig["radius_server_secret"] != "" {
-					return fmt.Errorf("radius_server_secret cannot be set when radius_server_address is empty")
+					return fmt.Errorf("the radius_server_secret must be set")
 				}
 			}
+			// If radius is not set then we assume using the certificate, nil values are acceptable
 		}
 	}
 	return nil
-}
-
-func validIP4(ipAddress string) bool {
-	ipAddress = strings.Trim(ipAddress, " ")
-
-	re, _ := regexp.Compile(`^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$`)
-	if re.MatchString(ipAddress) {
-		return true
-	}
-
-	return false
 }
