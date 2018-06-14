@@ -24,6 +24,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - adding the `identity` property [GH-1369]
 * `azurerm_role_definition` - the `role_definition_id` property is now optional. The resource will now generate a random UUID if it is ommited [GH-1378]
 * `azurerm_storage_account` - adding the `network_rules` property [GH-1334]
+* `azurerm_storage_account` - adding the `identity` property [GH-1323]
 * `azurerm_storage_blob` - adding the `content_type` property [GH-1304]
 * `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
 * `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]
