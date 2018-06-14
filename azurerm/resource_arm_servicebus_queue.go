@@ -166,10 +166,9 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		return nsErr
 	}
 
-	// Enforce Premium namespace to have partitioning enabled in Terraform. It is always enabled in Azure for
-	// Premium SKU.
-	if namespace.Sku.Name == servicebus.Premium && !d.Get("enable_partitioning").(bool) {
-		return fmt.Errorf("ServiceBus Queue (%s) must have Partitioning enabled for Premium SKU", name)
+	// In a Premium tier namespace, partitioning entities is not supported.
+	if namespace.Sku.Name == servicebus.Premium && d.Get("enable_partitioning").(bool) {
+		return fmt.Errorf("ServiceBus Queue (%s) does not support Partitioning enabled for Premium SKU", name)
 	}
 
 	// Enforce Premium namespace to have Express Entities disabled in Terraform since they are not supported for

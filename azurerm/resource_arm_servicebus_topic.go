@@ -151,6 +151,19 @@ func resourceArmServiceBusTopicCreate(d *schema.ResourceData, meta interface{}) 
 		parameters.SBTopicProperties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
 	}
 
+	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
+	// so it needs different rules applied to it.
+	namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
+	namespace, nsErr := namespacesClient.Get(ctx, resourceGroup, namespaceName)
+	if nsErr != nil {
+		return nsErr
+	}
+
+	// In a Premium tier namespace, partitioning entities is not supported.
+	if namespace.Sku.Name == servicebus.Premium && d.Get("enable_partitioning").(bool) {
+		return fmt.Errorf("ServiceBus Queue (%s) does not support Partitioning enabled for Premium SKU", name)
+	}
+
 	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
 	if err != nil {
 		return err
