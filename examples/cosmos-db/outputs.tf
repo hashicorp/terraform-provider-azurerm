@@ -1,4 +1,3 @@
-
 output "cosmos-db-id" {
   value = "${azurerm_cosmosdb_account.db.id}"
 }
@@ -10,6 +9,7 @@ output "cosmos-db-endpoint" {
 output "cosmos-db-endpoints_read" {
   value = "${azurerm_cosmosdb_account.db.read_endpoints}"
 }
+
 output "cosmos-db-endpoints_write" {
   value = "${azurerm_cosmosdb_account.db.write_endpoints}"
 }
