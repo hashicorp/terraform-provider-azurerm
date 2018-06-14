@@ -736,16 +736,15 @@ func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, v 
 
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
-			if vpnClientConfig["radius_server_address"] != "" || vpnClientConfig["radius_server_secret"] != "" {
-				// If the vpn client gateway is using a radius server then both value should be set
-				if vpnClientConfig["radius_server_address"] == "" {
-					return fmt.Errorf("the radius_server_address must be set ")
-				}
-				if vpnClientConfig["radius_server_secret"] == "" {
-					return fmt.Errorf("the radius_server_secret must be set")
-				}
+			hasRadiusAddress := vpnClientConfig["radius_server_address"] != ""
+			hasRadiusSecret := vpnClientConfig["radius_server_secret"] != ""
+
+			if hasRadiusAddress && !hasRadiusSecret {
+				return fmt.Errorf("if radius_server_address is set radius_server_secret must also be set")
 			}
-			// If radius is not set then we assume using the certificate, nil values are acceptable
+			if !hasRadiusAddress && hasRadiusSecret {
+				return fmt.Errorf("if radius_server_secret is set radius_server_address must also be set")
+			}
 		}
 	}
 	return nil
