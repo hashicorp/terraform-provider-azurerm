@@ -339,7 +339,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
 		parameters.Identity = storageAccountIdentity
 	}
-	
+
 	if _, ok := d.GetOk("custom_domain"); ok {
 		parameters.CustomDomain = expandStorageAccountCustomDomain(d)
 	}
