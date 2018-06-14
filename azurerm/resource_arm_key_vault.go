@@ -454,7 +454,7 @@ func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
 		conn, err := client.Get(vaultUri)
 		if err != nil {
 			log.Printf("[DEBUG] Didn't find KeyVault at %q", vaultUri)
-			return nil, "pending", fmt.Errorf("Error connecting to %q: %s %s", vaultUri, err, conn)
+			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", vaultUri, err)
 		}
 
 		defer conn.Body.Close()
