@@ -220,7 +220,7 @@ func testCheckAzureRMSqlServerDisappears(name string) resource.TestCheckFunc {
 func testAccAzureRMSqlServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -238,7 +238,7 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -261,7 +261,7 @@ resource "azurerm_sql_server" "test" {
 func testAccAzureRMSqlServer_withTagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
