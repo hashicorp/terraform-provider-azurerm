@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
@@ -12,8 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"regexp"
-	"strings"
 )
 
 func resourceArmAutomationSchedule() *schema.Resource {

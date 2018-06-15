@@ -8,18 +8,18 @@ description: |-
 
 # azurerm_automation_schedule
 
-Manages a new Automation Schedule.
+Manages a Automation Schedule.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
+ name     = "tfex-automation-account"
  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
-  name                = "account1"
+  name                = "tfex-automation-account"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku {
@@ -28,14 +28,14 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_schedule" "example" {
-  name                = "schedule1"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
-  frequency           = "Hour"
-  interval            = 1
-  timezone            = "Central Europe Standard Time"
-  start_time	      = "2014-04-15T18:00:15+02:00"
-  description         = "This is an example schedule"
+  name                    = "tfex-automation-schedule"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  automation_account_name = "${azurerm_automation_account.example.name}"
+  frequency               = "Hour"
+  interval                = 1
+  timezone                = "Central Europe Standard Time"
+  start_time              = "2014-04-15T18:00:15+02:00"
+  description             = "This is an example schedule"
 }
 ```
 

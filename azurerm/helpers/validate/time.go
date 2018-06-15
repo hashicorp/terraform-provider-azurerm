@@ -8,7 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-//todo, now in terraform helper, switch over once vended,
+//todo, now in terraform helper, switch over once vended
+// -> https://github.com/hashicorp/terraform/blob/master/helper/validation/validation.go#L263
 func Rfc3339Time(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
