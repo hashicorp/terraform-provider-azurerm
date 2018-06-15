@@ -6,7 +6,7 @@ UPGRADE NOTES:
 
 BUG FIXES:
 
-* `azurerm_key_vault` - respectes the same proxy environment varibles terraform does and can now create the vault when behind a proxy [GH-1393]
+* `azurerm_key_vault` - respecting the proxy environment varibles terraform does and now can create vaults when behind a proxy [GH-1393]
 * `azurerm_kubernetes_cluster` - `dns_prefix` is now required [GH-1333]
 * `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
 * `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
@@ -16,18 +16,16 @@ BUG FIXES:
 * `azurerm_virtual_network_gateway` - adding the properties `vpn_client_protocols`, `radius_server_address` and `radius_server_secret` [GH-946]
 * `azurerm_app_service_plan` - the `name` property validation now allows understores [GH-1351]
 
-FEATURES:
-
-* `azurerm_virtual_machine` - support for `write_accelerator_enabled` property on Premium disks attached to MS-series machines [GH-964]
-
 IMPROVEMENTS:
 
+* `azurerm_automation_schedule` - adding the `interval` property and supporting recurring schedules [GH-1384]
 * `azurerm_dns_ns_record` - deprecated `record` properties in favor of a `records` list [GH-991]
 * `azurerm_function_app` - adding the `identity` property [GH-1369]
 * `azurerm_role_definition` - the `role_definition_id` property is now optional. The resource will now generate a random UUID if it is ommited [GH-1378]
 * `azurerm_storage_account` - adding the `network_rules` property [GH-1334]
 * `azurerm_storage_account` - adding the `identity` property [GH-1323]
 * `azurerm_storage_blob` - adding the `content_type` property [GH-1304]
+* `azurerm_virtual_machine` - support for `write_accelerator_enabled` property on Premium disks attached to MS-series machines [GH-964]
 * `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
 * `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]
 * dependencies: migrating to the un-deprecated Preview's for Container Instance, EventGrid, Log Analytics and SQL [GH-1322]
