@@ -13,6 +13,7 @@ BUG FIXES:
 * `azurerm_storage_account` - file and blob encryption is now explicity `true` by default [GH-1380]
 * `azurerm_servicebus_namespace` - the `capacity` propety no longer unnecessarily forces a new resource when changed [GH-1382]
 * `azurerm_virtual_machine_scale_set` - the field `overprovision` is now `true` by default [GH-1322]
+* `azurerm_virtual_network_gateway` - adding the properties `vpn_client_protocols`, `radius_server_address` and `radius_server_secret` [GH-946]
 * `azurerm_app_service_plan` - the `name` property validation now allows understores [GH-1351]
 
 FEATURES:
