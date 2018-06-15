@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_runbook"
 sidebar_current: "docs-azurerm-resource-automation-runbook"
 description: |-
-  Manages a new Automation Runbook.
+  Manages a Automation Runbook.
 ---
 
 # azurerm_automation_runbook
 
-Manages a new Automation Runbook.
+Manages a Automation Runbook.
 
 ## Example Usage
 

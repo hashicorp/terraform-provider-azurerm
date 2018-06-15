@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_application_gateway"
 sidebar_current: "docs-azurerm-resource-application-gateway"
 description: |-
-  Manages a new application gateway based on a previously created virtual network with configured subnets.
+  Manages a application gateway based on a previously created virtual network with configured subnets.
 ---
 
 # azurerm_application_gateway
 
-Manages a new application gateway based on a previously created virtual network with configured subnets.
+Manages a application gateway based on a previously created virtual network with configured subnets.
 
 ## Example Usage
 
