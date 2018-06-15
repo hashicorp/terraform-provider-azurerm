@@ -27,9 +27,10 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"publish_content_link"},
 			},
 		},
 	})
@@ -52,9 +53,10 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithHash(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"publish_content_link"},
 			},
 		},
 	})

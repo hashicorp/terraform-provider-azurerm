@@ -92,7 +92,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	return resourceArmAutomationAccountRead(d, meta)
+	return resourceArmAutomationCredentialRead(d, meta)
 }
 
 func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {

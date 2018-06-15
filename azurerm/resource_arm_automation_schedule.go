@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"regexp"
 	"strings"
 )
 
@@ -31,10 +32,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				/*ValidateFunc: validation.StringMatch(
+				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[^<>*%&:\\?.+/]{0,127}[^<>*%&:\\?.+/\s]$`),
 					`The name length must be from 1 to 128 characters. The name cannot contain special characters < > * % & : \ ? . + / and cannot end with a whitespace character.`,
-				),*/
+				),
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
@@ -124,19 +125,15 @@ func resourceArmAutomationSchedule() *schema.Resource {
 
 			//if automation_account_name changed or account_name changed to or from nil force a new resource
 			//remove once we remove the deprecated property
-			//if diff.HasChange("automation_account_name") {
 			oAan, nAan := diff.GetChange("automation_account_name")
 			if oAan != "" && nAan != "" {
 				diff.ForceNew("automation_account_name")
 			}
-			//}
 
-			//if diff.HasChange("account_name") {
 			oAn, nAn := diff.GetChange("account_name")
 			if oAn != "" && nAn != "" {
 				diff.ForceNew("account_name")
 			}
-			//}
 
 			return nil
 		},
