@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,6 +36,18 @@ func resourceArmLoadBalancer() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.LoadBalancerSkuNameBasic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.LoadBalancerSkuNameBasic),
+					string(network.LoadBalancerSkuNameStandard),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"frontend_ip_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -41,49 +55,62 @@ func resourceArmLoadBalancer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.StringNotEmpty,
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.AzureResourceId,
 						},
 
 						"private_ip_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.AzureResourceId,
 						},
 
 						"public_ip_address_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.AzureResourceId,
 						},
 
 						"private_ip_address_allocation": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ValidateFunc:     validateLoadBalancerPrivateIpAddressAllocation,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Dynamic),
+								string(network.Static),
+							}, true),
 							StateFunc:        ignoreCaseStateFunc,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"load_balancer_rules": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.StringNotEmpty,
+							},
+							Set: schema.HashString,
 						},
 
 						"inbound_nat_rules": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.StringNotEmpty,
+							},
+							Set: schema.HashString,
 						},
 
 						"zones": singleZonesSchema(),
@@ -101,18 +128,6 @@ func resourceArmLoadBalancer() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-			},
-
-			"sku": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(network.LoadBalancerSkuNameBasic),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.LoadBalancerSkuNameBasic),
-					string(network.LoadBalancerSkuNameStandard),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"tags": tagsSchema(),
