@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_local_network_gateway"
 sidebar_current: "docs-azurerm-resource-network-local-network-gateway"
 description: |-
-  Manages a new local network gateway connection over which specific connections can be configured.
+  Manages a local network gateway connection over which specific connections can be configured.
 ---
 
 # azurerm_local_network_gateway
 
-Manages a new local network gateway connection over which specific connections can be configured.
+Manages a local network gateway connection over which specific connections can be configured.
 
 ## Example Usage
 
