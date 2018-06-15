@@ -6,17 +6,18 @@ UPGRADE NOTES:
 
 BUG FIXES:
 
+* `azurerm_key_vault` - respectes the same proxy environment varibles terraform does and can now create the vault when behind a proxy [GH-1393]
 * `azurerm_kubernetes_cluster` - `dns_prefix` is now required [GH-1333]
 * `azurerm_network_interface` - ensuring that Public IP's/Private IP Addresses can be removed once assigned [GH-1295]
 * `azurerm_public_ip` - setting the `domain_name_label` property into state [GH-1287]
-* `azurerm_storage_account` - encryption is now explicity `true` by default [GH-1380]
-* `azurerm_servicebus_namespace` - the `capacity` propety no longer unnecessarily creates a new resource when changed [GH-1382]
-* `azurerm_virtual_machine_scale_set` - the field `overprovision` has been updated to `true` by default rather than `false` to match Azure [GH-1322]
-* `resource_arm_app_service_plan` - validation will now allow understores in the `name` property [GH-1351]
+* `azurerm_storage_account` - file and blob encryption is now explicity `true` by default [GH-1380]
+* `azurerm_servicebus_namespace` - the `capacity` propety no longer unnecessarily forces a new resource when changed [GH-1382]
+* `azurerm_virtual_machine_scale_set` - the field `overprovision` is now `true` by default [GH-1322]
+* `azurerm_app_service_plan` - the `name` property validation now allows understores [GH-1351]
 
 FEATURES:
 
-* `azurerm_virtual_machine` - support for `write_accelerator_enabled` on Premium disks attached to MS-series machines [GH-964]
+* `azurerm_virtual_machine` - support for `write_accelerator_enabled` property on Premium disks attached to MS-series machines [GH-964]
 
 IMPROVEMENTS:
 
@@ -24,6 +25,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` - adding the `identity` property [GH-1369]
 * `azurerm_role_definition` - the `role_definition_id` property is now optional. The resource will now generate a random UUID if it is ommited [GH-1378]
 * `azurerm_storage_account` - adding the `network_rules` property [GH-1334]
+* `azurerm_storage_account` - adding the `identity` property [GH-1323]
 * `azurerm_storage_blob` - adding the `content_type` property [GH-1304]
 * `azurerm_virtual_machine_scale_set` - adding the `dns_settings` and `dns_servers` property [GH-1209]
 * `azurerm_virtual_machine_scale_set` - adding the `ip_forwarding` property [GH-1209]

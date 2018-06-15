@@ -260,6 +260,33 @@ func resourceArmStorageAccount() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -306,6 +333,11 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         networkRules,
 		},
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
+		parameters.Identity = storageAccountIdentity
 	}
 
 	if _, ok := d.GetOk("custom_domain"); ok {
@@ -495,6 +527,18 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("enable_https_traffic_only")
 	}
 
+	if d.HasChange("identity") {
+		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
+
+		opts := storage.AccountUpdateParameters{
+			Identity: storageAccountIdentity,
+		}
+		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
+		if err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account identity %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if d.HasChange("network_rules") {
 		networkRules := expandStorageAccountNetworkRules(d)
 
@@ -512,7 +556,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Partial(false)
-	return nil
+	return resourceArmStorageAccountRead(d, meta)
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
@@ -636,6 +680,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("primary_access_key", accessKeys[0].Value)
 	d.Set("secondary_access_key", accessKeys[1].Value)
+
+	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -812,4 +861,32 @@ func validateArmStorageAccountType(v interface{}, k string) (ws []string, es []e
 
 	es = append(es, fmt.Errorf("Invalid storage account type %q", input))
 	return
+}
+
+func expandAzureRmStorageAccountIdentity(d *schema.ResourceData) *storage.Identity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &storage.Identity{
+		Type: &identityType,
+	}
+}
+
+func flattenAzureRmStorageAccountIdentity(identity *storage.Identity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	if identity.Type != nil {
+		result["type"] = *identity.Type
+	}
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }
