@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_network"
 sidebar_current: "docs-azurerm-resource-network-virtual-network"
 description: |-
-  Manages a new virtual network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.
+  Manages a virtual network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.
 ---
 
 # azurerm_virtual_network
 
-Manages a new virtual network including any configured subnets. Each subnet can
+Manages a virtual network including any configured subnets. Each subnet can
 optionally be configured with a security group to be associated with the subnet.
 
 ~> **NOTE on Virtual Networks and Subnet's:** Terraform currently

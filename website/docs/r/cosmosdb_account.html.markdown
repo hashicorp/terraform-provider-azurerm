@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
 sidebar_current: "docs-azurerm-resource-cosmosdb-account"
 description: |-
-  Manages a new CosmosDB (formally DocumentDB) Account.
+  Manages a CosmosDB (formally DocumentDB) Account.
 ---
 
 # azurerm_cosmos_db_account
 
-Manages a new CosmosDB (formally DocumentDB) Account.
+Manages a CosmosDB (formally DocumentDB) Account.
 
 ## Example Usage
 

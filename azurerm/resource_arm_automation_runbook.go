@@ -16,6 +16,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 		Read:   resourceArmAutomationRunbookRead,
 		Update: resourceArmAutomationRunbookCreateUpdate,
 		Delete: resourceArmAutomationRunbookDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -103,6 +104,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 					},
 				},
 			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -111,6 +113,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationRunbookClient
 	ctx := meta.(*ArmClient).StopContext
+
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 
 	name := d.Get("name").(string)
@@ -161,6 +164,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).automationRunbookClient
 	ctx := meta.(*ArmClient).StopContext
+
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err

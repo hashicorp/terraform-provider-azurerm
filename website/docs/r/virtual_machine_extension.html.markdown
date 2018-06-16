@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azure_virtual_machine_extension"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
-    Manages a new Virtual Machine Extension to provide post deployment
+    Manages a Virtual Machine Extension to provide post deployment
     configuration and run automated tasks.
 ---
 
 # azurerm_virtual_machine_extension
 
-Manages a new Virtual Machine Extension to provide post deployment configuration
+Manages a Virtual Machine Extension to provide post deployment configuration
 and run automated tasks.
 
 ~> **Please Note:** The CustomScript extensions for Linux & Windows require that the `commandToExecute` returns a `0` exit code to be classified as successfully deployed. You can achieve this by appending `exit 0` to the end of your `commandToExecute`.

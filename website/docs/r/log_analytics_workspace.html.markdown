@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace"
 sidebar_current: "docs-azurerm-resource-oms-log-analytics-workspace"
 description: |-
-  Manages a new Log Analytics (formally Operational Insights) Workspace.
+  Manages a Log Analytics (formally Operational Insights) Workspace.
 ---
 
 # azurerm_log_analytics_workspace
 
-Manages a new Log Analytics (formally Operational Insights) Workspace.
+Manages a Log Analytics (formally Operational Insights) Workspace.
 
 ## Example Usage
 

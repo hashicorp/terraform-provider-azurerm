@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
@@ -22,6 +23,8 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		CustomizeDiff: resourceArmVirtualNetworkGatewayCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -138,9 +141,25 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"vpn_client_protocols": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.IkeV2),
+									string(network.SSTP),
+								}, true),
+							},
+						},
 						"root_certificate": {
 							Type:     schema.TypeSet,
-							Required: true,
+							Optional: true,
+
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -158,6 +177,10 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 						"revoked_certificate": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.radius_server_address",
+								"vpn_client_configuration.0.radius_server_secret",
+							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
@@ -171,6 +194,26 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								},
 							},
 							Set: hashVirtualNetworkGatewayRevokedCert,
+						},
+						"radius_server_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"),
+								"The radius server address must be a valid IPv4 address",
+							),
+						},
+						"radius_server_secret": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ConflictsWith: []string{
+								"vpn_client_configuration.0.root_certificate",
+								"vpn_client_configuration.0.revoked_certificate",
+							},
 						},
 					},
 				},
@@ -493,12 +536,24 @@ func expandArmVirtualNetworkGatewayVpnClientConfig(d *schema.ResourceData) *netw
 		revokedCerts = append(revokedCerts, r)
 	}
 
+	var vpnClientProtocols []network.VpnClientProtocol
+	for _, vpnClientProtocol := range conf["vpn_client_protocols"].(*schema.Set).List() {
+		p := network.VpnClientProtocol(vpnClientProtocol.(string))
+		vpnClientProtocols = append(vpnClientProtocols, p)
+	}
+
+	confRadiusServerAddress := conf["radius_server_address"].(string)
+	confRadiusServerSecret := conf["radius_server_secret"].(string)
+
 	return &network.VpnClientConfiguration{
 		VpnClientAddressPool: &network.AddressSpace{
 			AddressPrefixes: &addresses,
 		},
 		VpnClientRootCertificates:    &rootCerts,
 		VpnClientRevokedCertificates: &revokedCerts,
+		VpnClientProtocols:           &vpnClientProtocols,
+		RadiusServerAddress:          &confRadiusServerAddress,
+		RadiusServerSecret:           &confRadiusServerSecret,
 	}
 }
 
@@ -575,6 +630,22 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 		}
 	}
 	flat["revoked_certificate"] = schema.NewSet(hashVirtualNetworkGatewayRevokedCert, revokedCerts)
+
+	vpnClientProtocols := &schema.Set{F: schema.HashString}
+	if vpnProtocols := cfg.VpnClientProtocols; vpnProtocols != nil {
+		for _, protocol := range *vpnProtocols {
+			vpnClientProtocols.Add(string(protocol))
+		}
+	}
+	flat["vpn_client_protocols"] = vpnClientProtocols
+
+	if v := cfg.RadiusServerAddress; v != nil {
+		flat["radius_server_address"] = *v
+	}
+
+	if v := cfg.RadiusServerSecret; v != nil {
+		flat["radius_server_secret"] = *v
+	}
 
 	return []interface{}{flat}
 }
@@ -659,4 +730,22 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 		string(network.VirtualNetworkGatewaySkuTierHighPerformance),
 		string(network.VirtualNetworkGatewaySkuTierUltraPerformance),
 	}, true)
+}
+
+func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, v interface{}) error {
+
+	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
+		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
+			hasRadiusAddress := vpnClientConfig["radius_server_address"] != ""
+			hasRadiusSecret := vpnClientConfig["radius_server_secret"] != ""
+
+			if hasRadiusAddress && !hasRadiusSecret {
+				return fmt.Errorf("if radius_server_address is set radius_server_secret must also be set")
+			}
+			if !hasRadiusAddress && hasRadiusSecret {
+				return fmt.Errorf("if radius_server_secret is set radius_server_address must also be set")
+			}
+		}
+	}
+	return nil
 }
