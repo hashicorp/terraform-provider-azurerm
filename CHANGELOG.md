@@ -1,3 +1,4 @@
+## 1.8.0 (Unreleased)
 ## 1.7.0 (June 16, 2018)
 
 UPGRADE NOTES:
