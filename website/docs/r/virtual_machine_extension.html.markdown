@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_machine_extension"
+page_title: "Azure Resource Manager: azurerm_virtual_machine_extension"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
     Manages a Virtual Machine Extension to provide post deployment
