@@ -14,7 +14,7 @@ Create an Azure Storage Blob.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-d"
+  name     = "acctestRG-d"
   location = "westus"
 }
 

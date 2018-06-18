@@ -18,7 +18,7 @@ and run automated tasks.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US"
 }
 

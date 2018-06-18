@@ -286,7 +286,7 @@ func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
 func testAccAzureRMExpressRouteCircuit_basicMeteredConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -316,7 +316,7 @@ resource "azurerm_express_route_circuit" "test" {
 func testAccAzureRMExpressRouteCircuit_basicUnlimitedConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

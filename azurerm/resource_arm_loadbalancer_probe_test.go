@@ -18,7 +18,7 @@ func TestAccAzureRMLoadBalancerProbe_basic(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	probe_id := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/probes/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/probes/%s",
 		subscriptionID, ri, ri, probeName)
 
 	resource.Test(t, resource.TestCase{
@@ -247,7 +247,7 @@ func testCheckAzureRMLoadBalancerProbeDisappears(addressPoolName string, lb *net
 func testAccAzureRMLoadBalancerProbe_basic(rInt int, probeName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -282,7 +282,7 @@ resource "azurerm_lb_probe" "test" {
 func testAccAzureRMLoadBalancerProbe_removal(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -309,7 +309,7 @@ resource "azurerm_lb" "test" {
 func testAccAzureRMLoadBalancerProbe_multipleProbes(rInt int, probeName, probe2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -352,7 +352,7 @@ resource "azurerm_lb_probe" "test2" {
 func testAccAzureRMLoadBalancerProbe_multipleProbesUpdate(rInt int, probeName, probe2Name string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -396,7 +396,7 @@ resource "azurerm_lb_probe" "test2" {
 func testAccAzureRMLoadBalancerProbe_updateProtocolBefore(rInt int, probeName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -433,7 +433,7 @@ resource "azurerm_lb_probe" "test" {
 func testAccAzureRMLoadBalancerProbe_updateProtocolAfter(rInt int, probeName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

@@ -160,7 +160,7 @@ func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
 func testAccAzureRMDataLakeStore_basic(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -175,7 +175,7 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_tier(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -191,7 +191,7 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_withTags(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -211,7 +211,7 @@ resource "azurerm_data_lake_store" "test" {
 func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, rs string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

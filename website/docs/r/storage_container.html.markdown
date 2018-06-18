@@ -14,7 +14,7 @@ Create an Azure Storage Container.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "westus"
 }
 

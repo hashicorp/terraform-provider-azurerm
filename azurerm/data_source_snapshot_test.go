@@ -51,7 +51,7 @@ func TestAccDataSourceAzureRMSnapshot_importEncryption(t *testing.T) {
 func testAccDataSourceAzureRMSnapshot_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -84,7 +84,7 @@ func testAccDataSourceAzureRMSnapshot_encryption(rInt int, rString string, locat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

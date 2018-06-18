@@ -268,7 +268,7 @@ func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
 func testAccAzureRMSqlDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -297,7 +297,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -331,7 +331,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -392,7 +392,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_restorePointInTime(rInt int, formattedTime string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -431,7 +431,7 @@ resource "azurerm_sql_database" "test_restore" {
 func testAccAzureRMSqlDatabase_elasticPool(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -471,7 +471,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_collationUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
