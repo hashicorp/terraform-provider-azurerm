@@ -69,6 +69,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_requiredOnly(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMLogAnalyticsWorkspace_retentionInDaysComplete(ri, testLocation())
@@ -143,7 +144,6 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(name string) resource.TestCheck
 		return nil
 	}
 }
-
 func testAccAzureRMLogAnalyticsWorkspace_requiredOnly(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -155,7 +155,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Free"
+  sku                 = "PerGB2018"
 }
 `, rInt, location, rInt)
 }
@@ -171,7 +171,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
+  sku                 = "PerGB2018"
   retention_in_days   = 30
 }
 `, rInt, location, rInt)
