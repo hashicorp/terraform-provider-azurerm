@@ -1,4 +1,9 @@
 ## 1.8.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU [GH-1079]
+
 ## 1.7.0 (June 16, 2018)
 
 UPGRADE NOTES:
