@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_application_gateway"
+page_title: "Azure Resource Manager: azurerm_application_gateway"
 sidebar_current: "docs-azurerm-resource-application-gateway"
 description: |-
   Manages a application gateway based on a previously created virtual network with configured subnets.
@@ -217,8 +217,8 @@ The `backend_http_settings` block supports:
 * `probe_name` - (Optional) Reference to URL probe.
 
 * `authentication_certificate` - (Optional) - A list of `authentication_certificate` references for the `backend_http_setting` to use. Each element consists of:
-  
-  * `name` (Required) 
+
+  * `name` (Required)
   * `id` (Calculated)
 
 The `http_listener` block supports:

@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_network"
+page_title: "Azure Resource Manager: azurerm_virtual_network"
 sidebar_current: "docs-azurerm-resource-network-virtual-network"
 description: |-
   Manages a virtual network including any configured subnets. Each subnet can optionally be configured with a security group to be associated with the subnet.
