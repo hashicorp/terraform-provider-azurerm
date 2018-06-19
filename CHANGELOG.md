@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU [GH-1079]
+* `azurerm_sql_database` - support for importing from a bacpac backup [GH-972]
 
 ## 1.7.0 (June 16, 2018)
 
