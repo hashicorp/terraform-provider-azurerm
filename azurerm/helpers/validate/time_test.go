@@ -40,7 +40,7 @@ func TestHelper_Validate_RFC3339Time(t *testing.T) {
 		_, errors := Rfc3339Time(tc.Time, "test")
 
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected Rfc3339Time to have an error for '%q'", tc.Time)
+			t.Fatalf("Expected Rfc3339Time to have an error for %q", tc.Time)
 		}
 	}
 }
@@ -82,7 +82,7 @@ func TestHelper_Validate_Rfc3339DateInFutureBy(t *testing.T) {
 		_, errors := Rfc3339DateInFutureBy(tc.Duration)(tc.Time, "test")
 
 		if len(errors) < tc.Errors {
-			t.Fatalf("Expected Rfc3339DateInFutureBy to have an error for '%q' in future by `%q`", tc.Time, tc.Duration.String())
+			t.Fatalf("Expected Rfc3339DateInFutureBy to have an error for %q in future by %q", tc.Time, tc.Duration.String())
 		}
 	}
 }
