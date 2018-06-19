@@ -799,11 +799,11 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 }
 
 func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	opwc := operationalinsights.NewWorkspacesClient(subscriptionId)
+	opwc := operationalinsights.NewWorkspacesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&opwc.Client, auth)
 	c.workspacesClient = opwc
 
-	solutionsClient := operationsmanagement.NewSolutionsClient(subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
+	solutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(endpoint, subscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
 	c.configureClient(&solutionsClient.Client, auth)
 	c.solutionsClient = solutionsClient
 }
