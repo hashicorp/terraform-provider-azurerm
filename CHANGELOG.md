@@ -2,6 +2,8 @@
 
 IMPROVEMENTS:
 
+* `azurerm_log_analytics_solution` - support for Sovereign Clouds [GH-1410]
+* `azurerm_log_analytics_workspace` - support for Sovereign Clouds [GH-1410]
 * `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU [GH-1079]
 * `azurerm_sql_database` - support for importing from a bacpac backup [GH-972]
 
