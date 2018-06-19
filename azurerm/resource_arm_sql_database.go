@@ -77,8 +77,10 @@ func resourceArmSqlDatabase() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"StorageAccessKey", "SharedAccessKey",
+								"StorageAccessKey",
+								"SharedAccessKey",
 							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"administrator_login": {
 							Type:     schema.TypeString,
@@ -93,8 +95,10 @@ func resourceArmSqlDatabase() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SQL", "ADPassword",
+								"ADPassword",
+								"SQL",
 							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 						"operation_mode": {
 							Type:     schema.TypeString,
@@ -103,6 +107,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"Import",
 							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
 					},
 				},
