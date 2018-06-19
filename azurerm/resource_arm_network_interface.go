@@ -8,6 +8,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,6 +20,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 		Read:   resourceArmNetworkInterfaceRead,
 		Update: resourceArmNetworkInterfaceCreateUpdate,
 		Delete: resourceArmNetworkInterfaceDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -36,7 +39,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 			"network_security_group_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.AzureResourceId,
+				ValidateFunc: azure.ValidateResourceId,
 			},
 
 			"mac_address": {
@@ -50,7 +53,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.AzureResourceId,
+				ValidateFunc: azure.ValidateResourceId,
 			},
 
 			"ip_configuration": {
@@ -61,14 +64,14 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.StringNotEmpty,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"subnet_id": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc:     validate.AzureResourceId,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc:     azure.ValidateResourceId,
 						},
 
 						"private_ip_address": {
@@ -84,13 +87,13 @@ func resourceArmNetworkInterface() *schema.Resource {
 								string(network.Static),
 							}, true),
 							StateFunc:        ignoreCaseStateFunc,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.AzureResourceId,
+							ValidateFunc: azure.ValidateResourceId,
 						},
 
 						"application_gateway_backend_address_pools_ids": {
@@ -99,7 +102,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.AzureResourceId,
+								ValidateFunc: azure.ValidateResourceId,
 							},
 							Set: schema.HashString,
 						},
@@ -110,7 +113,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.AzureResourceId,
+								ValidateFunc: azure.ValidateResourceId,
 							},
 							Set: schema.HashString,
 						},
@@ -121,7 +124,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.AzureResourceId,
+								ValidateFunc: azure.ValidateResourceId,
 							},
 							Set: schema.HashString,
 						},
@@ -132,7 +135,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.AzureResourceId,
+								ValidateFunc: azure.ValidateResourceId,
 							},
 							Set: schema.HashString,
 						},
@@ -152,7 +155,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.StringNotEmpty,
+					ValidateFunc: validation.NoZeroValues,
 				},
 				Set: schema.HashString,
 			},
@@ -161,7 +164,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.StringNotEmpty,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"applied_dns_servers": {
@@ -170,7 +173,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.StringNotEmpty,
+					ValidateFunc: validation.NoZeroValues,
 				},
 				Set: schema.HashString,
 			},
@@ -179,7 +182,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.StringNotEmpty,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			/**

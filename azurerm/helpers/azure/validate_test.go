@@ -1,4 +1,4 @@
-package validate
+package azure
 
 import "testing"
 
@@ -50,10 +50,10 @@ func TestHelper_Validate_AzureResourceId(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := AzureResourceId(tc.Id, "test")
+		_, errors := ValidateResourceId(tc.Id, "test")
 
 		if len(errors) < tc.Errors {
-			t.Fatalf("Expected AzureResourceId to have an error for '%q'", tc.Id)
+			t.Fatalf("Expected AzureResourceId to have an error for %q", tc.Id)
 		}
 	}
 }

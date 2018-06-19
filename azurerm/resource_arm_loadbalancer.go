@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +21,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerCreate,
 		Delete: resourceArmLoadBalancerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -57,28 +58,28 @@ func resourceArmLoadBalancer() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.StringNotEmpty,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"subnet_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.AzureResourceId,
+							ValidateFunc: azure.ValidateResourceId,
 						},
 
 						"private_ip_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.AzureResourceId,
+							ValidateFunc: azure.ValidateResourceId,
 						},
 
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.AzureResourceId,
+							ValidateFunc: azure.ValidateResourceId,
 						},
 
 						"private_ip_address_allocation": {
@@ -98,7 +99,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.StringNotEmpty,
+								ValidateFunc: validation.NoZeroValues,
 							},
 							Set: schema.HashString,
 						},
@@ -108,7 +109,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.StringNotEmpty,
+								ValidateFunc: validation.NoZeroValues,
 							},
 							Set: schema.HashString,
 						},
