@@ -42,11 +42,14 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 			},
 
 			"create_option": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          string(compute.DiskCreateOptionTypesAttach),
-				ValidateFunc:     validation.StringInSlice([]string{}, true),
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(compute.DiskCreateOptionTypesAttach),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.DiskCreateOptionTypesAttach),
+					string(compute.DiskCreateOptionTypesEmpty),
+				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
