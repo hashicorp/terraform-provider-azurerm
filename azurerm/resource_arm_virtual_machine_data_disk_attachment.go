@@ -41,6 +41,17 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"caching": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.CachingTypesNone),
+					string(compute.CachingTypesReadOnly),
+					string(compute.CachingTypesReadWrite),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"create_option": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -49,17 +60,6 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.DiskCreateOptionTypesAttach),
 					string(compute.DiskCreateOptionTypesEmpty),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-			},
-
-			"caching": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.CachingTypesNone),
-					string(compute.CachingTypesReadOnly),
-					string(compute.CachingTypesReadWrite),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
