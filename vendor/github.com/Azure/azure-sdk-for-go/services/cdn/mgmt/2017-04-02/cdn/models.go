@@ -235,8 +235,6 @@ const (
 	StandardChinaCdn SkuName = "Standard_ChinaCdn"
 	// StandardVerizon ...
 	StandardVerizon SkuName = "Standard_Verizon"
-	// StandardMicrosoft...
-	StandardMicrosoft SkuName = "Standard_Microsoft"
 )
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
@@ -2539,7 +2537,7 @@ func (page ResourceUsageListResultPage) Values() []ResourceUsage {
 
 // Sku the pricing tier (defines a CDN provider, feature list and rate) of the CDN profile.
 type Sku struct {
-	// Name - Name of the pricing tier. Possible values include: 'StandardVerizon', 'PremiumVerizon', 'CustomVerizon', 'StandardAkamai', 'StandardMicrosoft', 'StandardChinaCdn'
+	// Name - Name of the pricing tier. Possible values include: 'StandardVerizon', 'PremiumVerizon', 'CustomVerizon', 'StandardAkamai', 'StandardChinaCdn'
 	Name SkuName `json:"name,omitempty"`
 }
 
