@@ -235,6 +235,8 @@ const (
 	StandardChinaCdn SkuName = "Standard_ChinaCdn"
 	// StandardVerizon ...
 	StandardVerizon SkuName = "Standard_Verizon"
+	// StandardMicrosoft...
+	StandardMicrosoft SkuName = "Standard_Microsoft"
 )
 
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
