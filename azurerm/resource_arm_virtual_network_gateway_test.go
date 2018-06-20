@@ -99,7 +99,7 @@ func TestAccAzureRMVirtualNetworkGateway_standard(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku", "Standard"),
 				),
 			},
@@ -120,7 +120,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw2(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku", "VpnGw2"),
 				),
 			},
@@ -141,7 +141,7 @@ func TestAccAzureRMVirtualNetworkGateway_vpnGw3(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkGatewayExists("azurerm_virtual_network_gateway.test"),
+					testCheckAzureRMVirtualNetworkGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku", "VpnGw3"),
 				),
 			},
