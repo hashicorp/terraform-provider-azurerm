@@ -1,4 +1,4 @@
-package sql
+package mysql
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,9 +25,9 @@ import (
 	"net/http"
 )
 
-// VirtualNetworkRulesClient is the the Azure SQL Database management API provides a RESTful set of web services that
-// interact with Azure SQL Database services to manage your databases. The API enables you to create, retrieve, update,
-// and delete databases.
+// VirtualNetworkRulesClient is the the Microsoft Azure management API provides create, read, update, and delete
+// functionality for Azure MySQL resources including servers, databases, firewall rules, VNET rules, log files and
+// configurations with new business model.
 type VirtualNetworkRulesClient struct {
 	BaseClient
 }
@@ -54,18 +54,18 @@ func (client VirtualNetworkRulesClient) CreateOrUpdate(ctx context.Context, reso
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.VirtualNetworkRuleProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.VirtualNetworkRuleProperties.VirtualNetworkSubnetID", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("sql.VirtualNetworkRulesClient", "CreateOrUpdate", err.Error())
+		return result, validation.NewError("mysql.VirtualNetworkRulesClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, virtualNetworkRuleName, parameters)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "CreateOrUpdate", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -81,7 +81,7 @@ func (client VirtualNetworkRulesClient) CreateOrUpdatePreparer(ctx context.Conte
 		"virtualNetworkRuleName": autorest.Encode("path", virtualNetworkRuleName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -90,7 +90,7 @@ func (client VirtualNetworkRulesClient) CreateOrUpdatePreparer(ctx context.Conte
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/virtualNetworkRules/{virtualNetworkRuleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/virtualNetworkRules/{virtualNetworkRuleName}", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -135,13 +135,13 @@ func (client VirtualNetworkRulesClient) CreateOrUpdateResponder(resp *http.Respo
 func (client VirtualNetworkRulesClient) Delete(ctx context.Context, resourceGroupName string, serverName string, virtualNetworkRuleName string) (result VirtualNetworkRulesDeleteFuture, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName, virtualNetworkRuleName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	result, err = client.DeleteSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "Delete", result.Response(), "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "Delete", result.Response(), "Failure sending request")
 		return
 	}
 
@@ -157,7 +157,7 @@ func (client VirtualNetworkRulesClient) DeletePreparer(ctx context.Context, reso
 		"virtualNetworkRuleName": autorest.Encode("path", virtualNetworkRuleName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client VirtualNetworkRulesClient) DeletePreparer(ctx context.Context, reso
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/virtualNetworkRules/{virtualNetworkRuleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/virtualNetworkRules/{virtualNetworkRuleName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -208,20 +208,20 @@ func (client VirtualNetworkRulesClient) DeleteResponder(resp *http.Response) (re
 func (client VirtualNetworkRulesClient) Get(ctx context.Context, resourceGroupName string, serverName string, virtualNetworkRuleName string) (result VirtualNetworkRule, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, virtualNetworkRuleName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
@@ -236,7 +236,7 @@ func (client VirtualNetworkRulesClient) GetPreparer(ctx context.Context, resourc
 		"virtualNetworkRuleName": autorest.Encode("path", virtualNetworkRuleName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,7 +244,7 @@ func (client VirtualNetworkRulesClient) GetPreparer(ctx context.Context, resourc
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/virtualNetworkRules/{virtualNetworkRuleName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/virtualNetworkRules/{virtualNetworkRuleName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -278,20 +278,20 @@ func (client VirtualNetworkRulesClient) ListByServer(ctx context.Context, resour
 	result.fn = client.listByServerNextResults
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "ListByServer", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "ListByServer", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListByServerSender(req)
 	if err != nil {
 		result.vnrlr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "ListByServer", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "ListByServer", resp, "Failure sending request")
 		return
 	}
 
 	result.vnrlr, err = client.ListByServerResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "ListByServer", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "ListByServer", resp, "Failure responding to request")
 	}
 
 	return
@@ -305,7 +305,7 @@ func (client VirtualNetworkRulesClient) ListByServerPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2017-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -313,7 +313,7 @@ func (client VirtualNetworkRulesClient) ListByServerPreparer(ctx context.Context
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/virtualNetworkRules", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DBforMySQL/servers/{serverName}/virtualNetworkRules", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -342,7 +342,7 @@ func (client VirtualNetworkRulesClient) ListByServerResponder(resp *http.Respons
 func (client VirtualNetworkRulesClient) listByServerNextResults(lastResults VirtualNetworkRuleListResult) (result VirtualNetworkRuleListResult, err error) {
 	req, err := lastResults.virtualNetworkRuleListResultPreparer()
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "listByServerNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "listByServerNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -350,11 +350,11 @@ func (client VirtualNetworkRulesClient) listByServerNextResults(lastResults Virt
 	resp, err := client.ListByServerSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "listByServerNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "listByServerNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListByServerResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.VirtualNetworkRulesClient", "listByServerNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "mysql.VirtualNetworkRulesClient", "listByServerNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
