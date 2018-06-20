@@ -1,4 +1,4 @@
-package azurerm
+package azure
 
 import (
 	"reflect"
@@ -130,7 +130,7 @@ func TestParseAzureResourceID(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		parsed, err := parseAzureResourceID(test.id)
+		parsed, err := ParseAzureResourceID(test.id)
 		if test.expectError && err != nil {
 			continue
 		}
