@@ -178,7 +178,7 @@ func TestAccAzureRMApplicationGateway_waf(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	gwID := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/applicationGateways/acctestgw-%d",
 		subscriptionID, ri, ri)
 
 	resource.Test(t, resource.TestCase{
@@ -356,7 +356,7 @@ func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
 func testAccAzureRMApplicationGateway_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -539,7 +539,7 @@ resource "azurerm_application_gateway" "test" {
 func testAccAzureRMApplicationGateway_basic_changeSslCert(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -722,7 +722,7 @@ resource "azurerm_application_gateway" "test" {
 func testAccAzureRMApplicationGateway_basic_authCert(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -923,7 +923,7 @@ resource "azurerm_application_gateway" "test" {
 func testAccAzureRMApplicationGateway_basic_changeAuthCert(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -1124,7 +1124,7 @@ resource "azurerm_application_gateway" "test" {
 func testAccAzureRMApplicationGateway_waf(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

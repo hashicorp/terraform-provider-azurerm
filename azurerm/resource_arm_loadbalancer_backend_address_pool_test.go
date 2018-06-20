@@ -18,7 +18,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	backendAddressPoolId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestrg-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
 		subscriptionID, ri, ri, addressPoolName)
 
 	resource.Test(t, resource.TestCase{
@@ -176,7 +176,7 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 func testAccAzureRMLoadBalancerBackEndAddressPool_basic(rInt int, addressPoolName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -211,7 +211,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 func testAccAzureRMLoadBalancerBackEndAddressPool_removal(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

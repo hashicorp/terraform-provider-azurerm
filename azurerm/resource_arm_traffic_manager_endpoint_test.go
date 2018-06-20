@@ -754,7 +754,7 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 func testAccAzureRMTrafficManagerEndpoint_geoMappings(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -793,7 +793,7 @@ resource "azurerm_traffic_manager_endpoint" "test" {
 func testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

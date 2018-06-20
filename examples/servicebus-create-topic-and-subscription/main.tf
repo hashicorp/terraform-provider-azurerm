@@ -1,4 +1,3 @@
-
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group}"
   location = "${var.location}"
@@ -44,3 +43,4 @@ resource "azurerm_servicebus_topic" "forward_to" {
   enable_partitioning = true
 }
 */
+

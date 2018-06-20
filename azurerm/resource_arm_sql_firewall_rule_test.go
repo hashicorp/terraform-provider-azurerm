@@ -149,7 +149,7 @@ func testCheckAzureRMSqlFirewallRuleDisappears(name string) resource.TestCheckFu
 func testAccAzureRMSqlFirewallRule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -175,7 +175,7 @@ resource "azurerm_sql_firewall_rule" "test" {
 func testAccAzureRMSqlFirewallRule_withUpdates(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 

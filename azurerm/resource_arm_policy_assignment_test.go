@@ -123,7 +123,7 @@ POLICY_RULE
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestrgpol-%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 
@@ -171,7 +171,7 @@ PARAMETERS
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestrgpol-%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 
