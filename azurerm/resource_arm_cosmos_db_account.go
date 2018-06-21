@@ -48,24 +48,24 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 
 			//resource fields
 			"offer_type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.Standard),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"kind": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(documentdb.GlobalDocumentDB),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          string(documentdb.GlobalDocumentDB),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.GlobalDocumentDB),
 					string(documentdb.MongoDB),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"ip_range_filter": {
@@ -178,6 +178,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 							Required:         true,
 							StateFunc:        azureRMNormalizeLocation,
 							DiffSuppressFunc: azureRMSuppressLocationDiff,
+							ValidateFunc:     validation.NoZeroValues,
 						},
 
 						"failover_priority": {
@@ -188,6 +189,21 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 					},
 				},
 				Set: resourceAzureRMCosmosDBAccountGeoLocationHash,
+			},
+
+			"capabilities": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:             schema.TypeString,
+					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+					ValidateFunc: validation.StringInSlice([]string{
+						"EnableTable",
+						"EnableGremlin",
+						//`EnableCassandra`, //possible value but still in private preview
+					}, true),
+				},
+				Set: schema.HashString,
 			},
 
 			//computed
@@ -284,11 +300,12 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                &geoLocations,
 			DatabaseAccountOfferType: utils.String(offerType),
 			IPRangeFilter:            utils.String(ipRangeFilter),
 			EnableAutomaticFailover:  utils.Bool(enableAutomaticFailover),
+			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:                &geoLocations,
+			Capabilities:             expandAzureRmCosmosDBAccountCapabilities(d),
 		},
 		Tags: expandTags(tags),
 	}
@@ -369,11 +386,12 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                &oldLocations,
 			DatabaseAccountOfferType: utils.String(offerType),
 			IPRangeFilter:            utils.String(ipRangeFilter),
 			EnableAutomaticFailover:  utils.Bool(enableAutomaticFailover),
+			Capabilities:             expandAzureRmCosmosDBAccountCapabilities(d),
+			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:                &oldLocations,
 		},
 		Tags: expandTags(tags),
 	}
@@ -487,6 +505,10 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 		if err := d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
 			return fmt.Errorf("Error setting `geo_location`: %+v", err)
 		}
+	}
+
+	if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilities(resp.Capabilities)); err != nil {
+		return fmt.Errorf("Error setting `capabilities`: %+v", err)
 	}
 
 	if p := resp.ReadLocations; p != nil {
@@ -734,6 +756,18 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 	return locations, nil
 }
 
+func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
+
+	capabilities := d.Get("capabilities").(*schema.Set).List()
+	s := make([]documentdb.Capability, 0, 0)
+
+	for _, c := range capabilities {
+		s = append(s, documentdb.Capability{Name: utils.String(c.(string))})
+	}
+
+	return &s
+}
+
 func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.ConsistencyPolicy) []interface{} {
 
 	result := map[string]interface{}{}
@@ -798,6 +832,20 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 	}
 
 	return &locationSet
+}
+
+func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
+	s := schema.Set{
+		F: schema.HashString,
+	}
+
+	for _, c := range *capabilities {
+		if v := c.Name; v != nil {
+			s.Add(*c.Name)
+		}
+	}
+
+	return &s
 }
 
 //todo remove once deprecated field `failover_policy` is removed
