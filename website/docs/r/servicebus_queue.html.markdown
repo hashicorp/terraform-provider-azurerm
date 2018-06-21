@@ -6,7 +6,7 @@ description: |-
   Create a ServiceBus Queue.
 ---
 
-# azurerm\_servicebus\_queue
+# azurerm_servicebus_queue
 
 Create and manage a ServiceBus Queue.
 
@@ -103,7 +103,7 @@ The following arguments are supported:
     a queue can guarantee first-in-first-out delivery of messages. 
     Changing this forces a new resource to be created. Defaults to `false`.
 
-* `requires_session` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
+* `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
     
 ### TimeSpan Format
 

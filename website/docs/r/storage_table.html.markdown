@@ -6,7 +6,7 @@ description: |-
   Create a Azure Storage Table.
 ---
 
-# azurerm\_storage\_table
+# azurerm_storage_table
 
 Create an Azure Storage Table.
 

@@ -349,7 +349,7 @@ variable "network_cidr" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg%s"
+  name     = "acctestRG%s"
   location = "%s"
 }
 

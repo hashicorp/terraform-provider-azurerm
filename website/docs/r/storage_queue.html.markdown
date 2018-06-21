@@ -6,7 +6,7 @@ description: |-
   Create a Azure Storage Queue.
 ---
 
-# azurerm\_storage\_queue
+# azurerm_storage_queue
 
 Create an Azure Storage Queue.
 
@@ -14,7 +14,7 @@ Create an Azure Storage Queue.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "westus"
 }
 

@@ -1,15 +1,15 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_network_peering"
+page_title: "Azure Resource Manager: azurerm_virtual_network_peering"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-peering"
 description: |-
-  Creates a new virtual network peering which allows resources to access other
+  Manages a virtual network peering which allows resources to access other
   resources in the linked virtual network.
 ---
 
-# azurerm\_virtual\_network\_peering
+# azurerm_virtual_network_peering
 
-Creates a new virtual network peering which allows resources to access other
+Manages a virtual network peering which allows resources to access other
 resources in the linked virtual network.
 
 ## Example Usage

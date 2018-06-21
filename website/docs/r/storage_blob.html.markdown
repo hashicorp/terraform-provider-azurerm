@@ -6,7 +6,7 @@ description: |-
   Create a Azure Storage Blob.
 ---
 
-# azurerm\_storage\_blob
+# azurerm_storage_blob
 
 Create an Azure Storage Blob.
 
@@ -14,7 +14,7 @@ Create an Azure Storage Blob.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-d"
+  name     = "acctestRG-d"
   location = "westus"
 }
 
@@ -63,6 +63,8 @@ The following arguments are supported:
     this becomes required.
 
 * `size` - (Optional) Used only for `page` blobs to specify the size in bytes of the blob to be created. Must be a multiple of 512. Defaults to 0.
+
+* `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 
 * `source` - (Optional) An absolute path to a file on the local system. Cannot be defined if `source_uri` is defined.
 

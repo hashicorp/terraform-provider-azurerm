@@ -56,6 +56,30 @@ func TestAccAzureRMPublicIpStatic_importBasic_withZone(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPublicIpStatic_importBasic_withDNSLabel(t *testing.T) {
+	resourceName := "azurerm_public_ip.test"
+
+	ri := acctest.RandInt()
+	dnl := fmt.Sprintf("acctestdnl-%d", ri)
+	config := testAccAzureRMPublicIPStatic_basic_withDNSLabel(ri, testLocation(), dnl)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPublicIpDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPublicIpStatic_importIdError(t *testing.T) {
 	resourceName := "azurerm_public_ip.test"
 

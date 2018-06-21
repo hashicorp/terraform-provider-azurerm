@@ -4,7 +4,7 @@
 #   client_secret   = "${var.client_secret}"
 #   tenant_id       = "${var.tenant_id}"
 # }
-    
+
 resource "azurerm_resource_group" "rg" {
   name     = "${var.resource_group_name}"
   location = "${var.location}"

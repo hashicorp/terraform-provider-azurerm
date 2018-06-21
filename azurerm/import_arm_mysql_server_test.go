@@ -59,11 +59,37 @@ func TestAccAzureRMMySQLServer_importBasicFiveSeven(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySQLServer_importStandard(t *testing.T) {
+func TestAccAzureRMMySQLServer_importGeneralPurpose(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMMySQLServer_standard(ri, testLocation())
+	config := testAccAzureRMMySQLServer_generalPurpose(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMySqlServer_importMemoryOptimized(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMMySQLServer_memoryOptimized(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

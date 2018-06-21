@@ -242,7 +242,7 @@ func testCheckAzureRMSnapshotExists(name string) resource.TestCheckFunc {
 func testAccAzureRMSnapshot_fromManagedDisk(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -268,7 +268,7 @@ resource "azurerm_snapshot" "test" {
 func testAccAzureRMSnapshot_fromManagedDiskUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -300,7 +300,7 @@ func testAccAzureRMSnapshot_encryption(rInt int, rString string, location string
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -393,7 +393,7 @@ resource "azurerm_snapshot" "test" {
 func testAccAzureRMSnapshot_extendingManagedDisk(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -420,7 +420,7 @@ resource "azurerm_snapshot" "test" {
 func testAccAzureRMSnapshot_fromExistingSnapshot(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -454,7 +454,7 @@ resource "azurerm_snapshot" "second" {
 func testAccAzureRMSnapshot_fromUnmanagedDisk(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

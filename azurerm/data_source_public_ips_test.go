@@ -104,7 +104,7 @@ func TestAccDataSourceAzureRMPublicIPs_allocationType(t *testing.T) {
 func testAccDataSourceAzureRMPublicIPs_attached(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -155,7 +155,7 @@ data "azurerm_public_ips" "attached" {
 func testAccDataSourceAzureRMPublicIPs_prefix(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -202,7 +202,7 @@ data "azurerm_public_ips" "test" {
 func testAccDataSourceAzureRMPublicIPs_allocationType(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

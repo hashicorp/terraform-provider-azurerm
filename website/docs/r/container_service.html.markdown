@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_service"
 sidebar_current: "docs-azurerm-resource-container-service"
 description: |-
-  Creates an Azure Container Service instance.
+  Manages an Azure Container Service instance.
 ---
 
-# azurerm\_container\_service
+# azurerm_container_service
 
-Creates an Azure Container Service Instance
+Manages an Azure Container Service Instance
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).

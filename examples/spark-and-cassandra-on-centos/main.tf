@@ -183,11 +183,11 @@ resource "azurerm_network_interface" "slave" {
 }
 
 resource "azurerm_network_interface" "cassandra" {
-  name                = "${var.nic_cassandra_name}"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  network_security_group_id     = "${azurerm_network_security_group.cassandra.id}"
-  depends_on          = ["azurerm_virtual_network.spark", "azurerm_public_ip.cassandra", "azurerm_network_security_group.cassandra"]
+  name                      = "${var.nic_cassandra_name}"
+  location                  = "${azurerm_resource_group.rg.location}"
+  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  network_security_group_id = "${azurerm_network_security_group.cassandra.id}"
+  depends_on                = ["azurerm_virtual_network.spark", "azurerm_public_ip.cassandra", "azurerm_network_security_group.cassandra"]
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -209,9 +209,9 @@ resource "azurerm_availability_set" "slave" {
 
 # **********************  STORAGE ACCOUNTS ********************** #
 resource "azurerm_storage_account" "master" {
-  name                = "master${var.unique_prefix}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${azurerm_resource_group.rg.location}"
+  name                     = "master${var.unique_prefix}"
+  resource_group_name      = "${azurerm_resource_group.rg.name}"
+  location                 = "${azurerm_resource_group.rg.location}"
   account_tier             = "${var.storage_master_account_tier}"
   account_replication_type = "${var.storage_master_replication_type}"
 }
@@ -225,7 +225,7 @@ resource "azurerm_storage_container" "master" {
 }
 
 resource "azurerm_storage_account" "slave" {
-  name                       = "slave${var.unique_prefix}${count.index}"
+  name                     = "slave${var.unique_prefix}${count.index}"
   resource_group_name      = "${azurerm_resource_group.rg.name}"
   location                 = "${azurerm_resource_group.rg.location}"
   count                    = "${var.vm_number_of_slaves}"
@@ -235,10 +235,10 @@ resource "azurerm_storage_account" "slave" {
 
 resource "azurerm_storage_container" "slave" {
   name                  = "${var.vm_slave_storage_account_container_name}${count.index}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  resource_group_name   = "${azurerm_resource_group.rg.name}"
   storage_account_name  = "${element(azurerm_storage_account.slave.*.name, count.index)}"
   container_access_type = "private"
-  depends_on          = ["azurerm_storage_account.slave"]
+  depends_on            = ["azurerm_storage_account.slave"]
 }
 
 resource "azurerm_storage_account" "cassandra" {
@@ -251,10 +251,10 @@ resource "azurerm_storage_account" "cassandra" {
 
 resource "azurerm_storage_container" "cassandra" {
   name                  = "${var.vm_cassandra_storage_account_container_name}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  resource_group_name   = "${azurerm_resource_group.rg.name}"
   storage_account_name  = "${azurerm_storage_account.cassandra.name}"
   container_access_type = "private"
-  depends_on          = ["azurerm_storage_account.cassandra"]
+  depends_on            = ["azurerm_storage_account.cassandra"]
 }
 
 # ********************** MASTER VIRTUAL MACHINE ********************** #
@@ -316,14 +316,12 @@ resource "azurerm_virtual_machine" "slave" {
   availability_set_id   = "${azurerm_availability_set.slave.id}"
   depends_on            = ["azurerm_storage_account.slave", "azurerm_network_interface.slave", "azurerm_storage_container.slave"]
 
-
   storage_image_reference {
     publisher = "${var.os_image_publisher}"
     offer     = "${var.os_image_offer}"
     sku       = "${var.os_version}"
     version   = "latest"
   }
-
 
   storage_os_disk {
     name          = "${var.vm_slave_os_disk_name_prefix}${count.index}"
@@ -332,18 +330,16 @@ resource "azurerm_virtual_machine" "slave" {
     caching       = "ReadWrite"
   }
 
-
   os_profile {
     computer_name  = "${var.vm_slave_name_prefix}${count.index}"
     admin_username = "${var.vm_admin_username}"
     admin_password = "${var.vm_admin_password}"
   }
 
-
   os_profile_linux_config {
     disable_password_authentication = false
   }
-  
+
   connection {
     type     = "ssh"
     host     = "${element(azurerm_public_ip.slave.*.ip_address, count.index)}"

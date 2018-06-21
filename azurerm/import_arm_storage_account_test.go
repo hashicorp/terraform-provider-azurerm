@@ -155,3 +155,28 @@ func TestAccAzureRMStorageAccount_importEnableHttpsTrafficOnly(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMStorageAccount_importNetworkRules(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+
+	ri := acctest.RandInt()
+	rs := acctest.RandString(4)
+	config := testAccAzureRMStorageAccount_networkRules(ri, rs, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

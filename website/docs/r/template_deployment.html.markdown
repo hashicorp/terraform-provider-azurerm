@@ -6,7 +6,7 @@ description: |-
   Create a template deployment of resources.
 ---
 
-# azurerm\_template\_deployment
+# azurerm_template_deployment
 
 Create a template deployment of resources
 
@@ -20,7 +20,7 @@ One workaround for this is to use a unique Resource Group for each ARM Template 
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-01"
+  name     = "acctestRG-01"
   location = "West US"
 }
 

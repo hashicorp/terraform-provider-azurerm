@@ -6,7 +6,7 @@ description: |-
   Create as an Azure Container Group instance.
 ---
 
-# azurerm\_container\_group
+# azurerm_container_group
 
 Create as an Azure Container Group instance.
 

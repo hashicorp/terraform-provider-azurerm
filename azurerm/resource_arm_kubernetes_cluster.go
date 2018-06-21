@@ -37,8 +37,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"dns_prefix": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 
 			"fqdn": {
