@@ -12,8 +12,8 @@ func TestHelper_Validate_Ip4Address(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Ip:     "000.000.000.000",
-			Errors: 1,
+			Ip:     "0.0.0.0",
+			Errors: 0,
 		},
 		{
 			Ip:     "1.2.3.no",
