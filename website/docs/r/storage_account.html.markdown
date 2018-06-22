@@ -147,6 +147,8 @@ The following attributes are exported in addition to the arguments listed above:
 * `id` - The storage account Resource ID.
 * `primary_location` - The primary location of the storage account.
 * `secondary_location` - The secondary location of the storage account.
+* `primary_blob_domain` - The domain name used for blob storage in the primary location.
+* `secondary_blob_domain` - The domain name used for blob storage in the secondary location.
 * `primary_blob_endpoint` - The endpoint URL for blob storage in the primary location.
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
 * `primary_queue_endpoint` - The endpoint URL for queue storage in the primary location.

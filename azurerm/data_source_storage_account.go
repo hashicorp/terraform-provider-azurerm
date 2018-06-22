@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -82,6 +83,16 @@ func dataSourceArmStorageAccount() *schema.Resource {
 			},
 
 			"secondary_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_domain": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -244,6 +255,13 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
 				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
 			d.Set("primary_blob_connection_string", pscs)
+
+			uri, err := url.Parse(*endpoints.Blob)
+			if err != nil {
+				return fmt.Errorf("Error parsing Primary Blob Endpoint as a URI: %+v", err)
+			}
+
+			d.Set("primary_blob_domain", uri.Host)
 		}
 
 		if endpoints := props.SecondaryEndpoints; endpoints != nil {
@@ -268,6 +286,13 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 			} else {
 				d.Set("secondary_table_endpoint", "")
 			}
+
+			uri, err := url.Parse(*endpoints.Blob)
+			if err != nil {
+				return fmt.Errorf("Error parsing Secondary Blob Endpoint as a URI: %+v", err)
+			}
+
+			d.Set("secondary_blob_domain", uri.Host)
 		}
 	}
 

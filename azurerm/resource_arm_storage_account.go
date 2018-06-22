@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -186,6 +187,16 @@ func resourceArmStorageAccount() *schema.Resource {
 			},
 
 			"secondary_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_domain": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -674,6 +685,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			pscs := fmt.Sprintf("DefaultEndpointsProtocol=https;BlobEndpoint=%s;AccountName=%s;AccountKey=%s",
 				*endpoints.Blob, *resp.Name, *accessKeys[0].Value)
 			d.Set("primary_blob_connection_string", pscs)
+
+			uri, err := url.Parse(*endpoints.Blob)
+			if err != nil {
+				return fmt.Errorf("Error parsing Primary Blob Endpoint as a URI: %+v", err)
+			}
+
+			d.Set("primary_blob_domain", uri.Host)
 		}
 
 		if endpoints := props.SecondaryEndpoints; endpoints != nil {
@@ -698,6 +716,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			} else {
 				d.Set("secondary_table_endpoint", "")
 			}
+
+			uri, err := url.Parse(*endpoints.Blob)
+			if err != nil {
+				return fmt.Errorf("Error parsing Secondary Blob Endpoint as a URI: %+v", err)
+			}
+
+			d.Set("secondary_blob_domain", uri.Host)
 		}
 
 		networkRules := props.NetworkRuleSet

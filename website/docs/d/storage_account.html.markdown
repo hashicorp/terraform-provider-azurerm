@@ -62,6 +62,10 @@ output "storage_account_tier" {
 
 * `secondary_location` - The secondary location of the Storage Account.
 
+* `primary_blob_domain` - The domain name used for blob storage in the primary location.
+
+* `secondary_blob_domain` - The domain name used for blob storage in the secondary location.
+
 * `primary_blob_endpoint` - The endpoint URL for blob storage in the primary location.
 
 * `secondary_blob_endpoint` - The endpoint URL for blob storage in the secondary location.
