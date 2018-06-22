@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	keyVaultHelper "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func TestAccAzureRMKeyVaultAccessPolicy_basic(t *testing.T) {
@@ -162,7 +161,7 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(name string, policyObjectTag str
 
 		policyIdentity := getPolicyIdentity(&objectId, &applicationId)
 
-		policy := findKeyVaultAccessPolicy(policyIdentity, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
+		policy := findKeyVaultAccessPolicy(policyIdentity, keyVaultHelper.FlattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
 
 		if policy == nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) does not exist", name, resGroup, objectId)
@@ -179,7 +178,6 @@ func testCheckAzureRMKeyVaultAccessPolicyMissing(name string, policyObjectTag st
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
-		log.Printf("%s", spew.Sdump(rs))
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 
@@ -197,7 +195,7 @@ func testCheckAzureRMKeyVaultAccessPolicyMissing(name string, policyObjectTag st
 
 		objectId := rs.Primary.Attributes[policyObjectTag]
 
-		policy := findKeyVaultAccessPolicy(objectId, flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
+		policy := findKeyVaultAccessPolicy(objectId, keyVaultHelper.FlattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
 
 		if policy != nil {
 			return fmt.Errorf("Bad: Key Vault Policy %q (resource group: %q, object_id: %s) exists", name, resGroup, objectId)

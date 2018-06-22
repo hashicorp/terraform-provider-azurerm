@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
+	keyVaultHelper "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -52,9 +53,9 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				ValidateFunc: validateUUID,
 				ForceNew:     true,
 			},
-			"certificate_permissions": certificatePermissionsSchema(),
-			"key_permissions":         keyPermissionsSchema(),
-			"secret_permissions":      secretPermissionsSchema(),
+			"certificate_permissions": keyVaultHelper.CertificatePermissionsSchema(),
+			"key_permissions":         keyVaultHelper.KeyPermissionsSchema(),
+			"secret_permissions":      keyVaultHelper.SecretPermissionsSchema(),
 		},
 	}
 }
@@ -67,8 +68,7 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	name := d.Get("vault_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	accessPolicy := expandKeyVaultAccessPolicy(d)
-	accessPolicies := []keyvault.AccessPolicyEntry{accessPolicy}
+	accessPolicies := []keyvault.AccessPolicyEntry{expandKeyVaultAccessPolicy(d)}
 
 	parameters := keyvault.VaultAccessPolicyParameters{
 		Name: &name,
@@ -113,6 +113,7 @@ func resourceArmKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	// Lets lock the keyvault during a deletion to prevent a run updating the policies during a deletion
 	azureRMLockByName(d.Get("vault_name").(string), keyVaultAccessPolicyResourceName)
 	defer azureRMUnlockByName(d.Get("vault_name").(string), keyVaultAccessPolicyResourceName)
 
@@ -144,7 +145,11 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
 	}
 
-	flattenedPolicy := flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies)
+	if resp.Properties == nil {
+		return fmt.Errorf("Properties not returned by api for Azurue KeyVault %s", name)
+	}
+
+	flattenedPolicy := keyVaultHelper.FlattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies)
 
 	policyObjectId := id.Path["objectId"]
 	policyApplicationId := id.Path["applicationId"]
@@ -204,9 +209,9 @@ func expandKeyVaultAccessPolicy(d *schema.ResourceData) keyvault.AccessPolicyEnt
 
 	policy := keyvault.AccessPolicyEntry{
 		Permissions: &keyvault.Permissions{
-			Certificates: expandKeyVaultAccessPolicyCertificatePermissions(d.Get("certificate_permissions").([]interface{})),
-			Keys:         expandKeyVaultAccessPolicyKeyPermissions(d.Get("key_permissions").([]interface{})),
-			Secrets:      expandKeyVaultAccessPolicySecretPermissions(d.Get("secret_permissions").([]interface{})),
+			Certificates: keyVaultHelper.ExpandKeyVaultAccessPolicyCertificatePermissions(d.Get("certificate_permissions").([]interface{})),
+			Keys:         keyVaultHelper.ExpandKeyVaultAccessPolicyKeyPermissions(d.Get("key_permissions").([]interface{})),
+			Secrets:      keyVaultHelper.ExpandKeyVaultAccessPolicySecretPermissions(d.Get("secret_permissions").([]interface{})),
 		},
 	}
 

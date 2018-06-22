@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func keyPermissionsSchema() *schema.Schema {
+func KeyPermissionsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
@@ -36,7 +36,7 @@ func keyPermissionsSchema() *schema.Schema {
 	}
 }
 
-func secretPermissionsSchema() *schema.Schema {
+func SecretPermissionsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
@@ -57,7 +57,7 @@ func secretPermissionsSchema() *schema.Schema {
 	}
 }
 
-func certificatePermissionsSchema() *schema.Schema {
+func CertificatePermissionsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -84,7 +84,7 @@ func certificatePermissionsSchema() *schema.Schema {
 	}
 }
 
-func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map[string]interface{} {
+func FlattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, len(*policies))
 
 	for _, policy := range *policies {
@@ -122,7 +122,7 @@ func flattenKeyVaultAccessPolicies(policies *[]keyvault.AccessPolicyEntry) []map
 	return result
 }
 
-func expandKeyVaultAccessPolicyCertificatePermissions(certificatePermissionsRaw []interface{}) *[]keyvault.CertificatePermissions {
+func ExpandKeyVaultAccessPolicyCertificatePermissions(certificatePermissionsRaw []interface{}) *[]keyvault.CertificatePermissions {
 	certificatePermissions := []keyvault.CertificatePermissions{}
 
 	for _, permission := range certificatePermissionsRaw {
@@ -131,7 +131,7 @@ func expandKeyVaultAccessPolicyCertificatePermissions(certificatePermissionsRaw 
 	return &certificatePermissions
 }
 
-func expandKeyVaultAccessPolicyKeyPermissions(keyPermissionsRaw []interface{}) *[]keyvault.KeyPermissions {
+func ExpandKeyVaultAccessPolicyKeyPermissions(keyPermissionsRaw []interface{}) *[]keyvault.KeyPermissions {
 	keyPermissions := []keyvault.KeyPermissions{}
 
 	for _, permission := range keyPermissionsRaw {
@@ -140,7 +140,7 @@ func expandKeyVaultAccessPolicyKeyPermissions(keyPermissionsRaw []interface{}) *
 	return &keyPermissions
 }
 
-func expandKeyVaultAccessPolicySecretPermissions(secretPermissionsRaw []interface{}) *[]keyvault.SecretPermissions {
+func ExpandKeyVaultAccessPolicySecretPermissions(secretPermissionsRaw []interface{}) *[]keyvault.SecretPermissions {
 	secretPermissions := []keyvault.SecretPermissions{}
 
 	for _, permission := range secretPermissionsRaw {
@@ -149,8 +149,6 @@ func expandKeyVaultAccessPolicySecretPermissions(secretPermissionsRaw []interfac
 	return &secretPermissions
 }
 
-// ignoreCaseDiffSuppressFunc is a DiffSuppressFunc from helper/schema that is
-// used to ignore any case-changes in a return value.
 func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
 	return strings.ToLower(old) == strings.ToLower(new)
 }

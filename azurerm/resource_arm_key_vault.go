@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	uuid "github.com/satori/go.uuid"
+	keyVaultHelper "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -97,9 +98,9 @@ func resourceArmKeyVault() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validateUUID,
 						},
-						"certificate_permissions": certificatePermissionsSchema(),
-						"key_permissions":         keyPermissionsSchema(),
-						"secret_permissions":      secretPermissionsSchema(),
+						"certificate_permissions": keyVaultHelper.CertificatePermissionsSchema(),
+						"key_permissions":         keyVaultHelper.KeyPermissionsSchema(),
+						"secret_permissions":      keyVaultHelper.SecretPermissionsSchema(),
 					},
 				},
 			},
@@ -175,9 +176,18 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 		if props := read.Properties; props != nil {
 			if vault := props.VaultURI; vault != nil {
 				log.Printf("[DEBUG] Waiting for Key Vault %q (Resource Group %q) to become available", name, resGroup)
-				err := resource.Retry(120*time.Second, checkKeyVaultDNSIsAvailable(*vault))
-				if err != nil {
-					return err
+				stateConf := &resource.StateChangeConf{
+					Pending:                   []string{"pending"},
+					Target:                    []string{"available"},
+					Refresh:                   keyVaultRefreshFunc(*vault),
+					Timeout:                   30 * time.Minute,
+					Delay:                     30 * time.Second,
+					PollInterval:              10 * time.Second,
+					ContinuousTargetOccurence: 10,
+				}
+
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("Error waiting for Key Vault %q (Resource Group %q) to become available: %s", name, resGroup, err)
 				}
 			}
 		}
@@ -214,16 +224,22 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	d.Set("tenant_id", resp.Properties.TenantID.String())
-	d.Set("enabled_for_deployment", resp.Properties.EnabledForDeployment)
-	d.Set("enabled_for_disk_encryption", resp.Properties.EnabledForDiskEncryption)
-	d.Set("enabled_for_template_deployment", resp.Properties.EnabledForTemplateDeployment)
-	d.Set("sku", flattenKeyVaultSku(resp.Properties.Sku))
-	d.Set("access_policy", flattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies))
-	d.Set("vault_uri", resp.Properties.VaultURI)
+
+	if props := resp.Properties; props != nil {
+		d.Set("tenant_id", props.TenantID.String())
+		d.Set("enabled_for_deployment", props.EnabledForDeployment)
+		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
+		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
+			return fmt.Errorf("Error flattening `sku` for KeyVault %q: %+v", resp.Name, err)
+		}
+		if err := d.Set("access_policy", keyVaultHelper.FlattenKeyVaultAccessPolicies(props.AccessPolicies)); err != nil {
+			return fmt.Errorf("Error flattening `access_policy` for KeyVault %q: %+v", resp.Name, err)
+		}
+		d.Set("vault_uri", props.VaultURI)
+	}
 
 	flattenAndSetTags(d, resp.Tags)
-
 	return nil
 }
 
@@ -256,40 +272,6 @@ func expandKeyVaultSku(d *schema.ResourceData) *keyvault.Sku {
 	}
 }
 
-func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
-	result := map[string]interface{}{
-		"name": string(sku.Name),
-	}
-
-	return []interface{}{result}
-}
-
-func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
-	}
-
-	return
-}
-
-func checkKeyVaultDNSIsAvailable(vaultUri string) func() *resource.RetryError {
-	return func() *resource.RetryError {
-		uri, err := url.Parse(vaultUri)
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", uri.Host))
-		if err != nil {
-			return resource.RetryableError(err)
-		}
-
-		_ = conn.Close()
-		return nil
-	}
-}
-
 func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPolicyEntry {
 	policies := d.Get("access_policy").([]interface{})
 	result := make([]keyvault.AccessPolicyEntry, 0, len(policies))
@@ -303,9 +285,9 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 
 		policy := keyvault.AccessPolicyEntry{
 			Permissions: &keyvault.Permissions{
-				Certificates: expandKeyVaultAccessPolicyCertificatePermissions(certificatePermissionsRaw),
-				Keys:         expandKeyVaultAccessPolicyKeyPermissions(keyPermissionsRaw),
-				Secrets:      expandKeyVaultAccessPolicySecretPermissions(secretPermissionsRaw),
+				Certificates: keyVaultHelper.ExpandKeyVaultAccessPolicyCertificatePermissions(certificatePermissionsRaw),
+				Keys:         keyVaultHelper.ExpandKeyVaultAccessPolicyKeyPermissions(keyPermissionsRaw),
+				Secrets:      keyVaultHelper.ExpandKeyVaultAccessPolicySecretPermissions(secretPermissionsRaw),
 			},
 		}
 
@@ -323,4 +305,43 @@ func expandKeyVaultAccessPolicies(d *schema.ResourceData) *[]keyvault.AccessPoli
 	}
 
 	return &result
+}
+
+func flattenKeyVaultSku(sku *keyvault.Sku) []interface{} {
+	result := map[string]interface{}{
+		"name": string(sku.Name),
+	}
+
+	return []interface{}{result}
+}
+
+func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error) {
+	value := v.(string)
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and must be between 3-24 chars", k))
+	}
+
+	return
+}
+
+func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
+		uri, err := url.Parse(vaultUri)
+		if err != nil {
+			return nil, "error", fmt.Errorf("Error parsing URI %q: %s", vaultUri, err)
+		}
+
+		hostAndPort := fmt.Sprintf("%s:443", uri.Host)
+		conn, err := net.Dial("tcp", hostAndPort)
+		if err != nil {
+			log.Printf("[DEBUG] Didn't find KeyVault at %q", hostAndPort)
+			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", hostAndPort, err)
+		}
+
+		_ = conn.Close()
+
+		log.Printf("[DEBUG] Found KeyVault at %q", hostAndPort)
+		return "available", "available", nil
+	}
 }

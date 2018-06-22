@@ -32,7 +32,7 @@ resource "azurerm_key_vault" "test" {
     name = "standard"
   }
 
-  tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
+  tenant_id = "22222222-2222-2222-2222-222222222222"
 
   enabled_for_disk_encryption = true
 
@@ -45,8 +45,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   vault_name           = "${azurerm_key_vault.test.name}"
   resource_group_name  = "${azurerm_key_vault.test.resource_group_name}"
   
-  tenant_id = "d6e396d0-5584-41dc-9fc0-268df99bc610"
-  object_id = "d746815a-0433-4a21-b95d-fc437d2d475b"
+  tenant_id = "00000000-0000-0000-0000-000000000000"
+  object_id = "11111111-1111-1111-1111-111111111111"
 
   key_permissions = [
     "get",
@@ -82,10 +82,12 @@ The following arguments are supported:
 * `application_id` - (Optional) The object ID of an Application in Azure Active Directory.
 
 * `certificate_permissions` - (Optional) List of certificate permissions, must be one or more from
-    the following: `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, `managecontacts`, `manageissuers`, `purge`, `recover`, `setissuers` and `update`.
+    the following: `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`, 
+    `managecontacts`, `manageissuers`, `purge`, `recover`, `setissuers` and `update`.
 
 * `key_permissions` - (Required) List of key permissions, must be one or more from
-    the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
+    the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`, 
+    `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
 
 * `secret_permissions` - (Required) List of secret permissions, must be one or more
     from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
@@ -102,9 +104,9 @@ Routes can be imported using the `resource id` of the keyvault with additional m
 the service principal objectId and the applicationId if applicable, e.g.
 
 ```shell
-terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/00000000-0000-0000-0000-000000000000
+terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111
 ```
 
 ```shell
-terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/00000000-0000-0000-0000-000000000000/applicationId/00000000-0000-0000-0000-000000000000
+terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111/applicationId/22222222-2222-2222-2222-222222222222
 ```
