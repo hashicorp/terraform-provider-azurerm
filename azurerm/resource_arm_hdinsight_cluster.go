@@ -98,12 +98,12 @@ func resourceArmHDInsightCluster() *schema.Resource {
 									},
 									"username": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 										ForceNew: true,
 									},
 									"password": {
 										Type:      schema.TypeString,
-										Required:  true,
+										Optional:  true,
 										ForceNew:  true,
 										Sensitive: true,
 										// TODO: validation
