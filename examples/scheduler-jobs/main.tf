@@ -25,7 +25,8 @@ resource "azurerm_scheduler_job" "web-once-now" {
   state = "enabled"
 
   action_web {
-    url = "http://example.com"
+    url    = "http://example.com"
+    method = "get"
   }
 
   retry {

@@ -89,7 +89,7 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
         body    = "The job failed"
 
         headers = {
-            Content-Type = "text"
+            "Content-Type" = "text"
         }
 
         authentication_basic {
@@ -135,11 +135,11 @@ The following arguments are supported:
 
 * `error_action_web` - (Optional) A `error_action_web` block defining the action to take on an error as described below. Note this is identical to an `action_web` block.
 
-* `retry` - (Optional) A `retry` block defining how to retry as described below. Omitting this block defaults to no retry.
+* `retry` - (Optional) A `retry` block defining how to retry as described below. 
 
-* `recurrence` - (Optional) A `recurrence` block defining a job occurrence schedule. Omitting this block causes the job to run just once.
+* `recurrence` - (Optional) A `recurrence` block defining a job occurrence schedule. 
 
-* `start_time` - (Optional) The time the first instance of the job is to start running at. Omitting this causes the job to start now.
+* `start_time` - (Optional) The time the first instance of the job is to start running at. 
 
 * `state` - (Optional) The sets or gets the current state of the job. Can be set to either `Enabled` or `Completed`
 
@@ -150,9 +150,9 @@ The following arguments are supported:
 * `method` - (Optional) Specifies the method of the request. Defaults to `Get` and must be one of `Get`, `Put`, `Post`, `Delete`.
 * `body` - (Optional) Specifies the request body.
 * `headers` - (Optional) A map specifying the headers sent with the request.
-* `authentication_basic` - (Optional) A `authentication_basic` block allowing HTTP basic authentication to be used.
-* `authentication_certificate` - (Optional) A `authentication_certificate` block allowing a client certificate information to be used for authentication.
-* `authentication_active_directory` - (Optional) A `authentication_active_directory` block to configure OAUTH Active Directory authentication.
+* `authentication_basic` - (Optional) An `authentication_active_directory` block which defines the Active Directory oauth configuration to use.
+* `authentication_certificate` - (Optional) An `authentication_certificate` block which defines the client certificate information to be use.
+* `authentication_active_directory` - (Optional) An `authentication_active_directory` block which defines the OAUTH Active Directory information to use.
 
 
 `authentication_basic` block supports the following:

@@ -2,18 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"os"
 )
-
-// check recurring basic -> recurring each type?
-// check: basic everything -> complete everything?
-// check : base + web + error action
 
 func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 	ri := acctest.RandInt()
@@ -25,307 +21,8 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_startTime(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_startTime("2019-07-07T07:07:07-07:00"),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_startTime(resourceName, "2019-07-07T14:07:07Z"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_retry_empty(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_retry_empty(resourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_retry_complete(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_retry_complete(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_basic(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_basic(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_daily(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_daily(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_weekly(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_weekly(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_monthly(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_monthly(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_monthlyOccurrences(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_monthlyOccurrences(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMSchedulerJob_web_recurringAll(t *testing.T) {
-	ri := acctest.RandInt()
-	resourceName := "azurerm_scheduler_job.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_basic(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_basic(resourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_daily(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_daily(resourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_weekly(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_weekly(resourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_monthly(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_monthly(resourceName),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_recurrence_monthlyOccurrences(),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_recurrence_monthlyOccurrences(resourceName),
-				),
+				Config: testAccAzureRMSchedulerJob_web_basic(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_basic(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -346,22 +43,8 @@ func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_put("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_put(resourceName, "action_web"),
-				),
+				Config: testAccAzureRMSchedulerJob_web_put(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_put(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -382,13 +65,8 @@ func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_authBasic("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_authBasic(resourceName, "action_web"),
-				),
+				Config: testAccAzureRMSchedulerJob_web_authBasic(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_authBasic(resourceName),
 			},
 			{
 				ResourceName:            resourceName,
@@ -410,13 +88,8 @@ func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_authCert(),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_authCert(resourceName),
-				),
+				Config: testAccAzureRMSchedulerJob_web_authCert(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_authCert(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -439,33 +112,28 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	secret := os.Getenv("ARM_CLIENT_SECRET")
 
+	audiance := testAccProvider.Meta().(*ArmClient).environment.ServiceManagementEndpoint
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_authAd(tenantId, clientId, secret),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId),
-				),
+				Config: testAccAzureRMSchedulerJob_web_authAd(ri, testLocation(), tenantId, clientId, secret, audiance),
+				Check:  checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"action_web.0.authentication_active_directory.0.secret",
-				},
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"action_web.0.authentication_active_directory.0.secret"},
 			},
 		},
 	})
 }
 
-func TestAccAzureRMSchedulerJob_web_basic_onceToRecurring(t *testing.T) {
+func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
 
@@ -475,22 +143,8 @@ func TestAccAzureRMSchedulerJob_web_basic_onceToRecurring(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-				),
+				Config: testAccAzureRMSchedulerJob_web_retry(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_retry(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -501,7 +155,7 @@ func TestAccAzureRMSchedulerJob_web_basic_onceToRecurring(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSchedulerJob_errrActionWeb_basic(t *testing.T) {
+func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
 
@@ -511,24 +165,8 @@ func TestAccAzureRMSchedulerJob_errrActionWeb_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					"", "", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-				),
-			},
-			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("action_web"),
-					testAccAzureRMSchedulerJob_block_actionWeb_basic("error_action_web"),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_web_basic(resourceName, "error_action_web"),
-				),
+				Config: testAccAzureRMSchedulerJob_web_recurring(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_recurring(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -539,7 +177,7 @@ func TestAccAzureRMSchedulerJob_errrActionWeb_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSchedulerJob_errorActionWeb_put(t *testing.T) {
+func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
 
@@ -549,15 +187,8 @@ func TestAccAzureRMSchedulerJob_errorActionWeb_put(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_put("action_web"),
-					testAccAzureRMSchedulerJob_block_actionWeb_put("error_action_web"),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_put(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_web_put(resourceName, "error_action_web"),
-				),
+				Config: testAccAzureRMSchedulerJob_web_recurringDaily(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_recurringDaily(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
@@ -568,7 +199,7 @@ func TestAccAzureRMSchedulerJob_errorActionWeb_put(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSchedulerJob_errorActionWeb_authBasic(t *testing.T) {
+func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
 
@@ -578,30 +209,19 @@ func TestAccAzureRMSchedulerJob_errorActionWeb_authBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_authBasic("action_web"),
-					testAccAzureRMSchedulerJob_block_actionWeb_authBasic("error_action_web"),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_authBasic(resourceName, "action_web"),
-					checkAccAzureRMSchedulerJob_web_authBasic(resourceName, "error_action_web"),
-				),
+				Config: testAccAzureRMSchedulerJob_web_recurringWeekly(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_recurringWeekly(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"action_web.0.authentication_basic.0.password",
-					"error_action_web.0.authentication_basic.0.password",
-				},
 			},
 		},
 	})
 }
 
-func TestAccAzureRMSchedulerJob_errorAndActionWebAuth(t *testing.T) {
+func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
 
@@ -611,24 +231,79 @@ func TestAccAzureRMSchedulerJob_errorAndActionWebAuth(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_base(ri, testLocation(),
-					testAccAzureRMSchedulerJob_block_actionWeb_authCert(),
-					testAccAzureRMSchedulerJob_block_actionWeb_authBasic("error_action_web"),
-					"", ""),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMSchedulerJob_base(resourceName),
-					checkAccAzureRMSchedulerJob_web_authCert(resourceName),
-					checkAccAzureRMSchedulerJob_web_authBasic(resourceName, "error_action_web"),
-				),
+				Config: testAccAzureRMSchedulerJob_web_recurringMonthly(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_recurringMonthly(resourceName),
 			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateVerify: true, ImportStateVerifyIgnore: []string{
-					"action_web.0.authentication_certificate.0.pfx",
-					"action_web.0.authentication_certificate.0.password",
-					"error_action_web.0.authentication_basic.0.password",
-				},
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_scheduler_job.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(resourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_scheduler_job.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJob_web_errorAction(ri, testLocation()),
+				Check:  checkAccAzureRMSchedulerJob_web_errorAction(resourceName),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSchedulerJob_web_complete(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_scheduler_job.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSchedulerJob_web_complete(ri, testLocation(), "2019-07-07T07:07:07-07:00"),
+				Check:  checkAccAzureRMSchedulerJob_web_complete(resourceName, "2019-07-07T14:07:07Z"),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -694,7 +369,7 @@ func testCheckAzureRMSchedulerJobExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccAzureRMSchedulerJob_base(rInt int, location, block1, block2, block3, block4 string) string {
+func testAccAzureRMSchedulerJob_template(rInt int, location string) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" { 
   name     = "acctestRG-%[1]d" 
@@ -708,75 +383,245 @@ resource "azurerm_scheduler_job_collection" "test" {
     sku                 = "standard"
 }
 
-resource "azurerm_scheduler_job" "test" {
-    name                = "acctestRG-%[1]d-job"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
-
-    %[3]s
-
-    %[4]s
-
-    %[5]s
-
-    %[6]s
-} 
-`, rInt, location, block1, block2, block3, block4)
+`, rInt, location)
 }
-func checkAccAzureRMSchedulerJob_base(resourceName string) resource.TestCheckFunc {
+
+func testAccAzureRMSchedulerJob_web_basic(rInt int, location string) string {
+	//need a valid URL here otherwise on a slow connection job might fault before the test check
+	return fmt.Sprintf(`%s
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+  action_web {
+    url    = "http://example.com"
+    method = "get"
+  } 
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+
+func checkAccAzureRMSchedulerJob_web_basic(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
 		testCheckAzureRMSchedulerJobExists(resourceName),
-		resource.TestCheckResourceAttrSet(resourceName, "name"),
-		resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-		resource.TestCheckResourceAttrSet(resourceName, "job_collection_name"),
-		resource.TestCheckResourceAttr(resourceName, "state", "enabled"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_startTime(time string) string {
-	return fmt.Sprintf(` 
-  start_time = "%s"
-`, time)
+func testAccAzureRMSchedulerJob_web_put(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "http://example.com"
+    method = "put"
+    body   = "this is some text"
+
+    headers = {
+      "Content-Type" = "text"
+	}
+  } 
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
-func checkAccAzureRMSchedulerJob_startTime(resourceName, time string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_put(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, "start_time", time),
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "put"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.body", "this is some text"),
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_recurrence_basic() string {
-	return ` 
+func testAccAzureRMSchedulerJob_web_authBasic(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+
+    authentication_basic {
+      username = "login"
+      password = "apassword"
+    }
+  }
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+
+func checkAccAzureRMSchedulerJob_web_authBasic(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_basic.0.username", "login"),
+	)
+}
+
+func testAccAzureRMSchedulerJob_web_authCert(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+
+    authentication_certificate {
+      pfx      = "${base64encode(file("testdata/application_gateway_test.pfx"))}"
+      password = "terraform"
+    }
+  }
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+
+func checkAccAzureRMSchedulerJob_web_authCert(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_certificate.0.thumbprint", "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_certificate.0.subject_name", "CN=Terraform App Gateway, OU=Azure, O=Terraform Tests, S=Some-State, C=US"),
+	)
+}
+
+func testAccAzureRMSchedulerJob_web_authAd(rInt int, location, tenantId, clientId, secret, audience string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+
+    authentication_active_directory {
+      tenant_id = "%s"
+      client_id = "%s"
+      secret    = "%s"
+      audience  = "%s"
+    }
+  }
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, tenantId, clientId, secret, audience)
+}
+
+func checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.tenant_id", tenantId),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.client_id", clientId),
+		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_active_directory.0.audience"),
+	)
+}
+
+func testAccAzureRMSchedulerJob_web_retry(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
+  retry { 
+    interval = "00:05:00" //5 min
+    count    =  10
+  } 
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
+}
+
+func checkAccAzureRMSchedulerJob_web_retry(resourceName string) resource.TestCheckFunc {
+	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+		resource.TestCheckResourceAttr(resourceName, "retry.0.interval", "00:05:00"),
+		resource.TestCheckResourceAttr(resourceName, "retry.0.count", "10"),
+	)
+}
+
+func testAccAzureRMSchedulerJob_web_recurring(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
   recurrence {
     frequency  = "minute"
     interval   = 5
     count      = 10
-  //end_time  = "2019-07-17T07:07:07-07:00"
   } 
-`
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
-func checkAccAzureRMSchedulerJob_recurrence_basic(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_recurring(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "minute"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.interval", "5"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "10"),
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_recurrence_daily() string {
-	return ` 
+func testAccAzureRMSchedulerJob_web_recurringDaily(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
   recurrence {
     frequency = "day"
     count     = 100 
     hours     = [0,12]
     minutes   = [0,15,30,45] 
-  } 
-`
+  }
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
-func checkAccAzureRMSchedulerJob_recurrence_daily(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_recurringDaily(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "day"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.hours.#", "2"),
@@ -784,67 +629,112 @@ func checkAccAzureRMSchedulerJob_recurrence_daily(resourceName string) resource.
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_recurrence_weekly() string {
-	return ` 
+func testAccAzureRMSchedulerJob_web_recurringWeekly(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
   recurrence {
      frequency    = "week"
      count        = 100 
      week_days = ["Sunday", "Saturday"] 
   } 
-`
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
-func checkAccAzureRMSchedulerJob_recurrence_weekly(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_recurringWeekly(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "week"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.week_days.#", "2"),
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_recurrence_monthly() string {
-	return ` 
+func testAccAzureRMSchedulerJob_web_recurringMonthly(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
   recurrence {
     frequency  = "month"
     count      = 100 
     month_days = [-11,-1,1,11]
   } 
-`
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
-func checkAccAzureRMSchedulerJob_recurrence_monthly(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_recurringMonthly(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "month"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.month_days.#", "4"),
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_recurrence_monthlyOccurrences() string {
-	return ` 
+func testAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
   recurrence {
     frequency  = "month"
     count      = 100 
     monthly_occurrences = [
-            {
-                day        = "sunday"
-                occurrence = 1
-            },
-            {
-                day        = "sunday"
-                occurrence = 3
-            },
-            {
-                day        = "sunday"
-                occurrence = -1
-            }
-        ]
+      {
+        day        = "sunday"
+        occurrence = 1
+      },
+      {
+        day        = "sunday"
+        occurrence = 3
+      },
+      {
+        day        = "sunday"
+        occurrence = -1
+      }
+    ]
   } 
-`
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
-func checkAccAzureRMSchedulerJob_recurrence_monthlyOccurrences(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "month"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
 		resource.TestCheckResourceAttr(resourceName, "recurrence.0.monthly_occurrences.#", "3"),
@@ -857,145 +747,82 @@ func checkAccAzureRMSchedulerJob_recurrence_monthlyOccurrences(resourceName stri
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_retry_empty() string {
-	return ` 
-  retry { 
-  } 
-`
+func testAccAzureRMSchedulerJob_web_errorAction(rInt int, location string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
+  error_action_web {
+    url    = "https://example.com"
+    method = "get"
+  }
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt)
 }
 
-func checkAccAzureRMSchedulerJob_retry_empty(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_errorAction(resourceName string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, "retry.0.interval", "00:00:30"),
-		resource.TestCheckResourceAttr(resourceName, "retry.0.count", "4"),
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
+		resource.TestCheckResourceAttr(resourceName, "error_action_web.0.url", "https://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "error_action_web.0.method", "get"),
 	)
 }
 
-func testAccAzureRMSchedulerJob_block_retry_complete() string {
-	return ` 
+func testAccAzureRMSchedulerJob_web_complete(rInt int, location, time string) string {
+	return fmt.Sprintf(`%s 
+resource "azurerm_scheduler_job" "test" {
+  name                = "acctestRG-%d-job"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.test.name}"
+
+
+  action_web {
+    url    = "http://example.com"
+    method = "put"
+    body   = "this is some text"
+
+    headers = {
+      "Content-Type" = "text"
+	}
+  } 
+
   retry { 
     interval = "00:05:00" //5 min
     count    =  10
   } 
-`
+
+  recurrence {
+    frequency  = "month"
+    count      = 100 
+    month_days = [-11,-1,1,11]
+  } 
+
+  start_time = "%s"
+
+}`, testAccAzureRMSchedulerJob_template(rInt, location), rInt, time)
 }
 
-func checkAccAzureRMSchedulerJob_retry_complete(resourceName string) resource.TestCheckFunc {
+func checkAccAzureRMSchedulerJob_web_complete(resourceName, time string) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
+		testCheckAzureRMSchedulerJobExists(resourceName),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "http://example.com"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "put"),
+		resource.TestCheckResourceAttr(resourceName, "action_web.0.body", "this is some text"),
 		resource.TestCheckResourceAttr(resourceName, "retry.0.interval", "00:05:00"),
 		resource.TestCheckResourceAttr(resourceName, "retry.0.count", "10"),
-	)
-}
-
-func testAccAzureRMSchedulerJob_block_actionWeb_basic(blockName string) string {
-	//need a valid URL here otherwise on a slow connection job might fault before the test check
-	return fmt.Sprintf(`
-  %s {
-    url    = "http://example.com"
-    method = "get"
-  } 
-`, blockName)
-}
-
-func checkAccAzureRMSchedulerJob_web_basic(resourceName, blockName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://example.com"),
-	)
-}
-
-func testAccAzureRMSchedulerJob_block_actionWeb_put(blockName string) string {
-	return fmt.Sprintf(`
-  %s {
-    url    = "http://example.com"
-    method = "put"
-    body   = "this is some text"
-    headers = {
-      Content-Type = "text"
-	}
-  } 
-`, blockName)
-}
-
-func checkAccAzureRMSchedulerJob_web_put(resourceName, blockName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "http://example.com"),
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.method", blockName), "put"),
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.body", blockName), "this is some text"),
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.headers.%%", blockName), "1"),
-	)
-}
-
-func testAccAzureRMSchedulerJob_block_actionWeb_authBasic(blockName string) string {
-	return fmt.Sprintf(`
-  %s {
-    url    = "https://example.com"
-    method = "get"
-
-    authentication_basic {
-      username = "login"
-      password = "apassword"
-    }
-  }
-`, blockName)
-}
-
-func checkAccAzureRMSchedulerJob_web_authBasic(resourceName string, blockName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.url", blockName), "https://example.com"),
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.method", blockName), "get"),
-		resource.TestCheckResourceAttr(resourceName, fmt.Sprintf("%s.0.authentication_basic.0.username", blockName), "login"),
-		resource.TestCheckResourceAttrSet(resourceName, fmt.Sprintf("%s.0.authentication_basic.0.password", blockName)),
-	)
-}
-
-func testAccAzureRMSchedulerJob_block_actionWeb_authCert() string {
-	return `
-  action_web {
-    url    = "https://example.com"
-    method = "get"
-
-    authentication_certificate {
-      pfx      = "${base64encode(file("testdata/application_gateway_test.pfx"))}"
-      password = "terraform"
-    }
-  }
-`
-}
-
-func checkAccAzureRMSchedulerJob_web_authCert(resourceName string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_certificate.0.pfx"),
-		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_certificate.0.password"),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_certificate.0.thumbprint", "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_certificate.0.subject_name", "CN=Terraform App Gateway, OU=Azure, O=Terraform Tests, S=Some-State, C=US"),
-	)
-}
-
-func testAccAzureRMSchedulerJob_block_actionWeb_authAd(tenantId, clientId, secret string) string {
-	return fmt.Sprintf(`
-  action_web {
-    url    = "https://example.com"
-    method = "get"
-
-    authentication_active_directory {
-      tenant_id = "%s"
-      client_id = "%s"
-      secret    = "%s"
-      audience  = "https://management.core.windows.net/"
-    }
-  }
-`, tenantId, clientId, secret)
-}
-
-func checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId string) resource.TestCheckFunc {
-	return resource.ComposeAggregateTestCheckFunc(
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.url", "https://example.com"),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.method", "get"),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.tenant_id", tenantId),
-		resource.TestCheckResourceAttr(resourceName, "action_web.0.authentication_active_directory.0.client_id", clientId),
-		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_active_directory.0.secret"),
-		resource.TestCheckResourceAttrSet(resourceName, "action_web.0.authentication_active_directory.0.audience"),
+		resource.TestCheckResourceAttr(resourceName, "recurrence.0.frequency", "month"),
+		resource.TestCheckResourceAttr(resourceName, "recurrence.0.count", "100"),
+		resource.TestCheckResourceAttr(resourceName, "recurrence.0.month_days.#", "4"),
+		resource.TestCheckResourceAttr(resourceName, "start_time", time),
 	)
 }

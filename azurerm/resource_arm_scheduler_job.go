@@ -48,9 +48,10 @@ func resourceArmSchedulerJob() *schema.Resource {
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"job_collection_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			//actions
@@ -80,9 +81,10 @@ func resourceArmSchedulerJob() *schema.Resource {
 						//silently fails if the duration is not in the correct format
 						//todo validation
 						"interval": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "00:00:30",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "00:00:30",
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"count": {
@@ -169,7 +171,8 @@ func resourceArmSchedulerJob() *schema.Resource {
 							// so lets ignore the case
 							Set: set.HashStringIgnoreCase,
 							Elem: &schema.Schema{
-								Type: schema.TypeString,
+								Type:             schema.TypeString,
+								DiffSuppressFunc: suppress.CaseDifference,
 								ValidateFunc: validation.StringInSlice([]string{
 									string(scheduler.Sunday),
 									string(scheduler.Monday),
@@ -203,8 +206,9 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"day": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:             schema.TypeString,
+										Required:         true,
+										DiffSuppressFunc: suppress.CaseDifference,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(scheduler.Sunday),
 											string(scheduler.Monday),
@@ -215,6 +219,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 											string(scheduler.Saturday),
 										}, true),
 									},
+
 									"occurrence": {
 										Type:         schema.TypeInt,
 										Required:     true,
@@ -273,8 +278,9 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 
 			//only valid/used when action type is put
 			"body": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"headers": {
@@ -294,14 +300,16 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"username": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
@@ -318,15 +326,17 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"pfx": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true, //sensitive & shortens diff
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true, //sensitive & shortens diff
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"thumbprint": {
@@ -358,18 +368,21 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"tenant_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"client_id": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"secret": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"audience": {
@@ -416,31 +429,11 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 
 	job := scheduler.JobDefinition{
 		Properties: &scheduler.JobProperties{
-			Action: &scheduler.JobAction{},
+			Action: expandAzureArmSchedulerJobAction(d, meta),
 		},
 	}
 
 	log.Printf("[DEBUG] Creating/updating Scheduler Job %q (resource group %q)", name, resourceGroup)
-
-	//action
-	if b, ok := d.GetOk("action_web"); ok {
-		job.Properties.Action.Request, job.Properties.Action.Type = expandAzureArmSchedulerJobActionRequest(meta, b)
-	}
-
-	//error action
-	if b, ok := d.GetOk("error_action_web"); ok {
-		job.Properties.Action.ErrorAction = &scheduler.JobErrorAction{}
-		job.Properties.Action.ErrorAction.Request, job.Properties.Action.ErrorAction.Type = expandAzureArmSchedulerJobActionRequest(meta, b)
-	}
-
-	//retry policy
-	if b, ok := d.GetOk("retry"); ok {
-		job.Properties.Action.RetryPolicy = expandAzureArmSchedulerJobActionRetry(b)
-	} else {
-		job.Properties.Action.RetryPolicy = &scheduler.RetryPolicy{
-			RetryType: scheduler.None,
-		}
-	}
 
 	//schedule (recurrence)
 	if b, ok := d.GetOk("recurrence"); ok {
@@ -509,7 +502,7 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 		if action != nil {
 			actionType := strings.ToLower(string(action.Type))
 			if strings.EqualFold(actionType, string(scheduler.HTTP)) || strings.EqualFold(actionType, string(scheduler.HTTPS)) {
-				if err := d.Set("action_web", flattenAzureArmSchedulerJobActionRequest(action.Request)); err != nil {
+				if err := d.Set("action_web", flattenAzureArmSchedulerJobActionRequest(d, "action_web", action.Request)); err != nil {
 					return err
 				}
 			}
@@ -517,7 +510,7 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 			//error action
 			if errorAction := action.ErrorAction; errorAction != nil {
 				if strings.EqualFold(actionType, string(scheduler.HTTP)) || strings.EqualFold(actionType, string(scheduler.HTTPS)) {
-					if err := d.Set("error_action_web", flattenAzureArmSchedulerJobActionRequest(errorAction.Request)); err != nil {
+					if err := d.Set("error_action_web", flattenAzureArmSchedulerJobActionRequest(d, "error_action_web", errorAction.Request)); err != nil {
 						return err
 					}
 				}
@@ -526,7 +519,8 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 			//retry
 			if retry := action.RetryPolicy; retry != nil {
 				//if its not fixed we should not have a retry block
-				if retry.RetryType == scheduler.Fixed {
+				//api returns whatever casing it gets so do a case insensitive comparison
+				if strings.EqualFold(string(retry.RetryType), string(scheduler.Fixed)) {
 					if err := d.Set("retry", flattenAzureArmSchedulerJobActionRetry(retry)); err != nil {
 						return err
 					}
@@ -577,7 +571,34 @@ func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func expandAzureArmSchedulerJobActionRequest(meta interface{}, b interface{}) (*scheduler.HTTPRequest, scheduler.JobActionType) {
+func expandAzureArmSchedulerJobAction(d *schema.ResourceData, meta interface{}) *scheduler.JobAction {
+
+	action := scheduler.JobAction{}
+
+	//action
+	if b, ok := d.GetOk("action_web"); ok {
+		action.Request, action.Type = expandAzureArmSchedulerJobActionRequest(b, meta)
+	}
+
+	//error action
+	if b, ok := d.GetOk("error_action_web"); ok {
+		action.ErrorAction = &scheduler.JobErrorAction{}
+		action.ErrorAction.Request, action.ErrorAction.Type = expandAzureArmSchedulerJobActionRequest(b, meta)
+	}
+
+	//retry policy
+	if b, ok := d.GetOk("retry"); ok {
+		action.RetryPolicy = expandAzureArmSchedulerJobActionRetry(b)
+	} else {
+		action.RetryPolicy = &scheduler.RetryPolicy{
+			RetryType: scheduler.None,
+		}
+	}
+
+	return &action
+}
+
+func expandAzureArmSchedulerJobActionRequest(b interface{}, meta interface{}) (*scheduler.HTTPRequest, scheduler.JobActionType) {
 
 	block := b.([]interface{})[0].(map[string]interface{})
 
@@ -725,7 +746,7 @@ func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrenc
 
 // flatten (API --> terraform)
 
-func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []interface{} {
+func flattenAzureArmSchedulerJobActionRequest(d *schema.ResourceData, blockName string, request *scheduler.HTTPRequest) []interface{} {
 
 	block := map[string]interface{}{}
 
@@ -759,8 +780,10 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []
 				authBlock["username"] = *v
 			}
 
-			//password is not returned
-			authBlock["password"] = ""
+			//password is not returned so lets fetch it
+			if v, ok := d.GetOk(fmt.Sprintf("%s.0.authentication_basic.0.password", blockName)); ok {
+				authBlock["password"] = v.(string)
+			}
 
 		} else if cert, ok := auth.AsClientCertAuthentication(); ok {
 			block["authentication_certificate"] = []interface{}{authBlock}
@@ -775,9 +798,13 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []
 				authBlock["subject_name"] = *v
 			}
 
-			//properties not returned
-			authBlock["pfx"] = ""
-			authBlock["password"] = ""
+			//these properties not returned, so lets grab them
+			if v, ok := d.GetOk(fmt.Sprintf("%s.0.authentication_certificate.0.pfx", blockName)); ok {
+				authBlock["pfx"] = v.(string)
+			}
+			if v, ok := d.GetOk(fmt.Sprintf("%s.0.authentication_certificate.0.password", blockName)); ok {
+				authBlock["password"] = v.(string)
+			}
 
 		} else if oauth, ok := auth.AsOAuthAuthentication(); ok {
 			block["authentication_active_directory"] = []interface{}{authBlock}
@@ -792,8 +819,10 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []
 				authBlock["tenant_id"] = *v
 			}
 
-			//properties not returned
-			authBlock["secret"] = ""
+			//secret is not returned
+			if v, ok := d.GetOk(fmt.Sprintf("%s.0.authentication_active_directory.0.secret", blockName)); ok {
+				authBlock["secret"] = v.(string)
+			}
 		}
 	}
 
@@ -803,7 +832,6 @@ func flattenAzureArmSchedulerJobActionRequest(request *scheduler.HTTPRequest) []
 func flattenAzureArmSchedulerJobActionRetry(retry *scheduler.RetryPolicy) []interface{} {
 	block := map[string]interface{}{}
 
-	block["type"] = string(retry.RetryType)
 	if v := retry.RetryInterval; v != nil {
 		block["interval"] = *v
 	}
@@ -872,11 +900,12 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 
 func resourceAzureRMSchedulerJobMonthlyOccurrenceHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
 
-	//day returned by azure is in a different case then the API constants
-	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["day"].(string))))
-	buf.WriteString(fmt.Sprintf("%d-", m["occurrence"].(int)))
+	if m, ok := v.(map[string]interface{}); ok {
+		//day returned by azure is in a different case then the API constants
+		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["day"].(string))))
+		buf.WriteString(fmt.Sprintf("%d-", m["occurrence"].(int)))
+	}
 
 	return hashcode.String(buf.String())
 }
