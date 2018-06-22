@@ -205,34 +205,9 @@ func testCheckAzureRMHDInsightClusterExists(name string) resource.TestCheckFunc 
 }
 
 func testAccAzureRMHDInsightCluster_basicConfig(rInt int, rString string, location string, clusterType string, nodes int) string {
+	template := testAccAzureRMHDInsightCluster_template(rInt, rString, location)
 	return fmt.Sprintf(`
-variable "username" {
-  default = "adminuser"
-}
-
-variable "password" {
-  default = "Password21!$"
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "data"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
+%s
 
 resource "azurerm_hdinsight_cluster" "test" {
   name                = "acctesthdic-%d"
@@ -253,7 +228,7 @@ resource "azurerm_hdinsight_cluster" "test" {
 
   storage_profile {
     storage_account {
-      storage_account_name = "${azurerm_storage_account.test.name}.blob.core.windows.net"
+      storage_account_name = "${azurerm_storage_account.test.primary_blob_domain}"
       storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
       container_name       = "${azurerm_storage_container.test.name}"
       is_default           = true
@@ -299,38 +274,13 @@ resource "azurerm_hdinsight_cluster" "test" {
     }
   }
 }
-`, rInt, location, rString, rInt, clusterType, nodes)
+`, template, rInt, clusterType, nodes)
 }
 
 func testAccAzureRMHDInsightCluster_basicConfigHTTPDisabled(rInt int, rString string, location string, clusterType string, nodes int) string {
+	template := testAccAzureRMHDInsightCluster_template(rInt, rString, location)
 	return fmt.Sprintf(`
-variable "username" {
-  default = "adminuser"
-}
-
-variable "password" {
-  default = "Password21!$"
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "data"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
+%s
 
 resource "azurerm_hdinsight_cluster" "test" {
   name                = "acctesthdic-%d"
@@ -349,7 +299,7 @@ resource "azurerm_hdinsight_cluster" "test" {
 
   storage_profile {
     storage_account {
-      storage_account_name = "${azurerm_storage_account.test.name}.blob.core.windows.net"
+      storage_account_name = "${azurerm_storage_account.test.primary_blob_domain}"
       storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
       container_name       = "${azurerm_storage_container.test.name}"
       is_default           = true
@@ -395,38 +345,13 @@ resource "azurerm_hdinsight_cluster" "test" {
     }
   }
 }
-`, rInt, location, rString, rInt, clusterType, nodes)
+`, template, rInt, clusterType, nodes)
 }
 
 func testAccAzureRMHDInsightCluster_basicNetworkConfig(rInt int, rString string, location string, clusterType string) string {
+	template := testAccAzureRMHDInsightCluster_template(rInt, rString, location)
 	return fmt.Sprintf(`
-variable "username" {
-  default = "adminuser"
-}
-
-variable "password" {
-  default = "Password21!$"
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "data"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
+%s
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvn-%d"
@@ -461,7 +386,7 @@ resource "azurerm_hdinsight_cluster" "test" {
 
   storage_profile {
     storage_account {
-      storage_account_name = "${azurerm_storage_account.test.name}.blob.core.windows.net"
+      storage_account_name = "${azurerm_storage_account.test.primary_blob_domain}"
       storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
       container_name       = "${azurerm_storage_container.test.name}"
       is_default           = true
@@ -526,5 +451,37 @@ resource "azurerm_hdinsight_cluster" "test" {
     "Source" = "AcceptanceTest"
   }
 }
-`, rInt, location, rString, rInt, rInt, clusterType)
+`, template, rInt, rInt, clusterType)
+}
+
+func testAccAzureRMHDInsightCluster_template(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+variable "username" {
+  default = "adminuser"
+}
+
+variable "password" {
+  default = "Password21!$"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "data"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+`, rInt, location, rString)
 }
