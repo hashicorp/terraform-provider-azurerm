@@ -10,6 +10,25 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+func TestHDInsightsClusterValidation(t *testing.T) {
+	data := map[string]bool{
+		"":           false,
+		"3":          false,
+		"3.":         false,
+		"4.6":        true,
+		"3.2.1":      false,
+		"whowhatnow": false,
+	}
+
+	for val, expected := range data {
+		_, errors := validateHDInsightsClusterVersion(val, "test_example")
+		result := len(errors) == 0
+		if expected != result {
+			t.Fatalf("Expected %q to return %t but returned %t", val, expected, result)
+		}
+	}
+}
+
 func TestAccAzureRMHDInsightCluster_basic(t *testing.T) {
 	resourceName := "azurerm_hdinsight_cluster.test"
 	rInt := acctest.RandInt()

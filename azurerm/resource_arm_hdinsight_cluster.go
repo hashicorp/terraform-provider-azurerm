@@ -78,10 +78,10 @@ func resourceArmHDInsightCluster() *schema.Resource {
 						},
 
 						"version": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							// TODO: validation for "exactly 2 segments with dots"
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validateHDInsightsClusterVersion,
 						},
 
 						"gateway": {
@@ -826,4 +826,23 @@ func populateHDInsightClusterComputeProfile(input *hdinsight.ComputeProfile) (*h
 	}
 
 	return &output, nil
+}
+
+func validateHDInsightsClusterVersion(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	segments := strings.Split(v, ".")
+	if len(segments) != 2 {
+		errors = append(errors, fmt.Errorf("%q should contain 2 segments (e.g. `5.6`): '%q`", k, i))
+	} else {
+		if segments[0] == "" || segments[1] == "" {
+			errors = append(errors, fmt.Errorf("%q: Expected a string in the format `X.Y` - got %q", k, v))
+		}
+	}
+
+	return
 }
