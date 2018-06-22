@@ -517,10 +517,10 @@ func TestAccAzureRMVirtualMachineScaleSet_priority(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualMachineScaleSet_MSI(t *testing.T) {
+func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineScaleSetMSITemplate(ri, testLocation())
+	config := testAccAzureRMVirtualMachineScaleSetSystemAssignedMSITemplate(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -528,7 +528,10 @@ func TestAccAzureRMVirtualMachineScaleSet_MSI(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check:  resource.TestCheckResourceAttrSet(resourceName, "identity.0.principal_id"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetSystemAssignedMSI(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "identity.0.principal_id"),
+				),
 			},
 		},
 	})
@@ -911,7 +914,7 @@ func testCheckAzureRMVirtualMachineScaleSetSinglePlacementGroup(name string, exp
 	}
 }
 
-func testCheckAzureRMVirtualMachineScaleSetMSI(name string) resource.TestCheckFunc {
+func testCheckAzureRMVirtualMachineScaleSetSystemAssignedMSI(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		resp, err := testGetAzureRMVirtualMachineScaleSet(s, name)
 		if err != nil {
@@ -919,7 +922,7 @@ func testCheckAzureRMVirtualMachineScaleSetMSI(name string) resource.TestCheckFu
 		}
 
 		identityType := resp.Identity.Type
-		if identityType != "systemAssigned" {
+		if identityType != compute.ResourceIdentityTypeSystemAssigned {
 			return fmt.Errorf("Bad: Identity Type is not systemAssigned for scale set %v", name)
 		}
 
@@ -2876,7 +2879,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location)
 }
 
-func testAccAzureRMVirtualMachineScaleSetMSITemplate(rInt int, location string) string {
+func testAccAzureRMVirtualMachineScaleSetSystemAssignedMSITemplate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%[1]d"

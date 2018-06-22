@@ -941,11 +941,13 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 		result["principal_id"] = *identity.PrincipalID
 	}
 
-	identity_ids := make([]string, 0)
-	for _, id := range *identity.IdentityIds {
-		identity_ids = append(identity_ids, id)
+	if identity.IdentityIds != nil {
+		identity_ids := make([]string, 0)
+		for _, id := range *identity.IdentityIds {
+			identity_ids = append(identity_ids, id)
+		}
+		result["identity_ids"] = identity_ids
 	}
-	result["identity_ids"] = identity_ids
 
 	return []interface{}{result}
 }
