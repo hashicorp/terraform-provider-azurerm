@@ -173,13 +173,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": {
-							Type:             schema.TypeString,
-							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
-							ValidateFunc:     validation.NoZeroValues,
-						},
+						"location": locationSchema(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,
@@ -194,16 +188,21 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 			"capabilities": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-					ValidateFunc: validation.StringInSlice([]string{
-						"EnableTable",
-						"EnableGremlin",
-						//`EnableCassandra`, //possible value but still in private preview
-					}, true),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"EnableTable",
+								"EnableGremlin",
+								`EnableCassandra`,
+							}, true),
+						},
+					},
 				},
-				Set: schema.HashString,
+				Set: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 			},
 
 			//computed
@@ -762,7 +761,8 @@ func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documen
 	s := make([]documentdb.Capability, 0, 0)
 
 	for _, c := range capabilities {
-		s = append(s, documentdb.Capability{Name: utils.String(c.(string))})
+		m := c.(map[string]interface{})
+		s = append(s, documentdb.Capability{Name: utils.String(m["name"].(string))})
 	}
 
 	return &s
@@ -836,12 +836,15 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 
 func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
 	s := schema.Set{
-		F: schema.HashString,
+		F: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 	}
 
 	for _, c := range *capabilities {
 		if v := c.Name; v != nil {
-			s.Add(*c.Name)
+			e := map[string]interface{}{
+				"name": *v,
+			}
+			s.Add(e)
 		}
 	}
 
@@ -874,6 +877,16 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		priority := int32(m["failover_priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	}
 
 	return hashcode.String(buf.String())

@@ -527,7 +527,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "%s"
-	%s
+    %s
   }
 
   geo_location {
@@ -558,9 +558,9 @@ func testAccAzureRMCosmosDBAccount_gremlin(rInt int, location string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
  
-        capabilities = [
-          "EnableGremlin"
-        ]
+        capabilities = {
+          name = "EnableGremlin"
+        }
     `)
 }
 
@@ -568,9 +568,9 @@ func testAccAzureRMCosmosDBAccount_table(rInt int, location string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "GlobalDocumentDB"
 
-        capabilities = [
-          "EnableTable"
-        ]
+        capabilities = {
+          name = "EnableTable"
+        }
     `)
 }
 
@@ -597,8 +597,8 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
-		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
-		enable_automatic_failover	= true
+        ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26"
+        enable_automatic_failover	= true
 
         geo_location {
             prefix            = "acctest-%d-custom-id"
