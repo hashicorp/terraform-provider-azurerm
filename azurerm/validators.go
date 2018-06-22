@@ -77,9 +77,10 @@ func validateIso8601Duration() schema.SchemaValidateFunc {
 	}
 }
 
-func validateAzureVirtualMachineTimeZone(acceptEmpty bool) schema.SchemaValidateFunc {
+func validateAzureVirtualMachineTimeZone() schema.SchemaValidateFunc {
 	// Candidates are listed here: http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/
 	candidates := []string{
+		"",
 		"Afghanistan Standard Time",
 		"Alaskan Standard Time",
 		"Arab Standard Time",
@@ -186,9 +187,6 @@ func validateAzureVirtualMachineTimeZone(acceptEmpty bool) schema.SchemaValidate
 		"West Asia Standard Time",
 		"West Pacific Standard Time",
 		"Yakutsk Standard Time",
-	}
-	if acceptEmpty {
-		candidates = append(candidates, "")
 	}
 	return validation.StringInSlice(candidates, true)
 }

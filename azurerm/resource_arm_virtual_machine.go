@@ -379,7 +379,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc:     validateAzureVirtualMachineTimeZone(true),
+							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
