@@ -458,6 +458,84 @@ func (client DatabaseAccountsClient) GetResponder(resp *http.Response) (result D
 	return
 }
 
+// GetReadOnlyKeys lists the read-only access keys for the specified Azure Cosmos DB database account.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+func (client DatabaseAccountsClient) GetReadOnlyKeys(ctx context.Context, resourceGroupName string, accountName string) (result DatabaseAccountListReadOnlyKeysResult, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: accountName,
+			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.DatabaseAccountsClient", "GetReadOnlyKeys", err.Error())
+	}
+
+	req, err := client.GetReadOnlyKeysPreparer(ctx, resourceGroupName, accountName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "GetReadOnlyKeys", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetReadOnlyKeysSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "GetReadOnlyKeys", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetReadOnlyKeysResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.DatabaseAccountsClient", "GetReadOnlyKeys", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetReadOnlyKeysPreparer prepares the GetReadOnlyKeys request.
+func (client DatabaseAccountsClient) GetReadOnlyKeysPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"accountName":       autorest.Encode("path", accountName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2015-04-08"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/readonlykeys", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetReadOnlyKeysSender sends the GetReadOnlyKeys request. The method will close the
+// http.Response Body if it receives an error.
+func (client DatabaseAccountsClient) GetReadOnlyKeysSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetReadOnlyKeysResponder handles the response to the GetReadOnlyKeys request. The method always
+// closes the http.Response Body.
+func (client DatabaseAccountsClient) GetReadOnlyKeysResponder(resp *http.Response) (result DatabaseAccountListReadOnlyKeysResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // List lists all the Azure Cosmos DB database accounts available under the subscription.
 func (client DatabaseAccountsClient) List(ctx context.Context) (result DatabaseAccountsListResult, err error) {
 	req, err := client.ListPreparer(ctx)
@@ -960,7 +1038,7 @@ func (client DatabaseAccountsClient) ListReadOnlyKeysPreparer(ctx context.Contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
+		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DocumentDB/databaseAccounts/{accountName}/readonlykeys", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
