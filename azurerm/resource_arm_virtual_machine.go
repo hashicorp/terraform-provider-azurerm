@@ -85,11 +85,19 @@ func resourceArmVirtualMachine() *schema.Resource {
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
+								"UserAssigned",
 							}, true),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -933,6 +941,12 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 		result["principal_id"] = *identity.PrincipalID
 	}
 
+	identity_ids := make([]string, 0)
+	for _, id := range *identity.IdentityIds {
+		identity_ids = append(identity_ids, id)
+	}
+	result["identity_ids"] = identity_ids
+
 	return []interface{}{result}
 }
 
@@ -1156,9 +1170,21 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
 	identityType := identity["type"].(string)
-	return &compute.VirtualMachineIdentity{
+
+	identityIds := []string{}
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds = append(identityIds, id.(string))
+	}
+
+	vmIdentity := compute.VirtualMachineIdentity{
 		Type: compute.ResourceIdentityType(identityType),
 	}
+
+	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+		vmIdentity.IdentityIds = &identityIds
+	}
+
+	return &vmIdentity
 }
 
 func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {

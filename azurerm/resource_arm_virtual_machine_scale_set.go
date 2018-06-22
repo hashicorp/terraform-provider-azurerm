@@ -50,7 +50,15 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
+								"UserAssigned",
 							}, true),
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -932,6 +940,12 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 		result["principal_id"] = *identity.PrincipalID
 	}
 
+	identity_ids := make([]string, 0)
+	for _, id := range *identity.IdentityIds {
+		identity_ids = append(identity_ids, id)
+	}
+	result["identity_ids"] = identity_ids
+
 	return []interface{}{result}
 }
 
@@ -1636,9 +1650,21 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
 	identityType := identity["type"].(string)
-	return &compute.VirtualMachineScaleSetIdentity{
+
+	identityIds := []string{}
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds = append(identityIds, id.(string))
+	}
+
+	vmssIdentity := compute.VirtualMachineScaleSetIdentity{
 		Type: compute.ResourceIdentityType(identityType),
 	}
+
+	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+		vmssIdentity.IdentityIds = &identityIds
+	}
+
+	return &vmssIdentity
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {
