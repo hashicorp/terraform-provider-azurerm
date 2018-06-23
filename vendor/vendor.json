@@ -20,7 +20,7 @@
 		},
 		{
 			"checksumSHA1": "jNqFdbZdsFgDH9xhq3fXNIk1+eM=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn",
+			"path": "github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
 			"revisionTime": "2018-05-04T19:14:26Z",
 			"version": "v16.2.1",

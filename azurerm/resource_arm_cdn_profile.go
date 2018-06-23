@@ -39,6 +39,7 @@ func resourceArmCdnProfile() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(cdn.StandardAkamai),
 					string(cdn.StandardVerizon),
+					string(cdn.StandardMicrosoft),
 					string(cdn.PremiumVerizon),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
