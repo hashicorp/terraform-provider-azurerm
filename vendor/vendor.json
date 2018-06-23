@@ -171,6 +171,14 @@
 			"versionExact": "v16.2.1"
 		},
 		{
+			"checksumSHA1": "QT7LrDyti+qDCjhxerYb8PwLfew=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-05-04T19:14:26Z",
+			"version": "v16.2.1",
+			"versionExact": "v16.2.1"
+		},
+		{
 			"checksumSHA1": "EoE/UnsEm8MDYl+ox/+aIvs1HSY=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights",
 			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
