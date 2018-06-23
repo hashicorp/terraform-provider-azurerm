@@ -85,7 +85,7 @@ func TestAccAzureRMVirtualMachine_winTimeZone(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists("azurerm_virtual_machine.test", &vm),
-					resource.TestCheckResourceAttr(resourceName, "os_profile_windows_config.2277357006.timezone", "Pacific Standard Time"),
+					resource.TestCheckResourceAttr(resourceName, "os_profile_windows_config.59207889.timezone", "Pacific Standard Time"),
 				),
 			},
 		},
