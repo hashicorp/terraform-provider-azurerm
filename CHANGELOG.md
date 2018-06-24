@@ -2,6 +2,8 @@
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to v10.11.4 of `Azure/go-autorest` [GH-1418]
+* dependencies: upgrading to v17.4.0 of `Azure/azure-sdk-for-go` [GH-1418]
 * `azurerm_log_analytics_solution` - support for Sovereign Clouds [GH-1410]
 * `azurerm_log_analytics_workspace` - support for Sovereign Clouds [GH-1410]
 * `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU [GH-1079]
