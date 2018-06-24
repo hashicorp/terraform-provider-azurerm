@@ -12,8 +12,8 @@ func TestHelper_Validate_Ip4Address(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Ip:     "000.000.000.000",
-			Errors: 1,
+			Ip:     "0.0.0.0",
+			Errors: 0,
 		},
 		{
 			Ip:     "1.2.3.no",
@@ -45,7 +45,7 @@ func TestHelper_Validate_Ip4Address(t *testing.T) {
 		_, errors := Ip4Address(tc.Ip, "test")
 
 		if len(errors) < tc.Errors {
-			t.Fatalf("Expected AzureResourceId to have an error for %q", tc.Ip)
+			t.Fatalf("Expected Ip4Address to have an error for %q", tc.Ip)
 		}
 	}
 }
@@ -86,10 +86,10 @@ func TestHelper_Validate_MacAddress(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := Ip4Address(tc.Ip, "test")
+		_, errors := MacAddress(tc.Ip, "test")
 
 		if len(errors) < tc.Errors {
-			t.Fatalf("Expected AzureResourceId to have an error for %q", tc.Ip)
+			t.Fatalf("Expected MacAddress to have an error for %q", tc.Ip)
 		}
 	}
 }
