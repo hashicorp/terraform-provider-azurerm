@@ -9,6 +9,9 @@ IMPROVEMENTS:
 * `azurerm_network_interface` - addtional validation on properties [GH-1403]
 * `azurerm_arm_loadbalancer` - addtional validation on properties [GH-1403]
 
+BUG FIXES:
+
+* validation: ensuring IPv4/MAC addresses are detected correctly [GH-1431]
 
 ## 1.7.0 (June 16, 2018)
 
