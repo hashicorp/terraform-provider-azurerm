@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -9,6 +10,8 @@ import (
 )
 
 func TestAccAzureRMUserAssignedIdentity_create(t *testing.T) {
+	resourceIdRegex := "/subscriptions/.+/resourcegroups/.+/providers/Microsoft.ManagedIdentity/userAssignedIdentities/test"
+	principalIdRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
 	resourceName := "azurerm_user_assigned_identity.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMUserAssignedIdentityCreateTemplate(ri, testLocation())
@@ -19,7 +22,10 @@ func TestAccAzureRMUserAssignedIdentity_create(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: config,
-				Check:  resource.TestCheckResourceAttrSet(resourceName, "id"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(resourceName, "id", regexp.MustCompile(resourceIdRegex)),
+					resource.TestMatchResourceAttr(resourceName, "principal_id", regexp.MustCompile(principalIdRegex)),
+				),
 			},
 		},
 	})

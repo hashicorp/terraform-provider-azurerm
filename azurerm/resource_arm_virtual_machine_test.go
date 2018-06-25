@@ -3,8 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"testing"
 	"regexp"
+	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"

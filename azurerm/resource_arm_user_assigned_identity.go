@@ -20,14 +20,20 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"resource_group_name": resourceGroupNameSchema(),
+			"location":            locationSchema(),
+
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
-			"location":            locationSchema(),
-			"tags":                tagsSchema(),
+			"principal_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -82,9 +88,14 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on User Assigned Identity %q (Resource Group %q): %+v", resourceName, resGroup, err)
 	}
 
-	d.Set("name", resp.Name)
+	if resp.IdentityProperties == nil || resp.IdentityProperties.PrincipalID == nil {
+		return fmt.Errorf("Error PrincipalID can't be null for User Assigned Identity %q (Resource Group %q): %+v", resourceName, resGroup, err)
+	}
+
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", resp.Location)
+	d.Set("name", resp.Name)
+	d.Set("principal_id", resp.IdentityProperties.PrincipalID.String())
 
 	flattenAndSetTags(d, resp.Tags)
 
