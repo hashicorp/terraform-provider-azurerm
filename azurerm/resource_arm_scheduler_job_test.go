@@ -12,8 +12,8 @@ import (
 )
 
 func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -34,8 +34,8 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -56,8 +56,8 @@ func TestAccAzureRMSchedulerJob_web_put(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -79,8 +79,8 @@ func TestAccAzureRMSchedulerJob_web_authBasic(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -105,14 +105,17 @@ func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	secret := os.Getenv("ARM_CLIENT_SECRET")
 
-	audiance := testAccProvider.Meta().(*ArmClient).environment.ServiceManagementEndpoint
+	audience := ""
+	if os.Getenv(resource.TestEnvVar) != "" {
+		audience = testAccProvider.Meta().(*ArmClient).environment.ServiceManagementEndpoint
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -120,7 +123,7 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSchedulerJobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSchedulerJob_web_authAd(ri, testLocation(), tenantId, clientId, secret, audiance),
+				Config: testAccAzureRMSchedulerJob_web_authAd(ri, testLocation(), tenantId, clientId, secret, audience),
 				Check:  checkAccAzureRMSchedulerJob_web_authAd(resourceName, tenantId, clientId),
 			},
 			{
@@ -134,8 +137,8 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -156,8 +159,8 @@ func TestAccAzureRMSchedulerJob_web_retry(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -178,8 +181,8 @@ func TestAccAzureRMSchedulerJob_web_recurring(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -200,8 +203,8 @@ func TestAccAzureRMSchedulerJob_web_recurringDaily(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -222,8 +225,8 @@ func TestAccAzureRMSchedulerJob_web_recurringWeekly(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -244,8 +247,8 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthly(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -266,8 +269,8 @@ func TestAccAzureRMSchedulerJob_web_recurringMonthlyOccurrences(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -288,8 +291,8 @@ func TestAccAzureRMSchedulerJob_web_errorAction(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_complete(t *testing.T) {
-	ri := acctest.RandInt()
 	resourceName := "azurerm_scheduler_job.test"
+	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
