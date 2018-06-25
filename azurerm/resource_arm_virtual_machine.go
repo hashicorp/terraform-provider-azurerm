@@ -1168,10 +1168,18 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, err
 }
 
 func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.VirtualMachineIdentity {
+	var identityType compute.ResourceIdentityType
+
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
+
+	switch strings.ToLower(identity["type"].(string)) {
+	case strings.ToLower(string(compute.ResourceIdentityTypeUserAssigned)):
+		identityType = compute.ResourceIdentityTypeUserAssigned
+	case strings.ToLower(string(compute.ResourceIdentityTypeSystemAssigned)):
+		identityType = compute.ResourceIdentityTypeSystemAssigned
+	}
 
 	identityIds := []string{}
 	for _, id := range identity["identity_ids"].([]interface{}) {
@@ -1179,7 +1187,7 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	}
 
 	vmIdentity := compute.VirtualMachineIdentity{
-		Type: compute.ResourceIdentityType(identityType),
+		Type: identityType,
 	}
 
 	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned {

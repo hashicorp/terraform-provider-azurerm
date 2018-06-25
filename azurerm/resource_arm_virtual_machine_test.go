@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -13,7 +14,6 @@ import (
 
 func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
-
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMVirtualMachineSystemAssignedIdentityTemplate(ri, testLocation())
@@ -26,8 +26,32 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
-					testCheckAzureRMVirtualMachineScaleSetIdentity(resourceName, &vm),
-					resource.TestCheckResourceAttrSet(resourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "0"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", regexp.MustCompile(".+")),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
+	var vm compute.VirtualMachine
+	resourceName := "azurerm_virtual_machine.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMVirtualMachineUserAssignedIdentityTemplate(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "UserAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.principal_id", ""),
 				),
 			},
 		},
@@ -92,23 +116,6 @@ func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testCheckAzureRMVirtualMachineScaleSetIdentity(name string, vm *compute.VirtualMachine) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		identityType := vm.Identity.Type
-		if identityType != compute.ResourceIdentityTypeSystemAssigned {
-			return fmt.Errorf("Bad: Identity Type is not systemAssigned for vm %s.", name)
-		}
-
-		principalID := *vm.Identity.PrincipalID
-		if len(principalID) == 0 {
-			return fmt.Errorf("Bad: Could not get principal_id for vm %s.", name)
-		}
-
-		return nil
-	}
 }
 
 func testAccAzureRMVirtualMachineSystemAssignedIdentityTemplate(rInt int, location string) string {
@@ -202,6 +209,110 @@ resource "azurerm_virtual_machine" "test" {
 
 	identity {
 		type     = "systemAssigned"
+	}
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMVirtualMachineUserAssignedIdentityTemplate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+	name = "acctvn-%d"
+	address_space = ["10.0.0.0/16"]
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+	name = "acctsub-%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+	name = "acctni-%d"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+
+	ip_configuration {
+		name = "testconfiguration1"
+		subnet_id = "${azurerm_subnet.test.id}"
+		private_ip_address_allocation = "dynamic"
+	}
+}
+
+resource "azurerm_storage_account" "test" {
+	name                     = "accsa%d"
+	resource_group_name      = "${azurerm_resource_group.test.name}"
+	location                 = "${azurerm_resource_group.test.location}"
+	account_tier             = "Standard"
+	account_replication_type = "LRS"
+
+	tags {
+		environment = "staging"
+	}
+}
+
+resource "azurerm_storage_container" "test" {
+	name = "vhds"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	storage_account_name = "${azurerm_storage_account.test.name}"
+	container_access_type = "private"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	location = "${azurerm_resource_group.test.location}"
+
+	name = "test"
+}
+
+resource "azurerm_virtual_machine" "test" {
+	name = "acctvm-%d"
+	location = "${azurerm_resource_group.test.location}"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	network_interface_ids = ["${azurerm_network_interface.test.id}"]
+	vm_size = "Standard_D1_v2"
+
+	storage_image_reference {
+		publisher = "Canonical"
+		offer = "UbuntuServer"
+		sku = "16.04-LTS"
+		version = "latest"
+	}
+
+	storage_os_disk {
+		name = "myosdisk1"
+		vhd_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+		caching = "ReadWrite"
+		create_option = "FromImage"
+		disk_size_gb = "45"
+	}
+
+	os_profile {
+		computer_name = "hn%d"
+		admin_username = "testadmin"
+		admin_password = "Password1234!"
+	}
+
+	os_profile_linux_config {
+		disable_password_authentication = false
+	}
+
+	tags {
+		environment = "Production"
+		cost-center = "Ops"
+	}
+
+	identity {
+		type     = "userAssigned"
+		identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
 	}
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
