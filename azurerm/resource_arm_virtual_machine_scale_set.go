@@ -1648,10 +1648,18 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceDat
 }
 
 func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *compute.VirtualMachineScaleSetIdentity {
+	var identityType compute.ResourceIdentityType
+
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
+
+	switch strings.ToLower(identity["type"].(string)) {
+	case strings.ToLower(string(compute.ResourceIdentityTypeUserAssigned)):
+		identityType = compute.ResourceIdentityTypeUserAssigned
+	case strings.ToLower(string(compute.ResourceIdentityTypeSystemAssigned)):
+		identityType = compute.ResourceIdentityTypeSystemAssigned
+	}
 
 	identityIds := []string{}
 	for _, id := range identity["identity_ids"].([]interface{}) {
@@ -1659,7 +1667,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	}
 
 	vmssIdentity := compute.VirtualMachineScaleSetIdentity{
-		Type: compute.ResourceIdentityType(identityType),
+		Type: identityType,
 	}
 
 	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
