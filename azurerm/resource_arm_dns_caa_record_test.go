@@ -169,27 +169,27 @@ resource "azurerm_dns_caa_record" "test" {
   ttl                 = 300
 
   record {
-    flags 	= 0
-    tag 	  = "issue"
-    value   = "example.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.com"
 	}
 	
   record {
-    flags 	= 0
-    tag 	  = "issue"
-    value   = "example.net"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
   }
 
   record {
-    flags		= 1
-    tag			= "issuewild"
-    value		= ";"
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
 	}
 	
   record {
-    flags  	= 0
-    tag    	= "iodef"
-    value  	= "mailto:terraform@nonexist.tld"
+    flags = 0
+    tag   = "iodef"
+    value = "mailto:terraform@nonexist.tld"
 	}
 }
 `, rInt, location, rInt, rInt)
@@ -214,33 +214,33 @@ resource "azurerm_dns_caa_record" "test" {
   ttl                 = 300
 
   record {
-    flags 	= 0
-    tag 	  = "issue"
-    value   = "example.com"
+    flags = 0
+    tag   = "issue"
+    value = "example.com"
 	}
 	
   record {
-    flags 	= 0
-    tag 	  = "issue"
-    value   = "example.net"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
   }
 
   record {
-    flags		= 1
-    tag			= "issuewild"
-    value		= ";"
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
 	}
 	
   record {
-    flags  	= 0
-    tag    	= "iodef"
-    value  	= "mailto:terraform@nonexist.tld"
+    flags = 0
+    tag   = "iodef"
+    value = "mailto:terraform@nonexist.tld"
 	}
 		
 	record {
-    flags		= 0
-    tag			= "issue"
-    value		= "letsencrypt.org"
+    flags = 0
+    tag   = "issue"
+    value = "letsencrypt.org"
 	}
 }
 `, rInt, location, rInt, rInt)
@@ -265,15 +265,15 @@ resource "azurerm_dns_caa_record" "test" {
   ttl                 = 300
 
   record {
-    flags 	= 0
-    tag 	  = "issue"
-    value   = "example.net"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
   }
 
   record {
-    flags		= 1
-    tag			= "issuewild"
-    value		= ";"
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
 	}
 
   tags {
@@ -303,15 +303,15 @@ resource "azurerm_dns_caa_record" "test" {
   ttl                 = 300
 
   record {
-    flags 	= 0
-    tag 	  = "issue"
-    value   = "example.net"
+    flags = 0
+    tag   = "issue"
+    value = "example.net"
   }
 
   record {
-    flags		= 1
-    tag			= "issuewild"
-    value		= ";"
+    flags = 1
+    tag   = "issuewild"
+    value = ";"
 	}
 
   tags {
