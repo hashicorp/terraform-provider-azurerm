@@ -477,6 +477,16 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    match               = {
+      body              = "*"
+      status_code       = [
+        200,
+        203,
+        202,
+      ]
+    }
+
+    
   }
 
   url_path_map {
