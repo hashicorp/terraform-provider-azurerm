@@ -153,7 +153,7 @@ func testCheckAzureRMPacketCaptureDestroy(s *terraform.State) error {
 func testAzureRMPacketCapture_base(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg-%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 

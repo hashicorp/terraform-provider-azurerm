@@ -62,38 +62,6 @@ func testSweepServiceBusNamespace(region string) error {
 	return nil
 }
 
-func TestAccAzureRMServiceBusNamespaceCapacity_validation(t *testing.T) {
-	cases := []struct {
-		Value    int
-		ErrCount int
-	}{
-		{
-			Value:    17,
-			ErrCount: 1,
-		},
-		{
-			Value:    1,
-			ErrCount: 0,
-		},
-		{
-			Value:    2,
-			ErrCount: 0,
-		},
-		{
-			Value:    4,
-			ErrCount: 0,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := validateServiceBusNamespaceCapacity(tc.Value, "azurerm_servicebus_namespace")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected the Azure RM ServiceBus Namespace Capacity to trigger a validation error")
-		}
-	}
-}
-
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace.test"
 	ri := acctest.RandInt()

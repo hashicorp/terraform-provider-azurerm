@@ -397,7 +397,7 @@ func testAccAzureRMEventHub_captureDescription(rInt int, rString string, locatio
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

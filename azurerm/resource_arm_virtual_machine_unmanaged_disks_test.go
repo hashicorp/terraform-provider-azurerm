@@ -2524,7 +2524,7 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachine_linuxMachineWithSSH(rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg%s"
+    name = "acctestRG%s"
     location = "%s"
 }
 
@@ -2611,7 +2611,7 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg%s"
+    name = "acctestRG%s"
     location = "%s"
 }
 

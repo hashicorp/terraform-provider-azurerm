@@ -14,7 +14,7 @@ Create a virtual machine.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
@@ -127,7 +127,7 @@ data "azurerm_image" "image" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
@@ -227,7 +227,7 @@ resource "azurerm_virtual_machine" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US"
 }
 
@@ -477,6 +477,7 @@ output "principal_id" {
 
 * `provision_vm_agent` - (Optional) This value defaults to false.
 * `enable_automatic_upgrades` - (Optional) This value defaults to false.
+* `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `""`.
 * `winrm` - (Optional) A collection of WinRM configuration blocks as documented below.
 * `additional_unattend_config` - (Optional) An Additional Unattended Config block as documented below.
 

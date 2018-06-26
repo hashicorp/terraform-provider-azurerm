@@ -3,12 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"net"
+	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
-	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -445,21 +444,22 @@ func validateKeyVaultName(v interface{}, k string) (ws []string, errors []error)
 func keyVaultRefreshFunc(vaultUri string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault %q is available..", vaultUri)
-		uri, err := url.Parse(vaultUri)
-		if err != nil {
-			return nil, "error", fmt.Errorf("Error parsing URI %q: %s", vaultUri, err)
+
+		var PTransport = &http.Transport{Proxy: http.ProxyFromEnvironment}
+
+		client := &http.Client{
+			Transport: PTransport,
 		}
 
-		hostAndPort := fmt.Sprintf("%s:443", uri.Host)
-		conn, err := net.Dial("tcp", hostAndPort)
+		conn, err := client.Get(vaultUri)
 		if err != nil {
-			log.Printf("[DEBUG] Didn't find KeyVault at %q", hostAndPort)
-			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", hostAndPort, err)
+			log.Printf("[DEBUG] Didn't find KeyVault at %q", vaultUri)
+			return nil, "pending", fmt.Errorf("Error connecting to %q: %s", vaultUri, err)
 		}
 
-		_ = conn.Close()
+		defer conn.Body.Close()
 
-		log.Printf("[DEBUG] Found KeyVault at %q", hostAndPort)
+		log.Printf("[DEBUG] Found KeyVault at %q", vaultUri)
 		return "available", "available", nil
 	}
 }

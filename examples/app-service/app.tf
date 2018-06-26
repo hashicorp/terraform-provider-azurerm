@@ -8,12 +8,10 @@ resource "azurerm_resource_group" "default" {
   location = "${var.location}"
 }
 
-
 resource "random_integer" "ri" {
   min = 10000
   max = 99999
 }
-
 
 resource "azurerm_app_service_plan" "default" {
   name                = "tfex-appservice-${random_integer.ri.result}-plan"

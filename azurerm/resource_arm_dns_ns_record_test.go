@@ -266,7 +266,7 @@ func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
 func testAccAzureRMDnsNsRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -290,7 +290,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_deprecatedBasic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -320,7 +320,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_deprecatedBasicNewRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -343,7 +343,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -367,7 +367,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_deprecatedUpdateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -400,7 +400,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -429,7 +429,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_deprecatedWithTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -463,7 +463,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -491,7 +491,7 @@ resource "azurerm_dns_ns_record" "test" {
 func testAccAzureRMDnsNsRecord_deprecatedWithTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
