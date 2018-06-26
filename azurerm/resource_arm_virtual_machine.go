@@ -229,6 +229,12 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: validateDiskSizeGB,
 						},
+
+						"write_accelerator_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -293,6 +299,12 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"lun": {
 							Type:     schema.TypeInt,
 							Required: true,
+						},
+
+						"write_accelerator_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -373,6 +385,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+						"timezone": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
@@ -633,7 +652,6 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 	name := id.Path["virtualMachines"]
 
 	resp, err := vmClient.Get(ctx, resGroup, name, "")
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -669,12 +687,26 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	if err := d.Set("storage_os_disk", flattenAzureRmVirtualMachineOsDisk(resp.VirtualMachineProperties.StorageProfile.OsDisk)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Disk error: %#v", err)
+	if osDisk := resp.VirtualMachineProperties.StorageProfile.OsDisk; osDisk != nil {
+		diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(osDisk.ManagedDisk, meta)
+		if err != nil {
+			return fmt.Errorf("[DEBUG] Error getting managed OS disk detailed information: %#v", err)
+		}
+		if err := d.Set("storage_os_disk", flattenAzureRmVirtualMachineOsDisk(osDisk, diskInfo)); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage OS Disk error: %#v", err)
+		}
 	}
 
-	if resp.VirtualMachineProperties.StorageProfile.DataDisks != nil {
-		if err := d.Set("storage_data_disk", flattenAzureRmVirtualMachineDataDisk(resp.VirtualMachineProperties.StorageProfile.DataDisks)); err != nil {
+	if dataDisks := resp.VirtualMachineProperties.StorageProfile.DataDisks; dataDisks != nil {
+		disksInfo := make([]*compute.Disk, len(*dataDisks))
+		for i, dataDisk := range *dataDisks {
+			diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(dataDisk.ManagedDisk, meta)
+			if err != nil {
+				return fmt.Errorf("[DEBUG] Error getting managed data disk detailed information: %#v", err)
+			}
+			disksInfo[i] = diskInfo
+		}
+		if err := d.Set("storage_data_disk", flattenAzureRmVirtualMachineDataDisk(dataDisks, disksInfo)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting Virtual Machine Storage Data Disks error: %#v", err)
 		}
 	}
@@ -958,7 +990,7 @@ func flattenAzureRmVirtualMachineOsProfileSecrets(secrets *[]compute.VaultSecret
 	return result
 }
 
-func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk) interface{} {
+func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk, disksInfo []*compute.Disk) interface{} {
 	result := make([]interface{}, len(*disks))
 	for i, disk := range *disks {
 		l := make(map[string]interface{})
@@ -976,6 +1008,12 @@ func flattenAzureRmVirtualMachineDataDisk(disks *[]compute.DataDisk) interface{}
 			l["disk_size_gb"] = *disk.DiskSizeGB
 		}
 		l["lun"] = *disk.Lun
+
+		if v := disk.WriteAcceleratorEnabled; v != nil {
+			l["write_accelerator_enabled"] = *disk.WriteAcceleratorEnabled
+		}
+
+		flattenAzureRmVirtualMachineReviseDiskInfo(l, disksInfo[i])
 
 		result[i] = l
 	}
@@ -1002,6 +1040,10 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *compute.W
 
 	if config.EnableAutomaticUpdates != nil {
 		result["enable_automatic_upgrades"] = *config.EnableAutomaticUpdates
+	}
+
+	if config.TimeZone != nil {
+		result["timezone"] = *config.TimeZone
 	}
 
 	if config.WinRM != nil {
@@ -1065,7 +1107,7 @@ func flattenAzureRmVirtualMachineOsProfileLinuxConfiguration(config *compute.Lin
 	return []interface{}{result}
 }
 
-func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk) []interface{} {
+func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk, diskInfo *compute.Disk) []interface{} {
 	result := make(map[string]interface{})
 	result["name"] = *disk.Name
 	if disk.Vhd != nil {
@@ -1084,7 +1126,24 @@ func flattenAzureRmVirtualMachineOsDisk(disk *compute.OSDisk) []interface{} {
 	}
 	result["os_type"] = string(disk.OsType)
 
+	if v := disk.WriteAcceleratorEnabled; v != nil {
+		result["write_accelerator_enabled"] = *disk.WriteAcceleratorEnabled
+	}
+
+	flattenAzureRmVirtualMachineReviseDiskInfo(result, diskInfo)
+
 	return []interface{}{result}
+}
+
+func flattenAzureRmVirtualMachineReviseDiskInfo(result map[string]interface{}, diskInfo *compute.Disk) {
+	if diskInfo != nil {
+		if diskInfo.Sku != nil {
+			result["managed_disk_type"] = string(diskInfo.Sku.Name)
+		}
+		if diskInfo.DiskProperties != nil && diskInfo.DiskProperties.DiskSizeGB != nil {
+			result["disk_size_gb"] = *diskInfo.DiskProperties.DiskSizeGB
+		}
+	}
 }
 
 func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, error) {
@@ -1263,6 +1322,10 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 		config.EnableAutomaticUpdates = &update
 	}
 
+	if v := osProfileConfig["timezone"]; v != nil && v.(string) != "" {
+		config.TimeZone = utils.String(v.(string))
+	}
+
 	if v := osProfileConfig["winrm"]; v != nil {
 		winRm := v.([]interface{})
 		if len(winRm) > 0 {
@@ -1365,9 +1428,12 @@ func expandAzureRmVirtualMachineDataDisk(d *schema.ResourceData) ([]compute.Data
 			data_disk.Caching = compute.CachingTypes(v)
 		}
 
-		if v := config["disk_size_gb"]; v != nil {
-			diskSize := int32(config["disk_size_gb"].(int))
-			data_disk.DiskSizeGB = &diskSize
+		if v, ok := config["disk_size_gb"].(int); ok {
+			data_disk.DiskSizeGB = utils.Int32(int32(v))
+		}
+
+		if v, ok := config["write_accelerator_enabled"].(bool); ok {
+			data_disk.WriteAcceleratorEnabled = utils.Bool(v)
 		}
 
 		data_disks = append(data_disks, data_disk)
@@ -1514,8 +1580,11 @@ func expandAzureRmVirtualMachineOsDisk(d *schema.ResourceData) (*compute.OSDisk,
 	}
 
 	if v := config["disk_size_gb"].(int); v != 0 {
-		diskSize := int32(v)
-		osDisk.DiskSizeGB = &diskSize
+		osDisk.DiskSizeGB = utils.Int32(int32(v))
+	}
+
+	if v, ok := config["write_accelerator_enabled"].(bool); ok {
+		osDisk.WriteAcceleratorEnabled = utils.Bool(v)
 	}
 
 	return osDisk, nil
@@ -1549,8 +1618,7 @@ func findStorageAccountResourceGroup(meta interface{}, storageAccountName string
 func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
 	var buf bytes.Buffer
 
-	if v != nil {
-		m := v.(map[string]interface{})
+	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(fmt.Sprintf("%s-", m["admin_username"].(string)))
 		buf.WriteString(fmt.Sprintf("%s-", m["computer_name"].(string)))
 	}
@@ -1561,13 +1629,15 @@ func resourceArmVirtualMachineStorageOsProfileHash(v interface{}) int {
 func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
-	if v != nil {
-		m := v.(map[string]interface{})
-		if m["provision_vm_agent"] != nil {
-			buf.WriteString(fmt.Sprintf("%t-", m["provision_vm_agent"].(bool)))
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["provision_vm_agent"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 		}
-		if m["enable_automatic_upgrades"] != nil {
-			buf.WriteString(fmt.Sprintf("%t-", m["enable_automatic_upgrades"].(bool)))
+		if v, ok := m["enable_automatic_upgrades"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["timezone"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
 		}
 	}
 
@@ -1576,26 +1646,55 @@ func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) i
 
 func resourceArmVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+	}
 
 	return hashcode.String(buf.String())
 }
 
 func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	if m["publisher"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["publisher"].(string)))
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["publisher"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["offer"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["sku"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
+		if v, ok := m["id"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
 	}
-	if m["offer"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["offer"].(string)))
-	}
-	if m["sku"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["sku"].(string)))
-	}
-	if m["id"] != nil {
-		buf.WriteString(fmt.Sprintf("%s-", m["id"].(string)))
-	}
+
 	return hashcode.String(buf.String())
+}
+
+func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
+	client := meta.(*ArmClient).diskClient
+	ctx := meta.(*ArmClient).StopContext
+
+	if disk == nil || disk.ID == nil {
+		return nil, nil
+	}
+
+	diskId := *disk.ID
+	id, err := parseAzureResourceID(diskId)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing Disk ID %q: %+v", diskId, err)
+	}
+
+	resourceGroup := id.ResourceGroup
+	name := id.Path["disks"]
+	diskResp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return &diskResp, nil
 }

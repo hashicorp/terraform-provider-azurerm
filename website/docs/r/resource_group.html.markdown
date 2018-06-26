@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
 sidebar_current: "docs-azurerm-resource-resource-group"
 description: |-
-    Creates a new resource group on Azure.
+    Manages a resource group on Azure.
 ---
 
-# azurerm\_resource\_group
+# azurerm_resource_group
 
-Creates a new resource group on Azure.
+Manages a resource group on Azure.
 
 ## Example Usage
 

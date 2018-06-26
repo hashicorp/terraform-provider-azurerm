@@ -8,6 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,6 +30,33 @@ func resourceArmAppService() *schema.Resource {
 				ValidateFunc: validateAppServiceName,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"location": locationSchema(),
@@ -39,141 +67,7 @@ func resourceArmAppService() *schema.Resource {
 				ForceNew: true,
 			},
 
-			// TODO: reusable schema
-			"site_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"always_on": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"default_documents": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-						},
-
-						"dotnet_framework_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "v4.0",
-							ValidateFunc: validation.StringInSlice([]string{
-								"v2.0",
-								"v4.0",
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-						},
-
-						"java_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"1.7",
-								"1.8",
-							}, false),
-						},
-
-						"java_container": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"JETTY",
-								"TOMCAT",
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-						},
-
-						"java_container_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-
-						"local_mysql_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-
-						"managed_pipeline_mode": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.Classic),
-								string(web.Integrated),
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-						},
-
-						"php_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"5.5",
-								"5.6",
-								"7.0",
-								"7.1",
-							}, false),
-						},
-
-						"python_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"2.7",
-								"3.4",
-							}, false),
-						},
-
-						"remote_debugging_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"remote_debugging_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"VS2012",
-								"VS2013",
-								"VS2015",
-								"VS2017",
-							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-						},
-
-						"scm_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(web.ScmTypeNone),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ScmTypeNone),
-								string(web.ScmTypeLocalGit),
-							}, false),
-						},
-
-						"use_32_bit_worker_process": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-
-						"websockets_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"site_config": azSchema.AppServiceSiteConfigSchema(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -185,20 +79,12 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"app_settings": {
@@ -218,8 +104,9 @@ func resourceArmAppService() *schema.Resource {
 							Required: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -243,9 +130,7 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			// TODO: (tombuildsstuff) support Update once the API is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/1697
-			"tags": tagsForceNewSchema(),
+			"tags": tagsSchema(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -323,7 +208,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
-	siteConfig := expandAppServiceSiteConfig(d)
+	siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
 
 	siteEnvelope := web.Site{
 		Location: &location,
@@ -334,6 +219,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   &siteConfig,
 		},
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		siteEnvelope.Identity = appServiceIdentity
 	}
 
 	if v, ok := d.GetOkExists("client_affinity_enabled"); ok {
@@ -376,9 +266,37 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+	appServicePlanId := d.Get("app_service_plan_id").(string)
+	enabled := d.Get("enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
+	tags := d.Get("tags").(map[string]interface{})
+
+	siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteEnvelope := web.Site{
+		Location: &location,
+		Tags:     expandTags(tags),
+		SiteProperties: &web.SiteProperties{
+			ServerFarmID: utils.String(appServicePlanId),
+			Enabled:      utils.Bool(enabled),
+			HTTPSOnly:    utils.Bool(httpsOnly),
+			SiteConfig:   &siteConfig,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	if err != nil {
+		return err
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig := expandAppServiceSiteConfig(d)
+		siteConfig := azSchema.ExpandAppServiceSiteConfig(d.Get("site_config"))
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
@@ -428,6 +346,28 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		_, err := client.UpdateConnectionStrings(ctx, resGroup, name, properties)
 		if err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", name, err)
+		}
+	}
+
+	if d.HasChange("identity") {
+		site, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error getting configuration for App Service %q: %+v", name, err)
+		}
+
+		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		site.Identity = appServiceIdentity
+
+		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
+
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
+		}
+
+		err = future.WaitForCompletion(ctx, client.Client)
+
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", name, err)
 		}
 	}
 
@@ -511,7 +451,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
+	siteConfig := azSchema.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
@@ -527,6 +467,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	flattenAndSetTags(d, resp.Tags)
+
+	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -554,159 +499,6 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	return nil
-}
-
-func expandAppServiceSiteConfig(d *schema.ResourceData) web.SiteConfig {
-	configs := d.Get("site_config").([]interface{})
-	siteConfig := web.SiteConfig{}
-
-	if len(configs) == 0 {
-		return siteConfig
-	}
-
-	config := configs[0].(map[string]interface{})
-
-	if v, ok := config["always_on"]; ok {
-		siteConfig.AlwaysOn = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["default_documents"]; ok {
-		input := v.([]interface{})
-
-		documents := make([]string, 0)
-		for _, document := range input {
-			documents = append(documents, document.(string))
-		}
-
-		siteConfig.DefaultDocuments = &documents
-	}
-
-	if v, ok := config["dotnet_framework_version"]; ok {
-		siteConfig.NetFrameworkVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["java_version"]; ok {
-		siteConfig.JavaVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["java_container"]; ok {
-		siteConfig.JavaContainer = utils.String(v.(string))
-	}
-
-	if v, ok := config["java_container_version"]; ok {
-		siteConfig.JavaContainerVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["local_mysql_enabled"]; ok {
-		siteConfig.LocalMySQLEnabled = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["managed_pipeline_mode"]; ok {
-		siteConfig.ManagedPipelineMode = web.ManagedPipelineMode(v.(string))
-	}
-
-	if v, ok := config["php_version"]; ok {
-		siteConfig.PhpVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["python_version"]; ok {
-		siteConfig.PythonVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["remote_debugging_enabled"]; ok {
-		siteConfig.RemoteDebuggingEnabled = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["remote_debugging_version"]; ok {
-		siteConfig.RemoteDebuggingVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["use_32_bit_worker_process"]; ok {
-		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["websockets_enabled"]; ok {
-		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["scm_type"]; ok {
-		siteConfig.ScmType = web.ScmType(v.(string))
-	}
-
-	return siteConfig
-}
-
-func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{}, 0)
-
-	if input == nil {
-		log.Printf("[DEBUG] SiteConfig is nil")
-		return results
-	}
-
-	if input.AlwaysOn != nil {
-		result["always_on"] = *input.AlwaysOn
-	}
-
-	if input.DefaultDocuments != nil {
-		documents := make([]string, 0)
-		for _, document := range *input.DefaultDocuments {
-			documents = append(documents, document)
-		}
-
-		result["default_documents"] = documents
-	}
-
-	if input.NetFrameworkVersion != nil {
-		result["dotnet_framework_version"] = *input.NetFrameworkVersion
-	}
-
-	if input.JavaVersion != nil {
-		result["java_version"] = *input.JavaVersion
-	}
-
-	if input.JavaContainer != nil {
-		result["java_container"] = *input.JavaContainer
-	}
-
-	if input.JavaContainerVersion != nil {
-		result["java_container_version"] = *input.JavaContainerVersion
-	}
-
-	if input.LocalMySQLEnabled != nil {
-		result["local_mysql_enabled"] = *input.LocalMySQLEnabled
-	}
-
-	result["managed_pipeline_mode"] = string(input.ManagedPipelineMode)
-
-	if input.PhpVersion != nil {
-		result["php_version"] = *input.PhpVersion
-	}
-
-	if input.PythonVersion != nil {
-		result["python_version"] = *input.PythonVersion
-	}
-
-	if input.RemoteDebuggingEnabled != nil {
-		result["remote_debugging_enabled"] = *input.RemoteDebuggingEnabled
-	}
-
-	if input.RemoteDebuggingVersion != nil {
-		result["remote_debugging_version"] = *input.RemoteDebuggingVersion
-	}
-
-	if input.Use32BitWorkerProcess != nil {
-		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
-	}
-
-	if input.WebSocketsEnabled != nil {
-		result["websockets_enabled"] = *input.WebSocketsEnabled
-	}
-
-	result["scm_type"] = string(input.ScmType)
-
-	return append(results, result)
 }
 
 func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
@@ -784,11 +576,38 @@ func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	return output
 }
 
+func expandAzureRmAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	identity := identities[0].(map[string]interface{})
+	identityType := identity["type"].(string)
+	return &web.ManagedServiceIdentity{
+		Type: web.ManagedServiceIdentityType(identityType),
+	}
+}
+
+func flattenAzureRmAppServiceMachineIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
+}
+
 func validateAppServiceName(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]+$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,60}$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
 	}
 
 	return

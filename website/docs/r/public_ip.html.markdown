@@ -6,7 +6,7 @@ description: |-
   Create a Public IP Address.
 ---
 
-# azurerm\_public\_ip
+# azurerm_public_ip
 
 Create a Public IP Address.
 

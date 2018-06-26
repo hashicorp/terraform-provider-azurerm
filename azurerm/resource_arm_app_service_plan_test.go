@@ -33,7 +33,7 @@ func TestAzureRMAppServicePlanName_validation(t *testing.T) {
 		},
 		{
 			Value:    "hello_world",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "helloworld21!",
@@ -292,6 +292,10 @@ resource "azurerm_app_service_plan" "test" {
   sku {
     tier = "Basic"
     size = "B1"
+  }
+
+  properties {
+    reserved = true
   }
 }
 `, rInt, location, rInt)

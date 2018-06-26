@@ -225,7 +225,7 @@ func TestValidateArmStorageShareName(t *testing.T) {
 func testAccAzureRMStorageShare_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 

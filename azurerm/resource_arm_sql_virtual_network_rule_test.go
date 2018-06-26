@@ -423,7 +423,7 @@ func testCheckAzureRMSqlVirtualNetworkRuleDisappears(name string) resource.TestC
 func testAccAzureRMSqlVirtualNetworkRule_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
@@ -465,7 +465,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_withUpdates(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
@@ -507,7 +507,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPre(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
@@ -556,7 +556,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_subnetSwitchPost(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
@@ -605,7 +605,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointValid(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
@@ -648,7 +648,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_ignoreEndpointInvalid(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "test" {
@@ -690,7 +690,7 @@ resource "azurerm_sql_virtual_network_rule" "test" {
 func testAccAzureRMSqlVirtualNetworkRule_multipleSubnets(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 resource "azurerm_virtual_network" "vnet1" {

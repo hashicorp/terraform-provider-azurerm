@@ -40,10 +40,11 @@ func NewWorkItemConfigurationsClientWithBaseURI(baseURI string, subscriptionID s
 }
 
 // Create create a work item configuration for an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. workItemConfigurationProperties is properties that need to be specified to create a work
-// item configuration of a Application Insights component.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// workItemConfigurationProperties - properties that need to be specified to create a work item configuration
+// of a Application Insights component.
 func (client WorkItemConfigurationsClient) Create(ctx context.Context, resourceGroupName string, resourceName string, workItemConfigurationProperties WorkItemCreateConfiguration) (result WorkItemConfiguration, err error) {
 	req, err := client.CreatePreparer(ctx, resourceGroupName, resourceName, workItemConfigurationProperties)
 	if err != nil {
@@ -110,10 +111,11 @@ func (client WorkItemConfigurationsClient) CreateResponder(resp *http.Response) 
 }
 
 // Delete delete an workitem configuration of an Application Insights component.
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource. workItemConfigID is the unique work item configuration Id. This can be either friendly name
-// of connector as defined in connector configuration
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
+// workItemConfigID - the unique work item configuration Id. This can be either friendly name of connector as
+// defined in connector configuration
 func (client WorkItemConfigurationsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, workItemConfigID string) (result SetObject, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, workItemConfigID)
 	if err != nil {
@@ -179,9 +181,9 @@ func (client WorkItemConfigurationsClient) DeleteResponder(resp *http.Response) 
 }
 
 // GetDefault gets default work item configurations that exist for the application
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
 func (client WorkItemConfigurationsClient) GetDefault(ctx context.Context, resourceGroupName string, resourceName string) (result WorkItemConfiguration, err error) {
 	req, err := client.GetDefaultPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
@@ -246,9 +248,9 @@ func (client WorkItemConfigurationsClient) GetDefaultResponder(resp *http.Respon
 }
 
 // List gets the list work item configurations that exist for the application
-//
-// resourceGroupName is the name of the resource group. resourceName is the name of the Application Insights
-// component resource.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the Application Insights component resource.
 func (client WorkItemConfigurationsClient) List(ctx context.Context, resourceGroupName string, resourceName string) (result ListWorkItemConfiguration, err error) {
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {

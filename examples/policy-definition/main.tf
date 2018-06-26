@@ -1,9 +1,10 @@
 resource "azurerm_policy_definition" "policy" {
-  name                = "${var.policy_definition_name}"
-  policy_type            = "${var.policy_type}"
-  mode                 = "${var.mode}"
-  display_name       = "${var.display_name}"
-  policy_rule =<<POLICY_RULE
+  name         = "${var.policy_definition_name}"
+  policy_type  = "${var.policy_type}"
+  mode         = "${var.mode}"
+  display_name = "${var.display_name}"
+
+  policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {
@@ -17,7 +18,7 @@ resource "azurerm_policy_definition" "policy" {
   }
 	POLICY_RULE
 
-  parameters =<<PARAMETERS
+  parameters = <<PARAMETERS
 	{
     "allowedLocations": {
       "type": "Array",
@@ -29,5 +30,4 @@ resource "azurerm_policy_definition" "policy" {
     }
   }
   	PARAMETERS
-
 }

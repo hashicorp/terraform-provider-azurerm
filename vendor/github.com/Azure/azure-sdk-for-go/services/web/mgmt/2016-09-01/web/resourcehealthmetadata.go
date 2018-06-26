@@ -41,8 +41,9 @@ func NewResourceHealthMetadataClientWithBaseURI(baseURI string, subscriptionID s
 }
 
 // GetBySite gets the category of ResourceHealthMetadata to use for the given site
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app
 func (client ResourceHealthMetadataClient) GetBySite(ctx context.Context, resourceGroupName string, name string) (result ResourceHealthMetadata, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -115,9 +116,10 @@ func (client ResourceHealthMetadataClient) GetBySiteResponder(resp *http.Respons
 }
 
 // GetBySiteSlot gets the category of ResourceHealthMetadata to use for the given site
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app slot is
-// name of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client ResourceHealthMetadataClient) GetBySiteSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ResourceHealthMetadata, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -281,8 +283,8 @@ func (client ResourceHealthMetadataClient) ListComplete(ctx context.Context) (re
 }
 
 // ListByResourceGroup list all ResourceHealthMetadata for all sites in the resource group in the subscription.
-//
-// resourceGroupName is name of the resource group to which the resource belongs.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
 func (client ResourceHealthMetadataClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result ResourceHealthMetadataCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -382,8 +384,9 @@ func (client ResourceHealthMetadataClient) ListByResourceGroupComplete(ctx conte
 }
 
 // ListBySite gets the category of ResourceHealthMetadata to use for the given site as a collection
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
 func (client ResourceHealthMetadataClient) ListBySite(ctx context.Context, resourceGroupName string, name string) (result ResourceHealthMetadataCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -484,9 +487,10 @@ func (client ResourceHealthMetadataClient) ListBySiteComplete(ctx context.Contex
 }
 
 // ListBySiteSlot gets the category of ResourceHealthMetadata to use for the given site as a collection
-//
-// resourceGroupName is name of the resource group to which the resource belongs. name is name of web app. slot is
-// name of web app slot. If not specified then will default to production slot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
 func (client ResourceHealthMetadataClient) ListBySiteSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ResourceHealthMetadataCollectionPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,

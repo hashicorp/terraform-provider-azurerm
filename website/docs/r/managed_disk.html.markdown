@@ -6,7 +6,7 @@ description: |-
   Create a Managed Disk.
 ---
 
-# azurerm\_managed\_disk
+# azurerm_managed_disk
 
 Create a managed disk.
 
@@ -14,7 +14,7 @@ Create a managed disk.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 
@@ -36,7 +36,7 @@ resource "azurerm_managed_disk" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 

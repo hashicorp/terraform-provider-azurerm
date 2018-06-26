@@ -17,6 +17,9 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 		Read:   resourceArmRedisFirewallRuleRead,
 		Update: resourceArmRedisFirewallRuleCreateUpdate,
 		Delete: resourceArmRedisFirewallRuleDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

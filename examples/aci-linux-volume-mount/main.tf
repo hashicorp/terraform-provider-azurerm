@@ -10,11 +10,11 @@ resource "random_integer" "random_int" {
 }
 
 resource "azurerm_storage_account" "aci-sa" {
-  name                      = "acistorageacct${random_integer.random_int.result}"
-  resource_group_name       = "${azurerm_resource_group.aci-rg.name}"
-  location                  = "${azurerm_resource_group.aci-rg.location}"
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
+  name                     = "acistorageacct${random_integer.random_int.result}"
+  resource_group_name      = "${azurerm_resource_group.aci-rg.name}"
+  location                 = "${azurerm_resource_group.aci-rg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_share" "aci-share" {
@@ -27,7 +27,6 @@ resource "azurerm_storage_share" "aci-share" {
 }
 
 resource "azurerm_container_group" "aci-example" {
-  
   name                = "mycontainergroup-${random_integer.random_int.result}"
   location            = "${azurerm_resource_group.aci-rg.location}"
   resource_group_name = "${azurerm_resource_group.aci-rg.name}"
@@ -36,21 +35,21 @@ resource "azurerm_container_group" "aci-example" {
   os_type             = "linux"
 
   container {
-    name      = "webserver"
-    image     = "seanmckenna/aci-hellofiles"
-    cpu       = "1"
-    memory    = "1.5"
-    port      = "80"
-    protocol  = "tcp"
+    name     = "webserver"
+    image    = "seanmckenna/aci-hellofiles"
+    cpu      = "1"
+    memory   = "1.5"
+    port     = "80"
+    protocol = "tcp"
 
     volume {
-      name        = "logs"
-      mount_path  = "/aci/logs"
-      read_only   = false
-      share_name  = "${azurerm_storage_share.aci-share.name}"
+      name       = "logs"
+      mount_path = "/aci/logs"
+      read_only  = false
+      share_name = "${azurerm_storage_share.aci-share.name}"
 
-      storage_account_name  = "${azurerm_storage_account.aci-sa.name}"
-      storage_account_key   = "${azurerm_storage_account.aci-sa.primary_access_key}"
+      storage_account_name = "${azurerm_storage_account.aci-sa.name}"
+      storage_account_key  = "${azurerm_storage_account.aci-sa.primary_access_key}"
     }
   }
 

@@ -6,7 +6,7 @@ description: |-
   Create a DNS PTR Record.
 ---
 
-# azurerm\_dns\_ptr\_record
+# azurerm_dns_ptr_record
 
 Enables you to manage DNS PTR Records within Azure DNS.
 

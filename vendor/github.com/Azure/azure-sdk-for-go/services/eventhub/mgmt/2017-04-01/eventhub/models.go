@@ -1239,10 +1239,10 @@ func (page ListResultPage) Values() []Model {
 	return *page.lr.Value
 }
 
-// MessagingPlan messaging
+// MessagingPlan messaging Plan for the namespace
 type MessagingPlan struct {
 	autorest.Response        `json:"-"`
-	*MessagingPlanproperties `json:"properties,omitempty"`
+	*MessagingPlanProperties `json:"properties,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
@@ -1258,8 +1258,8 @@ type MessagingPlan struct {
 // MarshalJSON is the custom marshaler for MessagingPlan.
 func (mp MessagingPlan) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if mp.MessagingPlanproperties != nil {
-		objectMap["properties"] = mp.MessagingPlanproperties
+	if mp.MessagingPlanProperties != nil {
+		objectMap["properties"] = mp.MessagingPlanProperties
 	}
 	if mp.Location != nil {
 		objectMap["location"] = mp.Location
@@ -1290,12 +1290,12 @@ func (mp *MessagingPlan) UnmarshalJSON(body []byte) error {
 		switch k {
 		case "properties":
 			if v != nil {
-				var messagingPlanproperties MessagingPlanproperties
-				err = json.Unmarshal(*v, &messagingPlanproperties)
+				var messagingPlanProperties MessagingPlanProperties
+				err = json.Unmarshal(*v, &messagingPlanProperties)
 				if err != nil {
 					return err
 				}
-				mp.MessagingPlanproperties = &messagingPlanproperties
+				mp.MessagingPlanProperties = &messagingPlanProperties
 			}
 		case "location":
 			if v != nil {
@@ -1348,8 +1348,8 @@ func (mp *MessagingPlan) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// MessagingPlanproperties messaging Region
-type MessagingPlanproperties struct {
+// MessagingPlanProperties ...
+type MessagingPlanProperties struct {
 	// Sku - Sku type
 	Sku *int32 `json:"sku,omitempty"`
 	// SelectedEventHubUnit - Selected event hub unit
@@ -1595,12 +1595,11 @@ func (mVar *Model) UnmarshalJSON(body []byte) error {
 // operation.
 type NamespacesCreateOrUpdateFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (en EHNamespace, err error) {
+func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (en EHNamespace, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -1608,34 +1607,15 @@ func (future NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (en
 		return
 	}
 	if !done {
-		return en, azure.NewAsyncOpIncompleteError("eventhub.NamespacesCreateOrUpdateFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		en, err = client.CreateOrUpdateResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesCreateOrUpdateFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if en.Response.Response, err = future.GetResult(sender); err == nil && en.Response.Response.StatusCode != http.StatusNoContent {
+		en, err = client.CreateOrUpdateResponder(en.Response.Response)
 		if err != nil {
-			return
+			err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", en.Response.Response, "Failure responding to request")
 		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	en, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", resp, "Failure responding to request")
 	}
 	return
 }
@@ -1643,12 +1623,11 @@ func (future NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (en
 // NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type NamespacesDeleteFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
+func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -1656,35 +1635,10 @@ func (future NamespacesDeleteFuture) Result(client NamespacesClient) (ar autores
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("eventhub.NamespacesDeleteFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.DeleteResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventhub.NamespacesDeleteFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("eventhub.NamespacesDeleteFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesDeleteFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.NamespacesDeleteFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 

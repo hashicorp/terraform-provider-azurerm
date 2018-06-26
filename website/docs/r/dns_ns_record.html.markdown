@@ -6,7 +6,7 @@ description: |-
   Create a DNS NS Record.
 ---
 
-# azurerm\_dns\_ns\_record
+# azurerm_dns_ns_record
 
 Enables you to manage DNS NS Records within Azure DNS.
 
@@ -29,13 +29,7 @@ resource "azurerm_dns_ns_record" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   ttl                 = 300
 
-  record {
-    nsdname = "ns1.contoso.com"
-  }
-
-  record {
-    nsdname = "ns2.contoso.com"
-  }
+  records = ["ns1.contoso.com", "ns2.contoso.com"]
 
   tags {
     Environment = "Production"
@@ -54,7 +48,9 @@ The following arguments are supported:
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record.
 
-* `record` - (Required) A list of values that make up the NS record. Each `record` block supports fields documented below.
+* `records` - (Optional) A list of values that make up the NS record. *WARNING*: Either `records` or `record` is required.
+
+* `record` - (Optional) A list of values that make up the NS record. Each `record` block supports fields documented below. This field has been deprecated and will be removed in a future release.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

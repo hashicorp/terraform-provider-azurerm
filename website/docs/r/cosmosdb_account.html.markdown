@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
 sidebar_current: "docs-azurerm-resource-cosmosdb-account"
 description: |-
-  Creates a new CosmosDB (formally DocumentDB) Account.
+  Manages a CosmosDB (formally DocumentDB) Account.
 ---
 
-# azurerm\_cosmos\_db\_account
+# azurerm_cosmos_db_account
 
-Creates a new CosmosDB (formally DocumentDB) Account.
+Manages a CosmosDB (formally DocumentDB) Account.
 
 ## Example Usage
 
@@ -85,7 +85,7 @@ The following arguments are supported:
 
 `geo_location` Configures the geographic locations the data is replicated to and supports the following:
 
-* `prefix` - (Optional) The string used to generate the document enpoints for this region. If not specified it defaults to `${cosmosdb_account.name}-${location}`. Changing this causes the location to be deleted and re-provisioned and cannot be changed for the location with failover priority `0`. 
+* `prefix` - (Optional) The string used to generate the document endpoints for this region. If not specified it defaults to `${cosmosdb_account.name}-${location}`. Changing this causes the location to be deleted and re-provisioned and cannot be changed for the location with failover priority `0`.
 * `location` - (Required) The name of the Azure region to host replicated data.
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
 
@@ -110,6 +110,8 @@ The following attributes are exported:
 * `primary_readonly_master_key` - The Primary read-only master Key for the CosmosDB Account.
 
 * `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
+
+* `connection_strings` - A list of connection strings available for this CosmosDB account. If the kind is `GlobalDocumentDB`, this will be empty.
 
 
 ## Import

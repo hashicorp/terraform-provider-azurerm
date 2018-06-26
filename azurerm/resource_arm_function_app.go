@@ -44,10 +44,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"version": {
@@ -83,8 +79,9 @@ func resourceArmFunctionApp() *schema.Resource {
 							Required: true,
 						},
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 						"type": {
 							Type:     schema.TypeString,
@@ -108,9 +105,34 @@ func resourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			// TODO: (tombuildsstuff) support Update once the API is fixed:
-			// https://github.com/Azure/azure-rest-api-specs/issues/1697
-			"tags": tagsForceNewSchema(),
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.SystemAssigned),
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"tags": tagsSchema(),
 
 			"default_hostname": {
 				Type:     schema.TypeString,
@@ -126,20 +148,12 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"https_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-
-				// TODO: (tombuildsstuff) support Update once the API is fixed:
-				// https://github.com/Azure/azure-rest-api-specs/issues/1697
-				ForceNew: true,
 			},
 
 			"site_config": {
@@ -217,6 +231,12 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
+	if v, ok := d.GetOk("identity.0.type"); ok {
+		siteEnvelope.Identity = &web.ManagedServiceIdentity{
+			Type: web.ManagedServiceIdentityType(v.(string)),
+		}
+	}
+
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
 		return err
@@ -252,16 +272,54 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	if d.HasChange("app_settings") || d.HasChange("version") {
-		appSettings := expandFunctionAppAppSettings(d)
-		settings := web.StringDictionary{
-			Properties: appSettings,
-		}
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+	kind := "functionapp"
+	appServicePlanID := d.Get("app_service_plan_id").(string)
+	enabled := d.Get("enabled").(bool)
+	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	httpsOnly := d.Get("https_only").(bool)
+	tags := d.Get("tags").(map[string]interface{})
+	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	siteConfig := expandFunctionAppSiteConfig(d)
+	siteConfig.AppSettings = &basicAppSettings
 
-		_, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings)
-		if err != nil {
-			return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
+	siteEnvelope := web.Site{
+		Kind:     &kind,
+		Location: &location,
+		Tags:     expandTags(tags),
+		SiteProperties: &web.SiteProperties{
+			ServerFarmID:          utils.String(appServicePlanID),
+			Enabled:               utils.Bool(enabled),
+			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
+			HTTPSOnly:             utils.Bool(httpsOnly),
+			SiteConfig:            &siteConfig,
+		},
+	}
+
+	if v, ok := d.GetOk("identity.0.type"); ok {
+		siteEnvelope.Identity = &web.ManagedServiceIdentity{
+			Type: web.ManagedServiceIdentityType(v.(string)),
 		}
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	if err != nil {
+		return err
+	}
+
+	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+
+	appSettings := expandFunctionAppAppSettings(d)
+	settings := web.StringDictionary{
+		Properties: appSettings,
+	}
+
+	_, err = client.UpdateApplicationSettings(ctx, resGroup, name, settings)
+	if err != nil {
+		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", name, err)
 	}
 
 	if d.HasChange("site_config") {
@@ -336,6 +394,10 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("https_only", props.HTTPSOnly)
 		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
 		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
+	}
+
+	if err := d.Set("identity", flattenFunctionAppIdentity(resp.Identity)); err != nil {
+		return err
 	}
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
@@ -509,4 +571,22 @@ func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTy
 	}
 
 	return results
+}
+
+func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	return []interface{}{result}
 }

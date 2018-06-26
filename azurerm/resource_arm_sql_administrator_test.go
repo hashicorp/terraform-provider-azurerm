@@ -137,7 +137,7 @@ func testAccAzureRMSqlAdministrator_basic(rInt int, location string) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 
@@ -165,7 +165,7 @@ func testAccAzureRMSqlAdministrator_withUpdates(rInt int, location string) strin
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG_%d"
+  name = "acctestRG-%d"
   location = "%s"
 }
 

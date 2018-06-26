@@ -172,7 +172,7 @@ func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
 func testAccAzureRMDnsCNameRecord_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -194,7 +194,7 @@ resource "azurerm_dns_cname_record" "test" {
 func testAccAzureRMDnsCNameRecord_subdomain(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -216,7 +216,7 @@ resource "azurerm_dns_cname_record" "test" {
 func testAccAzureRMDnsCNameRecord_updateRecords(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -238,7 +238,7 @@ resource "azurerm_dns_cname_record" "test" {
 func testAccAzureRMDnsCNameRecord_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -265,7 +265,7 @@ resource "azurerm_dns_cname_record" "test" {
 func testAccAzureRMDnsCNameRecord_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG_%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

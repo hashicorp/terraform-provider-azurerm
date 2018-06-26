@@ -101,17 +101,19 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
-* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
+* `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `enabled` - (Optional) Is the Function App enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional) Is the Function App enabled?
 
-* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`. Changing this forces a new resource to be created.
+* `https_only` - (Optional) Can the Function App only be accessed via HTTPS? Defaults to `false`.
 
 * `version` - (Optional) The runtime version associated with the Function App. Possible values are `~1` and `beta`. Defaults to `~1`.
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -132,6 +134,13 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
+---
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -141,6 +150,17 @@ The following attributes are exported:
 * `default_hostname` - The default hostname associated with the Function App - such as `mysite.azurewebsites.net`
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
+
+---
+
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
 
 ## Import
 

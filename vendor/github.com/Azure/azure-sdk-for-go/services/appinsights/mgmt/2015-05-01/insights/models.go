@@ -20,6 +20,7 @@ package insights
 import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"net/http"
@@ -38,6 +39,25 @@ const (
 // PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
 func PossibleApplicationTypeValues() []ApplicationType {
 	return []ApplicationType{Other, Web}
+}
+
+// CategoryType enumerates the values for category type.
+type CategoryType string
+
+const (
+	// CategoryTypePerformance ...
+	CategoryTypePerformance CategoryType = "performance"
+	// CategoryTypeRetention ...
+	CategoryTypeRetention CategoryType = "retention"
+	// CategoryTypeTSG ...
+	CategoryTypeTSG CategoryType = "TSG"
+	// CategoryTypeWorkbook ...
+	CategoryTypeWorkbook CategoryType = "workbook"
+)
+
+// PossibleCategoryTypeValues returns an array of possible values for the CategoryType const type.
+func PossibleCategoryTypeValues() []CategoryType {
+	return []CategoryType{CategoryTypePerformance, CategoryTypeRetention, CategoryTypeTSG, CategoryTypeWorkbook}
 }
 
 // FavoriteSourceType enumerates the values for favorite source type.
@@ -95,6 +115,76 @@ func PossibleFlowTypeValues() []FlowType {
 	return []FlowType{Bluefield}
 }
 
+// ItemScope enumerates the values for item scope.
+type ItemScope string
+
+const (
+	// ItemScopeShared ...
+	ItemScopeShared ItemScope = "shared"
+	// ItemScopeUser ...
+	ItemScopeUser ItemScope = "user"
+)
+
+// PossibleItemScopeValues returns an array of possible values for the ItemScope const type.
+func PossibleItemScopeValues() []ItemScope {
+	return []ItemScope{ItemScopeShared, ItemScopeUser}
+}
+
+// ItemScopePath enumerates the values for item scope path.
+type ItemScopePath string
+
+const (
+	// AnalyticsItems ...
+	AnalyticsItems ItemScopePath = "analyticsItems"
+	// MyanalyticsItems ...
+	MyanalyticsItems ItemScopePath = "myanalyticsItems"
+)
+
+// PossibleItemScopePathValues returns an array of possible values for the ItemScopePath const type.
+func PossibleItemScopePathValues() []ItemScopePath {
+	return []ItemScopePath{AnalyticsItems, MyanalyticsItems}
+}
+
+// ItemType enumerates the values for item type.
+type ItemType string
+
+const (
+	// Folder ...
+	Folder ItemType = "folder"
+	// Function ...
+	Function ItemType = "function"
+	// Query ...
+	Query ItemType = "query"
+	// Recent ...
+	Recent ItemType = "recent"
+)
+
+// PossibleItemTypeValues returns an array of possible values for the ItemType const type.
+func PossibleItemTypeValues() []ItemType {
+	return []ItemType{Folder, Function, Query, Recent}
+}
+
+// ItemTypeParameter enumerates the values for item type parameter.
+type ItemTypeParameter string
+
+const (
+	// ItemTypeParameterFolder ...
+	ItemTypeParameterFolder ItemTypeParameter = "folder"
+	// ItemTypeParameterFunction ...
+	ItemTypeParameterFunction ItemTypeParameter = "function"
+	// ItemTypeParameterNone ...
+	ItemTypeParameterNone ItemTypeParameter = "none"
+	// ItemTypeParameterQuery ...
+	ItemTypeParameterQuery ItemTypeParameter = "query"
+	// ItemTypeParameterRecent ...
+	ItemTypeParameterRecent ItemTypeParameter = "recent"
+)
+
+// PossibleItemTypeParameterValues returns an array of possible values for the ItemTypeParameter const type.
+func PossibleItemTypeParameterValues() []ItemTypeParameter {
+	return []ItemTypeParameter{ItemTypeParameterFolder, ItemTypeParameterFunction, ItemTypeParameterNone, ItemTypeParameterQuery, ItemTypeParameterRecent}
+}
+
 // PurgeState enumerates the values for purge state.
 type PurgeState string
 
@@ -121,6 +211,21 @@ const (
 // PossibleRequestSourceValues returns an array of possible values for the RequestSource const type.
 func PossibleRequestSourceValues() []RequestSource {
 	return []RequestSource{Rest}
+}
+
+// SharedTypeKind enumerates the values for shared type kind.
+type SharedTypeKind string
+
+const (
+	// SharedTypeKindShared ...
+	SharedTypeKindShared SharedTypeKind = "shared"
+	// SharedTypeKindUser ...
+	SharedTypeKindUser SharedTypeKind = "user"
+)
+
+// PossibleSharedTypeKindValues returns an array of possible values for the SharedTypeKind const type.
+func PossibleSharedTypeKindValues() []SharedTypeKind {
+	return []SharedTypeKind{SharedTypeKindShared, SharedTypeKindUser}
 }
 
 // WebTestKind enumerates the values for web test kind.
@@ -295,6 +400,36 @@ func (aic *ApplicationInsightsComponent) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// ApplicationInsightsComponentAnalyticsItem properties that define an Analytics item that is associated to an
+// Application Insights component.
+type ApplicationInsightsComponentAnalyticsItem struct {
+	autorest.Response `json:"-"`
+	// ID - Internally assigned unique id of the item definition.
+	ID *string `json:"Id,omitempty"`
+	// Name - The user-defined name of the item.
+	Name *string `json:"Name,omitempty"`
+	// Content - The content of this item
+	Content *string `json:"Content,omitempty"`
+	// Version - This instance's version of the data model. This can change as new features are added.
+	Version *string `json:"Version,omitempty"`
+	// Scope - Enum indicating if this item definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'ItemScopeShared', 'ItemScopeUser'
+	Scope ItemScope `json:"Scope,omitempty"`
+	// Type - Enum indicating the type of the Analytics item. Possible values include: 'Query', 'Function', 'Folder', 'Recent'
+	Type ItemType `json:"Type,omitempty"`
+	// TimeCreated - Date and time in UTC when this item was created.
+	TimeCreated *string `json:"TimeCreated,omitempty"`
+	// TimeModified - Date and time in UTC of the last modification that was made to this item.
+	TimeModified *string                                              `json:"TimeModified,omitempty"`
+	Properties   *ApplicationInsightsComponentAnalyticsItemProperties `json:"Properties,omitempty"`
+}
+
+// ApplicationInsightsComponentAnalyticsItemProperties a set of properties that can be defined in the context of a
+// specific item type. Each type may have its own properties.
+type ApplicationInsightsComponentAnalyticsItemProperties struct {
+	// FunctionAlias - A function alias, used when the type of the item is Function
+	FunctionAlias *string `json:"functionAlias,omitempty"`
 }
 
 // ApplicationInsightsComponentAPIKey properties that define an API key of an Application Insights Component.
@@ -733,22 +868,60 @@ type ComponentPurgeBody struct {
 type ComponentPurgeBodyFilters struct {
 	// Column - The column of the table over which the given query should run
 	Column *string `json:"column,omitempty"`
-	// Filter - A query to to run over the provided table and column to purge the corresponding data.
-	Filter *string `json:"filter,omitempty"`
+	// Operator - A query operator to evaluate over the provided column and value(s).
+	Operator *string `json:"operator,omitempty"`
+	// Value - the value for the operator to function over. This can be a number (e.g., > 100), a string (timestamp >= '2017-09-01') or array of values.
+	Value interface{} `json:"value,omitempty"`
 }
 
 // ComponentPurgeResponse response containing operationId for a specific purge action.
 type ComponentPurgeResponse struct {
-	autorest.Response `json:"-"`
 	// OperationID - Id to use when querying for status for a particular purge operation.
 	OperationID *string `json:"operationId,omitempty"`
 }
 
 // ComponentPurgeStatusResponse response containing status for a specific purge operation.
 type ComponentPurgeStatusResponse struct {
-	autorest.Response `json:"-"`
 	// Status - Status of the operation represented by the requested Id. Possible values include: 'Pending', 'Completed'
 	Status PurgeState `json:"status,omitempty"`
+}
+
+// ComponentsPurgeFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type ComponentsPurgeFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ComponentsPurgeFuture) Result(client ComponentsClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "insights.ComponentsPurgeFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("insights.ComponentsPurgeFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.PurgeResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "insights.ComponentsPurgeFuture", "Result", so.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ErrorFieldContract error Field contract.
+type ErrorFieldContract struct {
+	// Code - Property level error code.
+	Code *string `json:"code,omitempty"`
+	// Message - Human-readable representation of property-level error.
+	Message *string `json:"message,omitempty"`
+	// Target - Property name.
+	Target *string `json:"target,omitempty"`
 }
 
 // ErrorResponse error reponse indicates Insights service is not able to process the incoming request. The reason
@@ -768,10 +941,26 @@ type InnerError struct {
 	Time *date.Time `json:"time,omitempty"`
 }
 
+// LinkProperties contains a sourceId and workbook resource id to link two resources.
+type LinkProperties struct {
+	// SourceID - The source Azure resource id
+	SourceID *string `json:"sourceId,omitempty"`
+	// TargetID - The workbook Azure resource id
+	TargetID *string `json:"targetId,omitempty"`
+	// Category - The category of workbook
+	Category *string `json:"category,omitempty"`
+}
+
 // ListAnnotation ...
 type ListAnnotation struct {
 	autorest.Response `json:"-"`
 	Value             *[]Annotation `json:"value,omitempty"`
+}
+
+// ListApplicationInsightsComponentAnalyticsItem ...
+type ListApplicationInsightsComponentAnalyticsItem struct {
+	autorest.Response `json:"-"`
+	Value             *[]ApplicationInsightsComponentAnalyticsItem `json:"value,omitempty"`
 }
 
 // ListApplicationInsightsComponentExportConfiguration ...
@@ -1239,6 +1428,171 @@ type WebTestProperties struct {
 type WebTestPropertiesConfiguration struct {
 	// WebTest - The XML specification of a WebTest to run against an application.
 	WebTest *string `json:"WebTest,omitempty"`
+}
+
+// Workbook an Application Insights workbook definition.
+type Workbook struct {
+	autorest.Response `json:"-"`
+	// Kind - The kind of workbook. Choices are user and shared. Possible values include: 'SharedTypeKindUser', 'SharedTypeKindShared'
+	Kind SharedTypeKind `json:"kind,omitempty"`
+	// WorkbookProperties - Metadata describing a web test for an Azure resource.
+	*WorkbookProperties `json:"properties,omitempty"`
+	// ID - Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Workbook.
+func (w Workbook) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if w.Kind != "" {
+		objectMap["kind"] = w.Kind
+	}
+	if w.WorkbookProperties != nil {
+		objectMap["properties"] = w.WorkbookProperties
+	}
+	if w.ID != nil {
+		objectMap["id"] = w.ID
+	}
+	if w.Name != nil {
+		objectMap["name"] = w.Name
+	}
+	if w.Type != nil {
+		objectMap["type"] = w.Type
+	}
+	if w.Location != nil {
+		objectMap["location"] = w.Location
+	}
+	if w.Tags != nil {
+		objectMap["tags"] = w.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for Workbook struct.
+func (w *Workbook) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "kind":
+			if v != nil {
+				var kind SharedTypeKind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				w.Kind = kind
+			}
+		case "properties":
+			if v != nil {
+				var workbookProperties WorkbookProperties
+				err = json.Unmarshal(*v, &workbookProperties)
+				if err != nil {
+					return err
+				}
+				w.WorkbookProperties = &workbookProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				w.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				w.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				w.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				w.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				w.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// WorkbookError error message body that will indicate why the operation failed.
+type WorkbookError struct {
+	// Code - Service-defined error code. This code serves as a sub-status for the HTTP error code specified in the response.
+	Code *string `json:"code,omitempty"`
+	// Message - Human-readable representation of the error.
+	Message *string `json:"message,omitempty"`
+	// Details - The list of invalid fields send in request, in case of validation error.
+	Details *[]ErrorFieldContract `json:"details,omitempty"`
+}
+
+// WorkbookProperties properties that contain a workbook.
+type WorkbookProperties struct {
+	// Name - The user-defined name of the workbook.
+	Name *string `json:"name,omitempty"`
+	// SerializedData - Configuration of this particular workbook. Configuration data is a string containing valid JSON
+	SerializedData *string `json:"serializedData,omitempty"`
+	// Version - This instance's version of the data model. This can change as new features are added that can be marked workbook.
+	Version *string `json:"version,omitempty"`
+	// WorkbookID - Internally assigned unique id of the workbook definition.
+	WorkbookID *string `json:"workbookId,omitempty"`
+	// SharedTypeKind - Enum indicating if this workbook definition is owned by a specific user or is shared between all users with access to the Application Insights component. Possible values include: 'SharedTypeKindUser', 'SharedTypeKindShared'
+	SharedTypeKind SharedTypeKind `json:"kind,omitempty"`
+	// TimeModified - Date and time in UTC of the last modification that was made to this workbook definition.
+	TimeModified *string `json:"timeModified,omitempty"`
+	// Category - Workbook category, as defined by the user at creation time.
+	Category *string `json:"category,omitempty"`
+	// Tags - A list of 0 or more tags that are associated with this workbook definition
+	Tags *[]string `json:"tags,omitempty"`
+	// UserID - Unique user id of the specific user that owns this workbook.
+	UserID *string `json:"userId,omitempty"`
+	// SourceResourceID - Optional resourceId for a source resource.
+	SourceResourceID *string `json:"sourceResourceId,omitempty"`
+}
+
+// Workbooks workbook list result.
+type Workbooks struct {
+	autorest.Response `json:"-"`
+	// Value - An array of workbooks.
+	Value *[]Workbook `json:"value,omitempty"`
 }
 
 // WorkItemConfiguration work item configuration associated with an application insights resource.

@@ -33,14 +33,14 @@ resource "azurerm_log_analytics_solution" "test" {
 }
 
 resource "azurerm_log_analytics_solution" "test2" {
-	solution_name         = "Security"
-	location              = "${azurerm_resource_group.test.location}"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-	workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
-	
-	plan {
-	  publisher      = "Microsoft"
-	  product        = "OMSGallery/Security"
-	}
+  solution_name         = "Security"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
+  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/Security"
+  }
 }
