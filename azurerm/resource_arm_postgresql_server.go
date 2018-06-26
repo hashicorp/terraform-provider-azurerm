@@ -136,7 +136,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validateIntBetweenDivisibleBy(5120, 1048576, 1024),
+							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
 						},
 
 						"backup_retention_days": {
