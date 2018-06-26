@@ -4,12 +4,13 @@ IMPROVEMENTS:
 
 * dependencies: upgrading to v10.11.4 of `Azure/go-autorest` [GH-1418]
 * dependencies: upgrading to v17.4.0 of `Azure/azure-sdk-for-go` [GH-1418]
+* `azurerm_lb` - addtional validation on properties [GH-1403]
 * `azurerm_log_analytics_solution` - support for Sovereign Clouds [GH-1410]
 * `azurerm_log_analytics_workspace` - support for Sovereign Clouds [GH-1410]
 * `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU [GH-1079]
-* `azurerm_sql_database` - support for importing from a bacpac backup [GH-972]
 * `azurerm_network_interface` - addtional validation on properties [GH-1403]
-* `azurerm_arm_loadbalancer` - addtional validation on properties [GH-1403]
+* `azurerm_sql_database` - support for importing from a bacpac backup [GH-972]
+* `azurerm_virtual_machine` - support for setting the TimeZone on Windows [GH-1265]
 
 BUG FIXES:
 
