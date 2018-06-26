@@ -386,6 +386,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"timezone": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
+						},
 						"winrm": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -1035,6 +1042,10 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *compute.W
 		result["enable_automatic_upgrades"] = *config.EnableAutomaticUpdates
 	}
 
+	if config.TimeZone != nil {
+		result["timezone"] = *config.TimeZone
+	}
+
 	if config.WinRM != nil {
 		listeners := make([]map[string]interface{}, 0, len(*config.WinRM.Listeners))
 		for _, i := range *config.WinRM.Listeners {
@@ -1309,6 +1320,10 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 	if v := osProfileConfig["enable_automatic_upgrades"]; v != nil {
 		update := v.(bool)
 		config.EnableAutomaticUpdates = &update
+	}
+
+	if v := osProfileConfig["timezone"]; v != nil && v.(string) != "" {
+		config.TimeZone = utils.String(v.(string))
 	}
 
 	if v := osProfileConfig["winrm"]; v != nil {
@@ -1620,6 +1635,9 @@ func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) i
 		}
 		if v, ok := m["enable_automatic_upgrades"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["timezone"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
 		}
 	}
 

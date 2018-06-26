@@ -475,6 +475,7 @@ output "principal_id" {
 
 * `provision_vm_agent` - (Optional) This value defaults to false.
 * `enable_automatic_upgrades` - (Optional) This value defaults to false.
+* `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `""`.
 * `winrm` - (Optional) A collection of WinRM configuration blocks as documented below.
 * `additional_unattend_config` - (Optional) An Additional Unattended Config block as documented below.
 
