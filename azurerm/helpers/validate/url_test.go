@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestHelper_Validate_UrlIsHttpOrHttps(t *testing.T) {
+func TestURLIsHTTPOrHTTPS(t *testing.T) {
 	cases := []struct {
 		Url    string
 		Errors int
@@ -36,10 +36,10 @@ func TestHelper_Validate_UrlIsHttpOrHttps(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := UrlIsHttpOrHttps(tc.Url, "test")
+		_, errors := URLIsHTTPOrHTTPS(tc.Url, "test")
 
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected UrlIsHttpOrHttps to have an error for %q", tc.Url)
+			t.Fatalf("Expected URLIsHTTPOrHTTPS to have an error for %q", tc.Url)
 		}
 	}
 }

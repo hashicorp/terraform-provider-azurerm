@@ -37,7 +37,7 @@ func resourceArmImage() *schema.Resource {
 			"source_virtual_machine_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceId,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"os_disk": {
@@ -72,7 +72,7 @@ func resourceArmImage() *schema.Resource {
 							Computed:         true,
 							Optional:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc:     azure.ValidateResourceId,
+							ValidateFunc:     azure.ValidateResourceID,
 						},
 
 						"blob_uri": {
@@ -80,7 +80,7 @@ func resourceArmImage() *schema.Resource {
 							Optional:     true,
 							Computed:     true,
 							ForceNew:     true,
-							ValidateFunc: validate.UrlIsHttpOrHttps,
+							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
 
 						"caching": {
@@ -120,14 +120,14 @@ func resourceArmImage() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceId,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"blob_uri": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.UrlIsHttpOrHttps,
+							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
 
 						"caching": {

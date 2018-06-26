@@ -2,7 +2,7 @@ package azure
 
 import "testing"
 
-func TestHelper_Validate_AzureResourceId(t *testing.T) {
+func TestHelper_AzureResourceID(t *testing.T) {
 	cases := []struct {
 		Id     string
 		Errors int
@@ -50,7 +50,7 @@ func TestHelper_Validate_AzureResourceId(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateResourceId(tc.Id, "test")
+		_, errors := ValidateResourceID(tc.Id, "test")
 
 		if len(errors) < tc.Errors {
 			t.Fatalf("Expected AzureResourceId to have an error for %q", tc.Id)

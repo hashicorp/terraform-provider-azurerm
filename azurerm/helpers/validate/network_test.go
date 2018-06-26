@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestHelper_Validate_Ip4Address(t *testing.T) {
+func TestIP4Address(t *testing.T) {
 	cases := []struct {
 		Ip     string
 		Errors int
@@ -42,15 +42,15 @@ func TestHelper_Validate_Ip4Address(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := Ip4Address(tc.Ip, "test")
+		_, errors := IP4Address(tc.Ip, "test")
 
 		if len(errors) < tc.Errors {
-			t.Fatalf("Expected Ip4Address to have an error for %q", tc.Ip)
+			t.Fatalf("Expected IP4Address to have an error for %q", tc.Ip)
 		}
 	}
 }
 
-func TestHelper_Validate_MacAddress(t *testing.T) {
+func TestMACAddress(t *testing.T) {
 	cases := []struct {
 		Ip     string
 		Errors int
@@ -86,10 +86,10 @@ func TestHelper_Validate_MacAddress(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := MacAddress(tc.Ip, "test")
+		_, errors := MACAddress(tc.Ip, "test")
 
 		if len(errors) < tc.Errors {
-			t.Fatalf("Expected MacAddress to have an error for %q", tc.Ip)
+			t.Fatalf("Expected MACAddress to have an error for %q", tc.Ip)
 		}
 	}
 }

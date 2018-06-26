@@ -66,21 +66,21 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: azure.ValidateResourceId,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"private_ip_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validate.Ip4Address,
+							ValidateFunc: validate.IP4Address,
 						},
 
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: azure.ValidateResourceId,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"private_ip_address_allocation": {

@@ -6,7 +6,7 @@ import (
 	"regexp"
 )
 
-func Ip4Address(i interface{}, k string) (_ []string, errors []error) {
+func IP4Address(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -21,7 +21,7 @@ func Ip4Address(i interface{}, k string) (_ []string, errors []error) {
 	return
 }
 
-func MacAddress(i interface{}, k string) (_ []string, errors []error) {
+func MACAddress(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

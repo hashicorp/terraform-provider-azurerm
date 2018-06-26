@@ -2,7 +2,7 @@ package suppress
 
 import "testing"
 
-func TestHelper_Suppress_CaseDifference(t *testing.T) {
+func TestCaseDifference(t *testing.T) {
 	cases := []struct {
 		StringA  string
 		StringB  string

@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func TestHelper_Validate_RFC3339Time(t *testing.T) {
+func TestRFC3339Time(t *testing.T) {
 	cases := []struct {
 		Time   string
 		Errors int
@@ -37,15 +37,15 @@ func TestHelper_Validate_RFC3339Time(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := Rfc3339Time(tc.Time, "test")
+		_, errors := RFC3339Time(tc.Time, "test")
 
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected Rfc3339Time to have an error for %q", tc.Time)
+			t.Fatalf("Expected RFC3339Time to have an error for %q", tc.Time)
 		}
 	}
 }
 
-func TestHelper_Validate_Rfc3339DateInFutureBy(t *testing.T) {
+func TestRfc3339DateInFutureBy(t *testing.T) {
 	cases := []struct {
 		Time     string
 		Duration time.Duration
@@ -79,10 +79,10 @@ func TestHelper_Validate_Rfc3339DateInFutureBy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := Rfc3339DateInFutureBy(tc.Duration)(tc.Time, "test")
+		_, errors := RFC3339DateInFutureBy(tc.Duration)(tc.Time, "test")
 
 		if len(errors) < tc.Errors {
-			t.Fatalf("Expected Rfc3339DateInFutureBy to have an error for %q in future by %q", tc.Time, tc.Duration.String())
+			t.Fatalf("Expected RFC3339DateInFutureBy to have an error for %q in future by %q", tc.Time, tc.Duration.String())
 		}
 	}
 }

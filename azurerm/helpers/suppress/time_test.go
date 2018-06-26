@@ -2,7 +2,7 @@ package suppress
 
 import "testing"
 
-func TestHelper_Supress_Rfc3339Time(t *testing.T) {
+func TestRFC3339Time(t *testing.T) {
 	cases := []struct {
 		TimeA    string
 		TimeB    string
@@ -41,8 +41,8 @@ func TestHelper_Supress_Rfc3339Time(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		if Rfc3339Time("test", tc.TimeA, tc.TimeB, nil) != tc.Suppress {
-			t.Fatalf("Expected Rfc3339Time to return %t for '%q' == '%q'", tc.Suppress, tc.TimeA, tc.TimeB)
+		if RFC3339Time("test", tc.TimeA, tc.TimeB, nil) != tc.Suppress {
+			t.Fatalf("Expected RFC3339Time to return %t for '%q' == '%q'", tc.Suppress, tc.TimeA, tc.TimeB)
 		}
 	}
 }

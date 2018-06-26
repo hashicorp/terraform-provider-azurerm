@@ -3,16 +3,16 @@ package validate
 import (
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"strings"
 )
 
-func UrlIsHttpOrHttps(i interface{}, k string) (_ []string, errors []error) {
-	return UrlWithScheme([]string{"http", "https"})(i, k)
+func URLIsHTTPOrHTTPS(i interface{}, k string) (_ []string, errors []error) {
+	return URLWithScheme([]string{"http", "https"})(i, k)
 }
 
-func UrlWithScheme(validSchemes []string) schema.SchemaValidateFunc {
+func URLWithScheme(validSchemes []string) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (_ []string, errors []error) {
 		v, ok := i.(string)
 		if !ok {
