@@ -9,6 +9,7 @@ IMPROVEMENTS:
 * `azurerm_log_analytics_workspace` - support for Sovereign Clouds [GH-1410]
 * `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU [GH-1079]
 * `azurerm_network_interface` - addtional validation on properties [GH-1403]
+* `azurerm_route_table` - adding the  disable BGP propagation property [GH-1435]
 * `azurerm_sql_database` - support for importing from a bacpac backup [GH-972]
 * `azurerm_virtual_machine` - support for setting the TimeZone on Windows [GH-1265]
 
