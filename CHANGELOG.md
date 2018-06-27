@@ -2,7 +2,8 @@
 
 FEATURES:
 
-* New Resource: `azurerm_dns_caa_record` support [GH-1450]
+* **New Resource:** `azurerm_dns_caa_record` support [GH-1450]
+* **New Resource:** `azurerm_virtual_machine_data_disk_attachment` [GH-1207]
 
 IMPROVEMENTS:
 
