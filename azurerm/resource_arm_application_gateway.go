@@ -1648,16 +1648,18 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 				}
 
 				if match := props.Match; match != nil {
-
-					matchConfig := map[string]interface{}{
-						"body": *match.Body,
+					matchConfig := map[string]interface{}{}
+					if body := match.Body; body != nil {
+						matchConfig["body"] = *body
 					}
 
 					statusCodes := make([]interface{}, 0)
-					for _, status := range *match.StatusCodes {
-						statusCodes = append(statusCodes, status)
+					if match.StatusCodes != nil {
+						for _, status := range *match.StatusCodes {
+							statusCodes = append(statusCodes, status)
+						}
+						matchConfig["status_code"] = statusCodes
 					}
-					matchConfig["status_code"] = statusCodes
 					settings["match"] = matchConfig
 				}
 			}
