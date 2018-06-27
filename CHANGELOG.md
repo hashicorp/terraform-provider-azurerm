@@ -1,5 +1,10 @@
 ## 1.8.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_dns_caa_record` support [GH-1450]
+* **New Resource:** `azurerm_virtual_machine_data_disk_attachment` [GH-1207]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading to v10.11.4 of `Azure/go-autorest` [GH-1418]
