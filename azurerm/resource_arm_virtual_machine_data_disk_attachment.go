@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,12 +27,14 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				ValidateFunc:     azure.ValidateResourceId,
 			},
 
 			"virtual_machine_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceId,
 			},
 
 			"lun": {
@@ -184,7 +187,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	if profile := virtualMachine.StorageProfile; profile != nil {
 		if dataDisks := profile.DataDisks; dataDisks != nil {
 			for _, dataDisk := range *dataDisks {
-				// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.Equals`
+				// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
 				if *dataDisk.Name == name {
 					disk = &dataDisk
 					break
@@ -241,7 +244,7 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 
 	dataDisks := make([]compute.DataDisk, 0)
 	for _, dataDisk := range *virtualMachine.StorageProfile.DataDisks {
-		// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.Equals`
+		// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
 		if *dataDisk.Name != name {
 			dataDisks = append(dataDisks, dataDisk)
 		}
