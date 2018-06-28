@@ -39,7 +39,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 			"network_security_group_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceId,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"mac_address": {
@@ -93,7 +93,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceId,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"application_gateway_backend_address_pools_ids": {
