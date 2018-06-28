@@ -52,8 +52,8 @@ const (
 )
 
 // PossibleRecordTypeValues returns an array of possible values for the RecordType const type.
-func PossibleRecordTypeValues() [10]RecordType {
-	return [10]RecordType{A, AAAA, CAA, CNAME, MX, NS, PTR, SOA, SRV, TXT}
+func PossibleRecordTypeValues() []RecordType {
+	return []RecordType{A, AAAA, CAA, CNAME, MX, NS, PTR, SOA, SRV, TXT}
 }
 
 // ZoneType enumerates the values for zone type.
@@ -67,8 +67,8 @@ const (
 )
 
 // PossibleZoneTypeValues returns an array of possible values for the ZoneType const type.
-func PossibleZoneTypeValues() [2]ZoneType {
-	return [2]ZoneType{Private, Public}
+func PossibleZoneTypeValues() []ZoneType {
+	return []ZoneType{Private, Public}
 }
 
 // AaaaRecord an AAAA record.

@@ -30,6 +30,26 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMDnsZone_withVNets(t *testing.T) {
+	resourceName := "azurerm_dns_zone.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMDnsZone_withVNets(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDnsZoneDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDnsZoneExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMDnsZone_withTags(t *testing.T) {
 	resourceName := "azurerm_dns_zone.test"
 	ri := acctest.RandInt()
@@ -128,6 +148,30 @@ resource "azurerm_dns_zone" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMDnsZone_withVNets(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+    name = "acctestRG_%d"
+    location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+	name                = "acctestvnet%d"
+	location            = "%s"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	address_space       = ["10.0.0.0/16"]
+	dns_servers         = ["168.63.129.16"]
+  }
+
+resource "azurerm_dns_zone" "test" {
+    name = "acctestzone%d.com"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	zone_type = "Private"
+	registration_virtual_network_ids = ["${azurerm_virtual_network.test.id}"]
+}
+`, rInt, location, rInt, location, rInt)
 }
 
 func testAccAzureRMDnsZone_withTags(rInt int, location string) string {

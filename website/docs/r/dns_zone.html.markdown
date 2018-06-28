@@ -21,7 +21,15 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_dns_zone" "test" {
   name                = "mydomain.com"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_type           = "Public"
 }
+
+resource "azurerm_dns_zone" "test_private" {
+  name                = "mydomain.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_type           = "Private"
+}
+
 ```
 ## Argument Reference
 
@@ -30,6 +38,12 @@ The following arguments are supported:
 * `name` - (Required) The name of the DNS Zone. Must be a valid domain name.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+
+* `zone_type` - (Required) Specifies the type of this DNS zone (Public or Private).
+
+* `registration_virtual_network_ids` - (Optional) A list of IDs references to virtual networks that register hostnames in this DNS zone. This take effects when ZoneType is Private.
+
+* `resolution_virtual_network_ids` - (Optional) A list of IDs references to virtual networks that resolve records in this DNS zone. This take effects when ZoneType is Private.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
