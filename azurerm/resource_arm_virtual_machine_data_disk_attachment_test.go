@@ -25,7 +25,6 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "virtual_machine_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_disk_id"),
 					resource.TestCheckResourceAttr(resourceName, "lun", "0"),
@@ -51,14 +50,12 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_multipleDisks(t *testing.T) 
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(firstResourceName),
-					resource.TestCheckResourceAttrSet(firstResourceName, "name"),
 					resource.TestCheckResourceAttrSet(firstResourceName, "virtual_machine_id"),
 					resource.TestCheckResourceAttrSet(firstResourceName, "managed_disk_id"),
 					resource.TestCheckResourceAttr(firstResourceName, "lun", "10"),
 					resource.TestCheckResourceAttr(firstResourceName, "caching", "None"),
 
 					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(secondResourceName),
-					resource.TestCheckResourceAttrSet(secondResourceName, "name"),
 					resource.TestCheckResourceAttrSet(secondResourceName, "virtual_machine_id"),
 					resource.TestCheckResourceAttrSet(secondResourceName, "managed_disk_id"),
 					resource.TestCheckResourceAttr(secondResourceName, "lun", "20"),
@@ -140,7 +137,7 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string)
 
 		diskName := diskId.Path["dataDisks"]
 
-		// deliberately not using strings.Equals as this is case sensitive
+		// deliberately not using strings.EqualFold as this is case sensitive
 		for _, disk := range *resp.StorageProfile.DataDisks {
 			if *disk.Name == diskName {
 				return nil
