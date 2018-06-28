@@ -123,6 +123,8 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
+					// TODO: Swap for the azure go api enum once supported.
+					"10.0",
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
