@@ -176,7 +176,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 		
-			CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
 			tier, _ := diff.GetOk("sku.0.tier")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
