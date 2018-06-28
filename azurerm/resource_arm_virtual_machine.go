@@ -15,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var virtualMachineResourceName = "azurerm_virtual_machine"
+
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmVirtualMachineCreate,
@@ -248,6 +250,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 			"storage_data_disk": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -385,6 +388,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
+						},
+						"timezone": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							ForceNew:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc:     validateAzureVirtualMachineTimeZone(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
@@ -610,6 +620,9 @@ func resourceArmVirtualMachineCreate(d *schema.ResourceData, meta interface{}) e
 		vm.Plan = plan
 	}
 
+	azureRMLockByName(name, virtualMachineResourceName)
+	defer azureRMUnlockByName(name, virtualMachineResourceName)
+
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, vm)
 	if err != nil {
 		return err
@@ -767,6 +780,9 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	name := id.Path["virtualMachines"]
 
+	azureRMLockByName(name, virtualMachineResourceName)
+	defer azureRMUnlockByName(name, virtualMachineResourceName)
+
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		return err
@@ -827,9 +843,18 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
+	armClient := meta.(*ArmClient)
+	ctx := armClient.StopContext
+	environment := armClient.environment
+
 	vhdURL, err := url.Parse(uri)
 	if err != nil {
 		return fmt.Errorf("Cannot parse Disk VHD URI: %s", err)
+	}
+
+	blobDomainSuffix := environment.StorageEndpointSuffix
+	if !strings.HasSuffix(strings.ToLower(vhdURL.Host), strings.ToLower(blobDomainSuffix)) {
+		return fmt.Errorf("Error: Disk VHD URI %q doesn't appear to be a Blob Storage URI (%q) - expected a suffix of %q)", uri, vhdURL.Host, blobDomainSuffix)
 	}
 
 	// VHD URI is in the form: https://storageAccountName.blob.core.windows.net/containerName/blobName
@@ -838,21 +863,18 @@ func resourceArmVirtualMachineDeleteVhd(uri string, meta interface{}) error {
 	containerName := path[0]
 	blobName := path[1]
 
-	storageAccountResourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
+	resourceGroupName, err := findStorageAccountResourceGroup(meta, storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error finding resource group for storage account %s: %+v", storageAccountName, err)
 	}
 
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
-
-	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, storageAccountResourceGroupName, storageAccountName)
+	blobClient, saExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error creating blob store client for VHD deletion: %+v", err)
 	}
 
 	if !saExists {
-		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", storageAccountName, storageAccountResourceGroupName)
+		log.Printf("[INFO] Storage Account %q in resource group %q doesn't exist so the VHD blob won't exist", storageAccountName, resourceGroupName)
 		return nil
 	}
 
@@ -1033,6 +1055,10 @@ func flattenAzureRmVirtualMachineOsProfileWindowsConfiguration(config *compute.W
 
 	if config.EnableAutomaticUpdates != nil {
 		result["enable_automatic_upgrades"] = *config.EnableAutomaticUpdates
+	}
+
+	if config.TimeZone != nil {
+		result["timezone"] = *config.TimeZone
 	}
 
 	if config.WinRM != nil {
@@ -1309,6 +1335,10 @@ func expandAzureRmVirtualMachineOsProfileWindowsConfig(d *schema.ResourceData) (
 	if v := osProfileConfig["enable_automatic_upgrades"]; v != nil {
 		update := v.(bool)
 		config.EnableAutomaticUpdates = &update
+	}
+
+	if v := osProfileConfig["timezone"]; v != nil && v.(string) != "" {
+		config.TimeZone = utils.String(v.(string))
 	}
 
 	if v := osProfileConfig["winrm"]; v != nil {
@@ -1620,6 +1650,9 @@ func resourceArmVirtualMachineStorageOsProfileWindowsConfigHash(v interface{}) i
 		}
 		if v, ok := m["enable_automatic_upgrades"]; ok {
 			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
+		if v, ok := m["timezone"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
 		}
 	}
 

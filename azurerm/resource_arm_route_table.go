@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -19,15 +19,17 @@ func resourceArmRouteTable() *schema.Resource {
 		Read:   resourceArmRouteTableRead,
 		Update: resourceArmRouteTableCreate,
 		Delete: resourceArmRouteTableDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"location": locationSchema(),
@@ -41,13 +43,15 @@ func resourceArmRouteTable() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"address_prefix": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"next_hop_type": {
@@ -64,12 +68,19 @@ func resourceArmRouteTable() *schema.Resource {
 						},
 
 						"next_hop_in_ip_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
+			},
+
+			"disable_bgp_route_propagation": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"subnets": {
@@ -105,6 +116,7 @@ func resourceArmRouteTableCreate(d *schema.ResourceData, meta interface{}) error
 		Location: &location,
 		RouteTablePropertiesFormat: &network.RouteTablePropertiesFormat{
 			Routes: &routes,
+			DisableBgpRoutePropagation: utils.Bool(d.Get("disable_bgp_route_propagation").(bool)),
 		},
 		Tags: expandTags(tags),
 	}
@@ -159,6 +171,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := resp.RouteTablePropertiesFormat; props != nil {
+		d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
 		if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
 			return err
 		}

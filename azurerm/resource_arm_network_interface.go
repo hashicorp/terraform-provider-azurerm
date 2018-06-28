@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -39,7 +39,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 			"network_security_group_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"mac_address": {
@@ -93,7 +93,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"application_gateway_backend_address_pools_ids": {

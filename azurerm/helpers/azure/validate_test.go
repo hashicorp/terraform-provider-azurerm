@@ -59,3 +59,34 @@ func TestHelper_AzureResourceID(t *testing.T) {
 		})
 	}
 }
+
+func TestAzureResourceIDOrEmpty(t *testing.T) {
+	cases := []struct {
+		ID     string
+		Errors int
+	}{
+		{
+			ID:     "",
+			Errors: 0,
+		},
+		{
+			ID:     "nonsense",
+			Errors: 1,
+		},
+		//as this function just calls TestAzureResourceId lets not be as comprehensive
+		{
+			ID:     "/providers/provider.name/",
+			Errors: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.ID, func(t *testing.T) {
+			_, errors := ValidateResourceIDOrEmpty(tc.ID, "test")
+
+			if len(errors) < tc.Errors {
+				t.Fatalf("Expected TestAzureResourceIdOrEmpty to have %d not %d errors for %q", tc.Errors, len(errors), tc.ID)
+			}
+		})
+	}
+}
