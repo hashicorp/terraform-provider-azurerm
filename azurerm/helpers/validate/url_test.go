@@ -36,10 +36,12 @@ func TestURLIsHTTPOrHTTPS(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := URLIsHTTPOrHTTPS(tc.Url, "test")
+		t.Run(tc.Url, func(t *testing.T) {
+			_, errors := URLIsHTTPOrHTTPS(tc.Url, "test")
 
-		if len(errors) != tc.Errors {
-			t.Fatalf("Expected URLIsHTTPOrHTTPS to have an error for %q", tc.Url)
-		}
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected URLIsHTTPOrHTTPS to have %d not %d errors for %q", tc.Errors, len(errors), tc.Url)
+			}
+		})
 	}
 }

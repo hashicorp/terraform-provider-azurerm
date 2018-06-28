@@ -24,6 +24,7 @@ func RFC3339Time(i interface{}, k string) (_ []string, errors []error) {
 	return
 }
 
+// RFC3339 date is duration d or greater into the future
 func RFC3339DateInFutureBy(d time.Duration) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (_ []string, errors []error) {
 		v, ok := i.(string)

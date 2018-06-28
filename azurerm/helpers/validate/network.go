@@ -3,7 +3,6 @@ package validate
 import (
 	"fmt"
 	"net"
-	"regexp"
 )
 
 func IP4Address(i interface{}, k string) (_ []string, errors []error) {
@@ -28,8 +27,8 @@ func MACAddress(i interface{}, k string) (_ []string, errors []error) {
 		return
 	}
 
-	if matched := regexp.MustCompile(`^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q is not a valid MAC address: %q", k, i))
+	if _, err := net.ParseMAC(v); err != nil {
+		errors = append(errors, fmt.Errorf("%q is not a valid MAC address: %q (%v)", k, i, err))
 	}
 
 	return
