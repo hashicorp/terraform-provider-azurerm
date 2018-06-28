@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_mysql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property [GH-1449]
 * `azurerm_network_interface` - addtional validation on properties [GH-1403]
 * `azurerm_postgresql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property [GH-1449]
+* `azurerm_postgresql_server` - adding support for version 10.0 [GH-1457]
 * `azurerm_route_table` - adding the  disable BGP propagation property [GH-1435]
 * `azurerm_sql_database` - support for importing from a bacpac backup [GH-972]
 * `azurerm_virtual_machine` - support for setting the TimeZone on Windows [GH-1265]
