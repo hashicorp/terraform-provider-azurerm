@@ -1,30 +1,30 @@
-## 1.8.0 (Unreleased)
+## 1.8.0 (June 28, 2018)
 
 FEATURES:
 
-* **New Resource:** `azurerm_dns_caa_record` support [GH-1450]
-* **New Resource:** `azurerm_virtual_machine_data_disk_attachment` [GH-1207]
+* **New Resource:** `azurerm_dns_caa_record` support ([#1450](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1450))
+* **New Resource:** `azurerm_virtual_machine_data_disk_attachment` ([#1207](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1207))
 
 IMPROVEMENTS:
 
-* dependencies: upgrading to v10.11.4 of `Azure/go-autorest` [GH-1418]
-* dependencies: upgrading to v17.4.0 of `Azure/azure-sdk-for-go` [GH-1418]
-* `azurerm_lb` - addtional validation on properties [GH-1403]
-* `azurerm_application_gateway` - support for the `match` block for Probes [GH-1446]
-* `azurerm_log_analytics_solution` - support for Sovereign Clouds [GH-1410]
-* `azurerm_log_analytics_workspace` - support for Sovereign Clouds [GH-1410]
-* `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU [GH-1079]
-* `azurerm_mysql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property [GH-1449]
-* `azurerm_network_interface` - addtional validation on properties [GH-1403]
-* `azurerm_postgresql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property [GH-1449]
-* `azurerm_postgresql_server` - adding support for version 10.0 [GH-1457]
-* `azurerm_route_table` - adding the  disable BGP propagation property [GH-1435]
-* `azurerm_sql_database` - support for importing from a bacpac backup [GH-972]
-* `azurerm_virtual_machine` - support for setting the TimeZone on Windows [GH-1265]
+* dependencies: upgrading to v10.11.4 of `Azure/go-autorest` ([#1418](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1418))
+* dependencies: upgrading to v17.4.0 of `Azure/azure-sdk-for-go` ([#1418](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1418))
+* `azurerm_lb` - addtional validation on properties ([#1403](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1403))
+* `azurerm_application_gateway` - support for the `match` block for Probes ([#1446](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1446))
+* `azurerm_log_analytics_solution` - support for Sovereign Clouds ([#1410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1410))
+* `azurerm_log_analytics_workspace` - support for Sovereign Clouds ([#1410](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1410))
+* `azurerm_log_analytics_workspace` - support for the `PerGB2018` SKU ([#1079](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1079))
+* `azurerm_mysql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property ([#1449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1449))
+* `azurerm_network_interface` - addtional validation on properties ([#1403](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1403))
+* `azurerm_postgresql_server` -  `GeneralPurpose` and `MemoryOptimized` sku tiers now allow 4tb for the `storage_mb` property ([#1449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1449))
+* `azurerm_postgresql_server` - adding support for version 10.0 ([#1457](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1457))
+* `azurerm_route_table` - adding the  disable BGP propagation property ([#1435](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1435))
+* `azurerm_sql_database` - support for importing from a bacpac backup ([#972](https://github.com/terraform-providers/terraform-provider-azurerm/issues/972))
+* `azurerm_virtual_machine` - support for setting the TimeZone on Windows ([#1265](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1265))
 
 BUG FIXES:
 
-* validation: ensuring IPv4/MAC addresses are detected correctly [GH-1431]
+* validation: ensuring IPv4/MAC addresses are detected correctly ([#1431](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1431))
 
 ## 1.7.0 (June 16, 2018)
 
