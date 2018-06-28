@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -172,7 +173,7 @@ func resourceArmMySqlServer() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
-		
+
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
 			tier, _ := diff.GetOk("sku.0.tier")

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -175,7 +176,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
-		
+
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
 			tier, _ := diff.GetOk("sku.0.tier")
