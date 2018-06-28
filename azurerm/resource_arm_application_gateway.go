@@ -1185,15 +1185,16 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 			},
 		}
 
-		if matchConfigs := data["match"].([]interface{}); matchConfigs != nil {
+		matchConfigs := data["match"].([]interface{})
+		if len(matchConfigs) > 0 {
 			match := matchConfigs[0].(map[string]interface{})
 			matchBody := match["body"].(string)
 
-			statusCodes := []string{}
+			statusCodes := make([]string, 0)
 			for _, statusCode := range match["status_code"].([]interface{}) {
-
 				statusCodes = append(statusCodes, statusCode.(string))
 			}
+
 			setting.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
 				Body:        &matchBody,
 				StatusCodes: &statusCodes,
