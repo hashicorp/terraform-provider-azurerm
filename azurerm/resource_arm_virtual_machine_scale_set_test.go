@@ -2933,7 +2933,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type     = "systemAssigned"
+    type     = "SystemAssigned"
   }
 
   extension {
@@ -3035,7 +3035,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
 	identity {
-		type     = "userAssigned"
+		type     = "UserAssigned"
 		identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
 	}
 

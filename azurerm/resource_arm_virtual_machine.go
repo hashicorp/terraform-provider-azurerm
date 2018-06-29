@@ -86,9 +86,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-								"UserAssigned",
-							}, true),
+								string(compute.ResourceIdentityTypeSystemAssigned),
+								string(compute.ResourceIdentityTypeUserAssigned),
+							}, false),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -1194,18 +1194,10 @@ func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, err
 }
 
 func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.VirtualMachineIdentity {
-	var identityType compute.ResourceIdentityType
-
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
-
-	switch strings.ToLower(identity["type"].(string)) {
-	case strings.ToLower(string(compute.ResourceIdentityTypeUserAssigned)):
-		identityType = compute.ResourceIdentityTypeUserAssigned
-	case strings.ToLower(string(compute.ResourceIdentityTypeSystemAssigned)):
-		identityType = compute.ResourceIdentityTypeSystemAssigned
-	}
+	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
 	identityIds := []string{}
 	for _, id := range identity["identity_ids"].([]interface{}) {

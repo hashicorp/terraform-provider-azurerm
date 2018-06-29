@@ -13,7 +13,8 @@ func TestAccAzureRMUserAssignedIdentity_create(t *testing.T) {
 	principalIdRegex := "^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$"
 	resourceName := "azurerm_user_assigned_identity.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMUserAssignedIdentityCreate(ri, testLocation())
+	rs := acctest.RandString(14)
+	config := testAccAzureRMUserAssignedIdentityCreate(ri, testLocation(), rs)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -27,7 +28,7 @@ func TestAccAzureRMUserAssignedIdentity_create(t *testing.T) {
 	})
 }
 
-func testAccAzureRMUserAssignedIdentityCreate(rInt int, location string) string {
+func testAccAzureRMUserAssignedIdentityCreate(rInt int, location string, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
 	name = "acctestRG-acctest%[1]d"
@@ -38,7 +39,7 @@ resource "azurerm_user_assigned_identity" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	location = "${azurerm_resource_group.test.location}"
 
-	name = "acctest%[1]d"
+	name = "acctest%[3]s"
 }
-`, rInt, location)
+`, rInt, location, rString)
 }

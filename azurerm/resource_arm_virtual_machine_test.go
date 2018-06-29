@@ -60,7 +60,7 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
-	rs := acctest.RandString(15)
+	rs := acctest.RandString(14)
 	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation(), rs)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -312,7 +312,7 @@ resource "azurerm_virtual_machine" "test" {
 	}
 
 	identity {
-		type     = "systemAssigned"
+		type     = "SystemAssigned"
 	}
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
@@ -415,7 +415,7 @@ resource "azurerm_virtual_machine" "test" {
 	}
 
 	identity {
-		type     = "userAssigned"
+		type     = "UserAssigned"
 		identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
 	}
 }
