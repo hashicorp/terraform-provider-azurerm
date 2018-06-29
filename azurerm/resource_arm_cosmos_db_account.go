@@ -262,9 +262,16 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 
+	r, err := client.CheckNameExists(ctx, name)
+	if err != nil {
+		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if !utils.ResponseWasNotFound(r) {
+		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+	}
+
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
 	var geoLocations []documentdb.Location
-	var err error
 	if _, ok := d.GetOk("geo_location"); ok {
 		geoLocations, err = expandAzureRmCosmosDBAccountGeoLocations(name, d)
 		if err != nil {
@@ -277,7 +284,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	} else {
 		//could be a CustomizeDiff?, but this is temporary
-		return fmt.Errorf("Neither `geo_location` or `failover_policy` is set for CosmosDB Account '%s'", name)
+		return fmt.Errorf("Neither `geo_location` or `failover_policy` is set for CosmosDB Account %s", name)
 	}
 
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
@@ -298,9 +305,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	//todo is this still required?
-	r := *resp
-	id := r.ID
+	id := resp.ID
 	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
 	}
