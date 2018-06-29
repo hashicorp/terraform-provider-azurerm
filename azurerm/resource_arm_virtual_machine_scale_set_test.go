@@ -542,7 +542,8 @@ func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(ri, testLocation())
+	rs := acctest.RandString(14)
+	config := testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(ri, testLocation(), rs)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -2977,7 +2978,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location)
 }
 
-func testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(rInt int, location string) string {
+func testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(rInt int, location string, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%[1]d"
@@ -3017,7 +3018,7 @@ resource "azurerm_user_assigned_identity" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	location = "${azurerm_resource_group.test.location}"
 
-	name = "acctest%[1]d"
+	name = "acctest%[3]s"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
@@ -3077,7 +3078,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 
-`, rInt, location)
+`, rInt, location, rString)
 }
 
 func testAccAzureRMVirtualMachineScaleSetExtensionTemplate(rInt int, location string) string {
