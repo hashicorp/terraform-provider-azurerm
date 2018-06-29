@@ -188,6 +188,27 @@ func TestAccAzureRMCdnProfile_standardAkamai(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCdnProfile_standardMicrosoft(t *testing.T) {
+	resourceName := "azurerm_cdn_profile.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMCdnProfile_standardMicrosoft(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCdnProfileDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnProfileExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku", "Standard_Microsoft"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCdnProfileExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -329,6 +350,22 @@ resource "azurerm_cdn_profile" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard_Akamai"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMCdnProfile_standardMicrosoft(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard_Microsoft"
 }
 `, rInt, location, rInt)
 }
