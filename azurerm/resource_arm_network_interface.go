@@ -46,14 +46,14 @@ func resourceArmNetworkInterface() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.MacAddress,
+				ValidateFunc: validate.MACAddress,
 			},
 
 			"virtual_machine_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: azure.ValidateResourceId,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"ip_configuration": {
@@ -71,7 +71,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     azure.ValidateResourceId,
+							ValidateFunc:     azure.ValidateResourceID,
 						},
 
 						"private_ip_address": {
@@ -102,7 +102,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},
@@ -113,7 +113,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},
@@ -124,7 +124,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},
@@ -135,7 +135,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},

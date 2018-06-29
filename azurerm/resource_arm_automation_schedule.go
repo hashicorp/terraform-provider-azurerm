@@ -82,8 +82,8 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: suppress.Rfc3339Time,
-				ValidateFunc:     validate.Rfc3339DateInFutureBy(time.Duration(5) * time.Minute),
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validate.RFC3339DateInFutureBy(time.Duration(5) * time.Minute),
 				//defaults to now + 7 minutes in create function if not set
 			},
 
@@ -92,7 +92,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Optional:         true,
 				Computed:         true, //same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.Rfc3339Time,
+				ValidateFunc:     validate.RFC3339Time,
 			},
 
 			"description": {

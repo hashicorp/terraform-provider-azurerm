@@ -27,14 +27,14 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				ValidateFunc:     azure.ValidateResourceId,
+				ValidateFunc:     azure.ValidateResourceID,
 			},
 
 			"virtual_machine_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceId,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"lun": {

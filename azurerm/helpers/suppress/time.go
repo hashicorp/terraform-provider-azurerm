@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func Rfc3339Time(_, old, new string, _ *schema.ResourceData) bool {
+func RFC3339Time(_, old, new string, _ *schema.ResourceData) bool {
 	ot, oerr := time.Parse(time.RFC3339, old)
 	nt, nerr := time.Parse(time.RFC3339, new)
 
