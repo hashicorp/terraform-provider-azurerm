@@ -520,7 +520,7 @@ func TestAccAzureRMVirtualMachineScaleSet_priority(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineScaleSetSystemAssignedMSITemplate(ri, testLocation())
+	config := testAccAzureRMVirtualMachineScaleSetSystemAssignedMSI(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -542,7 +542,7 @@ func TestAccAzureRMVirtualMachineScaleSet_SystemAssignedMSI(t *testing.T) {
 func TestAccAzureRMVirtualMachineScaleSet_UserAssignedMSI(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_scale_set.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineScaleSetUserAssignedMSITemplate(ri, testLocation())
+	config := testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -2882,7 +2882,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location)
 }
 
-func testAccAzureRMVirtualMachineScaleSetSystemAssignedMSITemplate(rInt int, location string) string {
+func testAccAzureRMVirtualMachineScaleSetSystemAssignedMSI(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -2977,7 +2977,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 `, rInt, location)
 }
 
-func testAccAzureRMVirtualMachineScaleSetUserAssignedMSITemplate(rInt int, location string) string {
+func testAccAzureRMVirtualMachineScaleSetUserAssignedMSI(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%[1]d"
@@ -3017,7 +3017,7 @@ resource "azurerm_user_assigned_identity" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	location = "${azurerm_resource_group.test.location}"
 
-	name = "test"
+	name = "acctest%[1]d"
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {

@@ -347,6 +347,7 @@ func determineAzureResourceProvidersToRegister(providerList []resources.Provider
 		"Microsoft.EventHub":            {},
 		"Microsoft.KeyVault":            {},
 		"microsoft.insights":            {},
+		"Microsoft.ManagedIdentity":     {},
 		"Microsoft.Network":             {},
 		"Microsoft.OperationalInsights": {},
 		"Microsoft.Relay":               {},

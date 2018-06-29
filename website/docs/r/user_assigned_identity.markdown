@@ -22,7 +22,7 @@ resource "azurerm_user_assigned_identity" "testIdentity" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 
-  name = "${var.name}"
+  name = "search-api"
 }
 ```
 
@@ -46,12 +46,6 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The user assigned identity ID.
-
-* `name` - The name of the user assigned identity.
-
-* `resource_group_name` - The name of the resource group in which user assigned identity created.
-
-* `location` - The location/region where the user assigned identity created.
 
 * `principal_id` - Service Principal ID associated with the user assigned identity.
 

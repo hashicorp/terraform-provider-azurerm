@@ -37,7 +37,7 @@ func TestAccAzureRMVirtualMachine_SystemAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineSystemAssignedIdentityTemplate(ri, testLocation())
+	config := testAccAzureRMVirtualMachineSystemAssignedIdentity(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -60,7 +60,7 @@ func TestAccAzureRMVirtualMachine_UserAssignedIdentity(t *testing.T) {
 	var vm compute.VirtualMachine
 	resourceName := "azurerm_virtual_machine.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMVirtualMachineUserAssignedIdentityTemplate(ri, testLocation())
+	config := testAccAzureRMVirtualMachineUserAssignedIdentity(ri, testLocation())
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -221,7 +221,7 @@ resource "azurerm_virtual_machine" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMVirtualMachineSystemAssignedIdentityTemplate(rInt int, location string) string {
+func testAccAzureRMVirtualMachineSystemAssignedIdentity(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
 	name = "acctestRG-%d"
@@ -317,7 +317,7 @@ resource "azurerm_virtual_machine" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testAccAzureRMVirtualMachineUserAssignedIdentityTemplate(rInt int, location string) string {
+func testAccAzureRMVirtualMachineUserAssignedIdentity(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
 	name = "acctestRG-%d"
@@ -373,7 +373,7 @@ resource "azurerm_user_assigned_identity" "test" {
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	location = "${azurerm_resource_group.test.location}"
 
-	name = "test"
+	name = "acctest%d"
 }
 
 resource "azurerm_virtual_machine" "test" {
@@ -418,5 +418,5 @@ resource "azurerm_virtual_machine" "test" {
 		identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
 	}
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }

@@ -26,6 +26,7 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"principal_id": {
@@ -54,16 +55,21 @@ func resourceArmUserAssignedIdentityCreate(d *schema.ResourceData, meta interfac
 		Tags:     expandTags(tags),
 	}
 
-	identity, err := client.CreateOrUpdate(ctx, resGroup, resourceName, identity)
+	_, err := client.CreateOrUpdate(ctx, resGroup, resourceName, identity)
 	if err != nil {
 		return fmt.Errorf("Error Creating/Updating User Assigned Identity %q (Resource Group %q): %+v", resourceName, resGroup, err)
 	}
 
-	if identity.ID == nil {
+	read, err := client.Get(ctx, resGroup, resourceName)
+	if err != nil {
+		return err
+	}
+
+	if read.ID == nil {
 		return fmt.Errorf("Cannot read User Assigned Identity %q ID (resource group %q) ID", resourceName, resGroup)
 	}
 
-	d.SetId(*identity.ID)
+	d.SetId(*read.ID)
 
 	return resourceArmUserAssignedIdentityRead(d, meta)
 }
