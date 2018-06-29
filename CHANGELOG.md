@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
+* `azurerm_image` - change os_disk property to a list and add addtional property validation [GH-1443]
 
 ## 1.8.0 (June 28, 2018)
 
