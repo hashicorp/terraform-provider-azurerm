@@ -148,7 +148,7 @@ The pricing group for the Redis Family - either "C" or "P" at present.
 
 * `redis_configuration` supports the following:
 
-* `maxmemory_reserve` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
+* `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
 
@@ -183,14 +183,14 @@ redis_configuration {
 | maxmemory_delta    | 2            | 50           | 200          |
 | maxmemory_policy   | volatile-lru | volatile-lru | volatile-lru |
 
-_*Important*: The maxmemory_reserved setting is only available for Standard and Premium caches. More details are available in the Relevant Links section below._
+_*Important*: The `maxmemory_reserved` and `maxmemory_delta` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below._
 
 * `patch_schedule` supports the following:
 
 * `day_of_week` (Required) the Weekday name - possible values include `Monday`, `Tuesday`, `Wednesday` etc.
 * `start_hour_utc` - (Optional) the Start Hour for maintenance in UTC - possible values range from `0 - 23`.
 
-~> **Note:** The Patch Window lasts for 5 hours from the `start_hour_utc`.
+~> **Note:** The Patch Window lasts for `5` hours from the `start_hour_utc`.
 
 ## Attributes Reference
 

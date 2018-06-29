@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_credential"
 sidebar_current: "docs-azurerm-resource-automation-credential"
 description: |-
-  Manages a new Automation Credential.
+  Manages a Automation Credential.
 ---
 
 # azurerm_automation_credential
 
-Manages a new Automation Credential.
+Manages a Automation Credential.
 
 ## Example Usage
 

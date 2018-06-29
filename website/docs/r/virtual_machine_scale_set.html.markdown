@@ -17,7 +17,7 @@ Create a virtual machine scale set.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
@@ -146,7 +146,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US"
 }
 

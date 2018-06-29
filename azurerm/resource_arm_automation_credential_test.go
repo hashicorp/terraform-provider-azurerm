@@ -13,7 +13,6 @@ import (
 func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 	resourceName := "azurerm_automation_credential.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationCredential_basic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -21,11 +20,17 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutomationCredential_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCredentialExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
 			},
 		},
 	})
@@ -34,7 +39,6 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 	resourceName := "azurerm_automation_credential.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMAutomationCredential_complete(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -42,12 +46,18 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAutomationCredentialDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMAutomationCredential_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCredentialExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "username", "test_user"),
 					resource.TestCheckResourceAttr(resourceName, "description", "This is a test credential for terraform acceptance test"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"password"},
 			},
 		},
 	})

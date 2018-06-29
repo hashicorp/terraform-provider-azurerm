@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,7 +23,8 @@ func resourceArmRoleDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"role_definition_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 			},
 
@@ -81,6 +83,15 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
+	if roleDefinitionId == "" {
+		uuid, err := uuid.GenerateUUID()
+		if err != nil {
+			return fmt.Errorf("Error generating UUID for Role Assignment: %+v", err)
+		}
+
+		roleDefinitionId = uuid
+	}
+
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 	description := d.Get("description").(string)

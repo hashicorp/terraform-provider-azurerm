@@ -10,50 +10,48 @@ provider "azurerm" {
   client_id       = "${var.client_id}"
   client_secret   = "${var.client_secret}"
   tenant_id       = "${var.tenant_id}"
-  }
+}
 
 # Create the resource group and assets for first location
 module "location01" {
-  source                = "./tf_modules"
+  source = "./tf_modules"
 
-  location              = "${var.location01_location}"
-  resource_prefix       = "${var.location01_resource_prefix}"
-  webserver_prefix      = "${var.location01_webserver_prefix}"
-  lb_dns_label          = "${var.location01_lb_dns_label}"  
-  
-  instance_count        = "${var.instance_count}"
-  instance_vmprofile    = "${var.instance_vmprofile}"
-
-  image_admin_username  = "${var.image_admin_username}"
-  image_admin_password  = "${var.image_admin_password}"
-
-  image_publisher       = "${var.image_publisher}"
-  image_offer           = "${var.image_offer}"
-  image_sku             = "${var.image_sku}"
-  image_version         = "${var.image_version}"
-  
-}
-
-# Create the resource group and assets for second location
-module "location02" {
-  source             = "./tf_modules"
-
-  location           = "${var.location02_location}"
-  resource_prefix    = "${var.location02_resource_prefix}"
-  webserver_prefix   = "${var.location02_webserver_prefix}"
-  lb_dns_label       = "${var.location02_lb_dns_label}"  
+  location         = "${var.location01_location}"
+  resource_prefix  = "${var.location01_resource_prefix}"
+  webserver_prefix = "${var.location01_webserver_prefix}"
+  lb_dns_label     = "${var.location01_lb_dns_label}"
 
   instance_count     = "${var.instance_count}"
   instance_vmprofile = "${var.instance_vmprofile}"
 
-  image_admin_username  = "${var.image_admin_username}"
-  image_admin_password  = "${var.image_admin_password}"
+  image_admin_username = "${var.image_admin_username}"
+  image_admin_password = "${var.image_admin_password}"
 
-  image_publisher       = "${var.image_publisher}"
-  image_offer           = "${var.image_offer}"
-  image_sku             = "${var.image_sku}"
-  image_version         = "${var.image_version}"
+  image_publisher = "${var.image_publisher}"
+  image_offer     = "${var.image_offer}"
+  image_sku       = "${var.image_sku}"
+  image_version   = "${var.image_version}"
+}
 
+# Create the resource group and assets for second location
+module "location02" {
+  source = "./tf_modules"
+
+  location         = "${var.location02_location}"
+  resource_prefix  = "${var.location02_resource_prefix}"
+  webserver_prefix = "${var.location02_webserver_prefix}"
+  lb_dns_label     = "${var.location02_lb_dns_label}"
+
+  instance_count     = "${var.instance_count}"
+  instance_vmprofile = "${var.instance_vmprofile}"
+
+  image_admin_username = "${var.image_admin_username}"
+  image_admin_password = "${var.image_admin_password}"
+
+  image_publisher = "${var.image_publisher}"
+  image_offer     = "${var.image_offer}"
+  image_sku       = "${var.image_sku}"
+  image_version   = "${var.image_version}"
 }
 
 # Create global resource group

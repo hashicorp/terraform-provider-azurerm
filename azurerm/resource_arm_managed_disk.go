@@ -137,7 +137,7 @@ func resourceArmManagedDiskCreate(d *schema.ResourceData, meta interface{}) erro
 			OsType: compute.OperatingSystemTypes(osType),
 		},
 		Sku: &compute.DiskSku{
-			Name: (skuName),
+			Name: skuName,
 		},
 		Tags:  expandedTags,
 		Zones: zones,

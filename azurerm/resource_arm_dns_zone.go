@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-10-01/dns"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"

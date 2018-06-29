@@ -11,9 +11,9 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_storage_account" "stor" {
-  name                = "${var.resource_group}stor"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  name                     = "${var.resource_group}stor"
+  location                 = "${var.location}"
+  resource_group_name      = "${azurerm_resource_group.rg.name}"
   account_tier             = "${var.storage_account_tier}"
   account_replication_type = "${var.storage_replication_type}"
 }
@@ -26,10 +26,10 @@ resource "azurerm_cdn_profile" "cdn" {
 }
 
 resource "azurerm_cdn_endpoint" "cdnendpt" {
-  name                      = "${var.resource_group}CdnEndpoint1"
-  profile_name              = "${azurerm_cdn_profile.cdn.name}"
-  location                  = "${var.location}"
-  resource_group_name       = "${azurerm_resource_group.rg.name}"
+  name                = "${var.resource_group}CdnEndpoint1"
+  profile_name        = "${azurerm_cdn_profile.cdn.name}"
+  location            = "${var.location}"
+  resource_group_name = "${azurerm_resource_group.rg.name}"
 
   origin {
     name       = "${var.resource_group}Origin1"

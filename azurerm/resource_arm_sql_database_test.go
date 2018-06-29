@@ -265,10 +265,29 @@ func testCheckAzureRMSqlDatabaseDisappears(name string) resource.TestCheckFunc {
 	}
 }
 
+func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccAzureRMSqlDatabase_bacpac(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists("azurerm_sql_database.test"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMSqlDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -297,7 +316,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -331,7 +350,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_withTagsUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -392,7 +411,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_restorePointInTime(rInt int, formattedTime string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -431,7 +450,7 @@ resource "azurerm_sql_database" "test_restore" {
 func testAccAzureRMSqlDatabase_elasticPool(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -471,7 +490,7 @@ resource "azurerm_sql_database" "test" {
 func testAccAzureRMSqlDatabase_collationUpdate(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestRG_%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 
@@ -495,4 +514,74 @@ resource "azurerm_sql_database" "test" {
     requested_service_objective_name = "S0"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMSqlDatabase_bacpac(rInt int, location string) string {
+	return fmt.Sprintf(`
+		resource "azurerm_resource_group" "test" {
+			name     = "acctestRG_%d"
+			location = "%s"
+		}
+		
+		resource "azurerm_storage_account" "test" {
+			name                     = "accsa%d"
+			resource_group_name      = "${azurerm_resource_group.test.name}"
+			location                 = "${azurerm_resource_group.test.location}"
+			account_tier             = "Standard"
+			account_replication_type = "LRS"
+		}
+		
+		resource "azurerm_storage_container" "test" {
+			name                  = "bacpac"
+			resource_group_name   = "${azurerm_resource_group.test.name}"
+			storage_account_name  = "${azurerm_storage_account.test.name}"
+			container_access_type = "private"
+		}
+		
+		resource "azurerm_storage_blob" "test" {
+			name                   = "test.bacpac"
+			resource_group_name    = "${azurerm_resource_group.test.name}"
+			storage_account_name   = "${azurerm_storage_account.test.name}"
+			storage_container_name = "${azurerm_storage_container.test.name}"
+			type                   = "block"
+			source                 = "testdata/sql_import.bacpac"
+		}
+		
+		resource "azurerm_sql_server" "test" {
+			name                         = "acctestsqlserver%d"
+			resource_group_name          = "${azurerm_resource_group.test.name}"
+			location                     = "${azurerm_resource_group.test.location}"
+			version                      = "12.0"
+			administrator_login          = "mradministrator"
+			administrator_login_password = "thisIsDog11"
+		}
+		
+		resource "azurerm_sql_firewall_rule" "test" {
+			name                = "allowazure"
+			resource_group_name = "${azurerm_resource_group.test.name}"
+			server_name         = "${azurerm_sql_server.test.name}"
+			start_ip_address    = "0.0.0.0"
+			end_ip_address      = "0.0.0.0"
+		}
+		
+		resource "azurerm_sql_database" "test" {
+			name                             = "acctestdb%d"
+			resource_group_name              = "${azurerm_resource_group.test.name}"
+			server_name                      = "${azurerm_sql_server.test.name}"
+			location                         = "${azurerm_resource_group.test.location}"
+			edition                          = "Standard"
+			collation                        = "SQL_Latin1_General_CP1_CI_AS"
+			max_size_bytes                   = "1073741824"
+			requested_service_objective_name = "S0"
+		
+			import {
+				storage_uri                  = "${azurerm_storage_blob.test.url}"
+				storage_key                  = "${azurerm_storage_account.test.primary_access_key}"
+				storage_key_type             = "StorageAccessKey"
+				administrator_login          = "${azurerm_sql_server.test.administrator_login}"
+				administrator_login_password = "${azurerm_sql_server.test.administrator_login_password}"
+				authentication_type          = "SQL"
+			}
+		}
+		`, rInt, location, rInt, rInt, rInt)
 }

@@ -144,21 +144,21 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 	future, err := client.Create(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error waiting for creation of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Container Registry %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read Container Registry %q (resource group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -205,14 +205,17 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	future, err := client.Update(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return fmt.Errorf("Error waiting for update of Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -238,11 +241,12 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Container Registry %q was not found in Resource Group %q", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure Container Registry %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)

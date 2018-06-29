@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_application_gateway"
+page_title: "Azure Resource Manager: azurerm_application_gateway"
 sidebar_current: "docs-azurerm-resource-application-gateway"
 description: |-
-  Manages a new application gateway based on a previously created virtual network with configured subnets.
+  Manages a application gateway based on a previously created virtual network with configured subnets.
 ---
 
 # azurerm_application_gateway
 
-Manages a new application gateway based on a previously created virtual network with configured subnets.
+Manages a application gateway based on a previously created virtual network with configured subnets.
 
 ## Example Usage
 
@@ -217,8 +217,8 @@ The `backend_http_settings` block supports:
 * `probe_name` - (Optional) Reference to URL probe.
 
 * `authentication_certificate` - (Optional) - A list of `authentication_certificate` references for the `backend_http_setting` to use. Each element consists of:
-  
-  * `name` (Required) 
+
+  * `name` (Required)
   * `id` (Calculated)
 
 The `http_listener` block supports:
@@ -261,6 +261,11 @@ The `probe` block supports:
 * `timeout` - (Required) Probe timeout in seconds. Probe marked as failed if valid response is not received with this timeout period. Minimum 1 second and Maximum 86,400 secs.
 
 * `unhealthy_threshold` - (Required) Probe retry count. Backend server is marked down after consecutive probe failure count reaches UnhealthyThreshold. Minimum 1 second and Maximum 20.
+
+* `match` - (Optional) Probe health response match. 
+
+  * `body` - (Optional) Body that must be contained in the health response. Defaults to "*"
+  * `status_code` - (Optional) Allowed health response status codes.
 
 The `request_routing_rule` block supports:
 
