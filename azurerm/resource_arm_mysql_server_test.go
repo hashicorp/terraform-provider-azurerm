@@ -327,7 +327,7 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 1048576,
+    storage_mb = 4194304,
     backup_retention_days = 7
     geo_redundant_backup = "Enabled"
   }

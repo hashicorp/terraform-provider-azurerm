@@ -56,6 +56,28 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
+	resourceName := "azurerm_postgresql_server.test"
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLServer_basicTenPointZero(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+					resource.TestCheckResourceAttr(resourceName, "version", "10.0"),
+					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMPostgreSQLServer_basicMaxStorage(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
@@ -299,6 +321,39 @@ resource "azurerm_postgresql_server" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMPostgreSQLServer_basicTenPointZero(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "B_Gen4_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.0"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
 func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedPassword(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -452,7 +507,7 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 1048576
+    storage_mb = 4194304
     backup_retention_days = 7
     geo_redundant_backup = "Enabled"
   }
