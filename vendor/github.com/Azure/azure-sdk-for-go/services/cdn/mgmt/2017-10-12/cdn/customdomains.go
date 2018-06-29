@@ -85,7 +85,7 @@ func (client CustomDomainsClient) CreatePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +170,7 @@ func (client CustomDomainsClient) DeletePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -259,7 +259,7 @@ func (client CustomDomainsClient) DisableCustomHTTPSPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -338,7 +338,7 @@ func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -417,7 +417,7 @@ func (client CustomDomainsClient) GetPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -495,7 +495,7 @@ func (client CustomDomainsClient) ListByEndpointPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
