@@ -1,4 +1,9 @@
 ## 1.9.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
+
 ## 1.8.0 (June 28, 2018)
 
 FEATURES:
