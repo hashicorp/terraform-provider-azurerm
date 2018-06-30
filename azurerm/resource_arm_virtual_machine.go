@@ -430,8 +430,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 										Required: true,
 									},
 									"content": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:      schema.TypeString,
+										Required:  true,
+										Sensitive: true,
 									},
 								},
 							},
