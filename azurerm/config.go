@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2017-03-01/apimanagement"
 	appinsights "github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
@@ -105,6 +106,9 @@ type ArmClient struct {
 	redisClient               redis.Client
 	redisFirewallClient       redis.FirewallRulesClient
 	redisPatchSchedulesClient redis.PatchSchedulesClient
+
+	// API Management
+	apiManagementServiceClient apimanagement.ServiceClient
 
 	// Application Insights
 	appInsightsClient appinsights.ComponentsClient
@@ -448,6 +452,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 		return keyVaultSpt, nil
 	})
 
+	client.registerApiManagementServiceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAppInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAutomationClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerAuthentication(endpoint, graphEndpoint, c.SubscriptionID, c.TenantID, auth, graphAuth, sender)
@@ -485,6 +490,15 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
+}
+
+func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	ams := apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&ams.Client)
+	ams.Authorizer = auth
+	ams.Sender = sender
+	ams.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.apiManagementServiceClient = ams
 }
 
 func (c *ArmClient) registerAppInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
