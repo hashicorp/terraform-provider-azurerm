@@ -80,6 +80,7 @@ func Provider() terraform.ResourceProvider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"azurerm_azuread_application":                   dataSourceArmAzureADApplication(),
 			"azurerm_azuread_service_principal":             dataSourceArmActiveDirectoryServicePrincipal(),
+			"azurerm_api_management_service":                dataSourceApiManagementService(),
 			"azurerm_application_security_group":            dataSourceArmApplicationSecurityGroup(),
 			"azurerm_app_service":                           dataSourceArmAppService(),
 			"azurerm_app_service_plan":                      dataSourceAppServicePlan(),
