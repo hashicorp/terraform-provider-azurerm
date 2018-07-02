@@ -262,6 +262,56 @@ func TestAccAzureRMCosmosDBAccount_mongoDB(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_gremlin(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_gremlin(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCosmosDBAccount_table(t *testing.T) {
+	ri := acctest.RandInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_table(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 1),
+					resource.TestCheckResourceAttr(resourceName, "kind", "GlobalDocumentDB"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAbcAzureRMCosmosDBAccount_updatePropertiesAndLocation(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -477,7 +527,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level = "%s"
-	%s
+    %s
   }
 
   geo_location {
@@ -501,6 +551,26 @@ func testAccAzureRMCosmosDBAccount_boundedStaleness_complete(rInt int, location 
 func testAccAzureRMCosmosDBAccount_mongoDB(rInt int, location string) string {
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
         kind = "MongoDB"
+    `)
+}
+
+func testAccAzureRMCosmosDBAccount_gremlin(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
+        kind = "GlobalDocumentDB"
+ 
+        capabilities = {
+          name = "EnableGremlin"
+        }
+    `)
+}
+
+func testAccAzureRMCosmosDBAccount_table(rInt int, location string) string {
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", `
+        kind = "GlobalDocumentDB"
+
+        capabilities = {
+          name = "EnableTable"
+        }
     `)
 }
 
