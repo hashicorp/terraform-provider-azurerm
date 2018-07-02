@@ -457,6 +457,29 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
+
+						"match": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"body": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "*",
+									},
+
+									"status_code": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1162,6 +1185,22 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 			},
 		}
 
+		matchConfigs := data["match"].([]interface{})
+		if len(matchConfigs) > 0 {
+			match := matchConfigs[0].(map[string]interface{})
+			matchBody := match["body"].(string)
+
+			statusCodes := make([]string, 0)
+			for _, statusCode := range match["status_code"].([]interface{}) {
+				statusCodes = append(statusCodes, statusCode.(string))
+			}
+
+			setting.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
+				Body:        &matchBody,
+				StatusCodes: &statusCodes,
+			}
+		}
+
 		backendSettings = append(backendSettings, setting)
 	}
 
@@ -1607,6 +1646,22 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 
 				if threshold := props.UnhealthyThreshold; threshold != nil {
 					settings["unhealthy_threshold"] = int(*threshold)
+				}
+
+				if match := props.Match; match != nil {
+					matchConfig := map[string]interface{}{}
+					if body := match.Body; body != nil {
+						matchConfig["body"] = *body
+					}
+
+					statusCodes := make([]interface{}, 0)
+					if match.StatusCodes != nil {
+						for _, status := range *match.StatusCodes {
+							statusCodes = append(statusCodes, status)
+						}
+						matchConfig["status_code"] = statusCodes
+					}
+					settings["match"] = matchConfig
 				}
 			}
 

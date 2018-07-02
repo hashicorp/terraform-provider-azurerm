@@ -86,12 +86,20 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, true),
+								string(compute.ResourceIdentityTypeSystemAssigned),
+								string(compute.ResourceIdentityTypeUserAssigned),
+							}, false),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -430,8 +438,9 @@ func resourceArmVirtualMachine() *schema.Resource {
 										Required: true,
 									},
 									"content": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:      schema.TypeString,
+										Required:  true,
+										Sensitive: true,
 									},
 								},
 							},
@@ -955,6 +964,14 @@ func flattenAzureRmVirtualMachineIdentity(identity *compute.VirtualMachineIdenti
 		result["principal_id"] = *identity.PrincipalID
 	}
 
+	identity_ids := make([]string, 0)
+	if identity.IdentityIds != nil {
+		for _, id := range *identity.IdentityIds {
+			identity_ids = append(identity_ids, id)
+		}
+	}
+	result["identity_ids"] = identity_ids
+
 	return []interface{}{result}
 }
 
@@ -1181,10 +1198,22 @@ func expandAzureRmVirtualMachineIdentity(d *schema.ResourceData) *compute.Virtua
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
-	return &compute.VirtualMachineIdentity{
-		Type: compute.ResourceIdentityType(identityType),
+	identityType := compute.ResourceIdentityType(identity["type"].(string))
+
+	identityIds := []string{}
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds = append(identityIds, id.(string))
 	}
+
+	vmIdentity := compute.VirtualMachineIdentity{
+		Type: identityType,
+	}
+
+	if vmIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+		vmIdentity.IdentityIds = &identityIds
+	}
+
+	return &vmIdentity
 }
 
 func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSProfile, error) {

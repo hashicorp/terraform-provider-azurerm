@@ -2,94 +2,98 @@ package validate
 
 import "testing"
 
-func TestHelper_Validate_Ip4Address(t *testing.T) {
+func TestIP4Address(t *testing.T) {
 	cases := []struct {
-		Ip     string
+		IP     string
 		Errors int
 	}{
 		{
-			Ip:     "",
+			IP:     "",
 			Errors: 1,
 		},
 		{
-			Ip:     "0.0.0.0",
+			IP:     "0.0.0.0",
 			Errors: 0,
 		},
 		{
-			Ip:     "1.2.3.no",
+			IP:     "1.2.3.no",
 			Errors: 1,
 		},
 		{
-			Ip:     "text",
+			IP:     "text",
 			Errors: 1,
 		},
 		{
-			Ip:     "1.2.3.4",
+			IP:     "1.2.3.4",
 			Errors: 0,
 		},
 		{
-			Ip:     "12.34.43.21",
+			IP:     "12.34.43.21",
 			Errors: 0,
 		},
 		{
-			Ip:     "100.123.199.0",
+			IP:     "100.123.199.0",
 			Errors: 0,
 		},
 		{
-			Ip:     "255.255.255.255",
+			IP:     "255.255.255.255",
 			Errors: 0,
 		},
 	}
 
 	for _, tc := range cases {
-		_, errors := Ip4Address(tc.Ip, "test")
+		t.Run(tc.IP, func(t *testing.T) {
+			_, errors := IP4Address(tc.IP, "test")
 
-		if len(errors) < tc.Errors {
-			t.Fatalf("Expected Ip4Address to have an error for %q", tc.Ip)
-		}
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected IP4Address to return %d error(s) not %d", len(errors), tc.Errors)
+			}
+		})
 	}
 }
 
-func TestHelper_Validate_MacAddress(t *testing.T) {
+func TestMACAddress(t *testing.T) {
 	cases := []struct {
-		Ip     string
+		MAC    string
 		Errors int
 	}{
 		{
-			Ip:     "",
+			MAC:    "",
 			Errors: 1,
 		},
 		{
-			Ip:     "text",
+			MAC:    "text d",
 			Errors: 1,
 		},
 		{
-			Ip:     "12:34:no",
+			MAC:    "12:34:no",
 			Errors: 1,
 		},
 		{
-			Ip:     "123:34:56:78:90:ab",
+			MAC:    "123:34:56:78:90:ab",
 			Errors: 1,
 		},
 		{
-			Ip:     "12:34:56:78:90:NO",
+			MAC:    "12:34:56:78:90:NO",
 			Errors: 1,
 		},
 		{
-			Ip:     "12:34:56:78:90:ab",
+			MAC:    "12:34:56:78:90:ab",
 			Errors: 0,
 		},
 		{
-			Ip:     "ab:cd:ef:AB:CD:EF",
+			MAC:    "ab:cd:ef:AB:CD:EF",
 			Errors: 0,
 		},
 	}
 
 	for _, tc := range cases {
-		_, errors := MacAddress(tc.Ip, "test")
+		t.Run(tc.MAC, func(t *testing.T) {
+			_, errors := MACAddress(tc.MAC, "test")
 
-		if len(errors) < tc.Errors {
-			t.Fatalf("Expected MacAddress to have an error for %q", tc.Ip)
-		}
+			if len(errors) != tc.Errors {
+				t.Fatalf("Expected MACAddress to return %d error(s) not %d", len(errors), tc.Errors)
+			}
+		})
 	}
 }
