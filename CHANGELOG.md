@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating the `containerservice` SDK to `2018-03-31` to support AKS GA [GH-1474]
 * `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
 * `azurerm_dns_zone` - support for Private DNS Zones [GH-1404]
