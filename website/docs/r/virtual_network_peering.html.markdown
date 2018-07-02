@@ -97,9 +97,9 @@ resource "azurerm_virtual_network_peering" "peering" {
   remote_virtual_network_id    = "${element(azurerm_virtual_network.vnet.*.id, 1 - count.index)}"
   allow_virtual_network_access = true
   allow_forwarded_traffic      = true
-  allow_gateway_transit        = false                                                                         # must be set to false for vnet Global Peering
+  # `allow_gateway_transit` must be set to false for vnet Global Peering
+  allow_gateway_transit        = false
 }
-
 ```
 
 ## Argument Reference
@@ -130,12 +130,13 @@ The following arguments are supported:
     remote virtual network’s link to the local virtual network.
 
 * `use_remote_gateways` - (Optional) Controls if remote gateways can be used on
-    the local virtual network. If the flag is set to true, and
-    allowGatewayTransit on the remote peering is also true, virtual network will
+    the local virtual network. If the flag is set to `true`, and
+    `allow_gateway_transit` on the remote peering is also `true`, virtual network will
     use gateways of remote virtual network for transit. Only one peering can
-    have this flag set to true. This flag cannot be set if virtual network
-    already has a gateway. Defaults to false. For global virtual network peering 
-    this setting must be set to false. 
+    have this flag set to `true`. This flag cannot be set if virtual network
+    already has a gateway. Defaults to `false`.
+
+-> **NOTE:** `use_remote_gateways` must be set to `false` if using Global Virtual Network Peerings.
 
 ## Attributes Reference
 
