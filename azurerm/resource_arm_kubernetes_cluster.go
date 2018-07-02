@@ -220,21 +220,25 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Default:  "azure",
 							Optional: true,
-						},
-
-						"dns_service_ip": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"docker_bridge_cidr": {
-							Type:     schema.TypeString,
-							Required: true,
+							ForceNew: true,
 						},
 
 						"service_cidr": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
+						},
+
+						"dns_service_ip": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+
+						"docker_bridge_cidr": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
 						},
 
 						"pod_cidr": {
