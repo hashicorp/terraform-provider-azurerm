@@ -53,8 +53,7 @@ func resourceArmDnsZone() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(dns.Private),
 					string(dns.Public),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				}, false),
 			},
 
 			"registration_virtual_network_ids": {
