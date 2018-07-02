@@ -368,6 +368,10 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	if networkProfile := resp.NetworkProfile; networkProfile != nil {
+		d.Set("network_profile", flattenAzureRmKubernetesClusterNetworkProfile(resp.NetworkProfile))
+	}
+
 	kubeConfigRaw, kubeConfig := flattenAzureRmKubernetesClusterAccessProfile(&profile)
 	d.Set("kube_config_raw", kubeConfigRaw)
 
@@ -511,6 +515,18 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 		}
 	}
 	return nil, []interface{}{}
+}
+
+func flattenAzureRmKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfile) []interface{} {
+	values := make(map[string]interface{})
+
+	values["network_plugin"] = profile.NetworkPlugin
+	values["service_cidr"] = profile.ServiceCidr
+	values["dns_service_ip"] = profile.DNSServiceIP
+	values["docker_bridge_cidr"] = profile.DockerBridgeCidr
+	values["pod_cidr"] = profile.PodCidr
+
+	return []interface{}{values}
 }
 
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
