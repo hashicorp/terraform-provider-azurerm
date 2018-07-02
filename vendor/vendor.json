@@ -59,7 +59,7 @@
 			"versionExact": "v17.4.0"
 		},
 		{
-			"checksumSHA1": "xPqRAsuso4gp81HrMH1RnhbzfCk=",
+			"checksumSHA1": "BwC5MjJVKWsuReAvdMR4Fk1JNh0=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb",
 			"revision": "7971189ecf5a584b9211f2527737f94bb979644e",
 			"revisionTime": "2018-06-19T23:05:49Z",
