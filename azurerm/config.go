@@ -31,6 +31,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/2015-11-01-preview/operationsmanagement"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -148,6 +149,9 @@ type ArmClient struct {
 
 	// Monitor
 	monitorAlertRulesClient insights.AlertRulesClient
+
+	// MSI
+	userAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
 
 	// Networking
 	applicationGatewayClient        network.ApplicationGatewaysClient
@@ -792,6 +796,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	subnetsClient := network.NewSubnetsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&subnetsClient.Client, auth)
 	c.subnetClient = subnetsClient
+
+	userAssignedIdentitiesClient := msi.NewUserAssignedIdentitiesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&userAssignedIdentitiesClient.Client, auth)
+	c.userAssignedIdentitiesClient = userAssignedIdentitiesClient
 
 	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&watchersClient.Client, auth)
