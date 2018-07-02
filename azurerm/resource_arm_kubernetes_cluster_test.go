@@ -189,6 +189,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworking_azurePlugin(t *testing.T
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
+					resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_plugin", "azure"),
 				),
 			},
 		},
@@ -210,6 +211,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworking_kubenetPlugin(t *testing
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
+					resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_plugin", "kubenet"),
 				),
 			},
 		},
@@ -493,7 +495,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 	}
 	
   network_profile {
-    network_policy     = "kubenet"
+    network_plugin     = "kubenet"
     pod_cidr           = "10.244.0.0/24"
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
