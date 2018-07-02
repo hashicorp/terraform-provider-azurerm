@@ -161,14 +161,9 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
 	namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
-	namespace, nsErr := namespacesClient.Get(ctx, resourceGroup, namespaceName)
-	if nsErr != nil {
-		return nsErr
-	}
-
-	// In a Premium tier namespace, partitioning entities is not supported.
-	if namespace.Sku.Name == servicebus.Premium && d.Get("enable_partitioning").(bool) {
-		return fmt.Errorf("ServiceBus Queue (%s) does not support Partitioning enabled for Premium SKU", name)
+	namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
+	if err != nil {
+		return fmt.Errorf("Error retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
 	}
 
 	// Enforce Premium namespace to have Express Entities disabled in Terraform since they are not supported for
