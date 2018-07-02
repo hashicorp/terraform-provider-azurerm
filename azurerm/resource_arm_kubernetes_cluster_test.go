@@ -431,7 +431,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
 	}
 	
-	network_profile {
+  network_profile {
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
     service_cidr       = "10.10.0.0/16"
@@ -492,9 +492,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
 	}
 	
-	network_profile {
-		network_policy     = "kubenet"
-		pod_cidr           = "10.244.0.0/24"
+  network_profile {
+    network_policy     = "kubenet"
+    pod_cidr           = "10.244.0.0/24"
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
     service_cidr       = "10.10.0.0/16"
