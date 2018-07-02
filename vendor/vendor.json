@@ -54,7 +54,9 @@
 			"checksumSHA1": "YeeOckwfu556W2qPAIiulzeyelg=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice",
 			"revision": "7971189ecf5a584b9211f2527737f94bb979644e",
-			"revisionTime": "2018-06-19T23:05:49Z"
+			"revisionTime": "2018-06-19T23:05:49Z",
+			"version": "=v17.4.0",
+			"versionExact": "v17.4.0"
 		},
 		{
 			"checksumSHA1": "BwC5MjJVKWsuReAvdMR4Fk1JNh0=",
