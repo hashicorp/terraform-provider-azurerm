@@ -214,7 +214,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 
 			// if the topic is in a premium namespace and partitioning is enabled then the
 			// max size returned by the API will be 16 times greater than the value set
-			if *props.EnablePartitioning {
+			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
 				namespacesClient := meta.(*ArmClient).serviceBusNamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
