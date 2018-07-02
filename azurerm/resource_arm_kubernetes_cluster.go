@@ -210,7 +210,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"network_profile": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -607,12 +607,11 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 }
 
 func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfile {
-	value, exists := d.GetOk("network_profile")
-	if !exists {
+	configs := d.Get("network_profile").([]interface{})
+	if len(configs) == 0 {
 		return nil
 	}
 
-	configs := value.(*schema.Set).List()
 	config := configs[0].(map[string]interface{})
 
 	dnsServiceIp := config["dns_service_ip"].(string)
