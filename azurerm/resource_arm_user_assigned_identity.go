@@ -12,18 +12,15 @@ import (
 
 func resourceArmUserAssignedIdentity() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmUserAssignedIdentityCreate,
+		Create: resourceArmUserAssignedIdentityCreateUpdate,
 		Read:   resourceArmUserAssignedIdentityRead,
-		Update: resourceArmUserAssignedIdentityCreate,
+		Update: resourceArmUserAssignedIdentityCreateUpdate,
 		Delete: resourceArmUserAssignedIdentityDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
-			"location":            locationSchema(),
-
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -31,44 +28,48 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 				ValidateFunc: validation.StringLenBetween(1, 24),
 			},
 
+			"resource_group_name": resourceGroupNameSchema(),
+
+			"location": locationSchema(),
+
+			"tags": tagsSchema(),
+
 			"principal_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"tags": tagsSchema(),
 		},
 	}
 }
 
-func resourceArmUserAssignedIdentityCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).userAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM user identity creation.")
 
-	resourceName := d.Get("name").(string)
+	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	identity := msi.Identity{
-		Name:     &resourceName,
+		Name:     &name,
 		Location: &location,
 		Tags:     expandTags(tags),
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, resourceName, identity)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, identity)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating User Assigned Identity %q (Resource Group %q): %+v", resourceName, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, resourceName)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read User Assigned Identity %q ID (resource group %q) ID", resourceName, resGroup)
+		return fmt.Errorf("Cannot read User Assigned Identity %q ID (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -84,26 +85,27 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	resourceName := id.Path["userAssignedIdentities"]
 
-	resp, err := client.Get(ctx, resGroup, resourceName)
+	resGroup := id.ResourceGroup
+	name := id.Path["userAssignedIdentities"]
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on User Assigned Identity %q (Resource Group %q): %+v", resourceName, resGroup, err)
+		return fmt.Errorf("Error making Read request on User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	if resp.IdentityProperties == nil || resp.IdentityProperties.PrincipalID == nil {
-		return fmt.Errorf("Error PrincipalID can't be null for User Assigned Identity %q (Resource Group %q): %+v", resourceName, resGroup, err)
-	}
-
+	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", resp.Location)
-	d.Set("name", resp.Name)
-	d.Set("principal_id", resp.IdentityProperties.PrincipalID.String())
+
+	if props := resp.IdentityProperties; props != nil {
+		if principalId := props.PrincipalID; principalId != nil {
+			d.Set("principal_id", principalId.String())
+		}
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -118,12 +120,13 @@ func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	resourceName := id.Path["userAssignedIdentities"]
 
-	_, err = client.Delete(ctx, resGroup, resourceName)
+	resGroup := id.ResourceGroup
+	name := id.Path["userAssignedIdentities"]
+
+	_, err = client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting User Assigned Identity %q (Resource Group %q): %+v", resourceName, resGroup, err)
+		return fmt.Errorf("Error deleting User Assigned Identity %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
