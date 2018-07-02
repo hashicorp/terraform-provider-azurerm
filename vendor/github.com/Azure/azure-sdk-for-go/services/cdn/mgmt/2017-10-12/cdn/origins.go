@@ -87,7 +87,7 @@ func (client OriginsClient) GetPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -165,7 +165,7 @@ func (client OriginsClient) ListByEndpointPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -266,7 +266,7 @@ func (client OriginsClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-04-02"
+	const APIVersion = "2017-10-12"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

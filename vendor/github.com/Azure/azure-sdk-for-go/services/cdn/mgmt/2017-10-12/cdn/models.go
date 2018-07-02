@@ -25,6 +25,23 @@ import (
 	"net/http"
 )
 
+// CacheBehavior enumerates the values for cache behavior.
+type CacheBehavior string
+
+const (
+	// BypassCache ...
+	BypassCache CacheBehavior = "BypassCache"
+	// Override ...
+	Override CacheBehavior = "Override"
+	// SetIfMissing ...
+	SetIfMissing CacheBehavior = "SetIfMissing"
+)
+
+// PossibleCacheBehaviorValues returns an array of possible values for the CacheBehavior const type.
+func PossibleCacheBehaviorValues() []CacheBehavior {
+	return []CacheBehavior{BypassCache, Override, SetIfMissing}
+}
+
 // CustomDomainResourceState enumerates the values for custom domain resource state.
 type CustomDomainResourceState string
 
@@ -130,6 +147,53 @@ const (
 // PossibleGeoFilterActionsValues returns an array of possible values for the GeoFilterActions const type.
 func PossibleGeoFilterActionsValues() []GeoFilterActions {
 	return []GeoFilterActions{Allow, Block}
+}
+
+// MatchType enumerates the values for match type.
+type MatchType string
+
+const (
+	// Literal ...
+	Literal MatchType = "Literal"
+	// Wildcard ...
+	Wildcard MatchType = "Wildcard"
+)
+
+// PossibleMatchTypeValues returns an array of possible values for the MatchType const type.
+func PossibleMatchTypeValues() []MatchType {
+	return []MatchType{Literal, Wildcard}
+}
+
+// Name enumerates the values for name.
+type Name string
+
+const (
+	// NameCacheExpiration ...
+	NameCacheExpiration Name = "CacheExpiration"
+	// NameDeliveryRuleAction ...
+	NameDeliveryRuleAction Name = "DeliveryRuleAction"
+)
+
+// PossibleNameValues returns an array of possible values for the Name const type.
+func PossibleNameValues() []Name {
+	return []Name{NameCacheExpiration, NameDeliveryRuleAction}
+}
+
+// NameBasicDeliveryRuleCondition enumerates the values for name basic delivery rule condition.
+type NameBasicDeliveryRuleCondition string
+
+const (
+	// NameDeliveryRuleCondition ...
+	NameDeliveryRuleCondition NameBasicDeliveryRuleCondition = "DeliveryRuleCondition"
+	// NameURLFileExtension ...
+	NameURLFileExtension NameBasicDeliveryRuleCondition = "UrlFileExtension"
+	// NameURLPath ...
+	NameURLPath NameBasicDeliveryRuleCondition = "UrlPath"
+)
+
+// PossibleNameBasicDeliveryRuleConditionValues returns an array of possible values for the NameBasicDeliveryRuleCondition const type.
+func PossibleNameBasicDeliveryRuleConditionValues() []NameBasicDeliveryRuleCondition {
+	return []NameBasicDeliveryRuleCondition{NameDeliveryRuleCondition, NameURLFileExtension, NameURLPath}
 }
 
 // OptimizationType enumerates the values for optimization type.
@@ -240,6 +304,17 @@ const (
 // PossibleSkuNameValues returns an array of possible values for the SkuName const type.
 func PossibleSkuNameValues() []SkuName {
 	return []SkuName{CustomVerizon, PremiumVerizon, StandardAkamai, StandardChinaCdn, StandardVerizon}
+}
+
+// CacheExpirationActionParameters defines the parameters for the cache expiration action.
+type CacheExpirationActionParameters struct {
+	OdataType *string `json:"@odata.type,omitempty"`
+	// CacheBehavior - Caching behavior for the requests that include query strings. Possible values include: 'BypassCache', 'Override', 'SetIfMissing'
+	CacheBehavior CacheBehavior `json:"cacheBehavior,omitempty"`
+	// CacheType - The level at which the content needs to be cached.
+	CacheType *string `json:"cacheType,omitempty"`
+	// CacheDuration - The duration for which the the content needs to be cached. Allowed format is [d.]hh:mm:ss
+	CacheDuration *string `json:"cacheDuration,omitempty"`
 }
 
 // CheckNameAvailabilityInput input of CheckNameAvailability API.
@@ -630,6 +705,332 @@ type DeepCreatedOriginProperties struct {
 	HTTPPort *int32 `json:"httpPort,omitempty"`
 	// HTTPSPort - The value of the HTTPS port. Must be between 1 and 65535
 	HTTPSPort *int32 `json:"httpsPort,omitempty"`
+}
+
+// DeliveryRule a rule that specifies a set of actions and conditions
+type DeliveryRule struct {
+	// Order - The order in which the rules are applied for the endpoint. Possible values {0,1,2,3,………}. A rule with a lesser order will be applied before a rule with a greater order. Rule with order 0 is a special rule. It does not require any condition and actions listed in it will always be applied.
+	Order *int32 `json:"order,omitempty"`
+	// Actions - A list of actions that are executed when all the conditions of a rule are satisfied.
+	Actions *[]BasicDeliveryRuleAction `json:"actions,omitempty"`
+	// Conditions - A list of conditions that must be matched for the actions to be executed
+	Conditions *[]BasicDeliveryRuleCondition `json:"conditions,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for DeliveryRule struct.
+func (dr *DeliveryRule) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "order":
+			if v != nil {
+				var order int32
+				err = json.Unmarshal(*v, &order)
+				if err != nil {
+					return err
+				}
+				dr.Order = &order
+			}
+		case "actions":
+			if v != nil {
+				actions, err := unmarshalBasicDeliveryRuleActionArray(*v)
+				if err != nil {
+					return err
+				}
+				dr.Actions = &actions
+			}
+		case "conditions":
+			if v != nil {
+				conditions, err := unmarshalBasicDeliveryRuleConditionArray(*v)
+				if err != nil {
+					return err
+				}
+				dr.Conditions = &conditions
+			}
+		}
+	}
+
+	return nil
+}
+
+// BasicDeliveryRuleAction an action for the delivery rule.
+type BasicDeliveryRuleAction interface {
+	AsDeliveryRuleCacheExpirationAction() (*DeliveryRuleCacheExpirationAction, bool)
+	AsDeliveryRuleAction() (*DeliveryRuleAction, bool)
+}
+
+// DeliveryRuleAction an action for the delivery rule.
+type DeliveryRuleAction struct {
+	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameCacheExpiration'
+	Name Name `json:"name,omitempty"`
+}
+
+func unmarshalBasicDeliveryRuleAction(body []byte) (BasicDeliveryRuleAction, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["name"] {
+	case string(NameCacheExpiration):
+		var drcea DeliveryRuleCacheExpirationAction
+		err := json.Unmarshal(body, &drcea)
+		return drcea, err
+	default:
+		var dra DeliveryRuleAction
+		err := json.Unmarshal(body, &dra)
+		return dra, err
+	}
+}
+func unmarshalBasicDeliveryRuleActionArray(body []byte) ([]BasicDeliveryRuleAction, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	draArray := make([]BasicDeliveryRuleAction, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		dra, err := unmarshalBasicDeliveryRuleAction(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		draArray[index] = dra
+	}
+	return draArray, nil
+}
+
+// MarshalJSON is the custom marshaler for DeliveryRuleAction.
+func (dra DeliveryRuleAction) MarshalJSON() ([]byte, error) {
+	dra.Name = NameDeliveryRuleAction
+	objectMap := make(map[string]interface{})
+	if dra.Name != "" {
+		objectMap["name"] = dra.Name
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsDeliveryRuleCacheExpirationAction is the BasicDeliveryRuleAction implementation for DeliveryRuleAction.
+func (dra DeliveryRuleAction) AsDeliveryRuleCacheExpirationAction() (*DeliveryRuleCacheExpirationAction, bool) {
+	return nil, false
+}
+
+// AsDeliveryRuleAction is the BasicDeliveryRuleAction implementation for DeliveryRuleAction.
+func (dra DeliveryRuleAction) AsDeliveryRuleAction() (*DeliveryRuleAction, bool) {
+	return &dra, true
+}
+
+// AsBasicDeliveryRuleAction is the BasicDeliveryRuleAction implementation for DeliveryRuleAction.
+func (dra DeliveryRuleAction) AsBasicDeliveryRuleAction() (BasicDeliveryRuleAction, bool) {
+	return &dra, true
+}
+
+// DeliveryRuleCacheExpirationAction defines the cache expiration action for the delivery rule.
+type DeliveryRuleCacheExpirationAction struct {
+	// Parameters - Defines the parameters for the action.
+	Parameters *CacheExpirationActionParameters `json:"parameters,omitempty"`
+	// Name - Possible values include: 'NameDeliveryRuleAction', 'NameCacheExpiration'
+	Name Name `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeliveryRuleCacheExpirationAction.
+func (drcea DeliveryRuleCacheExpirationAction) MarshalJSON() ([]byte, error) {
+	drcea.Name = NameCacheExpiration
+	objectMap := make(map[string]interface{})
+	if drcea.Parameters != nil {
+		objectMap["parameters"] = drcea.Parameters
+	}
+	if drcea.Name != "" {
+		objectMap["name"] = drcea.Name
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsDeliveryRuleCacheExpirationAction is the BasicDeliveryRuleAction implementation for DeliveryRuleCacheExpirationAction.
+func (drcea DeliveryRuleCacheExpirationAction) AsDeliveryRuleCacheExpirationAction() (*DeliveryRuleCacheExpirationAction, bool) {
+	return &drcea, true
+}
+
+// AsDeliveryRuleAction is the BasicDeliveryRuleAction implementation for DeliveryRuleCacheExpirationAction.
+func (drcea DeliveryRuleCacheExpirationAction) AsDeliveryRuleAction() (*DeliveryRuleAction, bool) {
+	return nil, false
+}
+
+// AsBasicDeliveryRuleAction is the BasicDeliveryRuleAction implementation for DeliveryRuleCacheExpirationAction.
+func (drcea DeliveryRuleCacheExpirationAction) AsBasicDeliveryRuleAction() (BasicDeliveryRuleAction, bool) {
+	return &drcea, true
+}
+
+// BasicDeliveryRuleCondition a condition for the delivery rule.
+type BasicDeliveryRuleCondition interface {
+	AsDeliveryRuleURLPathCondition() (*DeliveryRuleURLPathCondition, bool)
+	AsDeliveryRuleURLFileExtensionCondition() (*DeliveryRuleURLFileExtensionCondition, bool)
+	AsDeliveryRuleCondition() (*DeliveryRuleCondition, bool)
+}
+
+// DeliveryRuleCondition a condition for the delivery rule.
+type DeliveryRuleCondition struct {
+	// Name - Possible values include: 'NameDeliveryRuleCondition', 'NameURLPath', 'NameURLFileExtension'
+	Name NameBasicDeliveryRuleCondition `json:"name,omitempty"`
+}
+
+func unmarshalBasicDeliveryRuleCondition(body []byte) (BasicDeliveryRuleCondition, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["name"] {
+	case string(NameURLPath):
+		var drupc DeliveryRuleURLPathCondition
+		err := json.Unmarshal(body, &drupc)
+		return drupc, err
+	case string(NameURLFileExtension):
+		var drufec DeliveryRuleURLFileExtensionCondition
+		err := json.Unmarshal(body, &drufec)
+		return drufec, err
+	default:
+		var drc DeliveryRuleCondition
+		err := json.Unmarshal(body, &drc)
+		return drc, err
+	}
+}
+func unmarshalBasicDeliveryRuleConditionArray(body []byte) ([]BasicDeliveryRuleCondition, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	drcArray := make([]BasicDeliveryRuleCondition, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		drc, err := unmarshalBasicDeliveryRuleCondition(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		drcArray[index] = drc
+	}
+	return drcArray, nil
+}
+
+// MarshalJSON is the custom marshaler for DeliveryRuleCondition.
+func (drc DeliveryRuleCondition) MarshalJSON() ([]byte, error) {
+	drc.Name = NameDeliveryRuleCondition
+	objectMap := make(map[string]interface{})
+	if drc.Name != "" {
+		objectMap["name"] = drc.Name
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsDeliveryRuleURLPathCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleCondition.
+func (drc DeliveryRuleCondition) AsDeliveryRuleURLPathCondition() (*DeliveryRuleURLPathCondition, bool) {
+	return nil, false
+}
+
+// AsDeliveryRuleURLFileExtensionCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleCondition.
+func (drc DeliveryRuleCondition) AsDeliveryRuleURLFileExtensionCondition() (*DeliveryRuleURLFileExtensionCondition, bool) {
+	return nil, false
+}
+
+// AsDeliveryRuleCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleCondition.
+func (drc DeliveryRuleCondition) AsDeliveryRuleCondition() (*DeliveryRuleCondition, bool) {
+	return &drc, true
+}
+
+// AsBasicDeliveryRuleCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleCondition.
+func (drc DeliveryRuleCondition) AsBasicDeliveryRuleCondition() (BasicDeliveryRuleCondition, bool) {
+	return &drc, true
+}
+
+// DeliveryRuleURLFileExtensionCondition defines the URL file extension condition for the delivery rule.
+type DeliveryRuleURLFileExtensionCondition struct {
+	// Parameters - Defines the parameters for the condition.
+	Parameters *URLFileExtensionConditionParameters `json:"parameters,omitempty"`
+	// Name - Possible values include: 'NameDeliveryRuleCondition', 'NameURLPath', 'NameURLFileExtension'
+	Name NameBasicDeliveryRuleCondition `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeliveryRuleURLFileExtensionCondition.
+func (drufec DeliveryRuleURLFileExtensionCondition) MarshalJSON() ([]byte, error) {
+	drufec.Name = NameURLFileExtension
+	objectMap := make(map[string]interface{})
+	if drufec.Parameters != nil {
+		objectMap["parameters"] = drufec.Parameters
+	}
+	if drufec.Name != "" {
+		objectMap["name"] = drufec.Name
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsDeliveryRuleURLPathCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLFileExtensionCondition.
+func (drufec DeliveryRuleURLFileExtensionCondition) AsDeliveryRuleURLPathCondition() (*DeliveryRuleURLPathCondition, bool) {
+	return nil, false
+}
+
+// AsDeliveryRuleURLFileExtensionCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLFileExtensionCondition.
+func (drufec DeliveryRuleURLFileExtensionCondition) AsDeliveryRuleURLFileExtensionCondition() (*DeliveryRuleURLFileExtensionCondition, bool) {
+	return &drufec, true
+}
+
+// AsDeliveryRuleCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLFileExtensionCondition.
+func (drufec DeliveryRuleURLFileExtensionCondition) AsDeliveryRuleCondition() (*DeliveryRuleCondition, bool) {
+	return nil, false
+}
+
+// AsBasicDeliveryRuleCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLFileExtensionCondition.
+func (drufec DeliveryRuleURLFileExtensionCondition) AsBasicDeliveryRuleCondition() (BasicDeliveryRuleCondition, bool) {
+	return &drufec, true
+}
+
+// DeliveryRuleURLPathCondition defines the URL path condition for the delivery rule.
+type DeliveryRuleURLPathCondition struct {
+	// Parameters - Defines the parameters for the condition.
+	Parameters *URLPathConditionParameters `json:"parameters,omitempty"`
+	// Name - Possible values include: 'NameDeliveryRuleCondition', 'NameURLPath', 'NameURLFileExtension'
+	Name NameBasicDeliveryRuleCondition `json:"name,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DeliveryRuleURLPathCondition.
+func (drupc DeliveryRuleURLPathCondition) MarshalJSON() ([]byte, error) {
+	drupc.Name = NameURLPath
+	objectMap := make(map[string]interface{})
+	if drupc.Parameters != nil {
+		objectMap["parameters"] = drupc.Parameters
+	}
+	if drupc.Name != "" {
+		objectMap["name"] = drupc.Name
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsDeliveryRuleURLPathCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLPathCondition.
+func (drupc DeliveryRuleURLPathCondition) AsDeliveryRuleURLPathCondition() (*DeliveryRuleURLPathCondition, bool) {
+	return &drupc, true
+}
+
+// AsDeliveryRuleURLFileExtensionCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLPathCondition.
+func (drupc DeliveryRuleURLPathCondition) AsDeliveryRuleURLFileExtensionCondition() (*DeliveryRuleURLFileExtensionCondition, bool) {
+	return nil, false
+}
+
+// AsDeliveryRuleCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLPathCondition.
+func (drupc DeliveryRuleURLPathCondition) AsDeliveryRuleCondition() (*DeliveryRuleCondition, bool) {
+	return nil, false
+}
+
+// AsBasicDeliveryRuleCondition is the BasicDeliveryRuleCondition implementation for DeliveryRuleURLPathCondition.
+func (drupc DeliveryRuleURLPathCondition) AsBasicDeliveryRuleCondition() (BasicDeliveryRuleCondition, bool) {
+	return &drupc, true
 }
 
 // EdgeNode edgenode is a global Point of Presence (POP) location used to deliver CDN content to end users.
@@ -1065,6 +1466,8 @@ type EndpointProperties struct {
 	ProbePath *string `json:"probePath,omitempty"`
 	// GeoFilters - List of rules defining the user's geo access within a CDN endpoint. Each geo filter defines an acess rule to a specified path or content, e.g. block APAC for path /pictures/
 	GeoFilters *[]GeoFilter `json:"geoFilters,omitempty"`
+	// DeliveryPolicy - A policy that specifies the delivery rules to be used for an endpoint.
+	DeliveryPolicy *EndpointPropertiesUpdateParametersDeliveryPolicy `json:"deliveryPolicy,omitempty"`
 }
 
 // EndpointPropertiesUpdateParameters the JSON object containing endpoint update parameters.
@@ -1089,6 +1492,17 @@ type EndpointPropertiesUpdateParameters struct {
 	ProbePath *string `json:"probePath,omitempty"`
 	// GeoFilters - List of rules defining the user's geo access within a CDN endpoint. Each geo filter defines an acess rule to a specified path or content, e.g. block APAC for path /pictures/
 	GeoFilters *[]GeoFilter `json:"geoFilters,omitempty"`
+	// DeliveryPolicy - A policy that specifies the delivery rules to be used for an endpoint.
+	DeliveryPolicy *EndpointPropertiesUpdateParametersDeliveryPolicy `json:"deliveryPolicy,omitempty"`
+}
+
+// EndpointPropertiesUpdateParametersDeliveryPolicy a policy that specifies the delivery rules to be used for an
+// endpoint.
+type EndpointPropertiesUpdateParametersDeliveryPolicy struct {
+	// Description - User-friendly description of the policy.
+	Description *string `json:"description,omitempty"`
+	// Rules - A list of the delivery rules.
+	Rules *[]DeliveryRule `json:"rules,omitempty"`
 }
 
 // EndpointsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -2304,6 +2718,22 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
+}
+
+// URLFileExtensionConditionParameters defines the parameters for the URL file extension condition.
+type URLFileExtensionConditionParameters struct {
+	OdataType *string `json:"@odata.type,omitempty"`
+	// Extensions - A list of extensions for the condition of the delivery rule.
+	Extensions *[]string `json:"extensions,omitempty"`
+}
+
+// URLPathConditionParameters defines the parameters for the URL path condition.
+type URLPathConditionParameters struct {
+	OdataType *string `json:"@odata.type,omitempty"`
+	// Path - A URL path for the condition of the delivery rule
+	Path *string `json:"path,omitempty"`
+	// MatchType - The match type for the condition of the delivery rule. Possible values include: 'Literal', 'Wildcard'
+	MatchType MatchType `json:"matchType,omitempty"`
 }
 
 // ValidateCustomDomainInput input of the custom domain to be validated for DNS mapping.
