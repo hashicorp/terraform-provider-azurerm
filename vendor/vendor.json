@@ -75,22 +75,6 @@
 			"versionExact": "v17.4.0"
 		},
 		{
-			"checksumSHA1": "1+iufNHv/JIZ3efJVyy8R8ByEro=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns",
-			"revision": "7971189ecf5a584b9211f2527737f94bb979644e",
-			"revisionTime": "2018-06-19T23:05:49Z",
-			"version": "=v17.4.0",
-			"versionExact": "v17.4.0"
-		},
-		{
-			"checksumSHA1": "yPJb1PNC7uqpUi6GtgfD4wt/Xss=",
-			"path": "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-10-01/dns",
-			"revision": "7971189ecf5a584b9211f2527737f94bb979644e",
-			"revisionTime": "2018-06-19T23:05:49Z",
-			"version": "=v17.4.0",
-			"versionExact": "v17.4.0"
-		},
-		{
 			"checksumSHA1": "mdwBbEgubHb6UnwDspop+43Sx8k=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid",
 			"revision": "7971189ecf5a584b9211f2527737f94bb979644e",
@@ -179,11 +163,19 @@
 			"versionExact": "v17.4.0"
 		},
 		{
+			"checksumSHA1": "P+LV8DmKhBG0/ABMx1zrcRasYy4=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns",
+			"revision": "4650843026a7fdec254a8d9cf893693a254edd0b",
+			"revisionTime": "2018-06-19T23:05:49Z",
+			"version": "=v17.4.0",
+			"versionExact": "v17.4.0"
+		},
+		{
 			"checksumSHA1": "QT7LrDyti+qDCjhxerYb8PwLfew=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi",
 			"revision": "7971189ecf5a584b9211f2527737f94bb979644e",
 			"revisionTime": "2018-06-19T23:05:49Z",
-			"version": "v17.4.0",
+			"version": "=v17.4.0",
 			"versionExact": "v17.4.0"
 		},
 		{
