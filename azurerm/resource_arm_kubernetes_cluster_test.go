@@ -174,11 +174,11 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworking_azurePolicy(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_advancedNetworking_azurePlugin(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking_azurePolicy(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_advancedNetworking_azurePlugin(ri, clientId, clientSecret, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -195,11 +195,11 @@ func TestAccAzureRMKubernetesCluster_advancedNetworking_azurePolicy(t *testing.T
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworking_kubenetPolicy(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_advancedNetworking_kubenetPlugin(t *testing.T) {
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking_kubenetPolicy(ri, clientId, clientSecret, testLocation())
+	config := testAccAzureRMKubernetesCluster_advancedNetworking_kubenetPlugin(ri, clientId, clientSecret, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -379,7 +379,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworking_azurePolicy(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworking_azurePlugin(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -440,7 +440,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworking_kubenetPolicy(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworking_kubenetPlugin(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
