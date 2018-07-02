@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
 * `azurerm_dns_zone` - support for Private DNS Zones [GH-1404]
 * `azurerm_image` - change os_disk property to a list and add addtional property validation [GH-1443]
+* `azurerm_servicebus_queue` - `enable_partitioning` can now be enabled for `Basic` and `Standard` tiers [GH-1391]
 * `azurerm_virtual_machine` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
 * `azurerm_virtual_machine_data_disk_attachment` - adding support for `write_accelerator_enabled` [GH-1473]
