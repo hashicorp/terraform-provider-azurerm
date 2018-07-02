@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -122,6 +123,8 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
+					// TODO: Swap for the azure go api enum once supported.
+					"10.0",
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
@@ -136,7 +139,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validateIntBetweenDivisibleBy(5120, 1048576, 1024),
+							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
 						},
 
 						"backup_retention_days": {
@@ -174,6 +177,18 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			tier, _ := diff.GetOk("sku.0.tier")
+			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
+
+			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
+				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
+			}
+
+			return nil
 		},
 	}
 }

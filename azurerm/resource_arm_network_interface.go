@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -39,21 +39,21 @@ func resourceArmNetworkInterface() *schema.Resource {
 			"network_security_group_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceId,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"mac_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.MacAddress,
+				ValidateFunc: validate.MACAddress,
 			},
 
 			"virtual_machine_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: azure.ValidateResourceId,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"ip_configuration": {
@@ -71,7 +71,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     azure.ValidateResourceId,
+							ValidateFunc:     azure.ValidateResourceID,
 						},
 
 						"private_ip_address": {
@@ -93,7 +93,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateResourceId,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"application_gateway_backend_address_pools_ids": {
@@ -102,7 +102,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},
@@ -113,7 +113,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},
@@ -124,7 +124,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},
@@ -135,7 +135,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceId,
+								ValidateFunc: azure.ValidateResourceID,
 							},
 							Set: schema.HashString,
 						},

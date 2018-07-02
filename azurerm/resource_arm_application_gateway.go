@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -456,6 +456,29 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"unhealthy_threshold": {
 							Type:     schema.TypeInt,
 							Required: true,
+						},
+
+						"match": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"body": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "*",
+									},
+
+									"status_code": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -1162,6 +1185,22 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 			},
 		}
 
+		matchConfigs := data["match"].([]interface{})
+		if len(matchConfigs) > 0 {
+			match := matchConfigs[0].(map[string]interface{})
+			matchBody := match["body"].(string)
+
+			statusCodes := make([]string, 0)
+			for _, statusCode := range match["status_code"].([]interface{}) {
+				statusCodes = append(statusCodes, statusCode.(string))
+			}
+
+			setting.ApplicationGatewayProbePropertiesFormat.Match = &network.ApplicationGatewayProbeHealthResponseMatch{
+				Body:        &matchBody,
+				StatusCodes: &statusCodes,
+			}
+		}
+
 		backendSettings = append(backendSettings, setting)
 	}
 
@@ -1607,6 +1646,22 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 
 				if threshold := props.UnhealthyThreshold; threshold != nil {
 					settings["unhealthy_threshold"] = int(*threshold)
+				}
+
+				if match := props.Match; match != nil {
+					matchConfig := map[string]interface{}{}
+					if body := match.Body; body != nil {
+						matchConfig["body"] = *body
+					}
+
+					statusCodes := make([]interface{}, 0)
+					if match.StatusCodes != nil {
+						for _, status := range *match.StatusCodes {
+							statusCodes = append(statusCodes, status)
+						}
+						matchConfig["status_code"] = statusCodes
+					}
+					settings["match"] = matchConfig
 				}
 			}
 

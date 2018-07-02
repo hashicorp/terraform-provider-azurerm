@@ -6,7 +6,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -292,7 +292,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
 
-	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resGroup, name, "clusterUser")
+	profile, err := kubernetesClustersClient.GetAccessProfile(ctx, resGroup, name, "clusterUser")
 	if err != nil {
 		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resGroup, err)
 	}
@@ -382,7 +382,7 @@ func flattenAzureRmKubernetesClusterLinuxProfile(input *containerservice.LinuxPr
 	return []interface{}{values}
 }
 
-func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.AgentPoolProfile, fqdn *string) []interface{} {
+func flattenAzureRmKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
 	agentPoolProfiles := make([]interface{}, 0)
 
 	for _, profile := range *profiles {
@@ -534,10 +534,10 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	return &principal
 }
 
-func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []containerservice.AgentPoolProfile {
+func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []containerservice.ManagedClusterAgentPoolProfile {
 	configs := d.Get("agent_pool_profile").([]interface{})
 	config := configs[0].(map[string]interface{})
-	profiles := make([]containerservice.AgentPoolProfile, 0, len(configs))
+	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0, len(configs))
 
 	name := config["name"].(string)
 	count := int32(config["count"].(int))
@@ -546,7 +546,7 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
 	osType := config["os_type"].(string)
 
-	profile := containerservice.AgentPoolProfile{
+	profile := containerservice.ManagedClusterAgentPoolProfile{
 		Name:           utils.String(name),
 		Count:          utils.Int32(count),
 		VMSize:         containerservice.VMSizeTypes(vmSize),
