@@ -1,11 +1,17 @@
 ## 1.9.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_user_assigned_identity` [GH-1448]
+
 IMPROVEMENTS:
 
 * `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
 * `azurerm_image` - change os_disk property to a list and add addtional property validation [GH-1443]
+* `azurerm_virtual_machine` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
+* `azurerm_virtual_machine_scale_set` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine_scale_set` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
 
 ## 1.8.0 (June 28, 2018)
