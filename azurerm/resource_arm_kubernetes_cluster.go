@@ -209,6 +209,44 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
+			"network_profile": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+
+						"network_plugin": {
+							Type:     schema.TypeString,
+							Default:  "azure",
+							Optional: true,
+						},
+
+						"dns_service_ip": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"docker_bridge_cidr": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"service_cidr": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"pod_cidr": {
+							Type:     schema.TypeString,
+							Default:  "10.244.0.0/24",
+							Optional: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -229,6 +267,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+	networkProfile := expandAzureRmKubernetesClusterNetworkProfile(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -241,6 +280,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			KubernetesVersion:       &kubernetesVersion,
 			LinuxProfile:            &linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
+			NetworkProfile:          networkProfile,
 		},
 		Tags: expandTags(tags),
 	}
@@ -564,6 +604,32 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	profiles = append(profiles, profile)
 
 	return profiles
+}
+
+func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfile {
+	value, exists := d.GetOk("network_profile")
+	if !exists {
+		return nil
+	}
+
+	configs := value.(*schema.Set).List()
+	config := configs[0].(map[string]interface{})
+
+	dnsServiceIp := config["dns_service_ip"].(string)
+	dockerBridgeCidr := config["docker_bridge_cidr"].(string)
+	networkPlugin := config["network_plugin"].(string)
+	podCidr := config["pod_cidr"].(string)
+	serviceCidr := config["service_cidr"].(string)
+
+	networkProfile := containerservice.NetworkProfile{
+		DNSServiceIP:     utils.String(dnsServiceIp),
+		DockerBridgeCidr: utils.String(dockerBridgeCidr),
+		NetworkPlugin:    containerservice.NetworkPlugin(networkPlugin),
+		PodCidr:          utils.String(podCidr),
+		ServiceCidr:      utils.String(serviceCidr),
+	}
+
+	return &networkProfile
 }
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
