@@ -100,6 +100,40 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T
 	})
 }
 
+func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
+	ri := acctest.RandInt()
+	location := testAltLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(ri, location, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "write_accelerator_enabled", "false"),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(ri, location, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "write_accelerator_enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(ri, location, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "write_accelerator_enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMVirtualMachineDataDiskAttachmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -264,6 +298,91 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   caching            = "ReadWrite"
 }
 `, template)
+}
+
+func testAccAzureRMVirtualMachineDataDiskAttachment_writeAccelerator(rInt int, location string, enabled bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acctvn-%d"
+  address_space = ["10.0.0.0/16"]
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name = "acctsub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  name = "acctni-%d"
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name = "testconfiguration1"
+    subnet_id = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                  = "acctvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  vm_size               = "Standard_M64s"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer = "UbuntuServer"
+    sku = "16.04-LTS"
+    version = "latest"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Premium_LRS"
+  }
+
+  os_profile {
+    computer_name = "hn%d"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "%d-disk1"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 10
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id           = "${azurerm_managed_disk.test.id}"
+  virtual_machine_id        = "${azurerm_virtual_machine.test.id}"
+  lun                       = "0"
+  caching                   = "None"
+  write_accelerator_enabled = "%t"
+}
+
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, enabled)
 }
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_template(rInt int, location string) string {

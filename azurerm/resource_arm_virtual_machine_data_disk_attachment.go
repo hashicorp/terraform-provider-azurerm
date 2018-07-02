@@ -66,6 +66,12 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
+
+			"write_accelerator_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -109,6 +115,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	lun := int32(d.Get("lun").(int))
 	caching := d.Get("caching").(string)
 	createOption := compute.DiskCreateOptionTypes(d.Get("create_option").(string))
+	writeAcceleratorEnabled := d.Get("write_accelerator_enabled").(bool)
 
 	expandedDisk := compute.DataDisk{
 		Name:         utils.String(name),
@@ -119,6 +126,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 			ID:                 utils.String(managedDiskId),
 			StorageAccountType: managedDisk.Sku.Name,
 		},
+		WriteAcceleratorEnabled: utils.Bool(writeAcceleratorEnabled),
 	}
 
 	disks := *virtualMachine.StorageProfile.DataDisks
@@ -205,6 +213,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 	d.Set("virtual_machine_id", virtualMachine.ID)
 	d.Set("caching", string(disk.Caching))
 	d.Set("create_option", string(disk.CreateOption))
+	d.Set("write_accelerator_enabled", disk.WriteAcceleratorEnabled)
 
 	if managedDisk := disk.ManagedDisk; managedDisk != nil {
 		d.Set("managed_disk_id", managedDisk.ID)
