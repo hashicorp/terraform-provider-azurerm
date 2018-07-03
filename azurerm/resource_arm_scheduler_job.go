@@ -139,8 +139,8 @@ func resourceArmSchedulerJob() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Computed:         true,
-							DiffSuppressFunc: suppress.Rfc3339Time,
-							ValidateFunc:     validate.Rfc3339Time,
+							DiffSuppressFunc: suppress.RFC3339Time,
+							ValidateFunc:     validate.RFC3339Time,
 						},
 
 						"minutes": {
@@ -236,8 +236,8 @@ func resourceArmSchedulerJob() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true, //defaults to now in create function
-				DiffSuppressFunc: suppress.Rfc3339Time,
-				ValidateFunc:     validate.Rfc3339Time, //times in the past just start immediately
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validate.RFC3339Time, //times in the past just start immediately
 			},
 
 			"state": {
