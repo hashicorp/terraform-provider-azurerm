@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -38,7 +38,10 @@ func resourceArmCdnProfile() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(cdn.StandardAkamai),
+					string(cdn.StandardChinaCdn),
 					string(cdn.StandardVerizon),
+					// TODO: replace this with an SDK constant once available
+					"Standard_Microsoft",
 					string(cdn.PremiumVerizon),
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,

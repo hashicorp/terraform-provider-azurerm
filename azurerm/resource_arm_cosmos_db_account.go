@@ -48,32 +48,32 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 
 			//resource fields
 			"offer_type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.Standard),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"kind": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-				Default:  string(documentdb.GlobalDocumentDB),
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          string(documentdb.GlobalDocumentDB),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.GlobalDocumentDB),
 					string(documentdb.MongoDB),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"ip_range_filter": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b[,]?){1,}$`),
-					"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2'",
+					regexp.MustCompile(`^(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\/[1-2][0-9])?\b[,]?){1,}$`),
+					"Cosmos DB ip_range_filter must be a set of CIDR IP addresses separated by commas with no spaces: '10.0.0.1,10.0.0.2,10.20.0.0/16'",
 				),
 			},
 
@@ -173,12 +173,7 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": {
-							Type:             schema.TypeString,
-							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
-						},
+						"location": locationSchema(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,
@@ -188,6 +183,26 @@ func resourceArmCosmosDBAccount() *schema.Resource {
 					},
 				},
 				Set: resourceAzureRMCosmosDBAccountGeoLocationHash,
+			},
+
+			"capabilities": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"EnableTable",
+								"EnableGremlin",
+								`EnableCassandra`,
+							}, true),
+						},
+					},
+				},
+				Set: resourceAzureRMCosmosDBAccountCapabilitiesHash,
 			},
 
 			//computed
@@ -262,9 +277,16 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 
+	r, err := client.CheckNameExists(ctx, name)
+	if err != nil {
+		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if !utils.ResponseWasNotFound(r) {
+		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
+	}
+
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
 	var geoLocations []documentdb.Location
-	var err error
 	if _, ok := d.GetOk("geo_location"); ok {
 		geoLocations, err = expandAzureRmCosmosDBAccountGeoLocations(name, d)
 		if err != nil {
@@ -277,18 +299,19 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	} else {
 		//could be a CustomizeDiff?, but this is temporary
-		return fmt.Errorf("Neither `geo_location` or `failover_policy` is set for CosmosDB Account '%s'", name)
+		return fmt.Errorf("Neither `geo_location` or `failover_policy` is set for CosmosDB Account %s", name)
 	}
 
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                &geoLocations,
 			DatabaseAccountOfferType: utils.String(offerType),
 			IPRangeFilter:            utils.String(ipRangeFilter),
 			EnableAutomaticFailover:  utils.Bool(enableAutomaticFailover),
+			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:                &geoLocations,
+			Capabilities:             expandAzureRmCosmosDBAccountCapabilities(d),
 		},
 		Tags: expandTags(tags),
 	}
@@ -298,9 +321,7 @@ func resourceArmCosmosDBAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	//todo is this still required?
-	r := *resp
-	id := r.ID
+	id := resp.ID
 	if id == nil {
 		return fmt.Errorf("Cannot read CosmosDB Account '%s' (resource group %s) ID", name, resourceGroup)
 	}
@@ -369,11 +390,12 @@ func resourceArmCosmosDBAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                &oldLocations,
 			DatabaseAccountOfferType: utils.String(offerType),
 			IPRangeFilter:            utils.String(ipRangeFilter),
 			EnableAutomaticFailover:  utils.Bool(enableAutomaticFailover),
+			Capabilities:             expandAzureRmCosmosDBAccountCapabilities(d),
+			ConsistencyPolicy:        expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:                &oldLocations,
 		},
 		Tags: expandTags(tags),
 	}
@@ -487,6 +509,10 @@ func resourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) er
 		if err := d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
 			return fmt.Errorf("Error setting `geo_location`: %+v", err)
 		}
+	}
+
+	if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilities(resp.Capabilities)); err != nil {
+		return fmt.Errorf("Error setting `capabilities`: %+v", err)
 	}
 
 	if p := resp.ReadLocations; p != nil {
@@ -734,6 +760,19 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 	return locations, nil
 }
 
+func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
+
+	capabilities := d.Get("capabilities").(*schema.Set).List()
+	s := make([]documentdb.Capability, 0, 0)
+
+	for _, c := range capabilities {
+		m := c.(map[string]interface{})
+		s = append(s, documentdb.Capability{Name: utils.String(m["name"].(string))})
+	}
+
+	return &s
+}
+
 func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.ConsistencyPolicy) []interface{} {
 
 	result := map[string]interface{}{}
@@ -800,6 +839,23 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 	return &locationSet
 }
 
+func flattenAzureRmCosmosDBAccountCapabilities(capabilities *[]documentdb.Capability) *schema.Set {
+	s := schema.Set{
+		F: resourceAzureRMCosmosDBAccountCapabilitiesHash,
+	}
+
+	for _, c := range *capabilities {
+		if v := c.Name; v != nil {
+			e := map[string]interface{}{
+				"name": *v,
+			}
+			s.Add(e)
+		}
+	}
+
+	return &s
+}
+
 //todo remove once deprecated field `failover_policy` is removed
 func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
@@ -826,6 +882,16 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		priority := int32(m["failover_priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
+	}
+
+	return hashcode.String(buf.String())
+}
+
+func resourceAzureRMCosmosDBAccountCapabilitiesHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
 	}
 
 	return hashcode.String(buf.String())

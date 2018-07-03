@@ -262,6 +262,11 @@ The `probe` block supports:
 
 * `unhealthy_threshold` - (Required) Probe retry count. Backend server is marked down after consecutive probe failure count reaches UnhealthyThreshold. Minimum 1 second and Maximum 20.
 
+* `match` - (Optional) Probe health response match. 
+
+  * `body` - (Optional) Body that must be contained in the health response. Defaults to "*"
+  * `status_code` - (Optional) Allowed health response status codes.
+
 The `request_routing_rule` block supports:
 
 * `name` - (Required) User defined name for a request routing rule.

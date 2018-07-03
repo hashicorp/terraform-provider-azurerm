@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2017-09-30/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2018-03-31/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -183,7 +183,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
-	profile, err := kubernetesClustersClient.GetAccessProfiles(ctx, resourceGroup, name, "clusterUser")
+	profile, err := kubernetesClustersClient.GetAccessProfile(ctx, resourceGroup, name, "clusterUser")
 	if err != nil {
 		return fmt.Errorf("Error getting access profile while making Read request on AKS Managed Cluster %q (resource group %q): %+v", name, resourceGroup, err)
 	}
@@ -256,7 +256,7 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservice.AgentPoolProfile) []interface{} {
+func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservice.ManagedClusterAgentPoolProfile) []interface{} {
 	agentPoolProfiles := make([]interface{}, 0)
 
 	if input == nil {

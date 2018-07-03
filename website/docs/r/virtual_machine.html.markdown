@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine"
-sidebar_current: "docs-azurerm-resource-compute-virtual-machine"
+sidebar_current: "docs-azurerm-resource-compute-virtual-machine-x"
 description: |-
   Create a Virtual Machine.
 ---
@@ -9,6 +9,8 @@ description: |-
 # azurerm_virtual_machine
 
 Create a virtual machine.
+
+~> **NOTE:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
 ## Example Usage with Managed Disks and Azure Platform Images (Recommended)
 
@@ -345,6 +347,9 @@ The following arguments are supported:
 * `storage_os_disk` - (Required) A Storage OS Disk block as referenced below.
 * `delete_os_disk_on_termination` - (Optional) Flag to enable deletion of the OS disk VHD blob or managed disk when the VM is deleted, defaults to `false`
 * `storage_data_disk` - (Optional) A list of Storage Data disk blocks as referenced below.
+
+~> **Please Note:** Data Disks can also be attached either using this block or [the `azurerm_virtual_machine_data_disk_attachment` resource](virtual_machine_data_disk_attachment.html) - but not both.
+
 * `delete_data_disks_on_termination` - (Optional) Flag to enable deletion of storage data disk VHD blobs or managed disks when the VM is deleted, defaults to `false`
 * `os_profile` - (Optional) An OS Profile block as documented below. Required when `create_option` in the `storage_os_disk` block is set to `FromImage`.
 * `identity` - (Optional) An identity block as documented below.
@@ -375,7 +380,7 @@ For more information on the different example configurations, please check out t
 
 `storage_image_reference` supports the following:
 
-* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual 
+* `id` - (Optional) Specifies the ID of the (custom) image to use to create the virtual
 machine, for example:
 
 ```hcl
@@ -441,7 +446,9 @@ resource "azurerm_virtual_machine" "test" {
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type of the virtual machine. The only allowable value is `SystemAssigned`. To enable Managed Service Identity the virtual machine extension "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added to the virtual machine. The Principal ID can be retrieved after the virtual machine has been created, e.g.
+* `type` - (Required) Specifies the identity type of the virtual machine. Allowable values are `SystemAssigned` and `UserAssigned`. To enable Managed Service Identity the virtual machine extension "ManagedIdentityExtensionForWindows" or "ManagedIdentityExtensionForLinux" must also be added to the virtual machine. For the `SystemAssigned` identity the Principal ID can be retrieved after the virtual machine has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+
+* `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VM. Required if `type` is `UserAssigned`.
 
 ```hcl
 resource "azurerm_virtual_machine" "test" {
@@ -475,6 +482,7 @@ output "principal_id" {
 
 * `provision_vm_agent` - (Optional) This value defaults to false.
 * `enable_automatic_upgrades` - (Optional) This value defaults to false.
+* `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](http://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `""`.
 * `winrm` - (Optional) A collection of WinRM configuration blocks as documented below.
 * `additional_unattend_config` - (Optional) An Additional Unattended Config block as documented below.
 

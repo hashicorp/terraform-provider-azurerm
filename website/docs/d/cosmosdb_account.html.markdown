@@ -49,6 +49,8 @@ The following attributes are exported:
 
 * `enable_automatic_failover` - If automatic failover is enabled for this CosmosDB Account.
 
+* `capabilities` - Capabilities enabled on this Cosmos DB account.
+
 `consistency_policy` The current consistency Settings for this CosmosDB account with the following properties:
 
 * `consistency_level` - The Consistency Level used by this CosmosDB Account. 

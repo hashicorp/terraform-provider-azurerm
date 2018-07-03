@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -202,7 +202,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
 							},
-							ValidateFunc: validate.Ip4Address,
+							ValidateFunc: validate.IP4Address,
 						},
 						"radius_server_secret": {
 							Type:     schema.TypeString,
