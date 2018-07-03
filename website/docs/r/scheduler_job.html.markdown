@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job"
-sidebar_current: "docs-azurerm-resource-scheduler_job
+sidebar_current: "docs-azurerm-resource-scheduler-job-x
 description: |-
   Manages a Scheduler Job.
 ---
@@ -215,5 +215,5 @@ The following attributes are exported:
 Scheduler Job can be imported using a `resource id`, e.g.
 
 ```shell
-terraform import azurerm_search_service.service1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Scheduler/jobCollections/jobCollection1/jobs/job1
+terraform import azurerm_scheduler_job.job1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Scheduler/jobCollections/jobCollection1/jobs/job1
 ```
