@@ -207,6 +207,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_topic":                     resourceArmServiceBusTopic(),
 			"azurerm_servicebus_topic_authorization_rule":  resourceArmServiceBusTopicAuthorizationRule(),
 			"azurerm_snapshot":                             resourceArmSnapshot(),
+			"azurerm_scheduler_job":                        resourceArmSchedulerJob(),
 			"azurerm_scheduler_job_collection":             resourceArmSchedulerJobCollection(),
 			"azurerm_sql_database":                         resourceArmSqlDatabase(),
 			"azurerm_sql_elasticpool":                      resourceArmSqlElasticPool(),
