@@ -250,8 +250,10 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if networkProfile := resp.NetworkProfile; networkProfile != nil {
-		d.Set("network_profile", flattenKubernetesClusterDataSourceNetworkProfile(resp.NetworkProfile))
+	networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(resp.NetworkProfile)
+
+	if err := d.Set("network_profile", networkProfile); err != nil {
+		return fmt.Errorf("Error setting `network_profile`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterDataSourceAccessProfile(&profile)
@@ -392,10 +394,22 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
-	values["service_cidr"] = profile.ServiceCidr
-	values["dns_service_ip"] = profile.DNSServiceIP
-	values["docker_bridge_cidr"] = profile.DockerBridgeCidr
-	values["pod_cidr"] = profile.PodCidr
+
+	if profile.ServiceCidr != nil {
+		values["service_cidr"] = *profile.ServiceCidr
+	}
+
+	if profile.DNSServiceIP != nil {
+		values["dns_service_ip"] = *profile.DNSServiceIP
+	}
+
+	if profile.DockerBridgeCidr != nil {
+		values["docker_bridge_cidr"] = *profile.DockerBridgeCidr
+	}
+
+	if profile.PodCidr != nil {
+		values["pod_cidr"] = *profile.PodCidr
+	}
 
 	return []interface{}{values}
 }
