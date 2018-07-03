@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"strings"
+
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -51,10 +53,17 @@ func UrlWithScheme(validSchemes []string) schema.SchemaValidateFunc {
 			errors = append(errors, fmt.Errorf("%q url has no host: %q", k, url))
 		}
 
+		found := false
 		for _, s := range validSchemes {
-			if url.Scheme == s {
-				return //last check so just return
+			if strings.EqualFold(url.Scheme, s) {
+				found = true
+				break
 			}
+		}
+
+		if !found {
+			schemes := strings.Join(validSchemes, ",")
+			errors = append(errors, fmt.Errorf("URL scheme %q isn't valid - supported scheme's are %q", url.Scheme, schemes))
 		}
 
 		return
