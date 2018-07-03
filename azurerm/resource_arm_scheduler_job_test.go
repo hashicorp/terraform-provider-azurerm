@@ -125,6 +125,11 @@ func TestAccAzureRMSchedulerJob_web_authCert(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
+	if os.Getenv(resource.TestEnvVar) == "" {
+		t.Skipf("Skipping since %q isn't set", resource.TestEnvVar)
+		return
+	}
+
 	resourceName := "azurerm_scheduler_job.test"
 	ri := acctest.RandInt()
 
@@ -132,11 +137,13 @@ func TestAccAzureRMSchedulerJob_web_authAd(t *testing.T) {
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	secret := os.Getenv("ARM_CLIENT_SECRET")
 
-	audience := ""
-	if os.Getenv(resource.TestEnvVar) != "" {
-		audience = testAccProvider.Meta().(*ArmClient).environment.ServiceManagementEndpoint
+	env, err := testArmEnvironment()
+	if err != nil {
+		t.Fatalf("Error loading Environment: %+v", err)
+		return
 	}
 
+	audience := env.ServiceManagementEndpoint
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
