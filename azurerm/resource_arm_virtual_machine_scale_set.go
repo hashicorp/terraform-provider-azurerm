@@ -1193,13 +1193,13 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *compute.V
 		result["image"] = *profile.Image.URI
 	}
 
+	containers := make([]interface{}, 0)
 	if profile.VhdContainers != nil {
-		containers := make([]interface{}, 0, len(*profile.VhdContainers))
 		for _, container := range *profile.VhdContainers {
 			containers = append(containers, container)
 		}
-		result["vhd_containers"] = schema.NewSet(schema.HashString, containers)
 	}
+	result["vhd_containers"] = schema.NewSet(schema.HashString, containers)
 
 	if profile.ManagedDisk != nil {
 		result["managed_disk_type"] = string(profile.ManagedDisk.StorageAccountType)
