@@ -223,13 +223,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							ForceNew: true,
 						},
 
-						"network_policy": {
-							Type:     schema.TypeString,
-							Default:  "calico",
-							Optional: true,
-							ForceNew: true,
-						},
-
 						"service_cidr": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -530,7 +523,6 @@ func flattenAzureRmKubernetesClusterNetworkProfile(profile *containerservice.Net
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
-	values["network_policy"] = profile.NetworkPolicy
 
 	if profile.ServiceCidr != nil {
 		values["service_cidr"] = *profile.ServiceCidr
@@ -659,14 +651,12 @@ func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *conta
 	dnsServiceIP := config["dns_service_ip"].(string)
 	dockerBridgeCidr := config["docker_bridge_cidr"].(string)
 	networkPlugin := config["network_plugin"].(string)
-	networkPolicy := config["network_policy"].(string)
 	podCidr := config["pod_cidr"].(string)
 	serviceCidr := config["service_cidr"].(string)
 
 	networkProfile := containerservice.NetworkProfile{
 		DNSServiceIP:     utils.String(dnsServiceIP),
 		DockerBridgeCidr: utils.String(dockerBridgeCidr),
-		NetworkPolicy:    containerservice.NetworkPolicy(networkPolicy),
 		NetworkPlugin:    containerservice.NetworkPlugin(networkPlugin),
 		PodCidr:          utils.String(podCidr),
 		ServiceCidr:      utils.String(serviceCidr),
