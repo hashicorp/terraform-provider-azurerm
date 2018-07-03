@@ -202,7 +202,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
 							},
-							ValidateFunc: validate.IP4Address,
+							ValidateFunc: validate.IPv4Address,
 						},
 						"radius_server_secret": {
 							Type:     schema.TypeString,

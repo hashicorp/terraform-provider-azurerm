@@ -2,7 +2,7 @@ package validate
 
 import "testing"
 
-func TestIP4Address(t *testing.T) {
+func TestIPv4Address(t *testing.T) {
 	cases := []struct {
 		IP     string
 		Errors int
@@ -43,10 +43,10 @@ func TestIP4Address(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.IP, func(t *testing.T) {
-			_, errors := IP4Address(tc.IP, "test")
+			_, errors := IPv4Address(tc.IP, "test")
 
 			if len(errors) != tc.Errors {
-				t.Fatalf("Expected IP4Address to return %d error(s) not %d", len(errors), tc.Errors)
+				t.Fatalf("Expected IPv4Address to return %d error(s) not %d", len(errors), tc.Errors)
 			}
 		})
 	}

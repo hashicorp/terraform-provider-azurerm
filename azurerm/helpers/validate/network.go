@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func IP4Address(i interface{}, k string) (_ []string, errors []error) {
+func IPv4Address(i interface{}, k string) (_ []string, errors []error) {
 	return validateIpv4Address(i, k, false)
 }
 
