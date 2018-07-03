@@ -34,7 +34,7 @@ resource "azurerm_scheduler_job" "web-once-now" {
     count    = 4
   }
 
-  //times in the past start imediatly and run once,
+  //times in the past start immediatly and run once,
   start_time = "1987-07-07T07:07:07-07:00"
 }
 
