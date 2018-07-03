@@ -634,14 +634,14 @@ func expandAzureRmKubernetesClusterNetworkProfile(d *schema.ResourceData) *conta
 
 	config := configs[0].(map[string]interface{})
 
-	dnsServiceIp := config["dns_service_ip"].(string)
+	dnsServiceIP := config["dns_service_ip"].(string)
 	dockerBridgeCidr := config["docker_bridge_cidr"].(string)
 	networkPlugin := config["network_plugin"].(string)
 	podCidr := config["pod_cidr"].(string)
 	serviceCidr := config["service_cidr"].(string)
 
 	networkProfile := containerservice.NetworkProfile{
-		DNSServiceIP:     utils.String(dnsServiceIp),
+		DNSServiceIP:     utils.String(dnsServiceIP),
 		DockerBridgeCidr: utils.String(dockerBridgeCidr),
 		NetworkPlugin:    containerservice.NetworkPlugin(networkPlugin),
 		PodCidr:          utils.String(podCidr),
