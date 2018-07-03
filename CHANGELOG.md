@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_scheduler_job` [GH-1172]
 * **New Resource:** `azurerm_user_assigned_identity` [GH-1448]
 
 IMPROVEMENTS:
