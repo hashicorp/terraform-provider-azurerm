@@ -78,10 +78,10 @@ func resourceArmHDInsightCluster() *schema.Resource {
 						},
 
 						"version": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validateHDInsightsClusterVersion,
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							//ValidateFunc: validateHDInsightsClusterVersion,
 						},
 
 						"gateway": {
@@ -204,7 +204,11 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	computeProfile := expandHDInsightClusterComputeProfile(d)
+	computeProfile, err := expandHDInsightClusterComputeProfile(d)
+	if err != nil {
+		return err
+	}
+
 	clusterDefinition, clusterVersion := expandHDInsightClusterDetails(d)
 	storageProfile := expandHDInsightStorageProfile(d)
 
@@ -270,7 +274,11 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("worker_node") {
-		workerNode := expandHDInsightClusterNodeProfile("workernode", d.Get("worker_node"))
+		workerNode, err := expandHDInsightClusterNodeProfile("workernode", d.Get("worker_node"))
+		if err != nil {
+			return fmt.Errorf("Error expanding `worker_node`: %+v", err)
+		}
+
 		parameters := hdinsight.ClusterResizeParameters{
 			TargetInstanceCount: workerNode.TargetInstanceCount,
 		}
@@ -459,12 +467,20 @@ func hdinsightClusterNodeProfile(minTargetInstanceCount int, numberOfNodesForceN
 
 							"password": {
 								Type:      schema.TypeString,
-								Required:  true,
+								Optional:  true,
 								ForceNew:  true,
 								Sensitive: true,
+								// TODO: conflicts with ssh_key
 							},
 
-							// TODO: ssh auth
+							"ssh_key": {
+								Type:     schema.TypeList,
+								Optional: true,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+								},
+								// TODO: conflicts with password
+							},
 						},
 					},
 					Set: resourceAzureRMHDInsightClusterComputeNodeOSProfileHash,
@@ -495,7 +511,7 @@ func hdinsightClusterNodeProfile(minTargetInstanceCount int, numberOfNodesForceN
 	}
 }
 
-func expandHDInsightClusterNodeProfile(name string, d interface{}) hdinsight.Role {
+func expandHDInsightClusterNodeProfile(name string, d interface{}) (*hdinsight.Role, error) {
 	vs := d.([]interface{})
 	v := vs[0].(map[string]interface{})
 
@@ -510,7 +526,6 @@ func expandHDInsightClusterNodeProfile(name string, d interface{}) hdinsight.Rol
 	osProfile := osProfiles[0].(map[string]interface{})
 
 	username := osProfile["username"].(string)
-	password := osProfile["password"].(string)
 
 	role := hdinsight.Role{
 		Name:                utils.String(name),
@@ -521,9 +536,27 @@ func expandHDInsightClusterNodeProfile(name string, d interface{}) hdinsight.Rol
 		OsProfile: &hdinsight.OsProfile{
 			LinuxOperatingSystemProfile: &hdinsight.LinuxOperatingSystemProfile{
 				Username: utils.String(username),
-				Password: utils.String(password),
 			},
 		},
+	}
+
+	password := osProfile["password"].(string)
+	sshKeys := osProfile["ssh_key"].([]interface{})
+	if password != "" {
+		role.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(password)
+	} else if len(sshKeys) > 0 {
+		keys := make([]hdinsight.SSHPublicKey, 0)
+		for _, v := range sshKeys {
+			key := hdinsight.SSHPublicKey{
+				CertificateData: utils.String(v.(string)),
+			}
+			keys = append(keys, key)
+		}
+		role.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{
+			PublicKeys: &keys,
+		}
+	} else {
+		return nil, fmt.Errorf("Either a `password` or `ssh_key` must be specified")
 	}
 
 	if v, ok := v["min_instance_count"]; ok {
@@ -545,7 +578,7 @@ func expandHDInsightClusterNodeProfile(name string, d interface{}) hdinsight.Rol
 		}
 	}
 
-	return role
+	return &role, nil
 }
 
 func flattenHDInsightClusterComputeNodeProfile(input *hdinsight.Role) []interface{} {
@@ -574,6 +607,16 @@ func flattenHDInsightClusterComputeNodeProfile(input *hdinsight.Role) []interfac
 				if username := linux.Username; username != nil {
 					osProfile["username"] = *username
 				}
+
+				outputKeys := make([]string, 0)
+				if ssh := linux.SSHProfile; ssh != nil {
+					if keys := ssh.PublicKeys; keys != nil {
+						for _, v := range *keys {
+							outputKeys = append(outputKeys, *v.CertificateData)
+						}
+					}
+				}
+				osProfile["ssh_key"] = outputKeys
 			}
 		}
 
@@ -791,18 +834,28 @@ func flattenHDInsightClusterConnectivityEndpoints(input *[]hdinsight.Connectivit
 	return outputs
 }
 
-func expandHDInsightClusterComputeProfile(d *schema.ResourceData) *hdinsight.ComputeProfile {
-	headNode := expandHDInsightClusterNodeProfile("headnode", d.Get("head_node"))
-	workerNode := expandHDInsightClusterNodeProfile("workernode", d.Get("worker_node"))
-	zookeeperNode := expandHDInsightClusterNodeProfile("zookeepernode", d.Get("zookeeper_node"))
+func expandHDInsightClusterComputeProfile(d *schema.ResourceData) (*hdinsight.ComputeProfile, error) {
+	headNode, err := expandHDInsightClusterNodeProfile("headnode", d.Get("head_node"))
+	if err != nil {
+		return nil, fmt.Errorf("Error expanding `head_node`: %+v", err)
+	}
+	workerNode, err := expandHDInsightClusterNodeProfile("workernode", d.Get("worker_node"))
+
+	if err != nil {
+		return nil, fmt.Errorf("Error expanding `worker_node`: %+v", err)
+	}
+	zookeeperNode, err := expandHDInsightClusterNodeProfile("zookeepernode", d.Get("zookeeper_node"))
+	if err != nil {
+		return nil, fmt.Errorf("Error expanding `zookeeper_node`: %+v", err)
+	}
 
 	return &hdinsight.ComputeProfile{
 		Roles: &[]hdinsight.Role{
-			headNode,
-			workerNode,
-			zookeeperNode,
+			*headNode,
+			*workerNode,
+			*zookeeperNode,
 		},
-	}
+	}, nil
 }
 
 func populateHDInsightClusterComputeProfile(input *hdinsight.ComputeProfile) (*hdinsightClusterComputeProfile, error) {

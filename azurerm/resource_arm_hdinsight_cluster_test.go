@@ -239,7 +239,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
@@ -252,7 +252,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = %d
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
@@ -265,7 +265,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Small"
     }
 
     os_profile {
@@ -310,7 +310,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
@@ -323,7 +323,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = %d
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
@@ -336,7 +336,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Small"
     }
 
     os_profile {
@@ -397,7 +397,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
@@ -415,7 +415,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
@@ -433,7 +433,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Small"
     }
 
     os_profile {
@@ -457,7 +457,7 @@ resource "azurerm_hdinsight_cluster" "test" {
 func testAccAzureRMHDInsightCluster_template(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 variable "username" {
-  default = "adminuser"
+  default = "tfadmin"
 }
 
 variable "password" {
