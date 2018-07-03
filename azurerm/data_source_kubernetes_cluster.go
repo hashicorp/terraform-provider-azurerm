@@ -171,6 +171,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"network_policy": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"service_cidr": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -394,6 +399,7 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 	values := make(map[string]interface{})
 
 	values["network_plugin"] = profile.NetworkPlugin
+	values["network_policy"] = profile.NetworkPolicy
 
 	if profile.ServiceCidr != nil {
 		values["service_cidr"] = *profile.ServiceCidr
