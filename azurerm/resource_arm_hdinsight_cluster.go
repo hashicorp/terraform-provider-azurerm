@@ -2,15 +2,19 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
+	"net/http"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight"
+	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,6 +33,7 @@ func resourceArmHDInsightCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		CustomizeDiff: resourceArmHDInsightClusterCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -81,7 +86,14 @@ func resourceArmHDInsightCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
+							// TODO: is `latest` supported here?
 							//ValidateFunc: validateHDInsightsClusterVersion,
+						},
+
+						"component_versions": {
+							Type:     schema.TypeMap,
+							Optional: true,
+							Computed: true,
 						},
 
 						"gateway": {
@@ -91,15 +103,11 @@ func resourceArmHDInsightCluster() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-										ForceNew: true,
-									},
 									"username": {
 										Type:     schema.TypeString,
 										Required: true,
-										ForceNew: true,
+										// TODO: can this be updated?
+										//ForceNew: true,
 									},
 									"password": {
 										Type:      schema.TypeString,
@@ -156,37 +164,22 @@ func resourceArmHDInsightCluster() *schema.Resource {
 				},
 			},
 
-			"head_node": hdinsightClusterNodeProfile(2, true),
+			"head_node": hdinsightClusterNodeProfile("head_node", 2, true),
 
-			"worker_node": hdinsightClusterNodeProfile(2, false),
+			"worker_node": hdinsightClusterNodeProfile("worker_node", 2, false),
 
-			"zookeeper_node": hdinsightClusterNodeProfile(3, true),
+			"zookeeper_node": hdinsightClusterNodeProfile("zookeeper_node", 3, true),
 
 			"tags": tagsSchema(),
 
-			"connectivity_endpoints": {
-				Type:     schema.TypeList,
+			"ssh_endpoint": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"location": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"protocol": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"port": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
+			},
+
+			"https_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -203,6 +196,17 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	tier := d.Get("tier").(string)
 	tags := d.Get("tags").(map[string]interface{})
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for the existence of HDInsights Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		return fmt.Errorf("An HDInsights Cluster already exists with the name %q in the Resource Group %q - please import it into the state", name, resourceGroup)
+	}
 
 	computeProfile, err := expandHDInsightClusterComputeProfile(d)
 	if err != nil {
@@ -227,17 +231,25 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
 	if err != nil {
+		if response.WasOK(future.Response()) {
+			err = resourceArmHDInsightClusterReadError(client, ctx, resourceGroup, name)
+		}
+
 		return fmt.Errorf("Error creating HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
+		if response.WasOK(future.Response()) {
+			err = resourceArmHDInsightClusterReadError(client, ctx, resourceGroup, name)
+		}
+
 		return fmt.Errorf("Error waiting for creation of HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving HDInsights Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -246,7 +258,7 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	return resourceArmHDInsightClusterRead(d, meta)
+	return resourceArmHDInsightClusterUpdate(d, meta)
 }
 
 func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -269,6 +281,7 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 
 		_, err = clustersClient.Update(ctx, resourceGroup, name, parameters)
 		if err != nil {
+			err = resourceArmHDInsightClusterReadError(clustersClient, ctx, resourceGroup, name)
 			return fmt.Errorf("Error updating HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -323,7 +336,8 @@ func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		// Swagger states that this'll only return a 200/201, but it actually returns a 204 no content in some cases ¯\_(ツ)_/¯
+		if utils.ResponseWasNotFound(resp.Response) || utils.ResponseWasNoContent(resp.Response) {
 			d.SetId("")
 			return nil
 		}
@@ -355,11 +369,6 @@ func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error parsing Compute Profile for HDInsight Cluster: %+v", err)
 		}
 
-		log.Printf("[TOMTOMTOMTOMTOM] Head: %d / Worker %d / Zookeeper %d",
-			int(*computeProfile.headNode.TargetInstanceCount),
-			int(*computeProfile.workerNode.TargetInstanceCount),
-			int(*computeProfile.zookeeperNode.TargetInstanceCount))
-
 		headNode := flattenHDInsightClusterComputeNodeProfile(computeProfile.headNode)
 		if err := d.Set("head_node", headNode); err != nil {
 			return fmt.Errorf("Error setting `head_node`: %+v", err)
@@ -375,9 +384,18 @@ func resourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error setting `zookeeper_node`: %+v", err)
 		}
 
-		connectivityEndpoints := flattenHDInsightClusterConnectivityEndpoints(props.ConnectivityEndpoints)
-		if err := d.Set("connectivity_endpoints", connectivityEndpoints); err != nil {
-			return fmt.Errorf("Error setting `connectivity_endpoints`: %+v", err)
+		if endpoints := props.ConnectivityEndpoints; endpoints != nil {
+			for _, endpoint := range *endpoints {
+				if v := endpoint.Name; v != nil {
+					if strings.EqualFold(*v, "HTTPS") {
+						d.Set("https_endpoint", endpoint.Location)
+					}
+
+					if strings.EqualFold(*v, "ssh_endpoint") {
+						d.Set("ssh_endpoint", endpoint.Location)
+					}
+				}
+			}
 		}
 
 		// this is a hack since storage_profile isn't returned from the API ¯\_(ツ)_/¯
@@ -406,18 +424,26 @@ func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
+		// Swagger states that this'll only return a 200/201, but it actually returns a 204 no content in some cases ¯\_(ツ)_/¯
+		if response.WasNotFound(future.Response()) || response.WasNoContent(future.Response()) {
+			return nil
+		}
 		return fmt.Errorf("Error deleting HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
+		// Swagger states that this'll only return a 200/201, but it actually returns a 204 no content in some cases ¯\_(ツ)_/¯
+		if response.WasNotFound(future.Response()) || response.WasNoContent(future.Response()) {
+			return nil
+		}
 		return fmt.Errorf("Error waiting for deletion of HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
 }
 
-func hdinsightClusterNodeProfile(minTargetInstanceCount int, numberOfNodesForceNew bool) *schema.Schema {
+func hdinsightClusterNodeProfile(blockName string, minTargetInstanceCount int, numberOfNodesForceNew bool) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -425,12 +451,6 @@ func hdinsightClusterNodeProfile(minTargetInstanceCount int, numberOfNodesForceN
 		ForceNew: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"min_instance_count": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					ForceNew: true,
-				},
-
 				"target_instance_count": {
 					Type:         schema.TypeInt,
 					Required:     true,
@@ -466,20 +486,18 @@ func hdinsightClusterNodeProfile(minTargetInstanceCount int, numberOfNodesForceN
 							},
 
 							"password": {
-								Type:      schema.TypeString,
-								Optional:  true,
-								ForceNew:  true,
-								Sensitive: true,
-								// TODO: conflicts with ssh_key
+								Type:          schema.TypeString,
+								Optional:      true,
+								ForceNew:      true,
+								Sensitive:     true,
+								ConflictsWith: []string{fmt.Sprintf("%s.0.os_profile.0.ssh_key", blockName)},
 							},
 
 							"ssh_key": {
-								Type:     schema.TypeList,
-								Optional: true,
-								Elem: &schema.Schema{
-									Type: schema.TypeString,
-								},
-								// TODO: conflicts with password
+								Type:          schema.TypeString,
+								Optional:      true,
+								ForceNew:      true,
+								ConflictsWith: []string{fmt.Sprintf("%s.0.os_profile.0.password", blockName)},
 							},
 						},
 					},
@@ -540,29 +558,18 @@ func expandHDInsightClusterNodeProfile(name string, d interface{}) (*hdinsight.R
 		},
 	}
 
+	// validation handled in CustomizeDiff
 	password := osProfile["password"].(string)
-	sshKeys := osProfile["ssh_key"].([]interface{})
+	sshKey := osProfile["ssh_key"].(string)
 	if password != "" {
 		role.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(password)
-	} else if len(sshKeys) > 0 {
-		keys := make([]hdinsight.SSHPublicKey, 0)
-		for _, v := range sshKeys {
-			key := hdinsight.SSHPublicKey{
-				CertificateData: utils.String(v.(string)),
-			}
-			keys = append(keys, key)
-		}
-		role.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{
-			PublicKeys: &keys,
-		}
 	} else {
-		return nil, fmt.Errorf("Either a `password` or `ssh_key` must be specified")
-	}
-
-	if v, ok := v["min_instance_count"]; ok {
-		val := v.(int)
-		if val > 0 {
-			role.MinInstanceCount = utils.Int32(int32(val))
+		role.OsProfile.LinuxOperatingSystemProfile.SSHProfile = &hdinsight.SSHProfile{
+			PublicKeys: &[]hdinsight.SSHPublicKey{
+				{
+					CertificateData: utils.String(sshKey),
+				},
+			},
 		}
 	}
 
@@ -593,9 +600,6 @@ func flattenHDInsightClusterComputeNodeProfile(input *hdinsight.Role) []interfac
 		}
 		output["hardware_profile"] = []interface{}{hardwareOutput}
 
-		if count := input.MinInstanceCount; count != nil {
-			output["min_instance_count"] = int(*count)
-		}
 		if count := input.TargetInstanceCount; count != nil {
 			output["target_instance_count"] = int(*count)
 		}
@@ -607,16 +611,6 @@ func flattenHDInsightClusterComputeNodeProfile(input *hdinsight.Role) []interfac
 				if username := linux.Username; username != nil {
 					osProfile["username"] = *username
 				}
-
-				outputKeys := make([]string, 0)
-				if ssh := linux.SSHProfile; ssh != nil {
-					if keys := ssh.PublicKeys; keys != nil {
-						for _, v := range *keys {
-							outputKeys = append(outputKeys, *v.CertificateData)
-						}
-					}
-				}
-				osProfile["ssh_key"] = outputKeys
 			}
 		}
 
@@ -701,12 +695,12 @@ func expandHDInsightsClusterGatewayCredentials(d *schema.ResourceData) map[strin
 	gateways := cluster["gateway"].([]interface{})
 	gateway := gateways[0].(map[string]interface{})
 
-	enabled := gateway["enabled"].(bool)
 	username := gateway["username"].(string)
 	password := gateway["password"].(string)
 
 	return map[string]*string{
-		"restAuthCredential.isEnabled": utils.String(strconv.FormatBool(enabled)),
+		// hard-coded to true because: "Linux clusters do not support revoking HTTP credentials."
+		"restAuthCredential.isEnabled": utils.String("true"),
 
 		// these have to be specified, even if it's Disabled otherwise we get the /totally helpful/ response:
 		// {"code":"BadRequest","message":"User input validation failed. Errors: The request payload is invalid."}
@@ -722,16 +716,19 @@ func expandHDInsightClusterDetails(d *schema.ResourceData) (*hdinsight.ClusterDe
 	clusterKind := cluster["kind"].(string)
 	clusterVersion := cluster["version"].(string)
 
+	componentVersions := make(map[string]*string, 0)
+	components := cluster["component_versions"].(map[string]interface{})
+	for key, value := range components {
+		componentVersions[key] = utils.String(value.(string))
+	}
+
 	gatewayCredentials := expandHDInsightsClusterGatewayCredentials(d)
 	definition := hdinsight.ClusterDefinition{
 		Configurations: map[string]interface{}{
 			"gateway": gatewayCredentials,
 		},
-		Kind: utils.String(clusterKind),
-		// TODO: is this needed / can we do validation here?
-		ComponentVersion: map[string]*string{
-			"Hadoop": utils.String("2.7"),
-		},
+		Kind:             utils.String(clusterKind),
+		ComponentVersion: componentVersions,
 	}
 
 	return &definition, clusterVersion
@@ -750,23 +747,24 @@ func flattenHDInsightClusterDefinition(input *hdinsight.ClusterGetProperties, ga
 		if kind := definition.Kind; kind != nil {
 			output["kind"] = *kind
 		}
+
+		// TODO: verify that these are returned
+		componentVersions := make(map[string]interface{}, 0)
+		if versions := definition.ComponentVersion; versions != nil {
+			for k, v := range versions {
+				componentVersions[k] = *v
+			}
+		}
+		output["component_versions"] = componentVersions
 	}
 
 	configuration := make(map[string]interface{}, 0)
-	enabled := false
-	if v := gatewayConfig.Value["restAuthCredential.isEnabled"]; v != nil {
-		enabled, _ = strconv.ParseBool(*v)
-		configuration["enabled"] = enabled
+	if username := gatewayConfig.Value["restAuthCredential.username"]; username != nil {
+		configuration["username"] = *username
 	}
 
-	if enabled {
-		if username := gatewayConfig.Value["restAuthCredential.username"]; username != nil {
-			configuration["username"] = *username
-		}
-
-		if password := gatewayConfig.Value["restAuthCredential.password"]; password != nil {
-			configuration["password"] = *password
-		}
+	if password := gatewayConfig.Value["restAuthCredential.password"]; password != nil {
+		configuration["password"] = *password
 	}
 
 	output["gateway"] = []interface{}{configuration}
@@ -782,45 +780,6 @@ func resourceAzureRMHDInsightClusterComputeNodeOSProfileHash(v interface{}) int 
 	}
 
 	return hashcode.String(buf.String())
-}
-
-func resourceAzureRMHDInsightClusterStorageAccountHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["storage_account_name"].(string)))
-		buf.WriteString(fmt.Sprintf("%s-", m["container_name"].(string)))
-		buf.WriteString(fmt.Sprintf("%t-", m["is_default"].(bool)))
-	}
-
-	return hashcode.String(buf.String())
-}
-
-func flattenHDInsightClusterConnectivityEndpoints(input *[]hdinsight.ConnectivityEndpoint) []interface{} {
-	outputs := make([]interface{}, 0)
-
-	if input != nil {
-		for _, v := range *input {
-			output := make(map[string]interface{}, 0)
-
-			if name := v.Name; name != nil {
-				output["name"] = *name
-			}
-			if location := v.Location; location != nil {
-				output["location"] = *location
-			}
-			if protocol := v.Protocol; protocol != nil {
-				output["protocol"] = *protocol
-			}
-			if port := v.Port; port != nil {
-				output["port"] = int(*port)
-			}
-
-			outputs = append(outputs, output)
-		}
-	}
-
-	return outputs
 }
 
 func expandHDInsightClusterComputeProfile(d *schema.ResourceData) (*hdinsight.ComputeProfile, error) {
@@ -887,4 +846,96 @@ func validateHDInsightsClusterVersion(i interface{}, k string) (_ []string, erro
 	}
 
 	return
+}
+
+func resourceArmHDInsightClusterCustomizeDiff(d *schema.ResourceDiff, v interface{}) error {
+	err := resourceArmHDInsightClusterCustomizeDiffUsernameOrSshKey(d, "head_node")
+	if err != nil {
+		return err
+	}
+
+	err = resourceArmHDInsightClusterCustomizeDiffUsernameOrSshKey(d, "worker_node")
+	if err != nil {
+		return err
+	}
+
+	err = resourceArmHDInsightClusterCustomizeDiffUsernameOrSshKey(d, "zookeeper_node")
+	if err != nil {
+		return err
+	}
+
+	/*
+		if v, ok := d.GetOk("cluster"); ok {
+			clusters := v.([]interface{})
+			if len(clusters) > 0 {
+				cluster := clusters[0].(map[string]interface{})
+				kind, ok := cluster["kind"].(string)
+				if !ok {
+					return nil
+				}
+
+				componentVersions, ok := cluster["component_versions"]
+				if !ok {
+					return nil
+				}
+
+				found := false
+				for key, value := range componentVersions.(map[string]interface{}) {
+
+				}
+
+
+				if !false {
+					return fmt.Errorf("The `` block in `cluster` must contain")
+				}
+				// component_versions
+			}
+		}
+
+		// TODO: check the Cluster Type is present in the `cluster_versions` map?
+	*/
+
+	return nil
+}
+
+func resourceArmHDInsightClusterCustomizeDiffUsernameOrSshKey(d *schema.ResourceDiff, field string) error {
+	if nodes, ok := d.GetOk(field); ok {
+		node := nodes.([]interface{})[0].(map[string]interface{})
+		if profiles, ok := node["os_profile"].([]interface{}); ok {
+			profile := profiles[0].(map[string]interface{})
+			hasPassword := profile["password"].(string) != ""
+			hasSshKey := profile["ssh_key"].(string) != ""
+
+			if !hasPassword && !hasSshKey {
+				return fmt.Errorf("Either a `password` or a `ssh_key` must be specified for the `os_profile` block in `%s`", field)
+			}
+		}
+	}
+
+	return nil
+}
+
+func resourceArmHDInsightClusterReadError(client hdinsight.ClustersClient, ctx context.Context, resourceGroup string, name string) error {
+	// the HDInsights errors returns errors as a 200 to the SDK
+	// meaning we need to retrieve the cluster to get the error
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving HDInsights Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if props := resp.Properties; props != nil {
+		if errors := props.Errors; errors != nil {
+			var err error
+
+			for _, e := range *errors {
+				if message := e.Message; message != nil {
+					err = multierror.Append(err, fmt.Errorf(*message))
+				}
+			}
+
+			return fmt.Errorf("Error updating HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	return nil
 }

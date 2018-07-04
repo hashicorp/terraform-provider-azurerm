@@ -7,14 +7,6 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 )
 
-func ResponseWasConflict(resp autorest.Response) bool {
-	return responseWasStatusCode(resp, http.StatusConflict)
-}
-
-func ResponseWasNotFound(resp autorest.Response) bool {
-	return responseWasStatusCode(resp, http.StatusNotFound)
-}
-
 func ResponseErrorIsRetryable(err error) bool {
 	if arerr, ok := err.(autorest.DetailedError); ok {
 		err = arerr.Original
@@ -28,6 +20,14 @@ func ResponseErrorIsRetryable(err error) bool {
 	}
 
 	return false
+}
+
+func ResponseWasNoContent(resp autorest.Response) bool {
+	return responseWasStatusCode(resp, http.StatusNoContent)
+}
+
+func ResponseWasNotFound(resp autorest.Response) bool {
+	return responseWasStatusCode(resp, http.StatusNotFound)
 }
 
 func responseWasStatusCode(resp autorest.Response, statusCode int) bool {
