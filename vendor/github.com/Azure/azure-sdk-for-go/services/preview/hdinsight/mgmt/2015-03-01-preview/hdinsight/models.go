@@ -76,21 +76,6 @@ func PossibleDirectoryTypeValues() []DirectoryType {
 	return []DirectoryType{ActiveDirectory}
 }
 
-// EnabledCredential enumerates the values for enabled credential.
-type EnabledCredential string
-
-const (
-	// False ...
-	False EnabledCredential = "false"
-	// True ...
-	True EnabledCredential = "true"
-)
-
-// PossibleEnabledCredentialValues returns an array of possible values for the EnabledCredential const type.
-func PossibleEnabledCredentialValues() []EnabledCredential {
-	return []EnabledCredential{False, True}
-}
-
 // OSType enumerates the values for os type.
 type OSType string
 
@@ -129,7 +114,7 @@ type Application struct {
 	// Tags - The tags for the application.
 	Tags map[string]*string `json:"tags"`
 	// Properties - The properties of the application.
-	Properties *ApplicationGetProperties `json:"properties,omitempty"`
+	Properties *ApplicationProperties `json:"properties,omitempty"`
 	// ID - Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - The name of the resource
@@ -205,34 +190,6 @@ func (aghe ApplicationGetHTTPSEndpoint) MarshalJSON() ([]byte, error) {
 		objectMap[k] = v
 	}
 	return json.Marshal(objectMap)
-}
-
-// ApplicationGetProperties the HDInsight cluster application GET response.
-type ApplicationGetProperties struct {
-	// ComputeProfile - The list of roles in the cluster.
-	ComputeProfile *ComputeProfile `json:"computeProfile,omitempty"`
-	// InstallScriptActions - The list of install script actions.
-	InstallScriptActions *[]RuntimeScriptAction `json:"installScriptActions,omitempty"`
-	// UninstallScriptActions - The list of uninstall script actions.
-	UninstallScriptActions *[]RuntimeScriptAction `json:"uninstallScriptActions,omitempty"`
-	// HTTPSEndpoints - The list of application HTTPS endpoints.
-	HTTPSEndpoints *[]ApplicationGetHTTPSEndpoint `json:"httpsEndpoints,omitempty"`
-	// SSHEndpoints - The list of application SSH endpoints.
-	SSHEndpoints *[]ApplicationGetEndpoint `json:"sshEndpoints,omitempty"`
-	// ProvisioningState - The provisioning state of the application.
-	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ApplicationType - The application type.
-	ApplicationType *string `json:"applicationType,omitempty"`
-	// ApplicationState - The application state.
-	ApplicationState *string `json:"applicationState,omitempty"`
-	// Errors - The list of errors.
-	Errors *[]Errors `json:"errors,omitempty"`
-	// CreatedDate - The application create date time.
-	CreatedDate *string `json:"createdDate,omitempty"`
-	// MarketplaceIdentifier - The marketplace identifier.
-	MarketplaceIdentifier *string `json:"marketplaceIdentifier,omitempty"`
-	// AdditionalProperties - The additional properties for application.
-	AdditionalProperties *string `json:"additionalProperties,omitempty"`
 }
 
 // ApplicationListResult result of the request to list cluster Applications. It contains a list of operations and a
@@ -338,15 +295,70 @@ func (page ApplicationListResultPage) Values() []Application {
 	return *page.alr.Value
 }
 
-// ApplicationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type ApplicationsDeleteFuture struct {
+// ApplicationProperties the HDInsight cluster application GET response.
+type ApplicationProperties struct {
+	// ComputeProfile - The list of roles in the cluster.
+	ComputeProfile *ComputeProfile `json:"computeProfile,omitempty"`
+	// InstallScriptActions - The list of install script actions.
+	InstallScriptActions *[]RuntimeScriptAction `json:"installScriptActions,omitempty"`
+	// UninstallScriptActions - The list of uninstall script actions.
+	UninstallScriptActions *[]RuntimeScriptAction `json:"uninstallScriptActions,omitempty"`
+	// HTTPSEndpoints - The list of application HTTPS endpoints.
+	HTTPSEndpoints *[]ApplicationGetHTTPSEndpoint `json:"httpsEndpoints,omitempty"`
+	// SSHEndpoints - The list of application SSH endpoints.
+	SSHEndpoints *[]ApplicationGetEndpoint `json:"sshEndpoints,omitempty"`
+	// ProvisioningState - The provisioning state of the application.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// ApplicationType - The application type.
+	ApplicationType *string `json:"applicationType,omitempty"`
+	// ApplicationState - The application state.
+	ApplicationState *string `json:"applicationState,omitempty"`
+	// Errors - The list of errors.
+	Errors *[]Errors `json:"errors,omitempty"`
+	// CreatedDate - The application create date time.
+	CreatedDate *string `json:"createdDate,omitempty"`
+	// MarketplaceIdentifier - The marketplace identifier.
+	MarketplaceIdentifier *string `json:"marketplaceIdentifier,omitempty"`
+	// AdditionalProperties - The additional properties for application.
+	AdditionalProperties *string `json:"additionalProperties,omitempty"`
+}
+
+// ApplicationsCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type ApplicationsCreateFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar autorest.Response, err error) {
+func (future *ApplicationsCreateFuture) Result(client ApplicationsClient) (a Application, err error) {
+	var done bool
+	done, err = future.Done(client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsCreateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ApplicationsCreateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if a.Response.Response, err = future.GetResult(sender); err == nil && a.Response.Response.StatusCode != http.StatusNoContent {
+		a, err = client.CreateResponder(a.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsCreateFuture", "Result", a.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ApplicationsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type ApplicationsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -354,35 +366,10 @@ func (future ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar aut
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("hdinsight.ApplicationsDeleteFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.DeleteResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsDeleteFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ApplicationsDeleteFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsDeleteFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsDeleteFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -702,9 +689,9 @@ type ClusterMonitoringRequest struct {
 type ClusterMonitoringResponse struct {
 	autorest.Response `json:"-"`
 	// ClusterMonitoringEnabled - The status of the Operations Management Suite (OMS) on the HDInsight cluster.
-	ClusterMonitoringEnabled *bool `json:"ClusterMonitoringEnabled,omitempty"`
+	ClusterMonitoringEnabled *bool `json:"clusterMonitoringEnabled,omitempty"`
 	// WorkspaceID - The workspace ID of the Operations Management Suite (OMS) on the HDInsight cluster.
-	WorkspaceID *string `json:"WorkspaceId,omitempty"`
+	WorkspaceID *string `json:"workspaceId,omitempty"`
 }
 
 // ClusterPatchParameters the PatchCluster request parameters
@@ -731,12 +718,11 @@ type ClusterResizeParameters struct {
 // ClustersCreateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersCreateFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ClustersCreateFuture) Result(client ClustersClient) (c Cluster, err error) {
+func (future *ClustersCreateFuture) Result(client ClustersClient) (c Cluster, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -744,34 +730,15 @@ func (future ClustersCreateFuture) Result(client ClustersClient) (c Cluster, err
 		return
 	}
 	if !done {
-		return c, azure.NewAsyncOpIncompleteError("hdinsight.ClustersCreateFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		c, err = client.CreateResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersCreateFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+		c, err = client.CreateResponder(c.Response.Response)
 		if err != nil {
-			return
+			err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", c.Response.Response, "Failure responding to request")
 		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	c, err = client.CreateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", resp, "Failure responding to request")
 	}
 	return
 }
@@ -779,12 +746,11 @@ func (future ClustersCreateFuture) Result(client ClustersClient) (c Cluster, err
 // ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersDeleteFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
+func (future *ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -792,35 +758,10 @@ func (future ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Re
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("hdinsight.ClustersDeleteFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.DeleteResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ClustersDeleteFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersDeleteFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersDeleteFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersDeleteFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -828,12 +769,11 @@ func (future ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Re
 // operation.
 type ClustersExecuteScriptActionsFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ClustersExecuteScriptActionsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
+func (future *ClustersExecuteScriptActionsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -841,47 +781,21 @@ func (future ClustersExecuteScriptActionsFuture) Result(client ClustersClient) (
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("hdinsight.ClustersExecuteScriptActionsFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.ExecuteScriptActionsResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ClustersExecuteScriptActionsFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersExecuteScriptActionsFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersExecuteScriptActionsFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.ExecuteScriptActionsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersExecuteScriptActionsFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 
 // ClustersResizeFuture an abstraction for monitoring and retrieving the results of a long-running operation.
 type ClustersResizeFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ClustersResizeFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
+func (future *ClustersResizeFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -889,35 +803,10 @@ func (future ClustersResizeFuture) Result(client ClustersClient) (ar autorest.Re
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("hdinsight.ClustersResizeFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.ResizeResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ClustersResizeFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersResizeFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersResizeFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.ResizeResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ClustersResizeFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -931,12 +820,11 @@ type ComputeProfile struct {
 // long-running operation.
 type ConfigurationsUpdateHTTPSettingsFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ConfigurationsUpdateHTTPSettingsFuture) Result(client ConfigurationsClient) (ar autorest.Response, err error) {
+func (future *ConfigurationsUpdateHTTPSettingsFuture) Result(client ConfigurationsClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -944,35 +832,10 @@ func (future ConfigurationsUpdateHTTPSettingsFuture) Result(client Configuration
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("hdinsight.ConfigurationsUpdateHTTPSettingsFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.UpdateHTTPSettingsResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsUpdateHTTPSettingsFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ConfigurationsUpdateHTTPSettingsFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsUpdateHTTPSettingsFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.UpdateHTTPSettingsResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsUpdateHTTPSettingsFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -996,6 +859,14 @@ type DataDisksGroups struct {
 	StorageAccountType *string `json:"storageAccountType,omitempty"`
 	// DiskSizeGB - ReadOnly. The DiskSize in GB. Do not set this value.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
+}
+
+// ErrorResponse describes the format of Error response.
+type ErrorResponse struct {
+	// Code - Error code
+	Code *string `json:"code,omitempty"`
+	// Message - Error message indicating why the operation failed.
+	Message *string `json:"message,omitempty"`
 }
 
 // Errors the error message associated with the cluster creation.
@@ -1027,12 +898,11 @@ type Extension struct {
 // operation.
 type ExtensionDisableMonitoringFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ExtensionDisableMonitoringFuture) Result(client ExtensionClient) (ar autorest.Response, err error) {
+func (future *ExtensionDisableMonitoringFuture) Result(client ExtensionClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -1040,35 +910,10 @@ func (future ExtensionDisableMonitoringFuture) Result(client ExtensionClient) (a
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("hdinsight.ExtensionDisableMonitoringFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.DisableMonitoringResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ExtensionDisableMonitoringFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionDisableMonitoringFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionDisableMonitoringFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.DisableMonitoringResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionDisableMonitoringFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -1076,12 +921,11 @@ func (future ExtensionDisableMonitoringFuture) Result(client ExtensionClient) (a
 // operation.
 type ExtensionEnableMonitoringFuture struct {
 	azure.Future
-	req *http.Request
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future ExtensionEnableMonitoringFuture) Result(client ExtensionClient) (ar autorest.Response, err error) {
+func (future *ExtensionEnableMonitoringFuture) Result(client ExtensionClient) (ar autorest.Response, err error) {
 	var done bool
 	done, err = future.Done(client)
 	if err != nil {
@@ -1089,35 +933,10 @@ func (future ExtensionEnableMonitoringFuture) Result(client ExtensionClient) (ar
 		return
 	}
 	if !done {
-		return ar, azure.NewAsyncOpIncompleteError("hdinsight.ExtensionEnableMonitoringFuture")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.EnableMonitoringResponder(future.Response())
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "hdinsight.ExtensionEnableMonitoringFuture", "Result", future.Response(), "Failure responding to request")
-		}
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ExtensionEnableMonitoringFuture")
 		return
 	}
-	var req *http.Request
-	var resp *http.Response
-	if future.PollingURL() != "" {
-		req, err = http.NewRequest(http.MethodGet, future.PollingURL(), nil)
-		if err != nil {
-			return
-		}
-	} else {
-		req = autorest.ChangeToGet(future.req)
-	}
-	resp, err = autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionEnableMonitoringFuture", "Result", resp, "Failure sending request")
-		return
-	}
-	ar, err = client.EnableMonitoringResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionEnableMonitoringFuture", "Result", resp, "Failure responding to request")
-	}
+	ar.Response = future.Response()
 	return
 }
 
@@ -1125,16 +944,6 @@ func (future ExtensionEnableMonitoringFuture) Result(client ExtensionClient) (ar
 type HardwareProfile struct {
 	// VMSize - The size of the VM
 	VMSize *string `json:"vmSize,omitempty"`
-}
-
-// HTTPConnectivitySettings the payload for a Configure HTTP settings request.
-type HTTPConnectivitySettings struct {
-	// EnabledCredential - Whether or not the HTTP based authorization is enabled. Possible values include: 'True', 'False'
-	EnabledCredential EnabledCredential `json:"restAuthCredential.isEnabled,omitempty"`
-	// Username - The HTTP username.
-	Username *string `json:"restAuthCredential.username,omitempty"`
-	// Password - The HTTP user password.
-	Password *string `json:"restAuthCredential.password,omitempty"`
 }
 
 // LinuxOperatingSystemProfile the ssh username, password, and ssh public key.
@@ -1145,6 +954,14 @@ type LinuxOperatingSystemProfile struct {
 	Password *string `json:"password,omitempty"`
 	// SSHProfile - The SSH profile.
 	SSHProfile *SSHProfile `json:"sshProfile,omitempty"`
+}
+
+// LocalizedName the details about the localizable name of a type of usage.
+type LocalizedName struct {
+	// Value - The name of the used resource.
+	Value *string `json:"value,omitempty"`
+	// LocalizedValue - The localized name of the used resource.
+	LocalizedValue *string `json:"localizedValue,omitempty"`
 }
 
 // Operation the HDInsight REST API operation.
@@ -1159,7 +976,7 @@ type Operation struct {
 type OperationDisplay struct {
 	// Provider - The service provider: Microsoft.HDInsight
 	Provider *string `json:"provider,omitempty"`
-	// Resource - The resource on which the operation is performed: Cluster, Capabilities, etc.
+	// Resource - The resource on which the operation is performed: Cluster, Applications, etc.
 	Resource *string `json:"resource,omitempty"`
 	// Operation - The operation type: read, write, delete, etc.
 	Operation *string `json:"operation,omitempty"`
@@ -1727,6 +1544,25 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
+}
+
+// Usage the details about the usage of a particular limited resource.
+type Usage struct {
+	// Unit - The type of measurement for usage.
+	Unit *string `json:"unit,omitempty"`
+	// CurrentValue - The current usage.
+	CurrentValue *int32 `json:"currentValue,omitempty"`
+	// Limit - The maximum allowed usage.
+	Limit *int32 `json:"limit,omitempty"`
+	// Name - The details about the localizable name of the used resource.
+	Name *LocalizedName `json:"name,omitempty"`
+}
+
+// UsagesListResult the response for the operation to get regional usages for a subscription.
+type UsagesListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of usages.
+	Value *[]Usage `json:"value,omitempty"`
 }
 
 // VersionsCapability the version capability.
