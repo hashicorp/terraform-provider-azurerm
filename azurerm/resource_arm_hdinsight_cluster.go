@@ -98,12 +98,12 @@ func resourceArmHDInsightCluster() *schema.Resource {
 									},
 									"username": {
 										Type:     schema.TypeString,
-										Optional: true,
+										Required: true,
 										ForceNew: true,
 									},
 									"password": {
 										Type:      schema.TypeString,
-										Optional:  true,
+										Required:  true,
 										ForceNew:  true,
 										Sensitive: true,
 										// TODO: validation
@@ -230,7 +230,7 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error creating HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for creation of HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -287,7 +287,7 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error resizing the number of worker nodes for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletion(ctx, clustersClient.Client)
+		err = future.WaitForCompletionRef(ctx, clustersClient.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for resizing of worker nodes for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -300,7 +300,7 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error updating Gateway Connectivity Settings for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		err = future.WaitForCompletion(ctx, configurationsClient.Client)
+		err = future.WaitForCompletionRef(ctx, configurationsClient.Client)
 		if err != nil {
 			return fmt.Errorf("Error waiting for HDInsights Cluster %q (Resource Group %q) to finish updating Gateway Connectivity Settings: %+v", name, resourceGroup, err)
 		}
@@ -705,16 +705,13 @@ func expandHDInsightsClusterGatewayCredentials(d *schema.ResourceData) map[strin
 	username := gateway["username"].(string)
 	password := gateway["password"].(string)
 
-	if enabled {
-		return map[string]*string{
-			"restAuthCredential.isEnabled": utils.String("true"),
-			"restAuthCredential.username":  utils.String(username),
-			"restAuthCredential.password":  utils.String(password),
-		}
-	}
-
 	return map[string]*string{
-		"restAuthCredential.isEnabled": utils.String("false"),
+		"restAuthCredential.isEnabled": utils.String(strconv.FormatBool(enabled)),
+
+		// these have to be specified, even if it's Disabled otherwise we get the /totally helpful/ response:
+		// {"code":"BadRequest","message":"User input validation failed. Errors: The request payload is invalid."}
+		"restAuthCredential.username": utils.String(username),
+		"restAuthCredential.password": utils.String(password),
 	}
 }
 
@@ -731,6 +728,10 @@ func expandHDInsightClusterDetails(d *schema.ResourceData) (*hdinsight.ClusterDe
 			"gateway": gatewayCredentials,
 		},
 		Kind: utils.String(clusterKind),
+		// TODO: is this needed / can we do validation here?
+		ComponentVersion: map[string]*string{
+			"Hadoop": utils.String("2.7"),
+		},
 	}
 
 	return &definition, clusterVersion
