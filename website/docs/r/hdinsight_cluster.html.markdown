@@ -10,6 +10,8 @@ description: |-
 
 Manages a HDInsight Cluster
 
+~> **NOTE:** The HDInsights API isn't particularly descriptive when an error occurs. If you see the error `User input validation failed. Errors: The request payload is invalid.` - we'd suggest checking the machine configurations (e.g. sizes/counts) are valid. There's [an issue requesting better error handling for the HDInsights API](https://github.com/Azure/azure-sdk-for-go/issues/2179).
+
 ## Example Usage
 
 ```hcl
