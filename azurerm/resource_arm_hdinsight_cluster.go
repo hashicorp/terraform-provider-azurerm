@@ -295,7 +295,7 @@ func resourceArmHDInsightClusterUpdate(d *schema.ResourceData, meta interface{})
 
 	if d.HasChange("cluster") {
 		credentials := expandHDInsightsClusterGatewayCredentials(d)
-		future, err := configurationsClient.UpdateHTTPSettings(ctx, resourceGroup, name, credentials)
+		future, err := configurationsClient.UpdateHTTPSettings(ctx, resourceGroup, name, "gateway", credentials)
 		if err != nil {
 			return fmt.Errorf("Error updating Gateway Connectivity Settings for HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -694,7 +694,7 @@ func flattenHDInsightStorageProfile(input *hdinsight.StorageProfile) []interface
 	return []interface{}{profile}
 }
 
-func expandHDInsightsClusterGatewayCredentials(d *schema.ResourceData) hdinsight.HTTPConnectivitySettings {
+func expandHDInsightsClusterGatewayCredentials(d *schema.ResourceData) map[string]*string {
 	clusters := d.Get("cluster").([]interface{})
 	cluster := clusters[0].(map[string]interface{})
 
@@ -706,15 +706,15 @@ func expandHDInsightsClusterGatewayCredentials(d *schema.ResourceData) hdinsight
 	password := gateway["password"].(string)
 
 	if enabled {
-		return hdinsight.HTTPConnectivitySettings{
-			EnabledCredential: hdinsight.True,
-			Username:          utils.String(username),
-			Password:          utils.String(password),
+		return map[string]*string{
+			"restAuthCredential.isEnabled": utils.String("true"),
+			"restAuthCredential.username":  utils.String(username),
+			"restAuthCredential.password":  utils.String(password),
 		}
 	}
 
-	return hdinsight.HTTPConnectivitySettings{
-		EnabledCredential: hdinsight.False,
+	return map[string]*string{
+		"restAuthCredential.isEnabled": utils.String("false"),
 	}
 }
 
@@ -726,21 +726,9 @@ func expandHDInsightClusterDetails(d *schema.ResourceData) (*hdinsight.ClusterDe
 	clusterVersion := cluster["version"].(string)
 
 	gatewayCredentials := expandHDInsightsClusterGatewayCredentials(d)
-	gatewayConfig := map[string]interface{}{
-		"restAuthCredential.isEnabled": gatewayCredentials.EnabledCredential == hdinsight.True,
-	}
-
-	if username := gatewayCredentials.Username; username != nil {
-		gatewayConfig["restAuthCredential.username"] = *username
-	}
-
-	if password := gatewayCredentials.Password; password != nil {
-		gatewayConfig["restAuthCredential.password"] = *password
-	}
-
 	definition := hdinsight.ClusterDefinition{
 		Configurations: map[string]interface{}{
-			"gateway": gatewayConfig,
+			"gateway": gatewayCredentials,
 		},
 		Kind: utils.String(clusterKind),
 	}
