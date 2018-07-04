@@ -11,11 +11,10 @@ import (
 
 func resourceArmActiveDirectoryApplication() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmActiveDirectoryApplicationCreate,
-		Read:          resourceArmActiveDirectoryApplicationRead,
-		Update:        resourceArmActiveDirectoryApplicationUpdate,
-		Delete:        resourceArmActiveDirectoryApplicationDelete,
-		CustomizeDiff: customizeDiffActiveDirectoryApplication,
+		Create: resourceArmActiveDirectoryApplicationCreate,
+		Read:   resourceArmActiveDirectoryApplicationRead,
+		Update: resourceArmActiveDirectoryApplicationUpdate,
+		Delete: resourceArmActiveDirectoryApplicationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -64,29 +63,12 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Computed: true,
 			},
 
-			"key_credential": keyCredentialsSchema(),
-
-			"password_credential": passwordCredentialsSchema(),
-
 			"application_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 		},
 	}
-}
-
-func customizeDiffActiveDirectoryApplication(diff *schema.ResourceDiff, v interface{}) error {
-
-	if err := customizeDiffKeyCredential(diff, v); err != nil {
-		return err
-	}
-
-	if err := customizeDiffPasswordCredential(diff, v); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta interface{}) error {
@@ -106,22 +88,6 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 
 	if v, ok := d.GetOk("oauth2_allow_implicit_flow"); ok {
 		properties.Oauth2AllowImplicitFlow = utils.Bool(v.(bool))
-	}
-
-	if _, ok := d.GetOk("key_credential"); ok {
-		keyCreds, err := expandAzureRmKeyCredentials(d, nil)
-		if err != nil {
-			return err
-		}
-		properties.KeyCredentials = keyCreds
-	}
-
-	if _, ok := d.GetOk("password_credential"); ok {
-		passCreds, err := expandAzureRmPasswordCredentials(d, nil)
-		if err != nil {
-			return err
-		}
-		properties.PasswordCredentials = passCreds
 	}
 
 	app, err := client.Create(ctx, properties)
@@ -156,24 +122,6 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 	d.Set("reply_urls", resp.ReplyUrls)
 	d.Set("available_to_other_tenants", resp.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", resp.Oauth2AllowImplicitFlow)
-
-	rkc, err := client.ListKeyCredentials(ctx, d.Id())
-	if err != nil {
-		return fmt.Errorf("Error loading Azure AD Application Key Credentials %q: %+v", d.Id(), err)
-	}
-
-	if err := d.Set("key_credential", flattenAzureRmKeyCredentials(rkc.Value)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Azure AD Application Key Credentials error: %#v", err)
-	}
-
-	rpc, err := client.ListPasswordCredentials(ctx, d.Id())
-	if err != nil {
-		return fmt.Errorf("Error loading Azure AD Application Password Credentials %q: %+v", d.Id(), err)
-	}
-
-	if err := d.Set("password_credential", flattenAzureRmPasswordCredentials(rpc.Value)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Azure AD Application Password Credentials error: %#v", err)
-	}
 
 	return nil
 }
@@ -212,62 +160,10 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 		properties.Oauth2AllowImplicitFlow = utils.Bool(oauth)
 	}
 
-	d.Partial(true)
-
 	_, err := client.Patch(ctx, d.Id(), properties)
 	if err != nil {
 		return err
 	}
-
-	d.SetPartial("name")
-	d.SetPartial("homepage")
-	d.SetPartial("identifier_uris")
-	d.SetPartial("reply_urls")
-	d.SetPartial("available_to_other_tenants")
-	d.SetPartial("oauth2_allow_implicit_flow")
-	d.SetPartial("application_id")
-
-	if d.HasChange("key_credential") {
-		o, _ := d.GetChange("key_credential")
-
-		kc, kcErr := expandAzureRmKeyCredentials(d, o.(*schema.Set))
-		if kcErr != nil {
-			return kcErr
-		}
-
-		keyUpdate := graphrbac.KeyCredentialsUpdateParameters{
-			Value: kc,
-		}
-
-		_, err := client.UpdateKeyCredentials(ctx, d.Id(), keyUpdate)
-		if err != nil {
-			return err
-		}
-
-		d.SetPartial("key_credential")
-	}
-
-	if d.HasChange("password_credential") {
-		o, _ := d.GetChange("password_credential")
-
-		pc, pcErr := expandAzureRmPasswordCredentials(d, o.(*schema.Set))
-		if pcErr != nil {
-			return pcErr
-		}
-
-		passUpdate := graphrbac.PasswordCredentialsUpdateParameters{
-			Value: pc,
-		}
-
-		_, err := client.UpdatePasswordCredentials(ctx, d.Id(), passUpdate)
-		if err != nil {
-			return err
-		}
-
-		d.SetPartial("password_credential")
-	}
-
-	d.Partial(false)
 
 	return resourceArmActiveDirectoryApplicationRead(d, meta)
 }

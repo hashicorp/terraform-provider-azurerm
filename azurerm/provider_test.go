@@ -11,23 +11,15 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/authentication"
-	"github.com/terraform-providers/terraform-provider-tls/tls"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvidersWithTLS map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
 
 func init() {
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"azurerm": testAccProvider,
-	}
-	testAccProvidersWithTLS = map[string]terraform.ResourceProvider{
-		"tls": tls.Provider().(*schema.Provider),
-	}
-	for k, v := range testAccProviders {
-		testAccProvidersWithTLS[k] = v
 	}
 }
 

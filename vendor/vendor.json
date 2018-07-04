@@ -1269,18 +1269,6 @@
 			"revisionTime": "2018-02-27T16:32:37Z"
 		},
 		{
-			"checksumSHA1": "f7B1ltZmnRIciTmTZdMphVeYPZU=",
-			"path": "github.com/terraform-providers/terraform-provider-tls",
-			"revision": "efce60e4a963b38de99f5be2745602d0678b78c6",
-			"revisionTime": "2018-03-09T18:48:51Z"
-		},
-		{
-			"checksumSHA1": "23FDSLO460yDo9qyHLjr0lHZd+4=",
-			"path": "github.com/terraform-providers/terraform-provider-tls/tls",
-			"revision": "efce60e4a963b38de99f5be2745602d0678b78c6",
-			"revisionTime": "2018-03-09T18:48:51Z"
-		},
-		{
 			"checksumSHA1": "vE43s37+4CJ2CDU6TlOUOYE0K9c=",
 			"path": "golang.org/x/crypto/bcrypt",
 			"revision": "9477e0b78b9ac3d0b03822fd95422e2fe07627cd",

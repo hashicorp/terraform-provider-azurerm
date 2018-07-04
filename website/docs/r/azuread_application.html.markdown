@@ -35,60 +35,6 @@ resource "azurerm_azuread_application" "example" {
 }
 ```
 
-## Example Usage with Key Credential Certificate Authentication
-
-```hcl
-resource "tls_private_key" "example" {
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P384"
-}
-
-resource "tls_self_signed_cert" "example" {
-  key_algorithm   = "${tls_private_key.example.algorithm}"
-  private_key_pem = "${tls_private_key.example.private_key_pem}"
-
-  subject {
-    common_name  = "example.com"
-    organization = "ACME Examples, Inc"
-  }
-
-  validity_period_hours = 12
-
-  allowed_uses = [
-    "key_encipherment",
-    "digital_signature",
-    "server_auth",
-    "cert_signing",
-  ]
-}
-
-resource "azurerm_azuread_application" "example" {
-  name = "example"
-
-  key_credential {
-    key_id = "00000000-0000-0000-0000-000000000000"
-    type = "AsymmetricX509Cert"
-    usage = "Verify"
-    value = "${tls_self_signed_cert.example.cert_pem}"
-  }
-}
-```
-
-## Example Usage with Password Credential Authentication
-
-```hcl
-resource "azurerm_azuread_application" "test" {
-  name = "example"
-
-  password_credential {
-    key_id = "00000000-0000-0000-0000-000000000000"
-    value = "example"
-    start_date = "2018-03-01T00:00:00+00:00"
-    end_date = "2018-03-02T00:00:00+00:00"
-  }
-}
-```
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -104,34 +50,6 @@ The following arguments are supported:
 * `available_to_other_tenants` - (Optional) True if the application is shared with other tenants; otherwise, false.
 
 * `oauth2_allow_implicit_flow` - (Optional) Specifies whether this web application can request OAuth2.0 implicit flow tokens.
-
-* `key_credential` - (Optional) A list of Key Credential blocks as referenced below.
-
-* `password_credential` - (Optional) A list of Password Credential blocks as referenced below.
-
-`key_credential` supports the following:
-
-* `key_id` - (Required) The unique identifier (GUID) for the key.
-
-* `type` - (Required) The type of key credential. Possible values are `AsymmetricX509Cert` and `Symmetric`.
-
-* `usage` - (Required) A string that describes the purpose for which the key can be used. Possible values are `Sign` and `Verify`.
-
-* `start_date` - (Required) The date and time at which the credential becomes valid.
-
-* `end_date` - (Required) The date and time at which the credential expires.
-
-* `value` - (Required) The certificate value of the credential.
-
-`password_credential` supports the following:
-
-* `key_id` - (Required) The unique identifier (GUID) for the key.
-
-* `start_date` - (Required) The date and time at which the credential becomes valid.
-
-* `end_date` - (Required) The date and time at which the credential expires.
-
-* `value` - (Required) The secret value of the credential.
 
 ## Attributes Reference
 
