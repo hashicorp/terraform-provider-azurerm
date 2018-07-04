@@ -66,21 +66,21 @@ func TestAccAzureRMHDInsightCluster_updateWorkerCount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tier", "standard"),
-					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "hadoop"),
-					resource.TestCheckResourceAttr(resourceName, "worker_node.0.target_instance_count", "3"),
-				),
-			},
-			{
 				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 4),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "hadoop"),
 					resource.TestCheckResourceAttr(resourceName, "worker_node.0.target_instance_count", "4"),
+				),
+			},
+			{
+				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 5),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tier", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "hadoop"),
+					resource.TestCheckResourceAttr(resourceName, "worker_node.0.target_instance_count", "5"),
 				),
 			},
 		},
@@ -199,10 +199,10 @@ resource "azurerm_hdinsight_cluster" "test" {
   }
 
   head_node {
-    target_instance_count = 3
+    target_instance_count = 2
 
     hardware_profile {
-      vm_size = "Large"
+      vm_size = "Standard_D3_V2"
     }
 
     os_profile {
@@ -215,7 +215,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = %d
 
     hardware_profile {
-      vm_size = "Large"
+      vm_size = "Medium"
     }
 
     os_profile {
@@ -228,7 +228,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Small"
+      vm_size = "A5"
     }
 
     os_profile {
@@ -285,10 +285,10 @@ resource "azurerm_hdinsight_cluster" "test" {
   }
 
   head_node {
-    target_instance_count = 3
+    target_instance_count = 2
 
     hardware_profile {
-      vm_size = "Large"
+      vm_size = "Standard_D3_V2"
     }
 
     os_profile {
@@ -303,10 +303,10 @@ resource "azurerm_hdinsight_cluster" "test" {
   }
 
   worker_node {
-    target_instance_count = 3
+    target_instance_count = 4
 
     hardware_profile {
-      vm_size = "Large"
+      vm_size = "Medium"
     }
 
     os_profile {
@@ -324,7 +324,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Small"
+      vm_size = "A5"
     }
 
     os_profile {
