@@ -76,10 +76,13 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient    automation.AccountClient
-	automationRunbookClient    automation.RunbookClient
-	automationCredentialClient automation.CredentialClient
-	automationScheduleClient   automation.ScheduleClient
+	automationAccountClient              automation.AccountClient
+	automationCredentialClient           automation.CredentialClient
+	automationDscConfigurationClient     automation.DscConfigurationClient
+	automationDscNodeConfigurationClient automation.DscNodeConfigurationClient
+	automationModuleClient               automation.ModuleClient
+	automationRunbookClient              automation.RunbookClient
+	automationScheduleClient             automation.ScheduleClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -465,6 +468,20 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	credentialClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationCredentialClient = credentialClient
 
+	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&dscNodeConfigurationClient.Client)
+	dscNodeConfigurationClient.Authorizer = auth
+	dscNodeConfigurationClient.Sender = sender
+	dscNodeConfigurationClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
+
+	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&dscConfigurationClient.Client)
+	dscConfigurationClient.Authorizer = auth
+	dscConfigurationClient.Sender = sender
+	dscConfigurationClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationDscConfigurationClient = dscConfigurationClient
+
 	runbookClient := automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
 	setUserAgent(&runbookClient.Client)
 	runbookClient.Authorizer = auth
@@ -478,6 +495,13 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	scheduleClient.Sender = sender
 	scheduleClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationScheduleClient = scheduleClient
+
+	moduleClient := automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&moduleClient.Client)
+	moduleClient.Authorizer = auth
+	moduleClient.Sender = sender
+	moduleClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationModuleClient = moduleClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
