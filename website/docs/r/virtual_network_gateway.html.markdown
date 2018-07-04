@@ -170,7 +170,7 @@ The `vpn_client_configuration` block supports:
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
 
-* `vpn_client_protocol` - (Optional) List of the protocols supported by the vpn client.
+* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
     The supported values are "SSTP" and "IkeV2".
 
 * `root_certificate` - (Optional) One or more `root_certificate` blocks which are
