@@ -24,19 +24,19 @@ import (
 	"net/http"
 )
 
-// AnalyticsItemClient is the composite Swagger for Application Insights Management Client
-type AnalyticsItemClient struct {
+// AnalyticsItemsClient is the composite Swagger for Application Insights Management Client
+type AnalyticsItemsClient struct {
 	BaseClient
 }
 
-// NewAnalyticsItemClient creates an instance of the AnalyticsItemClient client.
-func NewAnalyticsItemClient(subscriptionID string) AnalyticsItemClient {
-	return NewAnalyticsItemClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewAnalyticsItemsClient creates an instance of the AnalyticsItemsClient client.
+func NewAnalyticsItemsClient(subscriptionID string) AnalyticsItemsClient {
+	return NewAnalyticsItemsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAnalyticsItemClientWithBaseURI creates an instance of the AnalyticsItemClient client.
-func NewAnalyticsItemClientWithBaseURI(baseURI string, subscriptionID string) AnalyticsItemClient {
-	return AnalyticsItemClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewAnalyticsItemsClientWithBaseURI creates an instance of the AnalyticsItemsClient client.
+func NewAnalyticsItemsClientWithBaseURI(baseURI string, subscriptionID string) AnalyticsItemsClient {
+	return AnalyticsItemsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Delete deletes a specific Analytics Items defined within an Application Insights component.
@@ -47,30 +47,30 @@ func NewAnalyticsItemClientWithBaseURI(baseURI string, subscriptionID string) An
 // users with access to the Application Insights component.
 // ID - the Id of a specific item defined in the Application Insights component
 // name - the name of a specific item defined in the Application Insights component
-func (client AnalyticsItemClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (result autorest.Response, err error) {
+func (client AnalyticsItemsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (result autorest.Response, err error) {
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, scopePath, ID, name)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // DeletePreparer prepares the Delete request.
-func (client AnalyticsItemClient) DeletePreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (*http.Request, error) {
+func (client AnalyticsItemsClient) DeletePreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
@@ -99,14 +99,14 @@ func (client AnalyticsItemClient) DeletePreparer(ctx context.Context, resourceGr
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client AnalyticsItemClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client AnalyticsItemsClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client AnalyticsItemClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AnalyticsItemsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -124,30 +124,30 @@ func (client AnalyticsItemClient) DeleteResponder(resp *http.Response) (result a
 // users with access to the Application Insights component.
 // ID - the Id of a specific item defined in the Application Insights component
 // name - the name of a specific item defined in the Application Insights component
-func (client AnalyticsItemClient) Get(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (result ApplicationInsightsComponentAnalyticsItem, err error) {
+func (client AnalyticsItemsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (result ApplicationInsightsComponentAnalyticsItem, err error) {
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName, scopePath, ID, name)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client AnalyticsItemClient) GetPreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (*http.Request, error) {
+func (client AnalyticsItemsClient) GetPreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, ID string, name string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
@@ -176,14 +176,14 @@ func (client AnalyticsItemClient) GetPreparer(ctx context.Context, resourceGroup
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client AnalyticsItemClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client AnalyticsItemsClient) GetSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client AnalyticsItemClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentAnalyticsItem, err error) {
+func (client AnalyticsItemsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentAnalyticsItem, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -205,30 +205,30 @@ func (client AnalyticsItemClient) GetResponder(resp *http.Response) (result Appl
 // typeParameter - enum indicating the type of the Analytics item.
 // includeContent - flag indicating whether or not to return the content of each applicable item. If false,
 // only return the item information.
-func (client AnalyticsItemClient) List(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, scope ItemScope, typeParameter ItemTypeParameter, includeContent *bool) (result ListApplicationInsightsComponentAnalyticsItem, err error) {
+func (client AnalyticsItemsClient) List(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, scope ItemScope, typeParameter ItemTypeParameter, includeContent *bool) (result ListApplicationInsightsComponentAnalyticsItem, err error) {
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName, scopePath, scope, typeParameter, includeContent)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "List", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "List", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client AnalyticsItemClient) ListPreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, scope ItemScope, typeParameter ItemTypeParameter, includeContent *bool) (*http.Request, error) {
+func (client AnalyticsItemsClient) ListPreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, scope ItemScope, typeParameter ItemTypeParameter, includeContent *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
@@ -264,14 +264,14 @@ func (client AnalyticsItemClient) ListPreparer(ctx context.Context, resourceGrou
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client AnalyticsItemClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client AnalyticsItemsClient) ListSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client AnalyticsItemClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentAnalyticsItem, err error) {
+func (client AnalyticsItemsClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentAnalyticsItem, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -292,30 +292,30 @@ func (client AnalyticsItemClient) ListResponder(resp *http.Response) (result Lis
 // Insights component.
 // overrideItem - flag indicating whether or not to force save an item. This allows overriding an item if it
 // already exists.
-func (client AnalyticsItemClient) Put(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, itemProperties ApplicationInsightsComponentAnalyticsItem, overrideItem *bool) (result ApplicationInsightsComponentAnalyticsItem, err error) {
+func (client AnalyticsItemsClient) Put(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, itemProperties ApplicationInsightsComponentAnalyticsItem, overrideItem *bool) (result ApplicationInsightsComponentAnalyticsItem, err error) {
 	req, err := client.PutPreparer(ctx, resourceGroupName, resourceName, scopePath, itemProperties, overrideItem)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Put", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Put", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.PutSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Put", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Put", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.PutResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemClient", "Put", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "insights.AnalyticsItemsClient", "Put", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // PutPreparer prepares the Put request.
-func (client AnalyticsItemClient) PutPreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, itemProperties ApplicationInsightsComponentAnalyticsItem, overrideItem *bool) (*http.Request, error) {
+func (client AnalyticsItemsClient) PutPreparer(ctx context.Context, resourceGroupName string, resourceName string, scopePath ItemScopePath, itemProperties ApplicationInsightsComponentAnalyticsItem, overrideItem *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
@@ -343,14 +343,14 @@ func (client AnalyticsItemClient) PutPreparer(ctx context.Context, resourceGroup
 
 // PutSender sends the Put request. The method will close the
 // http.Response Body if it receives an error.
-func (client AnalyticsItemClient) PutSender(req *http.Request) (*http.Response, error) {
+func (client AnalyticsItemsClient) PutSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
 }
 
 // PutResponder handles the response to the Put request. The method always
 // closes the http.Response Body.
-func (client AnalyticsItemClient) PutResponder(resp *http.Response) (result ApplicationInsightsComponentAnalyticsItem, err error) {
+func (client AnalyticsItemsClient) PutResponder(resp *http.Response) (result ApplicationInsightsComponentAnalyticsItem, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

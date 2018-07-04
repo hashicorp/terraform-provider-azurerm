@@ -41,13 +41,17 @@ func NewTestJobStreamsClientWithBaseURI(baseURI string, subscriptionID string) T
 }
 
 // Get retrieve a test job stream of the test job identified by runbook name and stream id.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name. jobStreamID is the job stream id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+// jobStreamID - the job stream id.
 func (client TestJobStreamsClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, jobStreamID string) (result JobStream, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.TestJobStreamsClient", "Get", err.Error())
 	}
 
@@ -116,13 +120,17 @@ func (client TestJobStreamsClient) GetResponder(resp *http.Response) (result Job
 }
 
 // ListByTestJob retrieve a list of test job streams identified by runbook name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. runbookName
-// is the runbook name. filter is the filter to apply on the operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+// filter - the filter to apply on the operation.
 func (client TestJobStreamsClient) ListByTestJob(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, filter string) (result JobStreamListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.TestJobStreamsClient", "ListByTestJob", err.Error())
 	}
 

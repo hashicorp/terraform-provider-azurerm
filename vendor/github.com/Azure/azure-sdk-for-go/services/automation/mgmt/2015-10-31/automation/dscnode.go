@@ -41,13 +41,16 @@ func NewDscNodeClientWithBaseURI(baseURI string, subscriptionID string) DscNodeC
 }
 
 // Delete delete the dsc node identified by node id.
-//
-// resourceGroupName is the resource group name. automationAccountName is automation account name. nodeID is the
-// node id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the node id.
 func (client DscNodeClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string) (result DscNode, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscNodeClient", "Delete", err.Error())
 	}
 
@@ -115,13 +118,16 @@ func (client DscNodeClient) DeleteResponder(resp *http.Response) (result DscNode
 }
 
 // Get retrieve the dsc node identified by node id.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
-// the node id.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the node id.
 func (client DscNodeClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string) (result DscNode, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscNodeClient", "Get", err.Error())
 	}
 
@@ -189,13 +195,16 @@ func (client DscNodeClient) GetResponder(resp *http.Response) (result DscNode, e
 }
 
 // ListByAutomationAccount retrieve a list of dsc nodes.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. filter is
-// the filter to apply on the operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// filter - the filter to apply on the operation.
 func (client DscNodeClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result DscNodeListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscNodeClient", "ListByAutomationAccount", err.Error())
 	}
 
@@ -293,13 +302,17 @@ func (client DscNodeClient) ListByAutomationAccountComplete(ctx context.Context,
 }
 
 // Update update the dsc node.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. nodeID is
-// parameters supplied to the update dsc node. parameters is parameters supplied to the update dsc node.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - parameters supplied to the update dsc node.
+// parameters - parameters supplied to the update dsc node.
 func (client DscNodeClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, parameters DscNodeUpdateParameters) (result DscNode, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.DscNodeClient", "Update", err.Error())
 	}
 
