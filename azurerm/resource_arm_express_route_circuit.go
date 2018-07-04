@@ -61,8 +61,8 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ExpressRouteCircuitSkuTierStandard),
-								string(network.ExpressRouteCircuitSkuTierPremium),
+								string(network.Standard),
+								string(network.Premium),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},
