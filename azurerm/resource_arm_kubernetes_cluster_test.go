@@ -390,7 +390,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
-  address_space       = ["172.0.0.0/16"]
+  address_space       = ["10.1.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -403,7 +403,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "172.0.2.0/24"
+  address_prefix       = "10.1.0.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
