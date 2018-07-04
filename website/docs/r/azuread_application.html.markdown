@@ -18,7 +18,7 @@ Create a new application in Azure Active Directory. If your account is not an ad
 
 ```hcl
 resource "azurerm_azuread_application" "example" {
-  display_name = "example"
+  name = "example"
 }
 ```
 
@@ -26,7 +26,7 @@ resource "azurerm_azuread_application" "example" {
 
 ```hcl
 resource "azurerm_azuread_application" "example" {
-  display_name = "example"
+  name = "example"
   homepage = "http://homepage"
   identifier_uris = ["http://uri"]
   reply_urls = ["http://replyurl"]
@@ -63,7 +63,7 @@ resource "tls_self_signed_cert" "example" {
 }
 
 resource "azurerm_azuread_application" "example" {
-  display_name = "example"
+  name = "example"
 
   key_credential {
     key_id = "00000000-0000-0000-0000-000000000000"
@@ -78,7 +78,7 @@ resource "azurerm_azuread_application" "example" {
 
 ```hcl
 resource "azurerm_azuread_application" "test" {
-  display_name = "example"
+  name = "example"
 
   password_credential {
     key_id = "00000000-0000-0000-0000-000000000000"
@@ -93,7 +93,7 @@ resource "azurerm_azuread_application" "test" {
 
 The following arguments are supported:
 
-* `display_name` - (Required) The display name for the application.
+* `name` - (Required) The display name for the application.
 
 * `homepage` - (optional) The URL to the application's home page.
 
@@ -137,9 +137,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `app_id` - The Application ID.
-
-* `object_id` - The Application Object ID.
+* `application_id` - The Application ID.
 
 ## Import
 

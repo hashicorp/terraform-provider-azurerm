@@ -26,10 +26,9 @@ func TestAccAzureRMActiveDirectoryApplication_simple(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://%s", id)),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 		},
@@ -50,10 +49,9 @@ func TestAccAzureRMActiveDirectoryApplication_advanced(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://homepage-%s", id)),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 		},
@@ -77,7 +75,7 @@ func TestAccAzureRMActiveDirectoryApplication_updateAdvanced(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://%s", id)),
 				),
 			},
@@ -85,7 +83,7 @@ func TestAccAzureRMActiveDirectoryApplication_updateAdvanced(t *testing.T) {
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", updatedId),
+					resource.TestCheckResourceAttr(resourceName, "name", updatedId),
 					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://homepage-%s", updatedId)),
 				),
 			},
@@ -108,11 +106,10 @@ func TestAccAzureRMActiveDirectoryApplication_keyCredential(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://%s", id)),
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 		},
@@ -135,8 +132,7 @@ func TestAccAzureRMActiveDirectoryApplication_updateKeyCredential_changeAttribut
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 			{
@@ -148,8 +144,7 @@ func TestAccAzureRMActiveDirectoryApplication_updateKeyCredential_changeAttribut
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 		},
@@ -173,7 +168,7 @@ func TestAccAzureRMActiveDirectoryApplication_updateKeyCredential_changeCount(t 
 				Config: configSingle,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
 				),
 			},
@@ -181,7 +176,7 @@ func TestAccAzureRMActiveDirectoryApplication_updateKeyCredential_changeCount(t 
 				Config: configDouble,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "2"),
 				),
 			},
@@ -189,7 +184,7 @@ func TestAccAzureRMActiveDirectoryApplication_updateKeyCredential_changeCount(t 
 				Config: configSingle,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "key_credential.#", "1"),
 				),
 			},
@@ -214,11 +209,10 @@ func TestAccAzureRMActiveDirectoryApplication_passwordCredential(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "display_name", id),
+					resource.TestCheckResourceAttr(resourceName, "name", id),
 					resource.TestCheckResourceAttr(resourceName, "homepage", fmt.Sprintf("http://%s", id)),
 					resource.TestCheckResourceAttr(resourceName, "password_credential.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 		},
@@ -244,8 +238,7 @@ func TestAccAzureRMActiveDirectoryApplication_updatePasswordCredential_changeAtt
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "password_credential.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 			{
@@ -257,8 +250,7 @@ func TestAccAzureRMActiveDirectoryApplication_updatePasswordCredential_changeAtt
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "password_credential.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "app_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "object_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "application_id"),
 				),
 			},
 		},
@@ -312,15 +304,15 @@ func testCheckAzureRMActiveDirectoryApplicationExists(name string) resource.Test
 			return fmt.Errorf("Not found: %q", name)
 		}
 
-		objectId := rs.Primary.Attributes["object_id"]
+		id := rs.Primary.Attributes["id"]
 
 		client := testAccProvider.Meta().(*ArmClient).applicationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.Get(ctx, objectId)
+		resp, err := client.Get(ctx, id)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Azure AD Application %q does not exist", objectId)
+				return fmt.Errorf("Bad: Azure AD Application %q does not exist", id)
 			}
 			return fmt.Errorf("Bad: Get on Azure AD applicationsClient: %+v", err)
 		}
@@ -335,11 +327,11 @@ func testCheckAzureRMActiveDirectoryApplicationDestroy(s *terraform.State) error
 			continue
 		}
 
-		objectId := rs.Primary.Attributes["object_id"]
+		id := rs.Primary.Attributes["id"]
 
 		client := testAccProvider.Meta().(*ArmClient).applicationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.Get(ctx, objectId)
+		resp, err := client.Get(ctx, id)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -358,7 +350,7 @@ func testCheckAzureRMActiveDirectoryApplicationDestroy(s *terraform.State) error
 func testAccAzureRMActiveDirectoryApplication_simple(id string) string {
 	return fmt.Sprintf(`
 resource "azurerm_azuread_application" "test" {
-  display_name = "%s"
+  name = "%s"
 }
 `, id)
 }
@@ -366,7 +358,7 @@ resource "azurerm_azuread_application" "test" {
 func testAccAzureRMActiveDirectoryApplication_advanced(id string) string {
 	return fmt.Sprintf(`
 resource "azurerm_azuread_application" "test" {
-  display_name = "%s"
+  name = "%s"
   homepage = "http://homepage-%s"
   identifier_uris = ["http://uri-%s"]
   reply_urls = ["http://replyurl-%s"]
@@ -403,7 +395,7 @@ resource "tls_self_signed_cert" "test" {
 }
 
 resource "azurerm_azuread_application" "test" {
-  display_name = "%s"
+  name = "%s"
 
   key_credential {
     key_id = "%s"
@@ -468,7 +460,7 @@ resource "tls_self_signed_cert" "test2" {
 }
 
 resource "azurerm_azuread_application" "test" {
-  display_name = "%s"
+  name = "%s"
 
   key_credential {
     key_id = "%s"
@@ -496,7 +488,7 @@ func testAccAzureRMActiveDirectoryApplication_passwordCredential_single(id strin
 	te := string(timeEnd.Format(time.RFC3339))
 	return fmt.Sprintf(`
 resource "azurerm_azuread_application" "test" {
-  display_name = "%s"
+  name = "%s"
 
   password_credential {
     key_id = "%s"
@@ -513,7 +505,7 @@ func testAccAzureRMActiveDirectoryApplication_passwordCredential_double(id strin
 	te := string(timeEnd.Format(time.RFC3339))
 	return fmt.Sprintf(`
 resource "azurerm_azuread_application" "test" {
-  display_name = "%s"
+  name = "%s"
 
   password_credential {
     key_id = "%s"

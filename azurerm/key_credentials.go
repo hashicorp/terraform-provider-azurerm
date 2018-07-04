@@ -46,7 +46,7 @@ func keyCredentialsSchema() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"AsymmetricX509Cert",
 						"Symmetric",
-					}, true),
+					}, false),
 				},
 
 				"usage": {
@@ -55,7 +55,7 @@ func keyCredentialsSchema() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						"Verify",
 						"Sign",
-					}, true),
+					}, false),
 				},
 
 				"value": {
@@ -123,68 +123,38 @@ func resourceKeyCredentialHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func flattenAzureRmKeyCredential(cred *graphrbac.KeyCredential) interface{} {
-	l := make(map[string]interface{})
-	l["key_id"] = *cred.KeyID
-	l["type"] = *cred.Type
-	l["usage"] = *cred.Usage
-	l["start_date"] = string((*cred.StartDate).Format(time.RFC3339))
-	l["end_date"] = string((*cred.EndDate).Format(time.RFC3339))
-
-	return l
-}
-
 func flattenAzureRmKeyCredentials(creds *[]graphrbac.KeyCredential) []interface{} {
-	result := make([]interface{}, 0, len(*creds))
-	for _, cred := range *creds {
-		result = append(result, flattenAzureRmKeyCredential(&cred))
+	result := make([]interface{}, 0)
+
+	if creds != nil {
+		for _, cred := range *creds {
+			l := make(map[string]interface{})
+
+			if cred.KeyID != nil {
+				l["key_id"] = *cred.KeyID
+			}
+
+			if cred.Type != nil {
+				l["type"] = *cred.Type
+			}
+
+			if cred.Usage != nil {
+				l["usage"] = *cred.Usage
+			}
+
+			if cred.StartDate != nil {
+				l["start_date"] = string((*cred.StartDate).Format(time.RFC3339))
+			}
+
+			if cred.EndDate != nil {
+				l["end_date"] = string((*cred.EndDate).Format(time.RFC3339))
+			}
+
+			result = append(result, l)
+		}
 	}
+
 	return result
-}
-
-func expandAzureRmKeyCredential(d *map[string]interface{}) (*graphrbac.KeyCredential, error) {
-	keyId := (*d)["key_id"].(string)
-	startDate := (*d)["start_date"].(string)
-	endDate := (*d)["end_date"].(string)
-	keyType := (*d)["type"].(string)
-	usage := (*d)["usage"].(string)
-	value := (*d)["value"].(string)
-
-	if keyType == "AsymmetricX509Cert" && usage == "Sign" {
-		return nil, fmt.Errorf("Usage cannot be set to %s when %s is set as type for a Key Credential", usage, keyType)
-	}
-
-	// Match against the prefix/suffix and '\n' of certificate values.
-	// The API doesn't accept them so they need to be removed.
-	pkre := regexp.MustCompile(`(-{5}.+?-{5})|(\n)`)
-	value = pkre.ReplaceAllString(value, ``)
-
-	kc := graphrbac.KeyCredential{
-		KeyID: &keyId,
-		Type:  &keyType,
-		Usage: &usage,
-		Value: &value,
-	}
-
-	if startDate != "" {
-		starttime, sterr := time.Parse(time.RFC3339, startDate)
-		if sterr != nil {
-			return nil, fmt.Errorf("Cannot parse start_date: %q", startDate)
-		}
-		stdt := date.Time{Time: starttime.Truncate(time.Second)}
-		kc.StartDate = &stdt
-	}
-
-	if endDate != "" {
-		endtime, eterr := time.Parse(time.RFC3339, endDate)
-		if eterr != nil {
-			return nil, fmt.Errorf("Cannot parse end_date: %q", endDate)
-		}
-		etdt := date.Time{Time: endtime.Truncate(time.Second)}
-		kc.EndDate = &etdt
-	}
-
-	return &kc, nil
 }
 
 func expandAzureRmKeyCredentials(d *schema.ResourceData, o *schema.Set) (*[]graphrbac.KeyCredential, error) {
@@ -192,10 +162,45 @@ func expandAzureRmKeyCredentials(d *schema.ResourceData, o *schema.Set) (*[]grap
 	keyCreds := make([]graphrbac.KeyCredential, 0, len(creds))
 
 	for _, v := range creds {
-		cfg := v.(map[string]interface{})
-		cred, err := expandAzureRmKeyCredential(&cfg)
-		if err != nil {
-			return nil, err
+		c := v.(map[string]interface{})
+
+		keyId := c["key_id"].(string)
+		startDate := c["start_date"].(string)
+		endDate := c["end_date"].(string)
+		keyType := c["type"].(string)
+		usage := c["usage"].(string)
+		value := c["value"].(string)
+
+		if keyType == "AsymmetricX509Cert" && usage == "Sign" {
+			return nil, fmt.Errorf("Usage cannot be set to %s when %s is set as type for a Key Credential", usage, keyType)
+		}
+
+		// Match against the prefix/suffix and '\n' of certificate values.
+		// The API doesn't accept them so they need to be removed.
+		pkre := regexp.MustCompile(`(-{5}.+?-{5})|(\n)`)
+		value = pkre.ReplaceAllString(value, ``)
+
+		cred := graphrbac.KeyCredential{
+			KeyID: &keyId,
+			Type:  &keyType,
+			Usage: &usage,
+			Value: &value,
+		}
+
+		if startDate != "" {
+			starttime, sterr := time.Parse(time.RFC3339, startDate)
+			if sterr != nil {
+				return nil, fmt.Errorf("Cannot parse start_date: %q", startDate)
+			}
+			cred.StartDate = &date.Time{Time: starttime.Truncate(time.Second)}
+		}
+
+		if endDate != "" {
+			endtime, eterr := time.Parse(time.RFC3339, endDate)
+			if eterr != nil {
+				return nil, fmt.Errorf("Cannot parse end_date: %q", endDate)
+			}
+			cred.EndDate = &date.Time{Time: endtime.Truncate(time.Second)}
 		}
 
 		// Azure only allows an in-place update of the Key Credentials list.
@@ -207,7 +212,7 @@ func expandAzureRmKeyCredentials(d *schema.ResourceData, o *schema.Set) (*[]grap
 			cred.Value = nil
 		}
 
-		keyCreds = append(keyCreds, *cred)
+		keyCreds = append(keyCreds, cred)
 	}
 
 	return &keyCreds, nil

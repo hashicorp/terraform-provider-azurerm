@@ -21,7 +21,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"display_name": {
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -68,12 +68,7 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 
 			"password_credential": passwordCredentialsSchema(),
 
-			"app_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"object_id": {
+			"application_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -98,7 +93,7 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("display_name").(string)
+	name := d.Get("name").(string)
 	multitenant := d.Get("available_to_other_tenants").(bool)
 
 	properties := graphrbac.ApplicationCreateParameters{
@@ -154,9 +149,8 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error loading Azure AD Application %q: %+v", d.Id(), err)
 	}
 
-	d.Set("display_name", resp.DisplayName)
-	d.Set("app_id", resp.AppID)
-	d.Set("object_id", resp.ObjectID)
+	d.Set("name", resp.DisplayName)
+	d.Set("application_id", resp.AppID)
 	d.Set("homepage", resp.Homepage)
 	d.Set("identifier_uris", resp.IdentifierUris)
 	d.Set("reply_urls", resp.ReplyUrls)
@@ -188,11 +182,11 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("display_name").(string)
+	name := d.Get("name").(string)
 
 	var properties graphrbac.ApplicationUpdateParameters
 
-	if d.HasChange("display_name") {
+	if d.HasChange("name") {
 		properties.DisplayName = &name
 	}
 
@@ -225,14 +219,13 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 		return err
 	}
 
-	d.SetPartial("display_name")
+	d.SetPartial("name")
 	d.SetPartial("homepage")
 	d.SetPartial("identifier_uris")
 	d.SetPartial("reply_urls")
 	d.SetPartial("available_to_other_tenants")
 	d.SetPartial("oauth2_allow_implicit_flow")
-	d.SetPartial("app_id")
-	d.SetPartial("object_id")
+	d.SetPartial("application_id")
 
 	if d.HasChange("key_credential") {
 		o, _ := d.GetChange("key_credential")
