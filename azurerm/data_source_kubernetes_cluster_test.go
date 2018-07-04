@@ -62,6 +62,34 @@ func TestAccDataSourceAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_advancedNetworking(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := acctest.RandInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttrSet(dataSourceName, "agent_pool_profile.0.vnet_subnet_id"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.network_plugin"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.dns_service_ip"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.docker_bridge_cidr"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "network_profile.0.service_cidr"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	resource := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
@@ -76,6 +104,18 @@ data "azurerm_kubernetes_cluster" "test" {
 
 func testAccDataSourceAzureRMKubernetesCluster_internalNetwork(rInt int, clientId string, clientSecret string, location string) string {
 	resource := testAccAzureRMKubernetesCluster_internalNetwork(rInt, clientId, clientSecret, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, resource)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_advancedNetworking(rInt int, clientId string, clientSecret string, location string) string {
+	resource := testAccAzureRMKubernetesCluster_advancedNetworking(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
