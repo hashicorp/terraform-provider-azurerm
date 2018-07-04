@@ -87,42 +87,6 @@ func TestAccAzureRMHDInsightCluster_updateWorkerCount(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightCluster_updateConfiguration(t *testing.T) {
-	resourceName := "azurerm_hdinsight_cluster.test"
-	rInt := acctest.RandInt()
-	rString := acctest.RandString(5)
-	location := testLocation()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster.0.gateway.0.enabled", "true"),
-				),
-			},
-			{
-				Config: testAccAzureRMHDInsightCluster_basicConfigHTTPDisabled(rInt, rString, location, "hadoop", 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster.0.gateway.0.enabled", "false"),
-				),
-			},
-			{
-				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 3),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHDInsightClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "cluster.0.gateway.0.enabled", "true"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMHDInsightCluster_basicNetwork(t *testing.T) {
 	resourceName := "azurerm_hdinsight_cluster.test"
 	rInt := acctest.RandInt()
@@ -220,80 +184,8 @@ resource "azurerm_hdinsight_cluster" "test" {
     version = "3.6"
 
     gateway {
-      enabled  = true
       username = "${var.username}"
       password = "${var.password}"
-    }
-  }
-
-  storage_profile {
-    storage_account {
-      storage_account_name = "${azurerm_storage_account.test.primary_blob_domain}"
-      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
-      container_name       = "${azurerm_storage_container.test.name}"
-      is_default           = true
-    }
-  }
-
-  head_node {
-    target_instance_count = 3
-
-    hardware_profile {
-      vm_size = "Large"
-    }
-
-    os_profile {
-      username = "${var.username}"
-      password = "${var.password}"
-    }
-  }
-
-  worker_node {
-    target_instance_count = %d
-
-    hardware_profile {
-      vm_size = "Large"
-    }
-
-    os_profile {
-      username = "${var.username}"
-      password = "${var.password}"
-    }
-  }
-
-  zookeeper_node {
-    target_instance_count = 3
-
-    hardware_profile {
-      vm_size = "Small"
-    }
-
-    os_profile {
-      username = "${var.username}"
-      password = "${var.password}"
-    }
-  }
-}
-`, template, rInt, clusterType, nodes)
-}
-
-func testAccAzureRMHDInsightCluster_basicConfigHTTPDisabled(rInt int, rString string, location string, clusterType string, nodes int) string {
-	template := testAccAzureRMHDInsightCluster_template(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_hdinsight_cluster" "test" {
-  name                = "acctesthdic-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tier                = "standard"
-
-  cluster {
-    kind    = "%s"
-    version = "3.6"
-
-    gateway {
-      enabled = false
     }
   }
 
@@ -378,7 +270,6 @@ resource "azurerm_hdinsight_cluster" "test" {
     version = "3.6"
 
     gateway {
-      enabled  = true
       username = "${var.username}"
       password = "${var.password}"
     }
