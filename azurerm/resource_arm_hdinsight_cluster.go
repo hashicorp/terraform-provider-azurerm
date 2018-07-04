@@ -231,7 +231,7 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
 	if err != nil {
-		if response.WasOK(future.Response()) || response.WasBadRequest(future.Response()) {
+		if response.WasOK(future.Response()) {
 			err = resourceArmHDInsightClusterReadError(client, ctx, resourceGroup, name)
 		}
 
@@ -240,7 +240,7 @@ func resourceArmHDInsightClusterCreate(d *schema.ResourceData, meta interface{})
 
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasOK(future.Response()) || response.WasBadRequest(future.Response()) {
+		if response.WasOK(future.Response()) {
 			err = resourceArmHDInsightClusterReadError(client, ctx, resourceGroup, name)
 		}
 
