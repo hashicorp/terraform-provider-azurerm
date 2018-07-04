@@ -12,6 +12,10 @@ func WasNotFound(resp *http.Response) bool {
 	return responseWasStatusCode(resp, http.StatusNotFound)
 }
 
+func WasBadRequest(resp *http.Response) bool {
+	return responseWasStatusCode(resp, http.StatusBadRequest)
+}
+
 func WasOK(resp *http.Response) bool {
 	return responseWasStatusCode(resp, http.StatusOK)
 }
