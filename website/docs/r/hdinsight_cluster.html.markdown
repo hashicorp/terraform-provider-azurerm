@@ -49,7 +49,8 @@ resource "azurerm_hdinsight_cluster" "test" {
     version = "3.6"
 
     gateway {
-      enabled = false
+      username = "hdsuperadmin"
+      password = "Messina1234!"
     }
   }
 
@@ -63,10 +64,10 @@ resource "azurerm_hdinsight_cluster" "test" {
   }
 
   head_node {
-    target_instance_count = 3
+    target_instance_count = 2
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Standard_D3_V2"
     }
 
     os_profile {
@@ -76,7 +77,7 @@ resource "azurerm_hdinsight_cluster" "test" {
   }
 
   worker_node {
-    target_instance_count = 3
+    target_instance_count = 4
 
     hardware_profile {
       vm_size = "Medium"
@@ -92,7 +93,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "A5"
     }
 
     os_profile {
@@ -140,8 +141,6 @@ A `cluster` block contains:
 
 A `gateway` block contains:
 
-* `enabled` - (Required) Is the Web Gateway enabled? Changing this forces a new resource to be created.
-
 * `username` - (Required) The username associated with the Web Gateway. Changing this forces a new resource to be created.
 
 * `password` - (Required) The password associated with the username used for the Web Gateway. Changing this forces a new resource to be created.
@@ -172,7 +171,6 @@ A `storage_account` block contains:
 
 A `head_node` block as defined below:
 
-* `min_instance_count` - (Required) The minimum number of Head Nodes.
 * `target_instance_count` - (Required) The target instance count for the Head Node role. This can be a minimum of 2 nodes. Changing this forces a new resource to be created.
 * `hardware_profile` - (Required) A `hardware_profile` block as defined below.
 * `os_profile` - (Required) A `os_profile` block as defined below.
@@ -182,7 +180,6 @@ A `head_node` block as defined below:
 
 A `worker_node` block as defined below:
 
-* `min_instance_count` - (Required) The minimum number of Worker Nodes.
 * `target_instance_count` - (Required) The target instance count for the Worker Node role. This can be a minimum of 2 nodes.
 * `hardware_profile` - (Required) A `hardware_profile` block as defined below.
 * `os_profile` - (Required) A `os_profile` block as defined below.
@@ -192,7 +189,6 @@ A `worker_node` block as defined below:
 
 A `zookeeper_node` block as defined below:
 
-* `min_instance_count` - (Required) The minimum number of Zookeeper Nodes.
 * `target_instance_count` - (Required) The target instance count for the Zookeeper Node role. This can be a minimum of 3 nodes. Changing this forces a new resource to be created.
 * `hardware_profile` - (Required) A `hardware_profile` block as defined below.
 * `os_profile` - (Required) A `os_profile` block as defined below.
@@ -226,21 +222,9 @@ The following attributes are exported:
 
 * `id` - The ID of the HDInsight Cluster.
 
-* `connectivity_endpoints` - One or more `connectivity_endpoints` blocks as defined below.
+* `https_endpoint` - The HTTPS Endpoint for the Ambari Dashboard.
 
----
-
-A `connectivity_endpoints` block contains:
-
--> TODO: flatten these objects better
-
-* `name` - Friendly name for the connectivity endpoint.
-
-* `location` - The URL to connect to this Endpoint.
-
-* `protocol` - The Protocol of the Connectivity Endpoint, such as `SSH` or `HTTPS`.
-
-* `port` - The Port associated with this Connectivity Endpoint.
+* `ssh_endpoint` - The SSH Endpoint for the Ambari Cluster.
 
 ## Import
 
