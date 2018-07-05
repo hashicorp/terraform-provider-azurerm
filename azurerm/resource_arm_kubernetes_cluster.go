@@ -209,16 +209,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
-			"addon_profile" {]
-				Type: schema.TypeList,
+			"addon_profile" {
+				Type: schema.TypeMap,
 				Optional: true,
 				Elem: $schema.Resource{
-					Schema: map[string]$schema.Schema{
-						"name": {
-							Type: schema.TypeString,
-							Required: true,
-						},
-						
+					Schema: map[string]$schema.Schema{				
 						"enabled": {
 							Type: schema.TypeBool,
 							Required: true,
@@ -230,7 +225,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						}
 					}
 				},
-			}
+			},
 
 			"tags": tagsSchema(),
 		},
@@ -264,6 +259,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			KubernetesVersion:       &kubernetesVersion,
 			LinuxProfile:            &linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
+			
 		},
 		Tags: expandTags(tags),
 	}
@@ -492,6 +488,16 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	return nil, []interface{}{}
 }
 
+func flattenAzureRmKubernetesClusterAddonProfile(profile map[string]*containerservice.ManagedClusterAddonProfile) *map[string]interface{}{
+	values := make(map[string]interface{})
+	for k, v := range profile {
+		addonProfile = interface {
+			enabled: v.Enabled,
+			config: v.Config,
+		}
+	}
+}
+
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
@@ -587,6 +593,21 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	profiles = append(profiles, profile)
 
 	return profiles
+}
+
+func expandAzureRmKubernetesClusterAddonProfile(d *schema.ResourceData) map[string]containerservice.ManagedClusterAddonProfile {
+	values := d.Get("addon_profiles").([]interface{})
+	output := make(map[string]interface{})
+	
+	for key, value := range addonProfiles {
+		addonProfile := containerservice.ManagedClusterAddonProfile{
+			Enabled = utils.Bool(value.enabled)
+			Config = value.config
+		}
+		output[key] := &addonProfile
+	}
+
+	return output
 }
 
 func resourceAzureRMKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
