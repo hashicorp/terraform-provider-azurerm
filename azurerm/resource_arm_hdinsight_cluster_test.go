@@ -10,6 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: test for ssh auth
+// TODO: test for specifying the cluster versions
+
 func TestHDInsightsClusterValidation(t *testing.T) {
 	data := map[string]bool{
 		"":           false,
@@ -215,7 +218,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = %d
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
@@ -306,7 +309,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 4
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Large"
     }
 
     os_profile {
