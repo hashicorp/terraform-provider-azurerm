@@ -31,5 +31,5 @@ output "password" {
 }
 
 output "http_application_routing_zone_name" {
-  value = "${azurerm_kubernetes_cluster.aks_container.addon_profile.0.HTTPApplicationRoutingZoneName}"
+  value = "${azurerm_kubernetes_cluster.aks_container.addon_profile.0.config.HTTPApplicationRoutingZoneName}"
 }

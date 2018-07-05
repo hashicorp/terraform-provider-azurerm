@@ -354,7 +354,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if resp.AddonProfiles != nil {
-		addonProfiles := flattenAzureRmKubernetesClusterAddonProfile(resp.AddonProfiles)
+		addonProfiles := flattenAzureRmKubernetesClusterAddonProfiles(resp.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
@@ -505,7 +505,7 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	return nil, []interface{}{}
 }
 
-func flattenAzureRmKubernetesClusterAddonProfile(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
 	values := make([]interface{}, 0)
 	for k, v := range profile {
 		addonProfile := map[string]interface{}{
