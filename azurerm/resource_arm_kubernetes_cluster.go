@@ -247,6 +247,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	linuxProfile := expandAzureRmKubernetesClusterLinuxProfile(d)
 	agentProfiles := expandAzureRmKubernetesClusterAgentProfiles(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+	addonProfiles := expandAzureRmKubernetesClusterAddonProfiles(d)
 
 	tags := d.Get("tags").(map[string]interface{})
 
@@ -259,7 +260,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			KubernetesVersion:       &kubernetesVersion,
 			LinuxProfile:            &linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
-			
+			AddonProfiles: addonProfiles,
 		},
 		Tags: expandTags(tags),
 	}
@@ -595,8 +596,8 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 	return profiles
 }
 
-func expandAzureRmKubernetesClusterAddonProfile(d *schema.ResourceData) map[string]containerservice.ManagedClusterAddonProfile {
-	values := d.Get("addon_profiles").([]interface{})
+func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
+	values := d.Get("addon_profile").([]interface{})
 	output := make(map[string]interface{})
 	
 	for key, value := range addonProfiles {
