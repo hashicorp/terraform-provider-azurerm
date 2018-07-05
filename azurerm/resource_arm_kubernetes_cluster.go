@@ -209,6 +209,29 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
+			"addon_profile" {]
+				Type: schema.TypeList,
+				Optional: true,
+				Elem: $schema.Resource{
+					Schema: map[string]$schema.Schema{
+						"name": {
+							Type: schema.TypeString,
+							Required: true,
+						},
+						
+						"enabled": {
+							Type: schema.TypeBool,
+							Required: true,
+						}
+
+						"config": {
+							Type: schema.TypeMap,
+							Optional: true,
+						}
+					}
+				},
+			}
+
 			"tags": tagsSchema(),
 		},
 	}
