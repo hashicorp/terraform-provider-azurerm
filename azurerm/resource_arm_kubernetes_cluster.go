@@ -209,21 +209,30 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
-			"addon_profile" {
-				Type: schema.TypeMap,
+			"addon_profiles": {
+				Type:     schema.TypeList,
 				Optional: true,
-				Elem: $schema.Resource{
-					Schema: map[string]$schema.Schema{				
-						"enabled": {
-							Type: schema.TypeBool,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
 							Required: true,
-						}
+							ForceNew: true,
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+							ForceNew: true,
+						},
 
 						"config": {
-							Type: schema.TypeMap,
+							Type:     schema.TypeMap,
 							Optional: true,
-						}
-					}
+							Computed: true,
+							ForceNew: true,
+						},
+					},
 				},
 			},
 
@@ -260,7 +269,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			KubernetesVersion:       &kubernetesVersion,
 			LinuxProfile:            &linuxProfile,
 			ServicePrincipalProfile: servicePrincipalProfile,
-			AddonProfiles: addonProfiles,
+			AddonProfiles:           addonProfiles,
 		},
 		Tags: expandTags(tags),
 	}
@@ -341,6 +350,13 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
+	}
+
+	if resp.AddonProfiles != nil {
+		addonProfiles := flattenAzureRmKubernetesClusterAddonProfile(resp.AddonProfiles)
+		if err := d.Set("addon_profile", addonProfiles); err != nil {
+			return fmt.Errorf("Error setting `addon_profiles`: %+v", err)
 		}
 	}
 
@@ -489,14 +505,28 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 	return nil, []interface{}{}
 }
 
-func flattenAzureRmKubernetesClusterAddonProfile(profile map[string]*containerservice.ManagedClusterAddonProfile) *map[string]interface{}{
-	values := make(map[string]interface{})
+func flattenAzureRmKubernetesClusterAddonProfile(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+	values := make([]interface{}, 0)
 	for k, v := range profile {
-		addonProfile = interface {
-			enabled: v.Enabled,
-			config: v.Config,
+		addonProfile := map[string]interface{}{
+			"name":    k,
+			"enabled": *v.Enabled,
+			"config":  flattenAzureRmKubernetesClusterAddonProfileConfig(v.Config),
 		}
+
+		values = append(values, addonProfile)
 	}
+	return values
+}
+
+func flattenAzureRmKubernetesClusterAddonProfileConfig(config map[string]*string) map[string]string {
+	values := make(map[string]string)
+
+	for k, v := range config {
+		values[k] = *v
+	}
+
+	return values
 }
 
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
@@ -598,14 +628,28 @@ func expandAzureRmKubernetesClusterAgentProfiles(d *schema.ResourceData) []conta
 
 func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
 	values := d.Get("addon_profile").([]interface{})
-	output := make(map[string]interface{})
-	
-	for key, value := range addonProfiles {
-		addonProfile := containerservice.ManagedClusterAddonProfile{
-			Enabled = utils.Bool(value.enabled)
-			Config = value.config
+	output := make(map[string]*containerservice.ManagedClusterAddonProfile)
+
+	for _, val := range values {
+		config := val.(map[string]interface{})
+
+		name := config["name"].(string)
+		enabled := config["enabled"].(bool)
+
+		// We don't know the keys explicitly, they could be anything.
+		addonConfig := config["config"].(map[string]interface{})
+		configValue := make(map[string]*string)
+		for k, v := range addonConfig {
+			configEntry := v.(string)
+			configValue[k] = &configEntry
 		}
-		output[key] := &addonProfile
+
+		addonProfile := containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  configValue,
+		}
+
+		output[name] = &addonProfile
 	}
 
 	return output
