@@ -502,6 +502,20 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	moduleClient.Sender = sender
 	moduleClient.SkipResourceProviderRegistration = c.skipProviderRegistration
 	c.automationModuleClient = moduleClient
+
+	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&dscNodeConfigurationClient.Client)
+	dscNodeConfigurationClient.Authorizer = auth
+	dscNodeConfigurationClient.Sender = sender
+	dscNodeConfigurationClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationDscNodeConfigurationClient = dscNodeConfigurationClient
+
+	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&dscConfigurationClient.Client)
+	dscConfigurationClient.Authorizer = auth
+	dscConfigurationClient.Sender = sender
+	dscConfigurationClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationDscConfigurationClient = dscConfigurationClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {
