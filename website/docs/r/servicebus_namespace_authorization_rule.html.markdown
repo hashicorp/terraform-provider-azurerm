@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace_authorization_rule"
 sidebar_current: "docs-azurerm-resource-servicebus-namespace-authorization-rule"
 description: |-
-  Manages a ServiceBus Namespace authorization Rule within a ServiceBus Topic.
+  Manages a ServiceBus Namespace authorization Rule within a ServiceBus.
 ---
 
 # azurerm_servicebus_namespace_authorization_rule
 
-Manages a ServiceBus Namespace authorization Rule within a ServiceBus Topic.
+Manages a ServiceBus Namespace authorization Rule within a ServiceBus.
 
 ## Example Usage
 
@@ -34,7 +34,10 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
   name                = "examplerule"
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  rights              = ["Listen", "Send", "Manage"]
+  
+  listen = true
+  send   = true
+  manage = false
 }
 ```
 
@@ -48,7 +51,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the ServiceBus Namespace exists. Changing this forces a new resource to be created.
 
-* `rights` - (Required) A list of rights grants by this authorization rule. Possible values are `Listen`, `Send` and `Manage`. The `Manage` right requires both `Listen` and `Send` rights.
+* `listen` - (Optional) Grants listen access to this this Authorization Rule. Defaults to `false`.
+
+* `send` - (Optional) Grants send access to this this Authorization Rule. Defaults to `false`.
+
+* `manage` - (Optional) Grants manage access to this this Authorization Rule. When this property is `true` - both `listen` and `send` rights are implied too. Defaults to `false`.
 
 ## Attributes Reference
 

@@ -58,13 +58,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the ServiceBus Namespace exists. Changing this forces a new resource to be created.
 
-~> **NOTE** At least one of the 3 permissions below needs to be set.
+* `listen` - (Optional) Grants listen access to this this Authorization Rule. Defaults to `false`.
 
-* `listen` - (Optional) Does this Authorization Rule have permissions to Listen to the ServiceBus Topic? Defaults to `false`.
+* `send` - (Optional) Grants send access to this this Authorization Rule. Defaults to `false`.
 
-* `send` - (Optional) Does this Authorization Rule have permissions to Send to the ServiceBus Topic? Defaults to `false`.
-
-* `manage` - (Optional) Does this Authorization Rule have permissions to Manage to the ServiceBus Topic? When this property is `true` - both `listen` and `send` must be too. Defaults to `false`.
+* `manage` - (Optional) Grants manage access to this this Authorization Rule. When this property is `true` - both `listen` and `send` rights are implied too. Defaults to `false`.
 
 ## Attributes Reference
 

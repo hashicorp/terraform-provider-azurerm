@@ -1,18 +1,89 @@
 package azure
 
 import (
+	"fmt"
+	"log"
 	"regexp"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+
+	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 )
 
 //validation
 func ValidateServiceBusNamespaceName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,100}[a-zA-Z0-9]$"),
-		"The namespace can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.",
+		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
+		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
 	)
 }
 
+func ValidateServiceBusTopicName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z][-._a-zA-Z0-9]{0,258}([a-zA-Z0-9])?$"),
+		"The topic name can contain only letters, numbers, periods, hyphens and underscores. The namespace must start with a letter, and it must end with a letter or number and be less then 260 characters long.",
+	)
+}
+
+func ValidateServiceBusAuthorizationRuleName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z0-9][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
+		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be less the 50 characters long.",
+	)
+}
+
+func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
+	rights := []servicebus.AccessRights{}
+
+	if d.Get("manage").(bool) {
+		//manage implies all, so just return it
+		rights = append(rights, []servicebus.AccessRights{servicebus.Listen, servicebus.Send, servicebus.Manage}...)
+		return &rights
+	}
+
+	if d.Get("listen").(bool) {
+		rights = append(rights, servicebus.Listen)
+	}
+
+	if d.Get("send").(bool) {
+		rights = append(rights, servicebus.Send)
+	}
+
+	return &rights
+}
+
+func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen bool, send bool, manage bool) {
+	//zero (initial) value for a bool in go is false
+
+	if rights != nil {
+		for _, right := range *rights {
+			switch right {
+			case servicebus.Listen:
+				listen = true
+			case servicebus.Send:
+				send = true
+			case servicebus.Manage:
+				manage = true
+			default:
+				log.Printf("[DEBUG] Unknown Authorization Rule Right '%s'", right)
+			}
+		}
+	}
+
+	return
+}
+
 //shared schema
+
+func ServiceBusAuthorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	_, hasListen := d.GetOk("listen")
+	_, hasSend := d.GetOk("send")
+	_, hasManage := d.GetOk("manage")
+
+	if !hasListen && !hasSend && !hasManage {
+		return fmt.Errorf("One of the `listen`, `send` or `manage` properties needs to be set")
+	}
+
+	return nil
+}

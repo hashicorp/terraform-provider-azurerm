@@ -6,11 +6,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func resourceArmServiceAuthRuleSchemaFrom(schema map[string]*schema.Schema) map[string]*schema.Schema {
+	return schema
+}
 
 func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 	return &schema.Resource{
@@ -23,11 +25,12 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: resourceArmServiceAuthRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusAuthorizationRuleName(),
 			},
 
 			"namespace_name": {
@@ -39,19 +42,22 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"rights": {
-				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(servicebus.Listen),
-						string(servicebus.Send),
-						string(servicebus.Manage),
-					}, true),
-				},
-				Set: set.HashStringIgnoreCase,
+			"listen": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true, //because we set this to true if managed is chosen
+			},
+
+			"send": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true, //because we set this to true if managed is chosen
+			},
+
+			"manage": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"primary_key": {
@@ -77,19 +83,9 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-		},
+		}),
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			rights := diff.Get("rights").(*schema.Set)
-
-			if rights.Contains(string(servicebus.Manage)) {
-				if !rights.Contains(string(servicebus.Listen)) || !rights.Contains(string(servicebus.Manage)) {
-					return fmt.Errorf("In order to allow the 'Manage' right - both the 'Listen' and 'Send' rights must be present")
-				}
-			}
-
-			return nil
-		},
+		CustomizeDiff: azure.ServiceBusAuthorizationRuleCustomizeDiff,
 	}
 }
 
@@ -106,7 +102,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 	parameters := servicebus.SBAuthorizationRule{
 		Name: &name,
 		SBAuthorizationRuleProperties: &servicebus.SBAuthorizationRuleProperties{
-			Rights: expandServiceBusAuthorizationRuleRights(d),
+			Rights: azure.ExpandServiceBusAuthorizationRuleRights(d),
 		},
 	}
 
@@ -140,7 +136,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData,
 
 	resGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
-	name := id.Path["AuthorizationRules"] //this is slightly different this topic, authorization is capitalized
+	name := id.Path["AuthorizationRules"] //this is slightly different then a topic rule (Authorization vs authorization)
 
 	resp, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, name)
 	if err != nil {
@@ -151,17 +147,20 @@ func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData,
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Namespace Authorization Rule %s: %+v", name, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, name)
-	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Namespace Authorization Rule List Keys %s: %+v", name, err)
-	}
-
 	d.Set("name", name)
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
 
-	if err := d.Set("rights", flattenServiceBusAuthorizationRuleRights(resp.Rights)); err != nil {
-		return fmt.Errorf("Error flattening rights: %+v", err)
+	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
+		listen, send, manage := azure.FlattenServiceBusAuthorizationRuleRights(properties.Rights)
+		d.Set("listen", listen)
+		d.Set("send", send)
+		d.Set("manage", manage)
+	}
+
+	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Namespace Authorization Rule List Keys %s: %+v", name, err)
 	}
 
 	d.Set("primary_key", keysResp.PrimaryKey)
@@ -183,35 +182,11 @@ func resourceArmServiceBusNamespaceAuthorizationRuleDelete(d *schema.ResourceDat
 
 	resGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
-	name := id.Path["AuthorizationRules"]
+	name := id.Path["AuthorizationRules"] //this is slightly different then topic (Authorization vs authorization)
 
-	_, err = client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, name)
-
-	if err != nil {
+	if _, err = client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, name); err != nil {
 		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
-}
-
-func flattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) *schema.Set {
-	slice := make([]interface{}, 0, 0)
-
-	if rights != nil {
-		for _, r := range *rights {
-			slice = append(slice, string(r))
-		}
-	}
-
-	return schema.NewSet(set.HashStringIgnoreCase, slice)
-}
-
-func expandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
-	rights := make([]servicebus.AccessRights, 0)
-
-	for _, v := range d.Get("rights").(*schema.Set).List() {
-		rights = append(rights, servicebus.AccessRights(v.(string)))
-	}
-
-	return &rights
 }

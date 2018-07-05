@@ -19,7 +19,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "example" {
   name                = "tfex_servicebus${random_integer.ri.result}_authrule"
   namespace_name      = "${azurerm_servicebus_namespace.example.name}"
   resource_group_name = "${var.resource_group}"
-  rights              = ["Listen", "Send"]
+  listen = true
 }
 
 resource "azurerm_servicebus_topic" "source" {
