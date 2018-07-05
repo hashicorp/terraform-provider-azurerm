@@ -209,7 +209,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Set: resourceAzureRMKubernetesClusterServicePrincipalProfileHash,
 			},
 
-			"addon_profiles": {
+			"addon_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
@@ -356,7 +356,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	if resp.AddonProfiles != nil {
 		addonProfiles := flattenAzureRmKubernetesClusterAddonProfile(resp.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
-			return fmt.Errorf("Error setting `addon_profiles`: %+v", err)
+			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 	}
 
