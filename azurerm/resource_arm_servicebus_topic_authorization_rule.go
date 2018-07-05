@@ -5,7 +5,9 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
+
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,6 +17,7 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 		Read:   resourceArmServiceBusTopicAuthorizationRuleRead,
 		Update: resourceArmServiceBusTopicAuthorizationRuleCreateUpdate,
 		Delete: resourceArmServiceBusTopicAuthorizationRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -27,9 +30,10 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 			},
 
 			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
 			"topic_name": {
@@ -136,10 +140,10 @@ func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, met
 	}
 	resGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
-	topicsName := id.Path["topics"]
+	topicName := id.Path["topics"]
 	name := id.Path["authorizationRules"]
 
-	resp, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, topicsName, name)
+	resp, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, topicName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -148,13 +152,13 @@ func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, met
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic Authorization Rule %s: %+v", name, err)
 	}
 
-	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, topicsName, name)
+	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, topicName, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Topic Authorization Rule List Keys %s: %+v", name, err)
 	}
 
 	d.Set("name", name)
-	d.Set("topic_name", topicsName)
+	d.Set("topic_name", topicName)
 	d.Set("namespace_name", namespaceName)
 	d.Set("resource_group_name", resGroup)
 

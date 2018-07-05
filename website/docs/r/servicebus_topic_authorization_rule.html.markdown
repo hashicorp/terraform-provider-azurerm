@@ -13,20 +13,15 @@ Manages a ServiceBus Topic authorization Rule within a ServiceBus Topic.
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
+resource "azurerm_resource_group" "example" {
+  name     = "tfex-servicebus"
+  location = "West US"
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "terraform-servicebus"
-  location = "${var.location}"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_servicebus_namespace"
   location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "standard"
 
   tags {
@@ -34,17 +29,17 @@ resource "azurerm_servicebus_namespace" "test" {
   }
 }
 
-resource "azurerm_servicebus_topic" "test" {
-  name                = "testTopic"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+resource "azurerm_servicebus_topic" "example" {
+  name                = "tfex_servicebus_topic"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
 }
 
-resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "examplerule"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_servicebus_topic_authorization_rule" "example" {
+  name                = "tfex_servicebus_topic_sasPolicy"
+  namespace_name      = "${azurerm_servicebus_namespace.example.name}"
+  topic_name          = "${azurerm_servicebus_topic.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   listen              = true
   send                = false
   manage              = false
@@ -55,7 +50,7 @@ resource "azurerm_servicebus_topic_authorization_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the erviceBus Topic Authorization Rule resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the ServiceBus Topic Authorization Rule resource. Changing this forces a new resource to be created.
 
 * `namespace_name` - (Required) Specifies the name of the ServiceBus Namespace. Changing this forces a new resource to be created.
 
