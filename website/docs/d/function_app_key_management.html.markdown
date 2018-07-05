@@ -28,10 +28,12 @@ output "function_name_keys" {
 
 * `name` - (Required) The name of the FunctionApp.
 
-* `function_name` - (Required) The name of the Azure Function 
-
 * `resource_group_name` - (Required) The name of the Resource Group where the Function App exists.
+
+* `function_name` - (Optional) The name of the Azure Function 
 
 ## Attributes Reference
 
-* `function_keys` - A key-value pair of key management API for the functions.
+* `function_keys` - A key-value pair of key management API function keys for the functions.
+
+* `host_keys` - A key-value pair of key management API host keys for the function
