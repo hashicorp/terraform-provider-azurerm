@@ -24,6 +24,10 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine_scale_set` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine_scale_set` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
 
+BUG FIXES:
+
+* `azurerm_sql_database` - Fix `requested_service_objective_name` updates [GH-1503]
+
 ## 1.8.0 (June 28, 2018)
 
 FEATURES:
