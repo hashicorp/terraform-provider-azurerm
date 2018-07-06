@@ -81,50 +81,44 @@ output "host" {
 ## Example Usage - Advanced Networking
 
 ```hcl
-resource "azurerm_resource_group" "akc-rg" {
-  name     = "${var.resource_group_name}"
-  location = "${var.resource_group_location}"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG1"
+  location = "East US"
 }
 
-#an attempt to keep the aci container group name (and dns label) somewhat unique
-resource "random_integer" "random_int" {
-  min = 100
-  max = 999
+resource azurerm_network_security_group "test_advanced_network" {
+  name                = "akc-1-nsg"
+  location            = "East US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
-resource azurerm_network_security_group "aks_advanced_network" {
-  name                = "akc-${random_integer.random_int.result}-nsg"
-  location            = "${var.resource_group_location}"
-  resource_group_name = "${azurerm_resource_group.akc-rg.name}"
-}
-
-resource "azurerm_virtual_network" "aks_advanced_network" {
-  name                = "akc-${random_integer.random_int.result}-vnet"
-  location            = "${var.resource_group_location}"
-  resource_group_name = "${azurerm_resource_group.akc-rg.name}"
+resource "azurerm_virtual_network" "test_advanced_network" {
+  name                = "akc-1-vnet"
+  location            = "East US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
   address_space       = ["10.1.0.0/16"]
 }
 
-resource "azurerm_subnet" "aks_subnet" {
-  name                      = "akc-${random_integer.random_int.result}-subnet"
-  resource_group_name       = "${azurerm_resource_group.akc-rg.name}"
-  network_security_group_id = "${azurerm_network_security_group.aks_advanced_network.id}"
+resource "azurerm_subnet" "test_subnet" {
+  name                      = "akc-1-subnet"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  network_security_group_id = "${azurerm_network_security_group.test_advanced_network.id}"
   address_prefix            = "10.1.0.0/24"
-  virtual_network_name      = "${azurerm_virtual_network.aks_advanced_network.name}"
+  virtual_network_name      = "${azurerm_virtual_network.test_advanced_network.name}"
 }
 
-resource "azurerm_kubernetes_cluster" "aks_container" {
-  name       = "akc-${random_integer.random_int.result}"
-  location   = "${var.resource_group_location}"
-  dns_prefix = "akc-${random_integer.random_int.result}"
+resource "azurerm_kubernetes_cluster" "test" {
+  name       = "akc-1"
+  location   = "East US"
+  dns_prefix = "akc-1"
 
-  resource_group_name = "${azurerm_resource_group.akc-rg.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
   linux_profile {
-    admin_username = "${var.linux_admin_username}"
+    admin_username = "acctestuser1"
 
     ssh_key {
-      key_data = "${var.linux_admin_ssh_publickey}"
+      key_data = "ssh-rsa ..."
     }
   }
 
@@ -135,12 +129,12 @@ resource "azurerm_kubernetes_cluster" "aks_container" {
     os_type = "Linux"
 
     # Required for advanced networking
-    vnet_subnet_id = "${azurerm_subnet.aks_subnet.id}"
+    vnet_subnet_id = "${azurerm_subnet.test_subnet.id}"
   }
 
   service_principal {
-    client_id     = "${var.client_id}"
-    client_secret = "${var.client_secret}"
+    client_id     = "00000000-0000-0000-0000-000000000000"
+    client_secret = "00000000000000000000000000000000"
   }
 
   network_profile {
@@ -152,27 +146,27 @@ resource "azurerm_kubernetes_cluster" "aks_container" {
 }
 
 output "subnet_id" {
-  value = "${azurerm_kubernetes_cluster.aks_container.agent_pool_profile.0.vnet_subnet_id}"
+  value = "${azurerm_kubernetes_cluster.test.agent_pool_profile.0.vnet_subnet_id}"
 }
 
 output "network_plugin" {
-  value = "${azurerm_kubernetes_cluster.aks_container.network_profile.0.network_plugin}"
+  value = "${azurerm_kubernetes_cluster.test.network_profile.0.network_plugin}"
 }
 
 output "service_cidr" {
-  value = "${azurerm_kubernetes_cluster.aks_container.network_profile.0.service_cidr}"
+  value = "${azurerm_kubernetes_cluster.test.network_profile.0.service_cidr}"
 }
 
 output "dns_service_ip" {
-  value = "${azurerm_kubernetes_cluster.aks_container.network_profile.0.dns_service_ip}"
+  value = "${azurerm_kubernetes_cluster.test.network_profile.0.dns_service_ip}"
 }
 
 output "docker_bridge_cidr" {
-  value = "${azurerm_kubernetes_cluster.aks_container.network_profile.0.docker_bridge_cidr}"
+  value = "${azurerm_kubernetes_cluster.test.network_profile.0.docker_bridge_cidr}"
 }
 
 output "pod_cidr" {
-  value = "${azurerm_kubernetes_cluster.aks_container.network_profile.0.pod_cidr}"
+  value = "${azurerm_kubernetes_cluster.test.network_profile.0.pod_cidr}"
 }
 
 ```
