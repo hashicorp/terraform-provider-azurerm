@@ -161,6 +161,28 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"addon_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"config": {
+							Type:     schema.TypeMap,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -214,6 +236,11 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		servicePrincipal := flattenKubernetesClusterDataSourceServicePrincipalProfile(resp.ManagedClusterProperties.ServicePrincipalProfile)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
+		}
+
+		addonProfiles := flattenKubernetesClusterAddonProfiles(resp.ManagedClusterProperties.AddonProfiles)
+		if err := d.Set("addon_profile", addonProfiles); err != nil {
+			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 	}
 
@@ -333,7 +360,26 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile *containerservice.M
 
 	return nil, []interface{}{}
 }
+func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+	values := make([]interface{}, 0)
+	for k, v := range profile {
+		addonProfile := make(map[string]interface{})
+		addonProfile["name"] = k
 
+		if enabled := v.Enabled; enabled != nil {
+			addonProfile["enabled"] = *enabled
+		}
+
+		config := make(map[string]string)
+		for k, v := range v.Config {
+			config[k] = *v
+		}
+		addonProfile["config"] = config
+
+		values = append(values, addonProfile)
+	}
+	return values
+}
 func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
