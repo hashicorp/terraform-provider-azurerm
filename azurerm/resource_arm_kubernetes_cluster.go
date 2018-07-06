@@ -218,8 +218,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 						"network_plugin": {
 							Type:     schema.TypeString,
-							Default:  "azure",
-							Optional: true,
+							Required: true,
 							ForceNew: true,
 						},
 
@@ -237,7 +236,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 						"docker_bridge_cidr": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  "172.17.0.1/16",
 							ForceNew: true,
 						},
 
