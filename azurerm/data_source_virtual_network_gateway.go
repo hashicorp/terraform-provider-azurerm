@@ -121,6 +121,21 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 							},
 							Set: hashVirtualNetworkGatewayDataSourceRevokedCert,
 						},
+						"radius_server_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"radius_server_secret": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"vpn_client_protocols": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},

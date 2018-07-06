@@ -141,17 +141,6 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"vpn_client_protocols": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.IkeV2),
-									string(network.SSTP),
-								}, true),
-							},
-						},
 						"root_certificate": {
 							Type:     schema.TypeSet,
 							Optional: true,
@@ -210,6 +199,17 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 							ConflictsWith: []string{
 								"vpn_client_configuration.0.root_certificate",
 								"vpn_client_configuration.0.revoked_certificate",
+							},
+						},
+						"vpn_client_protocols": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(network.IkeV2),
+									string(network.SSTP),
+								}, true),
 							},
 						},
 					},

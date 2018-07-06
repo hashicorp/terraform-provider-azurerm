@@ -84,6 +84,15 @@ The `vpn_client_configuration` block supports:
 * `revoked_certificate` - One or more `revoked_certificate` blocks which
     are defined below.
 
+* `radius_server_address` - (Optional) The address of the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `radius_server_secret` - (Optional) The secret used by the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
+    The supported values are `SSTP` and `IkeV2`.
+
 The `bgp_settings` block supports:
 
 * `asn` - The Autonomous System Number (ASN) to use as part of the BGP.
