@@ -212,6 +212,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"network_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
