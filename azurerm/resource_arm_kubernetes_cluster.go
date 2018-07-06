@@ -508,24 +508,21 @@ func flattenAzureRmKubernetesClusterAccessProfile(profile *containerservice.Mana
 func flattenAzureRmKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
 	values := make([]interface{}, 0)
 	for k, v := range profile {
-		addonProfile := map[string]interface{}{
-			"name":    k,
-			"enabled": *v.Enabled,
-			"config":  flattenAzureRmKubernetesClusterAddonProfileConfig(v.Config),
+		addonProfile := make(map[string]interface{})
+		addonProfile["name"] = k
+
+		if enabled := v.Enabled; enabled != nil {
+			addonProfile["enabled"] = *enabled
 		}
+
+		config := make(map[string]string)
+		for k, v := range v.Config {
+			config[k] = *v
+		}
+		addonProfile["config"] = config
 
 		values = append(values, addonProfile)
 	}
-	return values
-}
-
-func flattenAzureRmKubernetesClusterAddonProfileConfig(config map[string]*string) map[string]string {
-	values := make(map[string]string)
-
-	for k, v := range config {
-		values[k] = *v
-	}
-
 	return values
 }
 
@@ -640,8 +637,7 @@ func expandAzureRmKubernetesClusterAddonProfiles(d *schema.ResourceData) map[str
 		addonConfig := config["config"].(map[string]interface{})
 		configValue := make(map[string]*string)
 		for k, v := range addonConfig {
-			configEntry := v.(string)
-			configValue[k] = &configEntry
+			configValue[k] = utils.String(v.(string))
 		}
 
 		addonProfile := containerservice.ManagedClusterAddonProfile{
