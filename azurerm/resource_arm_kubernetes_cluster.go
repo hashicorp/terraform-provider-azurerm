@@ -351,11 +351,9 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
-	}
 
-	if resp.AddonProfiles != nil {
-		addonProfiles := flattenAzureRmKubernetesClusterAddonProfiles(resp.AddonProfiles)
-		if err := d.Set("addon_profile", addonProfiles); err != nil {
+		addonProfiles := flattenAzureRmKubernetesClusterAddonProfiles(resp.ManagedClusterProperties.AddonProfiles)
+		if err := d.Set("addon_profiles", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 	}
