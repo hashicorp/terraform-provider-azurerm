@@ -1657,7 +1657,7 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 				}
 
 				if minServers := props.MinServers; minServers != nil {
-					settings["minimum_healthy"] = int(*minServers)
+					settings["minimum_servers"] = int(*minServers)
 				}
 
 				if match := props.Match; match != nil {
