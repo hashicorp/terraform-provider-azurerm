@@ -80,6 +80,31 @@ func resourceArmContainerGroup() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"image_registry_credential": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"server": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"username": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"password": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"container": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -207,6 +232,8 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	restartPolicy := d.Get("restart_policy").(string)
 
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
+	credentials := expandContainerGroupImageRegistryCredentials(d)
+
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -218,8 +245,9 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 				Type:  &IPAddressType,
 				Ports: containerGroupPorts,
 			},
-			OsType:  containerinstance.OperatingSystemTypes(OSType),
-			Volumes: containerGroupVolumes,
+			OsType:                   containerinstance.OperatingSystemTypes(OSType),
+			Volumes:                  containerGroupVolumes,
+			ImageRegistryCredentials: credentials,
 		},
 	}
 
@@ -286,6 +314,12 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 	d.Set("restart_policy", string(resp.RestartPolicy))
 
+	imageRegistryCredentials := flattenContainerGroupImageRegistryCredentials(d, resp.ImageRegistryCredentials)
+	err = d.Set("image_registry_credential", imageRegistryCredentials)
+	if err != nil {
+		return fmt.Errorf("Error setting `image_registry_credential`: %+v", err)
+	}
+
 	if props := resp.ContainerGroupProperties; props != nil {
 		containerConfigs := flattenContainerGroupContainers(d, resp.Containers, props.IPAddress.Ports, props.Volumes)
 		err = d.Set("container", containerConfigs)
@@ -321,6 +355,29 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func flattenContainerGroupImageRegistryCredentials(d *schema.ResourceData, credentials *[]containerinstance.ImageRegistryCredential) *[]interface{} {
+	ircConfigs := make([]interface{}, 0, len(*credentials))
+	ircConfigsOld := d.Get("image_registry_credential").([]interface{})
+
+	for _, irc := range *credentials {
+		ircConfig := make(map[string]interface{})
+		ircConfig["server"] = *irc.Server
+		ircConfig["username"] = *irc.Username
+		// search for password in the old configs
+		for _, oldIrcConfig := range ircConfigsOld {
+			data := oldIrcConfig.(map[string]interface{})
+			oldServer := data["server"].(string)
+			if *irc.Server == oldServer {
+				ircConfig["password"] = data["password"].(string)
+			}
+		}
+
+		ircConfigs = append(ircConfigs, ircConfig)
+	}
+
+	return &ircConfigs
 }
 
 func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
@@ -441,6 +498,29 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func expandContainerGroupImageRegistryCredentials(d *schema.ResourceData) *[]containerinstance.ImageRegistryCredential {
+	credentialsConfig := d.Get("image_registry_credential").([]interface{})
+	credentials := make([]containerinstance.ImageRegistryCredential, 0, len(credentialsConfig))
+
+	for _, credentialConfig := range credentialsConfig {
+		data := credentialConfig.(map[string]interface{})
+
+		server := data["server"].(string)
+		username := data["username"].(string)
+		password := data["password"].(string)
+
+		credential := containerinstance.ImageRegistryCredential{
+			Server:   &server,
+			Username: &username,
+			Password: &password,
+		}
+
+		credentials = append(credentials, credential)
+	}
+
+	return &credentials
 }
 
 func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
