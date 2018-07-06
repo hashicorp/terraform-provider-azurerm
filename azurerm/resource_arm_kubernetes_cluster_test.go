@@ -196,28 +196,6 @@ func TestAccAzureRMKubernetesCluster_advancedNetworking(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworking_kubenetPlugin(t *testing.T) {
-	ri := acctest.RandInt()
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking_kubenetPlugin(ri, clientId, clientSecret, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
-					resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_plugin", "kubenet"),
-				),
-			},
-		},
-	})
-}
-
 func testAccAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
