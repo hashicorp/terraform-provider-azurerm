@@ -106,7 +106,7 @@ provider "kubernetes" {
 * `os_type` - The Operating System used for the Agents.
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-`service_principal` supports the following:
+`service_principal` exports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
 
