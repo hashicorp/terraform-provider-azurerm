@@ -55,6 +55,8 @@ The following attributes are exported:
 
 * `service_principal` - A `service_principal` block as documented below.
 
+* `addon_profile` - One or more `addon_profile` blocks as documented below.
+
 * `tags` - A mapping of tags assigned to this resource.
 
 ---
@@ -107,3 +109,9 @@ provider "kubernetes" {
 `service_principal` supports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
+
+`addon_profile` exports the following:
+
+* `name` - (Required) The name of the addon profile.
+* `enabled` - (Required) Whether the addon profile is enabled or disabled.
+* `config` - (Optional) Key/Value pair mapped to the addon config (addonProfile specific).

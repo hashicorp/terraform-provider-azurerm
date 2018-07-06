@@ -52,6 +52,19 @@ resource "azurerm_kubernetes_cluster" "test" {
   tags {
     Environment = "Production"
   }
+
+  addon_profile {
+    name = "httpApplicationRouting"
+    enabled = true
+  }
+
+  addon_profile {
+    name = "omsagent"
+    enabled = true
+    config = {
+      logAnalyticsWorkspaceResourceID = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/defaultresourcegroup-weu/providers/microsoft.operationalinsights/workspaces/defaultworkspace-00000000-0000-0000-0000-000000000000-weu"
+    }
+  }
 }
 
 output "id" {
@@ -77,6 +90,10 @@ output "cluster_ca_certificate" {
 output "host" {
   value = "${azurerm_kubernetes_cluster.test.kube_config.0.host}"
 }
+
+output "http_application_routing_zone_name" {
+  value = "${azurerm_kubernetes_cluster.test.addon_profile.0.config.HTTPApplicationRoutingZoneName}
+}
 ```
 
 ## Argument Reference
@@ -98,6 +115,8 @@ The following arguments are supported:
 * `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
 
 * `service_principal` - (Required) A Service Principal block as documented below.
+
+* `addon_profile` - (Optional) One or more Addon Profile's block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -123,6 +142,12 @@ The following arguments are supported:
 
 * `client_id` - (Required) The Client ID for the Service Principal.
 * `client_secret` - (Required) The Client Secret for the Service Principal.
+
+`addon_profile` supports the following:
+
+* `name` - (Required) The name of the addon profile.
+* `enabled` - (Required) Whether the addon profile is enabled or disabled.
+* `config` - (Optional) Key/Value pair mapped to the addon config (addonProfile specific).
 
 ## Attributes Reference
 
