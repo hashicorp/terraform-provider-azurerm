@@ -98,15 +98,28 @@ The following attributes are exported:
 
 * `id` - Key Vault Access Policy ID.
 
+-> **NOTE:** This Identifier is unique to Terraform and doesn't map to an existing object within Azure.
+
 ## Import
 
-Routes can be imported using the `resource id` of the keyvault with additional metadata containing
-the service principal objectId and the applicationId if applicable, e.g.
+Key Vault Access Policies can be imported using the Resource ID of the Key Vault, plus some additional metadata.
+
+If both an `object_id` and `application_id` are specified, then the Access Policy can be imported using the following code:
 
 ```shell
-terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111
+terraform import azurerm_key_vault_access_policy.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111/applicationId/22222222-2222-2222-2222-222222222222
 ```
 
+where `11111111-1111-1111-1111-111111111111` is the `object_id` and `22222222-2222-2222-2222-222222222222` is the `application_id`.
+
+---
+
+Access Policies with an `object_id` but no `application_id` can be imported using the following command:
+
 ```shell
-terraform import azurerm_key_vault_access_policy.testPolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111/applicationId/22222222-2222-2222-2222-222222222222
+terraform import azurerm_key_vault_access_policy.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111
 ```
+
+where `11111111-1111-1111-1111-111111111111` is the `object_id`.
+
+-> **NOTE:** Both Identifiers are unique to Terraform and don't map to an existing object within Azure.
