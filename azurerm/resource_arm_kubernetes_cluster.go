@@ -353,7 +353,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 
 		addonProfiles := flattenAzureRmKubernetesClusterAddonProfiles(resp.ManagedClusterProperties.AddonProfiles)
-		if err := d.Set("addon_profiles", addonProfiles); err != nil {
+		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 	}
