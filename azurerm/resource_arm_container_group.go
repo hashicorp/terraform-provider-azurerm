@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/flynn-archive/go-shlex"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-04-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -206,7 +208,11 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	tags := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
 
-	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
+	containers, containerGroupPorts, containerGroupVolumes, err := expandContainerGroupContainers(d)
+	if err != nil {
+		return err
+	}
+
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -227,7 +233,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
 	}
 
-	_, err := containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
+	_, err = containerGroupsClient.CreateOrUpdate(ctx, resGroup, name, containerGroup)
 	if err != nil {
 		return err
 	}
@@ -443,7 +449,7 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	return volumeConfigs
 }
 
-func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
+func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume, error) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0, len(containersConfig))
 	containerGroupPorts := make([]containerinstance.Port, 0, len(containersConfig))
@@ -498,7 +504,10 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		}
 
 		if v, _ := data["command"]; v != "" {
-			command := strings.Split(v.(string), " ")
+			command, err := shlex.Split(v.(string))
+			if err != nil {
+				return nil, nil, nil, fmt.Errorf("Error parsing as sh `container.command`: %+v", err)
+			}
 			container.Command = &command
 		}
 
@@ -513,7 +522,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		containers = append(containers, container)
 	}
 
-	return &containers, &containerGroupPorts, &containerGroupVolumes
+	return &containers, &containerGroupPorts, &containerGroupVolumes, nil
 }
 
 func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance.EnvironmentVariable {
