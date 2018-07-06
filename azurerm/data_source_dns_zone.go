@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2017-10-01/dns"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2017-05-10/resources"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -41,6 +41,23 @@ func dataSourceArmDnsZone() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
+			},
+
+			"zone_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"registration_virtual_network_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"resolution_virtual_network_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tagsForDataSourceSchema(),
@@ -87,15 +104,36 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.ZoneProperties; props != nil {
 		d.Set("number_of_record_sets", props.NumberOfRecordSets)
 		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
+		d.Set("zone_type", props.ZoneType)
 
+		registrationVNets := make([]string, 0)
+		if rvns := props.RegistrationVirtualNetworks; rvns != nil {
+			for _, rvn := range *rvns {
+				registrationVNets = append(registrationVNets, *rvn.ID)
+			}
+		}
+		if err := d.Set("registration_virtual_network_ids", registrationVNets); err != nil {
+			return err
+		}
+
+		resolutionVNets := make([]string, 0)
+		if rvns := props.ResolutionVirtualNetworks; rvns != nil {
+			for _, rvn := range *rvns {
+				resolutionVNets = append(resolutionVNets, *rvn.ID)
+			}
+		}
+		if err := d.Set("resolution_virtual_network_ids", resolutionVNets); err != nil {
+			return err
+		}
+
+		nameServers := make([]string, 0)
 		if ns := props.NameServers; ns != nil {
-			nameServers := make([]string, 0, len(*ns))
 			for _, ns := range *ns {
 				nameServers = append(nameServers, ns)
 			}
-			if err := d.Set("name_servers", nameServers); err != nil {
-				return err
-			}
+		}
+		if err := d.Set("name_servers", nameServers); err != nil {
+			return err
 		}
 	}
 

@@ -2,59 +2,61 @@ package azure
 
 import "testing"
 
-func TestHelper_Validate_AzureResourceId(t *testing.T) {
+func TestHelper_AzureResourceID(t *testing.T) {
 	cases := []struct {
-		Id     string
+		ID     string
 		Errors int
 	}{
 		{
-			Id:     "",
+			ID:     "",
 			Errors: 1,
 		},
 		{
-			Id:     "nonsense",
+			ID:     "nonsense",
 			Errors: 1,
 		},
 		{
-			Id:     "/slash",
+			ID:     "/slash",
 			Errors: 1,
 		},
 		{
-			Id:     "/path/to/nothing",
+			ID:     "/path/to/nothing",
 			Errors: 1,
 		},
 		{
-			Id:     "/subscriptions",
+			ID:     "/subscriptions",
 			Errors: 1,
 		},
 		{
-			Id:     "/providers",
+			ID:     "/providers",
 			Errors: 1,
 		},
 		{
-			Id:     "/subscriptions/not-a-guid",
+			ID:     "/subscriptions/not-a-guid",
 			Errors: 0,
 		},
 		{
-			Id:     "/providers/test",
+			ID:     "/providers/test",
 			Errors: 0,
 		},
 		{
-			Id:     "/subscriptions/00000000-0000-0000-0000-00000000000/",
+			ID:     "/subscriptions/00000000-0000-0000-0000-00000000000/",
 			Errors: 0,
 		},
 		{
-			Id:     "/providers/provider.name/",
+			ID:     "/providers/provider.name/",
 			Errors: 0,
 		},
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateResourceId(tc.Id, "test")
+		t.Run(tc.ID, func(t *testing.T) {
+			_, errors := ValidateResourceID(tc.ID, "test")
 
-		if len(errors) < tc.Errors {
-			t.Fatalf("Expected AzureResourceId to have an error for %q", tc.Id)
-		}
+			if len(errors) < tc.Errors {
+				t.Fatalf("Expected ValidateResourceID to have %d not %d errors for %q", tc.Errors, len(errors), tc.ID)
+			}
+		})
 	}
 }
 

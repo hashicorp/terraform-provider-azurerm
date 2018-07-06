@@ -1,9 +1,32 @@
 ## 1.9.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_scheduler_job` [GH-1172]
+* **New Resource:** `azurerm_user_assigned_identity` [GH-1448]
+
 IMPROVEMENTS:
 
+* dependencies: updating the `containerservice` SDK to `2018-03-31` to support AKS GA [GH-1474]
+* dependencies: updating to `v18.0.0` of `Azure/azure-sdk-for-go` [GH-1487]
+* dependencies: updating to `v10.12.0` of `Azure/go-autorest` [GH-1487]
+* `azurerm_cdn_profile` - support for `Standard_ChinaCdn` and `Standard_Microsoft` SKU's [GH-1465]
 * `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
+* `azurerm_dns_zone` - support for Private DNS Zones [GH-1404]
+* `azurerm_image` - change os_disk property to a list and add addtional property validation [GH-1443]
+* `azurerm_lb` - allow `private_ip_address` to be set to an empty value [GH-1481]
+* `azurerm_servicebus_queue` - `enable_partitioning` can now be enabled for `Basic` and `Standard` tiers [GH-1391]
+* `azurerm_virtual_machine` - support for specifying user assigned identities [GH-1448]
+* `azurerm_virtual_machine` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
+* `azurerm_virtual_machine_data_disk_attachment` - adding support for `write_accelerator_enabled` [GH-1473]
+* `azurerm_virtual_machine_scale_set` - ensuring we set the `vhd_containers` field to fix a crash [GH-1411]
+* `azurerm_virtual_machine_scale_set` - support for specifying user assigned identities [GH-1448]
+* `azurerm_virtual_machine_scale_set` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
+
+BUG FIXES:
+
+* `azurerm_sql_database` - Fix `requested_service_objective_name` updates [GH-1503]
 
 ## 1.8.0 (June 28, 2018)
 

@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job_collection"
-sidebar_current: "docs-azurerm-resource-scheduler_job_collection"
+sidebar_current: "docs-azurerm-resource-scheduler-job-collection"
 description: |-
-  Create an Scheduler Job Collection.
+  Manages a Scheduler Job Collection.
 ---
 
 # azurerm_scheduler_job_collection
 
-Create an Scheduler Job Collection.
+Manages a Scheduler Job Collection.
 
 ## Example Usage
 

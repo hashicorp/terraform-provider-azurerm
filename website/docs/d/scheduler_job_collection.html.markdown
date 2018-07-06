@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_scheduler_job_collection"
-sidebar_current: "docs-azurerm-datasource-scheduler_job_collection"
+sidebar_current: "docs-azurerm-datasource-scheduler-job-collection"
 description: |-
   Get information about the specified scheduler job collection.
 ---

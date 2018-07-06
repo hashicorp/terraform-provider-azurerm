@@ -93,6 +93,14 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				},
 			},
 
+			"capabilities": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -188,6 +196,10 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		}
 		if err := d.Set("geo_location", locations); err != nil {
 			return fmt.Errorf("Error setting `geo_location`: %+v", err)
+		}
+
+		if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilities(resp.Capabilities)); err != nil {
+			return fmt.Errorf("Error setting `capabilities`: %+v", err)
 		}
 
 		readEndpoints := make([]string, 0)

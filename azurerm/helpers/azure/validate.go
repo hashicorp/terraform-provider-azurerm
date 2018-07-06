@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func ValidateResourceId(i interface{}, k string) (_ []string, errors []error) {
+func ValidateResourceID(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
@@ -30,5 +30,5 @@ func ValidateResourceIDOrEmpty(i interface{}, k string) (_ []string, errors []er
 		return
 	}
 
-	return ValidateResourceId(i, k)
+	return ValidateResourceID(i, k)
 }

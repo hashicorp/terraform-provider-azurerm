@@ -68,8 +68,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Standard),
-								string(network.WAF),
+								string(network.ApplicationGatewayTierStandard),
+								string(network.ApplicationGatewayTierWAF),
 							}, true),
 						},
 

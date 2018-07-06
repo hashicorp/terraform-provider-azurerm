@@ -41,13 +41,17 @@ func NewFieldsClientWithBaseURI(baseURI string, subscriptionID string) FieldsCli
 }
 
 // ListByType retrieve a list of fields of a given type identified by module name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the name of module. typeName is the name of type.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// moduleName - the name of module.
+// typeName - the name of type.
 func (client FieldsClient) ListByType(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, typeName string) (result TypeFieldListResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.FieldsClient", "ListByType", err.Error())
 	}
 
