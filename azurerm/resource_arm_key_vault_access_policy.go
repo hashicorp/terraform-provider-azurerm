@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
 	uuid "github.com/satori/go.uuid"
-	keyVaultHelper "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/keyvault"
+	azschema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-var keyVaultResourceName = "azurerm_key_vault"
 
 func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 	return &schema.Resource{
@@ -30,32 +30,34 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+			"resource_group_name": resourceGroupNameSchema(),
+
 			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateUUID,
 				ForceNew:     true,
+				ValidateFunc: validateUUID,
 			},
+
 			"object_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateUUID,
 				ForceNew:     true,
+				ValidateFunc: validateUUID,
 			},
+
 			"application_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateUUID,
 				ForceNew:     true,
+				ValidateFunc: validateUUID,
 			},
-			"certificate_permissions": keyVaultHelper.CertificatePermissionsSchema(),
-			"key_permissions":         keyVaultHelper.KeyPermissionsSchema(),
-			"secret_permissions":      keyVaultHelper.SecretPermissionsSchema(),
+
+			"certificate_permissions": azschema.KeyVaultCertificatePermissionsSchema(),
+
+			"key_permissions": azschema.KeyVaultKeyPermissionsSchema(),
+
+			"secret_permissions": azschema.KeyVaultSecretPermissionsSchema(),
 		},
 	}
 }
@@ -65,42 +67,80 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
-	name := d.Get("vault_name").(string)
+	vaultName := d.Get("vault_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	accessPolicies := []keyvault.AccessPolicyEntry{expandKeyVaultAccessPolicy(d)}
+	tenantIdRaw := d.Get("tenant_id").(string)
+	tenantId, err := uuid.FromString(tenantIdRaw)
+	if err != nil {
+		return fmt.Errorf("Error parsing Tenant ID %q as a UUID: %+v", tenantIdRaw, err)
+	}
+
+	objectId := d.Get("object_id").(string)
+
+	certPermissionsRaw := d.Get("certificate_permissions").([]interface{})
+	certPermissions := azschema.ExpandCertificatePermissions(certPermissionsRaw)
+
+	keyPermissionsRaw := d.Get("key_permissions").([]interface{})
+	keyPermissions := azschema.ExpandKeyPermissions(keyPermissionsRaw)
+
+	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
+	secretPermissions := azschema.ExpandSecretPermissions(secretPermissionsRaw)
+
+	accessPolicy := keyvault.AccessPolicyEntry{
+		ObjectID: utils.String(objectId),
+		TenantID: &tenantId,
+		Permissions: &keyvault.Permissions{
+			Certificates: certPermissions,
+			Keys:         keyPermissions,
+			Secrets:      secretPermissions,
+		},
+	}
+
+	applicationIdRaw := d.Get("application_id").(string)
+	if applicationIdRaw != "" {
+		applicationId, err := uuid.FromString(applicationIdRaw)
+		if err != nil {
+			return fmt.Errorf("Error parsing Appliciation ID %q as a UUID: %+v", applicationIdRaw, err)
+		}
+
+		accessPolicy.ApplicationID = &applicationId
+	}
+
+	accessPolicies := []keyvault.AccessPolicyEntry{accessPolicy}
 
 	parameters := keyvault.VaultAccessPolicyParameters{
-		Name: &name,
+		Name: &vaultName,
 		Properties: &keyvault.VaultAccessPolicyProperties{
 			AccessPolicies: &accessPolicies,
 		},
 	}
 
-	_, err := client.UpdateAccessPolicy(ctx, resGroup, name, action, parameters)
+	// Locking to prevent parallel changes causing issues
+	azureRMLockByName(vaultName, keyVaultResourceName)
+	defer azureRMUnlockByName(vaultName, keyVaultResourceName)
+
+	_, err = client.UpdateAccessPolicy(ctx, resGroup, vaultName, action, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating Key Vault Access Policy (Key Vault %q / Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error updating Access Policy (Object ID %q / Application ID %q) for Key Vault %q (Resource Group %q): %+v", objectId, applicationIdRaw, vaultName, resGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resGroup, vaultName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", vaultName, resGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("cannot read KeyVault %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read KeyVault %q (Resource Group %q) ID", vaultName, resGroup)
 	}
 
 	if d.IsNewResource() {
 		// This is because azure doesn't have an 'id' for a keyvault access policy
 		// In order to compensate for this and allow importing of this resource we are artificially
 		// creating an identity for a key vault policy object
-		resourceId := fmt.Sprintf("%s/objectId/%s", *read.ID, d.Get("object_id"))
-		if applicationId, ok := d.GetOk("application_id"); ok {
-			resourceId = fmt.Sprintf(
-				"%s/applicationId/%s",
-				resourceId,
-				applicationId)
+		resourceId := fmt.Sprintf("%s/objectId/%s", *read.ID, objectId)
+		if applicationIdRaw != "" {
+			resourceId = fmt.Sprintf("%s/applicationId/%s", resourceId, applicationIdRaw)
 		}
 		d.SetId(resourceId)
 	}
@@ -113,10 +153,6 @@ func resourceArmKeyVaultAccessPolicyCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	// Lets lock the keyvault during a deletion to prevent a run updating the policies during a deletion
-	azureRMLockByName(d.Get("vault_name").(string), keyVaultAccessPolicyResourceName)
-	defer azureRMUnlockByName(d.Get("vault_name").(string), keyVaultAccessPolicyResourceName)
-
 	return resourceArmKeyVaultAccessPolicyCreateOrDelete(d, meta, keyvault.Remove)
 }
 
@@ -134,96 +170,84 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 	resGroup := id.ResourceGroup
-	name := id.Path["vaults"]
+	vaultName := id.Path["vaults"]
+	objectId := id.Path["objectId"]
+	applicationId := id.Path["applicationId"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resGroup, vaultName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[ERROR] Key Vault %q (Resource Group %q) was not found - removing from state", vaultName, resGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
+
+		return fmt.Errorf("Error making Read request on Azure KeyVault %q (Resource Group %q): %+v", vaultName, resGroup, err)
 	}
 
-	if resp.Properties == nil {
-		return fmt.Errorf("Properties not returned by api for Azurue KeyVault %s", name)
+	policy, err := findKeyVaultAccessPolicy(resp.Properties.AccessPolicies, objectId, applicationId)
+	if err != nil {
+		return fmt.Errorf("Error locating Access Policy (Object ID %q / Application ID %q) in Key Vault %q (Resource Group %q)", objectId, applicationId, vaultName, resGroup)
 	}
-
-	flattenedPolicy := keyVaultHelper.FlattenKeyVaultAccessPolicies(resp.Properties.AccessPolicies)
-
-	policyObjectId := id.Path["objectId"]
-	policyApplicationId := id.Path["applicationId"]
-	policyId := getPolicyIdentity(&policyObjectId, &policyApplicationId)
-
-	policy := findKeyVaultAccessPolicy(policyId, flattenedPolicy)
 
 	if policy == nil {
+		log.Printf("[ERROR] Access Policy (Object ID %q / Application ID %q) was not found in Key Vault %q (Resource Group %q) - removing from state", objectId, applicationId, vaultName, resGroup)
 		d.SetId("")
-		return fmt.Errorf("Policy for was not found for vault: %s", name)
+		return nil
 	}
 
 	d.Set("vault_name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("object_id", policyObjectId)
-	d.Set("tenant_id", resp.Properties.TenantID.String())
-	d.Set("application_id", policyApplicationId)
-	d.Set("key_permissions", policy["key_permissions"])
-	d.Set("secret_permissions", policy["secret_permissions"])
-	d.Set("certificate_permissions", policy["certificate_permissions"])
+	d.Set("object_id", objectId)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
-}
-
-func getPolicyIdentity(objectId *string, applicationId *string) string {
-
-	if applicationId != nil && *applicationId != "" {
-		return fmt.Sprintf("%s/%s", *objectId, *applicationId)
-	} else {
-		return fmt.Sprintf("%s", *objectId)
+	if tid := policy.TenantID; tid != nil {
+		d.Set("tenant_id", tid.String())
 	}
-}
 
-func matchAccessPolicy(policyString string, policy map[string]interface{}) bool {
-
-	policyObjectId := policy["object_id"].(string)
-
-	if policyApplicationId, ok := policy["application_id"]; ok {
-		return policyString == fmt.Sprintf("%s/%s", policyObjectId, policyApplicationId)
-	} else {
-		return policyString == policyObjectId
+	if aid := policy.ApplicationID; aid != nil {
+		d.Set("application_id", aid.String())
 	}
-}
 
-func findKeyVaultAccessPolicy(policyString string, policies []map[string]interface{}) map[string]interface{} {
-	for _, policy := range policies {
-		if matchAccessPolicy(policyString, policy) {
-			return policy
+	if permissions := policy.Permissions; permissions != nil {
+		certificatePermissions := azschema.FlattenCertificatePermissions(permissions.Certificates)
+		if err := d.Set("certificate_permissions", certificatePermissions); err != nil {
+			return fmt.Errorf("Error flattening `certificate_permissions`: %+v", err)
+		}
+
+		keyPermissions := azschema.FlattenKeyPermissions(permissions.Keys)
+		if err := d.Set("key_permissions", keyPermissions); err != nil {
+			return fmt.Errorf("Error flattening `key_permissions`: %+v", err)
+		}
+
+		secretPermissions := azschema.FlattenSecretPermissions(permissions.Secrets)
+		if err := d.Set("secret_permissions", secretPermissions); err != nil {
+			return fmt.Errorf("Error flattening `secret_permissions`: %+v", err)
 		}
 	}
+
 	return nil
 }
 
-func expandKeyVaultAccessPolicy(d *schema.ResourceData) keyvault.AccessPolicyEntry {
-
-	policy := keyvault.AccessPolicyEntry{
-		Permissions: &keyvault.Permissions{
-			Certificates: keyVaultHelper.ExpandKeyVaultAccessPolicyCertificatePermissions(d.Get("certificate_permissions").([]interface{})),
-			Keys:         keyVaultHelper.ExpandKeyVaultAccessPolicyKeyPermissions(d.Get("key_permissions").([]interface{})),
-			Secrets:      keyVaultHelper.ExpandKeyVaultAccessPolicySecretPermissions(d.Get("secret_permissions").([]interface{})),
-		},
+func findKeyVaultAccessPolicy(policies *[]keyvault.AccessPolicyEntry, objectId string, applicationId string) (*keyvault.AccessPolicyEntry, error) {
+	if policies == nil {
+		return nil, nil
 	}
 
-	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
-	policy.TenantID = &tenantUUID
-	objectUUID := d.Get("object_id").(string)
-	policy.ObjectID = &objectUUID
+	for _, policy := range *policies {
+		if id := policy.ObjectID; id != nil {
+			if strings.EqualFold(*id, objectId) {
+				if applicationId == "" {
+					return &policy, nil
+				}
 
-	if v := d.Get("application_id"); v != "" {
-		applicationUUID := uuid.FromStringOrNil(v.(string))
-		policy.ApplicationID = &applicationUUID
+				if aid := policy.ApplicationID; aid != nil {
+					if strings.EqualFold(aid.String(), applicationId) {
+						return &policy, nil
+					}
+				}
+			}
+		}
 	}
 
-	return policy
+	return nil, nil
 }
