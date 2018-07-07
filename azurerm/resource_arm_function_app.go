@@ -1,8 +1,10 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -214,7 +216,14 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
-	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+
+	if err != nil {
+		return err
+	}
+
+	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+
 	siteConfig := expandFunctionAppSiteConfig(d)
 	siteConfig.AppSettings = &basicAppSettings
 
@@ -279,7 +288,13 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
-	basicAppSettings := getBasicFunctionAppAppSettings(d)
+
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+
+	if err != nil {
+		return err
+	}
+	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	siteConfig := expandFunctionAppSiteConfig(d)
 	siteConfig.AppSettings = &basicAppSettings
 
@@ -312,7 +327,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	appSettings := expandFunctionAppAppSettings(d)
+	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -458,7 +473,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair {
+func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
 	dashboardPropName := "AzureWebJobsDashboard"
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
@@ -469,19 +484,45 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData) []web.NameValuePair 
 	functionVersion := d.Get("version").(string)
 	contentShare := d.Get("name").(string) + "-content"
 
-	return []web.NameValuePair{
+	basicSettings := []web.NameValuePair{
 		{Name: &dashboardPropName, Value: &storageConnection},
 		{Name: &storagePropName, Value: &storageConnection},
 		{Name: &functionVersionPropName, Value: &functionVersion},
+	}
+
+	consumptionSettings := []web.NameValuePair{
 		{Name: &contentSharePropName, Value: &contentShare},
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
+
+	// If the application plan is dynamic (consumption), we do not want to include WEBSITE_CONTENT components
+	if strings.EqualFold(appServiceTier, "dynamic") {
+		return basicSettings
+	}
+	return append(basicSettings, consumptionSettings...)
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData) map[string]*string {
+func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
+	id, err := parseAzureResourceID(appServicePlanId)
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID '%s': %+v", appServicePlanId, err)
+	}
+
+	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
+
+	appServicePlansClient := meta.(*ArmClient).appServicePlansClient
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID '%s': %+v", appServicePlanId, err)
+	}
+
+	return *appServicePlan.Sku.Tier, nil
+}
+
+func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) map[string]*string {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d)
+	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
