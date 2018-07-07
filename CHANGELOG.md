@@ -10,6 +10,7 @@ IMPROVEMENTS:
 * dependencies: updating the `containerservice` SDK to `2018-03-31` to support AKS GA [GH-1474]
 * dependencies: updating to `v18.0.0` of `Azure/azure-sdk-for-go` [GH-1487]
 * dependencies: updating to `v10.12.0` of `Azure/go-autorest` [GH-1487]
+* `azurerm_application_gateway` - adding `minimum_servers` to the probe resource [GH-1510]
 * `azurerm_cdn_profile` - support for `Standard_ChinaCdn` and `Standard_Microsoft` SKU's [GH-1465]
 * `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
