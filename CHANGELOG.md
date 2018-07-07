@@ -24,10 +24,12 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine_scale_set` - ensuring we set the `vhd_containers` field to fix a crash [GH-1411]
 * `azurerm_virtual_machine_scale_set` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine_scale_set` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
+* `azurerm_virtual_network_gateway` - adding support for the `radius_server_address`, `radius_server_secret` and `vpn_client_protocols` fields to the Data Source [GH-1505]
 
 BUG FIXES:
 
-* `azurerm_sql_database` - Fix `requested_service_objective_name` updates [GH-1503]
+* `azurerm_sql_database` - fix `requested_service_objective_name` updates [GH-1503]
+* `azurerm_virtual_network_gateway` - fix `azurerm_virtual_network_gateway` crashing when `vpn_client_configuration` was not supplied [GH-1505]
 
 ## 1.8.0 (June 28, 2018)
 
