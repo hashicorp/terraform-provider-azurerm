@@ -397,7 +397,6 @@ resource "azurerm_kubernetes_cluster" "test" {
 	
 	addon_profile {
 		name = "httpApplicationRouting"
-		enabled = true
 	}
 }
 `, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
