@@ -498,6 +498,7 @@ func (c *ArmClient) registerApiManagementServiceClients(endpoint, subscriptionId
 	ams.Authorizer = auth
 	ams.Sender = sender
 	ams.SkipResourceProviderRegistration = c.skipProviderRegistration
+	ams.PollingDuration = 60 * time.Minute
 	c.apiManagementServiceClient = ams
 }
 
