@@ -173,13 +173,13 @@ The following arguments are supported:
 
 ---
 
-A `sku` block supports the following:
+`sku` block supports the following:
 
 * `name` - (Required) Specifies the plan's pricing tier.
 
 * `capacity` - (Optional) Specifies the number of units associated with this API Management service.
 
-A `additional_location` block supports the following:
+`additional_location` block supports the following:
 
 * `location` - (Required) The location name of the additional region among Azure Data center regions.
 
@@ -187,7 +187,7 @@ A `additional_location` block supports the following:
 
 * `vnet_subnet_id` - (Required) The full resource ID of a subnet in a virtual network where the API Management service is deployed.
 
-A `certificate` block supports the following:
+`certificate` block supports the following:
 
 * `encoded_certificate` - (Required) Base64 Encoded PFX certificate.
 
@@ -195,7 +195,7 @@ A `certificate` block supports the following:
 
 * `store_name` - (Required) The local certificate store location. Only Root and CertificateAuthority are valid locations. Possible values include: `CertificateAuthority`, `Root`.
 
-A `hostname_configuration` block supports the following:
+`hostname_configuration` block supports the following:
 
 * `type` - (Required) Hostname type. Possible values include: `Proxy`, `Portal`, `Management` or `Scm`
 
@@ -233,17 +233,17 @@ The following attributes are exported:
 
 ---
 
-A `additional_location` block exports the following:
+`additional_location` block exports the following:
 
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
 * `static_ips` - Static IP addresses of the location's virtual machines.
 
-A `certificate` block exports the following:
+`certificate` block exports the following:
 
 * `certificate_info` - Certificate information.
 
-A `certificate_info` block exports the following:
+`certificate_info` block exports the following:
 
 * `expiry` - Expiration date of the certificate.
 

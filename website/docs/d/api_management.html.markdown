@@ -80,15 +80,15 @@ A `sku` block supports the following:
 
 A `additional_location` block supports the following:
 
-* `location` -
+* `location` - (Required) The location name of the additional region among Azure Data center regions.
 
-* `sku` -
+* `sku` - (Required) SKU properties of the API Management service. The `hostname_configuration` block is documented above.
 
-* `vnet_subnet_id` -
+* `vnet_subnet_id` - (Required) The full resource ID of a subnet in a virtual network where the API Management service is deployed.
 
-* `gateway_regional_url` -
+* `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
-* `static_ips` -
+* `static_ips` - Static IP addresses of the location's virtual machines.
 
 A `certificate` block supports the following:
 
