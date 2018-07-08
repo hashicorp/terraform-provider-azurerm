@@ -10,6 +10,8 @@ description: |-
 
 Create a Api Management component.
 
+-> **Note:** When `azurerm_api_management` service has dependencies on one or more `azurerm_subnet` resources, referenced using `vnet_subnet_id` or `additional_location.*.vnet_subnet_id` - the `azurerm_subnet`s will fail to be destroyed because of an issue in Azure where a reference to the `azurerm_api_management` service is left behind after its destruction. The `azurerm_api_management` service will eventually be released from `azurerm_subnet`, but it could take hours.
+
 ## Example Usage (Developer)
 
 ```hcl
@@ -44,16 +46,16 @@ resource "azurerm_resource_group" "north" {
 }
 
 resource "azurerm_virtual_network" "west" {
-	name                = "vn-west"
+  name                = "vn-west"
   address_space       = ["10.254.0.0/17"]
-	location            = "${azurerm_resource_group.west.location}"
+  location            = "${azurerm_resource_group.west.location}"
   resource_group_name = "${azurerm_resource_group.west.name}"
 }
 
 resource "azurerm_virtual_network" "north" {
-	name                = "vn-north"
+  name                = "vn-north"
   address_space       = ["10.254.128.0/17"]
-	location            = "${azurerm_resource_group.north.location}"
+  location            = "${azurerm_resource_group.north.location}"
   resource_group_name = "${azurerm_resource_group.north.name}"
 }
 
@@ -72,68 +74,68 @@ resource "azurerm_subnet" "north" {
 }
 
 resource "azurerm_api_management" "test" {
-  name                			= "api-mngmnt"
-  publisher_name      			= "My Company"
-  publisher_email     			= "company1@terraform.io"
-	notification_sender_email = "api@terraform.io"
-	vnet_subnet_id						= "${azurerm_subnet.west.id}"
-	vnet_type									= "External"
+  name                          = "api-mngmnt"
+  publisher_name                = "My Company"
+  publisher_email               = "company1@terraform.io"
+  notification_sender_email     = "api@terraform.io"
+  vnet_subnet_id                = "${azurerm_subnet.west.id}"
+  vnet_type                     = "External"
 
-	additional_location {
-		location			= "${azurerm_resource_group.north.location}"
-		sku {
-			name = "Premium"
-		}
-		vnet_subnet_id = "${azurerm_subnet.north.id}"
+  additional_location {
+	location = "${azurerm_resource_group.north.location}"
+	sku {
+		name = "Premium"
 	}
+	vnet_subnet_id = "${azurerm_subnet.north.id}"
+  }
 
-	certificate {
-		certificate						= "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-		certificate_password  = "terraform"
-		store_name						= "CertificateAuthority"
-	}
+  certificate {
+	certificate            = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+	certificate_password   = "terraform"
+	store_name             = "CertificateAuthority"
+  }
 
-	certificate {
-		certificate						= "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-		certificate_password  = "terraform"
-		store_name						= "Root"
-	}
+  certificate {
+	certificate            = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+	certificate_password   = "terraform"
+	store_name             = "Root"
+  }
 
-	custom_properties {
-		Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
-	}
+  custom_properties {
+	Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168 = "true"
+  }
 
-	hostname_configuration {
-		type = "Proxy"
-		host_name = "api.terraform.io"
-		certificate = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-		certificate_password = "terraform"
-		default_ssl_binding = true
-		negotiate_client_certificate = false
-	}
+  hostname_configuration {
+	type                         = "Proxy"
+	host_name                    = "api.terraform.io"
+	certificate                  = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+	certificate_password         = "terraform"
+	default_ssl_binding          = true
+	negotiate_client_certificate = false
+  }
 
-	hostname_configuration {
-		type = "Proxy"
-		host_name = "api2.terraform.io"
-		certificate = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
-		certificate_password = "terraform"
-		negotiate_client_certificate = true
-	}
+  hostname_configuration {
+	type                         = "Proxy"
+	host_name                    = "api2.terraform.io"
+	certificate                  = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
+	certificate_password         = "terraform"
+	negotiate_client_certificate = true
+  }
 
-	hostname_configuration {
-		type = "Portal"
-		host_name = "portal.terraform.io"
-		certificate = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
-		certificate_password = "terraform"
-	}
+  hostname_configuration {
+	type                         = "Portal"
+	host_name                    = "portal.terraform.io"
+	certificate                  = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
+	certificate_password         = "terraform"
+  }
 
   sku {
     name = "Premium"
   }
 
-	tags {
-		test = "true"
-	}
+  tags {
+	test = "true"
+  }
 
   location            = "${azurerm_resource_group.west.location}"
   resource_group_name = "${azurerm_resource_group.west.name}"
