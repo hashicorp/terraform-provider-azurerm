@@ -11,8 +11,9 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -119,6 +120,18 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
+			"enabled_for_soft_delete": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ValidateFunc: validate.BoolIsTrue(),
+			},
+
+			"enabled_for_purge_protection": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ValidateFunc: validate.BoolIsTrue(),
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -136,6 +149,8 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	enabledForSoftDelete := d.Get("enabled_for_soft_delete").(bool)
+	enabledForPurgeProtection := d.Get("enabled_for_purge_protection").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 
 	policies := d.Get("access_policy").([]interface{})
@@ -144,17 +159,29 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error expanding `access_policy`: %+v", policies)
 	}
 
+	vaultProperties := keyvault.VaultProperties{
+		TenantID:                     &tenantUUID,
+		Sku:                          expandKeyVaultSku(d),
+		AccessPolicies:               accessPolicies,
+		EnabledForDeployment:         &enabledForDeployment,
+		EnabledForDiskEncryption:     &enabledForDiskEncryption,
+		EnabledForTemplateDeployment: &enabledForTemplateDeployment,
+	}
+
+	// This setting can only be set if it is true, if set when value is false API returns errors
+	if enabledForSoftDelete {
+		vaultProperties.EnableSoftDelete = &enabledForSoftDelete
+	}
+
+	// This setting can only be set if it is true, if set when value is false API returns errors
+	if enabledForPurgeProtection {
+		vaultProperties.EnablePurgeProtection = &enabledForPurgeProtection
+	}
+
 	parameters := keyvault.VaultCreateOrUpdateParameters{
-		Location: &location,
-		Properties: &keyvault.VaultProperties{
-			TenantID:                     &tenantUUID,
-			Sku:                          expandKeyVaultSku(d),
-			AccessPolicies:               accessPolicies,
-			EnabledForDeployment:         &enabledForDeployment,
-			EnabledForDiskEncryption:     &enabledForDiskEncryption,
-			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
-		},
-		Tags: expandTags(tags),
+		Location:   &location,
+		Properties: &vaultProperties,
+		Tags:       expandTags(tags),
 	}
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
@@ -232,6 +259,8 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enabled_for_soft_delete", props.EnableSoftDelete)
+		d.Set("enabled_for_purge_protection", props.EnablePurgeProtection)
 		if err := d.Set("sku", flattenKeyVaultSku(props.Sku)); err != nil {
 			return fmt.Errorf("Error flattening `sku` for KeyVault %s: %+v", *resp.Name, err)
 		}
