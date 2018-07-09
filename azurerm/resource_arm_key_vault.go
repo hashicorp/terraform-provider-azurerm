@@ -164,7 +164,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	_, err = client.CreateOrUpdate(ctx, resGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error updating Key Vault (Key Vault %q / Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
@@ -172,7 +172,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read KeyVault %s (resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -218,7 +218,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on KeyVault %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
