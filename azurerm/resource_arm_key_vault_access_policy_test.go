@@ -135,167 +135,107 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(name string) resource.TestCheckF
 }
 
 func testAccAzureRMKeyVaultAccessPolicy_basic(rString string, location string) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "premium"
-  }
-
-  tags {
-    environment = "Production"
-    policy_object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-  }
-}
+%s
 
 resource "azurerm_key_vault_access_policy" "test" {
-	vault_name                = "${azurerm_key_vault.test.name}"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
+  vault_name          = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-	key_permissions = [
-      "get"
-	]
+  key_permissions = [
+    "get",
+  ]
 
-    secret_permissions = [
-      "get",
-      "set"
-    ]
+  secret_permissions = [
+    "get",
+    "set",
+  ]
 
-	tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-	object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
-`, rString, location, rString)
+`, template)
 }
 
 func testAccAzureRMKeyVaultAccessPolicy_multiple(rString string, location string) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-	name                = "acctestkv-%s"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-	
-	
-	sku {
-		name = "premium"
-	}
-	
-	tags {
-		environment = "Production"
-	}
-}
+%s
 
 resource "azurerm_key_vault_access_policy" "test_with_application_id" {
-	vault_name                = "${azurerm_key_vault.test.name}"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	
-	key_permissions = [
-	  "create",
-	  "get"
-	]
-	
-	secret_permissions = [
-	  "get",
-	  "delete"
-	]
-	
-	certificate_permissions = [
-		"create", 
-		"delete"
-	]
-	
-	application_id 	= "${data.azurerm_client_config.current.service_principal_application_id}"
-	tenant_id		= "${data.azurerm_client_config.current.tenant_id}"
-	object_id 		= "${data.azurerm_client_config.current.service_principal_object_id}"
+  vault_name          = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  key_permissions = [
+    "create",
+    "get",
+  ]
+
+  secret_permissions = [
+    "get",
+    "delete",
+  ]
+
+  certificate_permissions = [
+    "create",
+    "delete",
+  ]
+
+  application_id = "${data.azurerm_client_config.current.service_principal_application_id}"
+  tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
+  object_id      = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
 
 resource "azurerm_key_vault_access_policy" "test_no_application_id" {
-	vault_name                = "${azurerm_key_vault.test.name}"
-	resource_group_name      = "${azurerm_resource_group.test.name}"
-	
-	key_permissions = [
-	  "list",
-	  "encrypt"
-	]
-	
-	secret_permissions = [
-	  "list",
-	  "delete"
-	]
-	
-	certificate_permissions = [
-		"list", 
-		"delete"
-	]
-	
-	tenant_id		= "${data.azurerm_client_config.current.tenant_id}"
-	object_id 		= "${data.azurerm_client_config.current.service_principal_object_id}"
+  vault_name          = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  key_permissions = [
+    "list",
+    "encrypt",
+  ]
+
+  secret_permissions = [
+    "list",
+    "delete",
+  ]
+
+  certificate_permissions = [
+    "list",
+    "delete",
+  ]
+
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
-`, rString, location, rString)
+`, template)
 }
 
 func testAccAzureRMKeyVaultAccessPolicy_update(rString string, location string) string {
+	template := testAccAzureRMKeyVaultAccessPolicy_template(rString, location)
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%s"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctestkv-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-
-  sku {
-    name = "premium"
-  }
-
-  tags {
-    environment = "Production"
-    policy_object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-  }
-}
+%s
 
 resource "azurerm_key_vault_access_policy" "test" {
-	vault_name          = "${azurerm_key_vault.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  vault_name          = "${azurerm_key_vault.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-	key_permissions = [
-      "list",
-      "encrypt"
-	]
+  key_permissions = [
+    "list",
+    "encrypt",
+  ]
 
-    secret_permissions = [
-    ]
+  secret_permissions = []
 
-	tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-	object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
-}
-`, rString, location, rString)
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
 
-func testAccAzureRMKeyVaultAccessPolicy_policyRemoved(rString string, location string) string {
+`, template)
+}
+
+func testAccAzureRMKeyVaultAccessPolicy_template(rString string, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -316,9 +256,7 @@ resource "azurerm_key_vault" "test" {
 
   tags {
     environment = "Production"
-	policy_object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
   }
 }
-
 `, rString, location, rString)
 }

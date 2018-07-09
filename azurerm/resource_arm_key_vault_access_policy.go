@@ -236,14 +236,13 @@ func findKeyVaultAccessPolicy(policies *[]keyvault.AccessPolicyEntry, objectId s
 	for _, policy := range *policies {
 		if id := policy.ObjectID; id != nil {
 			if strings.EqualFold(*id, objectId) {
-				if applicationId == "" {
-					return &policy, nil
+				aid := ""
+				if policy.ApplicationID != nil {
+					aid = policy.ApplicationID.String()
 				}
 
-				if aid := policy.ApplicationID; aid != nil {
-					if strings.EqualFold(aid.String(), applicationId) {
-						return &policy, nil
-					}
+				if strings.EqualFold(aid, applicationId) {
+					return &policy, nil
 				}
 			}
 		}
