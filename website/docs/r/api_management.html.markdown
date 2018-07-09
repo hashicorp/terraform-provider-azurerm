@@ -192,8 +192,6 @@ The following attributes are exported:
 
 * `additional_location` - Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
 
-* `certificate` - List of Certificates that is installed in the API Management service. Max supported certificates that can be installed is 10. The `certificate` block is documented below.
-
 ---
 
 `additional_location` block exports the following:
@@ -201,18 +199,6 @@ The following attributes are exported:
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
 * `static_ips` - Static IP addresses of the location's virtual machines.
-
-`certificate` block exports the following:
-
-* `certificate_info` - Certificate information.
-
-`certificate_info` block exports the following:
-
-* `expiry` - Expiration date of the certificate.
-
-* `thumbprint` - Thumbprint of the certificate.
-
-* `subject` - Subject of the certificate.
 
 ## Import
 
