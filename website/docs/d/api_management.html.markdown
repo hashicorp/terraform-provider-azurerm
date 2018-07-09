@@ -55,10 +55,6 @@ output "api_management_id" {
 
 * `scm_url` - SCM endpoint URL of the API Management service.
 
-* `vnet_subnet_id` - The full resource ID of a subnet in a virtual network where the API Management service is deployed.
-
-* `vnet_type` - The type of VPN in which API Managemet service needs to be configured in. None (Default Value) means the API Management service is not part of any Virtual Network, External means the API Management deployment is set up inside a Virtual Network having an Internet Facing Endpoint, and Internal means that API Management deployment is setup inside a Virtual Network having an Intranet Facing Endpoint only. Possible values include: `VirtualNetworkTypeNone`, `VirtualNetworkTypeExternal`, `VirtualNetworkTypeInternal`.
-
 * `additional_location` - Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
 
 * `certificate` - List of Certificates that is installed in the API Management service. Max supported certificates that can be installed is 10. The `certificate` block is documented below.
@@ -83,8 +79,6 @@ A `additional_location` block supports the following:
 * `location` - (Required) The location name of the additional region among Azure Data center regions.
 
 * `sku` - (Required) SKU properties of the API Management service. The `hostname_configuration` block is documented above.
-
-* `vnet_subnet_id` - (Required) The full resource ID of a subnet in a virtual network where the API Management service is deployed.
 
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 

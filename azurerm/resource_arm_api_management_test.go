@@ -176,48 +176,17 @@ resource "azurerm_resource_group" "test2" {
   location = "%s"
 }
 
-resource "azurerm_virtual_network" "test1" {
-	name                = "acctest-vn1-%d"
-  address_space       = ["10.254.0.0/17"]
-	location            = "${azurerm_resource_group.test1.location}"
-  resource_group_name  = "${azurerm_resource_group.test1.name}"
-}
-
-resource "azurerm_virtual_network" "test2" {
-	name                = "acctest-vn2-%d"
-  address_space       = ["10.254.128.0/17"]
-	location            = "${azurerm_resource_group.test2.location}"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-}
-
-resource "azurerm_subnet" "test1" {
-  name                 = "testsubnet1"
-  resource_group_name  = "${azurerm_resource_group.test1.name}"
-  virtual_network_name = "${azurerm_virtual_network.test1.name}"
-  address_prefix       = "10.254.1.0/24"
-}
-
-resource "azurerm_subnet" "test2" {
-  name                 = "testsubnet2"
-  resource_group_name  = "${azurerm_resource_group.test2.name}"
-  virtual_network_name = "${azurerm_virtual_network.test2.name}"
-  address_prefix       = "10.254.128.0/24"
-}
-
 resource "azurerm_api_management" "test" {
   name                			= "acctestAM-%d"
   publisher_name      			= "pub1"
   publisher_email     			= "pub1@email.com"
 	notification_sender_email = "notification@email.com"
-	vnet_subnet_id						= "${azurerm_subnet.test1.id}"
-	vnet_type									= "External"
 
 	additional_location {
 		location			= "${azurerm_resource_group.test2.location}"
 		sku {
 			name = "Premium"
 		}
-		vnet_subnet_id = "${azurerm_subnet.test2.id}"
 	}
 
 	certificate {
@@ -237,28 +206,27 @@ resource "azurerm_api_management" "test" {
 	}
 
 	hostname_configuration {
-		type = "Proxy"
-		host_name = "api.terraform.io"
-		certificate = "${base64encode(file("testdata/api_management_api_test.pfx"))}"
-		certificate_password = "terraform"
-		default_ssl_binding = true
-		negotiate_client_certificate = false
+		type													= "Proxy"
+		host_name 										= "api.terraform.io"
+		certificate 									= "${base64encode(file("testdata/api_management_api_test.pfx"))}"
+		certificate_password 					= "terraform"
+		default_ssl_binding 					= true
+		negotiate_client_certificate 	= false
 	}
 
 	hostname_configuration {
-		type = "Proxy"
-		host_name = "api2.terraform.io"
-		certificate = "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
-		certificate_password = "terraform"
-		negotiate_client_certificate = true
+		type 													= "Proxy"
+		host_name 										= "api2.terraform.io"
+		certificate 									= "${base64encode(file("testdata/api_management_api2_test.pfx"))}"
+		certificate_password 					= "terraform"
+		negotiate_client_certificate 	= true
 	}
 
 	hostname_configuration {
-		type = "Portal"
-		host_name = "portal.terraform.io"
-		certificate = "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
-		certificate_password = "terraform"
-		# negotiate_client_certificate = true //Not supported for Portal
+		type 													= "Portal"
+		host_name 										= "portal.terraform.io"
+		certificate 									= "${base64encode(file("testdata/api_management_portal_test.pfx"))}"
+		certificate_password 					= "terraform"
 	}
 
   sku {
@@ -272,5 +240,5 @@ resource "azurerm_api_management" "test" {
   location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
 }
-`, rInt, location, rInt, altLocation, rInt, rInt, rInt)
+`, rInt, location, rInt, altLocation, rInt)
 }

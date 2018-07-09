@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
-sidebar_current: "docs-azurerm-resource-api-management"
+sidebar_current: "docs-azurerm-resource-api-management-x"
 description: |-
   Create a Api Management service.
 ---
@@ -9,8 +9,6 @@ description: |-
 # azurerm_api_management
 
 Create a Api Management component.
-
--> **Note:** When `azurerm_api_management` service has dependencies on one or more `azurerm_subnet` resources, referenced using `vnet_subnet_id` or `additional_location.*.vnet_subnet_id` - the `azurerm_subnet`s will fail to be destroyed because of an issue in Azure where a reference to the `azurerm_api_management` service is left behind after its destruction. The `azurerm_api_management` service will eventually be released from `azurerm_subnet`, but it could take hours.
 
 ## Example Usage (Developer)
 
@@ -45,48 +43,17 @@ resource "azurerm_resource_group" "north" {
   location = "North Europe"
 }
 
-resource "azurerm_virtual_network" "west" {
-  name                = "vn-west"
-  address_space       = ["10.254.0.0/17"]
-  location            = "${azurerm_resource_group.west.location}"
-  resource_group_name = "${azurerm_resource_group.west.name}"
-}
-
-resource "azurerm_virtual_network" "north" {
-  name                = "vn-north"
-  address_space       = ["10.254.128.0/17"]
-  location            = "${azurerm_resource_group.north.location}"
-  resource_group_name = "${azurerm_resource_group.north.name}"
-}
-
-resource "azurerm_subnet" "west" {
-  name                 = "api-subnet-west"
-  resource_group_name  = "${azurerm_resource_group.west.name}"
-  virtual_network_name = "${azurerm_virtual_network.west.name}"
-  address_prefix       = "10.254.1.0/24"
-}
-
-resource "azurerm_subnet" "north" {
-  name                 = "api-subnet-north"
-  resource_group_name  = "${azurerm_resource_group.north.name}"
-  virtual_network_name = "${azurerm_virtual_network.north.name}"
-  address_prefix       = "10.254.128.0/24"
-}
-
 resource "azurerm_api_management" "test" {
   name                          = "api-mngmnt"
   publisher_name                = "My Company"
   publisher_email               = "company1@terraform.io"
   notification_sender_email     = "api@terraform.io"
-  vnet_subnet_id                = "${azurerm_subnet.west.id}"
-  vnet_type                     = "External"
 
   additional_location {
 	location = "${azurerm_resource_group.north.location}"
 	sku {
 		name = "Premium"
 	}
-	vnet_subnet_id = "${azurerm_subnet.north.id}"
   }
 
   certificate {
@@ -159,10 +126,6 @@ The following arguments are supported:
 
 * `notification_sender_email` - (Optional) Email address from which the notification will be sent.
 
-* `vnet_subnet_id` - (Optional) The full resource ID of a subnet in a virtual network where the API Management service is deployed.
-
-* `vnet_type` - (Optional) The type of VPN in which API Managemet service needs to be configured in. None (Default Value) means the API Management service is not part of any Virtual Network, External means the API Management deployment is set up inside a Virtual Network having an Internet Facing Endpoint, and Internal means that API Management deployment is setup inside a Virtual Network having an Intranet Facing Endpoint only. Possible values include: `VirtualNetworkTypeNone`, `VirtualNetworkTypeExternal`, `VirtualNetworkTypeInternal`.
-
 * `additional_location` - (Optional) Additional datacenter locations of the API Management service. The `additional_location` block is documented below.
 
 * `certificate` - (Optional) List of Certificates that is installed in the API Management service. Max supported certificates that can be installed is 10. The `certificate` block is documented below.
@@ -186,8 +149,6 @@ The following arguments are supported:
 * `location` - (Required) The location name of the additional region among Azure Data center regions.
 
 * `sku` - (Required) SKU properties of the API Management service. The `hostname_configuration` block is documented above.
-
-* `vnet_subnet_id` - (Required) The full resource ID of a subnet in a virtual network where the API Management service is deployed.
 
 `certificate` block supports the following:
 

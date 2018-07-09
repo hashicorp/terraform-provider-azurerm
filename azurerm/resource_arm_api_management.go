@@ -54,6 +54,117 @@ func resourceArmApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			"additional_location": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"location": locationSchema(),
+
+						"sku": apiManagementSkuSchema(),
+
+						"gateway_regional_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"static_ips": {
+							Type: schema.TypeList,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"certificate": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 10,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"encoded_certificate": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"certificate_password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+
+						"store_name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.CertificateAuthority),
+								string(apimanagement.Root),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+					},
+				},
+			},
+
+			"custom_properties": {
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
+
+			"hostname_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.Management),
+								string(apimanagement.Portal),
+								string(apimanagement.Proxy),
+								string(apimanagement.Scm),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+
+						"host_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"certificate": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"certificate_password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+
+						"default_ssl_binding": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"negotiate_client_certificate": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
+			"tags": tagsSchema(),
+
 			"created": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -83,161 +194,6 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"vnet_subnet_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"vnet_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(apimanagement.VirtualNetworkTypeNone),
-					string(apimanagement.VirtualNetworkTypeInternal),
-					string(apimanagement.VirtualNetworkTypeExternal),
-				}, true),
-			},
-
-			"additional_location": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"location": locationSchema(),
-
-						"sku": apiManagementSkuSchema(),
-
-						"vnet_subnet_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"gateway_regional_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"static_ips": {
-							Type: schema.TypeList,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"certificate": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 10,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"encoded_certificate": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"certificate_password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-
-						"store_name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.CertificateAuthority),
-								string(apimanagement.Root),
-							}, true),
-						},
-
-						"certificate_info": {
-							Type:     schema.TypeList,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"expiry": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"thumbprint": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"subject": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-
-			"custom_properties": {
-				Type:     schema.TypeMap,
-				Optional: true,
-			},
-
-			"hostname_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(apimanagement.Management),
-								string(apimanagement.Portal),
-								string(apimanagement.Proxy),
-								string(apimanagement.Scm),
-							}, true),
-						},
-
-						"host_name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"certificate": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-
-						"certificate_password": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-
-						"default_ssl_binding": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-
-						"negotiate_client_certificate": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-
-						"certificate_info": apiManagementDataSourceCertificateInfoSchema(),
-					},
-				},
-			},
-
-			"tags": tagsSchema(),
 		},
 	}
 }
@@ -259,6 +215,7 @@ func apiManagementSkuSchema() *schema.Schema {
 						string(apimanagement.SkuTypeStandard),
 						string(apimanagement.SkuTypePremium),
 					}, true),
+					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 				},
 				"capacity": {
 					Type:     schema.TypeInt,
@@ -354,17 +311,16 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("publisher_name", props.PublisherName)
 
 		d.Set("notification_sender_email", props.NotificationSenderEmail)
-		d.Set("created", props.CreatedAtUtc.Local().Format(time.RFC3339))
+		d.Set("created", props.CreatedAtUtc.Format(time.RFC3339))
 		d.Set("gateway_url", props.GatewayURL)
 		d.Set("gateway_regional_url", props.GatewayRegionalURL)
 		d.Set("portal_url", props.PortalURL)
 		d.Set("management_api_url", props.ManagementAPIURL)
 		d.Set("scm_url", props.ScmURL)
 		d.Set("static_ips", props.StaticIps)
-		d.Set("vnet_type", string(props.VirtualNetworkType))
 		d.Set("custom_properties", &props.CustomProperties)
 
-		err, hostnameConfigurations := flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)
+		hostnameConfigurations, err := flattenApiManagementHostnameConfigurations(d, props.HostnameConfigurations)
 
 		if err != nil {
 			return err
@@ -379,7 +335,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `additional_location`: %+v", err)
 		}
 
-		err, certificates := flattenApiManagementCertificates(d, props.Certificates)
+		certificates := flattenApiManagementCertificates(d, props.Certificates)
 
 		if err != nil {
 			return err
@@ -388,16 +344,12 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		if err := d.Set("certificate", certificates); err != nil {
 			return fmt.Errorf("Error setting `certificate`: %+v", err)
 		}
-
-		if vnetConfig := props.VirtualNetworkConfiguration; vnetConfig != nil {
-			if subnetId := vnetConfig.SubnetResourceID; subnetId != nil {
-				d.Set("vnet_subnet_id", subnetId)
-			}
-		}
 	}
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("sku", flattenApiManagementServiceSku(sku))
+		if err := d.Set("sku", flattenApiManagementServiceSku(sku)); err != nil {
+			return fmt.Errorf("Error flattening `sku`: %+v", err)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -435,57 +387,27 @@ func expandAzureRmApiManagementProperties(d *schema.ResourceData) *apimanagement
 	publisher_name := d.Get("publisher_name").(string)
 	publisher_email := d.Get("publisher_email").(string)
 	notification_sender_email := d.Get("notification_sender_email").(string)
-	vnet_type_config := d.Get("vnet_type").(string)
 
 	custom_properties := expandApiManagementCustomProperties(d)
 
 	additional_locations := expandAzureRmApiManagementAdditionalLocations(d)
 	certificates := expandAzureRmApiManagementCertificates(d)
 	hostname_configurations := expandAzureRmApiManagementHostnameConfigurations(d)
-	virtual_network_config := expandAzureRmApiManagementVirtualNetworkConfig(d)
 
 	properties := apimanagement.ServiceProperties{
-		PublisherName:               utils.String(publisher_name),
-		PublisherEmail:              utils.String(publisher_email),
-		CustomProperties:            custom_properties,
-		VirtualNetworkConfiguration: virtual_network_config,
-		AdditionalLocations:         additional_locations,
-		Certificates:                certificates,
-		HostnameConfigurations:      hostname_configurations,
-	}
-
-	if vnet_type_config != "" {
-		var vnet_type apimanagement.VirtualNetworkType
-
-		switch vnet_type_config {
-		case "None":
-			vnet_type = apimanagement.VirtualNetworkTypeNone
-		case "External":
-			vnet_type = apimanagement.VirtualNetworkTypeExternal
-		case "Internal":
-			vnet_type = apimanagement.VirtualNetworkTypeInternal
-		}
-
-		properties.VirtualNetworkType = vnet_type
+		PublisherName:          utils.String(publisher_name),
+		PublisherEmail:         utils.String(publisher_email),
+		CustomProperties:       custom_properties,
+		AdditionalLocations:    additional_locations,
+		Certificates:           certificates,
+		HostnameConfigurations: hostname_configurations,
 	}
 
 	if notification_sender_email != "" {
-		properties.NotificationSenderEmail = utils.String(notification_sender_email)
+		properties.NotificationSenderEmail = &notification_sender_email
 	}
 
 	return &properties
-}
-
-func expandAzureRmApiManagementVirtualNetworkConfig(d *schema.ResourceData) *apimanagement.VirtualNetworkConfiguration {
-	vnet_subnet_id := d.Get("vnet_subnet_id").(string)
-
-	if vnet_subnet_id == "" {
-		return nil
-	}
-
-	return &apimanagement.VirtualNetworkConfiguration{
-		SubnetResourceID: &vnet_subnet_id,
-	}
 }
 
 func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*string {
@@ -576,20 +498,12 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData) *[]ap
 
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
-
 		location := config["location"].(string)
-
 		sku := expandAzureRmApiManagementSku(config["sku"].([]interface{}))
-
-		vnet_subnet_id := config["vnet_subnet_id"].(string)
-		vnetConfig := apimanagement.VirtualNetworkConfiguration{
-			SubnetResourceID: &vnet_subnet_id,
-		}
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: &location,
 			Sku:      sku,
-			VirtualNetworkConfiguration: &vnetConfig,
 		}
 
 		additionalLocations = append(additionalLocations, additionalLocation)
@@ -602,19 +516,7 @@ func expandAzureRmApiManagementSku(configs []interface{}) *apimanagement.Service
 	config := configs[0].(map[string]interface{})
 
 	nameConfig := config["name"].(string)
-	var name apimanagement.SkuType
-
-	switch nameConfig {
-	case "Developer":
-		name = apimanagement.SkuTypeDeveloper
-	case "Basic":
-		name = apimanagement.SkuTypeBasic
-	case "Standard":
-		name = apimanagement.SkuTypeStandard
-	case "Premium":
-		name = apimanagement.SkuTypePremium
-	}
-
+	name := apimanagement.SkuType(nameConfig)
 	capacity := int32(config["capacity"].(int))
 
 	sku := &apimanagement.ServiceSkuProperties{
@@ -625,7 +527,7 @@ func expandAzureRmApiManagementSku(configs []interface{}) *apimanagement.Service
 	return sku
 }
 
-func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanagement.CertificateConfiguration) (error, []interface{}) {
+func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanagement.CertificateConfiguration) []interface{} {
 	certificates := make([]interface{}, 0, 1)
 
 	if props != nil {
@@ -636,32 +538,25 @@ func flattenApiManagementCertificates(d *schema.ResourceData, props *[]apimanage
 				certificate["store_name"] = string(prop.StoreName)
 			}
 
-			if cert := flattenApiManagementCertificate(prop.Certificate); cert != nil {
-				certificate["certificate_info"] = cert
-			}
-
 			// certificate password isn't returned, so let's look it up
 			passwKey := fmt.Sprintf("certificate.%d.certificate_password", i)
 			if v, ok := d.GetOk(passwKey); ok {
 				password := v.(string)
 				certificate["certificate_password"] = password
-			} else {
-				return fmt.Errorf("Error getting `certificate_password` from key %s", passwKey), nil
 			}
+
 			// encoded certificate isn't returned, so let's look it up
 			certKey := fmt.Sprintf("certificate.%d.encoded_certificate", i)
 			if v, ok := d.GetOk(certKey); ok {
 				cert := v.(string)
 				certificate["encoded_certificate"] = cert
-			} else {
-				return fmt.Errorf("Error getting `encoded_certificate` from key %s", certKey), nil
 			}
 
 			certificates = append(certificates, certificate)
 		}
 	}
 
-	return nil, certificates
+	return certificates
 }
 
 func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLocation) []interface{} {
@@ -683,12 +578,6 @@ func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLo
 				additional_location["gateway_regional_url"] = *prop.GatewayRegionalURL
 			}
 
-			if vnetConfig := prop.VirtualNetworkConfiguration; vnetConfig != nil {
-				if subnetId := vnetConfig.SubnetResourceID; subnetId != nil {
-					additional_location["vnet_subnet_id"] = *subnetId
-				}
-			}
-
 			if prop.Sku != nil {
 				if sku := flattenApiManagementServiceSku(prop.Sku); sku != nil {
 					additional_location["sku"] = sku
@@ -702,7 +591,7 @@ func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLo
 	return additional_locations
 }
 
-func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) (error, []interface{}) {
+func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs *[]apimanagement.HostnameConfiguration) ([]interface{}, error) {
 	host_configs := make([]interface{}, 0, 1)
 
 	if configs != nil {
@@ -725,17 +614,11 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 				host_config["negotiate_client_certificate"] = bool(*config.NegotiateClientCertificate)
 			}
 
-			if config.Certificate != nil {
-				host_config["certificate_info"] = flattenApiManagementCertificate(config.Certificate)
-			}
-
 			// certificate password isn't returned, so let's look it up
 			passKey := fmt.Sprintf("hostname_configuration.%d.certificate_password", i)
 			if v, ok := d.GetOk(passKey); ok {
 				password := v.(string)
 				host_config["certificate_password"] = password
-			} else {
-				return fmt.Errorf("Error getting `certificate_password` from key %s", passKey), nil
 			}
 
 			// encoded certificate isn't returned, so let's look it up
@@ -743,33 +626,13 @@ func flattenApiManagementHostnameConfigurations(d *schema.ResourceData, configs 
 			if v, ok := d.GetOk(certKey); ok {
 				cert := v.(string)
 				host_config["certificate"] = cert
-			} else {
-				return fmt.Errorf("Error getting `certificate` from key %s", certKey), nil
 			}
 
 			host_configs = append(host_configs, host_config)
 		}
 	}
 
-	return nil, host_configs
-}
-
-func flattenApiManagementCertificate(cert *apimanagement.CertificateInformation) []interface{} {
-	certificate := make(map[string]interface{}, 2)
-	certInfos := make([]interface{}, 0, 1)
-
-	if cert != nil {
-		if cert.Expiry != nil {
-			certificate["expiry"] = cert.Expiry.Local().Format(time.RFC3339)
-		}
-
-		certificate["thumbprint"] = *cert.Thumbprint
-		certificate["subject"] = *cert.Subject
-
-		certInfos = append(certInfos, certificate)
-	}
-
-	return certInfos
+	return host_configs, nil
 }
 
 func flattenApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {
@@ -777,11 +640,16 @@ func flattenApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties)
 	sku := make(map[string]interface{}, 2)
 
 	if profile != nil {
-		sku["name"] = string(profile.Name)
-		sku["capacity"] = *profile.Capacity
-	}
+		if profile.Name != "" {
+			sku["name"] = string(profile.Name)
+		}
 
-	skus = append(skus, sku)
+		if profile.Capacity != nil {
+			sku["capacity"] = *profile.Capacity
+		}
+
+		skus = append(skus, sku)
+	}
 
 	return skus
 }
