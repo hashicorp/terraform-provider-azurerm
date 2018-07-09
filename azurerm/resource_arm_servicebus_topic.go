@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,6 +17,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 		Read:   resourceArmServiceBusTopicRead,
 		Update: resourceArmServiceBusTopicCreate,
 		Delete: resourceArmServiceBusTopicDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -28,9 +30,10 @@ func resourceArmServiceBusTopic() *schema.Resource {
 			},
 
 			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
 			"location": deprecatedLocationSchema(),
