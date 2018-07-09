@@ -102,6 +102,8 @@ func TestAccAzureRMKeyVault_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "access_policy.0.application_id"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_soft_delete", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_purge_protection", "true"),
 				),
 			},
 		},
@@ -136,6 +138,8 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_deployment", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_disk_encryption", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_template_deployment", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_soft_delete", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enabled_for_purge_protection", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Staging"),
 				),
 			},
@@ -216,7 +220,7 @@ resource "azurerm_key_vault" "test" {
 
   sku {
     name = "premium"
-  }
+	}
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -228,7 +232,11 @@ resource "azurerm_key_vault" "test" {
 
     secret_permissions = [
       "set",
-    ]
+		]
+	}
+
+	tags {
+    environment = "Production"
   }
 }
 `, rInt, location, rInt)
@@ -251,7 +259,9 @@ resource "azurerm_key_vault" "test" {
 
   sku {
     name = "premium"
-  }
+	}
+
+	enabled_for_soft_delete = "True"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -295,6 +305,9 @@ resource "azurerm_key_vault" "test" {
   sku {
     name = "premium"
   }
+	
+	enabled_for_soft_delete = "True"
+	enabled_for_purge_protection = "True"
 
   access_policy {
     tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
