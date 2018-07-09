@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_key_vault_access_policy` [GH-1149]
 * **New Resource:** `azurerm_scheduler_job` [GH-1172]
+* **New Resource:** `azurerm_servicebus_namespace_authorization_rule` [GH-1498]
 * **New Resource:** `azurerm_user_assigned_identity` [GH-1448]
 
 IMPROVEMENTS:
