@@ -10,6 +10,8 @@ description: |-
 
 Manages a Key Vault.
 
+~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
+
 ## Example Usage
 
 ```hcl
@@ -71,9 +73,7 @@ The following arguments are supported:
 * `access_policy` - (Optional) An access policy block as described below. A maximum of 16
     may be declared.
     
-~> **Please Note:** Access Policies can also be defined using the [Key Vault Access Policy Resource](key_vault_access_policy.html) 
-resource (however you cannot use the independent resource and the built-in access_policy 
-field together, since they'll conflict).
+~> **NOTE:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual
     Machines are permitted to retrieve certificates stored as secrets from the key
