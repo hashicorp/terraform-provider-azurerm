@@ -48,24 +48,3 @@ func TestAccAzureRMLogicAppWorkflow_importTags(t *testing.T) {
 		},
 	})
 }
-
-func TestAccAzureRMLogicAppWorkflow_importActionHTTP(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMLogicAppWorkflow_actionHTTP(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorklowDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-			},
-			{
-				ResourceName:      "azurerm_logic_app_workflow.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}

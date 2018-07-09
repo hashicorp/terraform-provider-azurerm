@@ -23,12 +23,7 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorklowExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "action.0.http.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "action.0.function.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "trigger.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "trigger.0.recurrence.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -39,47 +34,27 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	resourceName := "azurerm_logic_app_workflow.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMLogicAppWorkflow_tags(ri, testLocation())
+	location := testLocation()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMLogicAppWorklowDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogicAppWorkflow_empty(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorklowExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.Source", "AcceptanceTests"),
+					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
-		},
-	})
-}
-
-func TestAccAzureRMLogicAppWorkflow_actionHTTP(t *testing.T) {
-	resourceName := "azurerm_logic_app_workflow.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMLogicAppWorkflow_actionHTTP(ri, testLocation())
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorklowDestroy,
-		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMLogicAppWorkflow_tags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorklowExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "action.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "action.0.http.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "action.0.http.0.name", "example"),
-					resource.TestCheckResourceAttr(resourceName, "action.0.http.0.method", "GET"),
-					resource.TestCheckResourceAttr(resourceName, "action.0.http.0.uri", "http://example.com/foo"),
-					resource.TestCheckResourceAttr(resourceName, "action.0.function.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
-					resource.TestCheckResourceAttr(resourceName, "trigger.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "trigger.0.recurrence.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Source", "AcceptanceTests"),
 				),
 			},
 		},
@@ -170,29 +145,6 @@ resource "azurerm_logic_app_workflow" "test" {
 
   tags {
     "Source" = "AcceptanceTests"
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMLogicAppWorkflow_actionHTTP(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_logic_app_workflow" "test" {
-  name = "acctestlaw-%d"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  action {
-    http {
-      name = "example"
-      method = "GET"
-      uri = "http://example.com/foo"
-    }
   }
 }
 `, rInt, location, rInt)

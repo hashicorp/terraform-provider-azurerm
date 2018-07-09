@@ -22,14 +22,6 @@ resource "azurerm_logic_app_workflow" "test" {
   name = "workflow1"
   location = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-
-  action {
-    http {
-      name = "example"
-      method = "GET"
-      uri = "http://example.com/foo"
-    }
-  }
 }
 ```
 
@@ -43,56 +35,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Logic App Workflow exists. Changing this forces a new resource to be created.
 
-* `action` - (Optional) A `action` block as defined below.
+* `workflow_schema` - (Optional) Specifies the Schema to use for this Logic App Workflow. Defaults to `https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#`. Changing this forces a new resource to be create.d
 
-* `trigger` - (Optional) A `trigger` block as defined below.
+* `workflow_version` - (Optional) Specifies the version of the Schema used for this Logic App Workflow. Defaults to `1.0.0.0`. Changing this forces a new resource to be create.d
+
+* `parameters` - (Optional) A map of Key-Value pairs.
+
+-> **NOTE:** Any parameters specified must exist in the Schema defined in `workflow_schema`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
-
----
-
-A `action` block contains:
-
-* `http` - (Optional) An `http` block as defined below.
-
-* `function` - (Optional) An `http` block as defined below.
-
----
-
-A `trigger` block contains:
-
-* `recurrence` - (Optional) One or more `recurrence` blocks as defined below.
-
----
-
-A `http` block contains:
-
-* `name` - (Required) The name of the HTTP Action. This needs to be unique within all Actions in the `action` block
-
-* `method` - (Required) The HTTP Method which should be used for this action, such as `GET`, `POST` etc.
-
-* `uri` - (Required) The HTTP URI that should be accessed via this action.
-
----
-
-A `function` block contains:
-
-* `name` - (Required) The name of the Function Action. This needs to be unique within all Actions in the `action` block
-
-* `function_id` - (Required) The ID of the Function which should be run by this action.
-
-* `body` - (Required) The HTTP Body to be posted to the Function.
-
----
-
-A `recurrence` block contains:
-
-* `name` - (Required) The Name of the Recurrence Trigger. This needs to be unique within all triggers in the `trigger` block.
-
-* `frequency` - (Required) The Frequency of the Recurrence Trigger. Possible values include `Month`, `Week`, `Day`, `Hour`, `Minute` and `Second`.
-
-* `interval` - (Required) The Interval of the Recurrence Trigger.
-
 
 ## Attributes Reference
 
@@ -101,7 +52,6 @@ The following attributes are exported:
 * `id` - The Logic App Workflow ID.
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow
-
 
 ## Import
 
