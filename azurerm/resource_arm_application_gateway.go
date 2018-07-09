@@ -68,8 +68,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.Standard),
-								string(network.WAF),
+								string(network.ApplicationGatewayTierStandard),
+								string(network.ApplicationGatewayTierWAF),
 							}, true),
 						},
 
@@ -456,6 +456,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"unhealthy_threshold": {
 							Type:     schema.TypeInt,
 							Required: true,
+						},
+
+						"minimum_servers": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
 						},
 
 						"match": {
@@ -1172,6 +1178,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		interval := int32(data["interval"].(int))
 		timeout := int32(data["timeout"].(int))
 		unhealthyThreshold := int32(data["unhealthy_threshold"].(int))
+		minServers := int32(data["minimum_servers"].(int))
 
 		setting := network.ApplicationGatewayProbe{
 			Name: &name,
@@ -1182,6 +1189,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 				Interval:           &interval,
 				Timeout:            &timeout,
 				UnhealthyThreshold: &unhealthyThreshold,
+				MinServers:         &minServers,
 			},
 		}
 
@@ -1646,6 +1654,10 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 
 				if threshold := props.UnhealthyThreshold; threshold != nil {
 					settings["unhealthy_threshold"] = int(*threshold)
+				}
+
+				if minServers := props.MinServers; minServers != nil {
+					settings["minimum_servers"] = int(*minServers)
 				}
 
 				if match := props.Match; match != nil {

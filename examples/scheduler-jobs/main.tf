@@ -1,26 +1,26 @@
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "example" {
   name     = "${var.resource_group_name}"
   location = "${var.resource_group_location}"
 }
 
-resource "azurerm_scheduler_job_collection" "jc" {
+resource "azurerm_scheduler_job_collection" "example" {
   name                = "tfex-scheduler-job-collection"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "standard"
   state               = "enabled"
 
   quota {
-    max_job_count            = 5
-    max_recurrence_interval  = 5
+    max_job_count            = 10
+    max_recurrence_interval  = 10
     max_recurrence_frequency = "minute"
   }
 }
 
 resource "azurerm_scheduler_job" "web-once-now" {
   name                = "tfex-web-once-now"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   state = "enabled"
 
@@ -40,8 +40,8 @@ resource "azurerm_scheduler_job" "web-once-now" {
 
 resource "azurerm_scheduler_job" "web-recurring" {
   name                = "tfex-web-recurring"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   action_web {
     url    = "http://example.com"
@@ -69,8 +69,8 @@ resource "azurerm_scheduler_job" "web-recurring" {
 
 resource "azurerm_scheduler_job" "web-recurring_daily-auth_basic" {
   name                = "tfex-web-recurring_daily-auth_basic"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   state = "enabled"
 
@@ -96,8 +96,8 @@ resource "azurerm_scheduler_job" "web-recurring_daily-auth_basic" {
 
 resource "azurerm_scheduler_job" "web-recurring_weekly-auth_cert" {
   name                = "tfex-web-recurring_weekly-auth_cert"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   state = "enabled"
 
@@ -120,10 +120,47 @@ resource "azurerm_scheduler_job" "web-recurring_weekly-auth_cert" {
   start_time = "2019-07-07T07:07:07-07:00"
 }
 
+resource "azurerm_storage_account" "example" {
+  name                     = "tfexstorageaccount"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_queue" "example" {
+  name                 = "tfex-schedulerjob-storagequeue"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  storage_account_name = "${azurerm_storage_account.example.name}"
+}
+
+resource "azurerm_scheduler_job" "storage-queue" {
+  name                = "tfex-schedulerjob-storage_queue"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+
+
+  action_storage_queue = {
+    storage_account_name = "${azurerm_storage_account.example.name}"
+    storage_queue_name   = "${azurerm_storage_queue.example.name}"
+    sas_token            = "${azurerm_storage_account.example.primary_access_key}"
+    message              = "storage message"
+  }
+
+  recurrence {
+    frequency = "week"
+    count     = 1000
+    week_days = ["Sunday"]
+  }
+
+  start_time = "2019-07-07T07:07:07-07:00"
+}
+
+
 resource "azurerm_scheduler_job" "web-recurring_monthly-error_action" {
   name                = "tfex-web-recurring_monthly-auth_ad"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
   state = "enabled"
 

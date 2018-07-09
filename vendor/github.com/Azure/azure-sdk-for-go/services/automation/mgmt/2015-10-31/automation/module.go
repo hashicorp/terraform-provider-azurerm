@@ -41,13 +41,17 @@ func NewModuleClientWithBaseURI(baseURI string, subscriptionID string) ModuleCli
 }
 
 // CreateOrUpdate create or Update the module identified by module name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the name of module. parameters is the create or update parameters for module.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// moduleName - the name of module.
+// parameters - the create or update parameters for module.
 func (client ModuleClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, parameters ModuleCreateOrUpdateParameters) (result Module, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.ModuleCreateOrUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "parameters.ModuleCreateOrUpdateProperties.ContentLink", Name: validation.Null, Rule: true,
@@ -126,13 +130,16 @@ func (client ModuleClient) CreateOrUpdateResponder(resp *http.Response) (result 
 }
 
 // Delete delete the module by name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the module name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// moduleName - the module name.
 func (client ModuleClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ModuleClient", "Delete", err.Error())
 	}
 
@@ -199,13 +206,16 @@ func (client ModuleClient) DeleteResponder(resp *http.Response) (result autorest
 }
 
 // Get retrieve the module identified by module name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the module name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// moduleName - the module name.
 func (client ModuleClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string) (result Module, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ModuleClient", "Get", err.Error())
 	}
 
@@ -273,12 +283,15 @@ func (client ModuleClient) GetResponder(resp *http.Response) (result Module, err
 }
 
 // ListByAutomationAccount retrieve a list of modules.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
 func (client ModuleClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result ModuleListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ModuleClient", "ListByAutomationAccount", err.Error())
 	}
 
@@ -373,13 +386,17 @@ func (client ModuleClient) ListByAutomationAccountComplete(ctx context.Context, 
 }
 
 // Update update the module identified by module name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name. moduleName
-// is the name of module. parameters is the update parameters for module.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// moduleName - the name of module.
+// parameters - the update parameters for module.
 func (client ModuleClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, moduleName string, parameters ModuleUpdateParameters) (result Module, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.ModuleClient", "Update", err.Error())
 	}
 

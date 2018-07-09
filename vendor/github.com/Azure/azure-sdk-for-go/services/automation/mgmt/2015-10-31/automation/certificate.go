@@ -41,14 +41,17 @@ func NewCertificateClientWithBaseURI(baseURI string, subscriptionID string) Cert
 }
 
 // CreateOrUpdate create a certificate.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// certificateName is the parameters supplied to the create or update certificate operation. parameters is the
-// parameters supplied to the create or update certificate operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// certificateName - the parameters supplied to the create or update certificate operation.
+// parameters - the parameters supplied to the create or update certificate operation.
 func (client CertificateClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, automationAccountName string, certificateName string, parameters CertificateCreateOrUpdateParameters) (result Certificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil},
 				{Target: "parameters.CertificateCreateOrUpdateProperties", Name: validation.Null, Rule: true,
@@ -122,13 +125,16 @@ func (client CertificateClient) CreateOrUpdateResponder(resp *http.Response) (re
 }
 
 // Delete delete the certificate.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// certificateName is the name of certificate.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// certificateName - the name of certificate.
 func (client CertificateClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, certificateName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.CertificateClient", "Delete", err.Error())
 	}
 
@@ -195,13 +201,16 @@ func (client CertificateClient) DeleteResponder(resp *http.Response) (result aut
 }
 
 // Get retrieve the certificate identified by certificate name.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// certificateName is the name of certificate.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// certificateName - the name of certificate.
 func (client CertificateClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, certificateName string) (result Certificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.CertificateClient", "Get", err.Error())
 	}
 
@@ -269,12 +278,15 @@ func (client CertificateClient) GetResponder(resp *http.Response) (result Certif
 }
 
 // ListByAutomationAccount retrieve a list of certificates.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
 func (client CertificateClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string) (result CertificateListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.CertificateClient", "ListByAutomationAccount", err.Error())
 	}
 
@@ -369,14 +381,17 @@ func (client CertificateClient) ListByAutomationAccountComplete(ctx context.Cont
 }
 
 // Update update a certificate.
-//
-// resourceGroupName is the resource group name. automationAccountName is the automation account name.
-// certificateName is the parameters supplied to the update certificate operation. parameters is the parameters
-// supplied to the update certificate operation.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// certificateName - the parameters supplied to the update certificate operation.
+// parameters - the parameters supplied to the update certificate operation.
 func (client CertificateClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, certificateName string, parameters CertificateUpdateParameters) (result Certificate, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("automation.CertificateClient", "Update", err.Error())
 	}
 

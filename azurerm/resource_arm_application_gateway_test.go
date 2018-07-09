@@ -1498,6 +1498,7 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
+    minimum_servers     = 2
     match               = {
       body              = "*"
       status_code       = [
