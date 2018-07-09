@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_servicebus_namespace" "example" {
   name                = "tfex_servicebus_namespace"
-  location            = "${var.location}"
+  location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "standard"
 
@@ -58,11 +58,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the ServiceBus Namespace exists. Changing this forces a new resource to be created.
 
+~> **NOTE** At least one of the 3 permissions below needs to be set.
+
 * `listen` - (Optional) Grants listen access to this this Authorization Rule. Defaults to `false`.
 
 * `send` - (Optional) Grants send access to this this Authorization Rule. Defaults to `false`.
 
-* `manage` - (Optional) Grants manage access to this this Authorization Rule. When this property is `true` - both `listen` and `send` rights are implied too. Defaults to `false`.
+* `manage` - (Optional) Grants manage access to this this Authorization Rule. When this property is `true` - both `listen` and `send` must be too. Defaults to `false`.
 
 ## Attributes Reference
 

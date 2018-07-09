@@ -45,13 +45,13 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 			"listen": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true, //because we set this to true if managed is chosen
+				Default:  false,
 			},
 
 			"send": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true, //because we set this to true if managed is chosen
+				Default:  false,
 			},
 
 			"manage": {
@@ -153,9 +153,9 @@ func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData,
 
 	if properties := resp.SBAuthorizationRuleProperties; properties != nil {
 		listen, send, manage := azure.FlattenServiceBusAuthorizationRuleRights(properties.Rights)
+		d.Set("manage", manage)
 		d.Set("listen", listen)
 		d.Set("send", send)
-		d.Set("manage", manage)
 	}
 
 	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, name)

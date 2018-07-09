@@ -36,18 +36,16 @@ func ValidateServiceBusAuthorizationRuleName() schema.SchemaValidateFunc {
 func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
 	rights := []servicebus.AccessRights{}
 
-	if d.Get("manage").(bool) {
-		//manage implies all, so just return it
-		rights = append(rights, []servicebus.AccessRights{servicebus.Listen, servicebus.Send, servicebus.Manage}...)
-		return &rights
-	}
-
 	if d.Get("listen").(bool) {
 		rights = append(rights, servicebus.Listen)
 	}
 
 	if d.Get("send").(bool) {
 		rights = append(rights, servicebus.Send)
+	}
+
+	if d.Get("manage").(bool) {
+		rights = append(rights, servicebus.Manage)
 	}
 
 	return &rights
@@ -77,12 +75,16 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 //shared schema
 
 func ServiceBusAuthorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
-	_, hasListen := d.GetOk("listen")
-	_, hasSend := d.GetOk("send")
-	_, hasManage := d.GetOk("manage")
+	listen, hasListen := d.GetOk("listen")
+	send, hasSend := d.GetOk("send")
+	manage, hasManage := d.GetOk("manage")
 
 	if !hasListen && !hasSend && !hasManage {
 		return fmt.Errorf("One of the `listen`, `send` or `manage` properties needs to be set")
+	}
+
+	if manage.(bool) && !listen.(bool) && !send.(bool) {
+		return fmt.Errorf("if `manage` is set both `listen` and `send` must be set to true too")
 	}
 
 	return nil

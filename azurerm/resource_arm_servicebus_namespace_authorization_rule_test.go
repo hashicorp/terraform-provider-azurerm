@@ -60,32 +60,6 @@ func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, se
 	})
 }
 
-func TestAccAzureRMServiceBusNamespaceAuthorizationRule_manageSolo(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), false, false, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "listen", strconv.FormatBool(true)),
-					resource.TestCheckResourceAttr(resourceName, "send", strconv.FormatBool(true)),
-					resource.TestCheckResourceAttr(resourceName, "manage", strconv.FormatBool(true)),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
 	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
 
