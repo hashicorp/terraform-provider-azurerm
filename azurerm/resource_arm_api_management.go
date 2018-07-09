@@ -46,7 +46,32 @@ func resourceArmApiManagementService() *schema.Resource {
 				ValidateFunc: validateApiManagementPublisherEmail,
 			},
 
-			"sku": apiManagementSkuSchema(),
+			"sku": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							// Default:  string(apimanagement.SkuTypeDeveloper),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.SkuTypeDeveloper),
+								string(apimanagement.SkuTypeBasic),
+								string(apimanagement.SkuTypeStandard),
+								string(apimanagement.SkuTypePremium),
+							}, true),
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+						},
+						"capacity": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  1,
+						},
+					},
+				},
+			},
 
 			"notification_sender_email": {
 				Type:     schema.TypeString,
@@ -62,7 +87,24 @@ func resourceArmApiManagementService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"location": locationSchema(),
 
-						"sku": apiManagementSkuSchema(),
+						"sku": {
+							Type:     schema.TypeList,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"capacity": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										Default:  1,
+									},
+								},
+							},
+						},
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
@@ -198,35 +240,6 @@ func resourceArmApiManagementService() *schema.Resource {
 	}
 }
 
-func apiManagementSkuSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Required: true,
-		MaxItems: 1,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"name": {
-					Type:     schema.TypeString,
-					Required: true,
-					// Default:  string(apimanagement.SkuTypeDeveloper),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(apimanagement.SkuTypeDeveloper),
-						string(apimanagement.SkuTypeBasic),
-						string(apimanagement.SkuTypeStandard),
-						string(apimanagement.SkuTypePremium),
-					}, true),
-					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				},
-				"capacity": {
-					Type:     schema.TypeInt,
-					Optional: true,
-					Default:  1,
-				},
-			},
-		},
-	}
-}
-
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).apiManagementServiceClient
 	ctx := meta.(*ArmClient).StopContext
@@ -243,7 +256,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		sku = expandAzureRmApiManagementSku(skuConfig)
 	}
 
-	properties := expandAzureRmApiManagementProperties(d)
+	properties := expandAzureRmApiManagementProperties(d, sku)
 
 	apiManagement := apimanagement.ServiceResource{
 		Location:          &location,
@@ -383,14 +396,14 @@ func resourceArmApiManagementDelete(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func expandAzureRmApiManagementProperties(d *schema.ResourceData) *apimanagement.ServiceProperties {
+func expandAzureRmApiManagementProperties(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) *apimanagement.ServiceProperties {
 	publisher_name := d.Get("publisher_name").(string)
 	publisher_email := d.Get("publisher_email").(string)
 	notification_sender_email := d.Get("notification_sender_email").(string)
 
 	custom_properties := expandApiManagementCustomProperties(d)
 
-	additional_locations := expandAzureRmApiManagementAdditionalLocations(d)
+	additional_locations := expandAzureRmApiManagementAdditionalLocations(d, sku)
 	certificates := expandAzureRmApiManagementCertificates(d)
 	hostname_configurations := expandAzureRmApiManagementHostnameConfigurations(d)
 
@@ -487,7 +500,7 @@ func expandAzureRmApiManagementCertificates(d *schema.ResourceData) *[]apimanage
 	return &certificates
 }
 
-func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData) *[]apimanagement.AdditionalLocation {
+func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *apimanagement.ServiceSkuProperties) *[]apimanagement.AdditionalLocation {
 	inputLocations := d.Get("additional_location").([]interface{})
 
 	if inputLocations == nil || len(inputLocations) == 0 {
@@ -499,7 +512,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData) *[]ap
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
 		location := config["location"].(string)
-		sku := expandAzureRmApiManagementSku(config["sku"].([]interface{}))
+		// sku := expandAzureRmApiManagementSku(config["sku"].([]interface{}))
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: &location,
