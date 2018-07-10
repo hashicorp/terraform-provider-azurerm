@@ -20,6 +20,8 @@ IMPROVEMENTS:
 * `azurerm_dns_zone` - support for Private DNS Zones [GH-1404]
 * `azurerm_image` - change os_disk property to a list and add addtional property validation [GH-1443]
 * `azurerm_lb` - allow `private_ip_address` to be set to an empty value [GH-1481]
+* `azurerm_mysql_server` - changing the `storage_mb` property no longer forces a new resource [GH-1532]
+* `azurerm_postgresql_server` - changing the `storage_mb` property no longer forces a new resource [GH-1532]
 * `azurerm_servicebus_queue` - `enable_partitioning` can now be enabled for `Basic` and `Standard` tiers [GH-1391]
 * `azurerm_virtual_machine` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
