@@ -584,13 +584,6 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account '%s': %+v", name, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account '%s': %+v", name, err)
-		}
-	}
-
 	//the SDK now will return a `WasNotFound` response even when still deleting
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Deleting"},
