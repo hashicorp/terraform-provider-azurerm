@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the MySQL Server. Changing this forces a new resource to be created. This needs to be globally unique within Azure.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the MySQL Server.
+* `resource_group_name` - (Required) The name of the resource group in which to create the MySQL Server. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -76,9 +76,9 @@ The following arguments are supported:
 
 * `capacity` - (Required) The scale up/out capacity, representing server's compute units.
 
-* `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/mysql/concepts-pricing-tiers).
+* `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/mysql/concepts-pricing-tiers). Changing this forces a new resource to be created.
 
-* `family` - (Required) The `family` of hardware `Gen4` or `Gen5`, before selecting your `family` check the [product documentation](https://docs.microsoft.com/en-us/azure/mysql/concepts-pricing-tiers#compute-generations-vcores-and-memory) for availability in your region.
+* `family` - (Required) The `family` of hardware `Gen4` or `Gen5`, before selecting your `family` check the [product documentation](https://docs.microsoft.com/en-us/azure/mysql/concepts-pricing-tiers#compute-generations-vcores-and-memory) for availability in your region. Changing this forces a new resource to be created.
 
 ---
 
