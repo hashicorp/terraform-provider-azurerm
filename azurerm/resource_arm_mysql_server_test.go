@@ -106,12 +106,20 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_2"),
+					resource.TestCheckResourceAttr(resourceName, "version", "5.7"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_1"),
+					resource.TestCheckResourceAttr(resourceName, "version", "5.7"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
 		},
@@ -261,7 +269,7 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb = 640000
     backup_retention_days = 7
     geo_redundant_backup = "Disabled"
   }

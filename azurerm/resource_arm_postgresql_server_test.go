@@ -169,12 +169,12 @@ func TestAccAzureRMPostgreSQLServer_updatePassword(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
+func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := acctest.RandInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLServer_basicNinePointSix(ri, location)
-	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedSKU(ri, location)
+	updatedConfig := testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(ri, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -185,12 +185,20 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen4_2"),
+					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen4_1"),
+					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
 		},
@@ -388,7 +396,7 @@ resource "azurerm_postgresql_server" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdatedSKU(rInt int, location string) string {
+func testAccAzureRMPostgreSQLServer_basicNinePointSixUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -408,7 +416,7 @@ resource "azurerm_postgresql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb = 640000
     backup_retention_days = 7
     geo_redundant_backup = "Disabled"
   }
