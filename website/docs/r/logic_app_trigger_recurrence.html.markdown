@@ -36,9 +36,9 @@ resource "azurerm_logic_app_trigger_recurrence" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the HTTP Action to be created within the Logic App Workflow. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Recurrence Triggers to be created within the Logic App Workflow. Changing this forces a new resource to be created.
 
--> **NOTE:** This name must be unique across all Actions within the Logic App Workflow.
+-> **NOTE:** This name must be unique across all Triggers within the Logic App Workflow.
 
 * `logic_app_id` - (Required) Specifies the ID of the Logic App Workflow. Changing this forces a new resource to be created.
 
