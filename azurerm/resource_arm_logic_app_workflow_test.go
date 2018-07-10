@@ -17,12 +17,12 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorklowDestroy,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorklowExists(resourceName),
+					testCheckAzureRMLogicAppWorkflowExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -38,12 +38,12 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogicAppWorklowDestroy,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLogicAppWorkflow_empty(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorklowExists(resourceName),
+					testCheckAzureRMLogicAppWorkflowExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
@@ -51,7 +51,7 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 			{
 				Config: testAccAzureRMLogicAppWorkflow_tags(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppWorklowExists(resourceName),
+					testCheckAzureRMLogicAppWorkflowExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "parameters.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Source", "AcceptanceTests"),
@@ -61,7 +61,7 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMLogicAppWorklowExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMLogicAppWorkflowExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -90,7 +90,7 @@ func testCheckAzureRMLogicAppWorklowExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMLogicAppWorklowDestroy(s *terraform.State) error {
+func testCheckAzureRMLogicAppWorkflowDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).logicWorkflowsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 

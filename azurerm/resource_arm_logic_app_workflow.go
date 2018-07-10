@@ -221,6 +221,10 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 	resourceGroup := id.ResourceGroup
 	name := id.Path["workflows"]
 
+	// lock to prevent against Actions, Parameters or Triggers conflicting
+	azureRMLockByName(name, logicAppResourceName)
+	defer azureRMUnlockByName(name, logicAppResourceName)
+
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
