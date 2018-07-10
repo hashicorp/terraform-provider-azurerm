@@ -11,11 +11,39 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
+func TestAccAzureRMContainerGroup_imageRegistryCredentials(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.#:", "2"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.server", "hub.docker.com"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.username", "yourusername"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.0.password:", "yourpassword"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.server", "mine.acr.io"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.username", "acrusername"),
+					resource.TestCheckResourceAttr(resourceName, "image_registry_credential.1.password:", "acrpassword"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := acctest.RandInt()
+
+	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -167,6 +195,54 @@ resource "azurerm_container_group" "test" {
     cpu    = "0.5"
     memory = "0.5"
 	port   = "80"
+  }
+
+  tags {
+    environment = "Testing"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_imageRegistryCredentials(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+	port   = "80"
+  }
+  
+  image_registry_credential {
+    server   = "hub.docker.com"
+    username = "yourusername"
+    password = "yourpassword"
+  }
+
+  image_registry_credential {
+    server   = "mine.acr.io"
+    username = "acrusername"
+    password = "acrpassword"
+  }
+
+  container {
+    name   = "sidecar"
+    image  = "microsoft/aci-tutorial-sidecar"
+    cpu    = "0.5"
+    memory = "0.5"
   }
 
   tags {

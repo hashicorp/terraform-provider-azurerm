@@ -56,18 +56,25 @@ func resourceArmContainerGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"server": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+							ForceNew:     true,
 						},
 
 						"username": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+							ForceNew:     true,
 						},
 
 						"password": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.NoZeroValues,
+							ForceNew:     true,
 						},
 					},
 				},
@@ -229,7 +236,6 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	IPAddressType := d.Get("ip_address_type").(string)
 	tags := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
-	imageCredentials := expandContainerImageRegistryCredentials(d)
 
 	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
@@ -245,7 +251,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			},
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
-			ImageRegistryCredentials: imageCredentials,
+			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 		},
 	}
 
@@ -303,9 +309,8 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 	flattenAndSetTags(d, resp.Tags)
 
-	imageRegistryCredentials := flattenContainerImageRegistryCredentials(resp.ImageRegistryCredentials)
-	if imageRegistryCredentials != nil {
-		d.Set("image_registry_credential", imageRegistryCredentials)
+	if imageRegCreds := flattenContainerImageRegistryCredentials(d, resp.ImageRegistryCredentials); imageRegCreds != nil {
+		d.Set("image_registry_credential", imageRegCreds)
 	}
 
 	d.Set("os_type", string(resp.OsType))
@@ -564,12 +569,11 @@ func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance
 
 func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containerinstance.ImageRegistryCredential {
 	credsRaw := d.Get("image_registry_credential").([]interface{})
-
-	output := make([]containerinstance.ImageRegistryCredential, 0, len(credsRaw))
-
 	if len(credsRaw) == 0 {
 		return nil
 	}
+
+	output := make([]containerinstance.ImageRegistryCredential, 0, len(credsRaw))
 
 	for _, c := range credsRaw {
 		credConfig := c.(map[string]interface{})
@@ -588,10 +592,11 @@ func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containe
 	return &output
 }
 
-func flattenContainerImageRegistryCredentials(credsPtr *[]containerinstance.ImageRegistryCredential) []interface{} {
+func flattenContainerImageRegistryCredentials(d *schema.ResourceData, credsPtr *[]containerinstance.ImageRegistryCredential) []interface{} {
 	if credsPtr == nil {
 		return nil
 	}
+	configsOld := d.Get("image_registry_credential").([]interface{})
 
 	creds := *credsPtr
 	output := make([]interface{}, len(creds))
@@ -600,11 +605,18 @@ func flattenContainerImageRegistryCredentials(credsPtr *[]containerinstance.Imag
 		if cred.Server != nil {
 			credConfig["server"] = *cred.Server
 		}
-		if cred.Password != nil {
-			credConfig["password"] = *cred.Password
-		}
 		if cred.Username != nil {
 			credConfig["username"] = *cred.Username
+		}
+
+		for i, configsOld := range configsOld {
+			data := configsOld.(map[string]interface{})
+			oldServer := data["server"].(string)
+			if cred.Server != nil && *cred.Server == oldServer {
+				if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
+					credConfig["password"] = v.(string)
+				}
+			}
 		}
 
 		output = append(output, credConfig)
