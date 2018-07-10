@@ -5,7 +5,10 @@ import (
 	"log"
 	"strings"
 
+	"net/http"
+
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -36,7 +39,13 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 			"method": {
 				Type:     schema.TypeString,
 				Required: true,
-				// NOTE: we can't add validation here since the Portal accepts custom values
+				ValidateFunc: validation.StringInSlice([]string{
+					string(http.MethodDelete),
+					string(http.MethodGet),
+					string(http.MethodPatch),
+					string(http.MethodPost),
+					string(http.MethodPut),
+				}, false),
 			},
 
 			"uri": {
@@ -81,7 +90,7 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 
 	logicAppId := d.Get("logic_app_id").(string)
 	name := d.Get("name").(string)
-	err = resourceArmLogicAppActionUpdate(d, meta, logicAppId, name, action)
+	err = resourceLogicAppActionUpdate(d, meta, logicAppId, name, action)
 	if err != nil {
 		return err
 	}
@@ -114,7 +123,6 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", name)
 	d.Set("logic_app_id", app.ID)
-	d.Set("resource_group_name", resourceGroup)
 
 	actionType := action["type"].(string)
 	if !strings.EqualFold(actionType, "http") {
@@ -163,7 +171,7 @@ func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{
 	logicAppName := id.Path["workflows"]
 	name := id.Path["actions"]
 
-	err = resourceArmLogicAppActionRemove(d, meta, resourceGroup, logicAppName, name)
+	err = resourceLogicAppActionRemove(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return fmt.Errorf("Error removing Action %q from Logic App %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
 	}

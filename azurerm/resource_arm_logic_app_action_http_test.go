@@ -2,14 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
-
-	"strings"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
@@ -24,7 +20,7 @@ func TestAccAzureRMLogicAppActionHttp_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionHttpExists(resourceName),
+					testCheckAzureRMLogicAppActionExists(resourceName),
 				),
 			},
 		},
@@ -43,7 +39,7 @@ func TestAccAzureRMLogicAppActionHttp_headers(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionHttpExists(resourceName),
+					testCheckAzureRMLogicAppActionExists(resourceName),
 				),
 			},
 		},
@@ -61,7 +57,7 @@ func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 			{
 				Config: testAccAzureRMLogicAppActionHttp_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogicAppActionHttpExists("azurerm_logic_app_action_http.test"),
+					testCheckAzureRMLogicAppActionExists("azurerm_logic_app_action_http.test"),
 				),
 			},
 			{
@@ -78,54 +74,6 @@ func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 			},
 		},
 	})
-}
-
-func testCheckAzureRMLogicAppActionHttpExists(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("Not found: %s", name)
-		}
-
-		logicAppId := rs.Primary.Attributes["logic_app_id"]
-		id, err := parseAzureResourceID(logicAppId)
-		if err != nil {
-			return err
-		}
-
-		actionName := rs.Primary.Attributes["name"]
-		workflowName := id.Path["workflows"]
-		resourceGroup := id.ResourceGroup
-
-		client := testAccProvider.Meta().(*ArmClient).logicWorkflowsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-		resp, err := client.Get(ctx, resourceGroup, workflowName)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on logicWorkflowsClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Logic App Workflow %q (resource group %q) does not exist", workflowName, resourceGroup)
-		}
-
-		definition := resp.WorkflowProperties.Definition.(map[string]interface{})
-		actions := definition["actions"].(map[string]interface{})
-
-		exists := false
-		for k, _ := range actions {
-			if strings.EqualFold(k, actionName) {
-				exists = true
-				break
-			}
-		}
-
-		if !exists {
-			return fmt.Errorf("Action %q was not found on Logic App %q (Resource Group %q)", actionName, workflowName, resourceGroup)
-		}
-
-		return nil
-	}
 }
 
 func testAccAzureRMLogicAppActionHttp_basic(rInt int, location string) string {

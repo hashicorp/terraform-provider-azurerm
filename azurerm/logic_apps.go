@@ -9,7 +9,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}) error {
+// NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by it's nature)
+
+func resourceLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Action", "actions", logicAppId, name, vals)
+}
+
+func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, logicAppId string, name string, vals map[string]interface{}) error {
+	return resourceLogicAppComponentUpdate(d, meta, "Trigger", "triggers", logicAppId, name, vals)
+}
+
+func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}) error {
 	client := meta.(*ArmClient).logicWorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -21,9 +31,9 @@ func resourceArmLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, l
 	resourceGroup := id.ResourceGroup
 	logicAppName := id.Path["workflows"]
 
-	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) Action %q", logicAppName, resourceGroup, name)
+	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)
 
-	// lock to prevent against Actions, Parameters or Actions conflicting
+	// lock to prevent against Actions or Triggers conflicting
 	azureRMLockByName(logicAppName, logicAppResourceName)
 	defer azureRMUnlockByName(logicAppName, logicAppResourceName)
 
@@ -46,9 +56,9 @@ func resourceArmLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, l
 	}
 
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
-	actions := definition["actions"].(map[string]interface{})
-	actions[name] = vals
-	definition["actions"] = actions
+	vs := definition[propertyName].(map[string]interface{})
+	vs[name] = vals
+	definition[propertyName] = vs
 
 	properties := logic.Workflow{
 		Location: read.Location,
@@ -61,21 +71,29 @@ func resourceArmLogicAppActionUpdate(d *schema.ResourceData, meta interface{}, l
 
 	_, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties)
 	if err != nil {
-		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q) for Action %q: %+v", logicAppName, resourceGroup, name, err)
+		return fmt.Errorf("Error updating Logic App Workspace %q (Resource Group %q) for %s %q: %+v", logicAppName, resourceGroup, kind, name, err)
 	}
 
 	if d.IsNewResource() {
-		d.SetId(fmt.Sprintf("%s/actions/%s", *read.ID, name))
+		d.SetId(fmt.Sprintf("%s/%s/%s", *read.ID, propertyName, name))
 	}
 
 	return nil
 }
 
-func resourceArmLogicAppActionRemove(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) error {
+func resourceLogicAppActionRemove(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) error {
+	return resourceLogicAppComponentRemove(d, meta, "Action", "actions", resourceGroup, logicAppName, name)
+}
+
+func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) error {
+	return resourceLogicAppComponentRemove(d, meta, "Trigger", "triggers", resourceGroup, logicAppName, name)
+}
+
+func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
 	client := meta.(*ArmClient).logicWorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) Action %q Deletion", logicAppName, resourceGroup, name)
+	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q Deletion", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
 	azureRMLockByName(logicAppName, logicAppResourceName)
@@ -100,9 +118,9 @@ func resourceArmLogicAppActionRemove(d *schema.ResourceData, meta interface{}, r
 	}
 
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
-	actions := definition["actions"].(map[string]interface{})
-	delete(actions, name)
-	definition["actions"] = actions
+	vs := definition[propertyName].(map[string]interface{})
+	delete(vs, name)
+	definition[propertyName] = vs
 
 	properties := logic.Workflow{
 		Location: read.Location,
@@ -115,17 +133,25 @@ func resourceArmLogicAppActionRemove(d *schema.ResourceData, meta interface{}, r
 
 	_, err = client.CreateOrUpdate(ctx, resourceGroup, logicAppName, properties)
 	if err != nil {
-		return fmt.Errorf("Error removing Action %q from Logic App Workspace %q (Resource Group %q): %+v", name, logicAppName, resourceGroup, err)
+		return fmt.Errorf("Error removing %s %q from Logic App Workspace %q (Resource Group %q): %+v", kind, name, logicAppName, resourceGroup, err)
 	}
 
 	return nil
 }
 
 func retrieveLogicAppAction(meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+	return retrieveLogicAppComponent(meta, resourceGroup, "Action", "actions", logicAppName, name)
+}
+
+func retrieveLogicAppTrigger(meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+	return retrieveLogicAppComponent(meta, resourceGroup, "Trigger", "triggers", logicAppName, name)
+}
+
+func retrieveLogicAppComponent(meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
 	client := meta.(*ArmClient).logicWorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) Action %q", logicAppName, resourceGroup, name)
+	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
 	azureRMLockByName(logicAppName, logicAppResourceName)
@@ -149,12 +175,12 @@ func retrieveLogicAppAction(meta interface{}, resourceGroup, logicAppName, name 
 	}
 
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
-	actions := definition["actions"].(map[string]interface{})
-	action := actions[name]
-	if action == nil {
+	vs := definition[propertyName].(map[string]interface{})
+	v := vs[name]
+	if v == nil {
 		return nil, nil, nil
 	}
 
-	v := action.(map[string]interface{})
-	return &v, &read, nil
+	result := v.(map[string]interface{})
+	return &result, &read, nil
 }
