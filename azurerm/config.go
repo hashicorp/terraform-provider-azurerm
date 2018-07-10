@@ -141,7 +141,8 @@ type ArmClient struct {
 	sqlVirtualNetworkRulesClient         sql.VirtualNetworkRulesClient
 
 	// Data Lake Store
-	dataLakeStoreAccountClient account.AccountsClient
+	dataLakeStoreAccountClient       account.AccountsClient
+	dataLakeStoreFirewallRulesClient account.FirewallRulesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -383,7 +384,7 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerContainerServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerCosmosDBClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
-	client.registerDataLakeStoreAccountClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDeviceClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth, sender)
@@ -643,10 +644,14 @@ func (c *ArmClient) registerDatabases(endpoint, subscriptionId string, auth auto
 	c.sqlVirtualNetworkRulesClient = sqlVNRClient
 }
 
-func (c *ArmClient) registerDataLakeStoreAccountClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
-	dataLakeStoreAccountClient := account.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&dataLakeStoreAccountClient.Client, auth)
-	c.dataLakeStoreAccountClient = dataLakeStoreAccountClient
+func (c *ArmClient) registerDataLakeStoreClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	accountClient := account.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&accountClient.Client, auth)
+	c.dataLakeStoreAccountClient = accountClient
+
+	firewallRulesClient := account.NewFirewallRulesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&firewallRulesClient.Client, auth)
+	c.dataLakeStoreFirewallRulesClient = firewallRulesClient
 }
 
 func (c *ArmClient) registerDeviceClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
