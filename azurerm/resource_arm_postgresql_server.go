@@ -138,7 +138,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"storage_mb": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validateIntBetweenDivisibleBy(5120, 4194304, 1024),
 						},
 
