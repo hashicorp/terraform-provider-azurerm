@@ -573,10 +573,10 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["databaseAccounts"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -584,13 +584,37 @@ func resourceArmCosmosDBAccountDelete(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account '%s': %+v", name, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account '%s': %+v", name, err)
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for CosmosDB Account '%s': %+v", name, err)
 	}
+
+	//the SDK now will return a `WasNotFound` response even when still deleting
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Deleting"},
+		Target:     []string{"NotFound"},
+		Timeout:    60 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+
+			resp, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+
+				if utils.ResponseWasNotFound(resp.Response) {
+					return resp, "NotFound", nil
+				}
+				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after delete (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			return resp, "Deleting", nil
+		},
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Waiting forCosmosDB Account %q to delete (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	return nil
 }
 
