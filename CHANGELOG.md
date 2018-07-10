@@ -21,7 +21,6 @@ IMPROVEMENTS:
 * `azurerm_image` - change os_disk property to a list and add addtional property validation [GH-1443]
 * `azurerm_lb` - allow `private_ip_address` to be set to an empty value [GH-1481]
 * `azurerm_servicebus_queue` - `enable_partitioning` can now be enabled for `Basic` and `Standard` tiers [GH-1391]
-* `azurerm_storage_account` - limiting the `tags` field to 128 characters to match the service [GH-1524]
 * `azurerm_virtual_machine` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
 * `azurerm_virtual_machine_data_disk_attachment` - adding support for `write_accelerator_enabled` [GH-1473]
@@ -33,6 +32,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_sql_database` - fix `requested_service_objective_name` updates [GH-1503]
+* `azurerm_storage_account` - limiting the `tags` field to 128 characters to match the service [GH-1524]
 * `azurerm_virtual_network_gateway` - fix `azurerm_virtual_network_gateway` crashing when `vpn_client_configuration` was not supplied [GH-1505]
 
 ## 1.8.0 (June 28, 2018)
