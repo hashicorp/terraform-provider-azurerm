@@ -6,7 +6,7 @@ description: |-
   Create a SQL Database.
 ---
 
-# azurerm\_sql\_database
+# azurerm_sql_database
 
 Allows you to manage an Azure SQL Database
 
@@ -52,13 +52,15 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) Specifies the type of database to create. Defaults to `Default`. See below for the accepted values/
 
+* `import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
+
 * `source_database_id` - (Optional) The URI of the source database if `create_mode` value is not `Default`.
 
 * `restore_point_in_time` - (Optional) The point in time for the restore. Only applies if `create_mode` is `PointInTimeRestore` e.g. 2013-11-08T22:00:40Z
 
 * `edition` - (Optional) The edition of the database to be created. Applies only if `create_mode` is `Default`. Valid values are: `Basic`, `Standard`, `Premium`, or `DataWarehouse`. Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
-* `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`
+* `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created. 
 
 * `max_size_bytes` - (Optional) The maximum size that the database can grow to. Applies only if `create_mode` is `Default`.  Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
@@ -72,6 +74,16 @@ The following arguments are supported:
 * `elastic_pool_name` - (Optional) The name of the elastic database pool.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+`import` supports the following:
+
+* `storage_uri` - (Required) Specifies the blob URI of the .bacpac file.
+* `storage_key` - (Required) Specifies the access key for the storage account.
+* `storage_key_type` - (Required) Specifies the type of access key for the storage account. Valid values are `StorageAccessKey` or `SharedAccessKey`.
+* `administrator_login` - (Required) Specifies the name of the SQL administrator.
+* `administrator_login_password` - (Required) Specifies the password of the SQL administrator.
+* `authentication_type` - (Required) Specifies the type of authentication used to access the server. Valid values are `SQL` or `ADPassword`.
+* `operation_mode` - (Optional) Specifies the type of import operation being performed. The only allowable value is `Import`.
 
 ## Attributes Reference
 

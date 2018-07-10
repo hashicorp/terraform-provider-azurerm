@@ -6,7 +6,7 @@ description: |-
   Create a Managed Disk.
 ---
 
-# azurerm\_managed\_disk
+# azurerm_managed_disk
 
 Create a managed disk.
 
@@ -14,7 +14,7 @@ Create a managed disk.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 
@@ -36,7 +36,7 @@ resource "azurerm_managed_disk" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 
@@ -106,6 +106,10 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
+
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+
 For more information on managed disks, such as sizing options and pricing, please check out the
 [azure documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
 
@@ -118,11 +122,15 @@ For more information on managed disks, such as sizing options and pricing, pleas
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
 `disk_encryption_key` supports:
+
 * `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
 `key_encryption_key` supports:
+
 * `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
 

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_database"
 sidebar_current: "docs-azurerm-resource-database-mysql-database"
 description: |-
-  Creates a MySQL Database within a MySQL Server.
+  Manages a MySQL Database within a MySQL Server.
 ---
 
 # azurerm_mysql_database
 
-Creates a MySQL Database within a MySQL Server
+Manages a MySQL Database within a MySQL Server
 
 ## Example Usage
 
@@ -24,15 +24,21 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name = "MYSQLB50"
-    capacity = 50
+    name = "B_Gen4_2"
+    capacity = 2
     tier = "Basic"
+    family = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 5120
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version = "5.7"
-  storage_mb = "51200"
   ssl_enforcement = "Enabled"
 }
 

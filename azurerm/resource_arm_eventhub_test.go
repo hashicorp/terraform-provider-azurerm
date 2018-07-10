@@ -258,6 +258,35 @@ func TestAccAzureRMEventHub_captureDescriptionDisabled(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHub_messageRetentionUpdate(t *testing.T) {
+	resourceName := "azurerm_eventhub.test"
+	ri := acctest.RandInt()
+	preConfig := testAccAzureRMEventHub_standard(ri, testLocation())
+	postConfig := testAccAzureRMEventHub_messageRetentionUpdate(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "message_retention", "7"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "message_retention", "5"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -368,7 +397,7 @@ func testAccAzureRMEventHub_captureDescription(rInt int, rString string, locatio
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -416,4 +445,28 @@ resource "azurerm_eventhub" "test" {
   }
 }
 `, rInt, location, rString, rInt, rInt, enabledString)
+}
+
+func testAccAzureRMEventHub_messageRetentionUpdate(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%d"
+  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  partition_count     = 2
+  message_retention   = 5
+}
+`, rInt, location, rInt, rInt)
 }

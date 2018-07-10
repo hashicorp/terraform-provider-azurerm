@@ -6,7 +6,7 @@ description: |-
   Create a Public IP Address.
 ---
 
-# azurerm\_public\_ip
+# azurerm_public_ip
 
 Create a Public IP Address.
 
@@ -59,6 +59,10 @@ The following arguments are supported:
 * `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in.
+
+-> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
 
 ## Attributes Reference
 

@@ -6,7 +6,7 @@ description: |-
   Create a ServiceBus Subscription.
 ---
 
-# azurerm\_servicebus\_subscription
+# azurerm_servicebus_subscription
 
 Create a ServiceBus Subscription.
 
@@ -98,6 +98,9 @@ The following arguments are supported:
     supports the concept of a session. Defaults to false. Changing this forces a
     new resource to be created.
 
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward 
+    messages to.
+    
 ### TimeSpan Format
 
 Some arguments for this resource are required in the TimeSpan format which is

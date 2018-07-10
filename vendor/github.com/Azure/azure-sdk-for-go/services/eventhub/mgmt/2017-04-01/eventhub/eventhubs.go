@@ -41,9 +41,11 @@ func NewEventHubsClientWithBaseURI(baseURI string, subscriptionID string) EventH
 }
 
 // CreateOrUpdate creates or updates a new Event Hub as a nested resource within a Namespace.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name parameters is parameters supplied to create an Event Hub resource.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
+// parameters - parameters supplied to create an Event Hub resource.
 func (client EventHubsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string, parameters Model) (result Model, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -62,16 +64,16 @@ func (client EventHubsClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 						Chain: []validation.Constraint{{Target: "parameters.Properties.PartitionCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil}}},
 					{Target: "parameters.Properties.CaptureDescription", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.Properties.CaptureDescription.IntervalInSeconds", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "parameters.Properties.CaptureDescription.IntervalInSeconds", Name: validation.InclusiveMaximum, Rule: 900, Chain: nil},
+							Chain: []validation.Constraint{{Target: "parameters.Properties.CaptureDescription.IntervalInSeconds", Name: validation.InclusiveMaximum, Rule: int64(900), Chain: nil},
 								{Target: "parameters.Properties.CaptureDescription.IntervalInSeconds", Name: validation.InclusiveMinimum, Rule: 60, Chain: nil},
 							}},
 							{Target: "parameters.Properties.CaptureDescription.SizeLimitInBytes", Name: validation.Null, Rule: false,
-								Chain: []validation.Constraint{{Target: "parameters.Properties.CaptureDescription.SizeLimitInBytes", Name: validation.InclusiveMaximum, Rule: 524288000, Chain: nil},
+								Chain: []validation.Constraint{{Target: "parameters.Properties.CaptureDescription.SizeLimitInBytes", Name: validation.InclusiveMaximum, Rule: int64(524288000), Chain: nil},
 									{Target: "parameters.Properties.CaptureDescription.SizeLimitInBytes", Name: validation.InclusiveMinimum, Rule: 10485760, Chain: nil},
 								}},
 						}},
 				}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "CreateOrUpdate")
+		return result, validation.NewError("eventhub.EventHubsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, namespaceName, eventHubName, parameters)
@@ -110,7 +112,7 @@ func (client EventHubsClient) CreateOrUpdatePreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}", pathParameters),
@@ -140,10 +142,12 @@ func (client EventHubsClient) CreateOrUpdateResponder(resp *http.Response) (resu
 }
 
 // CreateOrUpdateAuthorizationRule creates or updates an AuthorizationRule for the specified Event Hub.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name authorizationRuleName is the authorization rule name. parameters is the shared
-// access AuthorizationRule.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
+// authorizationRuleName - the authorization rule name.
+// parameters - the shared access AuthorizationRule.
 func (client EventHubsClient) CreateOrUpdateAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string, authorizationRuleName string, parameters AuthorizationRule) (result AuthorizationRule, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -159,7 +163,7 @@ func (client EventHubsClient) CreateOrUpdateAuthorizationRule(ctx context.Contex
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.AuthorizationRuleProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.AuthorizationRuleProperties.Rights", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "CreateOrUpdateAuthorizationRule")
+		return result, validation.NewError("eventhub.EventHubsClient", "CreateOrUpdateAuthorizationRule", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, eventHubName, authorizationRuleName, parameters)
@@ -199,7 +203,7 @@ func (client EventHubsClient) CreateOrUpdateAuthorizationRulePreparer(ctx contex
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/authorizationRules/{authorizationRuleName}", pathParameters),
@@ -229,9 +233,10 @@ func (client EventHubsClient) CreateOrUpdateAuthorizationRuleResponder(resp *htt
 }
 
 // Delete deletes an Event Hub from the specified Namespace and resource group.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
 func (client EventHubsClient) Delete(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -242,7 +247,7 @@ func (client EventHubsClient) Delete(ctx context.Context, resourceGroupName stri
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
 			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "Delete")
+		return result, validation.NewError("eventhub.EventHubsClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, namespaceName, eventHubName)
@@ -308,9 +313,11 @@ func (client EventHubsClient) DeleteResponder(resp *http.Response) (result autor
 }
 
 // DeleteAuthorizationRule deletes an Event Hub AuthorizationRule.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name authorizationRuleName is the authorization rule name.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
+// authorizationRuleName - the authorization rule name.
 func (client EventHubsClient) DeleteAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string, authorizationRuleName string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -323,7 +330,7 @@ func (client EventHubsClient) DeleteAuthorizationRule(ctx context.Context, resou
 			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "DeleteAuthorizationRule")
+		return result, validation.NewError("eventhub.EventHubsClient", "DeleteAuthorizationRule", err.Error())
 	}
 
 	req, err := client.DeleteAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, eventHubName, authorizationRuleName)
@@ -390,9 +397,10 @@ func (client EventHubsClient) DeleteAuthorizationRuleResponder(resp *http.Respon
 }
 
 // Get gets an Event Hubs description for the specified Event Hub.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
 func (client EventHubsClient) Get(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string) (result Model, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -403,7 +411,7 @@ func (client EventHubsClient) Get(ctx context.Context, resourceGroupName string,
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
 			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "Get")
+		return result, validation.NewError("eventhub.EventHubsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, namespaceName, eventHubName)
@@ -470,9 +478,11 @@ func (client EventHubsClient) GetResponder(resp *http.Response) (result Model, e
 }
 
 // GetAuthorizationRule gets an AuthorizationRule for an Event Hub by rule name.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name authorizationRuleName is the authorization rule name.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
+// authorizationRuleName - the authorization rule name.
 func (client EventHubsClient) GetAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string, authorizationRuleName string) (result AuthorizationRule, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -485,7 +495,7 @@ func (client EventHubsClient) GetAuthorizationRule(ctx context.Context, resource
 			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "GetAuthorizationRule")
+		return result, validation.NewError("eventhub.EventHubsClient", "GetAuthorizationRule", err.Error())
 	}
 
 	req, err := client.GetAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, eventHubName, authorizationRuleName)
@@ -553,9 +563,10 @@ func (client EventHubsClient) GetAuthorizationRuleResponder(resp *http.Response)
 }
 
 // ListAuthorizationRules gets the authorization rules for an Event Hub.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
 func (client EventHubsClient) ListAuthorizationRules(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string) (result AuthorizationRuleListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -566,7 +577,7 @@ func (client EventHubsClient) ListAuthorizationRules(ctx context.Context, resour
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: eventHubName,
 			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "ListAuthorizationRules")
+		return result, validation.NewError("eventhub.EventHubsClient", "ListAuthorizationRules", err.Error())
 	}
 
 	result.fn = client.listAuthorizationRulesNextResults
@@ -661,21 +672,36 @@ func (client EventHubsClient) ListAuthorizationRulesComplete(ctx context.Context
 }
 
 // ListByNamespace gets all the Event Hubs in a Namespace.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-func (client EventHubsClient) ListByNamespace(ctx context.Context, resourceGroupName string, namespaceName string) (result ListResultPage, err error) {
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// skip - skip is only used if a previous operation returned a partial result. If a previous response contains
+// a nextLink element, the value of the nextLink element will include a skip parameter that specifies a
+// starting point to use for subsequent calls.
+// top - may be used to limit the number of results to the most recent N usageDetails.
+func (client EventHubsClient) ListByNamespace(ctx context.Context, resourceGroupName string, namespaceName string, skip *int32, top *int32) (result ListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: namespaceName,
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "ListByNamespace")
+				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
+		{TargetValue: skip,
+			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "skip", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
+				}}}},
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("eventhub.EventHubsClient", "ListByNamespace", err.Error())
 	}
 
 	result.fn = client.listByNamespaceNextResults
-	req, err := client.ListByNamespacePreparer(ctx, resourceGroupName, namespaceName)
+	req, err := client.ListByNamespacePreparer(ctx, resourceGroupName, namespaceName, skip, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.EventHubsClient", "ListByNamespace", nil, "Failure preparing request")
 		return
@@ -697,7 +723,7 @@ func (client EventHubsClient) ListByNamespace(ctx context.Context, resourceGroup
 }
 
 // ListByNamespacePreparer prepares the ListByNamespace request.
-func (client EventHubsClient) ListByNamespacePreparer(ctx context.Context, resourceGroupName string, namespaceName string) (*http.Request, error) {
+func (client EventHubsClient) ListByNamespacePreparer(ctx context.Context, resourceGroupName string, namespaceName string, skip *int32, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"namespaceName":     autorest.Encode("path", namespaceName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -707,6 +733,12 @@ func (client EventHubsClient) ListByNamespacePreparer(ctx context.Context, resou
 	const APIVersion = "2017-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if skip != nil {
+		queryParameters["$skip"] = autorest.Encode("query", *skip)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -759,15 +791,17 @@ func (client EventHubsClient) listByNamespaceNextResults(lastResults ListResult)
 }
 
 // ListByNamespaceComplete enumerates all values, automatically crossing page boundaries as required.
-func (client EventHubsClient) ListByNamespaceComplete(ctx context.Context, resourceGroupName string, namespaceName string) (result ListResultIterator, err error) {
-	result.page, err = client.ListByNamespace(ctx, resourceGroupName, namespaceName)
+func (client EventHubsClient) ListByNamespaceComplete(ctx context.Context, resourceGroupName string, namespaceName string, skip *int32, top *int32) (result ListResultIterator, err error) {
+	result.page, err = client.ListByNamespace(ctx, resourceGroupName, namespaceName, skip, top)
 	return
 }
 
 // ListKeys gets the ACS and SAS connection strings for the Event Hub.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name authorizationRuleName is the authorization rule name.
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
+// authorizationRuleName - the authorization rule name.
 func (client EventHubsClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string, authorizationRuleName string) (result AccessKeys, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -780,7 +814,7 @@ func (client EventHubsClient) ListKeys(ctx context.Context, resourceGroupName st
 			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "ListKeys")
+		return result, validation.NewError("eventhub.EventHubsClient", "ListKeys", err.Error())
 	}
 
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, namespaceName, eventHubName, authorizationRuleName)
@@ -848,10 +882,12 @@ func (client EventHubsClient) ListKeysResponder(resp *http.Response) (result Acc
 }
 
 // RegenerateKeys regenerates the ACS and SAS connection strings for the Event Hub.
-//
-// resourceGroupName is name of the resource group within the azure subscription. namespaceName is the Namespace name
-// eventHubName is the Event Hub name authorizationRuleName is the authorization rule name. parameters is parameters
-// supplied to regenerate the AuthorizationRule Keys (PrimaryKey/SecondaryKey).
+// Parameters:
+// resourceGroupName - name of the resource group within the azure subscription.
+// namespaceName - the Namespace name
+// eventHubName - the Event Hub name
+// authorizationRuleName - the authorization rule name.
+// parameters - parameters supplied to regenerate the AuthorizationRule Keys (PrimaryKey/SecondaryKey).
 func (client EventHubsClient) RegenerateKeys(ctx context.Context, resourceGroupName string, namespaceName string, eventHubName string, authorizationRuleName string, parameters RegenerateAccessKeyParameters) (result AccessKeys, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -864,7 +900,7 @@ func (client EventHubsClient) RegenerateKeys(ctx context.Context, resourceGroupN
 			Constraints: []validation.Constraint{{Target: "eventHubName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "eventhub.EventHubsClient", "RegenerateKeys")
+		return result, validation.NewError("eventhub.EventHubsClient", "RegenerateKeys", err.Error())
 	}
 
 	req, err := client.RegenerateKeysPreparer(ctx, resourceGroupName, namespaceName, eventHubName, authorizationRuleName, parameters)
@@ -904,7 +940,7 @@ func (client EventHubsClient) RegenerateKeysPreparer(ctx context.Context, resour
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.EventHub/namespaces/{namespaceName}/eventhubs/{eventHubName}/authorizationRules/{authorizationRuleName}/regenerateKeys", pathParameters),

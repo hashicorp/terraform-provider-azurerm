@@ -74,7 +74,8 @@ func testCheckAzureRMStorageShareExists(name string, sS *storage.Share) resource
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
-		fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+		ctx := armClient.StopContext
+		fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -115,6 +116,7 @@ func testAccARMStorageShareDisappears(name string, sS *storage.Share) resource.T
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
+		ctx := armClient.StopContext
 
 		storageAccountName := rs.Primary.Attributes["storage_account_name"]
 		resourceGroupName, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -122,7 +124,7 @@ func testAccARMStorageShareDisappears(name string, sS *storage.Share) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for storage share: %s", sS.Name)
 		}
 
-		fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+		fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -157,7 +159,8 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 		}
 
 		armClient := testAccProvider.Meta().(*ArmClient)
-		fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(resourceGroupName, storageAccountName)
+		ctx := armClient.StopContext
+		fileClient, accountExists, err := armClient.getFileServiceClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
 		if err != nil {
 			//If we can't get keys then the blob can't exist
 			return nil
@@ -222,7 +225,7 @@ func TestValidateArmStorageShareName(t *testing.T) {
 func testAccAzureRMStorageShare_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg-%d"
+    name = "acctestRG-%d"
     location = "%s"
 }
 

@@ -6,7 +6,7 @@ description: |-
   Create a Azure Storage Container.
 ---
 
-# azurerm\_storage\_container
+# azurerm_storage_container
 
 Create an Azure Storage Container.
 
@@ -14,7 +14,7 @@ Create an Azure Storage Container.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "westus"
 }
 

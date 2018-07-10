@@ -31,6 +31,48 @@ resource "azurerm_storage_account" "testsa" {
 }
 ```
 
+## Example Usage with Network Rules
+
+```hcl
+resource "azurerm_resource_group" "testrg" {
+  name     = "resourceGroupName"
+  location = "westus"
+}
+
+resource "azurerm_virtual_network" "test" {
+    name = "virtnetname"
+    address_space = ["10.0.0.0/16"]
+    location = "${azurerm_resource_group.testrg.location}"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+}
+
+resource "azurerm_subnet" "test" {
+	name                 = "subnetname"
+	resource_group_name  = "${azurerm_resource_group.testrg.name}"
+	virtual_network_name = "${azurerm_virtual_network.test.name}"
+	address_prefix       = "10.0.2.0/24"
+	service_endpoints    = ["Microsoft.Sql","Microsoft.Storage"]
+  }
+
+resource "azurerm_storage_account" "testsa" {
+    name = "storageaccountname"
+    resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+    location = "${azurerm_resource_group.testrg.location}"
+    account_tier = "Standard"
+    account_replication_type = "LRS"
+	
+    network_rules {
+        ip_rules = ["127.0.0.1"]
+        virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
+    }
+
+    tags {
+        environment = "staging"
+    }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -45,25 +87,19 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the
     resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`
-    and `BlobStorage`. Changing this forces a new resource to be created. Defaults
-    to `Storage`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`,
+    `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created.
+    Defaults to `Storage`.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS` and `ZRS`.
 
-* `access_tier` - (Required for `BlobStorage` accounts) Defines the access tier
-    for `BlobStorage` accounts. Valid options are `Hot` and `Cold`, defaults to
-    `Hot`.
+* `access_tier` - (Optional) Defines the access tier for `BlobStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
-* `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption
-    Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
-    for more information.
+* `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
 
-* `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption
-    Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/)
-    for more information.
+* `enable_file_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for File storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
@@ -72,7 +108,11 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
+* `network_rules` - (Optional) A `network_rules` block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `identity` - (Optional) A Managed Service Identity block as defined below.
 
 ---
 
@@ -81,7 +121,24 @@ The following arguments are supported:
 * `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
+---
+
+* `network_rules` supports the following:
+
+* `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
+any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
+* `ip_rules` - (Optional) List of IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed.
+* `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
+
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+
+---
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
 
 ## Attributes Reference
 
@@ -103,6 +160,17 @@ The following attributes are exported in addition to the arguments listed above:
 * `secondary_connection_string` - The connection string associated with the secondary location
 * `primary_blob_connection_string` - The connection string associated with the primary blob location
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location
+* `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
+
+---
+
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Storage Account.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Storage Account.
+
+-> You can access the Principal ID via `${azurerm_storage_account.test.identity.0.principal_id}` and the Tenant ID via `${azurerm_storage_account.test.identity.0.tenant_id}`
 
 ## Import
 

@@ -48,6 +48,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     dotnet_framework_version = "v4.0"
+    scm_type                 = "LocalGit"
   }
 
   app_settings {
@@ -99,6 +100,7 @@ resource "azurerm_app_service" "test" {
     java_version           = "1.8"
     java_container         = "JETTY"
     java_container_version = "9.3"
+    scm_type               = "LocalGit"
   }
 }
 ```
@@ -107,9 +109,9 @@ resource "azurerm_app_service" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Service Plan component. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service Plan component.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -119,13 +121,17 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
-* `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance? Changing this forces a new resource to be created.
+* `client_affinity_enabled` - (Optional) Should the App Service send session affinity cookies, which route client requests in the same session to the same instance?
 
 * `enabled` - (Optional) Is the App Service Enabled? Changing this forces a new resource to be created.
 
-* `site_config` - (Optional) A `site_config` object as defined below.
+* `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `site_config` - (Optional) A `site_config` block as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `identity` - (Optional) A Managed Service Identity block as defined below.
 
 ---
 
@@ -137,12 +143,21 @@ The following arguments are supported:
 
 ---
 
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created. More details are available below.
+
+---
+
 `site_config` supports the following:
 
 * `always_on` - (Optional) Should the app be loaded at all times? Defaults to `false`.
 * `default_documents` - (Optional) The ordering of default documents to load, if an address isn't specified.
-* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targetting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
-
+* `dotnet_framework_version` - (Optional) The version of the .net framework's CLR used in this App Service. Possible values are `v2.0` (which will use the latest version of the .net framework for the .net CLR v2 - currently `.net 3.5`) and `v4.0` (which corresponds to the latest version of the .net CLR v4 - which at the time of writing is `.net 4.7.1`). [For more information on which .net CLR version to use based on the .net framework you're targeting - please see this table](https://en.wikipedia.org/wiki/.NET_Framework_version_history#Overview). Defaults to `v4.0`.
+* `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.
+* `ip_restriction` - (Optional) One or more `ip_restriction` blocks as defined below.
 * `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7` and `1.8`.
 * `java_container` - (Optional) The Java Container to use. If specified `java_version` and `java_container_version` must also be specified. Possible values are `JETTY` and `TOMCAT`.
 * `java_container_version` - (Optional) The version of the Java Container to use. If specified `java_version` and `java_container` must also be specified.
@@ -156,11 +171,22 @@ The following arguments are supported:
 * `python_version` - (Optional) The version of Python to use in this App Service. Possible values are `2.7` and `3.4`.
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
+* `scm_type` - (Optional) The type of Source Control enabled for this App Service. Possible values include `None` and `LocalGit`. Defaults to `None`.
 * `use_32_bit_worker_process` - (Optional) Should the App Service run in 32 bit mode, rather than 64 bit mode?
 
-~> **Note:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
+~> **NOTE:** Additional Source Control types will be added in the future, once support for them has been added in the Azure SDK for Go.
+
+---
+
+`ip_restriction` supports the following:
+
+* `ip_address` - (Required) The IP Address used for this IP Restriction.
+
+* `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 
 ## Attributes Reference
 
@@ -171,6 +197,38 @@ The following attributes are exported:
 * `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+
+* `source_control` - A `source_control` block as defined below, which contains the Source Control information when `scm_type` is set to `LocalGit`.
+
+* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
+
+---
+
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+-> You can access the Principal ID via `${azurerm_app_service.test.identity.0.principal_id}` and the Tenant ID via `${azurerm_app_service.test.identity.0.principal_id}`
+
+---
+
+`site_credential` exports the following:
+
+* `username` - The username which can be used to publish to this App Service
+* `password` - The password associated with the username, which can be used to publish to this App Service.
+
+~> **NOTE:** both `username` and `password` for the `site_credential` block are only exported when `scm_type` is set to `LocalGit`
+
+---
+
+`source_control` exports the following:
+
+* `repo_url` - URL of the Git repository for this App Service.
+* `branch` - Branch name of the Git repository for this App Service.
 
 ## Import
 

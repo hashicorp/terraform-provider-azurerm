@@ -6,7 +6,7 @@ description: |-
   Manage a DNS MX Record.
 ---
 
-# azurerm\_dns\_mx\_record
+# azurerm_dns_mx_record
 
 Enables you to manage DNS MX Records within Azure DNS.
 
@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record.
 
-* `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields documented below.
+* `record` - (Required) A list of values that make up the MX record. Each `record` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

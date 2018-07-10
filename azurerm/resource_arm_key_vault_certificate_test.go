@@ -24,6 +24,7 @@ func TestAccAzureRMKeyVaultCertificate_basicImportPFX(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
 			},
 		},
@@ -44,6 +45,8 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "secret_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 				),
 			},
 		},
@@ -64,6 +67,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerateTags(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "certificate_data"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),
@@ -130,7 +134,7 @@ func testAccAzureRMKeyVaultCertificate_basicImportPFX(rString string, location s
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%s"
+  name     = "acctestRG-%s"
   location = "%s"
 }
 
@@ -198,7 +202,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerate(rString string, location st
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%s"
+  name     = "acctestRG-%s"
   location = "%s"
 }
 
@@ -286,7 +290,7 @@ func testAccAzureRMKeyVaultCertificate_basicGenerateTags(rString string, locatio
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%s"
+  name     = "acctestRG-%s"
   location = "%s"
 }
 

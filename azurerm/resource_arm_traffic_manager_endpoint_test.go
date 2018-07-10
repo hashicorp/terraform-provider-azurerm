@@ -217,6 +217,40 @@ func TestAccAzureRMTrafficManagerEndpoint_location(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTrafficManagerEndpoint_withGeoMappings(t *testing.T) {
+	resourceName := "azurerm_traffic_manager_endpoint.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	first := testAccAzureRMTrafficManagerEndpoint_geoMappings(ri, location)
+	second := testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: first,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "geo_mappings.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "geo_mappings.0", "GB"),
+					resource.TestCheckResourceAttr(resourceName, "geo_mappings.1", "FR"),
+				),
+			},
+			{
+				Config: second,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTrafficManagerEndpointExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "geo_mappings.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "geo_mappings.0", "FR"),
+					resource.TestCheckResourceAttr(resourceName, "geo_mappings.1", "DE"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMTrafficManagerEndpointExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -715,4 +749,82 @@ resource "azurerm_traffic_manager_endpoint" "test" {
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMTrafficManagerEndpoint_geoMappings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Geographic"
+
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 100
+  }
+
+  monitor_config {
+    protocol = "http"
+    port     = 80
+    path     = "/"
+  }
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_traffic_manager_endpoint" "test" {
+  name                = "example.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  target              = "example.com"
+  type                = "externalEndpoints"
+  geo_mappings        = ["GB", "FR"]
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMTrafficManagerEndpoint_geoMappingsUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_traffic_manager_profile" "test" {
+  name                   = "acctesttmp%d"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  traffic_routing_method = "Geographic"
+
+  dns_config {
+    relative_name = "acctesttmp%d"
+    ttl           = 100
+  }
+
+  monitor_config {
+    protocol = "http"
+    port     = 80
+    path     = "/"
+  }
+
+  tags {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_traffic_manager_endpoint" "test" {
+  name                = "example.com"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+  target              = "example.com"
+  type                = "externalEndpoints"
+  geo_mappings        = ["FR", "DE"]
+}
+`, rInt, location, rInt, rInt)
 }

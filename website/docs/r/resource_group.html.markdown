@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
 sidebar_current: "docs-azurerm-resource-resource-group"
 description: |-
-    Creates a new resource group on Azure.
+    Manages a resource group on Azure.
 ---
 
-# azurerm\_resource\_group
+# azurerm_resource_group
 
-Creates a new resource group on Azure.
+Manages a resource group on Azure.
 
 ## Example Usage
 
@@ -31,7 +31,7 @@ The following arguments are supported:
     Azure subscription.
 
 * `location` - (Required) The location where the resource group should be created.
-    For a list of all Azure locations, please consult [this link](http://azure.microsoft.com/en-us/regions/).
+    For a list of all Azure locations, please consult [this link](http://azure.microsoft.com/en-us/regions/) or run `az account list-locations --output table`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

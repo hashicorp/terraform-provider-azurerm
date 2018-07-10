@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_network_gateway_connection"
+page_title: "Azure Resource Manager: azurerm_virtual_network_gateway_connection"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-connection"
 description: |-
-  Creates a new connection in an existing Virtual Network Gateway.
+  Manages a connection in an existing Virtual Network Gateway.
 ---
 
 # azurerm_virtual_network_gateway_connection
 
-Creates a new connection in an existing Virtual Network Gateway.
+Manages a connection in an existing Virtual Network Gateway.
 
 ## Example Usage
 
@@ -17,7 +17,7 @@ Creates a new connection in an existing Virtual Network Gateway.
 The following example shows a connection between an Azure virtual network
 and an on-premises VPN device and network.
 
-```
+```hcl
 resource "azurerm_resource_group" "test" {
   name = "test"
   location = "West US"
@@ -89,7 +89,7 @@ resource "azurerm_virtual_network_gateway_connection" "onpremise" {
 The following example shows a connection between two Azure virtual network
 in different locations/regions.
 
-```
+```hcl
 resource "azurerm_resource_group" "us" {
     name = "us"
     location = "East US"
@@ -197,7 +197,6 @@ resource "azurerm_virtual_network_gateway_connection" "europe_to_us" {
 
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 }
-
 ```
 
 ## Argument Reference
@@ -226,7 +225,7 @@ The following arguments are supported:
 * `authorization_key` - (Optional) The authorization key associated with the
     Express Route Circuit. This field is required only if the type is an
     ExpressRoute connection.
-§
+
 * `express_route_circuit_id` - (Optional) The ID of the Express Route Circuit
     when creating an ExpressRoute connection (i.e. when `type` is `ExpressRoute`).
     The Express Route Circuit can be in the same or in a different subscription.
@@ -248,7 +247,43 @@ The following arguments are supported:
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled
     for this connection. Defaults to `false`.
 
+* `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic
+    selectors are enabled for this connection. Enabling policy-based traffic
+    selectors requires an `ipsec_policy` block. Defaults to `false`.
+
+* `ipsec_policy` (Optional) A `ipsec_policy` block which is documented below.
+    Only a single policy can be defined for a connection. For details on
+    custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+The `ipsec_policy` block supports:
+
+* `dh_group` - (Required) The DH group used in IKE phase 1 for initial SA. Valid
+    options are `DHGroup1`, `DHGroup14`, `DHGroup2`, `DHGroup2048`, `DHGroup24`,
+    `ECP256`, `ECP384`, or `None`.
+
+* `ike_encryption` - (Required) The IKE encryption algorithm. Valid
+    options are `AES128`, `AES192`, `AES256`, `DES`, or `DES3`.
+
+* `ike_integrity` - (Required) The IKE integrity algorithm. Valid
+    options are `MD5`, `SHA1`, `SHA256`, or `SHA384`.
+
+* `ipsec_encryption` - (Required) The IPSec encryption algorithm. Valid
+    options are `AES128`, `AES192`, `AES256`, `DES`, `DES3`, `GCMAES128`, `GCMAES192`, `GCMAES256`, or `None`.
+
+* `ipsec_integrity` - (Required) The IPSec integrity algorithm. Valid
+    options are `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1`, or `SHA256`.
+
+* `pfs_group` - (Required) The DH group used in IKE phase 2 for new child SA.
+    Valid options are `ECP256`, `ECP384`, `PFS1`, `PFS2`, `PFS2048`, `PFS24`,
+    or `None`.
+
+* `sa_datasize` - (Optional) The IPSec SA payload size in KB. Must be at least
+    `1024` KB. Defaults to `102400000` KB.
+
+* `sa_lifetime` - (Optional) The IPSec SA lifetime in seconds. Must be at least
+    `300` seconds. Defaults to `27000` seconds.
 
 ## Attributes Reference
 

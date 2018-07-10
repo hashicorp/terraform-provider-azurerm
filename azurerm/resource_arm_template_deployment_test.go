@@ -68,6 +68,26 @@ func TestAccAzureRMTemplateDeployment_withParams(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testaccAzureRMTemplateDeployment_withParamsBody(ri, testLocation())
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMTemplateDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
+					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.testOutput", "Output Value"),
+				),
+			},
+		},
+	})
+
+}
+
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 	ri := acctest.RandInt()
 	config := testAccAzureRMTemplateDeployment_withOutputs(ri, testLocation())
@@ -82,8 +102,13 @@ func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
 					testCheckAzureRMTemplateDeploymentExists("azurerm_template_deployment.test"),
 					resource.TestCheckOutput("tfIntOutput", "-123"),
 					resource.TestCheckOutput("tfStringOutput", "Standard_GRS"),
-					resource.TestCheckOutput("tfFalseOutput", "false"),
-					resource.TestCheckOutput("tfTrueOutput", "true"),
+
+					// these values *should* be 'true' and 'false' but,
+					// due to a bug in the way terraform represents bools at various times these are for now 0 and 1
+					// see https://github.com/hashicorp/terraform/issues/13512#issuecomment-295389523
+					// at a later date these may return the expected 'true' / 'false' and should be changed back
+					resource.TestCheckOutput("tfFalseOutput", "0"),
+					resource.TestCheckOutput("tfTrueOutput", "1"),
 					resource.TestCheckResourceAttr("azurerm_template_deployment.test", "outputs.stringOutput", "Standard_GRS"),
 				),
 			},
@@ -296,6 +321,147 @@ DEPLOY
 `, rInt, location, rInt)
 }
 
+func testaccAzureRMTemplateDeployment_withParamsBody(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+output "test" {
+  value = "${azurerm_template_deployment.test.outputs["testOutput"]}"
+}
+
+resource "azurerm_storage_container" "using-outputs" {
+  name = "vhds"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_template_deployment.test.outputs["accountName"]}"
+  container_access_type = "private"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test-kv" {
+  location = "%s"
+  name = "vault%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  "sku" {
+    name = "standard"
+  }
+  tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  enabled_for_template_deployment = true
+
+  access_policy {
+    key_permissions = []
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    secret_permissions = [
+      "get","list","set","purge"]
+    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
+  }
+}
+
+resource "azurerm_key_vault_secret" "test-secret" {
+  name = "acctestsecret-%d"
+  value = "terraform-test-%d"
+  vault_uri = "${azurerm_key_vault.test-kv.vault_uri}"
+}
+
+locals {
+	"templated-file" = <<TPL
+{
+"dnsLabelPrefix": {
+    "reference": {
+      "keyvault": {
+        "id": "${azurerm_key_vault.test-kv.id}"
+      },
+      "secretName": "${azurerm_key_vault_secret.test-secret.name}"
+    }
+  },
+"storageAccountType": {
+   "value": "Standard_GRS"
+  }
+}
+TPL
+}
+
+resource "azurerm_template_deployment" "test" {
+  name = "acctesttemplate-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  template_body = <<DEPLOY
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "storageAccountType": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_ZRS"
+      ],
+      "metadata": {
+        "description": "Storage Account type"
+      }
+    },
+    "dnsLabelPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "DNS Label for the Public IP. Must be lowercase. It should match with the following regular expression: ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ or it will raise an error."
+      }
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'storage')]",
+    "publicIPAddressName": "[concat('myPublicIp', uniquestring(resourceGroup().id))]",
+    "publicIPAddressType": "Dynamic",
+    "apiVersion": "2015-06-15"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccountName')]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "accountType": "[parameters('storageAccountType')]"
+      }
+    },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "[variables('apiVersion')]",
+      "name": "[variables('publicIPAddressName')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('dnsLabelPrefix')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "testOutput": {
+      "type": "string",
+      "value": "Output Value"
+    },
+    "accountName": {
+      "type": "string",
+      "value": "[variables('storageAccountName')]"
+    }
+  }
+}
+DEPLOY
+
+  parameters_body = "${local.templated-file}"
+  deployment_mode = "Complete"
+  depends_on = ["azurerm_key_vault_secret.test-secret"]
+}
+`, rInt, location, location, rInt, rInt, rInt, rInt)
+
+}
+
 func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) string {
 	return fmt.Sprintf(`
   resource "azurerm_resource_group" "test" {
@@ -400,19 +566,19 @@ func testAccAzureRMTemplateDeployment_withOutputs(rInt int, location string) str
   }
 
   output "tfStringOutput" {
-    value = "${azurerm_template_deployment.test.outputs.stringOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "stringOutput")}"
   }
 
   output "tfIntOutput" {
-    value = "${azurerm_template_deployment.test.outputs.intOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "intOutput")}"
   }
 
   output "tfFalseOutput" {
-    value = "${azurerm_template_deployment.test.outputs.falseOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "falseOutput")}"
   }
 
   output "tfTrueOutput" {
-    value = "${azurerm_template_deployment.test.outputs.trueOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "trueOutput")}"
   }
 
   resource "azurerm_template_deployment" "test" {
@@ -522,7 +688,7 @@ resource "azurerm_resource_group" "test" {
   }
 
   output "test" {
-    value = "${azurerm_template_deployment.test.outputs.testOutput}"
+    value = "${lookup(azurerm_template_deployment.test.outputs, "testOutput")}"
   }
 
   resource "azurerm_template_deployment" "test" {

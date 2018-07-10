@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Provider: Azure"
 sidebar_current: "docs-azurerm-index"
 description: |-
-  The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through it's API's.
+  The Azure Provider is used to interact with the many resources supported by Azure Resource Manager (also known as AzureRM) through its APIs.
 
 ---
 
@@ -19,7 +19,9 @@ Use the navigation to the left to read about the available resources.
 
 Terraform supports authenticating to Azure through a Service Principal or the Azure CLI.
 
-We recommend [using a Service Principal when running in a Shared Environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
+We recommend [using a Service Principal when running in a shared environment](authenticating_via_service_principal.html) (such as within a CI server/automation) - and [authenticating via the Azure CLI](authenticating_via_azure_cli.html) when you're running Terraform locally.
+
+~> **NOTE:** Authenticating via the Azure CLI is only supported when using a User Account. If you're using a Service Principal (e.g. via `az login --service-principal`) you should instead [authenticate via the Service Principal directly](authenticating_via_service_principal.html).
 
 ## Example Usage
 
@@ -73,6 +75,13 @@ The following arguments are supported:
 * `tenant_id` - (Optional) The tenant ID to use. It can also be sourced from the
   `ARM_TENANT_ID` environment variable.
 
+* `use_msi` - (Optional) Set to true to authenticate using managed service identity.
+  It can also be sourced from the `ARM_USE_MSI` environment variable.
+
+* `msi_endpoint` - (Optional) The REST endpoint to retrieve an MSI token from. Terraform
+  will attempt to discover this automatically but it can be specified manually here.
+  It can also be sourced from the `ARM_MSI_ENDPOINT` environment variable.
+
 * `environment` - (Optional) The cloud environment to use. It can also be sourced
   from the `ARM_ENVIRONMENT` environment variable. Supported values are:
   * `public` (default)
@@ -93,4 +102,14 @@ The following arguments are supported:
 
 ## Testing
 
-Credentials must be provided via the `ARM_SUBSCRIPTION_ID`, `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_TENANT_ID` and `ARM_TEST_LOCATION` environment variables in order to run acceptance tests.
+The following Environment Variables must be set to run the acceptance tests:
+
+~> **NOTE:** The Acceptance Tests require the use of a Service Principal - authenticating via either the Azure CLI or MSI is not supported.
+
+* `ARM_SUBSCRIPTION_ID` - The ID of the Azure Subscription in which to run the Acceptance Tests.
+* `ARM_CLIENT_ID` - The Client ID of the Service Principal.
+* `ARM_CLIENT_SECRET` - The Client Secret associated with the Service Principal.
+* `ARM_TENANT_ID` - The Tenant ID to use.
+* `ARM_ENVIRONMENT` - The Azure Cloud Environment to use, such as `public`, `german` etc. Defaults to `public`.
+* `ARM_TEST_LOCATION` - The primary Azure Region to provision resources in for the Acceptance Tests.
+* `ARM_TEST_LOCATION_ALT` - The secondary Azure Region to provision resources in for the Acceptance Tests. This needs to be a different region to `ARM_TEST_LOCATION`.
