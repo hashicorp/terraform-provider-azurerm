@@ -25,7 +25,7 @@ resource "azurerm_logic_app_workflow" "test" {
 }
 
 resource "azurerm_logic_app_action_custom" "test" {
-  name         = "webhook"
+  name         = "example-action"
   logic_app_id = "${azurerm_logic_app_workflow.test.id}"
   body = <<BODY
 {

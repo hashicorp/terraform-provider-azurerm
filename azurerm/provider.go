@@ -177,6 +177,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_log_analytics_workspace":                 resourceArmLogAnalyticsWorkspace(),
 			"azurerm_logic_app_action_custom":                 resourceArmLogicAppActionCustom(),
 			"azurerm_logic_app_action_http":                   resourceArmLogicAppActionHTTP(),
+			"azurerm_logic_app_trigger_custom":                resourceArmLogicAppTriggerCustom(),
 			"azurerm_logic_app_trigger_http_request":          resourceArmLogicAppTriggerHttpRequest(),
 			"azurerm_logic_app_trigger_recurrence":            resourceArmLogicAppTriggerRecurrence(),
 			"azurerm_logic_app_workflow":                      resourceArmLogicAppWorkflow(),
