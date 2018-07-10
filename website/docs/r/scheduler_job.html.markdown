@@ -15,8 +15,8 @@ Manages a Scheduler Job.
 ```hcl
 resource "azurerm_scheduler_job" "web-once-now" {
     name                = "tfex-web-once-now"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+    resource_group_name = "${azurerm_resource_group.example.name}"
+    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
     state = "enabled" //re-enable it each run
 
@@ -33,8 +33,8 @@ resource "azurerm_scheduler_job" "web-once-now" {
 ```hcl
 resource "azurerm_scheduler_job" "web-recurring-daily" {
     name                = "tfex-web-recurring-daily"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+    resource_group_name = "${azurerm_resource_group.example.name}"
+    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
      action_web {
         url     = "https://this.url.fails"
@@ -72,8 +72,8 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
 ```hcl
 resource "azurerm_scheduler_job" "web-recurring-daily" {
     name                = "tfex-web-recurring-daily"
-    resource_group_name = "${azurerm_resource_group.rg.name}"
-    job_collection_name = "${azurerm_scheduler_job_collection.jc.name}"
+    resource_group_name = "${azurerm_resource_group.example.name}"
+    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
 
     action_web {
         url     = "https://this.url.fails"
@@ -121,6 +121,37 @@ resource "azurerm_scheduler_job" "web-recurring-daily" {
 }
 ```
 
+## Example Usage (storage queue action)
+
+```hcl
+resource "azurerm_storage_account" "example" {
+  name                     = "tfexstorageaccount"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_queue" "example" {
+  name                 = "tfex-schedulerjob-storagequeue"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  storage_account_name = "${azurerm_storage_account.example.name}"
+}
+
+resource "azurerm_scheduler_job" "storage-once-now" {
+    name                = "tfex-storage-once-now"
+    resource_group_name = "${azurerm_resource_group.example.name}"
+    job_collection_name = "${azurerm_scheduler_job_collection.example.name}"
+
+    action_storage_queue = {
+        storage_account_name = "${azurerm_storage_account.example.name}"
+        storage_queue_name   = "${azurerm_storage_queue.example.name}"
+        sas_token            = "${azurerm_storage_account.example.primary_access_key}"
+        message              = "storage message"
+      }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -131,9 +162,15 @@ The following arguments are supported:
 
 * `job_collection_name` - (Required) Specifies the name of the Scheduler Job Collection in which the Job should exist. Changing this forces a new resource to be created.
 
-* `action_web` - (Required) A `action_web` block defining the job action as described below. Note this is identical to an `error_action_web` block.
+* `action_web` - (Optional) A `action_web` block defining the job action as described below. Note this is identical to an `error_action_web` block.
+
+~> **NOTE** At least one of `error_action_web` or `action_storage_queue` needs to be set.
+
+* `action_storage_queue` - (Optional) A `action_storage_queue` block defining a storage queue job action as described below. Note this is identical to an `error_action_storage_queue` block.
 
 * `error_action_web` - (Optional) A `error_action_web` block defining the action to take on an error as described below. Note this is identical to an `action_web` block.
+
+* `error_action_storage_queue` - (Optional) A `error_action_storage_queue` block defining the a web action to take on an error as described below. Note this is identical to an `action_storage_queue` block.
 
 * `retry` - (Optional) A `retry` block defining how to retry as described below. 
 
@@ -174,6 +211,12 @@ The following arguments are supported:
 * `client_secret` - (Required) Specifies the secret to use.
 * `audience` - (Optional) Specifies the audience.
 
+`action_storage_queue` & `error_action_storage_queue` block supports the following:
+
+* `storage_account_name` - (Required) Specifies the the storage account name.
+* `storage_queue_name` - (Required) Specifies the the storage account queue.
+* `sas_token` - (Required) Specifies a SAS token/key to authenticate with.
+* `message` - (Required) The message to send into the queue.
 
 `retry` block supports the following:
 

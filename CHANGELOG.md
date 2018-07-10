@@ -2,7 +2,9 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_key_vault_access_policy` [GH-1149]
 * **New Resource:** `azurerm_scheduler_job` [GH-1172]
+* **New Resource:** `azurerm_servicebus_namespace_authorization_rule` [GH-1498]
 * **New Resource:** `azurerm_user_assigned_identity` [GH-1448]
 
 IMPROVEMENTS:
@@ -10,6 +12,7 @@ IMPROVEMENTS:
 * dependencies: updating the `containerservice` SDK to `2018-03-31` to support AKS GA [GH-1474]
 * dependencies: updating to `v18.0.0` of `Azure/azure-sdk-for-go` [GH-1487]
 * dependencies: updating to `v10.12.0` of `Azure/go-autorest` [GH-1487]
+* `azurerm_application_gateway` - adding `minimum_servers` to the probe resource [GH-1510]
 * `azurerm_cdn_profile` - support for `Standard_ChinaCdn` and `Standard_Microsoft` SKU's [GH-1465]
 * `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
 * `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
@@ -23,6 +26,12 @@ IMPROVEMENTS:
 * `azurerm_virtual_machine_scale_set` - ensuring we set the `vhd_containers` field to fix a crash [GH-1411]
 * `azurerm_virtual_machine_scale_set` - support for specifying user assigned identities [GH-1448]
 * `azurerm_virtual_machine_scale_set` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
+* `azurerm_virtual_network_gateway` - adding support for the `radius_server_address`, `radius_server_secret` and `vpn_client_protocols` fields to the Data Source [GH-1505]
+
+BUG FIXES:
+
+* `azurerm_sql_database` - fix `requested_service_objective_name` updates [GH-1503]
+* `azurerm_virtual_network_gateway` - fix `azurerm_virtual_network_gateway` crashing when `vpn_client_configuration` was not supplied [GH-1505]
 
 ## 1.8.0 (June 28, 2018)
 
