@@ -516,7 +516,12 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
-	return *appServicePlan.Sku.Tier, nil
+	if sku := appServicePlan.Sku; sku != nil {
+		if tier := sku.Tier; tier != nil {
+			return *tier, nil
+		}
+	}
+	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
 func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) map[string]*string {
