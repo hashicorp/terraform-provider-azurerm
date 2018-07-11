@@ -33,6 +33,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_key_vault_key` - handling the parent Key Vault being deleted [GH-1535]
 * `azurerm_sql_database` - fix `requested_service_objective_name` updates [GH-1503]
 * `azurerm_storage_account` - limiting the `tags` field to 128 characters to match the service [GH-1524]
 * `azurerm_virtual_network_gateway` - fix `azurerm_virtual_network_gateway` crashing when `vpn_client_configuration` was not supplied [GH-1505]
