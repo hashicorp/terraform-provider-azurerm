@@ -112,8 +112,8 @@ provider "kubernetes" {
 
 `network_profile` exports the following:
 
-* `network_plugin` - Network plugin to use for networking. Currently supported values are 'azure' and 'kubenet'.
+* `network_plugin` - Network plugin used such as `azure` or `kubenet`.
 * `service_cidr` - Network range used by the Kubernetes service.
-* `dns_service_ip` - IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns).
+* `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
-* `pod_cidr` - The CIDR to use for pod IP addresses.
+* `pod_cidr` - The CIDR used for pod IP addresses.
