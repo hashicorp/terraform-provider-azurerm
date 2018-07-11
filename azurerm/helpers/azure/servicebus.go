@@ -19,6 +19,20 @@ func ValidateServiceBusNamespaceName() schema.SchemaValidateFunc {
 	)
 }
 
+func ValidateServiceBusQueueName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile(`^[a-zA-Z0-9][\w-./~]{0,258}([a-zA-Z0-9])?$`),
+		"The topic name can contain only letters, numbers, periods, hyphens, tildas, forward slashes and underscores. The namespace must start and end with a letter or number and be less then 260 characters long.",
+	)
+}
+
+func ValidateServiceBusSubscriptionName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
+		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be less then 50 characters long.",
+	)
+}
+
 func ValidateServiceBusTopicName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][-._a-zA-Z0-9]{0,258}([a-zA-Z0-9])?$"),
@@ -73,6 +87,67 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 }
 
 //shared schema
+func MergeSchema(a map[string]*schema.Schema, b map[string]*schema.Schema) map[string]*schema.Schema {
+	s := map[string]*schema.Schema{}
+
+	for k, v := range a {
+		s[k] = v
+	}
+
+	for k, v := range b {
+		s[k] = v
+	}
+
+	return s
+}
+
+func ServiceBusAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
+
+	authSchema := map[string]*schema.Schema{
+		"listen": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"send": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"manage": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"primary_key": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"primary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_key": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+	}
+	return MergeSchema(s, authSchema)
+}
 
 func ServiceBusAuthorizationRuleCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
 	listen, hasListen := d.GetOk("listen")

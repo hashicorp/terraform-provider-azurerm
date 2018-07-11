@@ -12,36 +12,37 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMServiceBusNamespaceAuthorizationRule_listen(t *testing.T) {
-	testAccAzureRMServiceBusNamespaceAuthorizationRule(t, true, false, false)
+func TestAccAzureRMServiceBusQueueAuthorizationRule_listen(t *testing.T) {
+	testAccAzureRMServiceBusQueueAuthorizationRule(t, true, false, false)
 }
 
-func TestAccAzureRMServiceBusNamespaceAuthorizationRule_send(t *testing.T) {
-	testAccAzureRMServiceBusNamespaceAuthorizationRule(t, false, true, false)
+func TestAccAzureRMServiceBusQueueAuthorizationRule_send(t *testing.T) {
+	testAccAzureRMServiceBusQueueAuthorizationRule(t, false, true, false)
 }
 
-func TestAccAzureRMServiceBusNamespaceAuthorizationRule_listensend(t *testing.T) {
-	testAccAzureRMServiceBusNamespaceAuthorizationRule(t, true, true, false)
+func TestAccAzureRMServiceBusQueueAuthorizationRule_listensend(t *testing.T) {
+	testAccAzureRMServiceBusQueueAuthorizationRule(t, true, true, false)
 }
 
-func TestAccAzureRMServiceBusNamespaceAuthorizationRule_manage(t *testing.T) {
-	testAccAzureRMServiceBusNamespaceAuthorizationRule(t, true, true, true)
+func TestAccAzureRMServiceBusQueueAuthorizationRule_manage(t *testing.T) {
+	testAccAzureRMServiceBusQueueAuthorizationRule(t, true, true, true)
 }
 
-func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
-	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
+func testAccAzureRMServiceBusQueueAuthorizationRule(t *testing.T, listen, send, manage bool) {
+	resourceName := "azurerm_servicebus_queue_authorization_rule.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
+		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
+					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "queue_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
@@ -60,27 +61,27 @@ func testAccAzureRMServiceBusNamespaceAuthorizationRule(t *testing.T, listen, se
 	})
 }
 
-func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
-	resourceName := "azurerm_servicebus_namespace_authorization_rule.test"
+func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
+	resourceName := "azurerm_servicebus_queue_authorization_rule.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy,
+		CheckDestroy: testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
+					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
 					resource.TestCheckResourceAttr(resourceName, "send", "false"),
 					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMServiceBusNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMServiceBusQueueAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName),
+					testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
@@ -101,20 +102,21 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_rightsUpdate(t *testing.
 	})
 }
 
-func testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+func testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_servicebus_namespace_authorization_rule" {
+		if rs.Type != "azurerm_servicebus_queue_authorization_rule" {
 			continue
 		}
 
 		name := rs.Primary.Attributes["name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		queueName := rs.Primary.Attributes["queue_name"]
 
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -125,9 +127,8 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy(s *terraform.St
 	return nil
 }
 
-func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
@@ -135,27 +136,30 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(name string) res
 
 		name := rs.Primary.Attributes["name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
+		queueName := rs.Primary.Attributes["queue_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Namespace: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+		conn := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+
+		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: ServiceBus Namespace Authorization Rule %q (namespace %s / resource group: %s) does not exist", name, namespaceName, resourceGroup)
+				return fmt.Errorf("Bad: ServiceBus Queue Authorization Rule %q (namespace %s / resource group: %s) does not exist", name, namespaceName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on ServiceBus Namespace: %+v", err)
+			return fmt.Errorf("Bad: Get on ServiceBus Queue: %+v", err)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMServiceBusNamespaceAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
+func testAccAzureRMServiceBusQueueAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -169,9 +173,18 @@ resource "azurerm_servicebus_namespace" "test" {
   sku                 = "Standard"
 }
 
-resource "azurerm_servicebus_namespace_authorization_rule" "test" {
+resource "azurerm_servicebus_queue" "test" {
+  name                = "acctest-%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+
+  enable_partitioning = true
+}
+
+resource "azurerm_servicebus_queue_authorization_rule" "test" {
   name                = "acctest-%[1]d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
+  queue_name          = "${azurerm_servicebus_queue.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   listen              = %[3]t
   send                = %[4]t

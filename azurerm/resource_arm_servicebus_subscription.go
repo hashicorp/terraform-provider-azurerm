@@ -22,9 +22,10 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusSubscriptionName(),
 			},
 
 			"namespace_name": {
@@ -35,9 +36,10 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 			},
 
 			"topic_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
 			"location": deprecatedLocationSchema(),
