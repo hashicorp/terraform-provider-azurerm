@@ -326,6 +326,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 
 	if err != nil {
 		if utils.ResponseWasNotFound(cert.Response) {
+			log.Printf("[DEBUG] Certificate %q was not found in Key Vault at URI %q - removing from state", id.Name, id.KeyVaultBaseUrl)
 			d.SetId("")
 			return nil
 		}
