@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2017-05-01-preview/insights"
+	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -98,10 +98,10 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													Type:     schema.TypeString,
 													Required: true,
 													ValidateFunc: validation.StringInSlice([]string{
-														string(insights.Average),
-														string(insights.Max),
-														string(insights.Min),
-														string(insights.Sum),
+														string(insights.MetricStatisticTypeAverage),
+														string(insights.MetricStatisticTypeMax),
+														string(insights.MetricStatisticTypeMin),
+														string(insights.MetricStatisticTypeSum),
 													}, true),
 													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
@@ -221,14 +221,14 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(insights.Day),
-											string(insights.Hour),
-											string(insights.Minute),
-											string(insights.Month),
-											string(insights.None),
-											string(insights.Second),
-											string(insights.Week),
-											string(insights.Year),
+											string(insights.RecurrenceFrequencyNone),
+											string(insights.RecurrenceFrequencySecond),
+											string(insights.RecurrenceFrequencyMinute),
+											string(insights.RecurrenceFrequencyHour),
+											string(insights.RecurrenceFrequencyDay),
+											string(insights.RecurrenceFrequencyWeek),
+											string(insights.RecurrenceFrequencyMonth),
+											string(insights.RecurrenceFrequencyYear),
 										}, true),
 										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 									},
