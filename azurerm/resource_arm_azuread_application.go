@@ -45,7 +45,6 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
-				MinItems: 1,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -54,13 +53,11 @@ func resourceArmActiveDirectoryApplication() *schema.Resource {
 			"available_to_other_tenants": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"oauth2_allow_implicit_flow": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 			},
 
 			"application_id": {
@@ -76,14 +73,14 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	multitenant := d.Get("available_to_other_tenants").(bool)
+	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
 
 	properties := graphrbac.ApplicationCreateParameters{
 		DisplayName:             &name,
 		Homepage:                expandAzureRmActiveDirectoryApplicationHomepage(d, name),
-		IdentifierUris:          expandAzureRmActiveDirectoryApplicationIdentifierUris(d, name),
-		ReplyUrls:               expandAzureRmActiveDirectoryApplicationReplyUrls(d, name),
-		AvailableToOtherTenants: utils.Bool(multitenant),
+		IdentifierUris:          expandAzureRmActiveDirectoryApplicationIdentifierUris(d),
+		ReplyUrls:               expandAzureRmActiveDirectoryApplicationReplyUrls(d),
+		AvailableToOtherTenants: utils.Bool(availableToOtherTenants),
 	}
 
 	if v, ok := d.GetOk("oauth2_allow_implicit_flow"); ok {
@@ -98,32 +95,6 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 	d.SetId(*app.ObjectID)
 
 	return resourceArmActiveDirectoryApplicationRead(d, meta)
-}
-
-func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationsClient
-	ctx := meta.(*ArmClient).StopContext
-
-	resp, err := client.Get(ctx, d.Id())
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Azure AD Application ID %q was not found - removing from state", d.Id())
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error loading Azure AD Application %q: %+v", d.Id(), err)
-	}
-
-	d.Set("name", resp.DisplayName)
-	d.Set("application_id", resp.AppID)
-	d.Set("homepage", resp.Homepage)
-	d.Set("identifier_uris", resp.IdentifierUris)
-	d.Set("reply_urls", resp.ReplyUrls)
-	d.Set("available_to_other_tenants", resp.AvailableToOtherTenants)
-	d.Set("oauth2_allow_implicit_flow", resp.Oauth2AllowImplicitFlow)
-
-	return nil
 }
 
 func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -143,16 +114,16 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 	}
 
 	if d.HasChange("identifier_uris") {
-		properties.IdentifierUris = expandAzureRmActiveDirectoryApplicationIdentifierUris(d, name)
+		properties.IdentifierUris = expandAzureRmActiveDirectoryApplicationIdentifierUris(d)
 	}
 
 	if d.HasChange("reply_urls") {
-		properties.ReplyUrls = expandAzureRmActiveDirectoryApplicationReplyUrls(d, name)
+		properties.ReplyUrls = expandAzureRmActiveDirectoryApplicationReplyUrls(d)
 	}
 
 	if d.HasChange("available_to_other_tenants") {
-		multitenant := d.Get("available_to_other_tenants").(bool)
-		properties.AvailableToOtherTenants = utils.Bool(multitenant)
+		availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
+		properties.AvailableToOtherTenants = utils.Bool(availableToOtherTenants)
 	}
 
 	if d.HasChange("oauth2_allow_implicit_flow") {
@@ -162,20 +133,67 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 
 	_, err := client.Patch(ctx, d.Id(), properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
 	}
 
 	return resourceArmActiveDirectoryApplicationRead(d, meta)
+}
+
+func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).applicationsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	resp, err := client.Get(ctx, d.Id())
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Azure AD Application with ID %q was not found - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Azure AD Application with ID %q: %+v", d.Id(), err)
+	}
+
+	d.Set("name", resp.DisplayName)
+	d.Set("application_id", resp.AppID)
+	d.Set("homepage", resp.Homepage)
+	d.Set("available_to_other_tenants", resp.AvailableToOtherTenants)
+	d.Set("oauth2_allow_implicit_flow", resp.Oauth2AllowImplicitFlow)
+
+	identifierUris := flattenAzureADApplicationIdentifierUris(resp.IdentifierUris)
+	if err := d.Set("identifier_uris", identifierUris); err != nil {
+		return fmt.Errorf("Error setting`identifier_uris`: %+v", err)
+	}
+
+	replyUrls := flattenAzureADApplicationReplyUrls(resp.ReplyUrls)
+	if err := d.Set("reply_urls", replyUrls); err != nil {
+		return fmt.Errorf("Error setting`reply_urls`: %+v", err)
+	}
+
+	return nil
 }
 
 func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).applicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
+	// in order to delete an application which is available to other tenants, we first have to disable this setting
+	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
+	if availableToOtherTenants {
+		log.Printf("[DEBUG] Azure AD Application is available to other tenants - disabling that feature before deleting.")
+		properties := graphrbac.ApplicationUpdateParameters{
+			AvailableToOtherTenants: utils.Bool(false),
+		}
+		_, err := client.Patch(ctx, d.Id(), properties)
+		if err != nil {
+			return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
+		}
+	}
+
 	resp, err := client.Delete(ctx, d.Id())
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return err
+			return fmt.Errorf("Error Deleting Azure AD Application with ID %q: %+v", d.Id(), err)
 		}
 	}
 
@@ -190,25 +208,48 @@ func expandAzureRmActiveDirectoryApplicationHomepage(d *schema.ResourceData, nam
 	return utils.String(fmt.Sprintf("http://%s", name))
 }
 
-func expandAzureRmActiveDirectoryApplicationIdentifierUris(d *schema.ResourceData, name string) *[]string {
+func expandAzureRmActiveDirectoryApplicationIdentifierUris(d *schema.ResourceData) *[]string {
 	identifierUris := d.Get("identifier_uris").([]interface{})
-	identifiers := []string{}
+	identifiers := make([]string, 0)
+
 	for _, id := range identifierUris {
 		identifiers = append(identifiers, id.(string))
-	}
-	if len(identifiers) == 0 {
-		identifiers = append(identifiers, fmt.Sprintf("http://%s", name))
 	}
 
 	return &identifiers
 }
 
-func expandAzureRmActiveDirectoryApplicationReplyUrls(d *schema.ResourceData, name string) *[]string {
+func expandAzureRmActiveDirectoryApplicationReplyUrls(d *schema.ResourceData) *[]string {
 	replyUrls := d.Get("reply_urls").([]interface{})
-	urls := []string{}
+	urls := make([]string, 0)
+
 	for _, url := range replyUrls {
 		urls = append(urls, url.(string))
 	}
 
 	return &urls
+}
+
+func flattenAzureADApplicationIdentifierUris(input *[]string) []string {
+	output := make([]string, 0)
+
+	if input != nil {
+		for _, v := range *input {
+			output = append(output, v)
+		}
+	}
+
+	return output
+}
+
+func flattenAzureADApplicationReplyUrls(input *[]string) []string {
+	output := make([]string, 0)
+
+	if input != nil {
+		for _, v := range *input {
+			output = append(output, v)
+		}
+	}
+
+	return output
 }

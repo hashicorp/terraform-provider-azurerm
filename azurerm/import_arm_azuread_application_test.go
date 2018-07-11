@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccAzureRMActiveDirectoryApplication_importSimple(t *testing.T) {
+func TestAccAzureRMActiveDirectoryApplication_importBasic(t *testing.T) {
 	resourceName := "azurerm_azuread_application.test"
 
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryApplication_simple(id)
+	config := testAccAzureRMActiveDirectoryApplication_basic(id)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -30,11 +30,11 @@ func TestAccAzureRMActiveDirectoryApplication_importSimple(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMActiveDirectoryApplication_importAdvanced(t *testing.T) {
+func TestAccAzureRMActiveDirectoryApplication_importComplete(t *testing.T) {
 	resourceName := "azurerm_azuread_application.test"
 
 	id := uuid.New().String()
-	config := testAccAzureRMActiveDirectoryApplication_advanced(id)
+	config := testAccAzureRMActiveDirectoryApplication_complete(id)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
