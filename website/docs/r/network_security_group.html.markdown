@@ -87,7 +87,7 @@ The `security_rule` block supports:
 
 * `destination_port_range` - (Optional) Destination Port or Range. Integer or range between `0` and `65535` or `*` to match any. This is required if `destination_port_ranges` is not specified.
 
-* `destination_port_ranges` - (Optional) List of source port ranges. To specify multiple single ports, each port must be expressed as an element in a list with its own range. This is required if `source_port_range` is not specified.
+* `destination_port_ranges` - (Optional) List of source port ranges. To specify multiple single ports, each port must be expressed as an element in a list with its own range. This is required if `destination_port_range` is not specified.
 
 * `source_address_prefix` - (Optional) CIDR or source IP range or * to match any IP. Tags such as ‘VirtualNetwork’, ‘AzureLoadBalancer’ and ‘Internet’ can also be used. This is required if `source_address_prefixes` is not specified.
 
