@@ -148,7 +148,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 					testCheckAzureRMKeyVaultExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "create"),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "set"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
