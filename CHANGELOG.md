@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_azuread_application` [GH-1269]
 * **New Resource:** `azurerm_data_lake_store_firewall_rule` [GH-1499]
 * **New Resource:** `azurerm_key_vault_access_policy` [GH-1149]
 * **New Resource:** `azurerm_scheduler_job` [GH-1172]
