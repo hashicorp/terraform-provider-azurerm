@@ -1,4 +1,3 @@
-
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_queue_authorization_rule"
@@ -91,4 +90,3 @@ ServiceBus Queue Authorization Rules can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_servicebus_queue_authorization_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ServiceBus/namespaces/namespace1/queues/queue1/authorizationRules/rule1
 ```
-``
