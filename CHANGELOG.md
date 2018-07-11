@@ -1,43 +1,43 @@
-## 1.9.0 (Unreleased)
+## 1.9.0 (July 11, 2018)
 
 FEATURES:
 
-* **New Resource:** `azurerm_azuread_application` [GH-1269]
-* **New Resource:** `azurerm_data_lake_store_firewall_rule` [GH-1499]
-* **New Resource:** `azurerm_key_vault_access_policy` [GH-1149]
-* **New Resource:** `azurerm_scheduler_job` [GH-1172]
-* **New Resource:** `azurerm_servicebus_namespace_authorization_rule` [GH-1498]
-* **New Resource:** `azurerm_user_assigned_identity` [GH-1448]
+* **New Resource:** `azurerm_azuread_application` ([#1269](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1269))
+* **New Resource:** `azurerm_data_lake_store_firewall_rule` ([#1499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1499))
+* **New Resource:** `azurerm_key_vault_access_policy` ([#1149](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1149))
+* **New Resource:** `azurerm_scheduler_job` ([#1172](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1172))
+* **New Resource:** `azurerm_servicebus_namespace_authorization_rule` ([#1498](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1498))
+* **New Resource:** `azurerm_user_assigned_identity` ([#1448](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1448))
 
 IMPROVEMENTS:
 
-* dependencies: updating the `containerservice` SDK to `2018-03-31` to support AKS GA [GH-1474]
-* dependencies: updating to `v18.0.0` of `Azure/azure-sdk-for-go` [GH-1487]
-* dependencies: updating to `v10.12.0` of `Azure/go-autorest` [GH-1487]
-* `azurerm_application_gateway` - adding `minimum_servers` to the probe resource [GH-1510]
-* `azurerm_cdn_profile` - support for `Standard_ChinaCdn` and `Standard_Microsoft` SKU's [GH-1465]
-* `azurerm_cosmosdb_account` - checking to see if the name is in use before creating [GH-1464]
-* `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field [GH-1463]
-* `azurerm_dns_zone` - support for Private DNS Zones [GH-1404]
-* `azurerm_image` - change os_disk property to a list and add addtional property validation [GH-1443]
-* `azurerm_lb` - allow `private_ip_address` to be set to an empty value [GH-1481]
-* `azurerm_mysql_server` - changing the `storage_mb` property no longer forces a new resource [GH-1532]
-* `azurerm_postgresql_server` - changing the `storage_mb` property no longer forces a new resource [GH-1532]
-* `azurerm_servicebus_queue` - `enable_partitioning` can now be enabled for `Basic` and `Standard` tiers [GH-1391]
-* `azurerm_virtual_machine` - support for specifying user assigned identities [GH-1448]
-* `azurerm_virtual_machine` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
-* `azurerm_virtual_machine_data_disk_attachment` - adding support for `write_accelerator_enabled` [GH-1473]
-* `azurerm_virtual_machine_scale_set` - ensuring we set the `vhd_containers` field to fix a crash [GH-1411]
-* `azurerm_virtual_machine_scale_set` - support for specifying user assigned identities [GH-1448]
-* `azurerm_virtual_machine_scale_set` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive [GH-1471]
-* `azurerm_virtual_network_gateway` - adding support for the `radius_server_address`, `radius_server_secret` and `vpn_client_protocols` fields to the Data Source [GH-1505]
+* dependencies: updating the `containerservice` SDK to `2018-03-31` to support AKS GA ([#1474](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1474))
+* dependencies: updating to `v18.0.0` of `Azure/azure-sdk-for-go` ([#1487](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1487))
+* dependencies: updating to `v10.12.0` of `Azure/go-autorest` ([#1487](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1487))
+* `azurerm_application_gateway` - adding `minimum_servers` to the probe resource ([#1510](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1510))
+* `azurerm_cdn_profile` - support for `Standard_ChinaCdn` and `Standard_Microsoft` SKU's ([#1465](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1465))
+* `azurerm_cosmosdb_account` - checking to see if the name is in use before creating ([#1464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1464))
+* `azurerm_cosmosdb_account` - fixing the validation on the `ip_range_filter` field ([#1463](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1463))
+* `azurerm_dns_zone` - support for Private DNS Zones ([#1404](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1404))
+* `azurerm_image` - change os_disk property to a list and add addtional property validation ([#1443](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1443))
+* `azurerm_lb` - allow `private_ip_address` to be set to an empty value ([#1481](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1481))
+* `azurerm_mysql_server` - changing the `storage_mb` property no longer forces a new resource ([#1532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1532))
+* `azurerm_postgresql_server` - changing the `storage_mb` property no longer forces a new resource ([#1532](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1532))
+* `azurerm_servicebus_queue` - `enable_partitioning` can now be enabled for `Basic` and `Standard` tiers ([#1391](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1391))
+* `azurerm_virtual_machine` - support for specifying user assigned identities ([#1448](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1448))
+* `azurerm_virtual_machine` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive ([#1471](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1471))
+* `azurerm_virtual_machine_data_disk_attachment` - adding support for `write_accelerator_enabled` ([#1473](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1473))
+* `azurerm_virtual_machine_scale_set` - ensuring we set the `vhd_containers` field to fix a crash ([#1411](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1411))
+* `azurerm_virtual_machine_scale_set` - support for specifying user assigned identities ([#1448](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1448))
+* `azurerm_virtual_machine_scale_set` - making the `content` field in the `additional_unattend_config`  block (within `os_profile_windows_config`) sensitive ([#1471](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1471))
+* `azurerm_virtual_network_gateway` - adding support for the `radius_server_address`, `radius_server_secret` and `vpn_client_protocols` fields to the Data Source ([#1505](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1505))
 
 BUG FIXES:
 
-* `azurerm_key_vault_key` - handling the parent Key Vault being deleted [GH-1535]
-* `azurerm_sql_database` - fix `requested_service_objective_name` updates [GH-1503]
-* `azurerm_storage_account` - limiting the `tags` field to 128 characters to match the service [GH-1524]
-* `azurerm_virtual_network_gateway` - fix `azurerm_virtual_network_gateway` crashing when `vpn_client_configuration` was not supplied [GH-1505]
+* `azurerm_key_vault_key` - handling the parent Key Vault being deleted ([#1535](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1535))
+* `azurerm_sql_database` - fix `requested_service_objective_name` updates ([#1503](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1503))
+* `azurerm_storage_account` - limiting the `tags` field to 128 characters to match the service ([#1524](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1524))
+* `azurerm_virtual_network_gateway` - fix `azurerm_virtual_network_gateway` crashing when `vpn_client_configuration` was not supplied ([#1505](https://github.com/terraform-providers/terraform-provider-azurerm/issues/1505))
 
 ## 1.8.0 (June 28, 2018)
 
