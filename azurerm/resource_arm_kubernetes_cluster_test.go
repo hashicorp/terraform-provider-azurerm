@@ -189,7 +189,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworking(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
-					resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_plugin", "azure"),
+					resource.TestCheckResourceAttr("azurerm_kubernetes_cluster.test", "network_profile.0.network_plugin", "azure"),
 				),
 			},
 		},
