@@ -173,6 +173,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "test" {
   name                = "acctest-%[1]d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
   listen              = %[3]t
   send                = %[4]t
   manage              = %[5]t
