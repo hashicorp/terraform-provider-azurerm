@@ -495,8 +495,8 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	// If the application plan is dynamic (consumption), we do not want to include WEBSITE_CONTENT components
-	if strings.EqualFold(appServiceTier, "dynamic") {
+	// If the application plan is NOT dynamic (consumption plan), we do NOT want to include WEBSITE_CONTENT components
+	if !strings.EqualFold(appServiceTier, "dynamic") {
 		return basicSettings
 	}
 	return append(basicSettings, consumptionSettings...)
