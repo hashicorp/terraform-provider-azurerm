@@ -505,7 +505,7 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
 	id, err := parseAzureResourceID(appServicePlanId)
 	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID '%s': %+v", appServicePlanId, err)
+		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
 	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
@@ -513,7 +513,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 	appServicePlansClient := meta.(*ArmClient).appServicePlansClient
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
 	if err != nil {
-		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID '%s': %+v", appServicePlanId, err)
+		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
 	return *appServicePlan.Sku.Tier, nil
