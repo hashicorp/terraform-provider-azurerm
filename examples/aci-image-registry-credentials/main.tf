@@ -16,6 +16,12 @@ resource "azurerm_container_group" "aci-test" {
     password = "yourpassword"
   }
 
+  image_registry_credential {
+    server   = "2hub.docker.com"
+    username = "2yourusername1"
+    password = "2yourpassword"
+  }
+
   container {
     name   = "hw"
     image  = "microsoft/aci-helloworld:latest"

@@ -309,8 +309,8 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	}
 	flattenAndSetTags(d, resp.Tags)
 
-	if imageRegCreds := flattenContainerImageRegistryCredentials(d, resp.ImageRegistryCredentials); imageRegCreds != nil {
-		d.Set("image_registry_credential", imageRegCreds)
+	if err := d.Set("image_registry_credential", flattenContainerImageRegistryCredentials(d, resp.ImageRegistryCredentials)); err != nil {
+		return fmt.Errorf("Error setting `capabilities`: %+v", err)
 	}
 
 	d.Set("os_type", string(resp.OsType))
@@ -578,14 +578,10 @@ func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containe
 	for _, c := range credsRaw {
 		credConfig := c.(map[string]interface{})
 
-		server := credConfig["server"].(string)
-		username := credConfig["username"].(string)
-		password := credConfig["password"].(string)
-
 		output = append(output, containerinstance.ImageRegistryCredential{
-			Server:   &server,
-			Password: &password,
-			Username: &username,
+			Server:   utils.String(credConfig["server"].(string)),
+			Password: utils.String(credConfig["password"].(string)),
+			Username: utils.String(credConfig["username"].(string)),
 		})
 	}
 
@@ -599,7 +595,7 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, credsPtr *
 	configsOld := d.Get("image_registry_credential").([]interface{})
 
 	creds := *credsPtr
-	output := make([]interface{}, len(creds))
+	output := make([]interface{}, 0, len(creds))
 	for _, cred := range creds {
 		credConfig := make(map[string]interface{})
 		if cred.Server != nil {
@@ -610,6 +606,9 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, credsPtr *
 		}
 
 		for i, configsOld := range configsOld {
+			if configsOld == nil {
+				continue
+			}
 			data := configsOld.(map[string]interface{})
 			oldServer := data["server"].(string)
 			if cred.Server != nil && *cred.Server == oldServer {
