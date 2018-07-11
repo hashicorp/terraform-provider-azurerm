@@ -185,7 +185,10 @@ resource "azurerm_servicebus_queue_authorization_rule" "test" {
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   queue_name          = "${azurerm_servicebus_queue.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+<<<<<<< HEAD
 
+=======
+>>>>>>> added new resource resource_arm_servicebus_queue_authorization_rule
   listen              = %[3]t
   send                = %[4]t
   manage              = %[5]t

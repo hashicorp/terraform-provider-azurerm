@@ -107,6 +107,7 @@ func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, met
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q): %+v", name, queueName, namespaceName, resGroup, err)
 	}
 
