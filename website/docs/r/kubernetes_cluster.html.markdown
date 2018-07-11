@@ -39,7 +39,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   agent_pool_profile {
     name            = "default"
     count           = 1
-    vm_size         = "Standard_DS1_v2"
+    vm_size         = "Standard_D1_v2"
     os_type         = "Linux"
     os_disk_size_gb = 30
   }
@@ -118,8 +118,6 @@ The following arguments are supported:
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
-
-~> **NOTE:** There's a known issue where Agents connected to an Internal Network (e.g. on a Subnet) have their network routing configured incorrectly; such that Pods cannot communicate across nodes. This is a bug in the Azure API - and will be fixed there in the future.
 
 `service_principal` supports the following:
 

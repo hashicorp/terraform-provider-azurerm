@@ -139,11 +139,11 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 		{TargetValue: service,
 			Constraints: []validation.Constraint{{Target: "service.ServiceProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "service.ServiceProperties.ReplicaCount", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "service.ServiceProperties.ReplicaCount", Name: validation.InclusiveMaximum, Rule: 12, Chain: nil},
+					Chain: []validation.Constraint{{Target: "service.ServiceProperties.ReplicaCount", Name: validation.InclusiveMaximum, Rule: int64(12), Chain: nil},
 						{Target: "service.ServiceProperties.ReplicaCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
 					}},
 					{Target: "service.ServiceProperties.PartitionCount", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "service.ServiceProperties.PartitionCount", Name: validation.InclusiveMaximum, Rule: 12, Chain: nil},
+						Chain: []validation.Constraint{{Target: "service.ServiceProperties.PartitionCount", Name: validation.InclusiveMaximum, Rule: int64(12), Chain: nil},
 							{Target: "service.ServiceProperties.PartitionCount", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
 						}},
 				}}}}}); err != nil {
@@ -195,15 +195,17 @@ func (client ServicesClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServicesClient) CreateOrUpdateSender(req *http.Request) (future ServicesCreateOrUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 

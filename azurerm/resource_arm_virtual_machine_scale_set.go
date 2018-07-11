@@ -49,8 +49,16 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, true),
+								string(compute.ResourceIdentityTypeSystemAssigned),
+								string(compute.ResourceIdentityTypeUserAssigned),
+							}, false),
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -238,8 +246,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 										Required: true,
 									},
 									"content": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:      schema.TypeString,
+										Required:  true,
+										Sensitive: true,
 									},
 								},
 							},
@@ -932,6 +941,14 @@ func flattenAzureRmVirtualMachineScaleSetIdentity(identity *compute.VirtualMachi
 		result["principal_id"] = *identity.PrincipalID
 	}
 
+	identity_ids := make([]string, 0)
+	if identity.IdentityIds != nil {
+		for _, id := range *identity.IdentityIds {
+			identity_ids = append(identity_ids, id)
+		}
+	}
+	result["identity_ids"] = identity_ids
+
 	return []interface{}{result}
 }
 
@@ -1176,13 +1193,13 @@ func flattenAzureRmVirtualMachineScaleSetStorageProfileOSDisk(profile *compute.V
 		result["image"] = *profile.Image.URI
 	}
 
+	containers := make([]interface{}, 0)
 	if profile.VhdContainers != nil {
-		containers := make([]interface{}, 0, len(*profile.VhdContainers))
 		for _, container := range *profile.VhdContainers {
 			containers = append(containers, container)
 		}
-		result["vhd_containers"] = schema.NewSet(schema.HashString, containers)
 	}
+	result["vhd_containers"] = schema.NewSet(schema.HashString, containers)
 
 	if profile.ManagedDisk != nil {
 		result["managed_disk_type"] = string(profile.ManagedDisk.StorageAccountType)
@@ -1635,10 +1652,22 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	v := d.Get("identity")
 	identities := v.([]interface{})
 	identity := identities[0].(map[string]interface{})
-	identityType := identity["type"].(string)
-	return &compute.VirtualMachineScaleSetIdentity{
-		Type: compute.ResourceIdentityType(identityType),
+	identityType := compute.ResourceIdentityType(identity["type"].(string))
+
+	identityIds := []string{}
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds = append(identityIds, id.(string))
 	}
+
+	vmssIdentity := compute.VirtualMachineScaleSetIdentity{
+		Type: identityType,
+	}
+
+	if vmssIdentity.Type == compute.ResourceIdentityTypeUserAssigned {
+		vmssIdentity.IdentityIds = &identityIds
+	}
+
+	return &vmssIdentity
 }
 
 func expandAzureRMVirtualMachineScaleSetsStorageProfileOsDisk(d *schema.ResourceData) (*compute.VirtualMachineScaleSetOSDisk, error) {

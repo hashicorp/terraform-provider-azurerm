@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -61,8 +61,8 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(network.ExpressRouteCircuitSkuTierStandard),
-								string(network.ExpressRouteCircuitSkuTierPremium),
+								string(network.Standard),
+								string(network.Premium),
 							}, true),
 							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 						},

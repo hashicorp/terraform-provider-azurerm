@@ -108,7 +108,7 @@ func TestAccAzureRMServiceBusQueue_defaultEnablePartitioningPremium(t *testing.T
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_partitioning", "false"),
 					resource.TestCheckResourceAttr(resourceName, "enable_express", "false"),
 				),
 			},
@@ -331,7 +331,7 @@ resource "azurerm_servicebus_queue" "test" {
     name = "acctestservicebusqueue-%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     namespace_name = "${azurerm_servicebus_namespace.test.name}"
-    enable_partitioning = true
+    enable_partitioning = false
     enable_express = false
 }
 `, rInt, location, rInt, rInt)

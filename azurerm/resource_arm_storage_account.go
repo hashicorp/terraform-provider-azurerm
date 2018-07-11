@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -20,6 +21,7 @@ func resourceArmStorageAccount() *schema.Resource {
 		Read:   resourceArmStorageAccountRead,
 		Update: resourceArmStorageAccountUpdate,
 		Delete: resourceArmStorageAccountDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -287,9 +289,37 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+			},
 		},
 	}
+}
+
+func validateAzureRMStorageAccountTags(v interface{}, _ string) (ws []string, es []error) {
+	tagsMap := v.(map[string]interface{})
+
+	if len(tagsMap) > 15 {
+		es = append(es, errors.New("a maximum of 15 tags can be applied to each ARM resource"))
+	}
+
+	for k, v := range tagsMap {
+		if len(k) > 128 {
+			es = append(es, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
+		}
+
+		value, err := tagValueToString(v)
+		if err != nil {
+			es = append(es, err)
+		} else if len(value) > 256 {
+			es = append(es, fmt.Errorf("the maximum length for a tag value is 256 characters: the value for %q is %d characters", k, len(value)))
+		}
+	}
+
+	return ws, es
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {

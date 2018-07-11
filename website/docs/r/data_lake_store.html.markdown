@@ -1,7 +1,7 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
-sidebar_current: "docs-azurerm-resource-data-lake-store"
+sidebar_current: "docs-azurerm-resource-data-lake-store-x"
 description: |-
   Manage an Azure Data Lake Store.
 ---
@@ -13,7 +13,6 @@ Manage an Azure Data Lake Store.
 ## Example Usage
 
 ```hcl
-# Pay As You Go
 resource "azurerm_resource_group" "test" {
   name     = "test"
   location = "northeurope"
@@ -22,20 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_data_lake_store" "consumption" {
   name                = "consumptiondatalake"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "northeurope"
-}
-
-# Monthly Commitment Tier
-resource "azurerm_resource_group" "test" {
-  name     = "test"
-  location = "westeurope"
-}
-
-resource "azurerm_data_lake_store" "monthly" {
-  name                = "monthlydatalake"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "westeurope"
-  tier                = "Commitment_1TB"
+  location            = "${azurerm_resource_group.test.location}"
 }
 ```
 

@@ -75,6 +75,8 @@ The following arguments are supported:
 
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
+* `capabilities` - (Optional) Enable capabilities for this Cosmos DB account. Possible values are `EnableTable` and `EnableGremlin`.
+
 `consistency_policy` Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.

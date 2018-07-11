@@ -54,7 +54,7 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.WorkspaceProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.InclusiveMaximum, Rule: 730, Chain: nil},
+					Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.InclusiveMaximum, Rule: int64(730), Chain: nil},
 						{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.InclusiveMinimum, Rule: -1, Chain: nil},
 					}},
 				}}}}}); err != nil {
@@ -102,15 +102,17 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future WorkspacesCreateOrUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 

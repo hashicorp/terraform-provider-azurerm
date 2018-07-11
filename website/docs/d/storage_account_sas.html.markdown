@@ -73,7 +73,7 @@ output "sas_url_query_string" {
 
 * `connection_string` - (Required) The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
-* `resouce_types` - (Required) A `resource_types` block as defined below. 
+* `resource_types` - (Required) A `resource_types` block as defined below. 
 * `services` - (Required) A `services` block as defined below.
 * `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 * `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.

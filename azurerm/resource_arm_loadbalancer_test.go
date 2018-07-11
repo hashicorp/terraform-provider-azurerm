@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -147,6 +147,27 @@ func TestAccAzureRMLoadBalancer_tags(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.Purpose", "AcceptanceTests"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancer_emptyPrivateIP(t *testing.T) {
+	resourceName := "azurerm_lb.test"
+	var lb network.LoadBalancer
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_emptyIPAddress(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
+					resource.TestCheckResourceAttrSet(resourceName, "frontend_ip_configuration.0.private_ip_address"),
 				),
 			},
 		},
@@ -406,4 +427,41 @@ resource "azurerm_lb" "test" {
       public_ip_address_id = "${azurerm_public_ip.test.id}"
     }
 }`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMLoadBalancer_emptyIPAddress(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acctvn-%d"
+  address_space = ["10.0.0.0/16"]
+  location = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name = "acctsub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix = "10.0.2.0/24"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "Basic"
+
+  frontend_ip_configuration {
+    name                          = "Internal"
+    private_ip_address_allocation = "Dynamic"
+    private_ip_address            = ""
+    subnet_id                     = "${azurerm_subnet.test.id}"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
 }

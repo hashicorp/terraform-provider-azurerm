@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -87,6 +89,19 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 
 						"failover_priority": {
 							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"capabilities": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -190,6 +205,10 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `geo_location`: %+v", err)
 		}
 
+		if err := d.Set("capabilities", flattenAzureRmCosmosDBAccountCapabilitiesAsList(resp.Capabilities)); err != nil {
+			return fmt.Errorf("Error setting `capabilities`: %+v", err)
+		}
+
 		readEndpoints := make([]string, 0)
 		if locations := props.ReadLocations; locations != nil {
 			for _, l := range *locations {
@@ -224,4 +243,19 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.Capability) *[]map[string]interface{} {
+	slice := make([]map[string]interface{}, 0)
+
+	for _, c := range *capabilities {
+		if v := c.Name; v != nil {
+			e := map[string]interface{}{
+				"name": *v,
+			}
+			slice = append(slice, e)
+		}
+	}
+
+	return &slice
 }
