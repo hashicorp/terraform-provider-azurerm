@@ -1,5 +1,9 @@
 ## 1.10.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_azuread_application` [GH-1552]
+
 BUG FIXES:
 
 * `azurerm_traffic_manager_endpoint` - working around a bug in the API by setting `target` to nil when a `target_resource_id` is specified [GH-1546]
