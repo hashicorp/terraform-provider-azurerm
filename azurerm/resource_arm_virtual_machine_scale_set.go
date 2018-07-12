@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
+
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
@@ -69,14 +69,15 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"tier": {
@@ -92,7 +93,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmVirtualMachineScaleSetSkuHash,
 			},
 
 			"license_type": {
@@ -1323,21 +1323,6 @@ func resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash(v interfa
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineScaleSetSkuHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-		buf.WriteString(fmt.Sprintf("%d-", m["capacity"].(int)))
-
-		if v, ok := m["tier"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(v.(string))))
-		}
-	}
-
-	return hashcode.String(buf.String())
-}
-
 func resourceArmVirtualMachineScaleSetStorageProfileOsDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
@@ -1418,20 +1403,15 @@ func resourceArmVirtualMachineScaleSetExtensionHash(v interface{}) int {
 }
 
 func expandVirtualMachineScaleSetSku(d *schema.ResourceData) (*compute.Sku, error) {
-	skuConfig := d.Get("sku").(*schema.Set).List()
-
+	skuConfig := d.Get("sku").([]interface{})
 	config := skuConfig[0].(map[string]interface{})
 
-	name := config["name"].(string)
-	tier := config["tier"].(string)
-	capacity := int64(config["capacity"].(int))
-
 	sku := &compute.Sku{
-		Name:     &name,
-		Capacity: &capacity,
+		Name:     utils.String(config["name"].(string)),
+		Capacity: utils.Int64(int64(config["capacity"].(int))),
 	}
 
-	if tier != "" {
+	if tier, ok := config["tier"].(string); ok && tier != "" {
 		sku.Tier = &tier
 	}
 
