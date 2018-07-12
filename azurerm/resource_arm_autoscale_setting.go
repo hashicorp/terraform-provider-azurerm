@@ -860,7 +860,7 @@ func flattenAzureRmAutoscaleSchedule(recurrence insights.Recurrence) *schema.Set
 }
 
 func flattenAzureRmAutoscaleNotification(notifications *[]insights.AutoscaleNotification) []interface{} {
-	results := make([]interface{}, 0, len(*notifications))
+	results := make([]interface{}, 0)
 
 	for _, notification := range *notifications {
 		notificationConfig := make(map[string]interface{})
