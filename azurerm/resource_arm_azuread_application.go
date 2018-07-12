@@ -162,12 +162,12 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 
 	identifierUris := flattenAzureADApplicationIdentifierUris(resp.IdentifierUris)
 	if err := d.Set("identifier_uris", identifierUris); err != nil {
-		return fmt.Errorf("Error setting`identifier_uris`: %+v", err)
+		return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
 	}
 
 	replyUrls := flattenAzureADApplicationReplyUrls(resp.ReplyUrls)
 	if err := d.Set("reply_urls", replyUrls); err != nil {
-		return fmt.Errorf("Error setting`reply_urls`: %+v", err)
+		return fmt.Errorf("Error setting `reply_urls`: %+v", err)
 	}
 
 	return nil
