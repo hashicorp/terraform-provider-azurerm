@@ -1,4 +1,9 @@
 ## 1.10.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_traffic_manager_endpoint` - working around a bug in the API by setting `target` to nil when a `target_resource_id` is specified [GH-1546]
+
 ## 1.9.0 (July 11, 2018)
 
 FEATURES:
