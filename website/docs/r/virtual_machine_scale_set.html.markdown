@@ -301,10 +301,12 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     type_handler_version = "1.0"
     settings             = "{\"port\": 50342}"
   }
+  # ...
+}
 
-  output "principal_id" {
-    value = "${lookup(azurerm_virtual_machine.test.identity[0], "principal_id")}"
-  }
+output "principal_id" {
+  value = "${lookup(azurerm_virtual_machine_scale_set.test.identity[0], "principal_id")}"
+}
 ```
 
 `os_profile` supports the following:
@@ -435,21 +437,21 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 ## Example of storage_profile_image_reference with id
 
 ```hcl
-
 resource "azurerm_image" "test" {
 	name = "test"
-  ...
+  # ...
 }
 
 resource "azurerm_virtual_machine_scale_set" "test" {
 	name = "test"
-  ...
+  # ...
 
 	storage_profile_image_reference {
 		id = "${azurerm_image.test.id}"
 	}
 
-...
+  # ...
+}
 ```
 
 ## Attributes Reference
