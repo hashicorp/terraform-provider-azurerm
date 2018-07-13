@@ -6,6 +6,7 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_application_insights` - fixing a bug where `application_type` was set to `other` [GH-1563]
 * `azurerm_traffic_manager_endpoint` - working around a bug in the API by setting `target` to nil when a `target_resource_id` is specified [GH-1546]
 
 ## 1.9.0 (July 11, 2018)
