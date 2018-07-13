@@ -19,6 +19,9 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
+			},
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
@@ -44,6 +47,9 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T)
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
+			},
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
