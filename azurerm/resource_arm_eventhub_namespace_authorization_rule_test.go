@@ -11,34 +11,34 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMEventHubAuthorizationRule_listen(t *testing.T) {
-	testAccAzureRMEventHubAuthorizationRule(t, true, false, false)
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_listen(t *testing.T) {
+	testAccAzureRMEventHubNamespaceAuthorizationRule(t, true, false, false)
 }
 
-func TestAccAzureRMEventHubAuthorizationRule_send(t *testing.T) {
-	testAccAzureRMEventHubAuthorizationRule(t, false, true, false)
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_send(t *testing.T) {
+	testAccAzureRMEventHubNamespaceAuthorizationRule(t, false, true, false)
 }
 
-func TestAccAzureRMEventHubAuthorizationRule_listensend(t *testing.T) {
-	testAccAzureRMEventHubAuthorizationRule(t, true, true, false)
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_listensend(t *testing.T) {
+	testAccAzureRMEventHubNamespaceAuthorizationRule(t, true, true, false)
 }
 
-func TestAccAzureRMEventHubAuthorizationRule_manage(t *testing.T) {
-	testAccAzureRMEventHubAuthorizationRule(t, true, true, true)
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_manage(t *testing.T) {
+	testAccAzureRMEventHubNamespaceAuthorizationRule(t, true, true, true)
 }
 
-func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage bool) {
-	resourceName := "azurerm_eventhub_authorization_rule.test"
+func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send, manage bool) {
+	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "eventhub_name"),
@@ -60,27 +60,27 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 	})
 }
 
-func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
-	resourceName := "azurerm_eventhub_authorization_rule.test"
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T) {
+	resourceName := "azurerm_eventhub_namespace_authorization_rule.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
 					resource.TestCheckResourceAttr(resourceName, "send", "false"),
 					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_base(acctest.RandInt(), testLocation(), true, true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubAuthorizationRuleExists(resourceName),
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
@@ -101,7 +101,7 @@ func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error {
+func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).eventHubClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -126,7 +126,7 @@ func testCheckAzureRMEventHubAuthorizationRuleDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testCheckAzureRMEventHubAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -157,7 +157,7 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(name string) resource.TestC
 	}
 }
 
-func testAccAzureRMEventHubAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
+func testAccAzureRMEventHubNamespaceAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -172,19 +172,9 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Standard"
 }
 
-resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  partition_count     = 2
-  message_retention   = 1
-}
-
-resource "azurerm_eventhub_authorization_rule" "test" {
+resource "azurerm_eventhub_namespace_authorization_rule" "test" {
   name                = "acctest-%[1]d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   listen              = %[3]t
