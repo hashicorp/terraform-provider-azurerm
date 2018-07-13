@@ -11,7 +11,7 @@ func TestAccAzureRMApplicationInsights_importBasicWeb(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMApplicationInsights_basicWeb(ri, testLocation())
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,7 +35,7 @@ func TestAccAzureRMApplicationInsights_importBasicOther(t *testing.T) {
 	resourceName := "azurerm_application_insights.test"
 
 	ri := acctest.RandInt()
-	config := testAccAzureRMApplicationInsights_basicWeb(ri, testLocation())
+	config := testAccAzureRMApplicationInsights_basic(ri, testLocation(), "web")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
