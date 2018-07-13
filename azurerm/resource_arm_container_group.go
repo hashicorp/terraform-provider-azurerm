@@ -596,7 +596,7 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, credsPtr *
 
 	creds := *credsPtr
 	output := make([]interface{}, 0, len(creds))
-	for _, cred := range creds {
+	for i, cred := range creds {
 		credConfig := make(map[string]interface{})
 		if cred.Server != nil {
 			credConfig["server"] = *cred.Server
@@ -605,16 +605,11 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, credsPtr *
 			credConfig["username"] = *cred.Username
 		}
 
-		for i, configsOld := range configsOld {
-			if configsOld == nil {
-				continue
-			}
-			data := configsOld.(map[string]interface{})
-			oldServer := data["server"].(string)
-			if cred.Server != nil && *cred.Server == oldServer {
-				if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
-					credConfig["password"] = v.(string)
-				}
+		data := configsOld[i].(map[string]interface{})
+		oldServer := data["server"].(string)
+		if cred.Server != nil && *cred.Server == oldServer {
+			if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
+				credConfig["password"] = v.(string)
 			}
 		}
 
