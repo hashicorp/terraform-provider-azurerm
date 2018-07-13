@@ -79,7 +79,7 @@ func testCheckAzureRMLogicAppWorkflowExists(name string) resource.TestCheckFunc 
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on diskClient: %+v", err)
+			return fmt.Errorf("Bad: Get on logicWorkflowsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {

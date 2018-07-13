@@ -11,10 +11,6 @@ import (
 
 var logicAppResourceName = "azurerm_logic_app"
 
-// azurerm_logic_app_action_custom
-// azurerm_logic_app_trigger_custom
-// azurerm_logic_app_condition_custom?
-
 func resourceArmLogicAppWorkflow() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLogicAppWorkflowCreate,
