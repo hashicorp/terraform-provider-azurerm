@@ -118,6 +118,7 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"azurerm_azuread_application":                     resourceArmActiveDirectoryApplication(),
+			"azurerm_azuread_service_principal":               resourceArmActiveDirectoryServicePrincipal(),
 			"azurerm_application_gateway":                     resourceArmApplicationGateway(),
 			"azurerm_application_insights":                    resourceArmApplicationInsights(),
 			"azurerm_application_security_group":              resourceArmApplicationSecurityGroup(),
