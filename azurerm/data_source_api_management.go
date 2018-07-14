@@ -33,7 +33,22 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
-			"sku": apiManagementDataSourceSkuSchema(),
+			"sku": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"capacity": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"notification_sender_email": {
 				Type:     schema.TypeString,
@@ -76,8 +91,6 @@ func dataSourceApiManagementService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"location": locationForDataSourceSchema(),
-
-						"sku": apiManagementDataSourceSkuSchema(),
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
@@ -224,25 +237,6 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func apiManagementDataSourceSkuSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"name": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"capacity": {
-					Type:     schema.TypeInt,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func apiManagementDataSourceCertificateInfoSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -298,8 +292,6 @@ func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData
 			if v, ok := d.GetOk(passKey); ok {
 				password := v.(string)
 				host_config["certificate_password"] = password
-			} else {
-				return nil, fmt.Errorf("Error getting `certificate_password` from key %s", passKey)
 			}
 
 			// encoded certificate isn't returned, so let's look it up
@@ -307,8 +299,6 @@ func flattenDataSourceApiManagementHostnameConfigurations(d *schema.ResourceData
 			if v, ok := d.GetOk(certKey); ok {
 				cert := v.(string)
 				host_config["certificate"] = cert
-			} else {
-				return nil, fmt.Errorf("Error getting `certificate` from key %s", certKey)
 			}
 
 			host_configs = append(host_configs, host_config)
@@ -355,12 +345,6 @@ func flattenDataSourceApiManagementAdditionalLocations(props *[]apimanagement.Ad
 				additional_location["gateway_regional_url"] = *prop.GatewayRegionalURL
 			}
 
-			if prop.Sku != nil {
-				if sku := flattenDataSourceApiManagementServiceSku(prop.Sku); sku != nil {
-					additional_location["sku"] = sku
-				}
-			}
-
 			additional_locations = append(additional_locations, additional_location)
 		}
 	}
@@ -388,16 +372,13 @@ func flattenDataSourceApiManagementCertificates(d *schema.ResourceData, props *[
 			if v, ok := d.GetOk(passwKey); ok {
 				password := v.(string)
 				certificate["certificate_password"] = password
-			} else {
-				return nil, fmt.Errorf("Error getting `certificate_password` from key %s", passwKey)
 			}
+
 			// encoded certificate isn't returned, so let's look it up
 			certKey := fmt.Sprintf("certificate.%d.encoded_certificate", i)
 			if v, ok := d.GetOk(certKey); ok {
 				cert := v.(string)
 				certificate["encoded_certificate"] = cert
-			} else {
-				return nil, fmt.Errorf("Error getting `encoded_certificate` from key %s", certKey)
 			}
 
 			certificates = append(certificates, certificate)
