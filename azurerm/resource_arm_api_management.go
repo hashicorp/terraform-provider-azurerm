@@ -54,8 +54,8 @@ func resourceArmApiManagementService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:     schema.TypeString,
-							Required: true,
-							// Default:  string(apimanagement.SkuTypeDeveloper),
+							Optional: true,
+							Default:  string(apimanagement.SkuTypeDeveloper),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(apimanagement.SkuTypeDeveloper),
 								string(apimanagement.SkuTypeBasic),
@@ -86,25 +86,6 @@ func resourceArmApiManagementService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"location": locationSchema(),
-
-						"sku": {
-							Type:     schema.TypeList,
-							Computed: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"capacity": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										Default:  1,
-									},
-								},
-							},
-						},
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
@@ -512,7 +493,6 @@ func expandAzureRmApiManagementAdditionalLocations(d *schema.ResourceData, sku *
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
 		location := config["location"].(string)
-		// sku := expandAzureRmApiManagementSku(config["sku"].([]interface{}))
 
 		additionalLocation := apimanagement.AdditionalLocation{
 			Location: &location,
@@ -589,12 +569,6 @@ func flattenApiManagementAdditionalLocations(props *[]apimanagement.AdditionalLo
 
 			if prop.GatewayRegionalURL != nil {
 				additional_location["gateway_regional_url"] = *prop.GatewayRegionalURL
-			}
-
-			if prop.Sku != nil {
-				if sku := flattenApiManagementServiceSku(prop.Sku); sku != nil {
-					additional_location["sku"] = sku
-				}
 			}
 
 			additional_locations = append(additional_locations, additional_location)
