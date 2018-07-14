@@ -30,11 +30,15 @@ func TestSnapshotName_validation(t *testing.T) {
 		},
 		{
 			Value:    "hello-world",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "hello_world",
 			ErrCount: 0,
+		},
+		{
+			Value:    "hello+world",
+			ErrCount: 1,
 		},
 		{
 			Value:    str,
