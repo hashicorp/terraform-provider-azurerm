@@ -135,6 +135,10 @@ func resourceArmServiceBusSubscriptionCreate(d *schema.ResourceData, meta interf
 		parameters.SBSubscriptionProperties.ForwardTo = &forwardTo
 	}
 
+	if defaultMessageTtl := d.Get("default_message_ttl").(string); defaultMessageTtl != "" {
+		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
+	}
+
 	_, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, topicName, name, parameters)
 	if err != nil {
 		return err
