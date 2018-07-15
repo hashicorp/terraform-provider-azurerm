@@ -2,8 +2,10 @@ package schema
 
 import (
 	"log"
+	"net"
+	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -219,16 +221,25 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	if v, ok := config["ip_restriction"]; ok {
 		ipSecurityRestrictions := v.([]interface{})
 		restrictions := make([]web.IPSecurityRestriction, 0)
-
 		for _, ipSecurityRestriction := range ipSecurityRestrictions {
 			restriction := ipSecurityRestriction.(map[string]interface{})
 
 			ipAddress := restriction["ip_address"].(string)
 			mask := restriction["subnet_mask"].(string)
+			// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
+			// so translate the IP and mask if necessary
+			restrictionMask := ""
+			cidrAddress := ipAddress
+			if mask != "" {
+				ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
+				cidrAddress = ipNet.String()
+			} else if !strings.Contains(ipAddress, "/") {
+				cidrAddress += "/32"
+			}
 
 			restrictions = append(restrictions, web.IPSecurityRestriction{
-				IPAddress:  &ipAddress,
-				SubnetMask: &mask,
+				IPAddress:  &cidrAddress,
+				SubnetMask: &restrictionMask,
 			})
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
@@ -324,7 +335,15 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		for _, v := range *vs {
 			result := make(map[string]interface{}, 0)
 			if ip := v.IPAddress; ip != nil {
-				result["ip_address"] = *ip
+				// the 2018-02-01 API uses CIDR format (a.b.c.d/x), so translate that back to IP and mask
+				if strings.Contains(*ip, "/") {
+					ipAddr, ipNet, _ := net.ParseCIDR(*ip)
+					result["ip_address"] = ipAddr.String()
+					mask := net.IP(ipNet.Mask)
+					result["subnet_mask"] = mask.String()
+				} else {
+					result["ip_address"] = *ip
+				}
 			}
 			if subnet := v.SubnetMask; subnet != nil {
 				result["subnet_mask"] = *subnet

@@ -1,4 +1,4 @@
-// Package web implements the Azure ARM Web service API version .
+// Package web implements the Azure ARM Web service API version 2018-02-01.
 //
 // WebSite Management Client
 package web
@@ -91,7 +91,7 @@ func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, requ
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -151,7 +151,7 @@ func (client BaseClient) GetPublishingUser(ctx context.Context) (result User, er
 
 // GetPublishingUserPreparer prepares the GetPublishingUser request.
 func (client BaseClient) GetPublishingUserPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -215,7 +215,7 @@ func (client BaseClient) GetSourceControlPreparer(ctx context.Context, sourceCon
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -277,7 +277,7 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsPreparer(ctx context.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -307,6 +307,101 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsResponder(resp *http.
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListBillingMeters gets a list of meters for a given location.
+// Parameters:
+// billingLocation - azure Location of billable resource
+func (client BaseClient) ListBillingMeters(ctx context.Context, billingLocation string) (result BillingMeterCollectionPage, err error) {
+	result.fn = client.listBillingMetersNextResults
+	req, err := client.ListBillingMetersPreparer(ctx, billingLocation)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ListBillingMeters", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListBillingMetersSender(req)
+	if err != nil {
+		result.bmc.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ListBillingMeters", resp, "Failure sending request")
+		return
+	}
+
+	result.bmc, err = client.ListBillingMetersResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "ListBillingMeters", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListBillingMetersPreparer prepares the ListBillingMeters request.
+func (client BaseClient) ListBillingMetersPreparer(ctx context.Context, billingLocation string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(billingLocation) > 0 {
+		queryParameters["billingLocation"] = autorest.Encode("query", billingLocation)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Web/billingMeters", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListBillingMetersSender sends the ListBillingMeters request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) ListBillingMetersSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListBillingMetersResponder handles the response to the ListBillingMeters request. The method always
+// closes the http.Response Body.
+func (client BaseClient) ListBillingMetersResponder(resp *http.Response) (result BillingMeterCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listBillingMetersNextResults retrieves the next set of results, if any.
+func (client BaseClient) listBillingMetersNextResults(lastResults BillingMeterCollection) (result BillingMeterCollection, err error) {
+	req, err := lastResults.billingMeterCollectionPreparer()
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "web.BaseClient", "listBillingMetersNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBillingMetersSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "web.BaseClient", "listBillingMetersNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBillingMetersResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.BaseClient", "listBillingMetersNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBillingMetersComplete enumerates all values, automatically crossing page boundaries as required.
+func (client BaseClient) ListBillingMetersComplete(ctx context.Context, billingLocation string) (result BillingMeterCollectionIterator, err error) {
+	result.page, err = client.ListBillingMeters(ctx, billingLocation)
 	return
 }
 
@@ -344,7 +439,7 @@ func (client BaseClient) ListGeoRegionsPreparer(ctx context.Context, sku SkuName
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -440,7 +535,7 @@ func (client BaseClient) ListPremierAddOnOffersPreparer(ctx context.Context) (*h
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -532,7 +627,7 @@ func (client BaseClient) ListSiteIdentifiersAssignedToHostNamePreparer(ctx conte
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -623,7 +718,7 @@ func (client BaseClient) ListSkusPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -682,7 +777,7 @@ func (client BaseClient) ListSourceControls(ctx context.Context) (result SourceC
 
 // ListSourceControlsPreparer prepares the ListSourceControls request.
 func (client BaseClient) ListSourceControlsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -789,7 +884,7 @@ func (client BaseClient) MovePreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -857,7 +952,7 @@ func (client BaseClient) UpdatePublishingUser(ctx context.Context, userDetails U
 
 // UpdatePublishingUserPreparer prepares the UpdatePublishingUser request.
 func (client BaseClient) UpdatePublishingUserPreparer(ctx context.Context, userDetails User) (*http.Request, error) {
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -924,7 +1019,7 @@ func (client BaseClient) UpdateSourceControlPreparer(ctx context.Context, source
 		"sourceControlType": autorest.Encode("path", sourceControlType),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1007,7 +1102,7 @@ func (client BaseClient) ValidatePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1089,7 +1184,7 @@ func (client BaseClient) ValidateMovePreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1155,7 +1250,7 @@ func (client BaseClient) VerifyHostingEnvironmentVnetPreparer(ctx context.Contex
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-03-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

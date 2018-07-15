@@ -85,7 +85,7 @@ func (client AppsClient) AddPremierAddOnPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -168,7 +168,7 @@ func (client AppsClient) AddPremierAddOnSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,7 +246,7 @@ func (client AppsClient) AnalyzeCustomHostnamePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +327,7 @@ func (client AppsClient) AnalyzeCustomHostnameSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -409,7 +409,7 @@ func (client AppsClient) ApplySlotConfigToProductionPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -491,7 +491,7 @@ func (client AppsClient) ApplySlotConfigurationSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -538,8 +538,7 @@ func (client AppsClient) Backup(ctx context.Context, resourceGroupName string, n
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: request,
 			Constraints: []validation.Constraint{{Target: "request.BackupRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupRequestName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.BackupRequestProperties.BackupSchedule", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupSchedule.FrequencyInterval", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "request.BackupRequestProperties.BackupSchedule.KeepAtLeastOneBackup", Name: validation.Null, Rule: true, Chain: nil},
@@ -578,7 +577,7 @@ func (client AppsClient) BackupPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -628,8 +627,7 @@ func (client AppsClient) BackupSlot(ctx context.Context, resourceGroupName strin
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: request,
 			Constraints: []validation.Constraint{{Target: "request.BackupRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupRequestName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.BackupRequestProperties.BackupSchedule", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupSchedule.FrequencyInterval", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "request.BackupRequestProperties.BackupSchedule.KeepAtLeastOneBackup", Name: validation.Null, Rule: true, Chain: nil},
@@ -669,7 +667,7 @@ func (client AppsClient) BackupSlotPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -749,7 +747,7 @@ func (client AppsClient) CreateDeploymentPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -832,7 +830,7 @@ func (client AppsClient) CreateDeploymentSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -906,7 +904,7 @@ func (client AppsClient) CreateFunctionPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -993,7 +991,7 @@ func (client AppsClient) CreateInstanceFunctionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1077,7 +1075,7 @@ func (client AppsClient) CreateInstanceMSDeployOperationPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1163,7 +1161,7 @@ func (client AppsClient) CreateInstanceMSDeployOperationSlotPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1245,7 +1243,7 @@ func (client AppsClient) CreateMSDeployOperationPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1329,7 +1327,7 @@ func (client AppsClient) CreateMSDeployOperationSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1427,7 +1425,7 @@ func (client AppsClient) CreateOrUpdatePreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1522,7 +1520,7 @@ func (client AppsClient) CreateOrUpdateConfigurationPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1610,7 +1608,7 @@ func (client AppsClient) CreateOrUpdateConfigurationSlotPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1691,7 +1689,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1775,7 +1773,7 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlotPreparer(ctx
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1855,7 +1853,7 @@ func (client AppsClient) CreateOrUpdateHostNameBindingPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1938,7 +1936,7 @@ func (client AppsClient) CreateOrUpdateHostNameBindingSlotPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2020,7 +2018,7 @@ func (client AppsClient) CreateOrUpdateHybridConnectionPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2104,7 +2102,7 @@ func (client AppsClient) CreateOrUpdateHybridConnectionSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2185,7 +2183,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificatePreparer(ctx context.Con
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2269,7 +2267,7 @@ func (client AppsClient) CreateOrUpdatePublicCertificateSlotPreparer(ctx context
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2350,7 +2348,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2434,7 +2432,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlotPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2477,13 +2475,7 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlotResponder(resp 
 // siteEnvelope - a JSON representation of the app properties. See example.
 // slot - name of the deployment slot to create or update. By default, this API attempts to create or modify
 // the production slot.
-// skipDNSRegistration - if true web app hostname is not registered with DNS on creation. This parameter is
-// only used for app creation.
-// skipCustomDomainVerification - if true, custom (non *.azurewebsites.net) domains associated with web app are
-// not verified.
-// forceDNSRegistration - if true, web app hostname is force registered with DNS.
-// TTLInSeconds - time to live in seconds for web app's default domain name.
-func (client AppsClient) CreateOrUpdateSlot(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site, slot string, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (result AppsCreateOrUpdateSlotFuture, err error) {
+func (client AppsClient) CreateOrUpdateSlot(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site, slot string) (result AppsCreateOrUpdateSlotFuture, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -2507,7 +2499,7 @@ func (client AppsClient) CreateOrUpdateSlot(ctx context.Context, resourceGroupNa
 		return result, validation.NewError("web.AppsClient", "CreateOrUpdateSlot", err.Error())
 	}
 
-	req, err := client.CreateOrUpdateSlotPreparer(ctx, resourceGroupName, name, siteEnvelope, slot, skipDNSRegistration, skipCustomDomainVerification, forceDNSRegistration, TTLInSeconds)
+	req, err := client.CreateOrUpdateSlotPreparer(ctx, resourceGroupName, name, siteEnvelope, slot)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "CreateOrUpdateSlot", nil, "Failure preparing request")
 		return
@@ -2523,7 +2515,7 @@ func (client AppsClient) CreateOrUpdateSlot(ctx context.Context, resourceGroupNa
 }
 
 // CreateOrUpdateSlotPreparer prepares the CreateOrUpdateSlot request.
-func (client AppsClient) CreateOrUpdateSlotPreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site, slot string, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (*http.Request, error) {
+func (client AppsClient) CreateOrUpdateSlotPreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope Site, slot string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -2531,21 +2523,9 @@ func (client AppsClient) CreateOrUpdateSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
-	}
-	if skipDNSRegistration != nil {
-		queryParameters["skipDnsRegistration"] = autorest.Encode("query", *skipDNSRegistration)
-	}
-	if skipCustomDomainVerification != nil {
-		queryParameters["skipCustomDomainVerification"] = autorest.Encode("query", *skipCustomDomainVerification)
-	}
-	if forceDNSRegistration != nil {
-		queryParameters["forceDnsRegistration"] = autorest.Encode("query", *forceDNSRegistration)
-	}
-	if len(TTLInSeconds) > 0 {
-		queryParameters["ttlInSeconds"] = autorest.Encode("query", TTLInSeconds)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -2625,7 +2605,7 @@ func (client AppsClient) CreateOrUpdateSourceControlPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2710,7 +2690,7 @@ func (client AppsClient) CreateOrUpdateSourceControlSlotPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2801,7 +2781,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2886,7 +2866,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewayPreparer(ctx context
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2974,7 +2954,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlotPreparer(ctx con
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3058,7 +3038,7 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlotPreparer(ctx context.Co
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3138,7 +3118,7 @@ func (client AppsClient) DeletePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3220,7 +3200,7 @@ func (client AppsClient) DeleteBackupPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3294,7 +3274,7 @@ func (client AppsClient) DeleteBackupConfigurationPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3371,7 +3351,7 @@ func (client AppsClient) DeleteBackupConfigurationSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3450,7 +3430,7 @@ func (client AppsClient) DeleteBackupSlotPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3526,7 +3506,7 @@ func (client AppsClient) DeleteContinuousWebJobPreparer(ctx context.Context, res
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3605,7 +3585,7 @@ func (client AppsClient) DeleteContinuousWebJobSlotPreparer(ctx context.Context,
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3681,7 +3661,7 @@ func (client AppsClient) DeleteDeploymentPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3760,7 +3740,7 @@ func (client AppsClient) DeleteDeploymentSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3836,7 +3816,7 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3915,7 +3895,7 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierSlotPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -3991,7 +3971,7 @@ func (client AppsClient) DeleteFunctionPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4067,7 +4047,7 @@ func (client AppsClient) DeleteHostNameBindingPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4146,7 +4126,7 @@ func (client AppsClient) DeleteHostNameBindingSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4224,7 +4204,7 @@ func (client AppsClient) DeleteHybridConnectionPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4304,7 +4284,7 @@ func (client AppsClient) DeleteHybridConnectionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4383,7 +4363,7 @@ func (client AppsClient) DeleteInstanceFunctionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4463,7 +4443,7 @@ func (client AppsClient) DeleteInstanceProcessPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4546,7 +4526,7 @@ func (client AppsClient) DeleteInstanceProcessSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4622,7 +4602,7 @@ func (client AppsClient) DeletePremierAddOnPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4701,7 +4681,7 @@ func (client AppsClient) DeletePremierAddOnSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4778,7 +4758,7 @@ func (client AppsClient) DeleteProcessPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4858,7 +4838,7 @@ func (client AppsClient) DeleteProcessSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -4934,7 +4914,7 @@ func (client AppsClient) DeletePublicCertificatePreparer(ctx context.Context, re
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5013,7 +4993,7 @@ func (client AppsClient) DeletePublicCertificateSlotPreparer(ctx context.Context
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5089,7 +5069,7 @@ func (client AppsClient) DeleteRelayServiceConnectionPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5168,7 +5148,7 @@ func (client AppsClient) DeleteRelayServiceConnectionSlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5244,7 +5224,7 @@ func (client AppsClient) DeleteSiteExtensionPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5323,7 +5303,7 @@ func (client AppsClient) DeleteSiteExtensionSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5363,8 +5343,7 @@ func (client AppsClient) DeleteSiteExtensionSlotResponder(resp *http.Response) (
 // deleteMetrics - if true, web app metrics are also deleted.
 // deleteEmptyServerFarm - specify true if the App Service plan will be empty after app deletion and you want
 // to delete the empty App Service plan. By default, the empty App Service plan is not deleted.
-// skipDNSRegistration - if true, DNS registration is skipped.
-func (client AppsClient) DeleteSlot(ctx context.Context, resourceGroupName string, name string, slot string, deleteMetrics *bool, deleteEmptyServerFarm *bool, skipDNSRegistration *bool) (result autorest.Response, err error) {
+func (client AppsClient) DeleteSlot(ctx context.Context, resourceGroupName string, name string, slot string, deleteMetrics *bool, deleteEmptyServerFarm *bool) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -5373,7 +5352,7 @@ func (client AppsClient) DeleteSlot(ctx context.Context, resourceGroupName strin
 		return result, validation.NewError("web.AppsClient", "DeleteSlot", err.Error())
 	}
 
-	req, err := client.DeleteSlotPreparer(ctx, resourceGroupName, name, slot, deleteMetrics, deleteEmptyServerFarm, skipDNSRegistration)
+	req, err := client.DeleteSlotPreparer(ctx, resourceGroupName, name, slot, deleteMetrics, deleteEmptyServerFarm)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSlot", nil, "Failure preparing request")
 		return
@@ -5395,7 +5374,7 @@ func (client AppsClient) DeleteSlot(ctx context.Context, resourceGroupName strin
 }
 
 // DeleteSlotPreparer prepares the DeleteSlot request.
-func (client AppsClient) DeleteSlotPreparer(ctx context.Context, resourceGroupName string, name string, slot string, deleteMetrics *bool, deleteEmptyServerFarm *bool, skipDNSRegistration *bool) (*http.Request, error) {
+func (client AppsClient) DeleteSlotPreparer(ctx context.Context, resourceGroupName string, name string, slot string, deleteMetrics *bool, deleteEmptyServerFarm *bool) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -5403,7 +5382,7 @@ func (client AppsClient) DeleteSlotPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5412,9 +5391,6 @@ func (client AppsClient) DeleteSlotPreparer(ctx context.Context, resourceGroupNa
 	}
 	if deleteEmptyServerFarm != nil {
 		queryParameters["deleteEmptyServerFarm"] = autorest.Encode("query", *deleteEmptyServerFarm)
-	}
-	if skipDNSRegistration != nil {
-		queryParameters["skipDnsRegistration"] = autorest.Encode("query", *skipDNSRegistration)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -5448,7 +5424,7 @@ func (client AppsClient) DeleteSlotResponder(resp *http.Response) (result autore
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
 // name - name of the app.
-func (client AppsClient) DeleteSourceControl(ctx context.Context, resourceGroupName string, name string) (result autorest.Response, err error) {
+func (client AppsClient) DeleteSourceControl(ctx context.Context, resourceGroupName string, name string) (result SetObject, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -5465,7 +5441,7 @@ func (client AppsClient) DeleteSourceControl(ctx context.Context, resourceGroupN
 
 	resp, err := client.DeleteSourceControlSender(req)
 	if err != nil {
-		result.Response = resp
+		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSourceControl", resp, "Failure sending request")
 		return
 	}
@@ -5486,7 +5462,7 @@ func (client AppsClient) DeleteSourceControlPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5508,13 +5484,14 @@ func (client AppsClient) DeleteSourceControlSender(req *http.Request) (*http.Res
 
 // DeleteSourceControlResponder handles the response to the DeleteSourceControl request. The method always
 // closes the http.Response Body.
-func (client AppsClient) DeleteSourceControlResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AppsClient) DeleteSourceControlResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNotFound),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
-	result.Response = resp
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -5524,7 +5501,7 @@ func (client AppsClient) DeleteSourceControlResponder(resp *http.Response) (resu
 // name - name of the app.
 // slot - name of the deployment slot. If a slot is not specified, the API will delete the source control
 // configuration for the production slot.
-func (client AppsClient) DeleteSourceControlSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result autorest.Response, err error) {
+func (client AppsClient) DeleteSourceControlSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result SetObject, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -5541,7 +5518,7 @@ func (client AppsClient) DeleteSourceControlSlot(ctx context.Context, resourceGr
 
 	resp, err := client.DeleteSourceControlSlotSender(req)
 	if err != nil {
-		result.Response = resp
+		result.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeleteSourceControlSlot", resp, "Failure sending request")
 		return
 	}
@@ -5563,7 +5540,7 @@ func (client AppsClient) DeleteSourceControlSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5585,13 +5562,14 @@ func (client AppsClient) DeleteSourceControlSlotSender(req *http.Request) (*http
 
 // DeleteSourceControlSlotResponder handles the response to the DeleteSourceControlSlot request. The method always
 // closes the http.Response Body.
-func (client AppsClient) DeleteSourceControlSlotResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AppsClient) DeleteSourceControlSlotResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNotFound),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
-	result.Response = resp
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -5639,7 +5617,7 @@ func (client AppsClient) DeleteTriggeredWebJobPreparer(ctx context.Context, reso
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5718,7 +5696,7 @@ func (client AppsClient) DeleteTriggeredWebJobSlotPreparer(ctx context.Context, 
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5794,7 +5772,7 @@ func (client AppsClient) DeleteVnetConnectionPreparer(ctx context.Context, resou
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5873,7 +5851,7 @@ func (client AppsClient) DeleteVnetConnectionSlotPreparer(ctx context.Context, r
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -5953,7 +5931,7 @@ func (client AppsClient) DiscoverRestorePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6039,7 +6017,7 @@ func (client AppsClient) DiscoverRestoreSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6116,7 +6094,7 @@ func (client AppsClient) GenerateNewSitePublishingPasswordPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6194,7 +6172,7 @@ func (client AppsClient) GenerateNewSitePublishingPasswordSlotPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6268,7 +6246,7 @@ func (client AppsClient) GetPreparer(ctx context.Context, resourceGroupName stri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6343,7 +6321,7 @@ func (client AppsClient) GetAuthSettingsPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6421,7 +6399,7 @@ func (client AppsClient) GetAuthSettingsSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6496,7 +6474,7 @@ func (client AppsClient) GetBackupConfigurationPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6574,7 +6552,7 @@ func (client AppsClient) GetBackupConfigurationSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6651,7 +6629,7 @@ func (client AppsClient) GetBackupStatusPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6731,7 +6709,7 @@ func (client AppsClient) GetBackupStatusSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6807,7 +6785,7 @@ func (client AppsClient) GetConfigurationPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6886,7 +6864,7 @@ func (client AppsClient) GetConfigurationSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -6963,7 +6941,7 @@ func (client AppsClient) GetConfigurationSnapshotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7043,7 +7021,7 @@ func (client AppsClient) GetConfigurationSnapshotSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7072,6 +7050,156 @@ func (client AppsClient) GetConfigurationSnapshotSlotResponder(resp *http.Respon
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetContainerLogsZip gets the ZIP archived docker log files for the given site
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+func (client AppsClient) GetContainerLogsZip(ctx context.Context, resourceGroupName string, name string) (result ReadCloser, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetContainerLogsZip", err.Error())
+	}
+
+	req, err := client.GetContainerLogsZipPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZip", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetContainerLogsZipSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZip", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetContainerLogsZipResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZip", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetContainerLogsZipPreparer prepares the GetContainerLogsZip request.
+func (client AppsClient) GetContainerLogsZipPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/containerlogs/zip/download", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetContainerLogsZipSender sends the GetContainerLogsZip request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetContainerLogsZipSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetContainerLogsZipResponder handles the response to the GetContainerLogsZip request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetContainerLogsZipResponder(resp *http.Response) (result ReadCloser, err error) {
+	result.Value = &resp.Body
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetContainerLogsZipSlot gets the ZIP archived docker log files for the given site
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// slot - name of web app slot. If not specified then will default to production slot.
+func (client AppsClient) GetContainerLogsZipSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ReadCloser, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetContainerLogsZipSlot", err.Error())
+	}
+
+	req, err := client.GetContainerLogsZipSlotPreparer(ctx, resourceGroupName, name, slot)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZipSlot", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetContainerLogsZipSlotSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZipSlot", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetContainerLogsZipSlotResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetContainerLogsZipSlot", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetContainerLogsZipSlotPreparer prepares the GetContainerLogsZipSlot request.
+func (client AppsClient) GetContainerLogsZipSlotPreparer(ctx context.Context, resourceGroupName string, name string, slot string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"slot":              autorest.Encode("path", slot),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/containerlogs/zip/download", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetContainerLogsZipSlotSender sends the GetContainerLogsZipSlot request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetContainerLogsZipSlotSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetContainerLogsZipSlotResponder handles the response to the GetContainerLogsZipSlot request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetContainerLogsZipSlotResponder(resp *http.Response) (result ReadCloser, err error) {
+	result.Value = &resp.Body
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
 	result.Response = autorest.Response{Response: resp}
 	return
 }
@@ -7120,7 +7248,7 @@ func (client AppsClient) GetContinuousWebJobPreparer(ctx context.Context, resour
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7200,7 +7328,7 @@ func (client AppsClient) GetContinuousWebJobSlotPreparer(ctx context.Context, re
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7277,7 +7405,7 @@ func (client AppsClient) GetDeploymentPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7357,7 +7485,7 @@ func (client AppsClient) GetDeploymentSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7432,7 +7560,7 @@ func (client AppsClient) GetDiagnosticLogsConfigurationPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7510,7 +7638,7 @@ func (client AppsClient) GetDiagnosticLogsConfigurationSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7587,7 +7715,7 @@ func (client AppsClient) GetDomainOwnershipIdentifierPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7667,7 +7795,7 @@ func (client AppsClient) GetDomainOwnershipIdentifierSlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7744,7 +7872,7 @@ func (client AppsClient) GetFunctionPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7819,7 +7947,7 @@ func (client AppsClient) GetFunctionsAdminTokenPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7896,7 +8024,7 @@ func (client AppsClient) GetFunctionsAdminTokenSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -7973,7 +8101,7 @@ func (client AppsClient) GetHostNameBindingPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8053,7 +8181,7 @@ func (client AppsClient) GetHostNameBindingSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8132,7 +8260,7 @@ func (client AppsClient) GetHybridConnectionPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8213,7 +8341,7 @@ func (client AppsClient) GetHybridConnectionSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8293,7 +8421,7 @@ func (client AppsClient) GetInstanceFunctionSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8370,7 +8498,7 @@ func (client AppsClient) GetInstanceMSDeployLogPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8449,7 +8577,7 @@ func (client AppsClient) GetInstanceMSDeployLogSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8526,7 +8654,7 @@ func (client AppsClient) GetInstanceMsDeployStatusPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8605,7 +8733,7 @@ func (client AppsClient) GetInstanceMsDeployStatusSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8685,7 +8813,7 @@ func (client AppsClient) GetInstanceProcessPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8765,7 +8893,7 @@ func (client AppsClient) GetInstanceProcessDumpPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8848,7 +8976,7 @@ func (client AppsClient) GetInstanceProcessDumpSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -8929,7 +9057,7 @@ func (client AppsClient) GetInstanceProcessModulePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9014,7 +9142,7 @@ func (client AppsClient) GetInstanceProcessModuleSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9097,7 +9225,7 @@ func (client AppsClient) GetInstanceProcessSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9180,7 +9308,7 @@ func (client AppsClient) GetInstanceProcessThreadPreparer(ctx context.Context, r
 		"threadId":          autorest.Encode("path", threadID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9266,7 +9394,7 @@ func (client AppsClient) GetInstanceProcessThreadSlotPreparer(ctx context.Contex
 		"threadId":          autorest.Encode("path", threadID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9342,7 +9470,7 @@ func (client AppsClient) GetMigrateMySQLStatusPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9420,7 +9548,7 @@ func (client AppsClient) GetMigrateMySQLStatusSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9495,7 +9623,7 @@ func (client AppsClient) GetMSDeployLogPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9572,7 +9700,7 @@ func (client AppsClient) GetMSDeployLogSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9647,7 +9775,7 @@ func (client AppsClient) GetMSDeployStatusPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9724,7 +9852,7 @@ func (client AppsClient) GetMSDeployStatusSlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9801,7 +9929,7 @@ func (client AppsClient) GetPremierAddOnPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9881,7 +10009,7 @@ func (client AppsClient) GetPremierAddOnSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -9904,6 +10032,160 @@ func (client AppsClient) GetPremierAddOnSlotSender(req *http.Request) (*http.Res
 // GetPremierAddOnSlotResponder handles the response to the GetPremierAddOnSlot request. The method always
 // closes the http.Response Body.
 func (client AppsClient) GetPremierAddOnSlotResponder(resp *http.Response) (result PremierAddOn, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateAccess gets data around private site access enablement and authorized Virtual Networks that can access the
+// site.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+func (client AppsClient) GetPrivateAccess(ctx context.Context, resourceGroupName string, name string) (result PrivateAccess, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetPrivateAccess", err.Error())
+	}
+
+	req, err := client.GetPrivateAccessPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccess", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateAccessSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccess", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateAccessResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccess", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetPrivateAccessPreparer prepares the GetPrivateAccess request.
+func (client AppsClient) GetPrivateAccessPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateAccess/virtualNetworks", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateAccessSender sends the GetPrivateAccess request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetPrivateAccessSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateAccessResponder handles the response to the GetPrivateAccess request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetPrivateAccessResponder(resp *http.Response) (result PrivateAccess, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateAccessSlot gets data around private site access enablement and authorized Virtual Networks that can access
+// the site.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// slot - the name of the slot for the web app.
+func (client AppsClient) GetPrivateAccessSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result PrivateAccess, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetPrivateAccessSlot", err.Error())
+	}
+
+	req, err := client.GetPrivateAccessSlotPreparer(ctx, resourceGroupName, name, slot)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccessSlot", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateAccessSlotSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccessSlot", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateAccessSlotResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateAccessSlot", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetPrivateAccessSlotPreparer prepares the GetPrivateAccessSlot request.
+func (client AppsClient) GetPrivateAccessSlotPreparer(ctx context.Context, resourceGroupName string, name string, slot string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"slot":              autorest.Encode("path", slot),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/privateAccess/virtualNetworks", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateAccessSlotSender sends the GetPrivateAccessSlot request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetPrivateAccessSlotSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateAccessSlotResponder handles the response to the GetPrivateAccessSlot request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetPrivateAccessSlotResponder(resp *http.Response) (result PrivateAccess, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -9958,7 +10240,7 @@ func (client AppsClient) GetProcessPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10035,7 +10317,7 @@ func (client AppsClient) GetProcessDumpPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10114,7 +10396,7 @@ func (client AppsClient) GetProcessDumpSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10192,7 +10474,7 @@ func (client AppsClient) GetProcessModulePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10274,7 +10556,7 @@ func (client AppsClient) GetProcessModuleSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10354,7 +10636,7 @@ func (client AppsClient) GetProcessSlotPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10434,7 +10716,7 @@ func (client AppsClient) GetProcessThreadPreparer(ctx context.Context, resourceG
 		"threadId":          autorest.Encode("path", threadID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10517,7 +10799,7 @@ func (client AppsClient) GetProcessThreadSlotPreparer(ctx context.Context, resou
 		"threadId":          autorest.Encode("path", threadID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10594,7 +10876,7 @@ func (client AppsClient) GetPublicCertificatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10674,7 +10956,7 @@ func (client AppsClient) GetPublicCertificateSlotPreparer(ctx context.Context, r
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10751,7 +11033,7 @@ func (client AppsClient) GetRelayServiceConnectionPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10831,7 +11113,7 @@ func (client AppsClient) GetRelayServiceConnectionSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10908,7 +11190,7 @@ func (client AppsClient) GetSiteExtensionPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -10988,7 +11270,7 @@ func (client AppsClient) GetSiteExtensionSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11063,7 +11345,7 @@ func (client AppsClient) GetSitePhpErrorLogFlagPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11140,7 +11422,7 @@ func (client AppsClient) GetSitePhpErrorLogFlagSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11217,7 +11499,7 @@ func (client AppsClient) GetSlotPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11292,7 +11574,7 @@ func (client AppsClient) GetSourceControlPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11370,7 +11652,7 @@ func (client AppsClient) GetSourceControlSlotPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11447,7 +11729,7 @@ func (client AppsClient) GetTriggeredWebJobPreparer(ctx context.Context, resourc
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11526,7 +11808,7 @@ func (client AppsClient) GetTriggeredWebJobHistoryPreparer(ctx context.Context, 
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11608,7 +11890,7 @@ func (client AppsClient) GetTriggeredWebJobHistorySlotPreparer(ctx context.Conte
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11688,7 +11970,7 @@ func (client AppsClient) GetTriggeredWebJobSlotPreparer(ctx context.Context, res
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11765,7 +12047,7 @@ func (client AppsClient) GetVnetConnectionPreparer(ctx context.Context, resource
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11844,7 +12126,7 @@ func (client AppsClient) GetVnetConnectionGatewayPreparer(ctx context.Context, r
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -11926,7 +12208,7 @@ func (client AppsClient) GetVnetConnectionGatewaySlotPreparer(ctx context.Contex
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12006,7 +12288,7 @@ func (client AppsClient) GetVnetConnectionSlotPreparer(ctx context.Context, reso
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12083,7 +12365,7 @@ func (client AppsClient) GetWebJobPreparer(ctx context.Context, resourceGroupNam
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12163,7 +12445,7 @@ func (client AppsClient) GetWebJobSlotPreparer(ctx context.Context, resourceGrou
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12238,7 +12520,7 @@ func (client AppsClient) GetWebSiteContainerLogsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12314,7 +12596,7 @@ func (client AppsClient) GetWebSiteContainerLogsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12337,156 +12619,6 @@ func (client AppsClient) GetWebSiteContainerLogsSlotSender(req *http.Request) (*
 // GetWebSiteContainerLogsSlotResponder handles the response to the GetWebSiteContainerLogsSlot request. The method always
 // closes the http.Response Body.
 func (client AppsClient) GetWebSiteContainerLogsSlotResponder(resp *http.Response) (result ReadCloser, err error) {
-	result.Value = &resp.Body
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetWebSiteContainerLogsZip gets the ZIP archived docker log files for the given site
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of web app.
-func (client AppsClient) GetWebSiteContainerLogsZip(ctx context.Context, resourceGroupName string, name string) (result ReadCloser, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppsClient", "GetWebSiteContainerLogsZip", err.Error())
-	}
-
-	req, err := client.GetWebSiteContainerLogsZipPreparer(ctx, resourceGroupName, name)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogsZip", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetWebSiteContainerLogsZipSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogsZip", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetWebSiteContainerLogsZipResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogsZip", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// GetWebSiteContainerLogsZipPreparer prepares the GetWebSiteContainerLogsZip request.
-func (client AppsClient) GetWebSiteContainerLogsZipPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-08-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/containerlogs/zip/download", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetWebSiteContainerLogsZipSender sends the GetWebSiteContainerLogsZip request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppsClient) GetWebSiteContainerLogsZipSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetWebSiteContainerLogsZipResponder handles the response to the GetWebSiteContainerLogsZip request. The method always
-// closes the http.Response Body.
-func (client AppsClient) GetWebSiteContainerLogsZipResponder(resp *http.Response) (result ReadCloser, err error) {
-	result.Value = &resp.Body
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// GetWebSiteContainerLogsZipSlot gets the ZIP archived docker log files for the given site
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of web app.
-// slot - name of web app slot. If not specified then will default to production slot.
-func (client AppsClient) GetWebSiteContainerLogsZipSlot(ctx context.Context, resourceGroupName string, name string, slot string) (result ReadCloser, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("web.AppsClient", "GetWebSiteContainerLogsZipSlot", err.Error())
-	}
-
-	req, err := client.GetWebSiteContainerLogsZipSlotPreparer(ctx, resourceGroupName, name, slot)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogsZipSlot", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetWebSiteContainerLogsZipSlotSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogsZipSlot", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetWebSiteContainerLogsZipSlotResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetWebSiteContainerLogsZipSlot", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// GetWebSiteContainerLogsZipSlotPreparer prepares the GetWebSiteContainerLogsZipSlot request.
-func (client AppsClient) GetWebSiteContainerLogsZipSlotPreparer(ctx context.Context, resourceGroupName string, name string, slot string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"slot":              autorest.Encode("path", slot),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-08-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/containerlogs/zip/download", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetWebSiteContainerLogsZipSlotSender sends the GetWebSiteContainerLogsZipSlot request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppsClient) GetWebSiteContainerLogsZipSlotSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// GetWebSiteContainerLogsZipSlotResponder handles the response to the GetWebSiteContainerLogsZipSlot request. The method always
-// closes the http.Response Body.
-func (client AppsClient) GetWebSiteContainerLogsZipSlotResponder(resp *http.Response) (result ReadCloser, err error) {
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
@@ -12534,7 +12666,7 @@ func (client AppsClient) InstallSiteExtensionPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12618,7 +12750,7 @@ func (client AppsClient) InstallSiteExtensionSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12703,7 +12835,7 @@ func (client AppsClient) IsCloneablePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12780,7 +12912,7 @@ func (client AppsClient) IsCloneableSlotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12843,7 +12975,7 @@ func (client AppsClient) ListPreparer(ctx context.Context) (*http.Request, error
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -12945,7 +13077,7 @@ func (client AppsClient) ListApplicationSettingsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13023,7 +13155,7 @@ func (client AppsClient) ListApplicationSettingsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13099,7 +13231,7 @@ func (client AppsClient) ListBackupsPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13205,7 +13337,7 @@ func (client AppsClient) ListBackupsSlotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13281,8 +13413,7 @@ func (client AppsClient) ListBackupStatusSecrets(ctx context.Context, resourceGr
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: request,
 			Constraints: []validation.Constraint{{Target: "request.BackupRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupRequestName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.BackupRequestProperties.BackupSchedule", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupSchedule.FrequencyInterval", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "request.BackupRequestProperties.BackupSchedule.KeepAtLeastOneBackup", Name: validation.Null, Rule: true, Chain: nil},
@@ -13322,7 +13453,7 @@ func (client AppsClient) ListBackupStatusSecretsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13374,8 +13505,7 @@ func (client AppsClient) ListBackupStatusSecretsSlot(ctx context.Context, resour
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: request,
 			Constraints: []validation.Constraint{{Target: "request.BackupRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupRequestName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.BackupRequestProperties.BackupSchedule", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupSchedule.FrequencyInterval", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "request.BackupRequestProperties.BackupSchedule.KeepAtLeastOneBackup", Name: validation.Null, Rule: true, Chain: nil},
@@ -13416,7 +13546,7 @@ func (client AppsClient) ListBackupStatusSecretsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13494,7 +13624,7 @@ func (client AppsClient) ListByResourceGroupPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13600,7 +13730,7 @@ func (client AppsClient) ListConfigurationsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13704,7 +13834,7 @@ func (client AppsClient) ListConfigurationSnapshotInfoPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13811,7 +13941,7 @@ func (client AppsClient) ListConfigurationSnapshotInfoSlotPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -13917,7 +14047,7 @@ func (client AppsClient) ListConfigurationsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14019,7 +14149,7 @@ func (client AppsClient) ListConnectionStringsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14097,7 +14227,7 @@ func (client AppsClient) ListConnectionStringsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14173,7 +14303,7 @@ func (client AppsClient) ListContinuousWebJobsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14279,7 +14409,7 @@ func (client AppsClient) ListContinuousWebJobsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14384,7 +14514,7 @@ func (client AppsClient) ListDeploymentLogPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14465,7 +14595,7 @@ func (client AppsClient) ListDeploymentLogSlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14541,7 +14671,7 @@ func (client AppsClient) ListDeploymentsPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14647,7 +14777,7 @@ func (client AppsClient) ListDeploymentsSlotPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14750,7 +14880,7 @@ func (client AppsClient) ListDomainOwnershipIdentifiersPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14856,7 +14986,7 @@ func (client AppsClient) ListDomainOwnershipIdentifiersSlotPreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -14959,7 +15089,7 @@ func (client AppsClient) ListFunctionsPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15063,7 +15193,7 @@ func (client AppsClient) ListFunctionSecretsPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15143,7 +15273,7 @@ func (client AppsClient) ListFunctionSecretsSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15219,7 +15349,7 @@ func (client AppsClient) ListHostNameBindingsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15325,7 +15455,7 @@ func (client AppsClient) ListHostNameBindingsSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15431,7 +15561,7 @@ func (client AppsClient) ListHybridConnectionKeysPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15512,7 +15642,7 @@ func (client AppsClient) ListHybridConnectionKeysSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15587,7 +15717,7 @@ func (client AppsClient) ListHybridConnectionsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15664,7 +15794,7 @@ func (client AppsClient) ListHybridConnectionsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15743,7 +15873,7 @@ func (client AppsClient) ListInstanceFunctionsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15846,7 +15976,7 @@ func (client AppsClient) ListInstanceIdentifiersPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -15951,7 +16081,7 @@ func (client AppsClient) ListInstanceIdentifiersSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16058,7 +16188,7 @@ func (client AppsClient) ListInstanceProcessesPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16168,7 +16298,7 @@ func (client AppsClient) ListInstanceProcessesSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16277,7 +16407,7 @@ func (client AppsClient) ListInstanceProcessModulesPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16389,7 +16519,7 @@ func (client AppsClient) ListInstanceProcessModulesSlotPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16497,7 +16627,7 @@ func (client AppsClient) ListInstanceProcessThreadsPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16609,7 +16739,7 @@ func (client AppsClient) ListInstanceProcessThreadsSlotPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16711,7 +16841,7 @@ func (client AppsClient) ListMetadataPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16789,7 +16919,7 @@ func (client AppsClient) ListMetadataSlotPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16865,7 +16995,7 @@ func (client AppsClient) ListMetricDefinitionsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -16971,7 +17101,7 @@ func (client AppsClient) ListMetricDefinitionsSlotPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17078,7 +17208,7 @@ func (client AppsClient) ListMetricsPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17194,7 +17324,7 @@ func (client AppsClient) ListMetricsSlotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17304,7 +17434,7 @@ func (client AppsClient) ListNetworkFeaturesPreparer(ctx context.Context, resour
 		"view":              autorest.Encode("path", view),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17384,7 +17514,7 @@ func (client AppsClient) ListNetworkFeaturesSlotPreparer(ctx context.Context, re
 		"view":              autorest.Encode("path", view),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17463,7 +17593,7 @@ func (client AppsClient) ListPerfMonCountersPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17574,7 +17704,7 @@ func (client AppsClient) ListPerfMonCountersSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17679,7 +17809,7 @@ func (client AppsClient) ListPremierAddOnsPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17757,7 +17887,7 @@ func (client AppsClient) ListPremierAddOnsSlotPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17834,7 +17964,7 @@ func (client AppsClient) ListProcessesPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -17941,7 +18071,7 @@ func (client AppsClient) ListProcessesSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18046,7 +18176,7 @@ func (client AppsClient) ListProcessModulesPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18155,7 +18285,7 @@ func (client AppsClient) ListProcessModulesSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18260,7 +18390,7 @@ func (client AppsClient) ListProcessThreadsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18368,7 +18498,7 @@ func (client AppsClient) ListProcessThreadsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18471,7 +18601,7 @@ func (client AppsClient) ListPublicCertificatesPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18577,7 +18707,7 @@ func (client AppsClient) ListPublicCertificatesSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18673,7 +18803,7 @@ func (client AppsClient) ListPublishingCredentialsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18755,7 +18885,7 @@ func (client AppsClient) ListPublishingCredentialsSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18842,7 +18972,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18923,7 +19053,7 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsSlotPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -18999,7 +19129,7 @@ func (client AppsClient) ListRelayServiceConnectionsPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19077,7 +19207,7 @@ func (client AppsClient) ListRelayServiceConnectionsSlotPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19153,7 +19283,7 @@ func (client AppsClient) ListSiteExtensionsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19259,7 +19389,7 @@ func (client AppsClient) ListSiteExtensionsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19361,7 +19491,7 @@ func (client AppsClient) ListSitePushSettingsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19438,7 +19568,7 @@ func (client AppsClient) ListSitePushSettingsSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19514,7 +19644,7 @@ func (client AppsClient) ListSlotConfigurationNamesPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19594,7 +19724,7 @@ func (client AppsClient) ListSlotDifferencesFromProductionPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19705,7 +19835,7 @@ func (client AppsClient) ListSlotDifferencesSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19810,7 +19940,7 @@ func (client AppsClient) ListSlotsPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -19913,7 +20043,7 @@ func (client AppsClient) ListSnapshotsPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20018,7 +20148,7 @@ func (client AppsClient) ListSnapshotsSlotPreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20120,7 +20250,7 @@ func (client AppsClient) ListSyncFunctionTriggersPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20198,7 +20328,7 @@ func (client AppsClient) ListSyncFunctionTriggersSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20276,7 +20406,7 @@ func (client AppsClient) ListTriggeredWebJobHistoryPreparer(ctx context.Context,
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20384,7 +20514,7 @@ func (client AppsClient) ListTriggeredWebJobHistorySlotPreparer(ctx context.Cont
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20487,7 +20617,7 @@ func (client AppsClient) ListTriggeredWebJobsPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20593,7 +20723,7 @@ func (client AppsClient) ListTriggeredWebJobsSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20699,7 +20829,7 @@ func (client AppsClient) ListUsagesPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20811,7 +20941,7 @@ func (client AppsClient) ListUsagesSlotPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20916,7 +21046,7 @@ func (client AppsClient) ListVnetConnectionsPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -20994,7 +21124,7 @@ func (client AppsClient) ListVnetConnectionsSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21070,7 +21200,7 @@ func (client AppsClient) ListWebJobsPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21176,7 +21306,7 @@ func (client AppsClient) ListWebJobsSlotPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21276,7 +21406,7 @@ func (client AppsClient) MigrateMySQLPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21364,7 +21494,7 @@ func (client AppsClient) MigrateStoragePreparer(ctx context.Context, subscriptio
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version":      APIVersion,
 		"subscriptionName": autorest.Encode("query", subscriptionName),
@@ -21410,88 +21540,163 @@ func (client AppsClient) MigrateStorageResponder(resp *http.Response) (result St
 	return
 }
 
-// Recover recovers a web app to a previous snapshot.
+// PutPrivateAccessVnet sets data around private site access enablement and authorized Virtual Networks that can access
+// the site.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of web app.
-// recoveryEntity - snapshot data used for web app recovery. Snapshot information can be obtained by calling
-// GetDeletedSites or GetSiteSnapshots API.
-func (client AppsClient) Recover(ctx context.Context, resourceGroupName string, name string, recoveryEntity SnapshotRecoveryRequest) (result AppsRecoverFuture, err error) {
+// name - the name of the web app.
+// access - the information for the private access
+func (client AppsClient) PutPrivateAccessVnet(ctx context.Context, resourceGroupName string, name string, access PrivateAccess) (result PrivateAccess, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
-		{TargetValue: recoveryEntity,
-			Constraints: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("web.AppsClient", "Recover", err.Error())
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "PutPrivateAccessVnet", err.Error())
 	}
 
-	req, err := client.RecoverPreparer(ctx, resourceGroupName, name, recoveryEntity)
+	req, err := client.PutPrivateAccessVnetPreparer(ctx, resourceGroupName, name, access)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "Recover", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnet", nil, "Failure preparing request")
 		return
 	}
 
-	result, err = client.RecoverSender(req)
+	resp, err := client.PutPrivateAccessVnetSender(req)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "Recover", result.Response(), "Failure sending request")
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnet", resp, "Failure sending request")
 		return
+	}
+
+	result, err = client.PutPrivateAccessVnetResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnet", resp, "Failure responding to request")
 	}
 
 	return
 }
 
-// RecoverPreparer prepares the Recover request.
-func (client AppsClient) RecoverPreparer(ctx context.Context, resourceGroupName string, name string, recoveryEntity SnapshotRecoveryRequest) (*http.Request, error) {
+// PutPrivateAccessVnetPreparer prepares the PutPrivateAccessVnet request.
+func (client AppsClient) PutPrivateAccessVnetPreparer(ctx context.Context, resourceGroupName string, name string, access PrivateAccess) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
+		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/recover", pathParameters),
-		autorest.WithJSON(recoveryEntity),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateAccess/virtualNetworks", pathParameters),
+		autorest.WithJSON(access),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
-// RecoverSender sends the Recover request. The method will close the
+// PutPrivateAccessVnetSender sends the PutPrivateAccessVnet request. The method will close the
 // http.Response Body if it receives an error.
-func (client AppsClient) RecoverSender(req *http.Request) (future AppsRecoverFuture, err error) {
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
+func (client AppsClient) PutPrivateAccessVnetSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
 		azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
 }
 
-// RecoverResponder handles the response to the Recover request. The method always
+// PutPrivateAccessVnetResponder handles the response to the PutPrivateAccessVnet request. The method always
 // closes the http.Response Body.
-func (client AppsClient) RecoverResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client AppsClient) PutPrivateAccessVnetResponder(resp *http.Response) (result PrivateAccess, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = resp
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// PutPrivateAccessVnetSlot sets data around private site access enablement and authorized Virtual Networks that can
+// access the site.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - the name of the web app.
+// access - the information for the private access
+// slot - the name of the slot for the web app.
+func (client AppsClient) PutPrivateAccessVnetSlot(ctx context.Context, resourceGroupName string, name string, access PrivateAccess, slot string) (result PrivateAccess, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "PutPrivateAccessVnetSlot", err.Error())
+	}
+
+	req, err := client.PutPrivateAccessVnetSlotPreparer(ctx, resourceGroupName, name, access, slot)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnetSlot", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.PutPrivateAccessVnetSlotSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnetSlot", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.PutPrivateAccessVnetSlotResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "PutPrivateAccessVnetSlot", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// PutPrivateAccessVnetSlotPreparer prepares the PutPrivateAccessVnetSlot request.
+func (client AppsClient) PutPrivateAccessVnetSlotPreparer(ctx context.Context, resourceGroupName string, name string, access PrivateAccess, slot string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"slot":              autorest.Encode("path", slot),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/privateAccess/virtualNetworks", pathParameters),
+		autorest.WithJSON(access),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// PutPrivateAccessVnetSlotSender sends the PutPrivateAccessVnetSlot request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) PutPrivateAccessVnetSlotSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// PutPrivateAccessVnetSlotResponder handles the response to the PutPrivateAccessVnetSlot request. The method always
+// closes the http.Response Body.
+func (client AppsClient) PutPrivateAccessVnetSlotResponder(resp *http.Response) (result PrivateAccess, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -21539,7 +21744,7 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21618,7 +21823,7 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotSlotPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21645,93 +21850,6 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotSlotResponder(resp *htt
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
-		autorest.ByClosing())
-	result.Response = resp
-	return
-}
-
-// RecoverSlot recovers a web app to a previous snapshot.
-// Parameters:
-// resourceGroupName - name of the resource group to which the resource belongs.
-// name - name of web app.
-// recoveryEntity - snapshot data used for web app recovery. Snapshot information can be obtained by calling
-// GetDeletedSites or GetSiteSnapshots API.
-// slot - name of web app slot. If not specified then will default to production slot.
-func (client AppsClient) RecoverSlot(ctx context.Context, resourceGroupName string, name string, recoveryEntity SnapshotRecoveryRequest, slot string) (result AppsRecoverSlotFuture, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
-		{TargetValue: recoveryEntity,
-			Constraints: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "recoveryEntity.SnapshotRecoveryRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewError("web.AppsClient", "RecoverSlot", err.Error())
-	}
-
-	req, err := client.RecoverSlotPreparer(ctx, resourceGroupName, name, recoveryEntity, slot)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "RecoverSlot", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.RecoverSlotSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.AppsClient", "RecoverSlot", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// RecoverSlotPreparer prepares the RecoverSlot request.
-func (client AppsClient) RecoverSlotPreparer(ctx context.Context, resourceGroupName string, name string, recoveryEntity SnapshotRecoveryRequest, slot string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"name":              autorest.Encode("path", name),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"slot":              autorest.Encode("path", slot),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2016-08-01"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/recover", pathParameters),
-		autorest.WithJSON(recoveryEntity),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// RecoverSlotSender sends the RecoverSlot request. The method will close the
-// http.Response Body if it receives an error.
-func (client AppsClient) RecoverSlotSender(req *http.Request) (future AppsRecoverSlotFuture, err error) {
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// RecoverSlotResponder handles the response to the RecoverSlot request. The method always
-// closes the http.Response Body.
-func (client AppsClient) RecoverSlotResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -21780,7 +21898,7 @@ func (client AppsClient) ResetProductionSlotConfigPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21858,7 +21976,7 @@ func (client AppsClient) ResetSlotConfigurationSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -21936,7 +22054,7 @@ func (client AppsClient) RestartPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22022,7 +22140,7 @@ func (client AppsClient) RestartSlotPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22104,7 +22222,7 @@ func (client AppsClient) RestorePreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22128,7 +22246,7 @@ func (client AppsClient) RestoreSender(req *http.Request) (future AppsRestoreFut
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
 	if err != nil {
 		return
 	}
@@ -22138,14 +22256,352 @@ func (client AppsClient) RestoreSender(req *http.Request) (future AppsRestoreFut
 
 // RestoreResponder handles the response to the Restore request. The method always
 // closes the http.Response Body.
-func (client AppsClient) RestoreResponder(resp *http.Response) (result RestoreResponse, err error) {
+func (client AppsClient) RestoreResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
+	return
+}
+
+// RestoreFromBackupBlob restores an app from a backup blob in Azure Storage.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - information on restore request .
+func (client AppsClient) RestoreFromBackupBlob(ctx context.Context, resourceGroupName string, name string, request RestoreRequest) (result AppsRestoreFromBackupBlobFuture, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
+		{TargetValue: request,
+			Constraints: []validation.Constraint{{Target: "request.RestoreRequestProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "request.RestoreRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "request.RestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "RestoreFromBackupBlob", err.Error())
+	}
+
+	req, err := client.RestoreFromBackupBlobPreparer(ctx, resourceGroupName, name, request)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromBackupBlob", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestoreFromBackupBlobSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromBackupBlob", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestoreFromBackupBlobPreparer prepares the RestoreFromBackupBlob request.
+func (client AppsClient) RestoreFromBackupBlobPreparer(ctx context.Context, resourceGroupName string, name string, request RestoreRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/restoreFromBackupBlob", pathParameters),
+		autorest.WithJSON(request),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreFromBackupBlobSender sends the RestoreFromBackupBlob request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) RestoreFromBackupBlobSender(req *http.Request) (future AppsRestoreFromBackupBlobFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RestoreFromBackupBlobResponder handles the response to the RestoreFromBackupBlob request. The method always
+// closes the http.Response Body.
+func (client AppsClient) RestoreFromBackupBlobResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// RestoreFromBackupBlobSlot restores an app from a backup blob in Azure Storage.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+// request - information on restore request .
+// slot - name of the deployment slot. If a slot is not specified, the API will restore a backup of the
+// production slot.
+func (client AppsClient) RestoreFromBackupBlobSlot(ctx context.Context, resourceGroupName string, name string, request RestoreRequest, slot string) (result AppsRestoreFromBackupBlobSlotFuture, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
+		{TargetValue: request,
+			Constraints: []validation.Constraint{{Target: "request.RestoreRequestProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "request.RestoreRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+					{Target: "request.RestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "RestoreFromBackupBlobSlot", err.Error())
+	}
+
+	req, err := client.RestoreFromBackupBlobSlotPreparer(ctx, resourceGroupName, name, request, slot)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromBackupBlobSlot", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestoreFromBackupBlobSlotSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromBackupBlobSlot", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestoreFromBackupBlobSlotPreparer prepares the RestoreFromBackupBlobSlot request.
+func (client AppsClient) RestoreFromBackupBlobSlotPreparer(ctx context.Context, resourceGroupName string, name string, request RestoreRequest, slot string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"slot":              autorest.Encode("path", slot),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/restoreFromBackupBlob", pathParameters),
+		autorest.WithJSON(request),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreFromBackupBlobSlotSender sends the RestoreFromBackupBlobSlot request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) RestoreFromBackupBlobSlotSender(req *http.Request) (future AppsRestoreFromBackupBlobSlotFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RestoreFromBackupBlobSlotResponder handles the response to the RestoreFromBackupBlobSlot request. The method always
+// closes the http.Response Body.
+func (client AppsClient) RestoreFromBackupBlobSlotResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// RestoreFromDeletedApp restores a deleted web app to this web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// restoreRequest - deleted web app restore information.
+func (client AppsClient) RestoreFromDeletedApp(ctx context.Context, resourceGroupName string, name string, restoreRequest DeletedAppRestoreRequest) (result AppsRestoreFromDeletedAppFuture, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "RestoreFromDeletedApp", err.Error())
+	}
+
+	req, err := client.RestoreFromDeletedAppPreparer(ctx, resourceGroupName, name, restoreRequest)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromDeletedApp", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestoreFromDeletedAppSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromDeletedApp", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestoreFromDeletedAppPreparer prepares the RestoreFromDeletedApp request.
+func (client AppsClient) RestoreFromDeletedAppPreparer(ctx context.Context, resourceGroupName string, name string, restoreRequest DeletedAppRestoreRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/restoreFromDeletedApp", pathParameters),
+		autorest.WithJSON(restoreRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreFromDeletedAppSender sends the RestoreFromDeletedApp request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) RestoreFromDeletedAppSender(req *http.Request) (future AppsRestoreFromDeletedAppFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RestoreFromDeletedAppResponder handles the response to the RestoreFromDeletedApp request. The method always
+// closes the http.Response Body.
+func (client AppsClient) RestoreFromDeletedAppResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// RestoreFromDeletedAppSlot restores a deleted web app to this web app.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// restoreRequest - deleted web app restore information.
+// slot - name of web app slot. If not specified then will default to production slot.
+func (client AppsClient) RestoreFromDeletedAppSlot(ctx context.Context, resourceGroupName string, name string, restoreRequest DeletedAppRestoreRequest, slot string) (result AppsRestoreFromDeletedAppSlotFuture, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "RestoreFromDeletedAppSlot", err.Error())
+	}
+
+	req, err := client.RestoreFromDeletedAppSlotPreparer(ctx, resourceGroupName, name, restoreRequest, slot)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromDeletedAppSlot", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestoreFromDeletedAppSlotSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreFromDeletedAppSlot", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestoreFromDeletedAppSlotPreparer prepares the RestoreFromDeletedAppSlot request.
+func (client AppsClient) RestoreFromDeletedAppSlotPreparer(ctx context.Context, resourceGroupName string, name string, restoreRequest DeletedAppRestoreRequest, slot string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"slot":              autorest.Encode("path", slot),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/restoreFromDeletedApp", pathParameters),
+		autorest.WithJSON(restoreRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreFromDeletedAppSlotSender sends the RestoreFromDeletedAppSlot request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) RestoreFromDeletedAppSlotSender(req *http.Request) (future AppsRestoreFromDeletedAppSlotFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RestoreFromDeletedAppSlotResponder handles the response to the RestoreFromDeletedAppSlot request. The method always
+// closes the http.Response Body.
+func (client AppsClient) RestoreFromDeletedAppSlotResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 
@@ -22196,7 +22652,7 @@ func (client AppsClient) RestoreSlotPreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22220,7 +22676,7 @@ func (client AppsClient) RestoreSlotSender(req *http.Request) (future AppsRestor
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK))
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
 	if err != nil {
 		return
 	}
@@ -22230,14 +22686,185 @@ func (client AppsClient) RestoreSlotSender(req *http.Request) (future AppsRestor
 
 // RestoreSlotResponder handles the response to the RestoreSlot request. The method always
 // closes the http.Response Body.
-func (client AppsClient) RestoreSlotResponder(resp *http.Response) (result RestoreResponse, err error) {
+func (client AppsClient) RestoreSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
+	return
+}
+
+// RestoreSnapshot restores a web app from a snapshot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// restoreRequest - snapshot restore settings. Snapshot information can be obtained by calling GetDeletedSites
+// or GetSiteSnapshots API.
+func (client AppsClient) RestoreSnapshot(ctx context.Context, resourceGroupName string, name string, restoreRequest SnapshotRestoreRequest) (result AppsRestoreSnapshotFuture, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
+		{TargetValue: restoreRequest,
+			Constraints: []validation.Constraint{{Target: "restoreRequest.SnapshotRestoreRequestProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "restoreRequest.SnapshotRestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "RestoreSnapshot", err.Error())
+	}
+
+	req, err := client.RestoreSnapshotPreparer(ctx, resourceGroupName, name, restoreRequest)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreSnapshot", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestoreSnapshotSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreSnapshot", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestoreSnapshotPreparer prepares the RestoreSnapshot request.
+func (client AppsClient) RestoreSnapshotPreparer(ctx context.Context, resourceGroupName string, name string, restoreRequest SnapshotRestoreRequest) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/restoreSnapshot", pathParameters),
+		autorest.WithJSON(restoreRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreSnapshotSender sends the RestoreSnapshot request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) RestoreSnapshotSender(req *http.Request) (future AppsRestoreSnapshotFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RestoreSnapshotResponder handles the response to the RestoreSnapshot request. The method always
+// closes the http.Response Body.
+func (client AppsClient) RestoreSnapshotResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// RestoreSnapshotSlot restores a web app from a snapshot.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of web app.
+// restoreRequest - snapshot restore settings. Snapshot information can be obtained by calling GetDeletedSites
+// or GetSiteSnapshots API.
+// slot - name of web app slot. If not specified then will default to production slot.
+func (client AppsClient) RestoreSnapshotSlot(ctx context.Context, resourceGroupName string, name string, restoreRequest SnapshotRestoreRequest, slot string) (result AppsRestoreSnapshotSlotFuture, err error) {
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
+		{TargetValue: restoreRequest,
+			Constraints: []validation.Constraint{{Target: "restoreRequest.SnapshotRestoreRequestProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "restoreRequest.SnapshotRestoreRequestProperties.Overwrite", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "RestoreSnapshotSlot", err.Error())
+	}
+
+	req, err := client.RestoreSnapshotSlotPreparer(ctx, resourceGroupName, name, restoreRequest, slot)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreSnapshotSlot", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RestoreSnapshotSlotSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "RestoreSnapshotSlot", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RestoreSnapshotSlotPreparer prepares the RestoreSnapshotSlot request.
+func (client AppsClient) RestoreSnapshotSlotPreparer(ctx context.Context, resourceGroupName string, name string, restoreRequest SnapshotRestoreRequest, slot string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"slot":              autorest.Encode("path", slot),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-02-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/slots/{slot}/restoreSnapshot", pathParameters),
+		autorest.WithJSON(restoreRequest),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RestoreSnapshotSlotSender sends the RestoreSnapshotSlot request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) RestoreSnapshotSlotSender(req *http.Request) (future AppsRestoreSnapshotSlotFuture, err error) {
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RestoreSnapshotSlotResponder handles the response to the RestoreSnapshotSlot request. The method always
+// closes the http.Response Body.
+func (client AppsClient) RestoreSnapshotSlotResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 
@@ -22285,7 +22912,7 @@ func (client AppsClient) RunTriggeredWebJobPreparer(ctx context.Context, resourc
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22364,7 +22991,7 @@ func (client AppsClient) RunTriggeredWebJobSlotPreparer(ctx context.Context, res
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22438,7 +23065,7 @@ func (client AppsClient) StartPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22514,7 +23141,7 @@ func (client AppsClient) StartContinuousWebJobPreparer(ctx context.Context, reso
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22593,7 +23220,7 @@ func (client AppsClient) StartContinuousWebJobSlotPreparer(ctx context.Context, 
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22669,7 +23296,7 @@ func (client AppsClient) StartSlotPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22746,7 +23373,7 @@ func (client AppsClient) StartWebSiteNetworkTracePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22835,7 +23462,7 @@ func (client AppsClient) StartWebSiteNetworkTraceSlotPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22919,7 +23546,7 @@ func (client AppsClient) StopPreparer(ctx context.Context, resourceGroupName str
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -22995,7 +23622,7 @@ func (client AppsClient) StopContinuousWebJobPreparer(ctx context.Context, resou
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23074,7 +23701,7 @@ func (client AppsClient) StopContinuousWebJobSlotPreparer(ctx context.Context, r
 		"webJobName":        autorest.Encode("path", webJobName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23150,7 +23777,7 @@ func (client AppsClient) StopSlotPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23224,7 +23851,7 @@ func (client AppsClient) StopWebSiteNetworkTracePreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23301,7 +23928,7 @@ func (client AppsClient) StopWebSiteNetworkTraceSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23376,7 +24003,7 @@ func (client AppsClient) SwapSlotSlotPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23460,7 +24087,7 @@ func (client AppsClient) SwapSlotWithProductionPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23546,7 +24173,7 @@ func (client AppsClient) SyncFunctionTriggersPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23623,7 +24250,7 @@ func (client AppsClient) SyncFunctionTriggersSlotPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23697,7 +24324,7 @@ func (client AppsClient) SyncRepositoryPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23773,7 +24400,7 @@ func (client AppsClient) SyncRepositorySlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23849,7 +24476,7 @@ func (client AppsClient) UpdatePreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -23927,7 +24554,7 @@ func (client AppsClient) UpdateApplicationSettingsPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24008,7 +24635,7 @@ func (client AppsClient) UpdateApplicationSettingsSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24086,7 +24713,7 @@ func (client AppsClient) UpdateAuthSettingsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24166,7 +24793,7 @@ func (client AppsClient) UpdateAuthSettingsSlotPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24214,8 +24841,7 @@ func (client AppsClient) UpdateBackupConfiguration(ctx context.Context, resource
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: request,
 			Constraints: []validation.Constraint{{Target: "request.BackupRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupRequestName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.BackupRequestProperties.BackupSchedule", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupSchedule.FrequencyInterval", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "request.BackupRequestProperties.BackupSchedule.KeepAtLeastOneBackup", Name: validation.Null, Rule: true, Chain: nil},
@@ -24254,7 +24880,7 @@ func (client AppsClient) UpdateBackupConfigurationPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24304,8 +24930,7 @@ func (client AppsClient) UpdateBackupConfigurationSlot(ctx context.Context, reso
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
 		{TargetValue: request,
 			Constraints: []validation.Constraint{{Target: "request.BackupRequestProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupRequestName", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.StorageAccountURL", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "request.BackupRequestProperties.BackupSchedule", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "request.BackupRequestProperties.BackupSchedule.FrequencyInterval", Name: validation.Null, Rule: true, Chain: nil},
 							{Target: "request.BackupRequestProperties.BackupSchedule.KeepAtLeastOneBackup", Name: validation.Null, Rule: true, Chain: nil},
@@ -24345,7 +24970,7 @@ func (client AppsClient) UpdateBackupConfigurationSlotPreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24423,7 +25048,7 @@ func (client AppsClient) UpdateConfigurationPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24504,7 +25129,7 @@ func (client AppsClient) UpdateConfigurationSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24582,7 +25207,7 @@ func (client AppsClient) UpdateConnectionStringsPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24663,7 +25288,7 @@ func (client AppsClient) UpdateConnectionStringsSlotPreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24757,7 +25382,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24854,7 +25479,7 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSlotPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -24935,7 +25560,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25019,7 +25644,7 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSlotPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25101,7 +25726,7 @@ func (client AppsClient) UpdateHybridConnectionPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25185,7 +25810,7 @@ func (client AppsClient) UpdateHybridConnectionSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25263,7 +25888,7 @@ func (client AppsClient) UpdateMetadataPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25344,7 +25969,7 @@ func (client AppsClient) UpdateMetadataSlotPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25425,7 +26050,7 @@ func (client AppsClient) UpdateRelayServiceConnectionPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25509,7 +26134,7 @@ func (client AppsClient) UpdateRelayServiceConnectionSlotPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25590,7 +26215,7 @@ func (client AppsClient) UpdateSitePushSettingsPreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25673,7 +26298,7 @@ func (client AppsClient) UpdateSitePushSettingsSlotPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25716,13 +26341,7 @@ func (client AppsClient) UpdateSitePushSettingsSlotResponder(resp *http.Response
 // siteEnvelope - a JSON representation of the app properties. See example.
 // slot - name of the deployment slot to create or update. By default, this API attempts to create or modify
 // the production slot.
-// skipDNSRegistration - if true web app hostname is not registered with DNS on creation. This parameter is
-// only used for app creation.
-// skipCustomDomainVerification - if true, custom (non *.azurewebsites.net) domains associated with web app are
-// not verified.
-// forceDNSRegistration - if true, web app hostname is force registered with DNS.
-// TTLInSeconds - time to live in seconds for web app's default domain name.
-func (client AppsClient) UpdateSlot(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource, slot string, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (result Site, err error) {
+func (client AppsClient) UpdateSlot(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource, slot string) (result Site, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -25731,7 +26350,7 @@ func (client AppsClient) UpdateSlot(ctx context.Context, resourceGroupName strin
 		return result, validation.NewError("web.AppsClient", "UpdateSlot", err.Error())
 	}
 
-	req, err := client.UpdateSlotPreparer(ctx, resourceGroupName, name, siteEnvelope, slot, skipDNSRegistration, skipCustomDomainVerification, forceDNSRegistration, TTLInSeconds)
+	req, err := client.UpdateSlotPreparer(ctx, resourceGroupName, name, siteEnvelope, slot)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateSlot", nil, "Failure preparing request")
 		return
@@ -25753,7 +26372,7 @@ func (client AppsClient) UpdateSlot(ctx context.Context, resourceGroupName strin
 }
 
 // UpdateSlotPreparer prepares the UpdateSlot request.
-func (client AppsClient) UpdateSlotPreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource, slot string, skipDNSRegistration *bool, skipCustomDomainVerification *bool, forceDNSRegistration *bool, TTLInSeconds string) (*http.Request, error) {
+func (client AppsClient) UpdateSlotPreparer(ctx context.Context, resourceGroupName string, name string, siteEnvelope SitePatchResource, slot string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -25761,21 +26380,9 @@ func (client AppsClient) UpdateSlotPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
-	}
-	if skipDNSRegistration != nil {
-		queryParameters["skipDnsRegistration"] = autorest.Encode("query", *skipDNSRegistration)
-	}
-	if skipCustomDomainVerification != nil {
-		queryParameters["skipCustomDomainVerification"] = autorest.Encode("query", *skipCustomDomainVerification)
-	}
-	if forceDNSRegistration != nil {
-		queryParameters["forceDnsRegistration"] = autorest.Encode("query", *forceDNSRegistration)
-	}
-	if len(TTLInSeconds) > 0 {
-		queryParameters["ttlInSeconds"] = autorest.Encode("query", TTLInSeconds)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -25852,7 +26459,7 @@ func (client AppsClient) UpdateSlotConfigurationNamesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -25930,7 +26537,7 @@ func (client AppsClient) UpdateSourceControlPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26011,7 +26618,7 @@ func (client AppsClient) UpdateSourceControlSlotPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26092,7 +26699,7 @@ func (client AppsClient) UpdateVnetConnectionPreparer(ctx context.Context, resou
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26174,7 +26781,7 @@ func (client AppsClient) UpdateVnetConnectionGatewayPreparer(ctx context.Context
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26259,7 +26866,7 @@ func (client AppsClient) UpdateVnetConnectionGatewaySlotPreparer(ctx context.Con
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -26343,7 +26950,7 @@ func (client AppsClient) UpdateVnetConnectionSlotPreparer(ctx context.Context, r
 		"vnetName":          autorest.Encode("path", vnetName),
 	}
 
-	const APIVersion = "2016-08-01"
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

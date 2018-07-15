@@ -24,49 +24,48 @@ import (
 	"net/http"
 )
 
-// CertificateRegistrationProviderClient is the webSite Management Client
-type CertificateRegistrationProviderClient struct {
+// DomainRegistrationProviderClient is the webSite Management Client
+type DomainRegistrationProviderClient struct {
 	BaseClient
 }
 
-// NewCertificateRegistrationProviderClient creates an instance of the CertificateRegistrationProviderClient client.
-func NewCertificateRegistrationProviderClient(subscriptionID string) CertificateRegistrationProviderClient {
-	return NewCertificateRegistrationProviderClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewDomainRegistrationProviderClient creates an instance of the DomainRegistrationProviderClient client.
+func NewDomainRegistrationProviderClient(subscriptionID string) DomainRegistrationProviderClient {
+	return NewDomainRegistrationProviderClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCertificateRegistrationProviderClientWithBaseURI creates an instance of the CertificateRegistrationProviderClient
-// client.
-func NewCertificateRegistrationProviderClientWithBaseURI(baseURI string, subscriptionID string) CertificateRegistrationProviderClient {
-	return CertificateRegistrationProviderClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewDomainRegistrationProviderClientWithBaseURI creates an instance of the DomainRegistrationProviderClient client.
+func NewDomainRegistrationProviderClientWithBaseURI(baseURI string, subscriptionID string) DomainRegistrationProviderClient {
+	return DomainRegistrationProviderClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // ListOperations implements Csm operations Api to exposes the list of available Csm Apis under the resource provider
-func (client CertificateRegistrationProviderClient) ListOperations(ctx context.Context) (result CsmOperationCollectionPage, err error) {
+func (client DomainRegistrationProviderClient) ListOperations(ctx context.Context) (result CsmOperationCollectionPage, err error) {
 	result.fn = client.listOperationsNextResults
 	req, err := client.ListOperationsPreparer(ctx)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "ListOperations", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "web.DomainRegistrationProviderClient", "ListOperations", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListOperationsSender(req)
 	if err != nil {
 		result.coc.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "ListOperations", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "web.DomainRegistrationProviderClient", "ListOperations", resp, "Failure sending request")
 		return
 	}
 
 	result.coc, err = client.ListOperationsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "ListOperations", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "web.DomainRegistrationProviderClient", "ListOperations", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListOperationsPreparer prepares the ListOperations request.
-func (client CertificateRegistrationProviderClient) ListOperationsPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2015-08-01"
+func (client DomainRegistrationProviderClient) ListOperationsPreparer(ctx context.Context) (*http.Request, error) {
+	const APIVersion = "2018-02-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -74,21 +73,21 @@ func (client CertificateRegistrationProviderClient) ListOperationsPreparer(ctx c
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.CertificateRegistration/operations"),
+		autorest.WithPath("/providers/Microsoft.DomainRegistration/operations"),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListOperationsSender sends the ListOperations request. The method will close the
 // http.Response Body if it receives an error.
-func (client CertificateRegistrationProviderClient) ListOperationsSender(req *http.Request) (*http.Response, error) {
+func (client DomainRegistrationProviderClient) ListOperationsSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
 		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListOperationsResponder handles the response to the ListOperations request. The method always
 // closes the http.Response Body.
-func (client CertificateRegistrationProviderClient) ListOperationsResponder(resp *http.Response) (result CsmOperationCollection, err error) {
+func (client DomainRegistrationProviderClient) ListOperationsResponder(resp *http.Response) (result CsmOperationCollection, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -100,10 +99,10 @@ func (client CertificateRegistrationProviderClient) ListOperationsResponder(resp
 }
 
 // listOperationsNextResults retrieves the next set of results, if any.
-func (client CertificateRegistrationProviderClient) listOperationsNextResults(lastResults CsmOperationCollection) (result CsmOperationCollection, err error) {
+func (client DomainRegistrationProviderClient) listOperationsNextResults(lastResults CsmOperationCollection) (result CsmOperationCollection, err error) {
 	req, err := lastResults.csmOperationCollectionPreparer()
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "listOperationsNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "web.DomainRegistrationProviderClient", "listOperationsNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -111,17 +110,17 @@ func (client CertificateRegistrationProviderClient) listOperationsNextResults(la
 	resp, err := client.ListOperationsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "listOperationsNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "web.DomainRegistrationProviderClient", "listOperationsNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListOperationsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "web.CertificateRegistrationProviderClient", "listOperationsNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "web.DomainRegistrationProviderClient", "listOperationsNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListOperationsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client CertificateRegistrationProviderClient) ListOperationsComplete(ctx context.Context) (result CsmOperationCollectionIterator, err error) {
+func (client DomainRegistrationProviderClient) ListOperationsComplete(ctx context.Context) (result CsmOperationCollectionIterator, err error) {
 	result.page, err = client.ListOperations(ctx)
 	return
 }

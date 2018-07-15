@@ -413,6 +413,8 @@ func TestAccAzureRMAppService_manyIpRestrictions(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.1.subnet_mask", "255.255.255.0"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.0.0"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.2.subnet_mask", "255.255.0.0"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.3.ip_address", "192.168.1.2"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.3.subnet_mask", "255.255.255.0"),
 				),
 			},
 		},
@@ -1271,6 +1273,11 @@ resource "azurerm_app_service" "test" {
     ip_restriction {
       ip_address  = "30.30.0.0"
       subnet_mask = "255.255.0.0"
+    }
+
+    ip_restriction {
+      ip_address = "192.168.1.2"
+      subnet_mask = "255.255.255.0"
     }
   }
 }
