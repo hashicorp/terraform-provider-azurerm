@@ -4,6 +4,10 @@ FEATURES:
 
 * **New Data Source:** `azurerm_azuread_application` [GH-1552]
 
+IMPROVEMENTS:
+
+* `azurerm_function_app` - adding support for the `site_credential` block [GH-1567]
+
 BUG FIXES:
 
 * `azurerm_application_insights` - fixing a bug where `application_type` was set to `other` [GH-1563]
