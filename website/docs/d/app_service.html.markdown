@@ -99,6 +99,8 @@ output "app_service_id" {
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
+* `ftps_state` - State of FTP / FTPS service for this AppService.
+
 ---
 
 `ip_restriction` exports the following:
