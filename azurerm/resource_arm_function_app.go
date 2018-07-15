@@ -181,6 +181,25 @@ func resourceArmFunctionApp() *schema.Resource {
 					},
 				},
 			},
+
+			"site_credential": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"password": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -381,6 +400,19 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
 	}
 
+	siteCredFuture, err := client.ListPublishingCredentials(ctx, resGroup, name)
+	if err != nil {
+		return err
+	}
+	err = siteCredFuture.WaitForCompletion(ctx, client.Client)
+	if err != nil {
+		return err
+	}
+	siteCredResp, err := siteCredFuture.Result(client)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -425,6 +457,11 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
+		return err
+	}
+
+	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
+	if err := d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
 
@@ -589,4 +626,24 @@ func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{
 	}
 
 	return []interface{}{result}
+}
+
+func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	if input.PublishingUserName != nil {
+		result["username"] = *input.PublishingUserName
+	}
+
+	if input.PublishingPassword != nil {
+		result["password"] = *input.PublishingPassword
+	}
+
+	return append(results, result)
 }

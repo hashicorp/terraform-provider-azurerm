@@ -107,6 +107,7 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "app_settings.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "site_credential.#", "1"),
 				),
 			},
 			{
