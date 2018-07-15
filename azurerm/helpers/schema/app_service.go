@@ -168,6 +168,17 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 					Optional: true,
 					Computed: true,
 				},
+
+				"ftps_state": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AllAllowed),
+						string(web.Disabled),
+						string(web.FtpsOnly),
+					}, false),
+				},
 			},
 		},
 	}
@@ -281,6 +292,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.ScmType = web.ScmType(v.(string))
 	}
 
+	if v, ok := config["ftps_state"]; ok {
+		siteConfig.FtpsState = web.FtpsState(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -380,6 +395,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	result["scm_type"] = string(input.ScmType)
+	result["ftps_state"] = string(input.FtpsState)
 
 	return append(results, result)
 }
