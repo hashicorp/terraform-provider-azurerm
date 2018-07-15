@@ -207,6 +207,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_servicebus_namespace":                    resourceArmServiceBusNamespace(),
 			"azurerm_servicebus_namespace_authorization_rule": resourceArmServiceBusNamespaceAuthorizationRule(),
 			"azurerm_servicebus_queue":                        resourceArmServiceBusQueue(),
+			"azurerm_servicebus_queue_authorization_rule":     resourceArmServiceBusQueueAuthorizationRule(),
 			"azurerm_servicebus_subscription":                 resourceArmServiceBusSubscription(),
 			"azurerm_servicebus_subscription_rule":            resourceArmServiceBusSubscriptionRule(),
 			"azurerm_servicebus_topic":                        resourceArmServiceBusTopic(),

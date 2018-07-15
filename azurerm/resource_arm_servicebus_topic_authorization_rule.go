@@ -22,7 +22,7 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		Schema: map[string]*schema.Schema{
+		Schema: azure.ServiceBusAuthorizationRuleSchemaFrom(map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -45,49 +45,7 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 			},
 
 			"resource_group_name": resourceGroupNameSchema(),
-
-			"listen": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"send": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"manage": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"primary_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-		},
+		}),
 
 		CustomizeDiff: azure.ServiceBusAuthorizationRuleCustomizeDiff,
 	}
