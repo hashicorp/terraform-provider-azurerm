@@ -12,6 +12,7 @@ BUG FIXES:
 
 * `azurerm_application_insights` - fixing a bug where `application_type` was set to `other` [GH-1563]
 * `azurerm_servicebus_subscription` - only sending `correlation_filter` values if they're set [GH-1565]
+* `azurerm_servicebus_subscription` - setting the `default_message_ttl` field [GH-1568]
 * `azurerm_traffic_manager_endpoint` - working around a bug in the API by setting `target` to nil when a `target_resource_id` is specified [GH-1546]
 
 ## 1.9.0 (July 11, 2018)
