@@ -101,6 +101,8 @@ output "app_service_id" {
 
 * `ftps_state` - State of FTP / FTPS service for this AppService.
 
+* `linux_fx_version` - Linux App Framework and version for the AppService.
+
 ---
 
 `ip_restriction` exports the following:

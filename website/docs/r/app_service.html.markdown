@@ -173,9 +173,12 @@ The following arguments are supported:
 * `remote_debugging_version` - (Optional) Which version of Visual Studio should the Remote Debugger be compatible with? Possible values are `VS2012`, `VS2013`, `VS2015` and `VS2017`.
 * `scm_type` - (Optional) The type of Source Control enabled for this App Service. Possible values include `None` and `LocalGit`. Defaults to `None`.
 * `use_32_bit_worker_process` - (Optional) Should the App Service run in 32 bit mode, rather than 64 bit mode?
-* `ftps_state` - (Optional) State of FTP / FTPS service for this AppService. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 
 ~> **NOTE:** when using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
+
+* `ftps_state` - (Optional) State of FTP / FTPS service for this AppService. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
+
+* `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 

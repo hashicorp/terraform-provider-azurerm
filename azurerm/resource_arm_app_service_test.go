@@ -813,7 +813,6 @@ func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := acctest.RandInt()
 	config := testAccAzureRMAppService_ftpsState(ri, testLocation())
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -824,6 +823,29 @@ func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ftps_state", "AllAllowed"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppService_linuxFxVersion(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.always_on", "true"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
+					resource.TestCheckResourceAttr(resourceName, "app_settings.WEBSITES_ENABLE_APP_SERVICE_STORAGE", "false"),
 				),
 			},
 		},
@@ -1743,6 +1765,42 @@ resource "azurerm_app_service" "test" {
 
   site_config {
   	ftps_state = "AllAllowed"
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_linuxFxVersion(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+	always_on = true
+    linux_fx_version = "DOCKER|(golang:latest)"
+  }
+
+  app_settings {
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
   }
 }
 `, rInt, location, rInt, rInt)
