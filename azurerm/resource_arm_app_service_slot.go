@@ -33,6 +33,33 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 			"location": locationSchema(),
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"app_service_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -142,6 +169,11 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 			HTTPSOnly:    utils.Bool(httpsOnly),
 			SiteConfig:   &siteConfig,
 		},
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		appServiceIdentity := expandAzureRmAppServiceIdentity(d)
+		siteEnvelope.Identity = appServiceIdentity
 	}
 
 	if v, ok := d.GetOk("client_affinity_enabled"); ok {
@@ -273,7 +305,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 		_, err := client.UpdateConnectionStringsSlot(ctx, resGroup, appServiceName, properties, slot)
 		if err != nil {
-			return fmt.Errorf("Error updating Connection Strings for App Service %q/%q: %+v", appServiceName, slot, err)
+			return fmt.Errorf("Error updating Connection Strings for App Service Slot %q/%q: %+v", appServiceName, slot, err)
 		}
 	}
 
@@ -342,6 +374,11 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 
 	siteConfig := azSchema.FlattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
+		return err
+	}
+
+	identity := flattenAzureRmAppServiceMachineIdentity(resp.Identity)
+	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
 
