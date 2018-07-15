@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -140,7 +139,7 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(name string) resourc
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Namespace: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
 		}
 
 		conn := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
@@ -149,7 +148,7 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(name string) resourc
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: ServiceBus Queue Authorization Rule %q (namespace %s / resource group: %s) does not exist", name, namespaceName, resourceGroup)
+				return fmt.Errorf("Bad: ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group: %q) does not exist", name, queueName, namespaceName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on ServiceBus Queue: %+v", err)

@@ -79,7 +79,7 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Namespace Queue Rule %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ServiceBus Namespace Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q) ID", name, queueName, namespaceName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -107,7 +107,7 @@ func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, met
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q): %+v", name, queueName, namespaceName, resGroup, err)
 	}
 
 	d.Set("name", name)
@@ -124,7 +124,7 @@ func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, met
 
 	keysResp, err := client.ListKeys(ctx, resGroup, namespaceName, queueName, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule List Keys %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule List Keys %q: %+v", name, err)
 	}
 
 	d.Set("primary_key", keysResp.PrimaryKey)
@@ -150,7 +150,7 @@ func resourceArmServiceBusQueueAuthorizationRuleDelete(d *schema.ResourceData, m
 	queueName := id.Path["queues"]
 
 	if _, err = client.DeleteAuthorizationRule(ctx, resGroup, namespaceName, queueName, name); err != nil {
-		return fmt.Errorf("Error issuing Azure ARM delete request of ServiceBus Queue Authorization Rule %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error issuing delete request of ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q): %+v", name, queueName, namespaceName, resGroup, err)
 	}
 
 	return nil
