@@ -7,6 +7,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating to`2018-02-01` of the App Service SDK [GH-1436]
+* `azurerm_app_service_slot` - Slots can now be updated in-place [GH-1436]
 * `azurerm_function_app` - adding support for the `site_credential` block [GH-1567]
 
 BUG FIXES:
