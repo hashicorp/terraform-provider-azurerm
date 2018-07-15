@@ -67,7 +67,6 @@ func resourceArmManagedDisk() *schema.Resource {
 			"source_resource_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"image_reference_id": {
