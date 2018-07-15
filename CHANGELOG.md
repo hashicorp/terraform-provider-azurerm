@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_azuread_application` [GH-1552]
+* **New Resource:** `azurerm_servicebus_queue_authorization_rule` [GH-1543]
 
 IMPROVEMENTS:
 
