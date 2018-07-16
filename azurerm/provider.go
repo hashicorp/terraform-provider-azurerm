@@ -177,6 +177,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_firewall":                                resourceArmFirewall(),
 			"azurerm_firewall_network_rule_collection":        resourceArmFirewallNetworkRuleCollection(),
 			"azurerm_function_app":                            resourceArmFunctionApp(),
+			"azurerm_hdinsight_application":                   resourceArmHDInsightApplication(),
 			"azurerm_hdinsight_cluster":                       resourceArmHDInsightCluster(),
 			"azurerm_image":                                   resourceArmImage(),
 			"azurerm_iothub":                                  resourceArmIotHub(),

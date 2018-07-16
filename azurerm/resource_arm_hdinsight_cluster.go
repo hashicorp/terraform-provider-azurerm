@@ -5,9 +5,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
-
 	"net/http"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	"github.com/hashicorp/go-multierror"

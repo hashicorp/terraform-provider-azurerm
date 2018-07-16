@@ -172,6 +172,7 @@ type ArmClient struct {
 	dataLakeAnalyticsFirewallRulesClient analyticsAccount.FirewallRulesClient
 
 	// HDInsight
+	hdinsightApplicationsClient   hdinsight.ApplicationsClient
 	hdinsightClustersClient       hdinsight.ClustersClient
 	hdinsightConfigurationsClient hdinsight.ConfigurationsClient
 
@@ -767,6 +768,10 @@ func (c *ArmClient) registerEventHubClients(endpoint, subscriptionId string, aut
 }
 
 func (c *ArmClient) registerHDInsightClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
+	applicationsClient := hdinsight.NewApplicationsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&applicationsClient.Client, auth)
+	c.hdinsightApplicationsClient = applicationsClient
+
 	clustersClient := hdinsight.NewClustersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&clustersClient.Client, auth)
 	c.hdinsightClustersClient = clustersClient
