@@ -102,7 +102,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 }
 
 func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+	conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -112,10 +112,9 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.Stat
 
 		name := rs.Primary.Attributes["name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
-		eventHubName := rs.Primary.Attributes["eventhub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -136,18 +135,17 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(name string) resou
 
 		name := rs.Primary.Attributes["name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
-		eventHubName := rs.Primary.Attributes["eventhub_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventHubClient
+		conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
+		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Event Hub Authorization Rule %q (eventhub %s, namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, resourceGroup)
+				return fmt.Errorf("Bad: Event Hub Namespace Authorization Rule %q (namespace %q / resource group: %q) does not exist", name, namespaceName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)
