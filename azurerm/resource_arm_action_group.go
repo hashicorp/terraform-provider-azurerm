@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -21,17 +22,20 @@ func resourceArmActionGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"location":            locationSchema(),
+			"location": locationSchema(),
+
 			"resource_group_name": resourceGroupNameSchema(),
 
 			"short_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"enabled": {
@@ -46,12 +50,14 @@ func resourceArmActionGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"email_address": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
@@ -63,16 +69,19 @@ func resourceArmActionGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"country_code": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"phone_number": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
@@ -84,12 +93,14 @@ func resourceArmActionGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"service_uri": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 					},
 				},
@@ -115,15 +126,24 @@ func resourceArmActionGroupCreateOrUpdate(d *schema.ResourceData, meta interface
 	expandedTags := expandTags(tags)
 
 	parameters := insights.ActionGroupResource{
-		Location: utils.String(location),
+		Location: &location,
 		ActionGroup: &insights.ActionGroup{
-			GroupShortName:   utils.String(shortName),
-			Enabled:          utils.Bool(enabled),
-			EmailReceivers:   expandActionGroupEmailReceiver(d),
-			SmsReceivers:     expandActionGroupSmsReceiver(d),
-			WebhookReceivers: expandActionGroupWebHookReceiver(d),
+			GroupShortName: &shortName,
+			Enabled:        &enabled,
 		},
 		Tags: expandedTags,
+	}
+
+	if v, ok := d.GetOk("email_receiver"); ok {
+		parameters.ActionGroup.EmailReceivers = expandActionGroupEmailReceiver(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("sms_receiver"); ok {
+		parameters.ActionGroup.SmsReceivers = expandActionGroupSmsReceiver(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("webhook_receiver"); ok {
+		parameters.ActionGroup.WebhookReceivers = expandActionGroupWebHookReceiver(v.([]interface{}))
 	}
 
 	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -212,21 +232,41 @@ func resourceArmActionGroupDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandActionGroupEmailReceiver(d *schema.ResourceData) *[]insights.EmailReceiver {
-	v, ok := d.GetOk("email_receiver")
-	if !ok {
-		return nil
-	}
-
+func expandActionGroupEmailReceiver(v []interface{}) *[]insights.EmailReceiver {
 	receivers := make([]insights.EmailReceiver, 0)
-	for _, receiverValue := range v.([]interface{}) {
+	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
-
 		receiver := insights.EmailReceiver{
 			Name:         utils.String(val["name"].(string)),
 			EmailAddress: utils.String(val["email_address"].(string)),
 		}
+		receivers = append(receivers, receiver)
+	}
+	return &receivers
+}
 
+func expandActionGroupSmsReceiver(v []interface{}) *[]insights.SmsReceiver {
+	receivers := make([]insights.SmsReceiver, 0)
+	for _, receiverValue := range v {
+		val := receiverValue.(map[string]interface{})
+		receiver := insights.SmsReceiver{
+			Name:        utils.String(val["name"].(string)),
+			CountryCode: utils.String(val["country_code"].(string)),
+			PhoneNumber: utils.String(val["phone_number"].(string)),
+		}
+		receivers = append(receivers, receiver)
+	}
+	return &receivers
+}
+
+func expandActionGroupWebHookReceiver(v []interface{}) *[]insights.WebhookReceiver {
+	receivers := make([]insights.WebhookReceiver, 0)
+	for _, receiverValue := range v {
+		val := receiverValue.(map[string]interface{})
+		receiver := insights.WebhookReceiver{
+			Name:       utils.String(val["name"].(string)),
+			ServiceURI: utils.String(val["service_uri"].(string)),
+		}
 		receivers = append(receivers, receiver)
 	}
 	return &receivers
@@ -237,35 +277,12 @@ func flattenActionGroupEmailReceiver(receivers *[]insights.EmailReceiver) []inte
 	if receivers != nil {
 		for _, receiver := range *receivers {
 			val := make(map[string]interface{}, 0)
-
 			val["name"] = *receiver.Name
 			val["email_address"] = *receiver.EmailAddress
-
 			result = append(result, val)
 		}
 	}
 	return result
-}
-
-func expandActionGroupSmsReceiver(d *schema.ResourceData) *[]insights.SmsReceiver {
-	v, ok := d.GetOk("sms_receiver")
-	if !ok {
-		return nil
-	}
-
-	receivers := make([]insights.SmsReceiver, 0)
-	for _, receiverValue := range v.([]interface{}) {
-		val := receiverValue.(map[string]interface{})
-
-		receiver := insights.SmsReceiver{
-			Name:        utils.String(val["name"].(string)),
-			CountryCode: utils.String(val["country_code"].(string)),
-			PhoneNumber: utils.String(val["phone_number"].(string)),
-		}
-
-		receivers = append(receivers, receiver)
-	}
-	return &receivers
 }
 
 func flattenActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []interface{} {
@@ -273,35 +290,13 @@ func flattenActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []interfac
 	if receivers != nil {
 		for _, receiver := range *receivers {
 			val := make(map[string]interface{}, 0)
-
 			val["name"] = *receiver.Name
 			val["country_code"] = *receiver.CountryCode
 			val["phone_number"] = *receiver.PhoneNumber
-
 			result = append(result, val)
 		}
 	}
 	return result
-}
-
-func expandActionGroupWebHookReceiver(d *schema.ResourceData) *[]insights.WebhookReceiver {
-	v, ok := d.GetOk("webhook_receiver")
-	if !ok {
-		return nil
-	}
-
-	receivers := make([]insights.WebhookReceiver, 0)
-	for _, receiverValue := range v.([]interface{}) {
-		val := receiverValue.(map[string]interface{})
-
-		receiver := insights.WebhookReceiver{
-			Name:       utils.String(val["name"].(string)),
-			ServiceURI: utils.String(val["service_uri"].(string)),
-		}
-
-		receivers = append(receivers, receiver)
-	}
-	return &receivers
 }
 
 func flattenActionGroupWebHookReceiver(receivers *[]insights.WebhookReceiver) []interface{} {
@@ -309,10 +304,8 @@ func flattenActionGroupWebHookReceiver(receivers *[]insights.WebhookReceiver) []
 	if receivers != nil {
 		for _, receiver := range *receivers {
 			val := make(map[string]interface{}, 0)
-
 			val["name"] = *receiver.Name
 			val["service_uri"] = *receiver.ServiceURI
-
 			result = append(result, val)
 		}
 	}

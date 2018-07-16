@@ -39,6 +39,29 @@ func TestAccAzureRMActionGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMActionGroup_importBasic(t *testing.T) {
+	resourceName := "azurerm_action_group.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMActionGroup_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMActionGroup_empty(t *testing.T) {
 	resourceName := "azurerm_action_group.test"
 	ri := acctest.RandInt()
@@ -58,6 +81,29 @@ func TestAccAzureRMActionGroup_empty(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMActionGroup_importEmpty(t *testing.T) {
+	resourceName := "azurerm_action_group.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMActionGroup_empty(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -95,6 +141,29 @@ func TestAccAzureRMActionGroup_disabledEmpty(t *testing.T) {
 					testCheckAzureRMActionGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMActionGroup_importDisabledEmpty(t *testing.T) {
+	resourceName := "azurerm_action_group.test"
+
+	ri := acctest.RandInt()
+	config := testAccAzureRMActionGroup_disabledEmpty(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMActionGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
