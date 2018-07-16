@@ -147,7 +147,7 @@ func testCheckAzureRMEventHubAuthorizationRuleExists(name string) resource.TestC
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Event Hub Authorization Rule %q (eventhub %s, namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, resourceGroup)
+				return fmt.Errorf("Bad: Event Hub Authorization Rule %q (eventhub %s / namespace %s / resource group: %s) does not exist", name, eventHubName, namespaceName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on eventHubClient: %+v", err)
