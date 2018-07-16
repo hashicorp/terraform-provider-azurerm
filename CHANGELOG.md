@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_app_service_slot` - Slots can now be updated in-place [GH-1436]
 * `azurerm_container_group` - support for images hosted in a private registry [GH-1529]
 * `azurerm_function_app` - adding support for the `site_credential` block [GH-1567]
+* `azurerm_function_app` - only setting `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` for Consumption Apps [GH-1515]
 
 BUG FIXES:
 
