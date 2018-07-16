@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"regexp"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -675,6 +677,31 @@ func TestAccAzureRMAppServiceSlot_webSockets(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.websockets_enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation())
+
+	uuidMatch := regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", uuidMatch),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", uuidMatch),
 				),
 			},
 		},
@@ -1611,6 +1638,44 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     websockets_enabled = true
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_enableManageServiceIdentity(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                    = "acctestASSlot-%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  app_service_plan_id     = "${azurerm_app_service_plan.test.id}"
+  app_service_name        = "${azurerm_app_service.test.name}"
+  identity = {
+    type = "SystemAssigned"
   }
 }
 `, rInt, location, rInt, rInt, rInt)

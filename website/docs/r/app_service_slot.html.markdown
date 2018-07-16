@@ -166,6 +166,8 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` object as defined below.
 
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -211,6 +213,12 @@ The following arguments are supported:
 * `ip_address` - (Required) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+
+`identity` supports the following:
+
+* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service Slot has been created.
 
 ## Attributes Reference
 
