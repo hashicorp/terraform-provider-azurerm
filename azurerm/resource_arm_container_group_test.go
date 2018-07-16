@@ -82,7 +82,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := acctest.RandInt()
 
-	config := testAccAzureRMContainerGroup_imageRegistryCredentials(ri, testLocation())
+	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
