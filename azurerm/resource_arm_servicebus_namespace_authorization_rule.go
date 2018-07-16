@@ -51,7 +51,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace Authorization Rule creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
 	parameters := servicebus.SBAuthorizationRule{
@@ -61,18 +61,17 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 		},
 	}
 
-	_, err := client.CreateOrUpdateAuthorizationRule(ctx, resGroup, namespaceName, name, parameters)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating/updating ServiceBus Namespace Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, name)
+	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Namespace Authorization Rule %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read ServiceBus Namespace Authorization Rule %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)

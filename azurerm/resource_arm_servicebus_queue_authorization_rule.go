@@ -57,7 +57,7 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue Authorization Rule creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	queueName := d.Get("queue_name").(string)
 
@@ -68,18 +68,17 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 		},
 	}
 
-	_, err := client.CreateOrUpdateAuthorizationRule(ctx, resGroup, namespaceName, queueName, name, parameters)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating/updating ServiceBus Queue Authorization Rule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.GetAuthorizationRule(ctx, resGroup, namespaceName, queueName, name)
+	read, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ServiceBus Namespace Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q) ID", name, queueName, namespaceName, resGroup)
+		return fmt.Errorf("Cannot read ServiceBus Namespace Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q) ID", name, queueName, namespaceName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -107,6 +106,7 @@ func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, met
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Azure ServiceBus Queue Authorization Rule %q (Queue %q / Namespace %q / Resource Group %q): %+v", name, queueName, namespaceName, resGroup, err)
 	}
 

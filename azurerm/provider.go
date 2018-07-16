@@ -154,6 +154,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_eventhub_authorization_rule":             resourceArmEventHubAuthorizationRule(),
 			"azurerm_eventhub_consumer_group":                 resourceArmEventHubConsumerGroup(),
 			"azurerm_eventhub_namespace":                      resourceArmEventHubNamespace(),
+			"azurerm_eventhub_namespace_authorization_rule":   resourceArmEventHubNamespaceAuthorizationRule(),
 			"azurerm_express_route_circuit":                   resourceArmExpressRouteCircuit(),
 			"azurerm_express_route_circuit_authorization":     resourceArmExpressRouteCircuitAuthorization(),
 			"azurerm_express_route_circuit_peering":           resourceArmExpressRouteCircuitPeering(),
