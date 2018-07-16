@@ -11,7 +11,66 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func TestAccAzureRMKubernetesCluster_agentPoolName(t *testing.T) {
+	cases := []struct {
+		Input       string
+		ExpectError bool
+	}{
+		{
+			Input:       "",
+			ExpectError: true,
+		},
+		{
+			Input:       "hi",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello",
+			ExpectError: false,
+		},
+		{
+			Input:       "hello-world",
+			ExpectError: true,
+		},
+		{
+			Input:       "helloworld123",
+			ExpectError: true,
+		},
+		{
+			Input:       "hello_world",
+			ExpectError: true,
+		},
+		{
+			Input:       "Hello-World",
+			ExpectError: true,
+		},
+		{
+			Input:       "20202020",
+			ExpectError: true,
+		},
+		{
+			Input:       "h20202020",
+			ExpectError: false,
+		},
+		{
+			Input:       "ABC123!@£",
+			ExpectError: true,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateKubernetesClusterAgentPoolName()(tc.Input, "")
+
+		hasError := len(errors) > 0
+
+		if tc.ExpectError && !hasError {
+			t.Fatalf("Expected the Kubernetes Cluster Agent Pool Name to trigger a validation error for '%s'", tc.Input)
+		}
+	}
+}
+
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := acctest.RandInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
@@ -25,7 +84,13 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists("azurerm_kubernetes_cluster.test"),
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
 				),
 			},
 		},
@@ -190,7 +255,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["172.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -203,7 +268,7 @@ resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix       = "10.0.2.0/24"
+  address_prefix       = "172.0.2.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {

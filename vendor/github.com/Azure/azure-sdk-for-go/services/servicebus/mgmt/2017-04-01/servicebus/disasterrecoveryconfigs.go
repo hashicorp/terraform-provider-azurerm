@@ -42,9 +42,10 @@ func NewDisasterRecoveryConfigsClientWithBaseURI(baseURI string, subscriptionID 
 
 // BreakPairing this operation disables the Disaster Recovery and stops replicating changes from primary to secondary
 // namespaces
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -56,7 +57,7 @@ func (client DisasterRecoveryConfigsClient) BreakPairing(ctx context.Context, re
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "BreakPairing")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "BreakPairing", err.Error())
 	}
 
 	req, err := client.BreakPairingPreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -122,9 +123,10 @@ func (client DisasterRecoveryConfigsClient) BreakPairingResponder(resp *http.Res
 }
 
 // CheckNameAvailabilityMethod check the give namespace name availability.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// parameters is parameters to check availability of the given namespace name
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// parameters - parameters to check availability of the given namespace name
 func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethod(ctx context.Context, resourceGroupName string, namespaceName string, parameters CheckNameAvailability) (result CheckNameAvailabilityResult, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -135,7 +137,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethod(ctx cont
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "CheckNameAvailabilityMethod")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "CheckNameAvailabilityMethod", err.Error())
 	}
 
 	req, err := client.CheckNameAvailabilityMethodPreparer(ctx, resourceGroupName, namespaceName, parameters)
@@ -173,7 +175,7 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethodPreparer(
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/CheckNameAvailability", pathParameters),
@@ -203,10 +205,11 @@ func (client DisasterRecoveryConfigsClient) CheckNameAvailabilityMethodResponder
 }
 
 // CreateOrUpdate creates or updates a new Alias(Disaster Recovery configuration)
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name parameters is parameters required to create an Alias(Disaster
-// Recovery configuration)
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
+// parameters - parameters required to create an Alias(Disaster Recovery configuration)
 func (client DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, namespaceName string, alias string, parameters ArmDisasterRecovery) (result ArmDisasterRecovery, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -218,7 +221,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdate(ctx context.Context, 
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "CreateOrUpdate")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, namespaceName, alias, parameters)
@@ -257,7 +260,7 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdatePreparer(ctx context.C
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/disasterRecoveryConfigs/{alias}", pathParameters),
@@ -287,9 +290,10 @@ func (client DisasterRecoveryConfigsClient) CreateOrUpdateResponder(resp *http.R
 }
 
 // Delete deletes an Alias(Disaster Recovery configuration)
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) Delete(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -301,7 +305,7 @@ func (client DisasterRecoveryConfigsClient) Delete(ctx context.Context, resource
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "Delete")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -367,9 +371,10 @@ func (client DisasterRecoveryConfigsClient) DeleteResponder(resp *http.Response)
 }
 
 // FailOver envokes GEO DR failover and reconfigure the alias to point to the secondary namespace
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result autorest.Response, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -381,7 +386,7 @@ func (client DisasterRecoveryConfigsClient) FailOver(ctx context.Context, resour
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "FailOver")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "FailOver", err.Error())
 	}
 
 	req, err := client.FailOverPreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -447,9 +452,10 @@ func (client DisasterRecoveryConfigsClient) FailOverResponder(resp *http.Respons
 }
 
 // Get retrieves Alias(Disaster Recovery configuration) for primary or secondary namespace
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) Get(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result ArmDisasterRecovery, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -461,7 +467,7 @@ func (client DisasterRecoveryConfigsClient) Get(ctx context.Context, resourceGro
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "Get")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, namespaceName, alias)
@@ -528,9 +534,11 @@ func (client DisasterRecoveryConfigsClient) GetResponder(resp *http.Response) (r
 }
 
 // GetAuthorizationRule gets an authorization rule for a namespace by rule name.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name authorizationRuleName is the authorizationrule name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
+// authorizationRuleName - the authorizationrule name.
 func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, alias string, authorizationRuleName string) (result SBAuthorizationRule, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -545,7 +553,7 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRule(ctx context.Con
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "GetAuthorizationRule")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "GetAuthorizationRule", err.Error())
 	}
 
 	req, err := client.GetAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, alias, authorizationRuleName)
@@ -613,8 +621,9 @@ func (client DisasterRecoveryConfigsClient) GetAuthorizationRuleResponder(resp *
 }
 
 // List gets all Alias(Disaster Recovery configurations)
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
 func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGroupName string, namespaceName string) (result ArmDisasterRecoveryListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -623,7 +632,7 @@ func (client DisasterRecoveryConfigsClient) List(ctx context.Context, resourceGr
 		{TargetValue: namespaceName,
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "List")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
@@ -717,9 +726,10 @@ func (client DisasterRecoveryConfigsClient) ListComplete(ctx context.Context, re
 }
 
 // ListAuthorizationRules gets the authorization rules for a namespace.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
 func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.Context, resourceGroupName string, namespaceName string, alias string) (result SBAuthorizationRuleListResultPage, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -731,7 +741,7 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRules(ctx context.C
 		{TargetValue: alias,
 			Constraints: []validation.Constraint{{Target: "alias", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "alias", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "ListAuthorizationRules")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "ListAuthorizationRules", err.Error())
 	}
 
 	result.fn = client.listAuthorizationRulesNextResults
@@ -826,9 +836,11 @@ func (client DisasterRecoveryConfigsClient) ListAuthorizationRulesComplete(ctx c
 }
 
 // ListKeys gets the primary and secondary connection strings for the namespace.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// alias is the Disaster Recovery configuration name authorizationRuleName is the authorizationrule name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// alias - the Disaster Recovery configuration name
+// authorizationRuleName - the authorizationrule name.
 func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, alias string, authorizationRuleName string) (result AccessKeys, err error) {
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
@@ -843,7 +855,7 @@ func (client DisasterRecoveryConfigsClient) ListKeys(ctx context.Context, resour
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.DisasterRecoveryConfigsClient", "ListKeys")
+		return result, validation.NewError("servicebus.DisasterRecoveryConfigsClient", "ListKeys", err.Error())
 	}
 
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, namespaceName, alias, authorizationRuleName)

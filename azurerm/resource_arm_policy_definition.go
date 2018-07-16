@@ -1,11 +1,17 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
+	"time"
+
+	"strconv"
+
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-12-01/policy"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/structure"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -135,6 +141,20 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 
+	// Policy Definitions are eventually consistent; wait for them to stabilize
+	log.Printf("[DEBUG] Waiting for Policy Definition %q to become available", name)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"404"},
+		Target:                    []string{"200"},
+		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name),
+		Timeout:                   5 * time.Minute,
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Policy Definition %q to become available: %s", name, err)
+	}
+
 	resp, err := client.Get(ctx, name)
 	if err != nil {
 		return err
@@ -174,7 +194,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("description", props.Description)
 
 		if policyRule := props.PolicyRule; policyRule != nil {
-			policyRuleStr, err := structure.FlattenJsonToString(*policyRule)
+			policyRuleVal := policyRule.(map[string]interface{})
+			policyRuleStr, err := structure.FlattenJsonToString(policyRuleVal)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `policy_rule`: %s", err)
 			}
@@ -183,7 +204,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if metadata := props.Metadata; metadata != nil {
-			metadataStr, err := structure.FlattenJsonToString(*metadata)
+			metadataVal := metadata.(map[string]interface{})
+			metadataStr, err := structure.FlattenJsonToString(metadataVal)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `metadata`: %s", err)
 			}
@@ -192,7 +214,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if parameters := props.Parameters; parameters != nil {
-			parametersStr, err := structure.FlattenJsonToString(*props.Parameters)
+			paramsVal := props.Parameters.(map[string]interface{})
+			parametersStr, err := structure.FlattenJsonToString(paramsVal)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `parameters`: %s", err)
 			}
@@ -238,4 +261,15 @@ func parsePolicyDefinitionNameFromId(id string) (string, error) {
 	}
 
 	return components[6], nil
+}
+
+func policyDefinitionRefreshFunc(ctx context.Context, client policy.DefinitionsClient, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, name)
+		if err != nil {
+			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %s", name, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }

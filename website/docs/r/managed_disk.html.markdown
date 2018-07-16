@@ -6,7 +6,7 @@ description: |-
   Create a Managed Disk.
 ---
 
-# azurerm\_managed\_disk
+# azurerm_managed_disk
 
 Create a managed disk.
 
@@ -14,7 +14,7 @@ Create a managed disk.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 
@@ -36,7 +36,7 @@ resource "azurerm_managed_disk" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name = "acctestRG"
   location = "West US 2"
 }
 
@@ -122,11 +122,15 @@ For more information on managed disks, such as sizing options and pricing, pleas
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
 `disk_encryption_key` supports:
+
 * `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
 `key_encryption_key` supports:
+
 * `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
 

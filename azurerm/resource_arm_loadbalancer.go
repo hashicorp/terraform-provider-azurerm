@@ -5,20 +5,24 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/errwrap"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLoadBalancerCreate,
-		Read:   resourecArmLoadBalancerRead,
+		Read:   resourceArmLoadBalancerRead,
 		Update: resourceArmLoadBalancerCreate,
 		Delete: resourceArmLoadBalancerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -34,6 +38,18 @@ func resourceArmLoadBalancer() *schema.Resource {
 
 			"resource_group_name": resourceGroupNameSchema(),
 
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.LoadBalancerSkuNameBasic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.LoadBalancerSkuNameBasic),
+					string(network.LoadBalancerSkuNameStandard),
+				}, true),
+				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
 			"frontend_ip_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -41,49 +57,62 @@ func resourceArmLoadBalancer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"private_ip_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.IPv4AddressOrEmpty,
 						},
 
 						"public_ip_address_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"private_ip_address_allocation": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Computed:         true,
-							ValidateFunc:     validateLoadBalancerPrivateIpAddressAllocation,
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Dynamic),
+								string(network.Static),
+							}, true),
 							StateFunc:        ignoreCaseStateFunc,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"load_balancer_rules": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+							Set: schema.HashString,
 						},
 
 						"inbound_nat_rules": {
 							Type:     schema.TypeSet,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
+							Set: schema.HashString,
 						},
 
 						"zones": singleZonesSchema(),
@@ -103,18 +132,6 @@ func resourceArmLoadBalancer() *schema.Resource {
 				},
 			},
 
-			"sku": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(network.LoadBalancerSkuNameBasic),
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(network.LoadBalancerSkuNameBasic),
-					string(network.LoadBalancerSkuNameStandard),
-				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-			},
-
 			"tags": tagsSchema(),
 		},
 	}
@@ -127,7 +144,7 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[INFO] preparing arguments for Azure ARM LoadBalancer creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
@@ -181,10 +198,10 @@ func resourceArmLoadBalancerCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error waiting for LoadBalancer (%q - Resource Group %q) to become available: %s", name, resGroup, err)
 	}
 
-	return resourecArmLoadBalancerRead(d, meta)
+	return resourceArmLoadBalancerRead(d, meta)
 }
 
-func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -202,7 +219,6 @@ func resourecArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", loadBalancer.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	if location := loadBalancer.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
@@ -335,21 +351,21 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 			}
 
 			if rules := props.LoadBalancingRules; rules != nil {
-				loadBalancingRules := make([]string, 0, len(*rules))
+				loadBalancingRules := make([]interface{}, 0, len(*rules))
 				for _, rule := range *rules {
 					loadBalancingRules = append(loadBalancingRules, *rule.ID)
 				}
 
-				ipConfig["load_balancer_rules"] = loadBalancingRules
+				ipConfig["load_balancer_rules"] = schema.NewSet(schema.HashString, loadBalancingRules)
 			}
 
 			if rules := props.InboundNatRules; rules != nil {
-				inboundNatRules := make([]string, 0, len(*rules))
+				inboundNatRules := make([]interface{}, 0, len(*rules))
 				for _, rule := range *rules {
 					inboundNatRules = append(inboundNatRules, *rule.ID)
 				}
 
-				ipConfig["inbound_nat_rules"] = inboundNatRules
+				ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
 
 			}
 		}

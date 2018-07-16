@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_authorization_rule"
 sidebar_current: "docs-azurerm-resource-eventhub-authorization-rule"
 description: |-
-  Creates a new Event Hubs authorization Rule within an Event Hub.
+  Manages a Event Hubs authorization Rule within an Event Hub.
 ---
 
-# azurerm\_eventhub\_authorization\_rule
+# azurerm_eventhub_authorization_rule
 
-Creates a new Event Hubs authorization Rule within an Event Hub.
+Manages a Event Hubs authorization Rule within an Event Hub.
 
 ## Example Usage
 

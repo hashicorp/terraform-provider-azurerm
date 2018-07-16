@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,6 +88,28 @@ func TestAccAzureRMKeyVault_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_disappears(t *testing.T) {
+	resourceName := "azurerm_key_vault.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMKeyVault_basic(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+					testCheckAzureRMKeyVaultDisappears(resourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKeyVault_complete(t *testing.T) {
 	resourceName := "azurerm_key_vault.test"
 	ri := acctest.RandInt()
@@ -125,7 +148,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 					testCheckAzureRMKeyVaultExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "create"),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "set"),
-					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -199,6 +222,36 @@ func testCheckAzureRMKeyVaultExists(name string) resource.TestCheckFunc {
 	}
 }
 
+func testCheckAzureRMKeyVaultDisappears(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		vaultName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Delete(ctx, resourceGroup, vaultName)
+		if err != nil {
+			if response.WasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Delete on keyVaultClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
 func testAccAzureRMKeyVault_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
@@ -229,10 +282,6 @@ resource "azurerm_key_vault" "test" {
     secret_permissions = [
       "set",
     ]
-  }
-
-  tags {
-    environment = "Production"
   }
 }
 `, rInt, location, rInt)

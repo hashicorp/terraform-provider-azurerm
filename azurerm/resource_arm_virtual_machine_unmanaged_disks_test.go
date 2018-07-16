@@ -2524,7 +2524,7 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachine_linuxMachineWithSSH(rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg%s"
+    name = "acctestRG%s"
     location = "%s"
 }
 
@@ -2611,7 +2611,7 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachine_linuxMachineWithSSHRemoved(rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-    name = "acctestrg%s"
+    name = "acctestRG%s"
     location = "%s"
 }
 
@@ -2936,7 +2936,9 @@ func testCheckAzureRMVirtualMachineVHDExistence(name string, shouldExist bool) r
 			resourceGroup := rs.Primary.Attributes["resource_group_name"]
 			storageAccountName := rs.Primary.Attributes["storage_account_name"]
 			containerName := rs.Primary.Attributes["name"]
-			storageClient, _, err := testAccProvider.Meta().(*ArmClient).getBlobStorageClientForStorageAccount(resourceGroup, storageAccountName)
+			armClient := testAccProvider.Meta().(*ArmClient)
+			ctx := armClient.StopContext
+			storageClient, _, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
 			if err != nil {
 				return fmt.Errorf("Error creating Blob storage client: %+v", err)
 			}

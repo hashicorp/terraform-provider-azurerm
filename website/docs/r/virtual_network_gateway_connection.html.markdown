@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_network_gateway_connection"
+page_title: "Azure Resource Manager: azurerm_virtual_network_gateway_connection"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-connection"
 description: |-
-  Creates a new connection in an existing Virtual Network Gateway.
+  Manages a connection in an existing Virtual Network Gateway.
 ---
 
 # azurerm_virtual_network_gateway_connection
 
-Creates a new connection in an existing Virtual Network Gateway.
+Manages a connection in an existing Virtual Network Gateway.
 
 ## Example Usage
 
@@ -274,7 +274,7 @@ The `ipsec_policy` block supports:
 
 * `ipsec_integrity` - (Required) The IPSec integrity algorithm. Valid
     options are `GCMAES128`, `GCMAES192`, `GCMAES256`, `MD5`, `SHA1`, or `SHA256`.
-    
+
 * `pfs_group` - (Required) The DH group used in IKE phase 2 for new child SA.
     Valid options are `ECP256`, `ECP384`, `PFS1`, `PFS2`, `PFS2048`, `PFS24`,
     or `None`.

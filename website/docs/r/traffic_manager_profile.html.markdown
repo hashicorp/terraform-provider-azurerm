@@ -3,13 +3,13 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_profile"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-profile"
 description: |-
-  Creates a Traffic Manager Profile.
+  Manages a Traffic Manager Profile.
 
 ---
 
 # azurerm_traffic_manager_profile
 
-Creates a Traffic Manager Profile to which multiple endpoints can be attached.
+Manages a Traffic Manager Profile to which multiple endpoints can be attached.
 
 ## Example Usage
 

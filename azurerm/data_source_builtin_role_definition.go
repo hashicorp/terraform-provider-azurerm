@@ -83,10 +83,10 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error loading Role Definition: %+v", err)
 	}
 
-	if props := role.Properties; props != nil {
+	if props := role.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
-		d.Set("type", props.Type)
+		d.Set("type", props.RoleType)
 
 		permissions := flattenRoleDefinitionPermissions(props.Permissions)
 		if err := d.Set("permissions", permissions); err != nil {

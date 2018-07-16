@@ -8,8 +8,13 @@ resource "azurerm_resource_group" "default" {
   location = "${var.location}"
 }
 
+resource "random_integer" "ri" {
+  min = 10000
+  max = 99999
+}
+
 resource "azurerm_app_service_plan" "default" {
-  name                = "${var.app_service_name}-plan"
+  name                = "tfex-appservice-${random_integer.ri.result}-plan"
   location            = "${azurerm_resource_group.default.location}"
   resource_group_name = "${azurerm_resource_group.default.name}"
 
@@ -20,7 +25,7 @@ resource "azurerm_app_service_plan" "default" {
 }
 
 resource "azurerm_app_service" "default" {
-  name                = "${var.app_service_name}"
+  name                = "tfex-appservice-${random_integer.ri.result}"
   location            = "${azurerm_resource_group.default.location}"
   resource_group_name = "${azurerm_resource_group.default.name}"
   app_service_plan_id = "${azurerm_app_service_plan.default.id}"

@@ -6,9 +6,9 @@ description: |-
   Get information about the available subscriptions.
 ---
 
-# Data Source: azurerm_subscription
+# Data Source: azurerm_subscriptions
 
-Use this data source to access a list of all Azure subscription currently available.
+Use this data source to access a list of all Azure subscriptions currently available.
 
 ## Example Usage
 
@@ -24,12 +24,16 @@ output "first_available_subscription_display_name" {
 }
 ```
 
+## Argument Reference
+
+There are no arguments available for this data source.
+
 ## Attributes Reference
 
 * `subscriptions` - One or more `subscription` blocks as defined below.
 
-    
 The `subscription` block contains:
+
 * `display_name` - The subscription display name.
 * `state` - The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted.
 * `location_placement_id` - The subscription location placement ID.

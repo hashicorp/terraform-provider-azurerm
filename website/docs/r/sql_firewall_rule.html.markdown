@@ -39,7 +39,7 @@ resource "azurerm_sql_firewall_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the SQL Server.
+* `name` - (Required) The name of the firewall rule.
 
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the sql server.

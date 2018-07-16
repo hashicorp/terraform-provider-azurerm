@@ -24,7 +24,50 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
+				),
+			},
+		},
+	})
+}
 
+func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
+	resourceName := "azurerm_postgresql_database.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
+	resourceName := "azurerm_postgresql_database.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
 					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
 				),
@@ -105,15 +148,21 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
+    name     = "B_Gen4_2"
+    capacity = 2
     tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 
@@ -122,6 +171,88 @@ resource "azurerm_postgresql_database" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
   charset             = "UTF8"
+  collation           = "English_United States.1252"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLDatabase_charsetLowercase(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "B_Gen4_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  ssl_enforcement              = "Enabled"
+}
+
+resource "azurerm_postgresql_database" "test" {
+  name                = "acctestdb_%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_postgresql_server.test.name}"
+  charset             = "utf8"
+  collation           = "English_United States.1252"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLDatabase_charsetMixedcase(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "B_Gen4_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen4"
+  }
+
+  storage_profile {
+    storage_mb = 51200
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  ssl_enforcement              = "Enabled"
+}
+
+resource "azurerm_postgresql_database" "test" {
+  name                = "acctestdb_%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_postgresql_server.test.name}"
+  charset             = "Utf8"
   collation           = "English_United States.1252"
 }
 `, rInt, location, rInt, rInt)

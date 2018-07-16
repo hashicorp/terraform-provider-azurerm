@@ -30,29 +30,6 @@ func testAccAzureRMExpressRouteCircuitPeering_importAzurePrivatePeering(t *testi
 	})
 }
 
-func testAccAzureRMExpressRouteCircuitPeering_importAzurePublicPeering(t *testing.T) {
-	rInt := acctest.RandInt()
-	location := testLocation()
-	resourceName := "azurerm_express_route_circuit_peering.test"
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMExpressRouteCircuitPeeringDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMExpressRouteCircuitPeering_publicPeering(rInt, location),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"shared_key"},
-			},
-		},
-	})
-}
-
 func testAccAzureRMExpressRouteCircuitPeering_importMicrosoftPeering(t *testing.T) {
 	rInt := acctest.RandInt()
 	location := testLocation()

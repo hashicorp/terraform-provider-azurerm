@@ -126,8 +126,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		var err error
 		if img, err = client.Get(ctx, resGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(img.Response) {
-				d.SetId("")
-				return nil
+				return fmt.Errorf("Error: Image %q (Resource Group %q) was not found", name, resGroup)
 			}
 			return fmt.Errorf("[ERROR] Error making Read request on Azure Image %q (resource group %q): %+v", name, resGroup, err)
 		}
@@ -138,8 +137,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response().Response) {
-				d.SetId("")
-				return nil
+				return fmt.Errorf("Error: Image %q (Resource Group %q) was not found", name, resGroup)
 			}
 			return fmt.Errorf("[ERROR] Error getting list of images (resource group %q): %+v", resGroup, err)
 		}
@@ -177,7 +175,6 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId(*img.ID)
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
-
 	if location := img.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}

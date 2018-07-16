@@ -6,10 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmPublicIPs() *schema.Resource {
@@ -79,11 +78,6 @@ func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error 
 	log.Printf("[DEBUG] Reading Public IP's in Resource Group %q", resourceGroup)
 	resp, err := client.List(ctx, resourceGroup)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response().Response) {
-			d.SetId("")
-			return nil
-		}
-
 		return fmt.Errorf("Error listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
 	}
 

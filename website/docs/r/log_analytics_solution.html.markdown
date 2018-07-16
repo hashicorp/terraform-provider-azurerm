@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_solution"
 sidebar_current: "docs-azurerm-resource-oms-log-analytics-solution"
 description: |-
-  Creates a new Log Analytics (formally Operational Insights) Solution.
+  Manages a Log Analytics (formally Operational Insights) Solution.
 ---
 
 # azurerm_log_analytics_solution
 
-Creates a new Log Analytics (formally Operational Insights) Solution.
+Manages a Log Analytics (formally Operational Insights) Solution.
 
 ## Example Usage
 

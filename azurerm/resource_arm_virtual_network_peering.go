@@ -5,12 +5,12 @@ import (
 	"log"
 	"sync"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// peerMutex is used to prevet multiple Peering resources being creaed, updated
+// peerMutex is used to prevent multiple Peering resources being created, updated
 // or deleted at the same time
 var peerMutex = &sync.Mutex{}
 

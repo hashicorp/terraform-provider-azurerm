@@ -343,7 +343,7 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test-kv" {
   location = "%s"
-  name = "acctestKv-%d"
+  name = "vault%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   "sku" {
     name = "standard"
@@ -355,7 +355,7 @@ resource "azurerm_key_vault" "test-kv" {
     key_permissions = []
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
     secret_permissions = [
-      "all"]
+      "get","list","set","purge"]
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   }
 }
@@ -366,15 +366,15 @@ resource "azurerm_key_vault_secret" "test-secret" {
   vault_uri = "${azurerm_key_vault.test-kv.vault_uri}"
 }
 
-data "template_file" "test-template" {
-  template = <<TPL
+locals {
+	"templated-file" = <<TPL
 {
 "dnsLabelPrefix": {
     "reference": {
       "keyvault": {
-        "id": "/subscriptions/$${subscription_id}/resourceGroups/$${vault_resource_group_name}/providers/Microsoft.KeyVault/vaults/$${vault_name}"
+        "id": "${azurerm_key_vault.test-kv.id}"
       },
-      "secretName": "$${secret_name}"
+      "secretName": "${azurerm_key_vault_secret.test-secret.name}"
     }
   },
 "storageAccountType": {
@@ -382,12 +382,6 @@ data "template_file" "test-template" {
   }
 }
 TPL
-  vars {
-    "subscription_id" = "${data.azurerm_client_config.current.subscription_id}"
-    "vault_resource_group_name" = "${azurerm_resource_group.test.name}"
-    "vault_name" = "${azurerm_key_vault.test-kv.name}"
-    "secret_name" = "${azurerm_key_vault_secret.test-secret.name}"
-  }
 }
 
 resource "azurerm_template_deployment" "test" {
@@ -460,7 +454,7 @@ resource "azurerm_template_deployment" "test" {
 }
 DEPLOY
 
-  parameters_body = "${data.template_file.test-template.rendered}"
+  parameters_body = "${local.templated-file}"
   deployment_mode = "Complete"
   depends_on = ["azurerm_key_vault_secret.test-secret"]
 }
