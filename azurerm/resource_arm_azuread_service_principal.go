@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -10,6 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var servicePrincipalResourceName = "azurerm_service_principal"
 
 func resourceArmActiveDirectoryServicePrincipal() *schema.Resource {
 	return &schema.Resource{
@@ -72,6 +73,7 @@ func resourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta
 	if err != nil {
 		if utils.ResponseWasNotFound(app.Response) {
 			log.Printf("[DEBUG] Service Principal with Object ID %q was not found - removing from state!", objectId)
+			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("Error retrieving Service Principal ID %q: %+v", objectId, err)

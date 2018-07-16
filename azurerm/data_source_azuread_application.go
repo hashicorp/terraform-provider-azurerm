@@ -14,7 +14,6 @@ func dataSourceArmAzureADApplication() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		// TODO: customizeDiff for validation of either name or object_id.
 
 		Schema: map[string]*schema.Schema{
 			"object_id": {

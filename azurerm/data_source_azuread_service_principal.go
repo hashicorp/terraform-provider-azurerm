@@ -14,7 +14,6 @@ func dataSourceArmActiveDirectoryServicePrincipal() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		// TODO: customiseDiff to ensure either `object_id` or `display_name` or `application_id` is set
 
 		Schema: map[string]*schema.Schema{
 			"object_id": {
