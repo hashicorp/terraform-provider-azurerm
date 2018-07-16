@@ -311,6 +311,12 @@ func getAuthorizationToken(c *authentication.Config, oauthConfig *adal.OAuthConf
 		return nil, err
 	}
 
+	err = spt.Refresh()
+
+	if err != nil {
+		return nil, fmt.Errorf("Error refreshing Service Principal Token: %+v", err)
+	}
+
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
 }
