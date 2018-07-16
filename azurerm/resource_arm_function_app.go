@@ -217,7 +217,6 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	httpsOnly := d.Get("https_only").(bool)
 	tags := d.Get("tags").(map[string]interface{})
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
-
 	if err != nil {
 		return err
 	}
