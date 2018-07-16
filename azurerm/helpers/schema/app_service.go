@@ -179,6 +179,11 @@ func AppServiceSiteConfigSchema() *schema.Schema {
 						string(web.FtpsOnly),
 					}, false),
 				},
+				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -223,6 +228,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["java_container_version"]; ok {
 		siteConfig.JavaContainerVersion = utils.String(v.(string))
+	}
+
+	if v, ok := config["linux_fx_version"]; ok {
+		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
 	if v, ok := config["http2_enabled"]; ok {
@@ -392,6 +401,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.WebSocketsEnabled != nil {
 		result["websockets_enabled"] = *input.WebSocketsEnabled
+	}
+
+	if input.LinuxFxVersion != nil {
+		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
 
 	result["scm_type"] = string(input.ScmType)
