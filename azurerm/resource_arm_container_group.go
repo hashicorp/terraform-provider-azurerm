@@ -49,6 +49,37 @@ func resourceArmContainerGroup() *schema.Resource {
 				}, true),
 			},
 
+			"image_registry_credential": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"server": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+							ForceNew:     true,
+						},
+
+						"username": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+							ForceNew:     true,
+						},
+
+						"password": {
+							Type:         schema.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.NoZeroValues,
+							ForceNew:     true,
+						},
+					},
+				},
+			},
+
 			"tags": tagsForceNewSchema(),
 
 			"restart_policy": {
@@ -218,8 +249,9 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 				Type:  &IPAddressType,
 				Ports: containerGroupPorts,
 			},
-			OsType:  containerinstance.OperatingSystemTypes(OSType),
-			Volumes: containerGroupVolumes,
+			OsType:                   containerinstance.OperatingSystemTypes(OSType),
+			Volumes:                  containerGroupVolumes,
+			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 		},
 	}
 
@@ -276,6 +308,10 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 	flattenAndSetTags(d, resp.Tags)
+
+	if err := d.Set("image_registry_credential", flattenContainerImageRegistryCredentials(d, resp.ImageRegistryCredentials)); err != nil {
+		return fmt.Errorf("Error setting `capabilities`: %+v", err)
+	}
 
 	d.Set("os_type", string(resp.OsType))
 	if address := resp.IPAddress; address != nil {
@@ -529,6 +565,57 @@ func expandContainerEnvironmentVariables(input interface{}) *[]containerinstance
 	}
 
 	return &output
+}
+
+func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containerinstance.ImageRegistryCredential {
+	credsRaw := d.Get("image_registry_credential").([]interface{})
+	if len(credsRaw) == 0 {
+		return nil
+	}
+
+	output := make([]containerinstance.ImageRegistryCredential, 0, len(credsRaw))
+
+	for _, c := range credsRaw {
+		credConfig := c.(map[string]interface{})
+
+		output = append(output, containerinstance.ImageRegistryCredential{
+			Server:   utils.String(credConfig["server"].(string)),
+			Password: utils.String(credConfig["password"].(string)),
+			Username: utils.String(credConfig["username"].(string)),
+		})
+	}
+
+	return &output
+}
+
+func flattenContainerImageRegistryCredentials(d *schema.ResourceData, credsPtr *[]containerinstance.ImageRegistryCredential) []interface{} {
+	if credsPtr == nil {
+		return nil
+	}
+	configsOld := d.Get("image_registry_credential").([]interface{})
+
+	creds := *credsPtr
+	output := make([]interface{}, 0, len(creds))
+	for i, cred := range creds {
+		credConfig := make(map[string]interface{})
+		if cred.Server != nil {
+			credConfig["server"] = *cred.Server
+		}
+		if cred.Username != nil {
+			credConfig["username"] = *cred.Username
+		}
+
+		data := configsOld[i].(map[string]interface{})
+		oldServer := data["server"].(string)
+		if cred.Server != nil && *cred.Server == oldServer {
+			if v, ok := d.GetOk(fmt.Sprintf("image_registry_credential.%d.password", i)); ok {
+				credConfig["password"] = v.(string)
+			}
+		}
+
+		output = append(output, credConfig)
+	}
+	return output
 }
 
 func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount, *[]containerinstance.Volume) {
