@@ -41,7 +41,6 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "name"),
 					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
-					resource.TestCheckResourceAttrSet(resourceName, "eventhub_name"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
