@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_container_group` - support for images hosted in a private registry [GH-1529]
 * `azurerm_function_app` - adding support for the `site_credential` block [GH-1567]
 * `azurerm_function_app` - only setting `WEBSITE_CONTENTSHARE` and `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING` for Consumption Apps [GH-1515]
+* `azurerm_virtual_machine_scale_set` - `sku` property is now a list #1558 [GH-1558]
 
 BUG FIXES:
 
