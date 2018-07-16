@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_authorization_rule"
 sidebar_current: "docs-azurerm-resource-eventhub-namespace-authorization-rule"
 description: |-
-  Manages a Event Hub Namespace authorization Rule within an Event Hub.
+  Manages an Authorization Rule for an Event Hub Namespace.
 ---
 
 # azurerm_eventhub_namespace_authorization_rule
 
-Manages a Event Hub Namespace authorization Rule within an Event Hub.
+Manages an Authorization Rule for an Event Hub Namespace.
 
 ## Example Usage
 
@@ -20,7 +20,7 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acceptanceTestEventHubNamespace"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Basic"
   capacity            = 2
@@ -45,7 +45,7 @@ resource "azurerm_eventhub_namespace_authorization_rule" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the EventHub Namespace Authorization Rule resource. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Authorization Rule. Changing this forces a new resource to be created.
 
 * `namespace_name` - (Required) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created.
 
@@ -65,13 +65,13 @@ The following attributes are exported:
 
 * `id` - The EventHub ID.
 
-* `primary_key` - The Primary Key for the Event Hubs authorization Rule.
+* `primary_key` - The Primary Key for the Authorization Rule.
 
-* `primary_connection_string` - The Primary Connection String for the Event Hubs authorization Rule.
+* `primary_connection_string` - The Primary Connection String for the Authorization Rule.
 
-* `secondary_key` - The Secondary Key for the Event Hubs authorization Rule.
+* `secondary_key` - The Secondary Key for the Authorization Rule.
 
-* `secondary_connection_string` - The Secondary Connection String for the Event Hubs authorization Rule.
+* `secondary_connection_string` - The Secondary Connection String for the Authorization Rule.
 
 ## Import
 
