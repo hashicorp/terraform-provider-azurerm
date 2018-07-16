@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - support for running containers [GH-1578]
 * `azurerm_app_service_slot` - support for Managed Service Identity [GH-1579]
 * `azurerm_app_service_slot` - Slots can now be updated in-place [GH-1436]
+* `azurerm_container_group` - support for images hosted in a private registry [GH-1529]
 * `azurerm_function_app` - adding support for the `site_credential` block [GH-1567]
 
 BUG FIXES:
