@@ -218,7 +218,7 @@ The following arguments are supported:
 
 * `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service has been created.
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the App Service Slot has been created.
 
 ## Attributes Reference
 
