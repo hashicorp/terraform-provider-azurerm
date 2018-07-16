@@ -7,6 +7,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* authentication: Refreshing the Service Principal Token before using it [GH-1544]
 * dependencies: updating to`2018-02-01` of the App Service SDK [GH-1436]
 * `azurerm_app_service` - support for setting `ftps_settings` in the `site_config` block [GH-1577]
 * `azurerm_app_service_slot` - support for Managed Service Identity [GH-1579]
