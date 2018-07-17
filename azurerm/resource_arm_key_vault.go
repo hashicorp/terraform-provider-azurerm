@@ -132,6 +132,13 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validate.BoolIsTrue(),
 			},
 
+			"purge_on_delete": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{"enabled_for_purge_protection"},
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -291,6 +298,17 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	defer azureRMUnlockByName(name, keyVaultResourceName)
 
 	_, err = client.Delete(ctx, resGroup, name)
+
+	if d.Get("purge_on_delete").(bool) && d.Get("enabled_for_soft_delete").(bool) && err == nil {
+		log.Printf("[DEBUG] KeyVault %s marked for purge, executing purge", name)
+		location := d.Get("location").(string)
+		future, err := client.PurgeDeleted(ctx, name, location)
+		if err != nil {
+			return err
+		}
+		log.Printf("[DEBUG] Waiting for purge of KeyVault %s", name)
+		err = future.WaitForCompletion(ctx, client.Client)
+	}
 
 	return err
 }

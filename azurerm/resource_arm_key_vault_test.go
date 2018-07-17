@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -125,8 +126,6 @@ func TestAccAzureRMKeyVault_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "access_policy.0.application_id"),
-					resource.TestCheckResourceAttr(resourceName, "enabled_for_soft_delete", "true"),
-					resource.TestCheckResourceAttr(resourceName, "enabled_for_purge_protection", "true"),
 				),
 			},
 		},
@@ -168,11 +167,16 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKeyVault_enable_soft_delete(t *testing.T) {
+func TestAccAzureRMKeyVault_soft_delete(t *testing.T) {
 	ri := acctest.RandInt()
 	resourceName := "azurerm_key_vault.test"
 	preConfig := testAccAzureRMKeyVault_basic(ri, testLocation())
 	postConfig := testAccAzureRMKeyVault_enable_soft_delete(ri, testLocation())
+	purgeConfig := testAccAzureRMKeyVault_purge_vault(ri, testLocation())
+
+	expectedError := fmt.Sprintf("^Check failed: Check 1/1 error: Not found: %s", resourceName)
+
+	errorRegEx, _ := regexp.Compile(expectedError)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -195,6 +199,22 @@ func TestAccAzureRMKeyVault_enable_soft_delete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "get"),
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_soft_delete", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_purge_protection", "false"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
+				),
+			},
+			{
+				Config:      purgeConfig,
+				ExpectError: errorRegEx,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+				),
+			},
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.key_permissions.0", "create"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.secret_permissions.0", "set"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Production"),
 				),
 			},
@@ -402,13 +422,25 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  enabled_for_soft_delete = true
+	enabled_for_soft_delete = true
+  purge_on_delete = true
 
   tags {
     environment = "Production"
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMKeyVault_purge_vault(rInt int, location string) string {
+	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, rInt, location)
 }
 
 func testAccAzureRMKeyVault_complete(rInt int, location string) string {
@@ -430,9 +462,6 @@ resource "azurerm_key_vault" "test" {
     name = "premium"
   }
 	
-	enabled_for_soft_delete      = true
-	enabled_for_purge_protection = true
-
   access_policy {
     tenant_id      = "${data.azurerm_client_config.current.tenant_id}"
     object_id      = "${data.azurerm_client_config.current.client_id}"
