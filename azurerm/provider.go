@@ -98,6 +98,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_managed_disk":                          dataSourceArmManagedDisk(),
 			"azurerm_network_interface":                     dataSourceArmNetworkInterface(),
 			"azurerm_network_security_group":                dataSourceArmNetworkSecurityGroup(),
+			"azurerm_notification_hub_namespace":            dataSourceNotificationHubNamespace(),
 			"azurerm_platform_image":                        dataSourceArmPlatformImage(),
 			"azurerm_public_ip":                             dataSourceArmPublicIP(),
 			"azurerm_public_ips":                            dataSourceArmPublicIPs(),
