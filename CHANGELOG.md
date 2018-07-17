@@ -29,6 +29,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_application_insights` - fixing a bug where `application_type` was set to `other` [GH-1563]
+* `azurerm_lb` - allow `subnet_id` to be set to an empty value [GH-1588]
 * `azurerm_servicebus_subscription` - only sending `correlation_filter` values if they're set [GH-1565]
 * `azurerm_servicebus_subscription` - setting the `default_message_ttl` field [GH-1568]
 * `azurerm_snapshot` - allowing dashes in the `name` field [GH-1574]
