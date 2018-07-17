@@ -155,6 +155,14 @@
 			"versionExact": "v18.0.0"
 		},
 		{
+			"checksumSHA1": "gKWc9f9h+qlpzYqyoG3CZR+7q/U=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
 			"checksumSHA1": "8LqtzWEGPooyQjmmalXjJvdRGvE=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
