@@ -40,8 +40,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	read, err := client.Get(ctx, resourceGroup, logicAppName)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("[ERROR] Logic App Workflow %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
 		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", logicAppName, resourceGroup, err)
