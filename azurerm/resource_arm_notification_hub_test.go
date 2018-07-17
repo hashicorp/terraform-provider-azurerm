@@ -25,6 +25,8 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 				Config: testAzureRMNotificationHub_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "apns_credential.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "gcm_credential.%", "0"),
 				),
 			},
 		},

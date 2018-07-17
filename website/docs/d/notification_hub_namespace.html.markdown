@@ -14,11 +14,11 @@ Gets information about the specified Notification Hub Namespace.
 
 ```hcl
 data "azurerm_notification_hub_namespace" "test" {
-  name                = "${azurerm_network_security_group.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "my-namespace"
+  resource_group_name = "my-resource-group"
 }
 
-output "location" {
+output "servicebus_endpoint" {
   value = "${data.azurerm_notification_hub_namespace.test.servicebus_endpoint}"
 }
 ```

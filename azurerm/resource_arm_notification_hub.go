@@ -180,13 +180,13 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 
 	if props := credentials.PnsCredentialsProperties; props != nil {
 		apns := flattenNotificationHubsAPNSCredentials(props.ApnsCredential)
-		if d.Set("apns_settings", apns); err != nil {
-			return fmt.Errorf("Error flattening `apns_settings`: %+v", err)
+		if d.Set("apns_credential", apns); err != nil {
+			return fmt.Errorf("Error setting `apns_credential`: %+v", err)
 		}
 
 		gcm := flattenNotificationHubsGCMCredentials(props.GcmCredential)
 		if d.Set("gcm_settings", gcm); err != nil {
-			return fmt.Errorf("Error flattening `gcm_settings`: %+v", err)
+			return fmt.Errorf("Error setting `gcm_credential`: %+v", err)
 		}
 	}
 
