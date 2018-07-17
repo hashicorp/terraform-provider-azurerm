@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
+// TODO: customizeDiff
+
 func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLogicAppTriggerHttpRequestCreateUpdate,

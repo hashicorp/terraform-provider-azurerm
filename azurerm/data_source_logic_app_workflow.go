@@ -60,9 +60,9 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Logic App Workflow %q was not found in Resource Group %q", name, resourceGroup)
 		}
+
 		return fmt.Errorf("[ERROR] Error making Read request on Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

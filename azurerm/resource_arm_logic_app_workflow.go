@@ -71,7 +71,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	parameters := expandLogicAppWorkflowParameters(d)
+	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
 
 	workflowSchema := d.Get("workflow_schema").(string)
 	workflowVersion := d.Get("workflow_version").(string)
@@ -140,7 +140,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	parameters := expandLogicAppWorkflowParameters(d)
+	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
 	tags := d.Get("tags").(map[string]interface{})
 
 	properties := logic.Workflow{
@@ -174,6 +174,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Logic App Workflow %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
@@ -237,9 +238,8 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func expandLogicAppWorkflowParameters(d *schema.ResourceData) map[string]*logic.WorkflowParameter {
+func expandLogicAppWorkflowParameters(input map[string]interface{}) map[string]*logic.WorkflowParameter {
 	output := make(map[string]*logic.WorkflowParameter, 0)
-	input := d.Get("parameters").(map[string]interface{})
 
 	for k, v := range input {
 		output[k] = &logic.WorkflowParameter{
