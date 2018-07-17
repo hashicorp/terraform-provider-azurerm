@@ -12,7 +12,7 @@ func TestAccAzureRMHDInsight_importBasic(t *testing.T) {
 	rInt := acctest.RandInt()
 	rString := acctest.RandString(5)
 	location := testLocation()
-	config := testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 3)
+	config := testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

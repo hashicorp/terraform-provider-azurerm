@@ -91,7 +91,7 @@ func testCheckAzureRMHDInsightApplicationExists(name string) resource.TestCheckF
 }
 
 func testAccAzureRMHDInsightApplication_basic(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "Hadoop", 3)
+	template := testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
