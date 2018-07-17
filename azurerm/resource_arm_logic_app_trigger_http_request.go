@@ -13,8 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-// TODO: customizeDiff
-
 func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmLogicAppTriggerHttpRequestCreateUpdate,
@@ -23,6 +21,19 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 		Delete: resourceArmLogicAppTriggerHttpRequestDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			relativePath := diff.Get("relative_path").(string)
+			if relativePath != "" {
+				method := diff.Get("method").(string)
+				if method == "" {
+					return fmt.Errorf("`method` must be specified when `relative_path` is set.")
+				}
+			}
+
+			return nil
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -84,7 +95,6 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("relative_path"); ok {
-		// TODO:  Property 'method' is required if 'relativePath' is provided.
 		inputs["relativePath"] = v.(string)
 	}
 
