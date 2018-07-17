@@ -3,7 +3,14 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_azuread_application` [GH-1552]
+* **New Data Source:** `azurerm_logic_app_workflow` [GH-1266]
 * **New Resource:** `azurerm_eventhub_namespace_authorization_rule` [GH-1572]
+* **New Resource:** `azurerm_logic_app_action_custom` [GH-1266]
+* **New Resource:** `azurerm_logic_app_action_http` [GH-1266]
+* **New Resource:** `azurerm_logic_app_trigger_custom` [GH-1266]
+* **New Resource:** `azurerm_logic_app_trigger_http_request` [GH-1266]
+* **New Resource:** `azurerm_logic_app_trigger_recurrence` [GH-1266]
+* **New Resource:** `azurerm_logic_app_workflow` [GH-1266]
 * **New Resource:** `azurerm_servicebus_queue_authorization_rule` [GH-1543]
 
 IMPROVEMENTS:
