@@ -3,6 +3,8 @@ package azurerm
 import (
 	"fmt"
 
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -103,12 +105,12 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 
 	_, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Notification Hub %q (Namespace %q / Resource Group %q) ID", name, namespaceName, resourceGroup)
@@ -134,10 +136,12 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+
+			log.Printf("[DEBUG] Notification Hub %q was not found in Namespace %q / Resource Group %q", name, namespaceName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)

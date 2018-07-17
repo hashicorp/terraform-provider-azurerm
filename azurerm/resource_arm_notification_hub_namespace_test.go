@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccAzureRMNotificationHubNamespace_basic(t *testing.T) {
+func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	resourceName := "azurerm_notification_hub_namespace.test"
 
 	ri := acctest.RandInt()
@@ -22,7 +22,7 @@ func TestAccAzureRMNotificationHubNamespace_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHubNamespace_basic(ri, location),
+				Config: testAzureRMNotificationHubNamespace_free(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
 				),
@@ -31,7 +31,7 @@ func TestAccAzureRMNotificationHubNamespace_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNotificationHubNamespace_complete(t *testing.T) {
+func TestAccAzureRMNotificationHubNamespace_updateSku(t *testing.T) {
 	resourceName := "azurerm_notification_hub_namespace.test"
 
 	ri := acctest.RandInt()
@@ -43,9 +43,17 @@ func TestAccAzureRMNotificationHubNamespace_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHubNamespace_complete(ri, location),
+				Config: testAzureRMNotificationHubNamespace_free(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
+				),
+			},
+			{
+				Config: testAzureRMNotificationHubNamespace_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
 				),
 			},
 		},
@@ -103,23 +111,7 @@ func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMNotificationHubNamespace_basic(ri int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestrg-%d"
-  location = "%s"
-}
-
-resource "azurerm_notification_hub_namespace" "test" {
-  name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub" 
-}
-`, ri, location, ri)
-}
-
-func testAzureRMNotificationHubNamespace_complete(ri int, location string) string {
+func testAzureRMNotificationHubNamespace_free(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name = "acctestrg-%d"
@@ -131,10 +123,29 @@ resource "azurerm_notification_hub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   namespace_type      = "NotificationHub"
-  critical            = true
 
-  tags {
-    Source = "AcceptanceTests"
+  sku {
+    name = "Free"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAzureRMNotificationHubNamespace_basic(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  namespace_type      = "NotificationHub"
+
+  sku {
+    name = "Basic"
   }
 }
 `, ri, location, ri)

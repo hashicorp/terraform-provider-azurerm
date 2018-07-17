@@ -843,10 +843,10 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	c.watcherClient = watchersClient
 }
 
-func (c ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth *autorest.BearerAuthorizer, sender autorest.Sender) {
-	notificationNamespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
-	c.configureClient(&notificationNamespacesClient.Client, auth)
-	c.notificationNamespacesClient = notificationNamespacesClient
+func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth *autorest.BearerAuthorizer, sender autorest.Sender) {
+	namespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&namespacesClient.Client, auth)
+	c.notificationNamespacesClient = namespacesClient
 
 	notificationHubsClient := notificationhubs.NewClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&notificationHubsClient.Client, auth)

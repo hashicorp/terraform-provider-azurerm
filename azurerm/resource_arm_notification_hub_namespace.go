@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -31,11 +32,23 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 
 			"location": locationSchema(),
 
-			"critical": {
-				Type: schema.TypeBool,
-				// TODO: is this a sensible default?
-				Optional: true,
-				Default:  false,
+			"sku": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(notificationhubs.Basic),
+								string(notificationhubs.Free),
+								string(notificationhubs.Standard),
+							}, false),
+						},
+					},
+				},
 			},
 
 			"enabled": {
@@ -54,7 +67,9 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
-			"tags": tagsSchema(),
+			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
+			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
+			//"tags": tagsSchema(),
 
 			"servicebus_endpoint": {
 				Type:     schema.TypeString,
@@ -70,31 +85,30 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	location := azureRMNormalizeLocation(d.Get("location").(string))
+
+	sku := expandNotificationHubNamespacesSku(d.Get("sku").([]interface{}))
 
 	namespaceType := d.Get("namespace_type").(string)
-	critical := d.Get("critical").(bool)
 	enabled := d.Get("enabled").(bool)
 
 	parameters := notificationhubs.NamespaceCreateOrUpdateParameters{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Sku:      sku,
 		NamespaceProperties: &notificationhubs.NamespaceProperties{
 			Region:        utils.String(location),
 			NamespaceType: notificationhubs.NamespaceType(namespaceType),
-			Critical:      utils.Bool(critical),
 			Enabled:       utils.Bool(enabled),
 		},
 	}
 	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving Notification Hub Namesapce %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Notification Hub Namespace %q (Resource Group %q) ID", name, resourceGroup)
@@ -119,9 +133,11 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[DEBUG] Notification Hub Namespace %q (Resource Group %q) was not found - removing from state!", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Notification Hub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -131,16 +147,16 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	//  TODO: SKU?
+	sku := flattenNotificationHubNamespacesSku(resp.Sku)
+	if err := d.Set("sku", sku); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
+	}
 
 	if props := resp.NamespaceProperties; props != nil {
-		d.Set("critical", props.Critical)
 		d.Set("enabled", props.Enabled)
 		d.Set("namespace_type", props.NamespaceType)
 		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 	}
-
-	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
@@ -163,10 +179,33 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 		}
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Notification Hub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
+}
+
+func expandNotificationHubNamespacesSku(input []interface{}) *notificationhubs.Sku {
+	v := input[0].(map[string]interface{})
+
+	skuName := v["name"].(string)
+
+	return &notificationhubs.Sku{
+		Name: notificationhubs.SkuName(skuName),
+	}
+}
+
+func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interface{} {
+	outputs := make([]interface{}, 0)
+	if input == nil {
+		return outputs
+	}
+
+	output := map[string]interface{}{
+		"name": string(input.Name),
+	}
+	outputs = append(outputs, output)
+	return outputs
 }
