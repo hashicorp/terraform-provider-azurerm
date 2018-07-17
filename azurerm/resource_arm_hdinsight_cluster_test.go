@@ -205,7 +205,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Standard_D3_V2"
     }
 
     os_profile {
@@ -231,7 +231,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "A5"
     }
 
     os_profile {
@@ -291,7 +291,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Standard_D3_V2"
     }
 
     os_profile {
@@ -327,7 +327,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = 3
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "A5"
     }
 
     os_profile {

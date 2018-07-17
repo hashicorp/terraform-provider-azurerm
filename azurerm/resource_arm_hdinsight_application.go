@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2015-03-01-preview/hdinsight"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -35,7 +37,7 @@ func resourceArmHDInsightApplication() *schema.Resource {
 			},
 			"resource_group_name": resourceGroupNameSchema(),
 
-			"marketplace_identifer": {
+			"marketplace_identifier": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -74,12 +76,12 @@ func resourceArmHDInsightApplication() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeInt,
+							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 						"uri": {
-							Type:     schema.TypeBool,
+							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
@@ -108,12 +110,12 @@ func resourceArmHDInsightApplication() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeInt,
+							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 						"uri": {
-							Type:     schema.TypeBool,
+							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
@@ -299,9 +301,11 @@ func expandHDInsightApplicationComputeProfile(d *schema.ResourceData) *hdinsight
 func flattenHDInsightApplicationComputeProfile(input *hdinsight.ComputeProfile) []interface{} {
 	roles := make([]interface{}, 0)
 
-	// it's guaranteed in the API there'll only ever be one computeProfile returned called `edgenode`
-	// https://docs.microsoft.com/en-us/rest/api/hdinsight/hdinsight-application
 	for _, v := range *input.Roles {
+		if v.Name == nil || strings.EqualFold(*v.Name, "edgenode") {
+			continue
+		}
+
 		role := make(map[string]interface{}, 0)
 
 		hardwareProfiles := make([]interface{}, 0)
@@ -330,7 +334,7 @@ func expandHDInsightApplicationScriptActions(input []interface{}) *[]hdinsight.R
 		name := val["name"].(string)
 		uri := val["uri"].(string)
 
-		rolesRaw := val["roles"].(map[string]interface{})
+		rolesRaw := val["roles"].([]interface{})
 		roles := make([]string, 0)
 		for _, v := range rolesRaw {
 			role := v.(string)

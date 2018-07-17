@@ -51,7 +51,7 @@ func testCheckAzureRMHDInsightApplicationDestroy(s *terraform.State) error {
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("HDInsight Application %q still exists in resource group %q", applicationName, clusterName, resourceGroup)
+				return fmt.Errorf("HDInsight Application %q (Cluster %q) still exists in resource group %q", applicationName, clusterName, resourceGroup)
 			}
 
 			return nil
@@ -96,7 +96,7 @@ func testAccAzureRMHDInsightApplication_basic(rInt int, rString string, location
 %s
 
 resource "azurerm_hdinsight_application" "test" {
-  name                   = "emptynodeapp"
+  name                   = "new-edgenode"
   cluster_name           = "${azurerm_hdinsight_cluster.test.name}"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   marketplace_identifier = "EmptyNode"
