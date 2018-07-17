@@ -44,12 +44,36 @@ func TestAccAzureRMHDInsightCluster_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 3),
+				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttr(resourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "hadoop"),
+					resource.TestCheckResourceAttr(resourceName, "worker_node.0.target_instance_count", "3"),
+				),
+			},
+		},
+	})
+}
+func TestAccAzureRMHDInsightCluster_basicWithZookeeper(t *testing.T) {
+	resourceName := "azurerm_hdinsight_cluster.test"
+	rInt := acctest.RandInt()
+	rString := acctest.RandString(5)
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightCluster_basicConfigWithZookeeper(rInt, rString, location, "storm", 3),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(resourceName, "tier", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "storm"),
 					resource.TestCheckResourceAttr(resourceName, "worker_node.0.target_instance_count", "3"),
 				),
 			},
@@ -69,20 +93,20 @@ func TestAccAzureRMHDInsightCluster_updateWorkerCount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 3),
+				Config: testAccAzureRMHDInsightCluster_basicConfigWithZookeeper(rInt, rString, location, "storm", 3),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "standard"),
-					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "hadoop"),
+					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "storm"),
 					resource.TestCheckResourceAttr(resourceName, "worker_node.0.target_instance_count", "3"),
 				),
 			},
 			{
-				Config: testAccAzureRMHDInsightCluster_basicConfig(rInt, rString, location, "hadoop", 4),
+				Config: testAccAzureRMHDInsightCluster_basicConfigWithZookeeper(rInt, rString, location, "storm", 4),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tier", "standard"),
-					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "hadoop"),
+					resource.TestCheckResourceAttr(resourceName, "cluster.0.kind", "storm"),
 					resource.TestCheckResourceAttr(resourceName, "worker_node.0.target_instance_count", "4"),
 				),
 			},
@@ -171,7 +195,66 @@ func testCheckAzureRMHDInsightClusterExists(name string) resource.TestCheckFunc 
 	}
 }
 
-func testAccAzureRMHDInsightCluster_basicConfig(rInt int, rString string, location string, clusterType string, nodes int) string {
+func testAccAzureRMHDInsightCluster_basicConfig(rInt int, rString string, location string) string {
+	template := testAccAzureRMHDInsightCluster_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_cluster" "test" {
+  name                = "acctesthdic-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tier                = "standard"
+
+  cluster {
+    kind    = "hadoop"
+    version = "3.6"
+
+    gateway {
+      username = "${var.username}"
+      password = "${var.password}"
+    }
+  }
+
+  storage_profile {
+    storage_account {
+      storage_account_name = "${azurerm_storage_account.test.primary_blob_domain}"
+      storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+      container_name       = "${azurerm_storage_container.test.name}"
+      is_default           = true
+    }
+  }
+
+  head_node {
+    target_instance_count = 2
+
+    hardware_profile {
+      vm_size = "Standard_D3_V2"
+    }
+
+    os_profile {
+      username = "${var.username}"
+      password = "${var.password}"
+    }
+  }
+
+  worker_node {
+    target_instance_count = 3
+
+    hardware_profile {
+      vm_size = "Standard_D3_v2"
+    }
+
+    os_profile {
+      username = "${var.username}"
+      password = "${var.password}"
+    }
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMHDInsightCluster_basicConfigWithZookeeper(rInt int, rString string, location string, clusterType string, nodes int) string {
 	template := testAccAzureRMHDInsightCluster_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
@@ -202,7 +285,7 @@ resource "azurerm_hdinsight_cluster" "test" {
   }
 
   head_node {
-    target_instance_count = 3
+    target_instance_count = 2
 
     hardware_profile {
       vm_size = "Standard_D3_V2"
@@ -218,7 +301,7 @@ resource "azurerm_hdinsight_cluster" "test" {
     target_instance_count = %d
 
     hardware_profile {
-      vm_size = "Medium"
+      vm_size = "Standard_D3_v2"
     }
 
     os_profile {

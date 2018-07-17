@@ -163,11 +163,11 @@ func resourceArmHDInsightCluster() *schema.Resource {
 				},
 			},
 
-			"head_node": hdinsightClusterNodeProfile("head_node", 2, true),
+			"head_node": hdinsightClusterNodeProfile("head_node", true, 2, true),
 
-			"worker_node": hdinsightClusterNodeProfile("worker_node", 2, false),
+			"worker_node": hdinsightClusterNodeProfile("worker_node", true, 2, false),
 
-			"zookeeper_node": hdinsightClusterNodeProfile("zookeeper_node", 3, true),
+			"zookeeper_node": hdinsightClusterNodeProfile("zookeeper_node", false, 3, true),
 
 			"tags": tagsSchema(),
 
@@ -442,11 +442,12 @@ func resourceArmHDInsightClusterDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func hdinsightClusterNodeProfile(blockName string, minTargetInstanceCount int, numberOfNodesForceNew bool) *schema.Schema {
+func hdinsightClusterNodeProfile(blockName string, required bool, minTargetInstanceCount int, numberOfNodesForceNew bool) *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
-		Required: true,
+		Optional: !required,
+		Required: required,
 		ForceNew: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -530,6 +531,11 @@ func hdinsightClusterNodeProfile(blockName string, minTargetInstanceCount int, n
 
 func expandHDInsightClusterNodeProfile(name string, d interface{}) (*hdinsight.Role, error) {
 	vs := d.([]interface{})
+	if len(vs) == 0 {
+		// optional
+		return nil, nil
+	}
+
 	v := vs[0].(map[string]interface{})
 
 	targetInstanceCount := v["target_instance_count"].(int)
@@ -588,6 +594,10 @@ func expandHDInsightClusterNodeProfile(name string, d interface{}) (*hdinsight.R
 }
 
 func flattenHDInsightClusterComputeNodeProfile(input *hdinsight.Role) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	output := make(map[string]interface{}, 0)
 
 	if input != nil {
@@ -786,22 +796,28 @@ func expandHDInsightClusterComputeProfile(d *schema.ResourceData) (*hdinsight.Co
 	if err != nil {
 		return nil, fmt.Errorf("Error expanding `head_node`: %+v", err)
 	}
-	workerNode, err := expandHDInsightClusterNodeProfile("workernode", d.Get("worker_node"))
 
+	workerNode, err := expandHDInsightClusterNodeProfile("workernode", d.Get("worker_node"))
 	if err != nil {
 		return nil, fmt.Errorf("Error expanding `worker_node`: %+v", err)
 	}
+
 	zookeeperNode, err := expandHDInsightClusterNodeProfile("zookeepernode", d.Get("zookeeper_node"))
 	if err != nil {
 		return nil, fmt.Errorf("Error expanding `zookeeper_node`: %+v", err)
 	}
 
+	roles := []hdinsight.Role{
+		*headNode,
+		*workerNode,
+	}
+
+	if zookeeperNode != nil {
+		roles = append(roles, *zookeeperNode)
+	}
+
 	return &hdinsight.ComputeProfile{
-		Roles: &[]hdinsight.Role{
-			*headNode,
-			*workerNode,
-			*zookeeperNode,
-		},
+		Roles: &roles,
 	}, nil
 }
 
