@@ -75,7 +75,23 @@ func resourceArmNotificationHub() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"gcm_credential": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"api_key": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
+			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
+			//"tags": tagsSchema(),
 		},
 	}
 }
@@ -87,19 +103,25 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := d.Get("location").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	location := azureRMNormalizeLocation(d.Get("location").(string))
 
-	apnsCredential, err := expandNotificationHubsAPNSCredentials(d)
+	apnsRaw := d.Get("apns_credential").([]interface{})
+	apnsCredential, err := expandNotificationHubsAPNSCredentials(apnsRaw)
+	if err != nil {
+		return err
+	}
+
+	gcmRaw := d.Get("gcm_credential").([]interface{})
+	gcmCredentials, err := expandNotificationHubsGCMCredentials(gcmRaw)
 	if err != nil {
 		return err
 	}
 
 	parameters := notificationhubs.CreateOrUpdateParameters{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
 		Properties: &notificationhubs.Properties{
 			ApnsCredential: apnsCredential,
+			GcmCredential:  gcmCredentials,
 		},
 	}
 
@@ -136,12 +158,17 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-
 			log.Printf("[DEBUG] Notification Hub %q was not found in Namespace %q / Resource Group %q", name, namespaceName, resourceGroup)
 			d.SetId("")
 			return nil
 		}
+
 		return fmt.Errorf("Error making Read request on Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
+	}
+
+	credentials, err := client.GetPnsCredentials(ctx, resourceGroup, namespaceName, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Credentials for Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -151,14 +178,17 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
 
-	if props := resp.Properties; props != nil {
+	if props := credentials.PnsCredentialsProperties; props != nil {
 		apns := flattenNotificationHubsAPNSCredentials(props.ApnsCredential)
 		if d.Set("apns_settings", apns); err != nil {
 			return fmt.Errorf("Error flattening `apns_settings`: %+v", err)
 		}
-	}
 
-	flattenAndSetTags(d, resp.Tags)
+		gcm := flattenNotificationHubsGCMCredentials(props.GcmCredential)
+		if d.Set("gcm_settings", gcm); err != nil {
+			return fmt.Errorf("Error flattening `gcm_settings`: %+v", err)
+		}
+	}
 
 	return nil
 }
@@ -185,8 +215,7 @@ func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandNotificationHubsAPNSCredentials(d *schema.ResourceData) (*notificationhubs.ApnsCredential, error) {
-	inputs := d.Get("apns_credential").([]interface{})
+func expandNotificationHubsAPNSCredentials(inputs []interface{}) (*notificationhubs.ApnsCredential, error) {
 	if len(inputs) == 0 {
 		return nil, nil
 	}
@@ -246,6 +275,36 @@ func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredenti
 
 	if token := input.Token; token != nil {
 		output["token"] = *token
+	}
+
+	return []interface{}{output}
+}
+
+func expandNotificationHubsGCMCredentials(inputs []interface{}) (*notificationhubs.GcmCredential, error) {
+	if len(inputs) == 0 {
+		return nil, nil
+	}
+
+	input := inputs[0].(map[string]interface{})
+	apiKey := input["api_key"].(string)
+	credentials := notificationhubs.GcmCredential{
+		GcmCredentialProperties: &notificationhubs.GcmCredentialProperties{
+			GoogleAPIKey: utils.String(apiKey),
+		},
+	}
+	return &credentials, nil
+}
+
+func flattenNotificationHubsGCMCredentials(input *notificationhubs.GcmCredential) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make(map[string]interface{}, 0)
+	if props := input.GcmCredentialProperties; props != nil {
+		if apiKey := props.GoogleAPIKey; apiKey != nil {
+			output["api_key"] = *apiKey
+		}
 	}
 
 	return []interface{}{output}

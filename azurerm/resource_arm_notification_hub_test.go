@@ -31,48 +31,6 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNotificationHub_tags(t *testing.T) {
-	resourceName := "azurerm_notification_hub.test"
-
-	ri := acctest.RandInt()
-	location := testLocation()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNotificationHub_tags(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(resourceName),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMNotificationHub_apnsSettings(t *testing.T) {
-	resourceName := "azurerm_notification_hub.test"
-
-	ri := acctest.RandInt()
-	location := testLocation()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNotificationHub_apns(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubExists(resourceName),
-				),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMNotificationHubExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -105,7 +63,7 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_notification_hub_namespace" {
+		if rs.Type != "azurerm_notification_hub" {
 			continue
 		}
 
@@ -139,71 +97,16 @@ resource "azurerm_notification_hub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   namespace_type      = "NotificationHub" 
-}
-
-resource "azurerm_notification_hub" "test" {
-  name                = "acctestnh-%d"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}" 
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-}
-`, ri, location, ri, ri)
-}
-
-func testAzureRMNotificationHub_tags(ri int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestrgpol-%d"
-  location = "%s"
-}
-
-resource "azurerm_notification_hub_namespace" "test" {
-  name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub" 
-}
-
-resource "azurerm_notification_hub" "test" {
-  name                = "acctestnh-%d"
-  namespace_name      = "${azurerm_notification_hub_namespace.test.name}" 
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-
-  tags {
-    Source = "AcceptanceTests"
+  sku {
+   name = "Free"
   }
 }
-`, ri, location, ri, ri)
-}
-
-func testAzureRMNotificationHub_apns(ri int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name = "acctestrgpol-%d"
-  location = "%s"
-}
-
-resource "azurerm_notification_hub_namespace" "test" {
-  name                = "acctestnhn-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  namespace_type      = "NotificationHub" 
-}
 
 resource "azurerm_notification_hub" "test" {
   name                = "acctestnh-%d"
   namespace_name      = "${azurerm_notification_hub_namespace.test.name}" 
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-
-  apns_credential {
-    application_id   = "com.hashicorp.acceptance-test"
-    application_mode = "Sandbox"
-    application_name = "Acceptance Test"
-    key_id           = "TODO"
-	token            = "TODO"
-  }
 }
 `, ri, location, ri, ri)
 }
