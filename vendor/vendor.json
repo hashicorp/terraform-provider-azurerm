@@ -123,6 +123,14 @@
 			"versionExact": "v18.0.0"
 		},
 		{
+			"checksumSHA1": "EvqsEQeq/NRGDZ1RW4tGkgolGh0=",
+			"path": "github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic",
+			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
+			"revisionTime": "2018-07-03T19:15:42Z",
+			"version": "=v18.0.0",
+			"versionExact": "v18.0.0"
+		},
+		{
 			"checksumSHA1": "E+QgVQ3X1EvmDta96Xa2aPHrkt4=",
 			"path": "github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights",
 			"revision": "fbe7db0e3f9793ba3e5704efbab84f51436c136e",
