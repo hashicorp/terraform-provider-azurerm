@@ -1,10 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -179,6 +183,19 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 		}
 	}
 
+	// the future returned from the Delete method is broken 50% of the time - let's poll ourselves for now
+	// TODO: BUG
+	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be deleted", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"200", "202"},
+		Target:  []string{"404"},
+		Refresh: notificationHubNamespaceStateRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout: 10 * time.Minute,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Notification Hub %q (Resource Group %q) to be deleted: %s", name, resourceGroup, err)
+	}
+
 	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Notification Hub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -208,4 +225,17 @@ func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interfac
 	}
 	outputs = append(outputs, output)
 	return outputs
+}
+
+func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Error retrieving Notification Hub Namespace %q (Resource Group %q): %s", name, resourceGroupName, err)
+			}
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }
