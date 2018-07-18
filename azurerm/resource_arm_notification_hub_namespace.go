@@ -184,7 +184,7 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 	}
 
 	// the future returned from the Delete method is broken 50% of the time - let's poll ourselves for now
-	// TODO: BUG
+	// Related Bug: https://github.com/Azure/azure-sdk-for-go/issues/2254
 	log.Printf("[DEBUG] Waiting for Notification Hub Namespace %q (Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200", "202"},
