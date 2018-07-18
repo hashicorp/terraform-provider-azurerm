@@ -197,6 +197,7 @@ func Provider() terraform.ResourceProvider {
 			"azurerm_network_security_rule":                   resourceArmNetworkSecurityRule(),
 			"azurerm_network_watcher":                         resourceArmNetworkWatcher(),
 			"azurerm_notification_hub":                        resourceArmNotificationHub(),
+			"azurerm_notification_hub_authorization_rule":     resourceArmNotificationHubAuthorizationRule(),
 			"azurerm_notification_hub_namespace":              resourceArmNotificationHubNamespace(),
 			"azurerm_packet_capture":                          resourceArmPacketCapture(),
 			"azurerm_policy_assignment":                       resourceArmPolicyAssignment(),
