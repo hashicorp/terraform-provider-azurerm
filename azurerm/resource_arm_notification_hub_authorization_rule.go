@@ -133,6 +133,11 @@ func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, met
 		return fmt.Errorf("Error making Read request on Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
 	}
 
+	keysResp, err := client.ListKeys(ctx, resourceGroup, namespaceName, notificationHubName, name)
+	if err != nil {
+		return fmt.Errorf("Error Listing Access Keys for Authorization Rule %q (Notification Hub %q / Namespace %q / Resource Group %q): %+v", name, notificationHubName, namespaceName, resourceGroup, err)
+	}
+
 	d.Set("name", resp.Name)
 	d.Set("notification_hub_name", notificationHubName)
 	d.Set("namespace_name", namespaceName)
@@ -143,10 +148,10 @@ func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, met
 		d.Set("manage", manage)
 		d.Set("send", send)
 		d.Set("listen", listen)
-
-		d.Set("primary_access_key", props.PrimaryKey)
-		d.Set("secondary_access_key", props.SecondaryKey)
 	}
+
+	d.Set("primary_access_key", keysResp.PrimaryKey)
+	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
 	return nil
 }
