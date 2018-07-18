@@ -70,7 +70,7 @@ A `apns_credential` block contains:
 
 * `team_id` - (Required) The ID of the team the Token.
 
-* `token` - (Required) The Push Token associated with the Apple Developer Account.
+* `token` - (Required) The Push Token associated with the Apple Developer Account. This is the contents of the `key` downloaded from [the Apple Developer Portal](https://developer.apple.com/account/ios/authkey/) between the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` blocks.
 
 ---
 
