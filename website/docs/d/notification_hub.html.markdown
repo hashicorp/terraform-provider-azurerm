@@ -46,15 +46,15 @@ output "id" {
 
 A `apns_credential` block exports:
 
-* `application_id` - The reverse-domain identifier for the application, such as `com.hashicorp.example`.
-
 * `application_mode` - The Application Mode which defines which server the APNS Messages should be sent to. Possible values are `Production` and `Sandbox`.
 
-* `application_name` - The name of the Application.
+* `bundle_id` - The Bundle ID of the iOS/macOS application to send push notifications for, such as `com.hashicorp.example`.
 
 * `key_id` - The Apple Push Notifications Service (APNS) Key.
 
-* `token` - The Token associated with the Apple.
+* `team_id` - The ID of the team the Token.
+
+* `token` - The Push Token associated with the Apple Developer Account.
 
 ---
 

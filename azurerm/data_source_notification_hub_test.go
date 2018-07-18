@@ -22,8 +22,8 @@ func TestAccDataSourceAzureRMNotificationHub_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "apns_credential.%", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "gcm_credential.%", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "apns_credential.#", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "gcm_credential.#", "0"),
 				),
 			},
 		},

@@ -52,21 +52,25 @@ The following arguments are supported:
 
 * `apns_credential` - (Optional) A `apns_credential` block as defined below.
 
+~> **NOTE:** Removing the `apns_credential` block will currently force a recreation of this resource [due to this bug in the Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go/issues/2246) - we'll remove this limitation when the SDK bug is fixed.
+
 * `gcm_credential` - (Optional) A `gcm_credential` block as defined below.
+
+~> **NOTE:** Removing the `gcm_credential` block will currently force a recreation of this resource [due to this bug in the Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go/issues/2246) - we'll remove this limitation when the SDK bug is fixed.
 
 ---
 
 A `apns_credential` block contains:
 
-* `application_id` - (Required) The reverse-domain identifier for the application, such as `com.hashicorp.example`.
-
 * `application_mode` - (Required) The Application Mode which defines which server the APNS Messages should be sent to. Possible values are `Production` and `Sandbox`.
 
-* `application_name` - (Required) The name of the Application.
+* `bundle_id` - (Required) The Bundle ID of the iOS/macOS application to send push notifications for, such as `com.hashicorp.example`.
 
 * `key_id` - (Required) The Apple Push Notifications Service (APNS) Key.
 
-* `token` - (Required) The Token associated with the Apple.
+* `team_id` - (Required) The ID of the team the Token.
+
+* `token` - (Required) The Push Token associated with the Apple Developer Account.
 
 ---
 

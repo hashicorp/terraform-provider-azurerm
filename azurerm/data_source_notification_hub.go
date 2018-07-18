@@ -32,15 +32,11 @@ func dataSourceNotificationHub() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"application_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"application_mode": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"application_name": {
+						"bundle_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -48,9 +44,15 @@ func dataSourceNotificationHub() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"token": {
+						// Team ID (within Apple & the Portal) == "AppID" (within the API)
+						"team_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"token": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -62,8 +64,9 @@ func dataSourceNotificationHub() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"api_key": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -129,12 +132,8 @@ func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.Ap
 
 	output := make(map[string]interface{}, 0)
 
-	if applicationId := input.AppID; applicationId != nil {
-		output["application_id"] = *applicationId
-	}
-
-	if name := input.AppName; name != nil {
-		output["application_name"] = *name
+	if bundleId := input.AppName; bundleId != nil {
+		output["bundle_id"] = *bundleId
 	}
 
 	if endpoint := input.Endpoint; endpoint != nil {
@@ -148,6 +147,10 @@ func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.Ap
 
 	if keyId := input.KeyID; keyId != nil {
 		output["key_id"] = *keyId
+	}
+
+	if teamId := input.AppID; teamId != nil {
+		output["team_id"] = *teamId
 	}
 
 	if token := input.Token; token != nil {

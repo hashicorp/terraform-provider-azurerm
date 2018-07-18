@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
@@ -19,6 +18,26 @@ func resourceArmNotificationHub() *schema.Resource {
 		Delete: resourceArmNotificationHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			// NOTE: the ForceNew is to workaround a bug in the Azure SDK where nil-values aren't sent to the API.
+			// Bug: https://github.com/Azure/azure-sdk-for-go/issues/2246
+
+			oAPNS, nAPNS := diff.GetChange("apns_credential.#")
+			oAPNSi := oAPNS.(int)
+			nAPNSi := nAPNS.(int)
+			if nAPNSi < oAPNSi {
+				diff.ForceNew("apns_credential")
+			}
+
+			oGCM, nGCM := diff.GetChange("gcm_credential.#")
+			oGCMi := oGCM.(int)
+			nGCMi := nGCM.(int)
+			if nGCMi < oGCMi {
+				diff.ForceNew("gcm_credential")
+			}
+
+			return nil
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -47,10 +66,6 @@ func resourceArmNotificationHub() *schema.Resource {
 						// NOTE: APNS supports two modes, certificate auth (v1) and token auth (v2)
 						// certificate authentication/v1 is marked for deprecation; as such we're not
 						// supporting it at this time.
-						"application_id": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
 						"application_mode": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -59,7 +74,7 @@ func resourceArmNotificationHub() *schema.Resource {
 								"Sandbox",
 							}, false),
 						},
-						"application_name": {
+						"bundle_id": {
 							Type:     schema.TypeString,
 							Required: true,
 						},
@@ -67,9 +82,15 @@ func resourceArmNotificationHub() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"token": {
+						// Team ID (within Apple & the Portal) == "AppID" (within the API)
+						"team_id": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+						"token": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -82,8 +103,9 @@ func resourceArmNotificationHub() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"api_key": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -185,7 +207,7 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 		}
 
 		gcm := flattenNotificationHubsGCMCredentials(props.GcmCredential)
-		if d.Set("gcm_settings", gcm); err != nil {
+		if d.Set("gcm_credential", gcm); err != nil {
 			return fmt.Errorf("Error setting `gcm_credential`: %+v", err)
 		}
 	}
@@ -222,9 +244,9 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) (*notificationh
 
 	input := inputs[0].(map[string]interface{})
 	applicationMode := input["application_mode"].(string)
-	applicationId := input["application_id"].(string)
-	applicationName := input["application_name"].(string)
+	bundleId := input["bundle_id"].(string)
 	keyId := input["key_id"].(string)
+	teamId := input["team_id"].(string)
 	token := input["token"].(string)
 
 	applicationEndpoints := map[string]string{
@@ -235,8 +257,8 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) (*notificationh
 
 	credentials := notificationhubs.ApnsCredential{
 		ApnsCredentialProperties: &notificationhubs.ApnsCredentialProperties{
-			AppID:    utils.String(applicationId),
-			AppName:  utils.String(applicationName),
+			AppID:    utils.String(teamId),
+			AppName:  utils.String(bundleId),
 			Endpoint: utils.String(endpoint),
 			KeyID:    utils.String(keyId),
 			Token:    utils.String(token),
@@ -252,12 +274,8 @@ func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredenti
 
 	output := make(map[string]interface{}, 0)
 
-	if applicationId := input.AppID; applicationId != nil {
-		output["application_id"] = *applicationId
-	}
-
-	if name := input.AppName; name != nil {
-		output["application_name"] = *name
+	if bundleId := input.AppName; bundleId != nil {
+		output["bundle_id"] = *bundleId
 	}
 
 	if endpoint := input.Endpoint; endpoint != nil {
@@ -271,6 +289,10 @@ func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredenti
 
 	if keyId := input.KeyID; keyId != nil {
 		output["key_id"] = *keyId
+	}
+
+	if teamId := input.AppID; teamId != nil {
+		output["team_id"] = *teamId
 	}
 
 	if token := input.Token; token != nil {
