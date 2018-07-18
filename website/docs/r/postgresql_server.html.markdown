@@ -75,9 +75,9 @@ The following arguments are supported:
 
 * `capacity` - (Required) The scale up/out capacity, representing server's compute units.
 
-* `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers). Changing this forces a new resource to be created.
+* `tier` - (Required) The tier of the particular SKU. Possible values are `Basic`, `GeneralPurpose`, and `MemoryOptimized`. For more information see the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers).
 
-* `family` - (Required) The `family` of hardware `Gen4` or `Gen5`, before selecting your `family` check the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers#compute-generations-vcores-and-memory) for availability in your region. Changing this forces a new resource to be created.
+* `family` - (Required) The `family` of hardware `Gen4` or `Gen5`, before selecting your `family` check the [product documentation](https://docs.microsoft.com/en-us/azure/postgresql/concepts-pricing-tiers#compute-generations-vcores-and-memory) for availability in your region.
 
 ---
 

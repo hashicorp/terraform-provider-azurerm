@@ -73,7 +73,7 @@ func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 func TestAccAzureRMMySqlServer_memoryOptimized(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := acctest.RandInt()
-	config := testAccAzureRMMySQLServer_memoryOptimized(ri, testLocation())
+	config := testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(ri, testLocation())
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -119,6 +119,46 @@ func TestAccAzureRMMySQLServer_basicFiveSevenUpdated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "B_Gen5_1"),
 					resource.TestCheckResourceAttr(resourceName, "version", "5.7"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := acctest.RandInt()
+	location := testLocation()
+	config := testAccAzureRMMySQLServer_generalPurpose(ri, location)
+	updatedConfig := testAccAzureRMMySQLServer_memoryOptimized(ri, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen4_32"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "32"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "GeneralPurpose"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen4"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "MO_Gen5_16"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.capacity", "16"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "MemoryOptimized"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "4194304"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -295,10 +335,10 @@ resource "azurerm_mysql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "GP_Gen5_32"
+    name     = "GP_Gen4_32"
     capacity = 32
     tier     = "GeneralPurpose"
-    family   = "Gen5"
+    family   = "Gen4"
   }
 
   storage_profile {
@@ -316,6 +356,39 @@ resource "azurerm_mysql_server" "test" {
 }
 
 func testAccAzureRMMySQLServer_memoryOptimized(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "MO_Gen5_16"
+    capacity = 16
+    tier     = "MemoryOptimized"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb = 4194304,
+    backup_retention_days = 7
+    geo_redundant_backup = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.7"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_memoryOptimizedGeoRedundant(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

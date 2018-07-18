@@ -81,7 +81,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(postgresql.Basic),
 								string(postgresql.GeneralPurpose),
@@ -93,7 +92,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"family": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",

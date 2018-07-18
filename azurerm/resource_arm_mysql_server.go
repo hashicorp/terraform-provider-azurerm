@@ -80,7 +80,6 @@ func resourceArmMySqlServer() *schema.Resource {
 						"tier": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.Basic),
 								string(mysql.GeneralPurpose),
@@ -92,7 +91,6 @@ func resourceArmMySqlServer() *schema.Resource {
 						"family": {
 							Type:     schema.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Gen4",
 								"Gen5",
