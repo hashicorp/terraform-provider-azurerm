@@ -31,35 +31,6 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNotificationHubNamespace_updateSku(t *testing.T) {
-	resourceName := "azurerm_notification_hub_namespace.test"
-
-	ri := acctest.RandInt()
-	location := testLocation()
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAzureRMNotificationHubNamespace_free(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Free"),
-				),
-			},
-			{
-				Config: testAzureRMNotificationHubNamespace_basic(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNotificationHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Basic"),
-				),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMNotificationHubNamespaceExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]

@@ -51,7 +51,7 @@ The following arguments are supported:
 
 A `sku` block contains:
 
-* `name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard.`
+* `name` - (Required) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

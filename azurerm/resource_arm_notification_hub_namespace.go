@@ -45,6 +45,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(notificationhubs.Basic),
 								string(notificationhubs.Free),
