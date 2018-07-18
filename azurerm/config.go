@@ -78,10 +78,11 @@ type ArmClient struct {
 
 	cosmosDBClient documentdb.DatabaseAccountsClient
 
-	automationAccountClient    automation.AccountClient
-	automationRunbookClient    automation.RunbookClient
-	automationCredentialClient automation.CredentialClient
-	automationScheduleClient   automation.ScheduleClient
+	automationAccountClient      automation.AccountClient
+	automationRunbookClient      automation.RunbookClient
+	automationCredentialClient   automation.CredentialClient
+	automationScheduleClient     automation.ScheduleClient
+	automationRunbookDraftClient automation.RunbookDraftClient
 
 	dnsClient   dns.RecordSetsClient
 	zonesClient dns.ZonesClient
@@ -472,6 +473,13 @@ func (c *ArmClient) registerAutomationClients(endpoint, subscriptionId string, a
 	scheduleClient := automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&scheduleClient.Client, auth)
 	c.automationScheduleClient = scheduleClient
+
+	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
+	setUserAgent(&runbookDraftClient.Client)
+	runbookDraftClient.Authorizer = auth
+	runbookDraftClient.Sender = sender
+	runbookDraftClient.SkipResourceProviderRegistration = c.skipProviderRegistration
+	c.automationRunbookDraftClient = runbookDraftClient
 }
 
 func (c *ArmClient) registerAuthentication(endpoint, graphEndpoint, subscriptionId, tenantId string, auth, graphAuth autorest.Authorizer, sender autorest.Sender) {

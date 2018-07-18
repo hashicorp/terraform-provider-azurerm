@@ -68,6 +68,11 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				Optional: true,
 			},
 
+			"content": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"publish_content_link": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -145,6 +150,19 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	_, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters)
 	if err != nil {
 		return err
+	}
+
+	if v, ok := d.GetOk("content"); ok {
+		content := v.(string)
+		draftClient := meta.(*ArmClient).automationRunbookDraftClient
+		_, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, content)
+		if err != nil {
+			return err
+		}
+		_, err = draftClient.Publish(ctx, resGroup, accName, name)
+		if err != nil {
+			return err
+		}
 	}
 
 	read, err := client.Get(ctx, resGroup, accName, name)
