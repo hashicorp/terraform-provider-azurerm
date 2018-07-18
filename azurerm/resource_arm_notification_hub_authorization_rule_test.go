@@ -46,7 +46,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_manage(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHubAuthorizationRule_listen(ri, location),
+				Config: testAzureRMNotificationHubAuthorizationRule_manage(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "manage", "true"),
@@ -70,7 +70,7 @@ func TestAccAzureRMNotificationHubAuthorizationRule_send(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNotificationHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMNotificationHubAuthorizationRule_listen(ri, location),
+				Config: testAzureRMNotificationHubAuthorizationRule_send(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
