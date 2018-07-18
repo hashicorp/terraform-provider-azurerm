@@ -1,19 +1,15 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
-	"net/http"
-	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAutoscaleSetting() *schema.Resource {
@@ -28,24 +24,36 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
+
 			"resource_group_name": resourceGroupNameSchema(),
-			"location":            locationSchema(),
+
+			"location": locationSchema(),
+
+			"target_resource_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"profile": {
 				Type:     schema.TypeList,
 				Required: true,
-				MaxItems: 20, // https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx
+				MaxItems: 20, // https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#default
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"capacity": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Required: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -53,41 +61,42 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 									"minimum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 100),
+										ValidateFunc: validation.IntBetween(1, 40), // Tried in resources.azure.com: Please provide a value between '0' and '40'
 									},
 									"maximum": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 100),
+										ValidateFunc: validation.IntBetween(1, 40), // Tried in resources.azure.com: Please provide a value between '0' and '40'
 									},
 									"default": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 100),
+										ValidateFunc: validation.IntBetween(1, 40), // Tried in resources.azure.com: Please provide a value between '0' and '40'
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 						"rule": {
 							Type:     schema.TypeList,
-							Required: true,
-							MaxItems: 10, // https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx
+							Optional: true,
+							MaxItems: 10, // https://docs.microsoft.com/en-us/rest/api/monitor/autoscalesettings/createorupdate#autoscaleprofile
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"metric_trigger": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"metric_name": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.NoZeroValues,
 												},
 												"metric_resource_id": {
-													Type:     schema.TypeString,
-													Required: true,
+													Type:         schema.TypeString,
+													Required:     true,
+													ValidateFunc: validation.NoZeroValues,
 												},
 												"time_grain": {
 													Type:         schema.TypeString,
@@ -136,15 +145,14 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"threshold": {
-													Type:     schema.TypeInt,
+													Type:     schema.TypeFloat,
 													Required: true,
 												},
 											},
 										},
-										Set: resourceAzureRmAutoscaleDefaultHash,
 									},
 									"scale_action": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Required: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
@@ -169,8 +177,9 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 												},
 												"value": {
-													Type:     schema.TypeInt,
-													Required: true,
+													Type:         schema.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"cooldown": {
 													Type:         schema.TypeString,
@@ -179,16 +188,14 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 												},
 											},
 										},
-										Set: resourceAzureRmAutoscaleDefaultHash,
 									},
 								},
 							},
 						},
 						"fixed_date": {
-							Type:          schema.TypeSet,
-							Optional:      true,
-							MaxItems:      1,
-							ConflictsWith: []string{"profile.recurrence"},
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"time_zone": {
@@ -208,76 +215,52 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 						"recurrence": {
-							Type:          schema.TypeSet,
-							Optional:      true,
-							MaxItems:      1,
-							ConflictsWith: []string{"profile.fixed_date"},
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"frequency": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(insights.RecurrenceFrequencyNone),
-											string(insights.RecurrenceFrequencySecond),
-											string(insights.RecurrenceFrequencyMinute),
-											string(insights.RecurrenceFrequencyHour),
-											string(insights.RecurrenceFrequencyDay),
-											string(insights.RecurrenceFrequencyWeek),
-											string(insights.RecurrenceFrequencyMonth),
-											string(insights.RecurrenceFrequencyYear),
-										}, true),
-										DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+									"time_zone": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
 									},
-									"schedule": {
-										Type:     schema.TypeSet,
+									"days": {
+										Type:     schema.TypeList,
 										Required: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"time_zone": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validation.StringInSlice(listTimeZoneNames(), false),
-												},
-												"days": {
-													Type:     schema.TypeList,
-													Required: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-														ValidateFunc: validation.StringInSlice([]string{
-															"Monday",
-															"Tuesday",
-															"Wednesday",
-															"Thursday",
-															"Friday",
-															"Saturday",
-															"Sunday",
-														}, true),
-													},
-												},
-												"hours": {
-													Type:     schema.TypeList,
-													Required: true,
-													Elem: &schema.Schema{
-														Type:         schema.TypeInt,
-														ValidateFunc: validation.IntBetween(0, 23),
-													},
-												},
-												"minutes": {
-													Type:     schema.TypeList,
-													Optional: true,
-													Elem: &schema.Schema{
-														Type:         schema.TypeInt,
-														ValidateFunc: validation.IntBetween(0, 59),
-													},
-												},
-											},
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"Monday",
+												"Tuesday",
+												"Wednesday",
+												"Thursday",
+												"Friday",
+												"Saturday",
+												"Sunday",
+											}, true),
+											DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 										},
-										Set: resourceAzureRmAutoscaleDefaultHash,
+									},
+									"hours": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type:         schema.TypeInt,
+											ValidateFunc: validation.IntBetween(0, 23),
+										},
+									},
+									"minutes": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type:         schema.TypeInt,
+											ValidateFunc: validation.IntBetween(0, 59),
+										},
 									},
 								},
 							},
@@ -285,6 +268,13 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 					},
 				},
 			},
+
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"notification": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -292,7 +282,7 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"email": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
@@ -316,17 +306,16 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 						"webhook": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"service_uri": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.NoZeroValues,
 									},
 									"properties": {
 										Type:     schema.TypeMap,
@@ -334,72 +323,60 @@ func resourceArmAutoscaleSetting() *schema.Resource {
 									},
 								},
 							},
-							Set: resourceAzureRmAutoscaleDefaultHash,
 						},
 					},
 				},
 			},
-			"enabled": {
-				Type:     schema.TypeBool,
-				Required: true,
-			},
-			"target_resource_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
+
 			"tags": tagsSchema(),
 		},
 	}
 }
 
 func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	asClient := meta.(*ArmClient).autoscaleSettingsClient
+	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 	location := azureRMNormalizeLocation(d.Get("location").(string))
-	enabled := d.Get("enabled").(bool)
-	targetResourceURI := d.Get("target_resource_id").(string)
+
 	tags := d.Get("tags").(map[string]interface{})
 	expandedTags := expandTags(tags)
 
-	profiles, err := expandAzureRmAutoscaleProfile(d)
-	if err != nil {
-		return fmt.Errorf("Error parsing Autoscale Profile: %+v", err)
-	}
-
-	notifications, err := expandAzureRmAutoscaleNotification(d)
-	if err != nil {
-		return err
-	}
+	enabled := d.Get("enabled").(bool)
+	targetResourceId := d.Get("target_resource_id").(string)
 
 	parameters := insights.AutoscaleSettingResource{
-		Name:     &name,
-		Location: &location,
-		Tags:     expandedTags,
+		Location: utils.String(location),
 		AutoscaleSetting: &insights.AutoscaleSetting{
-			Name:              &name,
 			Enabled:           &enabled,
-			TargetResourceURI: &targetResourceURI,
-			Profiles:          &profiles,
-			Notifications:     &notifications,
+			TargetResourceURI: &targetResourceId,
 		},
+		Tags: expandedTags,
 	}
 
-	_, err = asClient.CreateOrUpdate(ctx, resourceGroupName, name, parameters)
+	if v, ok := d.GetOk("profile"); ok {
+		profiles, err := expandAzureRmAutoscaleSettingProfile(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("Error expanding `profile` of Autoscale Setting %q (resource group %q): %+v", name, resourceGroupName, err)
+		}
+		parameters.AutoscaleSetting.Profiles = profiles
+	}
+	if v, ok := d.GetOk("notification"); ok {
+		parameters.AutoscaleSetting.Notifications = expandAzureRmAutoscaleSettingNotifications(v.([]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating Autoscale Setting %q (resource group %q): %+v", name, resourceGroupName, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error reading Autoscale Setting %q (resource group %q) during creation: %+v", name, resourceGroupName, err)
 	}
-
-	read, err := asClient.Get(ctx, resourceGroupName, name)
-	if err != nil {
-		return err
-	}
-
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Autoscale settings %s (resource group %s) ID", name, resourceGroupName)
+		return fmt.Errorf("Autoscale Setting %q (resource group %q) ID is empty", name, resourceGroupName)
 	}
 
 	d.SetId(*read.ID)
@@ -408,522 +385,373 @@ func resourceArmAutoscaleSettingCreateOrUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAutoscaleSettingRead(d *schema.ResourceData, meta interface{}) error {
-	asClient := meta.(*ArmClient).autoscaleSettingsClient
+	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing Autoscale Setting resource ID: %+v", err)
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["autoscalesettings"]
 
-	if name == "" {
-		return fmt.Errorf("Cannot find resource name in Resource ID for Autoscale Setting")
-	}
-
-	result, err := asClient.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		if result.StatusCode == http.StatusNotFound {
+		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Autoscale Setting %s: %+v", name, err)
+		return fmt.Errorf("Error reading Autoscale Setting %q (resource group %q): %+v", name, resGroup, err)
 	}
 
-	if result.AutoscaleSetting == nil {
-		return fmt.Errorf("Unexpected result when reading Autoscale Setting %s: %#v", name, result)
-	}
-	autoscaleSetting := *result.AutoscaleSetting
-	d.Set("name", result.Name)
+	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	if location := result.Location; location != nil {
+	if location := resp.Location; location != nil {
 		d.Set("location", azureRMNormalizeLocation(*location))
 	}
-	d.Set("enabled", autoscaleSetting.Enabled)
-	d.Set("target_resource_id", autoscaleSetting.TargetResourceURI)
-	flattenAndSetTags(d, result.Tags)
 
-	d.Set("profile", flattenAzureRmAutoscaleProfile(autoscaleSetting.Profiles))
-	d.Set("notification", flattenAzureRmAutoscaleNotification(autoscaleSetting.Notifications))
+	d.Set("enabled", *resp.Enabled)
+	d.Set("target_resource_id", *resp.TargetResourceURI)
+
+	profile, err := flattenAzureRmAutoscaleSettingProfile(resp.Profiles)
+	if err != nil {
+		return fmt.Errorf("Error flattening `profile` of Autoscale Setting %q (resource group %q)", name, resGroup, err)
+	}
+	if err = d.Set("profile", profile); err != nil {
+		return fmt.Errorf("Error setting `profile` of Autoscale Setting %q (resource group %q): %+v", name, resGroup, err)
+	}
+	if resp.Notifications != nil {
+		if err = d.Set("notification", flattenAzureRmAutoscaleSettingNotification(resp.Notifications)); err != nil {
+			return fmt.Errorf("Error setting `notification` of Autoscale Setting %q (resource group %q): %+v", name, resGroup, err)
+		}
+	}
+
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
 
 func resourceArmAutoscaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	asClient := meta.(*ArmClient).autoscaleSettingsClient
+	client := meta.(*ArmClient).autoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing Autoscale Setting resource ID: %+v", err)
 	}
+	resGroup := id.ResourceGroup
+	name := id.Path["autoscalesettings"]
 
-	resourceGroupName := id.ResourceGroup
-	autoscaleSettingName := id.Path["autoscalesettings"]
-
-	_, err = asClient.Delete(ctx, resourceGroupName, autoscaleSettingName)
+	_, err = client.Delete(ctx, resGroup, name)
 	return err
 }
 
-func expandAzureRmAutoscaleProfile(d *schema.ResourceData) ([]insights.AutoscaleProfile, error) {
-	profileData := d.Get("profile").([]interface{})
-	profiles := make([]insights.AutoscaleProfile, 0, len(profileData))
+func expandAzureRmAutoscaleSettingProfile(v []interface{}) (*[]insights.AutoscaleProfile, error) {
+	profiles := make([]insights.AutoscaleProfile, 0)
+	for _, profileItem := range v {
+		val := profileItem.(map[string]interface{})
 
-	for _, profileConfig := range profileData {
-		profile := profileConfig.(map[string]interface{})
-
-		profileName := profile["name"].(string)
-		capacity := expandAzureRmAutoscaleCapacity(profile)
-		rules := expandAzureRmAutoscaleRule(profile)
-		autoscaleProfile := insights.AutoscaleProfile{
-			Name:     &profileName,
-			Capacity: &capacity,
-			Rules:    &rules,
+		capacity := val["capacity"].([]interface{})[0].(map[string]interface{})
+		profile := insights.AutoscaleProfile{
+			Name: utils.String(val["name"].(string)),
+			Capacity: &insights.ScaleCapacity{
+				Minimum: utils.String(strconv.Itoa(capacity["minimum"].(int))),
+				Maximum: utils.String(strconv.Itoa(capacity["maximum"].(int))),
+				Default: utils.String(strconv.Itoa(capacity["default"].(int))),
+			},
+		}
+		if v, ok := val["rule"]; ok {
+			profile.Rules = expandAzureRmAutoscaleSettingRule(v.([]interface{}))
+		}
+		if v, ok := val["fixed_date"]; ok {
+			vObj := v.([]interface{})[0]
+			fixedDate, err := expandAzureRmAutoscaleSettingFixedDate(vObj.(map[string]interface{}))
+			if err != nil {
+				return nil, err
+			}
+			profile.FixedDate = fixedDate
+		}
+		if v, ok := val["recurrence"]; ok {
+			vObj := v.([]interface{})[0]
+			profile.Recurrence = expandAzureRmAutoscaleSettingRecurrence(vObj.(map[string]interface{}))
 		}
 
-		fixedDate, fixedDateErr := expandAzureRmAutoscaleFixedDate(profile)
-		recurrence, recurrenceErr := expandAzureRmAutoscaleRecurrence(profile)
+		profiles = append(profiles, profile)
+	}
+	return &profiles, nil
+}
 
-		if fixedDate != nil && recurrence != nil {
-			return nil, fmt.Errorf("Conflict between fixed_date and recurrence in profile %s", profileName)
+func expandAzureRmAutoscaleSettingRule(v []interface{}) *[]insights.ScaleRule {
+	rules := make([]insights.ScaleRule, 0)
+	for _, ruleItem := range v {
+		ruleValue := ruleItem.(map[string]interface{})
+
+		metric := ruleValue["metric_trigger"].([]interface{})[0].(map[string]interface{})
+		scale := ruleValue["scale_action"].([]interface{})[0].(map[string]interface{})
+		rule := insights.ScaleRule{
+			MetricTrigger: &insights.MetricTrigger{
+				MetricName:        utils.String(metric["metric_name"].(string)),
+				MetricResourceURI: utils.String(metric["metric_resource_id"].(string)),
+				TimeGrain:         utils.String(metric["time_grain"].(string)),
+				Statistic:         insights.MetricStatisticType(metric["statistic"].(string)),
+				TimeWindow:        utils.String(metric["time_window"].(string)),
+				TimeAggregation:   insights.TimeAggregationType(metric["time_aggregation"].(string)),
+				Operator:          insights.ComparisonOperationType(metric["operator"].(string)),
+				Threshold:         utils.Float(metric["threshold"].(float64)),
+			},
+			ScaleAction: &insights.ScaleAction{
+				Direction: insights.ScaleDirection(scale["direction"].(string)),
+				Type:      insights.ScaleType(scale["type"].(string)),
+				Value:     utils.String(scale["value"].(string)),
+				Cooldown:  utils.String(scale["cooldown"].(string)),
+			},
 		}
 
-		if fixedDateErr != nil {
-			return nil, fixedDateErr
+		rules = append(rules, rule)
+	}
+	return &rules
+}
+
+func expandAzureRmAutoscaleSettingFixedDate(o map[string]interface{}) (*insights.TimeWindow, error) {
+	startTime, err := date.ParseTime(time.RFC3339, o["start"].(string))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse `start` field: %+v", err)
+	}
+	endTime, err := date.ParseTime(time.RFC3339, o["end"].(string))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse `end` field: %+v", err)
+	}
+	return &insights.TimeWindow{
+		TimeZone: utils.String(o["time_zone"].(string)),
+		Start:    &date.Time{Time: startTime},
+		End:      &date.Time{Time: endTime},
+	}, nil
+}
+
+func expandAzureRmAutoscaleSettingRecurrence(o map[string]interface{}) *insights.Recurrence {
+	days := make([]string, 0)
+	for _, dayItem := range o["days"].([]interface{}) {
+		days = append(days, dayItem.(string))
+	}
+	hours := make([]int32, 0)
+	for _, hourItem := range o["hours"].([]interface{}) {
+		hours = append(hours, hourItem.(int32))
+	}
+	minutes := make([]int32, 0)
+	for _, minuteItem := range o["minutes"].([]interface{}) {
+		minutes = append(minutes, minuteItem.(int32))
+	}
+	return &insights.Recurrence{
+		Frequency: insights.RecurrenceFrequencyWeek,
+		Schedule: &insights.RecurrentSchedule{
+			TimeZone: utils.String(o["time_zone"].(string)),
+			Days:     &days,
+			Hours:    &hours,
+			Minutes:  &minutes,
+		},
+	}
+}
+
+func expandAzureRmAutoscaleSettingNotifications(v []interface{}) *[]insights.AutoscaleNotification {
+	notifications := make([]insights.AutoscaleNotification, 0)
+	for _, notificationItem := range v {
+		val := notificationItem.(map[string]interface{})
+		notification := insights.AutoscaleNotification{
+			Operation: utils.String("scale"),
 		}
-		autoscaleProfile.FixedDate = fixedDate
-
-		if recurrenceErr != nil {
-			return nil, recurrenceErr
+		if v, ok := val["email"]; ok {
+			vObj := v.([]interface{})[0]
+			notification.Email = expandAzureRmAutoscaleSettingNotificationEmail(vObj.(map[string]interface{}))
 		}
-		autoscaleProfile.Recurrence = recurrence
-
-		profiles = append(profiles, autoscaleProfile)
-	}
-
-	return profiles, nil
-}
-
-func expandAzureRmAutoscaleCapacity(config map[string]interface{}) insights.ScaleCapacity {
-	capacitySet := config["capacity"].(*schema.Set).List()
-	capacityConfig := capacitySet[0].(map[string]interface{})
-	min := strconv.Itoa(capacityConfig["minimum"].(int))
-	max := strconv.Itoa(capacityConfig["maximum"].(int))
-	defaultValue := strconv.Itoa(capacityConfig["default"].(int))
-
-	scaleCapacity := insights.ScaleCapacity{
-		Minimum: &min,
-		Maximum: &max,
-		Default: &defaultValue,
-	}
-
-	return scaleCapacity
-}
-
-func expandAzureRmAutoscaleRule(config map[string]interface{}) []insights.ScaleRule {
-	ruleSet := config["rule"].([]interface{})
-	scaleRules := make([]insights.ScaleRule, 0, len(ruleSet))
-
-	for _, ruleConfig := range ruleSet {
-		rule := ruleConfig.(map[string]interface{})
-		metricTrigger := expandAzureRmMetricTrigger(rule)
-		scaleAction := expandAzureRmScaleAction(rule)
-
-		scaleRule := insights.ScaleRule{
-			MetricTrigger: &metricTrigger,
-			ScaleAction:   &scaleAction,
+		if v, ok := val["config"]; ok {
+			notification.Webhooks = expandAzureRmAutoscaleSettingNotificationWebhook(v.([]interface{}))
 		}
-		scaleRules = append(scaleRules, scaleRule)
+		notifications = append(notifications, notification)
 	}
-
-	return scaleRules
+	return &notifications
 }
 
-func expandAzureRmMetricTrigger(config map[string]interface{}) insights.MetricTrigger {
-	metricTriggerSet := config["metric_trigger"].(*schema.Set).List()
-	metricTriggerConfig := metricTriggerSet[0].(map[string]interface{})
-	metricName := metricTriggerConfig["metric_name"].(string)
-	metricResourceURI := metricTriggerConfig["metric_resource_id"].(string)
-	timeGrain := metricTriggerConfig["time_grain"].(string)
-	statistic := metricTriggerConfig["statistic"].(string)
-	timeWindow := metricTriggerConfig["time_window"].(string)
-	timeAggregation := metricTriggerConfig["time_aggregation"].(string)
-	operator := metricTriggerConfig["operator"].(string)
-	threshold := float64(metricTriggerConfig["threshold"].(int))
-
-	return insights.MetricTrigger{
-		MetricName:        &metricName,
-		MetricResourceURI: &metricResourceURI,
-		TimeGrain:         &timeGrain,
-		Statistic:         insights.MetricStatisticType(statistic),
-		TimeWindow:        &timeWindow,
-		TimeAggregation:   insights.TimeAggregationType(timeAggregation),
-		Operator:          insights.ComparisonOperationType(operator),
-		Threshold:         &threshold,
+func expandAzureRmAutoscaleSettingNotificationEmail(o map[string]interface{}) *insights.EmailNotification {
+	email := insights.EmailNotification{
+		SendToSubscriptionAdministrator:    utils.Bool(o["send_to_subscription_administrator"].(bool)),
+		SendToSubscriptionCoAdministrators: utils.Bool(o["send_to_subscription_co_administrator"].(bool)),
 	}
+	if v, ok := o["custom_emails"]; ok {
+		customEmails := make([]string, 0)
+		for _, item := range v.([]interface{}) {
+			customEmails = append(customEmails, item.(string))
+		}
+		email.CustomEmails = &customEmails
+	}
+	return &email
 }
 
-func expandAzureRmScaleAction(config map[string]interface{}) insights.ScaleAction {
-	scaleActionSet := config["scale_action"].(*schema.Set).List()
-	scaleActionConfig := scaleActionSet[0].(map[string]interface{})
-	direction := scaleActionConfig["direction"].(string)
-	scaleType := scaleActionConfig["type"].(string)
-	value := strconv.Itoa(scaleActionConfig["value"].(int))
-	cooldown := scaleActionConfig["cooldown"].(string)
-
-	return insights.ScaleAction{
-		Direction: insights.ScaleDirection(direction),
-		Type:      insights.ScaleType(scaleType),
-		Value:     &value,
-		Cooldown:  &cooldown,
+func expandAzureRmAutoscaleSettingNotificationWebhook(v []interface{}) *[]insights.WebhookNotification {
+	webhooks := make([]insights.WebhookNotification, 0)
+	for _, webhookItem := range v {
+		val := webhookItem.(map[string]interface{})
+		webhook := insights.WebhookNotification{
+			ServiceURI: utils.String(val["service_uri"].(string)),
+		}
+		if v, ok := val["properties"]; ok {
+			properties := make(map[string]*string)
+			for key, value := range v.(map[string]interface{}) {
+				properties[key] = utils.String(value.(string))
+			}
+			webhook.Properties = properties
+		}
+		webhooks = append(webhooks, webhook)
 	}
+	return &webhooks
 }
 
-func expandAzureRmAutoscaleFixedDate(config map[string]interface{}) (*insights.TimeWindow, error) {
-	timeWindow := &insights.TimeWindow{}
-	fixedDateSet := config["fixed_date"].(*schema.Set).List()
-
-	if fixedDateSet == nil || len(fixedDateSet) == 0 {
-		return nil, nil
-	}
-
-	fixedDateConfig := fixedDateSet[0].(map[string]interface{})
-	timeZone := fixedDateConfig["time_zone"].(string)
-	startString := fixedDateConfig["start"].(string)
-	endString := fixedDateConfig["end"].(string)
-
-	startTime, startTimeErr := date.ParseTime(time.RFC3339, startString)
-	if startTimeErr != nil {
-		return nil, startTimeErr
-	}
-
-	endTime, endTimeErr := date.ParseTime(time.RFC3339, endString)
-	if endTimeErr != nil {
-		return nil, endTimeErr
-	}
-
-	timeWindow.TimeZone = &timeZone
-	timeWindow.Start = &date.Time{Time: startTime}
-	timeWindow.End = &date.Time{Time: endTime}
-
-	return timeWindow, nil
-}
-
-func expandAzureRmAutoscaleRecurrence(config map[string]interface{}) (*insights.Recurrence, error) {
-	recurrence := &insights.Recurrence{}
-	recurrenceSet := config["recurrence"].(*schema.Set).List()
-
-	if recurrenceSet == nil || len(recurrenceSet) == 0 {
-		return nil, nil
-	}
-
-	recurrenceConfig := recurrenceSet[0].(map[string]interface{})
-	schedule := expandAzureRmAutoscaleRecurrentSchedule(recurrenceConfig)
-	recurrence.Frequency = insights.RecurrenceFrequency(recurrenceConfig["frequency"].(string))
-	recurrence.Schedule = &schedule
-	return recurrence, nil
-}
-
-func expandAzureRmAutoscaleRecurrentSchedule(config map[string]interface{}) insights.RecurrentSchedule {
-	scheduleSet := config["schedule"].(*schema.Set).List()
-	scheduleConfig := scheduleSet[0].(map[string]interface{})
-	timeZone := scheduleConfig["time_zone"].(string)
-
-	daysConfig := scheduleConfig["days"].([]interface{})
-	days := make([]string, len(daysConfig))
-	for i, v := range daysConfig {
-		days[i] = v.(string)
-	}
-
-	hoursConfig := scheduleConfig["hours"].([]interface{})
-	hours := make([]int32, len(hoursConfig))
-	for i, v := range hoursConfig {
-		hours[i] = int32(v.(int))
-	}
-
-	minutesConfig := scheduleConfig["minutes"].([]interface{})
-	minutes := make([]int32, len(minutesConfig))
-	for i, v := range minutesConfig {
-		minutes[i] = int32(v.(int))
-	}
-
-	return insights.RecurrentSchedule{
-		TimeZone: &timeZone,
-		Days:     &days,
-		Hours:    &hours,
-		Minutes:  &minutes,
-	}
-}
-
-func expandAzureRmAutoscaleNotification(d *schema.ResourceData) ([]insights.AutoscaleNotification, error) {
-	r, ok := d.GetOk("notification")
-	if !ok {
-		return nil, nil
-	}
-
-	notificationData := r.([]interface{})
-	notifications := make([]insights.AutoscaleNotification, 0, len(notificationData))
-	operation := "Scale"
-
-	for _, item := range notificationData {
-		notificationConfig := item.(map[string]interface{})
-		email := expandAzureRmAutoscaleEmailNotification(notificationConfig)
-		webhooks, err := expandAzureRmAutoscaleWebhook(notificationConfig)
-
+func flattenAzureRmAutoscaleSettingProfile(profiles *[]insights.AutoscaleProfile) ([]interface{}, error) {
+	result := make([]interface{}, 0)
+	for _, profile := range *profiles {
+		v := make(map[string]interface{})
+		v["name"] = *profile.Name
+		vCap, err := flattenAzureRmAutoscaleSettingCapacity(profile.Capacity)
 		if err != nil {
 			return nil, err
 		}
-
-		notification := insights.AutoscaleNotification{
-			Operation: &operation,
-			Email:     &email,
-			Webhooks:  &webhooks,
+		v["capacity"] = vCap
+		if profile.Rules != nil {
+			v["rule"] = flattenAzureRmAutoscaleSettingRules(profile.Rules)
 		}
-
-		notifications = append(notifications, notification)
-	}
-
-	return notifications, nil
-}
-
-func expandAzureRmAutoscaleEmailNotification(config map[string]interface{}) insights.EmailNotification {
-	emailSet := config["email"].(*schema.Set).List()
-	emailConfig := emailSet[0].(map[string]interface{})
-	sendToAdmin := emailConfig["send_to_subscription_administrator"].(bool)
-	sendToCoAdmin := emailConfig["send_to_subscription_co_administrator"].(bool)
-	customEmailsConfig := emailConfig["custom_emails"].([]interface{})
-	customEmails := make([]string, len(customEmailsConfig))
-	for i, v := range customEmailsConfig {
-		customEmails[i] = v.(string)
-	}
-
-	email := insights.EmailNotification{
-		SendToSubscriptionAdministrator:    &sendToAdmin,
-		SendToSubscriptionCoAdministrators: &sendToCoAdmin,
-		CustomEmails:                       &customEmails,
-	}
-
-	return email
-}
-
-func expandAzureRmAutoscaleWebhook(config map[string]interface{}) ([]insights.WebhookNotification, error) {
-	r := config["webhook"]
-	if r == nil {
-		return nil, nil
-	}
-
-	webhookData := r.(*schema.Set).List()
-	webhooks := make([]insights.WebhookNotification, 0, len(webhookData))
-
-	for _, item := range webhookData {
-		webhookConfig := item.(map[string]interface{})
-		serviceURI := webhookConfig["service_uri"].(string)
-		webhook := insights.WebhookNotification{
-			ServiceURI: &serviceURI,
-		}
-
-		p := webhookConfig["properties"]
-		if p != nil {
-			propertiesConfig := p.(map[string]interface{})
-
-			properties := make(map[string]*string, len(propertiesConfig))
-			for k, v := range propertiesConfig {
-				value, success := v.(string)
-
-				if !success {
-					return nil, fmt.Errorf("Expect string in webhook.properties values, got '%#v'", v)
-				}
-
-				properties[k] = &value
-			}
-
-			webhook.Properties = properties
-		}
-
-		webhooks = append(webhooks, webhook)
-	}
-
-	return webhooks, nil
-}
-
-func flattenAzureRmAutoscaleProfile(profiles *[]insights.AutoscaleProfile) []interface{} {
-	results := make([]interface{}, 0, len(*profiles))
-
-	for _, profile := range *profiles {
-		profileConfig := make(map[string]interface{})
-		profileConfig["name"] = *profile.Name
-		profileConfig["capacity"] = flattenAzureRmAutoscaleCapacity(profile)
-		profileConfig["rule"] = flattenAzureRmAutoscaleRule(profile)
-
 		if profile.FixedDate != nil {
-			profileConfig["fixed_date"] = flattenAzureRmAutoscaleFixedDate(profile)
+			v["fixed_date"] = flattenAzureRmAutoscaleSettingFixedDate(profile.FixedDate)
 		}
-
 		if profile.Recurrence != nil {
-			profileConfig["recurrence"] = flattenAzureRmAutoscaleRecurrence(profile)
+			v["recurrence"] = flattenAzureRmAutoscaleSettingRecurrence(profile.Recurrence)
 		}
-
-		results = append(results, profileConfig)
+		result = append(result, v)
 	}
-
-	return results
+	return result, nil
 }
 
-func flattenAzureRmAutoscaleCapacity(profile insights.AutoscaleProfile) *schema.Set {
-	capacity := make(map[string]interface{})
-	capacity["minimum"], _ = strconv.Atoi(*profile.Capacity.Minimum)
-	capacity["maximum"], _ = strconv.Atoi(*profile.Capacity.Maximum)
-	capacity["default"], _ = strconv.Atoi(*profile.Capacity.Default)
-
-	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{capacity})
-}
-
-func flattenAzureRmAutoscaleRule(profile insights.AutoscaleProfile) []interface{} {
-	rules := make([]interface{}, 0, len(*profile.Rules))
-
-	for _, rule := range *profile.Rules {
-		ruleConfig := make(map[string]interface{})
-		ruleConfig["metric_trigger"] = flattenAzureRmAutoscaleMetricTrigger(rule)
-		ruleConfig["scale_action"] = flattenAzureRmAutoscaleAction(rule)
-
-		rules = append(rules, ruleConfig)
+func flattenAzureRmAutoscaleSettingCapacity(capacity *insights.ScaleCapacity) ([]interface{}, error) {
+	result := make(map[string]interface{})
+	vMin, err := strconv.Atoi(*capacity.Minimum)
+	if err != nil {
+		return nil, err
 	}
-
-	return rules
-}
-
-func flattenAzureRmAutoscaleMetricTrigger(rule insights.ScaleRule) *schema.Set {
-	metricTrigger := make(map[string]interface{})
-	metricTrigger["metric_name"] = *rule.MetricTrigger.MetricName
-	metricTrigger["metric_resource_id"] = *rule.MetricTrigger.MetricResourceURI
-	metricTrigger["time_grain"] = *rule.MetricTrigger.TimeGrain
-	metricTrigger["statistic"] = string(rule.MetricTrigger.Statistic)
-	metricTrigger["time_window"] = *rule.MetricTrigger.TimeWindow
-	metricTrigger["time_aggregation"] = string(rule.MetricTrigger.TimeAggregation)
-	metricTrigger["operator"] = string(rule.MetricTrigger.Operator)
-	metricTrigger["threshold"] = int(*rule.MetricTrigger.Threshold)
-
-	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{metricTrigger})
-}
-
-func flattenAzureRmAutoscaleAction(rule insights.ScaleRule) *schema.Set {
-	scaleAction := make(map[string]interface{})
-	scaleAction["direction"] = string(rule.ScaleAction.Direction)
-	scaleAction["type"] = string(rule.ScaleAction.Type)
-	scaleAction["value"] = *rule.ScaleAction.Value
-	scaleAction["cooldown"] = *rule.ScaleAction.Cooldown
-
-	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{scaleAction})
-}
-
-func flattenAzureRmAutoscaleFixedDate(profile insights.AutoscaleProfile) *schema.Set {
-	fixedDate := make(map[string]interface{})
-	fixedDate["time_zone"] = *profile.FixedDate.TimeZone
-	fixedDate["start"] = profile.FixedDate.Start.String()
-	fixedDate["end"] = profile.FixedDate.End.String()
-
-	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{fixedDate})
-}
-
-func flattenAzureRmAutoscaleRecurrence(profile insights.AutoscaleProfile) *schema.Set {
-	recurrence := make(map[string]interface{})
-	recurrence["frequency"] = string(profile.Recurrence.Frequency)
-	recurrence["schedule"] = flattenAzureRmAutoscaleSchedule(*profile.Recurrence)
-
-	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{recurrence})
-}
-
-func flattenAzureRmAutoscaleSchedule(recurrence insights.Recurrence) *schema.Set {
-	schedule := make(map[string]interface{})
-	schedule["time_zone"] = *recurrence.Schedule.TimeZone
-
-	days := make([]interface{}, len(*recurrence.Schedule.Days))
-	for k, v := range *recurrence.Schedule.Days {
-		days[k] = v
+	result["minimum"] = vMin
+	vMax, err := strconv.Atoi(*capacity.Maximum)
+	if err != nil {
+		return nil, err
 	}
-	schedule["days"] = days
-
-	hours := make([]interface{}, len(*recurrence.Schedule.Hours))
-	for k, v := range *recurrence.Schedule.Hours {
-		hours[k] = v
+	result["maximum"] = vMax
+	vDef, err := strconv.Atoi(*capacity.Default)
+	if err != nil {
+		return nil, err
 	}
-	schedule["hours"] = hours
-
-	minutes := make([]interface{}, len(*recurrence.Schedule.Minutes))
-	for k, v := range *recurrence.Schedule.Minutes {
-		minutes[k] = v
-	}
-	schedule["minutes"] = minutes
-
-	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{schedule})
+	result["default"] = vDef
+	return []interface{}{result}, nil
 }
 
-func flattenAzureRmAutoscaleNotification(notifications *[]insights.AutoscaleNotification) []interface{} {
-	results := make([]interface{}, 0)
+func flattenAzureRmAutoscaleSettingRules(rules *[]insights.ScaleRule) []interface{} {
+	result := make([]interface{}, 0)
+	for _, rule := range *rules {
+		vRule := make(map[string]interface{})
 
+		vMetric := make(map[string]interface{})
+		vMetric["metric_name"] = *rule.MetricTrigger.MetricName
+		vMetric["metric_resource_id"] = *rule.MetricTrigger.MetricResourceURI
+		vMetric["time_grain"] = *rule.MetricTrigger.TimeGrain
+		vMetric["statistic"] = string(rule.MetricTrigger.Statistic)
+		vMetric["time_window"] = *rule.MetricTrigger.TimeWindow
+		vMetric["time_aggregation"] = string(rule.MetricTrigger.TimeAggregation)
+		vMetric["operator"] = string(rule.MetricTrigger.Operator)
+		vMetric["threshold"] = *rule.MetricTrigger.Threshold
+		vRule["metric_trigger"] = []interface{}{vMetric}
+
+		vScale := make(map[string]interface{})
+		vScale["direction"] = string(rule.ScaleAction.Direction)
+		vScale["type"] = string(rule.ScaleAction.Type)
+		vScale["value"] = *rule.ScaleAction.Value
+		vScale["cooldown"] = *rule.ScaleAction.Cooldown
+		vRule["scale_action"] = []interface{}{vScale}
+
+		result = append(result, vRule)
+	}
+	return result
+}
+
+func flattenAzureRmAutoscaleSettingFixedDate(fixedDate *insights.TimeWindow) []interface{} {
+	result := make(map[string]interface{})
+	result["time_zone"] = *fixedDate.TimeZone
+	result["start"] = fixedDate.Start.String()
+	result["end"] = fixedDate.End.String()
+	return []interface{}{result}
+}
+
+func flattenAzureRmAutoscaleSettingRecurrence(recurrence *insights.Recurrence) []interface{} {
+	result := make(map[string]interface{})
+	result["time_zone"] = *recurrence.Schedule.TimeZone
+
+	days := make([]string, 0)
+	for _, v := range *recurrence.Schedule.Days {
+		days = append(days, v)
+	}
+	result["days"] = days
+
+	hours := make([]int, 0)
+	for _, v := range *recurrence.Schedule.Hours {
+		hours = append(hours, int(v))
+	}
+	result["hours"] = hours
+
+	minutes := make([]int, 0)
+	for _, v := range *recurrence.Schedule.Minutes {
+		minutes = append(minutes, int(v))
+	}
+	result["minutes"] = minutes
+
+	return []interface{}{result}
+}
+
+func flattenAzureRmAutoscaleSettingNotification(notifications *[]insights.AutoscaleNotification) []interface{} {
+	result := make([]interface{}, 0)
 	for _, notification := range *notifications {
-		notificationConfig := make(map[string]interface{})
-		notificationConfig["operation"] = *notification.Operation
-		notificationConfig["email"] = flattenAzureRmAutoscaleEmailNotification(notification)
-		if *notification.Webhooks != nil {
-			notificationConfig["webhook"] = flattenAzureRmAutoscaleWebhook(notification)
+		v := make(map[string]interface{})
+		if email := notification.Email; email != nil {
+			v["email"] = flattenAzureRmAutoscaleSettingNotificationEmail(email)
 		}
-		results = append(results, notificationConfig)
-	}
-
-	return results
-}
-
-func flattenAzureRmAutoscaleEmailNotification(notification insights.AutoscaleNotification) *schema.Set {
-	email := make(map[string]interface{})
-	email["send_to_subscription_administrator"] = *notification.Email.SendToSubscriptionAdministrator
-	email["send_to_subscription_co_administrator"] = *notification.Email.SendToSubscriptionCoAdministrators
-
-	if *notification.Email.CustomEmails != nil {
-		email["custom_emails"] = *notification.Email.CustomEmails
-	}
-
-	return schema.NewSet(resourceAzureRmAutoscaleDefaultHash, []interface{}{email})
-}
-
-func flattenAzureRmAutoscaleWebhook(notification insights.AutoscaleNotification) *schema.Set {
-	set := &schema.Set{
-		F: resourceAzureRmAutoscaleDefaultHash,
-	}
-
-	for _, v := range *notification.Webhooks {
-		webhook := map[string]interface{}{}
-		webhook["service_uri"] = *v.ServiceURI
-
-		if v.Properties != nil {
-			properties := map[string]interface{}{}
-			for key, value := range v.Properties {
-				properties[key] = *value
-			}
-			webhook["properties"] = properties
+		if webhooks := notification.Webhooks; webhooks != nil {
+			v["webhook"] = flattenAzureRmAutoscaleSettingNotificationWebhooks(webhooks)
 		}
-		set.Add(webhook)
+		result = append(result, v)
 	}
-
-	return set
+	return result
 }
 
-func resourceAzureRmAutoscaleDefaultHash(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-	var keys []string
-
-	for k := range m {
-		keys = append(keys, k)
+func flattenAzureRmAutoscaleSettingNotificationEmail(email *insights.EmailNotification) []interface{} {
+	result := make(map[string]interface{}, 0)
+	if send := email.SendToSubscriptionAdministrator; send != nil {
+		result["send_to_subscription_administrator"] = *send
 	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		buf.WriteString(strings.ToLower(fmt.Sprintf("%s:%v;", k, m[k])))
+	if send := email.SendToSubscriptionCoAdministrators; send != nil {
+		result["send_to_subscription_co_administrator"] = *send
 	}
+	if custom := email.CustomEmails; custom != nil {
+		result["custom_emails"] = *custom
+	}
+	return []interface{}{result}
+}
 
-	return hashcode.String(buf.String())
+func flattenAzureRmAutoscaleSettingNotificationWebhooks(webhooks *[]insights.WebhookNotification) []interface{} {
+	result := make([]interface{}, 0)
+	for _, webhook := range *webhooks {
+		v := make(map[string]interface{})
+		v["service_uri"] = *webhook.ServiceURI
+		vProp := make(map[string]string)
+		for key, value := range webhook.Properties {
+			vProp[key] = *value
+		}
+		v["properties"] = vProp
+		result = append(result, v)
+	}
+	return result
 }
 
 func listTimeZoneNames() []string {
