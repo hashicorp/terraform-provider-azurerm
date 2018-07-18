@@ -237,6 +237,9 @@ func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notifi
 			}
 		}
 
+		// try triggering a deleting again
+		client.Delete(ctx, resourceGroupName, name)
+
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
 }
