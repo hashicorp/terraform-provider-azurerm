@@ -243,9 +243,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -276,9 +276,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 51200
+    storage_mb            = 51200
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -309,9 +309,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 640000
+    storage_mb            = 640000
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -342,9 +342,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 640000
+    storage_mb            = 640000
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -375,9 +375,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 4194304,
+    storage_mb            = 4194304,
     backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -408,9 +408,9 @@ resource "azurerm_mysql_server" "test" {
   }
 
   storage_profile {
-    storage_mb = 4194304,
+    storage_mb            = 4194304,
     backup_retention_days = 7
-    geo_redundant_backup = "Enabled"
+    geo_redundant_backup  = "Enabled"
   }
 
   administrator_login          = "acctestun"
