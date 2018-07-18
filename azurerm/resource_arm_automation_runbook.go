@@ -219,6 +219,12 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		flattenAndSetTags(d, tags)
 	}
 
+	content, err := client.GetContent(ctx, resGroup, accName, name)
+	if err != nil {
+		return err
+	}
+	d.Set("content", content)
+
 	return nil
 }
 
