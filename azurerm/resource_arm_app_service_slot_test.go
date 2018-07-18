@@ -708,6 +708,35 @@ func TestAccAzureRMAppServiceSlot_enableManageServiceIdentity(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := acctest.RandInt()
+	config := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.0")
+	updatedConfig := testAccAzureRMAppServiceSlot_minTls(ri, testLocation(), "1.1")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.0"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.min_tls_version", "1.1"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).appServicesClient
 
@@ -1679,4 +1708,43 @@ resource "azurerm_app_service_slot" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_minTls(rInt int, location string, tlsVersion string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    min_tls_version = "%s"
+	}
+}
+`, rInt, location, rInt, rInt, rInt, tlsVersion)
 }

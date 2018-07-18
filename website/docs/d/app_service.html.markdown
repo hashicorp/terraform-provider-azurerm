@@ -85,6 +85,8 @@ output "app_service_id" {
 
 * `managed_pipeline_mode` - The Managed Pipeline Mode used in this App Service.
 
+* `min_tls_version` - The minimum supported TLS version for this App Service.
+
 * `php_version` - The version of PHP used in this App Service.
 
 * `python_version` - The version of Python used in this App Service.
