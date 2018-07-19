@@ -7,7 +7,6 @@ FEATURES:
 * **New Data Source:** `azurerm_notification_hub` [GH-1589]
 * **New Data Source:** `azurerm_notification_hub_namespace` [GH-1589]
 * **New Data Source:** `azurerm_service_principal` [GH-1564]
-
 * **New Resource:** `azurerm_eventhub_namespace_authorization_rule` [GH-1572]
 * **New Resource:** `azurerm_logic_app_action_custom` [GH-1266]
 * **New Resource:** `azurerm_logic_app_action_http` [GH-1266]
