@@ -10,6 +10,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const apnsProductionName = "Production"
+const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
+const apnsSandboxName = "Sandbox"
+const apnsSandboxEndpoint = "https://api.development.push.apple.com:443/3/device"
+
 func resourceArmNotificationHub() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNotificationHubCreateUpdate,
@@ -70,8 +75,8 @@ func resourceArmNotificationHub() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Production",
-								"Sandbox",
+								apnsProductionName,
+								apnsSandboxName,
 							}, false),
 						},
 						"bundle_id": {
@@ -250,8 +255,8 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) (*notificationh
 	token := input["token"].(string)
 
 	applicationEndpoints := map[string]string{
-		"Production": "https://api.push.apple.com:443/3/device",
-		"Sandbox":    "https://api.development.push.apple.com:443/3/device",
+		apnsProductionName: apnsProductionEndpoint,
+		apnsSandboxName:    apnsSandboxEndpoint,
 	}
 	endpoint := applicationEndpoints[applicationMode]
 
@@ -280,8 +285,8 @@ func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredenti
 
 	if endpoint := input.Endpoint; endpoint != nil {
 		applicationEndpoints := map[string]string{
-			"https://api.push.apple.com:443/3/device":             "Production",
-			"https://api.development.push.apple.com:443/3/device": "Sandbox",
+			apnsProductionEndpoint: apnsProductionName,
+			apnsSandboxEndpoint:    apnsSandboxName,
 		}
 		applicationMode := applicationEndpoints[*endpoint]
 		output["application_mode"] = applicationMode
