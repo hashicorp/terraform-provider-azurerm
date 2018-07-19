@@ -19,6 +19,9 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMActiveDirectoryApplication_basic(id),
+			},
+			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
@@ -37,15 +40,16 @@ func TestAccDataSourceAzureRMAzureADApplication_byObjectId(t *testing.T) {
 func TestAccDataSourceAzureRMAzureADApplication_byObjectIdComplete(t *testing.T) {
 	dataSourceName := "data.azurerm_azuread_application.test"
 	id := uuid.New().String()
-	config := testAccDataSourceAzureRMAzureADApplication_objectIdComplete(id)
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMActiveDirectoryApplicationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMActiveDirectoryApplication_complete(id),
+			},
+			{
+				Config: testAccDataSourceAzureRMAzureADApplication_objectIdComplete(id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMActiveDirectoryApplicationExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "name", fmt.Sprintf("acctest%s", id)),
