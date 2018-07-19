@@ -29,6 +29,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-04-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
@@ -181,6 +182,10 @@ type ArmClient struct {
 	vnetClient                      network.VirtualNetworksClient
 	vnetPeeringsClient              network.VirtualNetworkPeeringsClient
 	watcherClient                   network.WatchersClient
+
+	// Notification Hubs
+	notificationHubsClient       notificationhubs.Client
+	notificationNamespacesClient notificationhubs.NamespacesClient
 
 	// Recovery Services
 	recoveryServicesVaultsClient recoveryservices.VaultsClient
@@ -404,8 +409,10 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerLogicClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth, sender)
+	client.registerNotificationHubsClient(endpoint, c.SubscriptionID, auth, sender)
 	client.registerOperationalInsightsClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRecoveryServiceClients(endpoint, c.SubscriptionID, auth)
+	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
 	client.registerRedisClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerRelayClients(endpoint, c.SubscriptionID, auth, sender)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
@@ -415,7 +422,6 @@ func getArmClient(c *authentication.Config) (*ArmClient, error) {
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerTrafficManagerClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
-	client.registerPolicyClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -835,6 +841,16 @@ func (c *ArmClient) registerNetworkingClients(endpoint, subscriptionId string, a
 	watchersClient := network.NewWatchersClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&watchersClient.Client, auth)
 	c.watcherClient = watchersClient
+}
+
+func (c *ArmClient) registerNotificationHubsClient(endpoint, subscriptionId string, auth *autorest.BearerAuthorizer, sender autorest.Sender) {
+	namespacesClient := notificationhubs.NewNamespacesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&namespacesClient.Client, auth)
+	c.notificationNamespacesClient = namespacesClient
+
+	notificationHubsClient := notificationhubs.NewClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&notificationHubsClient.Client, auth)
+	c.notificationHubsClient = notificationHubsClient
 }
 
 func (c *ArmClient) registerOperationalInsightsClients(endpoint, subscriptionId string, auth autorest.Authorizer, sender autorest.Sender) {
